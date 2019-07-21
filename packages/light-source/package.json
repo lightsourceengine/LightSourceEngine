@@ -56,7 +56,8 @@
       "dist/",
       "addon/",
       "node_modules/",
-      "build/"
+      "build/",
+      "docs/"
     ],
     "parser": "babel-eslint",
     "env": {
