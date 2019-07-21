@@ -1,0 +1,5 @@
+{
+  "includes": [
+    "addon/binding.gyp",
+  ]
+}
