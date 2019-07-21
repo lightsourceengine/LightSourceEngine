@@ -1,0 +1,27 @@
+{
+  "name": "build",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LightSourceEngine/LightSourceEngine.git"
+  },
+  "author": "Daniel Anderson <dan.anderson.oss@gmail.com>",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "install:light-source": "cd packages/light-source && $npm_execpath",
+    "test:light-source": "cd packages/light-source && $npm_execpath test",
+
+    "install:react-light-source": "cd packages/react-light-source && $npm_execpath",
+    "test:react-light-source": "cd packages/react-light-source && $npm_execpath test",
+
+    "postinstall": "run-s install:*",
+    "test": "run-s test:*"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  }
+}

@@ -1,0 +1,53 @@
+dist: xenial
+sudo: required
+
+language: node_js
+node_js:
+  - 10
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - gcc-6
+      - g++-6
+      - libegl1-mesa-dev
+      - libgles2-mesa-dev
+      - libcec-dev
+
+before_install:
+  - |
+    if [ ! -d "$HOME/SDL2/lib" ]; then
+      mkdir "$HOME/tmp"
+      travis_retry curl -L https://www.libsdl.org/release/SDL2-2.0.8.tar.gz | tar xz --directory "$HOME/tmp"
+      cd "$HOME/tmp/SDL2-2.0.8"
+      ./configure --prefix=$HOME/SDL2
+      make
+      make install
+      travis_retry curl -L https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-2.0.4.tar.gz | tar xz --directory "$HOME/tmp"
+      cd "$HOME/tmp/SDL2_mixer-2.0.4"
+      ./configure --disable-sdltest --with-sdl-prefix=$HOME/SDL2 --prefix=$HOME/SDL2
+      make
+      make install
+      cd "$TRAVIS_BUILD_DIR"
+    fi
+  - sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
+  - sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
+  - export npm_config_sdl_include_path=$HOME/SDL2/include/SDL2
+  - export npm_config_sdl_library_path=$HOME/SDL2/lib
+  - export npm_config_with_sdl_mixer=true
+  - export npm_config_with_cec=true
+  - export npm_config_cec_include_path=/usr/include
+  - export npm_config_cec_library_path=/usr/lib/`gcc -dumpmachine`
+  - export LD_LIBRARY_PATH=$npm_config_sdl_library_path
+
+install:
+  - npm install
+
+script:
+  - npm test
+
+cache:
+  directories:
+    - $HOME/SDL2
