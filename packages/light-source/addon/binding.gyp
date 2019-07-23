@@ -30,6 +30,7 @@
         "light-source/StyleEnumMappings.cc",
         "light-source/StyleEnums.cc",
         "light-source/StyleValue.cc",
+        "light-source/ResourceManager.cc",
         "light-source/Init.cc",
       ]
     },
