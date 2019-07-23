@@ -5,7 +5,9 @@
  */
 
 import { Stage } from './Stage'
+import { Style } from './Style'
 
+export { Style }
 export const stage = new Stage()
 
 // TODO: move exit handler to stage (?), make configurable (?)

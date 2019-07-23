@@ -19,11 +19,17 @@
       ],
       "include_dirs": [
         "deps/yoga/lib",
+        "deps/fmt/include",
       ],
       "dependencies": [
         "addon/deps/yoga/yoga.gyp:yoga",
+        "addon/deps/fmt/fmt.gyp:fmt",
       ],
       "sources": [
+        "light-source/Style.cc",
+        "light-source/StyleEnumMappings.cc",
+        "light-source/StyleEnums.cc",
+        "light-source/StyleValue.cc",
         "light-source/Init.cc",
       ]
     },

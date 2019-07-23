@@ -5,11 +5,22 @@
  */
 
 #include <napi.h>
+#include "Style.h"
+#include "StyleEnumMappings.h"
 
 using Napi::Env;
+using Napi::Function;
 using Napi::Object;
+using lse::Style;
+
+void ExportClass(Object* exports, const Function& constructor) {
+    exports->Set(constructor.Get("name").ToString(), constructor);
+}
 
 Object Init(Env env, Object exports) {
+    ExportClass(&exports, Style::Constructor(env));
+    lse::StyleEnumMappings::Init(env, exports);
+
     return exports;
 }
 
