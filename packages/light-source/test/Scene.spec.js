@@ -3,14 +3,3 @@
  *
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
-
-#include <napi.h>
-
-using Napi::Env;
-using Napi::Object;
-
-Object Init(Env env, Object exports) {
-    return exports;
-}
-
-NODE_API_MODULE(LightSource, Init);

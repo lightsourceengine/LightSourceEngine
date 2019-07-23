@@ -4,13 +4,15 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
+#pragma once
+
 #include <napi.h>
 
-using Napi::Env;
-using Napi::Object;
+namespace ls {
 
-Object Init(Env env, Object exports) {
-    return exports;
-}
+class SceneAdapter {
+ public:
+    virtual ~SceneAdapter() = default;
+};
 
-NODE_API_MODULE(LightSource, Init);
+} // namespace ls

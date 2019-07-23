@@ -6,7 +6,8 @@
 
 #include <napi.h>
 
-using namespace Napi;
+using Napi::Env;
+using Napi::Object;
 
 Object Init(Env env, Object exports) {
     return exports;

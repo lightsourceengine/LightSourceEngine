@@ -34,11 +34,15 @@
       ],
       "include_dirs": [
         "<(sdl_include_path)",
+        "include",
       ],
       "dependencies": [
 
       ],
       "sources": [
+        "light-source-sdl/SDLRenderer.cc",
+        "light-source-sdl/SDLSceneAdapter.cc",
+        "light-source-sdl/SDLStageAdapter.cc",
         "light-source-sdl/Init.cc",
       ],
       "libraries": [

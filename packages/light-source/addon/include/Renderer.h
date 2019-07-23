@@ -4,13 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <napi.h>
+#pragma once
 
-using Napi::Env;
-using Napi::Object;
+namespace ls {
 
-Object Init(Env env, Object exports) {
-    return exports;
-}
+class Renderer {
+ public:
+};
 
-NODE_API_MODULE(LightSource, Init);
+} // namespace ls

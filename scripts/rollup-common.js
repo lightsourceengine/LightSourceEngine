@@ -21,11 +21,9 @@ export const beautify = () => terser({
     semicolons: false,
     beautify: true,
     preamble:
-      '/*' +
-      ' * Copyright (C) 2019 Daniel Anderson.' +
-      ' *' +
-      ' * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.' +
-      ' */'
+      '// Light Source Engine\n' +
+      '// Copyright (C) 2019 Daniel Anderson.\n' +
+      '// This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.'
   }
 })
 

@@ -5,10 +5,15 @@
  */
 
 #include <napi.h>
+#include "SDLStageAdapter.h"
 
-using namespace Napi;
+using Napi::Env;
+using Napi::Object;
+using ls::SDLStageAdapter;
 
 Object Init(Env env, Object exports) {
+    exports["StageAdapter"] = SDLStageAdapter::Constructor(env);
+
     return exports;
 }
 
