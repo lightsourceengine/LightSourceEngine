@@ -1,0 +1,6 @@
+set noparent
+filter=-build/include,-readability/todo,-whitespace/comments
+linelength=120 
+extensions=cc
+headers=h
+exclude_files=deps
