@@ -32,6 +32,10 @@ export class Stage {
     this[fps] = value
   }
 
+  get keyboard () {
+    return this[adapter].keyboard
+  }
+
   get gamepads () {
     return this[adapter].getGamepads()
   }

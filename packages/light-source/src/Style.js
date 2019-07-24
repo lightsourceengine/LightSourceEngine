@@ -240,7 +240,7 @@ const parseColorValue = value => {
     return ColorNames[value.toLowerCase()] || ThrowErrorUnknownColorName(value)
   }
 
-  return value >>> 0
+  return value & 0xFFFFFF
 }
 
 const parsePointValue = (value, regex, lookup, floor) => {
@@ -524,9 +524,9 @@ class Style extends StyleBase {
 
   set borderRadiusBottomRight (value) { super.borderRadiusBottomRight = parsePointValue(value, POINT_REGEX, undefined, 0) }
 
-  get color () { return super.position }
+  get color () { return super.color }
 
-  set color (value) { super.position = parseColorValue(value) }
+  set color (value) { super.color = parseColorValue(value) }
 
   // get fontFamily () { return super.fontFamily }
   // set fontFamily (value) { super.fontFamily = value }

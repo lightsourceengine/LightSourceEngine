@@ -33,6 +33,10 @@ export class Scene {
 
   }
 
+  createNode (tag) {
+
+  }
+
   resize (width = 0, height = 0, fullscreen = true) {
     this[adapter].resize(width, height, fullscreen)
   }
