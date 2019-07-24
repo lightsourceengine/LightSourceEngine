@@ -5,7 +5,9 @@
  */
 
 import { Scene } from './Scene'
+import { inputEventDispatcher } from './input/inputEventDispatcher'
 import bindings from 'bindings'
+import { EventEmitter } from 'events'
 
 const adapter = Symbol.for('adapter')
 const mainLoopHandle = Symbol.for('mainLoopHandle')
@@ -30,12 +32,18 @@ export class Stage {
     this[fps] = value
   }
 
+  get gamepads () {
+    return this[adapter].getGamepads()
+  }
+
   configure (options = {}) {
     // TODO: already configured?
 
     const module = options.StageAdapter === 'function' ? options : bindings(options.StageAdapter || 'light-source-sdl')
 
     this[adapter] = new module.StageAdapter()
+
+    inputEventDispatcher(this[adapter], new Map(), new EventEmitter())
   }
 
   start () {

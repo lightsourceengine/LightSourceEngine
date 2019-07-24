@@ -42,14 +42,18 @@
       "include_dirs": [
         "<(sdl_include_path)",
         "include",
+        "deps/fmt/include",
       ],
       "dependencies": [
-
+        "addon/deps/fmt/fmt.gyp:fmt",
       ],
       "sources": [
         "light-source-sdl/SDLRenderer.cc",
         "light-source-sdl/SDLSceneAdapter.cc",
         "light-source-sdl/SDLStageAdapter.cc",
+        "light-source-sdl/InputDevice.cc",
+        "light-source-sdl/SDLKeyboard.cc",
+        "light-source-sdl/SDLGamepad.cc",
         "light-source-sdl/Init.cc",
       ],
       "libraries": [

@@ -6,8 +6,9 @@
 
 import { Stage } from './Stage'
 import { Style } from './Style'
+import { KeyCode } from './input/KeyCode'
 
-export { Style }
+export { Style, KeyCode }
 export const stage = new Stage()
 
 // TODO: move exit handler to stage (?), make configurable (?)

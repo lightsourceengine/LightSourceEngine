@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <unordered_map>
 #include <napi.h>
 #include <StageAdapter.h>
 
@@ -15,6 +16,9 @@
         { this->SetCallback(&this->callbacks[NAME], value); }
 
 namespace ls {
+
+class SDLKeyboard;
+class SDLGamepad;
 
 class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAdapter> {
  private:
@@ -26,7 +30,6 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
         onGamepadButtonUp,
         onGamepadButtonDown,
         onGamepadAxisMotion,
-        onGamepadHatMotion,
         onQuit,
         StageCallbacksCount,
     };
@@ -36,6 +39,8 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
     virtual ~SDLStageAdapter() = default;
 
     static Napi::Function Constructor(Napi::Env env);
+    Napi::Value GetKeyboard(const Napi::CallbackInfo& info);
+    Napi::Value GetGamepads(const Napi::CallbackInfo& info);
     Napi::Value ProcessEvents(const Napi::CallbackInfo& info) override;
     Napi::Value CreateSceneAdapter(const Napi::CallbackInfo& info) override;
     void ResetCallbacks(const Napi::CallbackInfo& info);
@@ -47,7 +52,6 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
     DeclareStageCallback(onGamepadButtonUp);
     DeclareStageCallback(onGamepadButtonDown);
     DeclareStageCallback(onGamepadAxisMotion);
-    DeclareStageCallback(onGamepadHatMotion);
     DeclareStageCallback(onQuit);
 
  private:
@@ -55,9 +59,17 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
     void SetCallback(Napi::FunctionReference* function, const Napi::Value& value);
     inline void Call(const StageCallbacks callbackId, const std::initializer_list<napi_value>& args);
     inline bool IsCallbackEmpty(const StageCallbacks callbackId);
+    void SyncGamepads(Napi::Env env);
+    SDLGamepad* AddGamepad(Napi::Env env, int32_t index);
+    inline Napi::Value GetGamepad(Napi::Env env, int32_t instanceId);
+    void HandleJoystickHatMotion(Napi::Env env, int32_t instanceId, uint8_t hatIndex, uint8_t hatValue);
+    void HandleJoystickAdded(Napi::Env env, int32_t index);
+    void HandleJoystickRemoved(Napi::Env env, int32_t instanceId);
 
  private:
     Napi::FunctionReference callbacks[StageCallbacksCount];
+    SDLKeyboard* keyboard{};
+    std::unordered_map<int32_t, SDLGamepad*> gamepadsByInstanceId{};
 };
 
 } // namespace ls
