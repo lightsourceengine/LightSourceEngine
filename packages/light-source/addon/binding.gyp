@@ -19,6 +19,7 @@
       ],
       "include_dirs": [
         "deps/yoga/lib",
+        "include",
         "deps/fmt/include",
       ],
       "dependencies": [
@@ -31,6 +32,7 @@
         "light-source/StyleEnums.cc",
         "light-source/StyleValue.cc",
         "light-source/ResourceManager.cc",
+        "light-source/SceneNode.cc",
         "light-source/Init.cc",
       ]
     },
@@ -51,6 +53,7 @@
         "light-source-sdl/SDLRenderer.cc",
         "light-source-sdl/SDLSceneAdapter.cc",
         "light-source-sdl/SDLStageAdapter.cc",
+        "light-source-sdl/SDLRenderer.cc",
         "light-source-sdl/InputDevice.cc",
         "light-source-sdl/SDLKeyboard.cc",
         "light-source-sdl/SDLGamepad.cc",
