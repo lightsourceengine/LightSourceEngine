@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <fmt/format.h>
 
-namespace lse {
+namespace ls {
 
 inline
 float CalculateBackgroundDimension(const StyleNumberValue* styleDimension,
@@ -189,4 +189,4 @@ std::string CreateRoundedRectangleUri(int32_t radiusTopLeft,
     /* 13: stroke-width */ stroke);
 }
 
-} // namespace lse
+} // namespace ls

@@ -14,7 +14,7 @@
 #include "StyleValue.h"
 #include "StyleMacros.h"
 
-namespace lse {
+namespace ls {
 
 class Style : public Napi::ObjectWrap<Style> {
  public:
@@ -121,4 +121,4 @@ class Style : public Napi::ObjectWrap<Style> {
     std::vector<StyleValue *>yogaValues;
 };
 
-} // namespace lse
+} // namespace ls

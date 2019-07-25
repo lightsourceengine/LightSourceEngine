@@ -10,7 +10,7 @@
 #include <Yoga.h>
 #include "StyleEnums.h"
 
-namespace lse {
+namespace ls {
 
 void YGStyleNullSetAuto(const YGNodeRef node);
 void YGStyleNullSetAuto(const YGNodeRef node, const YGEdge);
@@ -212,4 +212,4 @@ class YogaEdgeStyleNumberValue : public StyleNumberValue {
     }
 };
 
-} // namespace lse
+} // namespace ls

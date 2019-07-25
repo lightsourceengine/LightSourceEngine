@@ -6,7 +6,7 @@
 
 #include "StyleEnums.h"
 
-namespace lse {
+namespace ls {
 
 const char* StyleFontWeightToString(const StyleFontWeight value) {
     switch (value) {
@@ -102,4 +102,4 @@ const char* StyleAnchorToString(const StyleAnchor value) {
   return "unknown";
 }
 
-} // namespace lse
+} // namespace ls

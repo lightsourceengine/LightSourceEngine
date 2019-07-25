@@ -16,7 +16,7 @@
         return internal::CountMacroVariadicArgs<__VA_ARGS__>(); \
     }
 
-namespace lse {
+namespace ls {
 
 template <typename T>
 constexpr int32_t Count();
@@ -34,4 +34,4 @@ constexpr int CountMacroVariadicArgs() {
 }
 
 } // namespace internal
-} // namespace lse
+} // namespace ls

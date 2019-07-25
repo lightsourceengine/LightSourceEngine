@@ -9,7 +9,7 @@
 #include "Macros.h"
 #include <YGEnums.h>
 
-namespace lse {
+namespace ls {
 
 SS_ENUM_SEQ_DECL(
     StyleFontWeight,
@@ -185,4 +185,4 @@ constexpr int32_t Count<YGWrap>() {
     return facebook::yoga::enums::count<YGWrap>();
 }
 
-} // namespace lse
+} // namespace ls

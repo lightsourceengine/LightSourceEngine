@@ -15,7 +15,7 @@ using Napi::HandleScope;
 using Napi::Number;
 using Napi::Value;
 
-namespace lse {
+namespace ls {
 
 static YGStyle sEmptyStyle{};
 Style* Style::empty{};
@@ -172,4 +172,4 @@ void Style::JSSetter(std::unique_ptr<T>& styleValue, Napi::Value jsValue, bool i
     }
 }
 
-} // namespace lse
+} // namespace ls

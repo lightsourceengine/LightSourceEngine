@@ -8,10 +8,10 @@
 
 #include <napi.h>
 
-namespace lse {
+namespace ls {
 namespace StyleEnumMappings {
 
 Napi::Object Init(Napi::Env env, Napi::Object exports);
 
 } // namespace StyleEnumMappings
-} // namespace lse
+} // namespace ls

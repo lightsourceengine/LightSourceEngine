@@ -12,8 +12,8 @@
 using Napi::Env;
 using Napi::Function;
 using Napi::Object;
-using lse::Style;
-using lse::ResourceManager;
+using ls::Style;
+using ls::ResourceManager;
 
 void ExportClass(Object* exports, const Function& constructor) {
     exports->Set(constructor.Get("name").ToString(), constructor);
@@ -23,7 +23,7 @@ Object Init(Env env, Object exports) {
     ExportClass(&exports, Style::Constructor(env));
     ExportClass(&exports, ResourceManager::Constructor(env));
 
-    lse::StyleEnumMappings::Init(env, exports);
+    ls::StyleEnumMappings::Init(env, exports);
 
     return exports;
 }

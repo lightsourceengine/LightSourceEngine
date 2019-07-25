@@ -11,7 +11,7 @@ using Napi::Number;
 using Napi::Object;
 using Napi::Value;
 
-namespace lse {
+namespace ls {
 
 void YGStyleNullSetAuto(const YGNodeRef node) {}
 void YGStyleNullSetAuto(const YGNodeRef node, const YGEdge) {}
@@ -68,4 +68,4 @@ bool StyleNumberValue::ToValue(Napi::Value value, StyleNumber* result) {
     return true;
 }
 
-} // namespace lse
+} // namespace ls

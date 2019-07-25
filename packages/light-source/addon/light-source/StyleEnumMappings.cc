@@ -17,7 +17,7 @@ using Napi::Object;
 using Napi::String;
 using Napi::Value;
 
-namespace lse {
+namespace ls {
 
 Value KeyValuePair(Napi::Env env, Napi::Value key, Napi::Value value) {
     auto pair = Array::New(env, 2);
@@ -74,4 +74,4 @@ Object StyleEnumMappings::Init(Env env, Object exports) {
     return exports;
 }
 
-} // namespace lse
+} // namespace ls

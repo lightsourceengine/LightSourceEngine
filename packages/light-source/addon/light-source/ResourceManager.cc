@@ -12,7 +12,7 @@ using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Value;
 
-namespace lse {
+namespace ls {
 
 ResourceManager::ResourceManager(const CallbackInfo& info) : ObjectWrap<ResourceManager>(info) {
 }
@@ -33,4 +33,4 @@ Function ResourceManager::Constructor(Napi::Env env) {
     return constructor.Value();
 }
 
-} // namespace lse
+} // namespace ls

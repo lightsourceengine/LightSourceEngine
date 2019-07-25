@@ -8,7 +8,7 @@
 
 #include <napi.h>
 
-namespace lse {
+namespace ls {
 
 class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
  public:
@@ -18,4 +18,4 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     static Napi::Function Constructor(Napi::Env env);
 };
 
-} // namespace lse
+} // namespace ls
