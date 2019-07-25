@@ -48,8 +48,11 @@ SDLGamepad::SDLGamepad(const CallbackInfo& info) : ObjectWrap<SDLGamepad>(info) 
     this->physicalButtonCount = SDL_JoystickNumButtons(this->joystick);
     this->hatCount = SDL_JoystickNumHats(this->joystick);
     this->axisCount = SDL_JoystickNumAxes(this->joystick);
-
     this->hatState.resize(this->hatCount);
+    this->product = SDL_JoystickGetProduct(this->joystick);
+    this->productVersion = SDL_JoystickGetProductVersion(this->joystick);
+    this->vendor = SDL_JoystickGetVendor(this->joystick);
+    this->playerIndex = SDL_JoystickGetPlayerIndex(this->joystick);
 }
 
 SDLGamepad::~SDLGamepad() {
@@ -72,6 +75,10 @@ Function SDLGamepad::Constructor(Napi::Env env) {
             InstanceAccessor("name", &InputDevice::GetName, nullptr, napi_enumerable),
             InstanceAccessor("buttonCount", &SDLGamepad::GetButtonCount, nullptr, napi_enumerable),
             InstanceAccessor("axisCount", &SDLGamepad::GetAxisCount, nullptr, napi_enumerable),
+            InstanceAccessor("product", &SDLGamepad::GetProduct, nullptr, napi_enumerable),
+            InstanceAccessor("productVersion", &SDLGamepad::GetProductVersion, nullptr, napi_enumerable),
+            InstanceAccessor("vendor", &SDLGamepad::GetVendor, nullptr, napi_enumerable),
+            InstanceAccessor("playerIndex", &SDLGamepad::GetPlayerIndex, nullptr, napi_enumerable),
             InstanceMethod("isButtonDown", &SDLGamepad::IsButtonDown),
             InstanceMethod("getAxisValue", &SDLGamepad::GetAxisValue),
             InstanceMethod("destroy", &SDLGamepad::Destroy),
@@ -116,6 +123,22 @@ Value SDLGamepad::GetButtonCount(const CallbackInfo& info) {
 
 Value SDLGamepad::GetAxisCount(const CallbackInfo& info) {
     return Number::New(info.Env(), this->axisCount);
+}
+
+Value SDLGamepad::GetProduct(const CallbackInfo& info) {
+    return Number::New(info.Env(), this->product);
+}
+
+Value SDLGamepad::GetVendor(const CallbackInfo& info) {
+    return Number::New(info.Env(), this->vendor);
+}
+
+Value SDLGamepad::GetProductVersion(const CallbackInfo& info) {
+    return Number::New(info.Env(), this->productVersion);
+}
+
+Value SDLGamepad::GetPlayerIndex(const CallbackInfo& info) {
+    return Number::New(info.Env(), this->playerIndex);
 }
 
 void SDLGamepad::Destroy(const CallbackInfo& info) {
