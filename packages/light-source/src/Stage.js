@@ -13,6 +13,7 @@ const adapter = Symbol.for('adapter')
 const mainLoopHandle = Symbol.for('mainLoopHandle')
 const fps = Symbol.for('fps')
 const attach = Symbol.for('attach')
+const processEvents = Symbol.for('processEvents')
 
 export class Stage {
   constructor () {
@@ -61,6 +62,7 @@ export class Stage {
 
     const mainLoop = () => {
       if (this[adapter].processEvents()) {
+        this.scene[processEvents]()
         this[mainLoopHandle] = setTimeout(mainLoop, 1000 / this[fps])
       }
     }

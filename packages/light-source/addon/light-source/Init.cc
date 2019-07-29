@@ -8,12 +8,16 @@
 #include "Style.h"
 #include "StyleEnumMappings.h"
 #include "ResourceManager.h"
+#include "Scene.h"
+#include "napi-ext.h"
 
 using Napi::Env;
 using Napi::Function;
 using Napi::Object;
-using ls::Style;
+using ls::AsyncWork;
 using ls::ResourceManager;
+using ls::Scene;
+using ls::Style;
 
 void ExportClass(Object* exports, const Function& constructor) {
     exports->Set(constructor.Get("name").ToString(), constructor);
@@ -22,6 +26,7 @@ void ExportClass(Object* exports, const Function& constructor) {
 Object Init(Env env, Object exports) {
     ExportClass(&exports, Style::Constructor(env));
     ExportClass(&exports, ResourceManager::Constructor(env));
+    ExportClass(&exports, Scene::Constructor(env));
 
     ls::StyleEnumMappings::Init(env, exports);
 

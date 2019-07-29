@@ -42,7 +42,8 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
     Napi::Value GetKeyboard(const Napi::CallbackInfo& info);
     Napi::Value GetGamepads(const Napi::CallbackInfo& info);
     Napi::Value ProcessEvents(const Napi::CallbackInfo& info) override;
-    Napi::Value CreateSceneAdapter(const Napi::CallbackInfo& info) override;
+    void ProcessEvents() override;
+    std::shared_ptr<SceneAdapter> CreateSceneAdapter(int32_t displayId) override;
     void ResetCallbacks(const Napi::CallbackInfo& info);
 
     DeclareStageCallback(onGamepadConnected);

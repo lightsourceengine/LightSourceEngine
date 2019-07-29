@@ -7,6 +7,8 @@
 #pragma once
 
 #include <napi.h>
+#include <memory>
+#include "SceneAdapter.h"
 
 namespace ls {
 
@@ -15,7 +17,8 @@ class StageAdapter {
     virtual ~StageAdapter() = default;
 
     virtual Napi::Value ProcessEvents(const Napi::CallbackInfo& info) = 0;
-    virtual Napi::Value CreateSceneAdapter(const Napi::CallbackInfo& info) = 0;
+    virtual void ProcessEvents() = 0;
+    virtual std::shared_ptr<SceneAdapter> CreateSceneAdapter(int32_t displayId) = 0;
 };
 
 } // namespace ls

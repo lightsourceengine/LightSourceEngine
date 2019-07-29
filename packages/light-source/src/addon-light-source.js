@@ -8,4 +8,8 @@ import bindings from 'bindings'
 
 // TODO: check addon has been loaded
 
-export const { StyleBase, StyleEnumMappings, ResourceManager } = bindings('light-source')
+export const {
+  StyleBase,
+  StyleEnumMappings,
+  SceneBase
+} = bindings('light-source')

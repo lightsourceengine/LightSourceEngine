@@ -38,7 +38,8 @@ SDLStageAdapter::SDLStageAdapter(const CallbackInfo& info) : ObjectWrap<SDLStage
     this->keyboard = ObjectWrap<SDLKeyboard>::Unwrap(keyboardObject);
     this->keyboard->Ref();
 
-    SDL_Init(SDL_INIT_JOYSTICK);
+    SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
+    SDL_GameControllerEventState(SDL_IGNORE);
     this->SyncGamepads(env);
 }
 
@@ -51,7 +52,6 @@ Function SDLStageAdapter::Constructor(Napi::Env env) {
         auto func = DefineClass(env, "SDLStageAdapter", {
             InstanceAccessor("keyboard", &SDLStageAdapter::GetKeyboard, nullptr),
             InstanceMethod("getGamepads", &SDLStageAdapter::GetGamepads),
-            InstanceMethod("createSceneAdapter", &SDLStageAdapter::CreateSceneAdapter),
             InstanceMethod("resetCallbacks", &SDLStageAdapter::ResetCallbacks),
             InstanceMethod("processEvents", &SDLStageAdapter::ProcessEvents),
             CallbackInstanceAccessor(onQuit),
@@ -88,8 +88,11 @@ Value SDLStageAdapter::GetGamepads(const CallbackInfo& info) {
     return scope.Escape(array);
 }
 
-Value SDLStageAdapter::CreateSceneAdapter(const CallbackInfo& info) {
-    return SDLSceneAdapter::Constructor(info.Env()).New({ info[0] });
+void SDLStageAdapter::ProcessEvents() {
+}
+
+std::shared_ptr<SceneAdapter> SDLStageAdapter::CreateSceneAdapter(int32_t displayId) {
+    return std::static_pointer_cast<SceneAdapter>(std::make_shared<SDLSceneAdapter>(displayId));
 }
 
 Value SDLStageAdapter::ProcessEvents(const CallbackInfo& info) {

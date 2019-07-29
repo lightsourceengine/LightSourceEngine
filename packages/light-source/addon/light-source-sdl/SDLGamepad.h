@@ -28,6 +28,7 @@ class SDLGamepad : public InputDevice, public Napi::ObjectWrap<SDLGamepad> {
     Napi::Value GetVendor(const Napi::CallbackInfo& info);
     Napi::Value GetProductVersion(const Napi::CallbackInfo& info);
     Napi::Value GetPlayerIndex(const Napi::CallbackInfo& info);
+    Napi::Value GetGameControllerMapping(const Napi::CallbackInfo& info);
     void Destroy(const Napi::CallbackInfo& info);
 
     int32_t GetHatButtonIndex(uint8_t hatIndex, uint8_t hatValue) const;
@@ -45,8 +46,8 @@ class SDLGamepad : public InputDevice, public Napi::ObjectWrap<SDLGamepad> {
     int32_t productVersion{};
     int32_t vendor{};
     int32_t playerIndex{-1};
-
     std::vector<uint8_t> hatState;
+    std::string gameControllerMapping;
 };
 
 } // namespace ls

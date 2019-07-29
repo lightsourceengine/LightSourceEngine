@@ -39,8 +39,9 @@ SDLGamepad::SDLGamepad(const CallbackInfo& info) : ObjectWrap<SDLGamepad>(info) 
     this->name = joystickName ? joystickName : "";
 
     auto joystickGUID{ SDL_JoystickGetGUID(this->joystick) };
-    char guid[33];
+    static char guid[33];
 
+    guid[0] = '\0';
     SDL_JoystickGetGUIDString(joystickGUID, guid, 33);
 
     this->id = SDL_JoystickInstanceID(this->joystick);
@@ -53,6 +54,12 @@ SDLGamepad::SDLGamepad(const CallbackInfo& info) : ObjectWrap<SDLGamepad>(info) 
     this->productVersion = SDL_JoystickGetProductVersion(this->joystick);
     this->vendor = SDL_JoystickGetVendor(this->joystick);
     this->playerIndex = SDL_JoystickGetPlayerIndex(this->joystick);
+
+    auto value{ SDL_GameControllerMappingForGUID(joystickGUID) };
+
+    if (value) {
+        this->gameControllerMapping = value;
+    }
 }
 
 SDLGamepad::~SDLGamepad() {
@@ -68,17 +75,18 @@ Function SDLGamepad::Constructor(Napi::Env env) {
         HandleScope scope(env);
 
         auto func = DefineClass(env, "SDLGamepad", {
-            InstanceValue("type", String::New(env, "gamepad"), napi_enumerable),
-            InstanceAccessor("id", &InputDevice::GetId, nullptr, napi_enumerable),
-            InstanceAccessor("uuid", &InputDevice::GetUUID, nullptr, napi_enumerable),
-            InstanceAccessor("mapping", &InputDevice::GetMapping, nullptr, napi_enumerable),
-            InstanceAccessor("name", &InputDevice::GetName, nullptr, napi_enumerable),
-            InstanceAccessor("buttonCount", &SDLGamepad::GetButtonCount, nullptr, napi_enumerable),
-            InstanceAccessor("axisCount", &SDLGamepad::GetAxisCount, nullptr, napi_enumerable),
-            InstanceAccessor("product", &SDLGamepad::GetProduct, nullptr, napi_enumerable),
-            InstanceAccessor("productVersion", &SDLGamepad::GetProductVersion, nullptr, napi_enumerable),
-            InstanceAccessor("vendor", &SDLGamepad::GetVendor, nullptr, napi_enumerable),
-            InstanceAccessor("playerIndex", &SDLGamepad::GetPlayerIndex, nullptr, napi_enumerable),
+            InstanceValue("type", String::New(env, "gamepad")),
+            InstanceAccessor("id", &InputDevice::GetId, nullptr),
+            InstanceAccessor("uuid", &InputDevice::GetUUID, nullptr),
+            InstanceAccessor("mapping", &InputDevice::GetMapping, nullptr),
+            InstanceAccessor("name", &InputDevice::GetName, nullptr),
+            InstanceAccessor("buttonCount", &SDLGamepad::GetButtonCount, nullptr),
+            InstanceAccessor("axisCount", &SDLGamepad::GetAxisCount, nullptr),
+            InstanceAccessor("product", &SDLGamepad::GetProduct, nullptr),
+            InstanceAccessor("productVersion", &SDLGamepad::GetProductVersion, nullptr),
+            InstanceAccessor("vendor", &SDLGamepad::GetVendor, nullptr),
+            InstanceAccessor("playerIndex", &SDLGamepad::GetPlayerIndex, nullptr),
+            InstanceAccessor("gameControllerMapping", &SDLGamepad::GetGameControllerMapping, nullptr),
             InstanceMethod("isButtonDown", &SDLGamepad::IsButtonDown),
             InstanceMethod("getAxisValue", &SDLGamepad::GetAxisValue),
             InstanceMethod("destroy", &SDLGamepad::Destroy),
@@ -102,7 +110,7 @@ Value SDLGamepad::IsButtonDown(const CallbackInfo& info) {
 
             auto hatIndex{ buttonIndex / 4 };
 
-            state = SDL_JoystickGetHat(this->joystick, hatIndex) == std::pow(2, buttonIndex - (hatIndex * 4));
+            state = SDL_JoystickGetHat(this->joystick, hatIndex) == std::pow(2, buttonIndex + (hatIndex * 4));
         } else {
             state = SDL_JoystickGetButton(this->joystick, buttonIndex) != 0;
         }
@@ -139,6 +147,10 @@ Value SDLGamepad::GetProductVersion(const CallbackInfo& info) {
 
 Value SDLGamepad::GetPlayerIndex(const CallbackInfo& info) {
     return Number::New(info.Env(), this->playerIndex);
+}
+
+Value SDLGamepad::GetGameControllerMapping(const CallbackInfo& info) {
+    return String::New(info.Env(), this->gameControllerMapping);
 }
 
 void SDLGamepad::Destroy(const CallbackInfo& info) {

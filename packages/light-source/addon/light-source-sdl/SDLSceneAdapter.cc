@@ -5,52 +5,29 @@
  */
 
 #include "SDLSceneAdapter.h"
-
-using Napi::CallbackInfo;
-using Napi::Function;
-using Napi::FunctionReference;
-using Napi::HandleScope;
-using Napi::ObjectWrap;
-using Napi::Value;
+#include "SDLRenderer.h"
 
 namespace ls {
 
-SDLSceneAdapter::SDLSceneAdapter(const CallbackInfo& info) : ObjectWrap<SDLSceneAdapter>(info) {
+SDLSceneAdapter::SDLSceneAdapter(int32_t displayId) {
+    this->renderer = new SDLRenderer();
 }
 
-Function SDLSceneAdapter::Constructor(Napi::Env env) {
-    static FunctionReference constructor;
-
-    if (constructor.IsEmpty()) {
-        HandleScope scope(env);
-
-        auto func = DefineClass(env, "SDLSceneAdapter", {
-            InstanceMethod("attach", &SDLSceneAdapter::Attach),
-            InstanceMethod("detach", &SDLSceneAdapter::Detach),
-            InstanceMethod("resize", &SDLSceneAdapter::Resize),
-        });
-
-        constructor.Reset(func, 1);
-        constructor.SuppressDestruct();
-    }
-
-    return constructor.Value();
-}
-
-Value SDLSceneAdapter::Attach(const CallbackInfo& info) {
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
+void SDLSceneAdapter::Attach() {
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
+    SDL_GameControllerEventState(SDL_IGNORE);
 
     this->window = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, 0);
-
-    return info.Env().Undefined();
 }
 
-Value SDLSceneAdapter::Detach(const CallbackInfo& info) {
-    return info.Env().Undefined();
+void SDLSceneAdapter::Detach() {
 }
 
-Value SDLSceneAdapter::Resize(const CallbackInfo& info) {
-    return info.Env().Undefined();
+void SDLSceneAdapter::Resize(int32_t width, int32_t height, bool fullscreen) {
+}
+
+Renderer* SDLSceneAdapter::GetRenderer() const {
+    return this->renderer;
 }
 
 } // namespace ls

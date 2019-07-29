@@ -11,18 +11,21 @@
 
 namespace ls {
 
-class SDLSceneAdapter : public SceneAdapter, public Napi::ObjectWrap<SDLSceneAdapter> {
+class Renderer;
+
+class SDLSceneAdapter : public SceneAdapter {
  public:
-    explicit SDLSceneAdapter(const Napi::CallbackInfo& info);
+    explicit SDLSceneAdapter(int32_t displayId);
     virtual ~SDLSceneAdapter() = default;
 
-    static Napi::Function Constructor(Napi::Env env);
-    Napi::Value Attach(const Napi::CallbackInfo& info);
-    Napi::Value Detach(const Napi::CallbackInfo& info);
-    Napi::Value Resize(const Napi::CallbackInfo& info);
+    void Attach() override;
+    void Detach() override;
+    void Resize(int32_t width, int32_t height, bool fullscreen) override;
+    Renderer* GetRenderer() const override;
 
  private:
     SDL_Window* window{};
+    Renderer* renderer{};
 };
 
 } // namespace ls
