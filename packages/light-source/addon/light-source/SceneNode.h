@@ -47,7 +47,7 @@ class SceneNode {
 
     bool Layout(float width, float height) const;
 
-    virtual void Draw(Renderer* renderer);
+    virtual void Paint(Renderer* renderer);
     virtual Napi::Reference<Napi::Object>* AsReference() = 0;
 
  protected:

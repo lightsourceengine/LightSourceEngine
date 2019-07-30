@@ -253,7 +253,7 @@ void SceneNode::DestroyRecursive() {
     }
 }
 
-void SceneNode::Draw(Renderer* renderer) {
+void SceneNode::Paint(Renderer* renderer) {
     if (!this->children.empty()) {
         auto x{ YGNodeLayoutGetLeft(this->ygNode) };
         auto y{ YGNodeLayoutGetTop(this->ygNode) };
@@ -266,7 +266,7 @@ void SceneNode::Draw(Renderer* renderer) {
         renderer->Shift(x, y);
 
         for (auto& node : this->children) {
-            node->Draw(renderer);
+            node->Paint(renderer);
         }
 
         renderer->Unshift();

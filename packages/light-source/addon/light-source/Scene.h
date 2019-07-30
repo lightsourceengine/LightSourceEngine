@@ -25,6 +25,14 @@ class Scene : public Napi::ObjectWrap<Scene> {
     void Resize(const Napi::CallbackInfo& info);
     void ProcessEvents(const Napi::CallbackInfo& info);
 
+    // TODO: get w/h
+    int32_t GetWidth() const { return 0; }
+    int32_t GetHeight() const { return 0; }
+    int32_t GetViewportMin() const { return 0; }
+    int32_t GetViewportMax() const { return 0; }
+
+    ResourceManager* GetResourceManager() { return this->resourceManager; }
+
  private:
     ResourceManager* resourceManager{};
     std::shared_ptr<SceneAdapter> adapter;

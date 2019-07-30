@@ -7,8 +7,8 @@
 #pragma once
 
 #include "StyleEnums.h"
-#include "Image.h"
 #include "Scene.h"
+#include "ImageResource.h"
 #include <algorithm>
 #include <fmt/format.h>
 
@@ -39,7 +39,7 @@ float CalculateBackgroundDimension(const StyleNumberValue* styleDimension,
 
 inline
 void CalculateObjectFitDimensions(StyleObjectFit objectFit,
-                                  Image* image,
+                                  ImageResource* image,
                                   float boxWidth,
                                   float boxHeight,
                                   float* fitWidth,
@@ -162,7 +162,7 @@ std::string CreateRoundedRectangleUri(int32_t radiusTopLeft,
                                    "fill=\"{11}\" "
                                    "stroke=\"{12}\" "
                                    "stroke-width=\"{13}\"/>"
-                               "</svg>"
+                               "</svg>";
 
     auto leftWidth = std::max(radiusTopLeft, radiusBottomLeft);
     auto rightWidth = std::max(radiusTopRight, radiusBottomRight);

@@ -89,6 +89,7 @@ ImageResource* ResourceManager::GetImage(const std::string& id) {
 
     this->images[id] = imageResource;
 
+    imageResource->AddRef();
     imageResource->Load(this->renderer, this->extensions, this->path);
 
     return imageResource.get();

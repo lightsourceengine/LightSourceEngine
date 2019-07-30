@@ -44,6 +44,9 @@
         "light-source/ImageResource.cc",
         "light-source/ResourceManager.cc",
         "light-source/SceneNode.cc",
+        "light-source/BoxSceneNode.cc",
+        "light-source/ImageSceneNode.cc",
+        "light-source/TextSceneNode.cc",
         "light-source/Scene.cc",
         "light-source/Init.cc",
       ]
