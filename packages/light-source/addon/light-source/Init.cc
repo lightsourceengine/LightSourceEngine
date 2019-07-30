@@ -9,24 +9,36 @@
 #include "StyleEnumMappings.h"
 #include "ResourceManager.h"
 #include "Scene.h"
+#include "BoxSceneNode.h"
+#include "ImageSceneNode.h"
+#include "TextSceneNode.h"
 #include "napi-ext.h"
 
 using Napi::Env;
 using Napi::Function;
+using Napi::HandleScope;
 using Napi::Object;
 using ls::AsyncWork;
 using ls::ResourceManager;
 using ls::Scene;
 using ls::Style;
+using ls::BoxSceneNode;
+using ls::ImageSceneNode;
+using ls::TextSceneNode;
 
 void ExportClass(Object* exports, const Function& constructor) {
     exports->Set(constructor.Get("name").ToString(), constructor);
 }
 
 Object Init(Env env, Object exports) {
+    HandleScope scope(env);
+
     ExportClass(&exports, Style::Constructor(env));
     ExportClass(&exports, ResourceManager::Constructor(env));
     ExportClass(&exports, Scene::Constructor(env));
+    ExportClass(&exports, BoxSceneNode::Constructor(env));
+    ExportClass(&exports, ImageSceneNode::Constructor(env));
+    ExportClass(&exports, TextSceneNode::Constructor(env));
 
     ls::StyleEnumMappings::Init(env, exports);
 

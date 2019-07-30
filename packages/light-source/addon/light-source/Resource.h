@@ -19,7 +19,6 @@ enum ResourceState : uint8_t {
     ResourceStateReady,
     ResourceStateError,
     ResourceStateLoading,
-    ResourceStateSyncing,
 };
 
 class ResourceManager;

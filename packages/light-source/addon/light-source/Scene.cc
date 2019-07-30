@@ -5,6 +5,8 @@
  */
 
 #include "Scene.h"
+#include "BoxSceneNode.h"
+#include "napi-ext.h"
 #include <StageAdapter.h>
 #include <fmt/format.h>
 
@@ -20,19 +22,7 @@ using Napi::Object;
 using Napi::ObjectWrap;
 using Napi::Reference;
 using Napi::String;
-using Napi::Symbol;
 using Napi::Value;
-
-Symbol SymbolFor(Napi::Env env, const char* key) {
-    static FunctionReference symbolFor;
-
-    if (symbolFor.IsEmpty()) {
-        symbolFor.Reset(env.Global().Get("Symbol").As<Object>().Get("for").As<Function>(), 1);
-        symbolFor.SuppressDestruct();
-    }
-
-    return symbolFor({ String::New(env, key) }).As<Symbol>();
-}
 
 namespace ls {
 
@@ -43,7 +33,15 @@ Scene::Scene(const CallbackInfo& info) : ObjectWrap<Scene>(info) {
     this->resourceManager = ResourceManager::Unwrap(ResourceManager::Constructor(env).New({}));
     this->resourceManager->Ref();
 
-    info.This().As<Object>().Set("stage", info[0].As<Object>());
+    auto node{ BoxSceneNode::Constructor(env).New({ this->Value() }) };
+
+    this->root = ObjectWrap<SceneNode>::Unwrap(node);
+    this->root->AsReference()->Ref();
+
+    auto jsThis{ info.This().As<Object>() };
+
+    jsThis.Set("stage", info[0].As<Object>());
+    jsThis.Set("root", node);
 }
 
 Function Scene::Constructor(Napi::Env env) {
@@ -53,6 +51,7 @@ Function Scene::Constructor(Napi::Env env) {
         HandleScope scope(env);
 
         auto func = DefineClass(env, "SceneBase", {
+            InstanceValue("root", env.Null(), napi_writable),
             InstanceValue("stage", env.Null(), napi_writable),
             InstanceAccessor("resource", &Scene::GetResourceManager, nullptr),
             InstanceMethod("resize", &Scene::Resize),

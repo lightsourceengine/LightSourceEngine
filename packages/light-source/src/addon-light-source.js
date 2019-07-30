@@ -11,5 +11,8 @@ import bindings from 'bindings'
 export const {
   StyleBase,
   StyleEnumMappings,
-  SceneBase
+  SceneBase,
+  BoxSceneNode,
+  ImageSceneNode,
+  TextSceneNode
 } = bindings('light-source')

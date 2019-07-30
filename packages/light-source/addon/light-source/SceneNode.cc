@@ -6,6 +6,7 @@
 
 #include "SceneNode.h"
 #include "Style.h"
+#include "Scene.h"
 #include <fmt/format.h>
 #include <algorithm>
 
@@ -22,19 +23,17 @@ namespace ls {
 int SceneNode::instanceCount{0};
 
 SceneNode::SceneNode(const CallbackInfo& info) {
-    // TODO: set scene
+    auto env{ info.Env() };
 
-//    auto env{ info.Env() };
-//
-//    if (info[0].IsObject()) {
-//        this->scene = ObjectWrap<Scene>::Unwrap(info[0].As<Object>());
-//    }
-//
-//    if (!this->scene) {
-//        throw Error::New(env, "SceneNode constructor expects a Scene object.");
-//    }
-//
-//    this->scene->Ref();
+    if (info[0].IsObject()) {
+        this->scene = ObjectWrap<Scene>::Unwrap(info[0].As<Object>());
+    }
+
+    if (!this->scene) {
+        throw Error::New(env, "SceneNode constructor expects a Scene object.");
+    }
+
+    this->scene->Ref();
     this->ygNode = YGNodeNew();
 
     instanceCount++;
@@ -77,10 +76,9 @@ Value SceneNode::GetStyle(const CallbackInfo& info) {
 }
 
 void SceneNode::SyncStyleRecursive() {
-    // TODO: scene
-//    if (this->style) {
-//        this->style->Apply(this->ygNode, this->scene->GetWidth(), this->scene->GetHeight());
-//    }
+    if (this->style) {
+        this->style->Apply(this->ygNode, this->scene->GetWidth(), this->scene->GetHeight());
+    }
 
     for (auto& child : this->children) {
         child->SyncStyleRecursive();
@@ -127,8 +125,7 @@ void SceneNode::SetParent(SceneNode* newParent) {
 }
 
 void SceneNode::ApplyStyle(Style* style) {
-    // TODO: scene
-    // style->Apply(this->ygNode, this->scene->GetWidth(), this->scene->GetHeight());
+     style->Apply(this->ygNode, this->scene->GetWidth(), this->scene->GetHeight());
 }
 
 void SceneNode::AppendChild(const CallbackInfo& info) {
@@ -241,11 +238,10 @@ void SceneNode::DestroyRecursive() {
         this->ygNode = nullptr;
     }
 
-    // TODO: scene
-//    if (this->scene) {
-//        this->scene->Unref();
-//        this->scene = nullptr;
-//    }
+    if (this->scene) {
+        this->scene->Unref();
+        this->scene = nullptr;
+    }
 
     if (this->style) {
         this->style->Unref();

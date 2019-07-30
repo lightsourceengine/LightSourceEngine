@@ -13,6 +13,18 @@
 namespace ls {
 
 inline
+Napi::Symbol SymbolFor(Napi::Env env, const char* key) {
+    static Napi::FunctionReference symbolFor;
+
+    if (symbolFor.IsEmpty()) {
+        symbolFor.Reset(env.Global().Get("Symbol").As<Napi::Object>().Get("for").As<Napi::Function>(), 1);
+        symbolFor.SuppressDestruct();
+    }
+
+    return symbolFor({ Napi::String::New(env, key) }).As<Napi::Symbol>();
+}
+
+inline
 std::string GetString(Napi::Object options, const char* name) {
     if (!options.Has(name)) {
         throw Napi::Error::New(options.Env(), fmt::format("Expected '{}' property in Object.", name));

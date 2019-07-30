@@ -8,6 +8,8 @@
 
 namespace ls {
 
+uint32_t SDLRenderer::nextTextureId{ 0 };
+
 void SDLRenderer::Reset() {
     this->xOffset = this->yOffset = 0;
     this->clipRectStack.clear();
@@ -201,7 +203,7 @@ void SDLRenderer::DrawImage(const uint32_t textureId, const Rect& rect, const Ed
 
     SDL_RenderCopy(this->renderer, texture, &srcRect, &destRect);
 
-    // capInsets.bottom row
+    // Bottom row
 
     srcRect = { 0, textureHeight - capInsets.bottom, capInsets.left, capInsets.bottom };
     destRect = { x, y + height - capInsets.bottom, capInsets.left, capInsets.bottom };
@@ -233,8 +235,9 @@ uint32_t SDLRenderer::AddTexture(const uint8_t* source, PixelFormat sourceFormat
         const int32_t width, const int32_t height) {
     void* pixels;
     int pitch;
-    auto texture{ SDL_CreateTexture(this->renderer, this->textureFormat, SDL_TEXTUREACCESS_STREAMING,
-        width, height) };
+    auto texture{
+        SDL_CreateTexture(this->renderer, this->textureFormat, SDL_TEXTUREACCESS_STREAMING, width, height)
+    };
 
     if (!texture) {
         return 0;

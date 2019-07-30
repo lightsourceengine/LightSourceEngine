@@ -55,6 +55,7 @@ void ImageResource::Load(Renderer* renderer,
                 }
 
                 this->SetStateAndNotifyListeners(nextState);
+                this->work.reset();
             });
     } catch (std::exception& e) {
         this->RemoveRef();
@@ -114,7 +115,7 @@ void ImageResource::LoadImage(const std::string& uriOrFilename, const std::vecto
 }
 
 void ImageResource::LoadImageFromSvg(
-        NSVGimage* svgImage,  const int32_t scaleWidth, const int32_t scaleHeight) {
+        NSVGimage* svgImage, const int32_t scaleWidth, const int32_t scaleHeight) {
     NSVGimageHandle svg(svgImage, nsvgDelete);
 
     // XXX: nsvgParse* methods do not check if parsing failed. NSVGImage can be left in a partially filled out state,

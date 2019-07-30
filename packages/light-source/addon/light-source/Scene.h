@@ -13,6 +13,8 @@
 
 namespace ls {
 
+class SceneNode;
+
 class Scene : public Napi::ObjectWrap<Scene> {
  public:
     explicit Scene(const Napi::CallbackInfo& info);
@@ -35,6 +37,7 @@ class Scene : public Napi::ObjectWrap<Scene> {
 
  private:
     ResourceManager* resourceManager{};
+    SceneNode* root;
     std::shared_ptr<SceneAdapter> adapter;
 };
 
