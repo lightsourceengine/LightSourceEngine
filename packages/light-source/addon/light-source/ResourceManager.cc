@@ -10,12 +10,14 @@
 #include <algorithm>
 #include <fmt/format.h>
 
+using Napi::Array;
 using Napi::CallbackInfo;
 using Napi::Error;
 using Napi::Function;
 using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Object;
+using Napi::ObjectReference;
 using Napi::String;
 using Napi::Value;
 
@@ -23,8 +25,17 @@ namespace ls {
 
 StyleFontStyle GetFontStyle(Object options, const char* name);
 StyleFontWeight GetFontWeight(Object options, const char* name);
+void CopyStringArrayToVector(const Array& array, std::vector<std::string>* vector);
+Array VectorToArray(Napi::Env env, const std::vector<std::string>& vector);
+void ValidateStringArray(Napi::Env env, const Array& array);
 
 ResourceManager::ResourceManager(const CallbackInfo& info) : ObjectWrap<ResourceManager>(info) {
+    auto env{ info.Env() };
+    HandleScope scope(env);
+
+    this->pathObject.Reset(VectorToArray(env, this->path));
+    this->imageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".svg" };
+    this->imageExtensionsObject.Reset(VectorToArray(env, this->imageExtensions), 1);
 }
 
 Function ResourceManager::Constructor(Napi::Env env) {
@@ -36,6 +47,9 @@ Function ResourceManager::Constructor(Napi::Env env) {
         auto func = DefineClass(env, "ResourceManager", {
             InstanceMethod("registerImage", &ResourceManager::RegisterImage),
             InstanceMethod("registerFont", &ResourceManager::RegisterFont),
+            InstanceAccessor("path", &ResourceManager::GetPath, &ResourceManager::SetPath),
+            InstanceAccessor("imageExtensions",
+                &ResourceManager::GetImageExtensions, &ResourceManager::SetImageExtensions),
         });
 
         constructor.Reset(func, 1);
@@ -68,7 +82,53 @@ void ResourceManager::RegisterFont(const Napi::CallbackInfo& info) {
 
     this->fonts[fontId] = fontResource;
 
-    fontResource->Load();
+    fontResource->Load(this->path);
+}
+
+Value ResourceManager::GetImageExtensions(const CallbackInfo& info) {
+    return this->imageExtensionsObject.Value();
+}
+
+void ResourceManager::SetImageExtensions(const Napi::CallbackInfo& info, const Napi::Value& value) {
+    auto env{ info.Env() };
+    HandleScope scope(env);
+
+    if (value.IsUndefined() || value.IsNull()) {
+        this->imageExtensions.clear();
+    } else if (value.IsArray()) {
+        auto array{ value.As<Array>() };
+
+        ValidateStringArray(env, array);
+        CopyStringArrayToVector(array, &this->imageExtensions);
+    } else {
+        throw Error::New(env, "imageExtensions can only be assigned to an array of strings");
+    }
+
+    this->imageExtensionsObject.Reset(VectorToArray(env, this->imageExtensions), 1);
+}
+
+Napi::Value ResourceManager::GetPath(const Napi::CallbackInfo& info) {
+    return this->pathObject.Value();
+}
+
+void ResourceManager::SetPath(const Napi::CallbackInfo& info, const Napi::Value& value) {
+    auto env{ info.Env() };
+    HandleScope scope(env);
+
+    if (value.IsUndefined() || value.IsNull()) {
+        this->path.clear();
+    } else if (value.IsString()) {
+        this->path = { value.As<String>().Utf8Value() };
+    } else if (value.IsArray()) {
+        auto array{ value.As<Array>() };
+
+        ValidateStringArray(env, array);
+        CopyStringArrayToVector(array, &this->path);
+    } else {
+        throw Error::New(env, "path can only be assigned to a string or an array of strings");
+    }
+
+    this->pathObject.Reset(VectorToArray(env, this->path), 1);
 }
 
 void ResourceManager::Attach(Renderer* renderer) {
@@ -93,7 +153,7 @@ ImageResource* ResourceManager::GetImage(const std::string& id) {
     this->images[id] = imageResource;
 
     imageResource->AddRef();
-    imageResource->Load(this->renderer, this->extensions, this->path);
+    imageResource->Load(this->renderer, this->imageExtensions, this->path);
 
     return imageResource.get();
 }
@@ -150,6 +210,37 @@ StyleFontWeight GetFontWeight(Object options, const char* name) {
     }
 
     return StyleFontWeightNormal;
+}
+
+void ValidateStringArray(Napi::Env env, const Array& array) {
+    auto len{ array.Length() };
+
+    for (auto i{0u}; i < len; i++) {
+        if (!array.Get(i).IsString()) {
+            throw Error::New(env, "Expected an array containing string objects.");
+        }
+    }
+}
+
+void CopyStringArrayToVector(const Array& array, std::vector<std::string>* vector) {
+    vector->clear();
+
+    auto len{ array.Length() };
+
+    for (auto i{0u}; i < len; i++) {
+        vector->push_back(array.Get(i).As<String>());
+    }
+}
+
+Array VectorToArray(Napi::Env env, const std::vector<std::string>& vector) {
+    auto array{ Array::New(env, vector.size()) };
+    auto i{ 0u };
+
+    for (auto& item : vector) {
+        array.Set(i++, String::New(env, item));
+    }
+
+    return array;
 }
 
 } // namespace ls

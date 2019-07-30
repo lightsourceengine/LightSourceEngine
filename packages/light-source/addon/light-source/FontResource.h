@@ -40,7 +40,7 @@ class FontResource : public Resource {
     std::unique_ptr<AsyncWork> work;
 
  private:
-    void Load();
+    void Load(const std::vector<std::string>& path);
 
     friend ResourceManager;
 };

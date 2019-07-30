@@ -10,7 +10,8 @@
 
 namespace ls {
 
-std::vector<uint8_t> LoadFont(const std::string filename, const int32_t index, stbtt_fontinfo* info);
+std::vector<uint8_t> LoadFont(const std::vector<std::string>& path, const std::string& filename, const int32_t index,
+    stbtt_fontinfo* info);
 
 FontResource::FontResource(Napi::Env env, const std::string& id, const std::string& uri, const int32_t index,
         const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight)
@@ -21,36 +22,40 @@ std::string FontResource::MakeId(const std::string& family, StyleFontStyle fontS
     return fmt::format("{}:{}:{}", family, fontStyle, fontWeight);
 }
 
-void FontResource::Load() {
+void FontResource::Load(const std::vector<std::string>& path) {
     auto initialState{ ResourceStateLoading };
 
+    // TODO: what if ref == 0?
     this->AddRef();
 
     try {
         this->work = std::make_unique<AsyncWork>(
             this->env,
             this->id,
-            [this](Napi::Env env) {
-                // TODO: use resource path
-                this->fontInfoData = LoadFont(this->uri, this->index, &this->fontInfo);
+            [this, path](Napi::Env env) {
+                this->fontInfoData = LoadFont(path, this->uri, this->index, &this->fontInfo);
             },
             [this](Napi::Env env, napi_status status, const std::string& message) {
-                this->RemoveRef();
-
                 if (this->resourceState != ResourceStateLoading) {
+                    fmt::println("Warning: AsyncWork returned to a resource({}) in an unexpected state.",
+                        this->GetId());
                     return;
                 }
 
-                ResourceState nextState;
-
-                if (status != napi_ok) {
-                    nextState = ResourceStateError;
-                } else {
-                    nextState = ResourceStateReady;
-                }
-
-                this->SetStateAndNotifyListeners(nextState);
+                this->RemoveRef();
                 this->work.reset();
+
+                if (this->GetRefCount() > 0) {
+                    ResourceState nextState;
+
+                    if (status != napi_ok) {
+                        nextState = ResourceStateError;
+                    } else {
+                        nextState = ResourceStateReady;
+                    }
+
+                    this->SetStateAndNotifyListeners(nextState);
+                }
             });
     } catch (std::exception& e) {
         this->RemoveRef();
@@ -60,8 +65,18 @@ void FontResource::Load() {
     this->SetStateAndNotifyListeners(initialState);
 }
 
-std::vector<uint8_t> LoadFont(const std::string filename, const int32_t index, stbtt_fontinfo* info) {
-    auto buffer{ ReadBytes(filename) };
+std::vector<uint8_t> LoadFont(const std::vector<std::string>& path, const std::string& filename, const int32_t index,
+        stbtt_fontinfo* info) {
+    static const std::vector<std::string> emptyVector = {};
+    std::string resolvedFilename;
+
+    if (IsResourceUri(filename)) {
+        resolvedFilename = FindFile(GetResourceUriPath(filename), emptyVector, path);
+    } else {
+        resolvedFilename = filename;
+    }
+
+    auto buffer{ ReadBytes(resolvedFilename) };
     auto offset = stbtt_GetFontOffsetForIndex(&buffer[0], index);
 
     if (offset == -1) {

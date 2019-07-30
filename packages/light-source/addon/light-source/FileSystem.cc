@@ -64,25 +64,23 @@ std::string Join(const std::string& path, const std::string& filename) {
 }
 
 std::string FindFile(const std::string& filename, const std::vector<std::string>& extensions) {
-    if (HasExtension(filename)) {
-        if (!FileExists(filename)) {
-            throw std::runtime_error("file does not exist");
-        }
-
+    if (FileExists(filename)) {
         return filename;
     }
 
-    std::string filenameWithExtension;
+    if (!HasExtension(filename)) {
+        std::string filenameWithExtension;
 
-    for (auto& ext : extensions) {
-        filenameWithExtension = filename + ext;
+        for (auto& ext : extensions) {
+            filenameWithExtension = filename + ext;
 
-        if (FileExists(filenameWithExtension)) {
-            return filenameWithExtension;
+            if (FileExists(filenameWithExtension)) {
+                return filenameWithExtension;
+            }
         }
     }
 
-    throw std::runtime_error("no known file extension found");
+    throw std::runtime_error("File not found: " + filename);
 }
 
 std::string FindFile(const std::string& filename, const std::vector<std::string>& extensions,
@@ -95,7 +93,7 @@ std::string FindFile(const std::string& filename, const std::vector<std::string>
         }
     }
 
-    throw std::runtime_error("no known file extension found");
+    throw std::runtime_error("File not found: " + filename);
 }
 
 bool IsDataUri(const std::string& uri) {

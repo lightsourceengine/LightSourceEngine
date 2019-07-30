@@ -9,6 +9,7 @@
 #include <nanosvg.h>
 #include <nanosvgrast.h>
 #include <stb_image.h>
+#include <fmt/format.h>
 
 namespace ls {
 
@@ -40,22 +41,27 @@ void ImageResource::Load(Renderer* renderer,
                 this->LoadImage(this->uri, extensions, resourcePath);
             },
             [this](Napi::Env env, napi_status status, const std::string& message) {
-                this->RemoveRef();
-
+                // TODO: same code as FontResource
                 if (this->resourceState != ResourceStateLoading) {
+                    fmt::println("Warning: AsyncWork returned to a resource({}) in an unexpected state.",
+                        this->GetId());
                     return;
                 }
 
-                ResourceState nextState;
-
-                if (status != napi_ok) {
-                    nextState = ResourceStateError;
-                } else {
-                    nextState = ResourceStateReady;
-                }
-
-                this->SetStateAndNotifyListeners(nextState);
+                this->RemoveRef();
                 this->work.reset();
+
+                if (this->GetRefCount() > 0) {
+                    ResourceState nextState;
+
+                    if (status != napi_ok) {
+                        nextState = ResourceStateError;
+                    } else {
+                        nextState = ResourceStateReady;
+                    }
+
+                    this->SetStateAndNotifyListeners(nextState);
+                }
             });
     } catch (std::exception& e) {
         this->RemoveRef();

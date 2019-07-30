@@ -27,6 +27,12 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     void RegisterImage(const Napi::CallbackInfo& info);
     void RegisterFont(const Napi::CallbackInfo& info);
 
+    Napi::Value GetImageExtensions(const Napi::CallbackInfo& info);
+    void SetImageExtensions(const Napi::CallbackInfo& info, const Napi::Value& value);
+
+    Napi::Value GetPath(const Napi::CallbackInfo& info);
+    void SetPath(const Napi::CallbackInfo& info, const Napi::Value& value);
+
     void Attach(Renderer* renderer);
     void Detach();
 
@@ -40,8 +46,10 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     Renderer* renderer{};
     std::unordered_map<std::string, std::shared_ptr<ImageResource>> images;
     std::unordered_map<std::string, std::shared_ptr<FontResource>> fonts;
-    std::vector<std::string> extensions;
+    std::vector<std::string> imageExtensions;
+    Napi::ObjectReference imageExtensionsObject;
     std::vector<std::string> path;
+    Napi::ObjectReference pathObject;
 };
 
 } // namespace ls
