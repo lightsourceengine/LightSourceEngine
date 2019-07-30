@@ -39,7 +39,7 @@ class Renderer {
 
     virtual void Reset() = 0;
 
-    virtual void Shift(int32_t x, int32_t y) = 0;
+    virtual void Shift(float x, float y) = 0;
     virtual void Unshift() = 0;
 
     virtual void PushClipRect(const Rect& rect) = 0;
