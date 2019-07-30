@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <napi.h>
 #include <functional>
 #include <vector>
 #include <utility>
@@ -25,7 +26,7 @@ class ResourceManager;
 
 class Resource {
  public:
-    explicit Resource(const std::string& id);
+    explicit Resource(Napi::Env env, const std::string& id);
     virtual ~Resource() = default;
 
     uint32_t AddListener(std::function<void()> listener);
@@ -37,6 +38,9 @@ class Resource {
 
     const std::string& GetId() const { return this->id; }
 
+    bool IsReady() const { return this->resourceState == ResourceStateReady; }
+    bool HasError() const { return this->resourceState == ResourceStateError; }
+
  protected:
     void SetStateAndNotifyListeners(ResourceState newState);
 
@@ -44,6 +48,7 @@ class Resource {
     void RemoveListenerById(const uint32_t listenerId);
 
  protected:
+    Napi::Env env;
     std::string id;
     ResourceState resourceState{ ResourceStateInit };
 

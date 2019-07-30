@@ -8,7 +8,7 @@
 
 #include <napi.h>
 #include <unordered_map>
-#include <queue>
+#include <vector>
 #include <memory>
 #include "FontResource.h"
 #include "ImageResource.h"
@@ -30,7 +30,6 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     void Attach(Renderer* renderer);
     void Detach();
 
-    void RegisterImage(const std::string& id);
     void ProcessEvents();
 
     ImageResource* GetImage(const std::string& id);
@@ -41,6 +40,8 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     Renderer* renderer{};
     std::unordered_map<std::string, std::shared_ptr<ImageResource>> images;
     std::unordered_map<std::string, std::shared_ptr<FontResource>> fonts;
+    std::vector<std::string> extensions;
+    std::vector<std::string> path;
 };
 
 } // namespace ls

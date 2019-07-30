@@ -5,19 +5,22 @@
  */
 
 #include "FileSystem.h"
-#include <cstdio>
 #include <sys/stat.h>
 
+constexpr auto DATA_URI_PREFIX = "data:";
+const auto DATA_URI_PREFIX_LEN = std::strlen(DATA_URI_PREFIX);
+constexpr auto RESOURCE_URI_PREFIX = "file://resource/";
+const auto RESOURCE_URI_PREFIX_LEN = std::strlen(RESOURCE_URI_PREFIX);
+constexpr auto SVG_DATA_URI_PREFIX = "data:image/svg+xml,";
+const auto SVG_DATA_URI_PREFIX_LEN = std::strlen(SVG_DATA_URI_PREFIX);
 constexpr auto PATH_SEPARATOR =
 #ifdef _WIN32
-                            '\\';
+    '\\';
 #else
-                            '/';
+    '/';
 #endif
 
 namespace ls {
-
-using FileHandle = std::unique_ptr<FILE, decltype(&fclose)>;
 
 std::vector<uint8_t> ReadBytes(const std::string filename) {
     std::vector<uint8_t> buffer;
@@ -93,6 +96,27 @@ std::string FindFile(const std::string& filename, const std::vector<std::string>
     }
 
     throw std::runtime_error("no known file extension found");
+}
+
+bool IsDataUri(const std::string& uri) {
+    return strncmp(uri.c_str(), DATA_URI_PREFIX, DATA_URI_PREFIX_LEN) == 0;
+}
+
+bool IsResourceUri(const std::string& uri) {
+    return strncmp(uri.c_str(), RESOURCE_URI_PREFIX, RESOURCE_URI_PREFIX_LEN) == 0;
+}
+
+bool IsSvgDataUri(const std::string& uri) {
+    return strncmp(uri.c_str(), SVG_DATA_URI_PREFIX, SVG_DATA_URI_PREFIX_LEN) == 0
+        && uri.size() > SVG_DATA_URI_PREFIX_LEN;
+}
+
+std::string GetResourceUriPath(const std::string& resourceUri) {
+    return resourceUri.substr(RESOURCE_URI_PREFIX_LEN);
+}
+
+std::string GetSvgUriData(const std::string& svgUri) {
+    return svgUri.substr(SVG_DATA_URI_PREFIX_LEN);
 }
 
 } // namespace ls

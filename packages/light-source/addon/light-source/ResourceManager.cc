@@ -6,6 +6,7 @@
 
 #include "ResourceManager.h"
 #include "napi-ext.h"
+#include "Renderer.h"
 #include <fmt/format.h>
 
 using Napi::CallbackInfo;
@@ -41,9 +42,6 @@ Function ResourceManager::Constructor(Napi::Env env) {
 }
 
 void ResourceManager::RegisterImage(const Napi::CallbackInfo& info) {
-    auto uri{ info[0].As<String>() };
-
-    this->RegisterImage(uri);
 }
 
 void ResourceManager::RegisterFont(const Napi::CallbackInfo& info) {
@@ -63,11 +61,11 @@ void ResourceManager::RegisterFont(const Napi::CallbackInfo& info) {
         throw Error::New(env, fmt::format("Font '{}' already registered.", fontId));
     }
 
-    auto fontResource{ std::make_shared<FontResource>(fontId, uri, index, family, fontStyle, fontWeight) };
+    auto fontResource{ std::make_shared<FontResource>(info.Env(), fontId, uri, index, family, fontStyle, fontWeight) };
 
     this->fonts[fontId] = fontResource;
 
-    fontResource->Load(info.Env());
+    fontResource->Load();
 }
 
 void ResourceManager::Attach(Renderer* renderer) {
@@ -78,11 +76,22 @@ void ResourceManager::Detach() {
     this->renderer = nullptr;
 }
 
-void ResourceManager::RegisterImage(const std::string& id) {
-}
-
 ImageResource* ResourceManager::GetImage(const std::string& id) {
-    return nullptr;
+    auto p{ this->images.find(id) };
+
+    if (p != this->images.end()) {
+        return p->second.get();
+    }
+
+    // TODO: check renderer?
+
+    auto imageResource{ std::make_shared<ImageResource>(this->Env(), id) };
+
+    this->images[id] = imageResource;
+
+    imageResource->Load(this->renderer, this->extensions, this->path);
+
+    return imageResource.get();
 }
 
 FontResource* ResourceManager::FindFont(

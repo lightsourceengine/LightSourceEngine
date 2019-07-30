@@ -21,11 +21,15 @@
         "deps/yoga/lib",
         "include",
         "deps/fmt/include",
+        "deps/stb_image/include",
+        "deps/nanosvg/include",
         "deps/stb_truetype/include",
       ],
       "dependencies": [
         "addon/deps/yoga/yoga.gyp:yoga",
         "addon/deps/fmt/fmt.gyp:fmt",
+        "addon/deps/stb_image/stb_image.gyp:stb_image",
+        "addon/deps/nanosvg/nanosvg.gyp:nanosvg",
         "addon/deps/stb_truetype/stb_truetype.gyp:stb_truetype",
       ],
       "sources": [

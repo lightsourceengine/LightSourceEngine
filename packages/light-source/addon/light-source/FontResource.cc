@@ -12,23 +12,23 @@ namespace ls {
 
 std::vector<uint8_t> LoadFont(const std::string filename, const int32_t index, stbtt_fontinfo* info);
 
-FontResource::FontResource(const std::string& id, const std::string& uri, const int32_t index,
+FontResource::FontResource(Napi::Env env, const std::string& id, const std::string& uri, const int32_t index,
         const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight)
-    : Resource(id), uri(uri), index(index), family(family), fontStyle(fontStyle), fontWeight(fontWeight) {
+    : Resource(env, id), uri(uri), index(index), family(family), fontStyle(fontStyle), fontWeight(fontWeight) {
 }
 
 std::string FontResource::MakeId(const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight) {
     return fmt::format("{}:{}:{}", family, fontStyle, fontWeight);
 }
 
-void FontResource::Load(Napi::Env env) {
+void FontResource::Load() {
     auto initialState{ ResourceStateLoading };
 
     this->AddRef();
 
     try {
         this->work = std::make_unique<AsyncWork>(
-            env,
+            this->env,
             this->id,
             [this](Napi::Env env) {
                 // TODO: use resource path
@@ -50,6 +50,7 @@ void FontResource::Load(Napi::Env env) {
                 }
 
                 this->SetStateAndNotifyListeners(nextState);
+                this->work.reset();
             });
     } catch (std::exception& e) {
         this->RemoveRef();
@@ -57,10 +58,6 @@ void FontResource::Load(Napi::Env env) {
     }
 
     this->SetStateAndNotifyListeners(initialState);
-}
-
-bool FontResource::IsReady() const {
-    return this->resourceState == ResourceStateReady;
 }
 
 std::vector<uint8_t> LoadFont(const std::string filename, const int32_t index, stbtt_fontinfo* info) {

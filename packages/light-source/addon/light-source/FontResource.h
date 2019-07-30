@@ -18,7 +18,7 @@ class ResourceManager;
 
 class FontResource : public Resource {
  public:
-    explicit FontResource(const std::string& id, const std::string& uri, const int32_t index,
+    explicit FontResource(Napi::Env env, const std::string& id, const std::string& uri, const int32_t index,
         const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight);
     virtual ~FontResource() = default;
 
@@ -27,7 +27,6 @@ class FontResource : public Resource {
     StyleFontStyle GetFontStyle() const { return this->fontStyle; }
     StyleFontWeight GetFontWeight() const { return this->fontWeight; }
 
-    bool IsReady() const;
     stbtt_fontinfo* GetFontInfo() { return &this->fontInfo; }
 
  private:
@@ -41,7 +40,7 @@ class FontResource : public Resource {
     std::unique_ptr<AsyncWork> work;
 
  private:
-    void Load(Napi::Env env);
+    void Load();
 
     friend ResourceManager;
 };
