@@ -7,8 +7,8 @@
 import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode } from './addon-light-source'
 import { Style } from './Style'
 
-const attach = Symbol.for('attach')
-const detach = Symbol.for('detach')
+const $attach = Symbol.for('attach')
+const $detach = Symbol.for('detach')
 const nodeClass = new Map([
   ['img', ImageSceneNode],
   ['div', BoxSceneNode],
@@ -60,11 +60,11 @@ export class Scene extends SceneBase {
     super.resize(width, height, fullscreen)
   }
 
-  [attach] () {
-    super[attach]()
+  [$attach] () {
+    super[$attach]()
   }
 
-  [detach] () {
-    super[detach]()
+  [$detach] () {
+    super[$detach]()
   }
 }

@@ -6,26 +6,6 @@
 
 import { Stage } from './Stage'
 import { Style } from './Style'
-import { KeyCode } from './input/KeyCode'
 
-export { Style, KeyCode }
+export { Style }
 export const stage = new Stage()
-
-// TODO: move exit handler to stage (?), make configurable (?)
-
-const errorHandler = obj => {
-  if (obj) {
-    obj.message && console.log(obj.message)
-    obj.stack && console.log(obj.stack)
-  }
-
-  process.exit()
-};
-
-['SIGINT', 'SIGUSR1', 'SIGUSR2', 'uncaughtException', 'unhandledRejection'].forEach(
-  e => process.on(e, errorHandler))
-
-process.on('exit', () => {
-  stage.destroy()
-  global.gc && global.gc()
-})
