@@ -7,6 +7,7 @@
 #include "ResourceManager.h"
 #include "napi-ext.h"
 #include "Renderer.h"
+#include <algorithm>
 #include <fmt/format.h>
 
 using Napi::CallbackInfo;
@@ -19,6 +20,9 @@ using Napi::String;
 using Napi::Value;
 
 namespace ls {
+
+StyleFontStyle GetFontStyle(Object options, const char* name);
+StyleFontWeight GetFontWeight(Object options, const char* name);
 
 ResourceManager::ResourceManager(const CallbackInfo& info) : ObjectWrap<ResourceManager>(info) {
 }
@@ -50,9 +54,8 @@ void ResourceManager::RegisterFont(const Napi::CallbackInfo& info) {
     auto options{ info[0].As<Object>() };
     auto family{ GetString(options, "family") };
     auto uri{ GetString(options, "uri") };
-    // TODO: string => number
-    auto fontStyle{ GetEnumOrDefault(options, "style", StyleFontStyleNormal) };
-    auto fontWeight{ GetEnumOrDefault(options, "weight", StyleFontWeightNormal) };
+    auto fontStyle{ GetFontStyle(options, "style") };
+    auto fontWeight{ GetFontWeight(options, "weight") };
     auto index{ GetNumberOrDefault(options, "index", 0) };
 
     auto fontId{ FontResource::MakeId(family, fontStyle, fontWeight) };
@@ -107,6 +110,46 @@ FontResource* ResourceManager::FindFont(
 }
 
 void ResourceManager::ProcessEvents() {
+}
+
+StyleFontStyle GetFontStyle(Object options, const char* name) {
+    if (options.Has(name)) {
+        auto prop{ options.Get(name) };
+
+        if (prop.IsString()) {
+            auto value{ prop.As<String>().Utf8Value() };
+
+            std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+
+            if (value == StyleFontStyleToString(StyleFontStyleNormal)) {
+                return StyleFontStyleNormal;
+            } else if (value == StyleFontStyleToString(StyleFontStyleNormal)) {
+                return StyleFontStyleItalic;
+            }
+        }
+    }
+
+    return StyleFontStyleNormal;
+}
+
+StyleFontWeight GetFontWeight(Object options, const char* name) {
+    if (options.Has(name)) {
+        auto prop{ options.Get(name) };
+
+        if (prop.IsString()) {
+            auto value{ prop.As<String>().Utf8Value() };
+
+            std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+
+            if (value == StyleFontWeightToString(StyleFontWeightNormal)) {
+                return StyleFontWeightNormal;
+            } else if (value == StyleFontWeightToString(StyleFontWeightBold)) {
+                return StyleFontWeightBold;
+            }
+        }
+    }
+
+    return StyleFontWeightNormal;
 }
 
 } // namespace ls
