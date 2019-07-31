@@ -15,6 +15,7 @@ namespace ls {
 
 class SDLRenderer : public Renderer {
  public:
+    SDLRenderer();
     ~SDLRenderer() = default;
 
     int32_t GetWidth() const override;
@@ -47,18 +48,21 @@ class SDLRenderer : public Renderer {
         const int32_t height) override;
 
     void RemoveTexture(const uint32_t textureId) override;
+    PixelFormat GetTextureFormat() const override { return this->textureFormat; }
 
     void Attach(SDL_Window* window);
     void Detach();
 
  private:
     void SetRenderDrawColor(uint32_t color);
+    void UpdateTextureFormats(const SDL_RendererInfo& info);
 
  private:
     static uint32_t nextTextureId;
 
     SDL_Renderer* renderer{};
-    Uint32 textureFormat{SDL_PIXELFORMAT_UNKNOWN};
+    Uint32 sdlTextureFormat{SDL_PIXELFORMAT_UNKNOWN};
+    PixelFormat textureFormat{PixelFormatUnknown};
     float xOffset{};
     float yOffset{};
     std::vector<SDL_Rect> clipRectStack{};

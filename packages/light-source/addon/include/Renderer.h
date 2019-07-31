@@ -67,6 +67,8 @@ class Renderer {
         const int32_t height) = 0;
 
     virtual void RemoveTexture(const uint32_t textureId) = 0;
+
+    virtual PixelFormat GetTextureFormat() const = 0;
 };
 
 } // namespace ls

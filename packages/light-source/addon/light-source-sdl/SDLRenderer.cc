@@ -11,6 +11,37 @@ namespace ls {
 
 uint32_t SDLRenderer::nextTextureId{ 0 };
 SDL_Rect GetRendererSize(SDL_Renderer* renderer);
+PixelFormat ToPixelFormat(Uint32 pixelFormat);
+
+SDLRenderer::SDLRenderer() {
+    SDL_RendererInfo info;
+
+    if (SDL_GetRenderDriverInfo(0, &info) == 0) {
+        this->UpdateTextureFormats(info);
+    }
+}
+
+void SDLRenderer::UpdateTextureFormats(const SDL_RendererInfo& info) {
+    static const std::vector<Uint32> supportedPixelFormats = {
+        SDL_PIXELFORMAT_ARGB8888,
+        SDL_PIXELFORMAT_RGBA8888,
+        SDL_PIXELFORMAT_ABGR8888,
+        SDL_PIXELFORMAT_BGRA8888
+    };
+
+    this->sdlTextureFormat = SDL_PIXELFORMAT_UNKNOWN;
+
+    for (auto &p : supportedPixelFormats) {
+        for (auto i{ 0u }; i < info.num_texture_formats; i++) {
+            if (p == info.texture_formats[i]) {
+                this->sdlTextureFormat = p;
+                break;
+            }
+        }
+    }
+
+    this->textureFormat = ToPixelFormat(this->sdlTextureFormat);
+}
 
 int32_t SDLRenderer::GetWidth() const {
     return GetRendererSize(this->renderer).w;
@@ -249,7 +280,7 @@ uint32_t SDLRenderer::AddTexture(const uint8_t* source, PixelFormat sourceFormat
     void* pixels;
     int pitch;
     auto texture{
-        SDL_CreateTexture(this->renderer, this->textureFormat, SDL_TEXTUREACCESS_STREAMING, width, height)
+        SDL_CreateTexture(this->renderer, this->sdlTextureFormat, SDL_TEXTUREACCESS_STREAMING, width, height)
     };
 
     if (!texture) {
@@ -260,17 +291,16 @@ uint32_t SDLRenderer::AddTexture(const uint8_t* source, PixelFormat sourceFormat
 
     if (SDL_LockTexture(texture, nullptr, &pixels, &pitch) == 0) {
         auto dest{ reinterpret_cast<uint8_t*>(pixels) };
+        auto stride{ width * 4 };
 
-        // TODO: is this right?
-        if (pitch != 0) {
-            auto stride{ width * 4 };
-
+        // TODO: sourceFormat != sdlTextureFormat
+        if (pitch == stride) {
+            memcpy(dest, source, stride * height);
+        } else {
             for (auto h{ 0 }; h < height; h++) {
                 memcpy(&dest[h*pitch], source, stride);
                 source += stride;
             }
-        } else {
-            memcpy(dest, source, width * height * 4);
         }
 
         SDL_UnlockTexture(texture);
@@ -315,11 +345,32 @@ void SDLRenderer::SetRenderDrawColor(uint32_t color) {
 }
 
 void SDLRenderer::Attach(SDL_Window* window) {
-    this->renderer = SDL_CreateRenderer(window, 0, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    auto driverIndex{ 0 };
+
+    this->renderer = SDL_CreateRenderer(window, driverIndex, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     if (!this->renderer) {
         throw std::runtime_error(fmt::format("Failed to create an SDL renderer. SDL Error: {}", SDL_GetError()));
     }
+
+    SDL_RendererInfo info{};
+
+    if (SDL_GetRenderDriverInfo(driverIndex, &info) == 0) {
+        this->UpdateTextureFormats(info);
+    }
+
+    fmt::println("Renderer Info: size={},{} driver={} textureFormat={} maxTextureSize={},{} "
+            "software={} accelerated={} vsync={} renderTarget={}",
+        this->GetWidth(),
+        this->GetHeight(),
+        SDL_GetVideoDriver(driverIndex),
+        SDL_GetPixelFormatName(this->sdlTextureFormat),
+        info.max_texture_width,
+        info.max_texture_height,
+        (info.flags & SDL_RENDERER_SOFTWARE) != 0,
+        (info.flags & SDL_RENDERER_ACCELERATED) != 0,
+        (info.flags & SDL_RENDERER_PRESENTVSYNC) != 0,
+        (info.flags & SDL_RENDERER_TARGETTEXTURE) != 0);
 }
 
 void SDLRenderer::Detach() {
@@ -346,6 +397,22 @@ SDL_Rect GetRendererSize(SDL_Renderer* renderer) {
     }
 
     return rect;
+}
+
+inline
+PixelFormat ToPixelFormat(Uint32 pixelFormat) {
+    switch (pixelFormat) {
+        case SDL_PIXELFORMAT_ARGB8888:
+            return PixelFormatARGB;
+        case SDL_PIXELFORMAT_RGBA8888:
+            return PixelFormatRGBA;
+        case SDL_PIXELFORMAT_ABGR8888:
+            return PixelFormatABGR;
+        case SDL_PIXELFORMAT_BGRA8888:
+            return PixelFormatBGRA;
+        default:
+            return PixelFormatUnknown;
+    }
 }
 
 } // namespace ls
