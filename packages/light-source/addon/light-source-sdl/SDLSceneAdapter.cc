@@ -5,29 +5,56 @@
  */
 
 #include "SDLSceneAdapter.h"
-#include "SDLRenderer.h"
+#include <fmt/format.h>
 
 namespace ls {
 
-SDLSceneAdapter::SDLSceneAdapter(int32_t displayId) {
-    this->renderer = new SDLRenderer();
+SDLSceneAdapter::SDLSceneAdapter() : renderer(std::make_unique<SDLRenderer>()) {
 }
 
 void SDLSceneAdapter::Attach() {
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
-    SDL_GameControllerEventState(SDL_IGNORE);
+    this->window = SDL_CreateWindow("Light Source App",
+        SDL_WINDOWPOS_CENTERED_DISPLAY(0), SDL_WINDOWPOS_CENTERED_DISPLAY(0), 1280, 720, 0);
 
-    this->window = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, 0);
+    if (!this->window) {
+        throw std::runtime_error(fmt::format("Failed to create an SDL window. SDL Error: {}", SDL_GetError()));
+    }
+
+    this->renderer->Attach(this->window);
+
+    this->width = this->renderer->GetWidth();
+    this->height = this->renderer->GetHeight();
+    this->fullscreen = false;
 }
 
 void SDLSceneAdapter::Detach() {
+    if (!this->window) {
+        return;
+    }
+
+    this->renderer->Detach();
+
+    SDL_DestroyWindow(this->window);
+    this->window = nullptr;
 }
 
 void SDLSceneAdapter::Resize(int32_t width, int32_t height, bool fullscreen) {
 }
 
+int32_t SDLSceneAdapter::GetWidth() const {
+    return this->width;
+}
+
+int32_t SDLSceneAdapter::GetHeight() const {
+    return this->height;
+}
+
+bool SDLSceneAdapter::GetFullscreen() const {
+    return this->fullscreen;
+}
+
 Renderer* SDLSceneAdapter::GetRenderer() const {
-    return this->renderer;
+    return this->renderer.get();
 }
 
 } // namespace ls

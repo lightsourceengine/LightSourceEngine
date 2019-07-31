@@ -33,6 +33,7 @@ void FontResource::Load(const std::vector<std::string>& path) {
             this->env,
             this->id,
             [this, path](Napi::Env env) {
+                // TODO: do not modify resource here... execute should return a value and complete can modify
                 this->fontInfoData = LoadFont(path, this->uri, this->index, &this->fontInfo);
             },
             [this](Napi::Env env, napi_status status, const std::string& message) {

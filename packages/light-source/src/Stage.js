@@ -8,12 +8,14 @@ import { Scene } from './Scene'
 import { inputEventDispatcher } from './input/inputEventDispatcher'
 import bindings from 'bindings'
 import { EventEmitter } from 'events'
+import { performance } from 'perf_hooks'
 
+const { now } = performance
 const $adapter = Symbol.for('adapter')
 const $mainLoopHandle = Symbol.for('mainLoopHandle')
 const $fps = Symbol.for('fps')
 const $attach = Symbol.for('attach')
-const $processEvents = Symbol.for('processEvents')
+const $frame = Symbol.for('frame')
 const $scene = Symbol.for('scene')
 
 export class Stage {
@@ -34,7 +36,7 @@ export class Stage {
   }
 
   get keyboard () {
-    return this[$adapter].keyboard
+    return this[$adapter].getKeyboard()
   }
 
   get gamepads () {
@@ -86,11 +88,33 @@ export class Stage {
     })
   }
 
-  createScene () {
+  createScene ({ displayIndex, width, height, fullscreen } = {}) {
+    if (this[$scene]) {
+      throw Error('Stage can only manage 1 scene at a time.')
+    }
+
+    // if ! initialized => this.init()
+
+    if (!Number.isInteger(displayIndex)) {
+      displayIndex = 0
+    }
+
+    if ((width === undefined || width === 0) && (height === undefined || height === 0)) {
+      // TODO: get from displays
+    } else if (!Number.isInteger(width) && !Number.isInteger(height)) {
+      throw Error()
+    }
+
+    if (fullscreen === undefined) {
+      fullscreen = true
+    } else {
+      fullscreen = !!fullscreen
+    }
+
     // TODO: options
     // TODO: limit to one scene
     // TODO: auto init
-    this[$scene] = new Scene(this)
+    this[$scene] = new Scene(this, this[$adapter])
 
     return this[$scene]
   }
@@ -102,12 +126,21 @@ export class Stage {
     }
 
     const scene = this[$scene]
+    const adapter = this[$adapter]
+    let lastTick = now()
 
+    adapter.attach()
     scene[$attach]()
 
     const mainLoop = () => {
-      if (this[$adapter].processEvents()) {
-        scene[$processEvents]()
+      if (adapter.processEvents()) {
+        const tick = now()
+        const delta = tick - lastTick
+
+        lastTick = tick
+
+        scene[$frame](delta)
+
         this[$mainLoopHandle] = setTimeout(mainLoop, 1000 / this[$fps])
       }
     }

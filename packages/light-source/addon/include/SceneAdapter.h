@@ -20,6 +20,9 @@ class SceneAdapter {
     virtual void Detach() = 0;
     virtual void Resize(int32_t width, int32_t height, bool fullscreen) = 0;
 
+    virtual int32_t GetWidth() const = 0;
+    virtual int32_t GetHeight() const = 0;
+    virtual bool GetFullscreen() const = 0;
     virtual Renderer* GetRenderer() const = 0;
 };
 

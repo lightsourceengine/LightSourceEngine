@@ -16,3 +16,35 @@ export const {
   ImageSceneNode,
   TextSceneNode
 } = bindings('light-source')
+
+/**
+ * @class ResourceManager
+ */
+
+/**
+ * @class SceneNode
+ */
+
+/**
+ * @class BoxSceneNode
+ */
+
+/**
+ * @class ImageSceneNode
+ */
+
+/**
+ * @class TextSceneNode
+ */
+
+/**
+ * @class Keyboard
+ */
+
+/**
+ * @class Gamepad
+ */
+
+/**
+ * @class Display
+ */

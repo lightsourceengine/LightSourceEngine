@@ -17,7 +17,10 @@ class SDLRenderer : public Renderer {
  public:
     ~SDLRenderer() = default;
 
+    int32_t GetWidth() const override;
+    int32_t GetHeight() const override;
     void Reset() override;
+    void Present() override;
 
     void Shift(float x, float y) override;
     void Unshift() override;
@@ -45,6 +48,9 @@ class SDLRenderer : public Renderer {
 
     void RemoveTexture(const uint32_t textureId) override;
 
+    void Attach(SDL_Window* window);
+    void Detach();
+
  private:
     void SetRenderDrawColor(uint32_t color);
 
@@ -52,12 +58,11 @@ class SDLRenderer : public Renderer {
     static uint32_t nextTextureId;
 
     SDL_Renderer* renderer{};
-
     Uint32 textureFormat{SDL_PIXELFORMAT_UNKNOWN};
     float xOffset{};
     float yOffset{};
     std::vector<SDL_Rect> clipRectStack{};
-    std::vector<std::pair<float, float>> offsetStack{};
+    std::vector<float> offsetStack{};
     std::unordered_map<uint32_t, SDL_Texture*> textures{};
     uint32_t drawColor{};
 };

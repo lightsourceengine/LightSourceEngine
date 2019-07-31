@@ -5,10 +5,20 @@
  */
 
 #include "SDLRenderer.h"
+#include <fmt/format.h>
 
 namespace ls {
 
 uint32_t SDLRenderer::nextTextureId{ 0 };
+SDL_Rect GetRendererSize(SDL_Renderer* renderer);
+
+int32_t SDLRenderer::GetWidth() const {
+    return GetRendererSize(this->renderer).w;
+}
+
+int32_t SDLRenderer::GetHeight() const {
+    return GetRendererSize(this->renderer).h;
+}
 
 void SDLRenderer::Reset() {
     this->xOffset = this->yOffset = 0;
@@ -16,25 +26,28 @@ void SDLRenderer::Reset() {
     this->offsetStack.clear();
     SDL_RenderSetClipRect(this->renderer, nullptr);
     SDL_SetRenderDrawBlendMode(this->renderer, SDL_BLENDMODE_BLEND);
-
     SDL_SetRenderDrawColor(this->renderer, 255, 255, 255, 255);
     this->drawColor = 0xFFFFFFFF;
 }
 
+void SDLRenderer::Present() {
+    SDL_RenderPresent(this->renderer);
+}
+
 void SDLRenderer::Shift(float x, float y) {
-    this->offsetStack.push_back({ this->xOffset, this->yOffset });
+    this->offsetStack.push_back(this->yOffset);
+    this->offsetStack.push_back(this->xOffset);
 
     this->xOffset += x;
     this->yOffset += y;
 }
 
 void SDLRenderer::Unshift() {
-    auto& p{ this->offsetStack.back() };
-
-    this->xOffset = p.first;
-    this->yOffset = p.second;
-
     // TODO: validate stack!
+    this->xOffset = this->offsetStack.back();
+    this->offsetStack.pop_back();
+
+    this->yOffset = this->offsetStack.back();
     this->offsetStack.pop_back();
 }
 
@@ -248,6 +261,7 @@ uint32_t SDLRenderer::AddTexture(const uint8_t* source, PixelFormat sourceFormat
     if (SDL_LockTexture(texture, nullptr, &pixels, &pitch) == 0) {
         auto dest{ reinterpret_cast<uint8_t*>(pixels) };
 
+        // TODO: is this right?
         if (pitch != 0) {
             auto stride{ width * 4 };
 
@@ -298,6 +312,40 @@ void SDLRenderer::SetRenderDrawColor(uint32_t color) {
 
         this->drawColor = color;
     }
+}
+
+void SDLRenderer::Attach(SDL_Window* window) {
+    this->renderer = SDL_CreateRenderer(window, 0, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+    if (!this->renderer) {
+        throw std::runtime_error(fmt::format("Failed to create an SDL renderer. SDL Error: {}", SDL_GetError()));
+    }
+}
+
+void SDLRenderer::Detach() {
+    if (!this->renderer) {
+        return;
+    }
+
+    for (auto& p : this->textures) {
+        SDL_DestroyTexture(p.second);
+    }
+
+    this->textures.clear();
+
+    SDL_DestroyRenderer(this->renderer);
+    this->renderer = nullptr;
+}
+
+inline
+SDL_Rect GetRendererSize(SDL_Renderer* renderer) {
+    SDL_Rect rect{};
+
+    if (renderer) {
+        SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
+    }
+
+    return rect;
 }
 
 } // namespace ls

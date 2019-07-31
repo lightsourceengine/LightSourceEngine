@@ -43,9 +43,8 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
     Napi::Value GetGamepads(const Napi::CallbackInfo& info);
     Napi::Value GetDisplays(const Napi::CallbackInfo& info);
     Napi::Value ProcessEvents(const Napi::CallbackInfo& info) override;
-    void ProcessEvents() override;
-    std::shared_ptr<SceneAdapter> CreateSceneAdapter(int32_t displayId) override;
-    void ResetCallbacks(const Napi::CallbackInfo& info);
+    void Attach(const Napi::CallbackInfo& info);
+    void Detach(const Napi::CallbackInfo& info);
 
     DeclareStageCallback(onGamepadConnected);
     DeclareStageCallback(onGamepadDisconnected);
@@ -56,24 +55,33 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
     DeclareStageCallback(onGamepadAxisMotion);
     DeclareStageCallback(onQuit);
 
+    void ProcessEvents() override;
+    std::unique_ptr<SceneAdapter> CreateSceneAdapter() override;
+    void ResetCallbacks(const Napi::CallbackInfo& info);
+
  private:
-    static constexpr int NUM_EVENTS_PER_FRAME{20};
     void SetCallback(Napi::FunctionReference* function, const Napi::Value& value);
     inline void Call(const StageCallbacks callbackId, const std::initializer_list<napi_value>& args);
     inline bool IsCallbackEmpty(const StageCallbacks callbackId);
     void SyncGamepads(Napi::Env env);
-    void RefreshDisplays(Napi::Env env);
+    void ClearGamepads();
     SDLGamepad* AddGamepad(Napi::Env env, int32_t index);
+    void RefreshDisplays(Napi::Env env);
     inline Napi::Value GetGamepad(Napi::Env env, int32_t instanceId);
     void HandleJoystickHatMotion(Napi::Env env, int32_t instanceId, uint8_t hatIndex, uint8_t hatValue);
     void HandleJoystickAdded(Napi::Env env, int32_t index);
     void HandleJoystickRemoved(Napi::Env env, int32_t instanceId);
+    void Attach(Napi::Env env);
+    void Detach(Napi::Env env);
 
  private:
+    static constexpr int NUM_EVENTS_PER_FRAME{20};
+
     Napi::FunctionReference callbacks[StageCallbacksCount];
     SDLKeyboard* keyboard{};
     std::unordered_map<int32_t, SDLGamepad*> gamepadsByInstanceId{};
     Napi::ObjectReference displays;
+    bool isAttached{false};
 };
 
 } // namespace ls

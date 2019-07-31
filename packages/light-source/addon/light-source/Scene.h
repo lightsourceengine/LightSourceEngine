@@ -21,24 +21,26 @@ class Scene : public Napi::ObjectWrap<Scene> {
     virtual ~Scene() = default;
 
     static Napi::Function Constructor(Napi::Env env);
-    Napi::Value GetResourceManager(const Napi::CallbackInfo& info);
     void Attach(const Napi::CallbackInfo& info);
     void Detach(const Napi::CallbackInfo& info);
     void Resize(const Napi::CallbackInfo& info);
-    void ProcessEvents(const Napi::CallbackInfo& info);
+    void Frame(const Napi::CallbackInfo& info);
 
-    // TODO: get w/h
-    int32_t GetWidth() const { return 0; }
-    int32_t GetHeight() const { return 0; }
-    int32_t GetViewportMin() const { return 0; }
-    int32_t GetViewportMax() const { return 0; }
+    Napi::Value GetTitle(const Napi::CallbackInfo& info);
+    void SetTitle(const Napi::CallbackInfo& info, const Napi::Value& value);
 
+    int32_t GetWidth() const { return this->width; }
+    int32_t GetHeight() const { return this->height; }
+    int32_t GetViewportMin() const { return std::min(this->width, this->height); }
+    int32_t GetViewportMax() const { return std::max(this->width, this->height); }
     ResourceManager* GetResourceManager() { return this->resourceManager; }
 
  private:
     ResourceManager* resourceManager{};
-    SceneNode* root;
-    std::shared_ptr<SceneAdapter> adapter;
+    SceneNode* root{};
+    std::unique_ptr<SceneAdapter> adapter;
+    int32_t width{};
+    int32_t height{};
 };
 
 } // namespace ls

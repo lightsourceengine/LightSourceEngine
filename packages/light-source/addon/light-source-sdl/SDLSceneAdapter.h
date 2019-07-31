@@ -6,26 +6,33 @@
 
 #pragma once
 
+#include "SDLRenderer.h"
 #include <SceneAdapter.h>
 #include <SDL.h>
+#include <memory>
 
 namespace ls {
 
-class Renderer;
-
 class SDLSceneAdapter : public SceneAdapter {
  public:
-    explicit SDLSceneAdapter(int32_t displayId);
+    SDLSceneAdapter();
     virtual ~SDLSceneAdapter() = default;
 
     void Attach() override;
     void Detach() override;
     void Resize(int32_t width, int32_t height, bool fullscreen) override;
+
+    int32_t GetWidth() const override;
+    int32_t GetHeight() const override;
+    bool GetFullscreen() const override;
     Renderer* GetRenderer() const override;
 
  private:
+    std::unique_ptr<SDLRenderer> renderer{};
     SDL_Window* window{};
-    Renderer* renderer{};
+    int32_t width{};
+    int32_t height{};
+    bool fullscreen{};
 };
 
 } // namespace ls

@@ -30,18 +30,24 @@ Scene::Scene(const CallbackInfo& info) : ObjectWrap<Scene>(info) {
     auto env{ info.Env() };
     HandleScope scope(env);
 
-    this->resourceManager = ResourceManager::Unwrap(ResourceManager::Constructor(env).New({}));
+    auto stageAdapter{ ObjectWrap<StageAdapter>::Unwrap(info[0].As<Object>()) };
+
+    this->adapter = stageAdapter->CreateSceneAdapter();
+
+    auto resourceManagerValue{ ResourceManager::Constructor(env).New({}) };
+
+    this->resourceManager = ResourceManager::Unwrap(resourceManagerValue);
     this->resourceManager->Ref();
 
-    auto node{ BoxSceneNode::Constructor(env).New({ this->Value() }) };
+    auto rootValue{ BoxSceneNode::Constructor(env).New({ this->Value() }) };
 
-    this->root = ObjectWrap<SceneNode>::Unwrap(node);
+    this->root = ObjectWrap<SceneNode>::Unwrap(rootValue);
     this->root->AsReference()->Ref();
 
-    auto jsThis{ info.This().As<Object>() };
+    auto self{ info.This().As<Object>() };
 
-    jsThis.Set("stage", info[0].As<Object>());
-    jsThis.Set("root", node);
+    self.Set(SymbolFor(env, "root"), rootValue);
+    self.Set(SymbolFor(env, "resource"), resourceManagerValue);
 }
 
 Function Scene::Constructor(Napi::Env env) {
@@ -51,13 +57,16 @@ Function Scene::Constructor(Napi::Env env) {
         HandleScope scope(env);
 
         auto func = DefineClass(env, "SceneBase", {
-            InstanceValue("root", env.Null(), napi_writable),
-            InstanceValue("stage", env.Null(), napi_writable),
-            InstanceAccessor("resource", &Scene::GetResourceManager, nullptr),
+            InstanceValue(SymbolFor(env, "width"), Number::New(env, 0), napi_writable),
+            InstanceValue(SymbolFor(env, "height"), Number::New(env, 0), napi_writable),
+            InstanceValue(SymbolFor(env, "fullscreen"), Boolean::New(env, true), napi_writable),
+            InstanceValue(SymbolFor(env, "root"), env.Null(), napi_writable),
+            InstanceValue(SymbolFor(env, "resource"), env.Null(), napi_writable),
+            InstanceAccessor("title", &Scene::GetTitle, &Scene::SetTitle),
             InstanceMethod("resize", &Scene::Resize),
             InstanceMethod(SymbolFor(env, "attach"), &Scene::Attach),
             InstanceMethod(SymbolFor(env, "detach"), &Scene::Detach),
-            InstanceMethod(SymbolFor(env, "processEvents"), &Scene::ProcessEvents),
+            InstanceMethod(SymbolFor(env, "frame"), &Scene::Frame),
         });
 
         constructor.Reset(func, 1);
@@ -67,20 +76,21 @@ Function Scene::Constructor(Napi::Env env) {
     return constructor.Value();
 }
 
-Value Scene::GetResourceManager(const CallbackInfo& info) {
-    return this->resourceManager->Value();
-}
-
 void Scene::Attach(const CallbackInfo& info) {
     auto env{ info.Env() };
     HandleScope scope(env);
-    auto stage{ info.This().As<Object>().Get("stage").As<Object>() };
-    auto stageAdapter{ ObjectWrap<StageAdapter>::Unwrap(stage.Get(SymbolFor(env, "adapter")).As<Object>()) };
 
-    this->adapter = stageAdapter->CreateSceneAdapter(0);
     this->adapter->Attach();
-
     this->resourceManager->Attach(this->adapter->GetRenderer());
+
+    auto self{ info.This().As<Object>() };
+
+    this->width = this->adapter->GetWidth();
+    this->height = this->adapter->GetHeight();
+
+    self.Set(SymbolFor(env, "width"), Number::New(env, this->width));
+    self.Set(SymbolFor(env, "height"), Number::New(env, this->height));
+    self.Set(SymbolFor(env, "fullscreen"), Boolean::New(env, this->adapter->GetFullscreen()));
 }
 
 void Scene::Detach(const CallbackInfo& info) {
@@ -94,8 +104,23 @@ void Scene::Resize(const CallbackInfo& info) {
         info[2].As<Boolean>());
 }
 
-void Scene::ProcessEvents(const CallbackInfo& info) {
+void Scene::Frame(const CallbackInfo& info) {
+    auto renderer{ this->adapter->GetRenderer() };
+
+    renderer->Reset();
+
     this->resourceManager->ProcessEvents();
+    this->root->Layout(this->width, this->height);
+    this->root->Paint(renderer);
+
+    renderer->Present();
+}
+
+Value Scene::GetTitle(const CallbackInfo& info) {
+    return String::New(info.Env(), "");
+}
+
+void Scene::SetTitle(const CallbackInfo& info, const Napi::Value& value) {
 }
 
 } // namespace ls

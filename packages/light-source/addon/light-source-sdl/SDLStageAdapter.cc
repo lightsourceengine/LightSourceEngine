@@ -55,13 +55,11 @@ SDLStageAdapter::SDLStageAdapter(const CallbackInfo& info) : ObjectWrap<SDLStage
     auto env{ info.Env() };
     HandleScope scope(env);
 
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
-    SDL_GameControllerEventState(SDL_IGNORE);
+    this->Attach(env);
 
     this->keyboard = ObjectWrap<SDLKeyboard>::Unwrap(SDLKeyboard::Constructor(env).New({}));
     this->keyboard->Ref();
 
-    this->SyncGamepads(env);
     this->RefreshDisplays(env);
 }
 
@@ -72,11 +70,13 @@ Function SDLStageAdapter::Constructor(Napi::Env env) {
         HandleScope scope(env);
 
         auto func = DefineClass(env, "SDLStageAdapter", {
-            InstanceAccessor("keyboard", &SDLStageAdapter::GetKeyboard, nullptr),
+            InstanceMethod("getKeyboard", &SDLStageAdapter::GetKeyboard),
             InstanceMethod("getGamepads", &SDLStageAdapter::GetGamepads),
             InstanceMethod("getDisplays", &SDLStageAdapter::GetDisplays),
             InstanceMethod("resetCallbacks", &SDLStageAdapter::ResetCallbacks),
             InstanceMethod("processEvents", &SDLStageAdapter::ProcessEvents),
+            InstanceMethod("attach", &SDLStageAdapter::Attach),
+            InstanceMethod("detach", &SDLStageAdapter::Detach),
             CallbackInstanceAccessor(onQuit),
             CallbackInstanceAccessor(onKeyboardKeyUp),
             CallbackInstanceAccessor(onKeyboardKeyDown),
@@ -134,8 +134,47 @@ void SDLStageAdapter::RefreshDisplays(Napi::Env env) {
 void SDLStageAdapter::ProcessEvents() {
 }
 
-std::shared_ptr<SceneAdapter> SDLStageAdapter::CreateSceneAdapter(int32_t displayId) {
-    return std::static_pointer_cast<SceneAdapter>(std::make_shared<SDLSceneAdapter>(displayId));
+void SDLStageAdapter::Attach(const CallbackInfo& info) {
+    this->Attach(info.Env());
+}
+
+void SDLStageAdapter::Attach(Napi::Env env) {
+    if (this->isAttached) {
+        return;
+    }
+
+    HandleScope scope(env);
+
+    if (SDL_WasInit(SDL_INIT_VIDEO) == 0 && SDL_Init(SDL_INIT_VIDEO) != 0) {
+        throw Error::New(env, fmt::format("Failed to init SDL video. SDL Error: {}", SDL_GetError()));
+    }
+
+    if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0 && SDL_Init(SDL_INIT_JOYSTICK) != 0) {
+        throw Error::New(env, fmt::format("Failed to init SDL joystick. SDL Error: {}", SDL_GetError()));
+    }
+
+    if (SDL_WasInit(SDL_INIT_GAMECONTROLLER) == 0 && SDL_Init(SDL_INIT_GAMECONTROLLER) != 0) {
+        throw Error::New(env, fmt::format("Failed to init SDL gamecontroller. SDL Error: {}", SDL_GetError()));
+    }
+
+    SDL_GameControllerEventState(SDL_IGNORE);
+    this->SyncGamepads(env);
+
+    this->isAttached = true;
+}
+
+void SDLStageAdapter::Detach(const CallbackInfo& info) {
+    this->Detach(info.Env());
+}
+
+void SDLStageAdapter::Detach(Napi::Env env) {
+    // TODO: SDL_Quit() on raspberry pi after launching app
+    this->ClearGamepads();
+    this->isAttached = false;
+}
+
+std::unique_ptr<SceneAdapter> SDLStageAdapter::CreateSceneAdapter() {
+    return std::make_unique<SDLSceneAdapter>();
 }
 
 Value SDLStageAdapter::ProcessEvents(const CallbackInfo& info) {
@@ -332,16 +371,21 @@ bool SDLStageAdapter::IsCallbackEmpty(const StageCallbacks callbackId) {
 }
 
 void SDLStageAdapter::SyncGamepads(Napi::Env env) {
+    this->ClearGamepads();
+
+    for (int32_t i{ 0 }; i < SDL_NumJoysticks(); i++) {
+        // TODO: handle exception..
+        this->AddGamepad(env, i);
+    }
+}
+
+void SDLStageAdapter::ClearGamepads() {
     for (auto& p : this->gamepadsByInstanceId) {
         p.second->Destroy();
         p.second->Unref();
     }
 
     this->gamepadsByInstanceId.clear();
-
-    for (int32_t i{ 0 }; i < SDL_NumJoysticks(); i++) {
-        this->AddGamepad(env, i);
-    }
 }
 
 SDLGamepad* SDLStageAdapter::AddGamepad(Napi::Env env, int32_t index) {

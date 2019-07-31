@@ -37,7 +37,10 @@ class Renderer {
  public:
     virtual ~Renderer() = default;
 
+    virtual int32_t GetWidth() const = 0;
+    virtual int32_t GetHeight() const = 0;
     virtual void Reset() = 0;
+    virtual void Present() = 0;
 
     virtual void Shift(float x, float y) = 0;
     virtual void Unshift() = 0;

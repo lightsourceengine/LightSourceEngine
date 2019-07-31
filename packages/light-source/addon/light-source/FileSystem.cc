@@ -23,7 +23,6 @@ constexpr auto PATH_SEPARATOR =
 namespace ls {
 
 std::vector<uint8_t> ReadBytes(const std::string filename) {
-    std::vector<uint8_t> buffer;
     FileHandle file(fopen(filename.c_str(), "rb"), fclose);
 
     if (!file) {
@@ -34,15 +33,14 @@ std::vector<uint8_t> ReadBytes(const std::string filename) {
     auto size{ static_cast<size_t>(ftell(file.get())) };
     fseek(file.get(), 0, SEEK_SET);
 
-    buffer.reserve(size);
+    std::vector<uint8_t> buffer(size);
 
-    if (fread(&buffer[0], 1, size, file.get()) != size) {
+    if (fread(buffer.data(), 1, size, file.get()) != size) {
         throw std::runtime_error("Failed to read file.");
     }
 
     return buffer;
 }
-
 
 bool HasExtension(const std::string& filename) {
     auto sepIndex = filename.find_last_of("/\\");
