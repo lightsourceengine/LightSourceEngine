@@ -13,6 +13,25 @@
   },
   "targets": [
     {
+      "target_name": "light-source-util",
+      "type": "static_library",
+      "includes": [
+        "common.gypi",
+      ],
+      "include_dirs": [
+        "include",
+        "deps/fmt/include",
+      ],
+      "dependencies": [
+        "addon/deps/fmt/fmt.gyp:fmt",
+      ],
+      "sources": [
+        "light-source-util/PixelConversion.cc",
+        "light-source-util/FileSystem.cc",
+        "light-source-util/napi-ext.cc",
+      ]
+    },
+    {
       "target_name": "light-source",
       "includes": [
         "common.gypi",
@@ -24,6 +43,7 @@
         "deps/stb_image/include",
         "deps/nanosvg/include",
         "deps/stb_truetype/include",
+        "light-source-util",
       ],
       "dependencies": [
         "addon/deps/yoga/yoga.gyp:yoga",
@@ -31,10 +51,9 @@
         "addon/deps/stb_image/stb_image.gyp:stb_image",
         "addon/deps/nanosvg/nanosvg.gyp:nanosvg",
         "addon/deps/stb_truetype/stb_truetype.gyp:stb_truetype",
+        "light-source-util",
       ],
       "sources": [
-        "light-source/napi-ext.cc",
-        "light-source/FileSystem.cc",
         "light-source/Style.cc",
         "light-source/StyleEnumMappings.cc",
         "light-source/StyleEnums.cc",

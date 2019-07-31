@@ -8,7 +8,6 @@
 
 #include <napi.h>
 #include <fmt/format.h>
-#include "Macros.h"
 
 namespace ls {
 
@@ -52,17 +51,6 @@ T GetNumberOrDefault(Napi::Object options, const char* name, T defaultValue) {
     }
 
     return value.As<Napi::Number>();
-}
-
-template<typename T>
-T GetEnumOrDefault(Napi::Object options, const char* name, T defaultValue) {
-    int32_t value{ GetNumberOrDefault(options, name, -1) };
-
-    if (!IsEnum<T>(value)) {
-        return defaultValue;
-    }
-
-    return static_cast<T>(value);
 }
 
 typedef std::function<void(Napi::Env env)> ExecuteFunction;
