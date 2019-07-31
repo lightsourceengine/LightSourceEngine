@@ -42,7 +42,7 @@ export class Stage {
   }
 
   get displays () {
-    return null
+    return this[$adapter].getDisplays()
   }
 
   init ({ adapter, audioAdapter } = {}) {

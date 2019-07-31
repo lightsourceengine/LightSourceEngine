@@ -41,6 +41,7 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
     static Napi::Function Constructor(Napi::Env env);
     Napi::Value GetKeyboard(const Napi::CallbackInfo& info);
     Napi::Value GetGamepads(const Napi::CallbackInfo& info);
+    Napi::Value GetDisplays(const Napi::CallbackInfo& info);
     Napi::Value ProcessEvents(const Napi::CallbackInfo& info) override;
     void ProcessEvents() override;
     std::shared_ptr<SceneAdapter> CreateSceneAdapter(int32_t displayId) override;
@@ -61,6 +62,7 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
     inline void Call(const StageCallbacks callbackId, const std::initializer_list<napi_value>& args);
     inline bool IsCallbackEmpty(const StageCallbacks callbackId);
     void SyncGamepads(Napi::Env env);
+    void RefreshDisplays(Napi::Env env);
     SDLGamepad* AddGamepad(Napi::Env env, int32_t index);
     inline Napi::Value GetGamepad(Napi::Env env, int32_t instanceId);
     void HandleJoystickHatMotion(Napi::Env env, int32_t instanceId, uint8_t hatIndex, uint8_t hatValue);
@@ -71,6 +73,7 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
     Napi::FunctionReference callbacks[StageCallbacksCount];
     SDLKeyboard* keyboard{};
     std::unordered_map<int32_t, SDLGamepad*> gamepadsByInstanceId{};
+    Napi::ObjectReference displays;
 };
 
 } // namespace ls
