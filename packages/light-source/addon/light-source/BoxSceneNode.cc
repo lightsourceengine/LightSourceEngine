@@ -76,7 +76,7 @@ void BoxSceneNode::Paint(Renderer* renderer) {
             renderer->DrawImage(this->roundedRectImage->GetTexture(renderer),
                                 { x + dx + 1, y + dy + 1, width + dw - 2, height + dh - 2 },
                                 this->roundedRectImage->GetCapInsets(),
-                                style->backgroundColor()->Value());
+                                style->backgroundColor()->Get());
         }
     } else if (this->backgroundImage && this->backgroundImage->IsReady()) {
         renderer->PushClipRect({ x + dx, y + dy, width + dw, height + dh });
@@ -112,7 +112,7 @@ void BoxSceneNode::Paint(Renderer* renderer) {
 
         renderer->PopClipRect();
     } else if (boxStyle->backgroundColor()) {
-        renderer->DrawFillRect({ x + dx, y + dy, width + dw, height + dh }, boxStyle->backgroundColor()->Value());
+        renderer->DrawFillRect({ x + dx, y + dy, width + dw, height + dh }, *boxStyle->backgroundColor());
     }
 
     if (this->roundedRectBorderImage) {
@@ -121,7 +121,7 @@ void BoxSceneNode::Paint(Renderer* renderer) {
             renderer->DrawImage(this->roundedRectBorderImage->GetTexture(renderer),
                                 { x + dx, y + dy, width + dw, height + dh },
                                 this->roundedRectBorderImage->GetCapInsets(),
-                                style->borderColor()->Value());
+                                *style->borderColor());
         }
     } else if (boxStyle->borderColor()) {
         renderer->DrawBorder(
@@ -137,7 +137,7 @@ void BoxSceneNode::Paint(Renderer* renderer) {
                 static_cast<int32_t>(YGNodeLayoutGetBorder(this->ygNode, YGEdgeBottom)),
                 static_cast<int32_t>(YGNodeLayoutGetBorder(this->ygNode, YGEdgeLeft)),
             },
-            boxStyle->borderColor()->Value());
+            *boxStyle->borderColor());
     }
 
     SceneNode::Paint(renderer);

@@ -178,7 +178,7 @@ void ImageSceneNode::Paint(Renderer* renderer) {
             YGRoundValueToPixelGrid(fitWidth, 1.f, false, false),
             YGRoundValueToPixelGrid(fitHeight, 1.f, false, false),
         },
-        boxStyle->tintColor() ? boxStyle->tintColor()->Value() : 0xFFFFFFFF);
+        boxStyle->tintColor() ? *boxStyle->tintColor() : 0xFFFFFFFF);
 
     if (clip) {
         renderer->PopClipRect();

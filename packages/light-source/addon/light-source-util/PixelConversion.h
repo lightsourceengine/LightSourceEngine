@@ -6,6 +6,12 @@
 
 #pragma once
 
+#include <Renderer.h>
+
 namespace ls {
+
+extern const bool isBigEndian;
+
+void ConvertToFormat(uint8_t* bytes, int32_t len, PixelFormat format);
 
 } // namespace ls

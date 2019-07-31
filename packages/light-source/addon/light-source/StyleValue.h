@@ -73,13 +73,7 @@ class StyleColorValue : public StyleValue {
         return this->value;
     }
 
-    uint32_t Value() const {
-        return static_cast<uint32_t>(this->value & 0xFFFFFFFF);
-    }
-
-    uint8_t Alpha() const {
-        return (this->value >> 24) & 0xFF;
-    }
+    operator int64_t() const { return this->value; }
 
     virtual Napi::Value ToJS(Napi::Env env) const {
         return Napi::Number::New(env, this->value);

@@ -48,11 +48,11 @@ class Renderer {
     virtual void PushClipRect(const Rect& rect) = 0;
     virtual void PopClipRect() = 0;
 
-    virtual void DrawFillRect(const Rect& rect, const uint32_t fillColor) = 0;
+    virtual void DrawFillRect(const Rect& rect, const int64_t fillColor) = 0;
 
-    virtual void DrawBorder(const Rect& rect, const EdgeRect& border, const uint32_t borderColor) = 0;
+    virtual void DrawBorder(const Rect& rect, const EdgeRect& border, const int64_t borderColor) = 0;
 
-    virtual void DrawImage(const uint32_t textureId, const Rect& rect, const uint32_t tintColor) = 0;
+    virtual void DrawImage(const uint32_t textureId, const Rect& rect, const int64_t tintColor) = 0;
 
     virtual void DrawImage(
         const uint32_t textureId,

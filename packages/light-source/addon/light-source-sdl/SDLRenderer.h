@@ -29,11 +29,11 @@ class SDLRenderer : public Renderer {
     void PushClipRect(const Rect& rect) override;
     void PopClipRect() override;
 
-    void DrawFillRect(const Rect& rect, const uint32_t fillColor) override;
+    void DrawFillRect(const Rect& rect, const int64_t fillColor) override;
 
-    void DrawBorder(const Rect& rect, const EdgeRect& border, const uint32_t borderColor) override;
+    void DrawBorder(const Rect& rect, const EdgeRect& border, const int64_t borderColor) override;
 
-    void DrawImage(const uint32_t textureId, const Rect& rect, const uint32_t tintColor) override;
+    void DrawImage(const uint32_t textureId, const Rect& rect, const int64_t tintColor) override;
 
     void DrawImage(
         const uint32_t textureId,
@@ -54,7 +54,7 @@ class SDLRenderer : public Renderer {
     void Detach();
 
  private:
-    void SetRenderDrawColor(uint32_t color);
+    void SetRenderDrawColor(const int64_t color);
     void UpdateTextureFormats(const SDL_RendererInfo& info);
 
  private:
@@ -68,7 +68,7 @@ class SDLRenderer : public Renderer {
     std::vector<SDL_Rect> clipRectStack{};
     std::vector<float> offsetStack{};
     std::unordered_map<uint32_t, SDL_Texture*> textures{};
-    uint32_t drawColor{};
+    int64_t drawColor{};
 };
 
 } // namespace ls

@@ -79,9 +79,11 @@
         "<(sdl_include_path)",
         "include",
         "deps/fmt/include",
+        "light-source-util",
       ],
       "dependencies": [
         "addon/deps/fmt/fmt.gyp:fmt",
+        "light-source-util",
       ],
       "sources": [
         "light-source-sdl/SDLRenderer.cc",

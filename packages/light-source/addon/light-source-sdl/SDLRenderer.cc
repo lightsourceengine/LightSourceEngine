@@ -5,6 +5,7 @@
  */
 
 #include "SDLRenderer.h"
+#include <PixelConversion.h>
 #include <fmt/format.h>
 
 namespace ls {
@@ -12,6 +13,9 @@ namespace ls {
 uint32_t SDLRenderer::nextTextureId{ 0 };
 SDL_Rect GetRendererSize(SDL_Renderer* renderer);
 PixelFormat ToPixelFormat(Uint32 pixelFormat);
+void SetTextureTintColor(SDL_Texture* texture, const int64_t color);
+
+const int64_t COLOR32 = 0xFFFFFFFF;
 
 SDLRenderer::SDLRenderer() {
     SDL_RendererInfo info;
@@ -117,7 +121,7 @@ void SDLRenderer::PopClipRect() {
     SDL_RenderSetClipRect(this->renderer, this->clipRectStack.empty() ? nullptr : &this->clipRectStack.back());
 }
 
-void SDLRenderer::DrawFillRect(const Rect& rect, const uint32_t fillColor) {
+void SDLRenderer::DrawFillRect(const Rect& rect, const int64_t fillColor) {
     SDL_Rect tempRect{
         static_cast<int32_t>(rect.x + this->xOffset),
         static_cast<int32_t>(rect.y + this->yOffset),
@@ -130,7 +134,7 @@ void SDLRenderer::DrawFillRect(const Rect& rect, const uint32_t fillColor) {
     SDL_RenderFillRect(this->renderer, &tempRect);
 }
 
-void SDLRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const uint32_t borderColor) {
+void SDLRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const int64_t borderColor) {
     auto x{ static_cast<int32_t>(rect.x + this->xOffset) };
     auto y{ static_cast<int32_t>(rect.y + this->yOffset) };
     auto width{ static_cast<int32_t>(rect.width) };
@@ -148,7 +152,7 @@ void SDLRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const uin
     SDL_RenderFillRects(this->renderer, &tempRect[0], 4);
 }
 
-void SDLRenderer::DrawImage(const uint32_t textureId, const Rect& rect, const uint32_t tintColor) {
+void SDLRenderer::DrawImage(const uint32_t textureId, const Rect& rect, const int64_t tintColor) {
     auto it{ this->textures.find(textureId) };
 
     if (it == this->textures.end()) {
@@ -162,9 +166,7 @@ void SDLRenderer::DrawImage(const uint32_t textureId, const Rect& rect, const ui
         static_cast<int32_t>(rect.height),
     };
 
-    // TODO: opacity, tint color endianess, move blend mode
-    SDL_SetTextureColorMod(it->second, (tintColor & 0xFF0000) >> 16, (tintColor & 0xFF00) >> 8, tintColor & 0xFF);
-    SDL_SetTextureAlphaMod(it->second, 255);
+    SetTextureTintColor(it->second, tintColor);
 
     SDL_RenderCopy(this->renderer, it->second, nullptr, &tempRect);
 }
@@ -188,9 +190,7 @@ void SDLRenderer::DrawImage(const uint32_t textureId, const Rect& rect, const Ed
     SDL_Rect destRect;
     auto texture{ it->second };
 
-    // TODO: opacity, tint color endianess, move blend mode
-    SDL_SetTextureColorMod(texture, (tintColor & 0xFF0000) >> 16, (tintColor & 0xFF00) >> 8, tintColor & 0xFF);
-    SDL_SetTextureAlphaMod(texture, 255);
+    SetTextureTintColor(texture, tintColor);
     SDL_QueryTexture(texture, nullptr, nullptr, &textureWidth, &textureHeight);
 
     // Top row
@@ -329,16 +329,24 @@ void SDLRenderer::RemoveTexture(const uint32_t textureId) {
     this->textures.erase(textureId);
 }
 
-void SDLRenderer::SetRenderDrawColor(uint32_t color) {
+void SDLRenderer::SetRenderDrawColor(const int64_t color) {
     if (this->drawColor != color) {
-        SDL_SetRenderDrawColor(
-            this->renderer,
-            // TODO: endianess
-            (color & 0xFF0000) >> 16,
-            (color & 0xFF00) >> 8,
-            color & 0xFF,
-            // TODO: get opacity from rgb
-            255);
+        // TODO: consider opacity
+        if (isBigEndian) {
+            SDL_SetRenderDrawColor(
+                this->renderer,
+                (color & 0xFF00) >> 8,
+                (color & 0xFF0000) >> 16,
+                (color & 0xFF000000) >> 24,
+                color > COLOR32 ? static_cast<uint8_t>(color & 0xFF) : 255);
+        } else {
+            SDL_SetRenderDrawColor(
+                this->renderer,
+                (color & 0xFF0000) >> 16,
+                (color & 0xFF00) >> 8,
+                color & 0xFF,
+                color > COLOR32 ? static_cast<uint8_t>((color & 0xFF000000) >> 24) : 255);
+        }
 
         this->drawColor = color;
     }
@@ -412,6 +420,18 @@ PixelFormat ToPixelFormat(Uint32 pixelFormat) {
             return PixelFormatBGRA;
         default:
             return PixelFormatUnknown;
+    }
+}
+
+inline
+void SetTextureTintColor(SDL_Texture* texture, const int64_t color) {
+    // TODO: consider opacity
+    if (isBigEndian) {
+        SDL_SetTextureColorMod(texture, (color & 0xFF00) >> 8, (color & 0xFF0000) >> 16, (color & 0xFF000000) >> 24);
+        SDL_SetTextureAlphaMod(texture, color > COLOR32 ? static_cast<uint8_t>(color & 0xFF) : 255);
+    } else {
+        SDL_SetTextureColorMod(texture, (color & 0xFF0000) >> 16, (color & 0xFF00) >> 8, color & 0xFF);
+        SDL_SetTextureAlphaMod(texture, color > COLOR32 ? static_cast<uint8_t>((color & 0xFF000000) >> 24) : 255);
     }
 }
 
