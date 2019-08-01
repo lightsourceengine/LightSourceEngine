@@ -16,6 +16,11 @@ namespace ls {
 
 class ResourceManager;
 
+struct FontInfo {
+    stbtt_fontinfo stbFontInfo{};
+    std::unique_ptr<uint8_t[]> ttf;
+};
+
 class FontResource : public Resource {
  public:
     explicit FontResource(Napi::Env env, const std::string& id, const std::string& uri, const int32_t index,
@@ -27,7 +32,7 @@ class FontResource : public Resource {
     StyleFontStyle GetFontStyle() const { return this->fontStyle; }
     StyleFontWeight GetFontWeight() const { return this->fontWeight; }
 
-    stbtt_fontinfo* GetFontInfo() { return &this->fontInfo; }
+    stbtt_fontinfo* GetFontInfo() { return this->fontInfo ? &this->fontInfo->stbFontInfo : nullptr; }
 
  private:
     std::string uri;
@@ -35,9 +40,8 @@ class FontResource : public Resource {
     std::string family;
     StyleFontStyle fontStyle{};
     StyleFontWeight fontWeight{};
-    stbtt_fontinfo fontInfo{};
-    std::vector<uint8_t> fontInfoData;
-    std::unique_ptr<AsyncWork> work;
+    std::shared_ptr<FontInfo> fontInfo{};
+    std::unique_ptr<AsyncWork<FontInfo>> work;
 
  private:
     void Load(const std::vector<std::string>& path);

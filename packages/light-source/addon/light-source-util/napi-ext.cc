@@ -7,70 +7,51 @@
 #include "napi-ext.h"
 
 using Napi::Error;
+using Napi::Function;
+using Napi::FunctionReference;
+using Napi::Object;
+using Napi::String;
+using Napi::Symbol;
 
 namespace ls {
 
-AsyncWork::AsyncWork(Napi::Env env, const std::string& resourceName, ExecuteFunction execute, CompleteFunction complete)
-    : execute(execute), complete(complete), env(env) {
-    napi_value resourceId;
-    napi_status status = napi_create_string_latin1(
-        env,
-        resourceName.c_str(),
-        NAPI_AUTO_LENGTH,
-        &resourceId);
+Symbol SymbolFor(Napi::Env env, const char* key) {
+    static FunctionReference symbolFor;
 
-    NAPI_THROW_IF_FAILED_VOID(env, status);
-
-    status = napi_create_async_work(
-        env,
-        nullptr,
-        resourceId,
-        AsyncWork::OnExecute,
-        AsyncWork::OnComplete,
-        this,
-        &this->work);
-
-    NAPI_THROW_IF_FAILED_VOID(env, status);
-
-    status = napi_queue_async_work(env, this->work);
-
-    if (status != napi_ok) {
-        napi_delete_async_work(env, this->work);
-        this->work = nullptr;
+    if (symbolFor.IsEmpty()) {
+        symbolFor.Reset(env.Global().Get("Symbol").As<Object>().Get("for").As<Function>(), 1);
+        symbolFor.SuppressDestruct();
     }
 
-    NAPI_THROW_IF_FAILED_VOID(env, status);
+    return symbolFor({ String::New(env, key) }).As<Symbol>();
 }
 
-AsyncWork::~AsyncWork() {
-    if (this->work) {
-        napi_delete_async_work(this->env, this->work);
-        this->work = nullptr;
+std::string GetString(const Object options, const char* name) {
+    if (!options.Has(name)) {
+        throw Error::New(options.Env(), fmt::format("Expected '{}' property in Object.", name));
     }
-}
 
-void AsyncWork::Cancel() {
-    if (this->work) {
-        napi_cancel_async_work(this->env, this->work);
+    auto value{ options.Get(name) };
+
+    if (!value.IsString()) {
+        throw Error::New(options.Env(), fmt::format("Expected '{}' property in Object to be a String.", name));
     }
+
+    return value.As<String>();
 }
 
-void AsyncWork::OnExecute(napi_env env, void* self) {
-    auto asyncWork{ static_cast<AsyncWork*>(self) };
-
-    try {
-        asyncWork->execute(asyncWork->env);
-        asyncWork->result = napi_ok;
-    } catch (std::exception& e) {
-        asyncWork->errorMessage = e.what();
-        asyncWork->result = napi_generic_failure;
+std::string GetStringOrEmpty(const Object options, const char* name) {
+    if (!options.Has(name)) {
+        return "";
     }
-}
 
-void AsyncWork::OnComplete(napi_env env, napi_status status, void* self) {
-    auto asyncWork{ static_cast<AsyncWork*>(self) };
+    auto value{ options.Get(name) };
 
-    asyncWork->complete(asyncWork->env, asyncWork->result, asyncWork->errorMessage);
+    if (!value.IsString()) {
+        return "";
+    }
+
+    return value.As<Napi::String>();
 }
 
 } // namespace ls

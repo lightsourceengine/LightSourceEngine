@@ -151,12 +151,12 @@ void BoxSceneNode::ApplyStyle(Style* style) {
 
         if (!style->backgroundImage().empty()) {
             this->backgroundImageUri = style->backgroundImage();
-            this->backgroundImage = this->scene->GetResourceManager()->GetImage(style->backgroundImage());
+            // TODO: support full uri objects
+            this->backgroundImage = this->scene->GetResourceManager()->GetImage(ImageUri(this->backgroundImageUri));
         }
     }
 
-    if (style->borderRadius() || style->borderRadiusTopLeft() || style->borderRadiusTopRight()
-            || style->borderRadiusBottomLeft() || style->borderRadiusBottomRight()) {
+    if (style->HasBorderRadius()) {
         auto borderRadius{ ComputeIntegerPointValue(
             style->borderRadius(), this->scene, 0) };
         auto borderRadiusTopLeft{ ComputeIntegerPointValue(
@@ -168,18 +168,23 @@ void BoxSceneNode::ApplyStyle(Style* style) {
         auto borderRadiusBottomRight{ ComputeIntegerPointValue(
             style->borderRadiusBottomRight(), this->scene, borderRadius) };
 
+        // TODO: check in resource manager first
         if (style->backgroundColor()) {
-            auto uri = CreateRoundedRectangleUri(
-                borderRadiusTopLeft, borderRadiusTopRight, borderRadiusBottomRight, borderRadiusBottomLeft, 0);
-            // TODO: auto id = fmt::format("@border-radius:{},{},{},{},{}",
-            //    borderRadiusTopLeft, borderRadiusTopRight, borderRadiusBottomRight, borderRadiusBottomLeft, 0);
-            EdgeRect capInsets{
-                std::max(borderRadiusTopLeft, borderRadiusTopRight),
-                std::max(borderRadiusTopRight, borderRadiusBottomRight),
-                std::max(borderRadiusBottomLeft, borderRadiusBottomRight),
-                std::max(borderRadiusTopLeft, borderRadiusBottomLeft)
-            };
-            auto image = this->scene->GetResourceManager()->GetImage(uri);
+            ImageUri imageUri(
+                CreateRoundedRectangleUri(
+                    borderRadiusTopLeft, borderRadiusTopRight, borderRadiusBottomRight, borderRadiusBottomLeft, 0),
+                fmt::format("@border-radius:{},{},{},{},{}",
+                    borderRadiusTopLeft, borderRadiusTopRight, borderRadiusBottomRight, borderRadiusBottomLeft, 0),
+                0,
+                0,
+                {
+                    std::max(borderRadiusTopLeft, borderRadiusTopRight),
+                    std::max(borderRadiusTopRight, borderRadiusBottomRight),
+                    std::max(borderRadiusBottomLeft, borderRadiusBottomRight),
+                    std::max(borderRadiusTopLeft, borderRadiusBottomLeft)
+                });
+
+            auto image = this->scene->GetResourceManager()->GetImage(imageUri);
 
             SetRoundedRectImage(image);
         }

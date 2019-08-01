@@ -10,8 +10,8 @@
 
 namespace ls {
 
-std::vector<uint8_t> LoadFont(const std::vector<std::string>& path, const std::string& filename, const int32_t index,
-    stbtt_fontinfo* info);
+std::shared_ptr<FontInfo> LoadFont(
+    const std::vector<std::string>& path, const std::string& filename, const int32_t index);
 
 FontResource::FontResource(Napi::Env env, const std::string& id, const std::string& uri, const int32_t index,
         const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight)
@@ -24,39 +24,24 @@ std::string FontResource::MakeId(const std::string& family, StyleFontStyle fontS
 
 void FontResource::Load(const std::vector<std::string>& path) {
     auto initialState{ ResourceStateLoading };
-
-    // TODO: what if ref == 0?
-    this->AddRef();
+    auto uri{ this->uri };
+    auto index{ this-> index };
 
     try {
-        this->work = std::make_unique<AsyncWork>(
+        this->work = std::make_unique<AsyncWork<FontInfo>>(
             this->env,
             this->id,
-            [this, path](Napi::Env env) {
-                // TODO: do not modify resource here... execute should return a value and complete can modify
-                this->fontInfoData = LoadFont(path, this->uri, this->index, &this->fontInfo);
+            [path, uri, index](Napi::Env env) -> std::shared_ptr<FontInfo> {
+                return LoadFont(path, uri, index);
             },
-            [this](Napi::Env env, napi_status status, const std::string& message) {
-                if (this->resourceState != ResourceStateLoading) {
-                    fmt::println("Warning: AsyncWork returned to a resource({}) in an unexpected state.",
-                        this->GetId());
-                    return;
-                }
+            [this](Napi::Env env, std::shared_ptr<FontInfo> result, napi_status status, const std::string& message) {
+                // TODO: assert(this->resourceState != ResourceStateLoading)
+                // TODO: assert(this->GetRefCount() > 0)
 
-                this->RemoveRef();
+                this->fontInfo = result;
                 this->work.reset();
 
-                if (this->GetRefCount() > 0) {
-                    ResourceState nextState;
-
-                    if (status != napi_ok) {
-                        nextState = ResourceStateError;
-                    } else {
-                        nextState = ResourceStateReady;
-                    }
-
-                    this->SetStateAndNotifyListeners(nextState);
-                }
+                this->SetStateAndNotifyListeners(status != napi_ok ? ResourceStateError : ResourceStateReady);
             });
     } catch (std::exception& e) {
         this->RemoveRef();
@@ -66,29 +51,44 @@ void FontResource::Load(const std::vector<std::string>& path) {
     this->SetStateAndNotifyListeners(initialState);
 }
 
-std::vector<uint8_t> LoadFont(const std::vector<std::string>& path, const std::string& filename, const int32_t index,
-        stbtt_fontinfo* info) {
-    static const std::vector<std::string> emptyVector = {};
+std::shared_ptr<FontInfo> LoadFont(const std::vector<std::string>& path, const std::string& filename,
+        const int32_t index) {
+    auto result{ std::make_shared<FontInfo>() };
     std::string resolvedFilename;
 
     if (IsResourceUri(filename)) {
-        resolvedFilename = FindFile(GetResourceUriPath(filename), emptyVector, path);
+        resolvedFilename = FindFile(GetResourceUriPath(filename), {}, path);
     } else {
         resolvedFilename = filename;
     }
 
-    auto buffer{ ReadBytes(resolvedFilename) };
-    auto offset = stbtt_GetFontOffsetForIndex(&buffer[0], index);
+    FileHandle file(fopen(filename.c_str(), "rb"), fclose);
+
+    if (!file) {
+        throw std::runtime_error(fmt::format("Failed to open ttf file: {}", filename));
+    }
+
+    fseek(file.get(), 0, SEEK_END);
+    auto size{ static_cast<size_t>(ftell(file.get())) };
+    fseek(file.get(), 0, SEEK_SET);
+
+    result->ttf.reset(new uint8_t[size]);
+
+    if (fread(result->ttf.get(), 1, size, file.get()) != size) {
+        throw std::runtime_error(fmt::format("Failed to read file: {}", filename));
+    }
+
+    auto offset{ stbtt_GetFontOffsetForIndex(result->ttf.get(), index) };
 
     if (offset == -1) {
         throw std::runtime_error("Cannot find font at index.");
     }
 
-    if (stbtt_InitFont(info, &buffer[0], offset) == 0) {
+    if (stbtt_InitFont(&(result->stbFontInfo), result->ttf.get(), offset) == 0) {
         throw std::runtime_error("Failed to init font.");
     }
 
-    return buffer;
+    return result;
 }
 
 } // namespace ls

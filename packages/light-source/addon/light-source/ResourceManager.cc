@@ -46,7 +46,7 @@ Function ResourceManager::Constructor(Napi::Env env) {
 
         auto func = DefineClass(env, "ResourceManager", {
             InstanceMethod("registerImage", &ResourceManager::RegisterImage),
-            InstanceMethod("registerFont", &ResourceManager::RegisterFont),
+            InstanceMethod("addFont", &ResourceManager::AddFont),
             InstanceAccessor("path", &ResourceManager::GetPath, &ResourceManager::SetPath),
             InstanceAccessor("imageExtensions",
                 &ResourceManager::GetImageExtensions, &ResourceManager::SetImageExtensions),
@@ -60,18 +60,39 @@ Function ResourceManager::Constructor(Napi::Env env) {
 }
 
 void ResourceManager::RegisterImage(const Napi::CallbackInfo& info) {
-}
-
-void ResourceManager::RegisterFont(const Napi::CallbackInfo& info) {
     auto env{ info.Env() };
     HandleScope scope(env);
+
+    auto imageUri{ ImageUri::FromObject(info[0].As<Object>()) };
+    auto id{ imageUri.GetId() };
+
+    if (this->registeredImageUris.find(id) != this->registeredImageUris.end()) {
+        throw Error::New(env, fmt::format("Image id '{}' has already been registered.", id));
+    }
+
+    fmt::println("Image Spec: id={} uri={} width={} height={} capInsets={},{},{},{}",
+        id,
+        imageUri.GetUri(),
+        imageUri.GetWidth(),
+        imageUri.GetHeight(),
+        imageUri.GetCapInsets().top,
+        imageUri.GetCapInsets().right,
+        imageUri.GetCapInsets().bottom,
+        imageUri.GetCapInsets().left);
+
+    registeredImageUris.emplace(id, imageUri);
+}
+
+void ResourceManager::AddFont(const Napi::CallbackInfo& info) {
+    auto env{ info.Env() };
+    HandleScope scope(env);
+
     auto options{ info[0].As<Object>() };
     auto family{ GetString(options, "family") };
     auto uri{ GetString(options, "uri") };
     auto fontStyle{ GetFontStyle(options, "style") };
     auto fontWeight{ GetFontWeight(options, "weight") };
     auto index{ GetNumberOrDefault(options, "index", 0) };
-
     auto fontId{ FontResource::MakeId(family, fontStyle, fontWeight) };
 
     if (this->fonts.find(fontId) != this->fonts.end()) {
@@ -131,28 +152,26 @@ void ResourceManager::SetPath(const Napi::CallbackInfo& info, const Napi::Value&
     this->pathObject.Reset(VectorToArray(env, this->path), 1);
 }
 
-void ResourceManager::Attach(Renderer* renderer) {
+void ResourceManager::SetRenderer(Renderer* renderer) {
     this->renderer = renderer;
 }
 
-void ResourceManager::Detach() {
-    this->renderer = nullptr;
-}
-
-ImageResource* ResourceManager::GetImage(const std::string& id) {
-    auto p{ this->images.find(id) };
+ImageResource* ResourceManager::GetImage(const ImageUri& uri) {
+    auto p{ this->images.find(uri.GetId()) };
 
     if (p != this->images.end()) {
-        return p->second.get();
+        auto imageResource{ p->second.get() };
+
+        imageResource->AddRef();
+
+        return imageResource;
     }
 
-    // TODO: check renderer?
+    auto registeredImage{ this->registeredImageUris.find(uri.GetId()) };
+    const auto& imageUri{ registeredImage != this->registeredImageUris.end() ? registeredImage->second : uri };
+    auto imageResource{ std::make_shared<ImageResource>(this->Env(), imageUri) };
 
-    auto imageResource{ std::make_shared<ImageResource>(this->Env(), id) };
-
-    this->images[id] = imageResource;
-
-    imageResource->AddRef();
+    this->images[imageUri.GetId()] = imageResource;
     imageResource->Load(this->renderer, this->imageExtensions, this->path);
 
     return imageResource.get();
@@ -167,6 +186,12 @@ FontResource* ResourceManager::FindFont(
     }
 
     return nullptr;
+}
+
+void ResourceManager::Attach() {
+}
+
+void ResourceManager::Detach() {
 }
 
 void ResourceManager::ProcessEvents() {
@@ -227,7 +252,7 @@ void CopyStringArrayToVector(const Array& array, std::vector<std::string>* vecto
 
     auto len{ array.Length() };
 
-    for (auto i{0u}; i < len; i++) {
+    for (auto i{ 0u }; i < len; i++) {
         vector->push_back(array.Get(i).As<String>());
     }
 }

@@ -5,17 +5,18 @@
  */
 
 #include "SDLRenderer.h"
+#include <array>
 #include <PixelConversion.h>
 #include <fmt/format.h>
 
 namespace ls {
 
-uint32_t SDLRenderer::nextTextureId{ 0 };
+uint32_t SDLRenderer::nextTextureId{ 1 };
 SDL_Rect GetRendererSize(SDL_Renderer* renderer);
 PixelFormat ToPixelFormat(Uint32 pixelFormat);
 void SetTextureTintColor(SDL_Texture* texture, const int64_t color);
 
-const int64_t COLOR32 = 0xFFFFFFFF;
+const int64_t COLOR32{ 0xFFFFFFFF };
 
 SDLRenderer::SDLRenderer() {
     SDL_RendererInfo info;
@@ -26,7 +27,7 @@ SDLRenderer::SDLRenderer() {
 }
 
 void SDLRenderer::UpdateTextureFormats(const SDL_RendererInfo& info) {
-    static const std::vector<Uint32> supportedPixelFormats = {
+    static const std::array<Uint32, 4> supportedPixelFormats{
         SDL_PIXELFORMAT_ARGB8888,
         SDL_PIXELFORMAT_RGBA8888,
         SDL_PIXELFORMAT_ABGR8888,

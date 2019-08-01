@@ -55,6 +55,16 @@ SDLStageAdapter::SDLStageAdapter(const CallbackInfo& info) : ObjectWrap<SDLStage
     auto env{ info.Env() };
     HandleScope scope(env);
 
+    SDL_version compiled{};
+    SDL_version linked{};
+
+    SDL_VERSION(&compiled);
+    SDL_GetVersion(&linked);
+
+    fmt::println("SDL Version: compiled={}.{}.{} linked={}.{}.{}",
+        compiled.major, compiled.minor, compiled.patch,
+        linked.major, linked.minor, linked.patch);
+
     this->Attach(env);
 
     this->keyboard = ObjectWrap<SDLKeyboard>::Unwrap(SDLKeyboard::Constructor(env).New({}));

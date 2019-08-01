@@ -7,73 +7,44 @@
 #pragma once
 
 #include <napi.h>
+#include <unordered_set>
 #include <fmt/format.h>
 
 namespace ls {
 
-inline
-Napi::Symbol SymbolFor(Napi::Env env, const char* key) {
-    static Napi::FunctionReference symbolFor;
-
-    if (symbolFor.IsEmpty()) {
-        symbolFor.Reset(env.Global().Get("Symbol").As<Napi::Object>().Get("for").As<Napi::Function>(), 1);
-        symbolFor.SuppressDestruct();
-    }
-
-    return symbolFor({ Napi::String::New(env, key) }).As<Napi::Symbol>();
-}
-
-inline
-std::string GetString(Napi::Object options, const char* name) {
-    if (!options.Has(name)) {
-        throw Napi::Error::New(options.Env(), fmt::format("Expected '{}' property in Object.", name));
-    }
-
-    auto value{ options.Get(name) };
-
-    if (!value.IsString()) {
-        throw Napi::Error::New(options.Env(), fmt::format("Expected '{}' property in Object to be a String.", name));
-    }
-
-    return value.As<Napi::String>();
-}
+Napi::Symbol SymbolFor(Napi::Env env, const char* key);
+std::string GetString(const Napi::Object options, const char* name);
+std::string GetStringOrEmpty(const Napi::Object options, const char* name);
 
 template<typename T>
-T GetNumberOrDefault(Napi::Object options, const char* name, T defaultValue) {
-    if (!options.Has(name)) {
-        return defaultValue;
-    }
+T GetNumberOrDefault(const Napi::Object options, const char* name, T defaultValue);
 
-    auto value{ options.Get(name) };
-
-    if (!value.IsNumber()) {
-        return defaultValue;
-    }
-
-    return value.As<Napi::Number>();
-}
-
-typedef std::function<void(Napi::Env env)> ExecuteFunction;
-typedef std::function<void(Napi::Env env, napi_status status, const std::string& message)> CompleteFunction;
-
+template<typename T>
 class AsyncWork {
+ public:
+    typedef std::function<std::shared_ptr<T> (Napi::Env)> ExecuteFunction;
+    typedef std::function<void(Napi::Env, std::shared_ptr<T>, napi_status, const std::string&)> CompleteFunction;
+
  public:
     AsyncWork(Napi::Env env, const std::string& resourceName, ExecuteFunction execute, CompleteFunction complete);
     ~AsyncWork();
-
-    void Cancel();
 
  private:
     static void OnExecute(napi_env env, void* self);
     static void OnComplete(napi_env env, napi_status status, void* self);
 
  private:
+    static std::unordered_set<AsyncWork<T>*> activeWork;
+
+    Napi::Env env;
     ExecuteFunction execute;
     CompleteFunction complete;
     napi_async_work work{};
-    napi_status result{napi_ok};
-    std::string errorMessage;
-    Napi::Env env;
+    napi_status status{napi_ok};
+    std::string message;
+    std::shared_ptr<T> result;
 };
 
 } // namespace ls
+
+#include "napi-ext-inl.h"

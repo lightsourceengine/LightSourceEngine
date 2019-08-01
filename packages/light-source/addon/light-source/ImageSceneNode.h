@@ -8,10 +8,9 @@
 
 #include <napi.h>
 #include "SceneNode.h"
+#include "ImageResource.h"
 
 namespace ls {
-
-class ImageResource;
 
 class ImageSceneNode : public Napi::ObjectWrap<ImageSceneNode>, public SceneNode {
  public:
@@ -34,7 +33,7 @@ class ImageSceneNode : public Napi::ObjectWrap<ImageSceneNode>, public SceneNode
     Napi::Reference<Napi::Object>* AsReference() override { return this; }
 
  private:
-    std::string uri{};
+    ImageUri uri{};
     ImageResource* image{};
     uint32_t imageListenerId{};
     Napi::FunctionReference onLoadCallback;

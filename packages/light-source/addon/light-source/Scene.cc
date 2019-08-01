@@ -37,6 +37,7 @@ Scene::Scene(const CallbackInfo& info) : ObjectWrap<Scene>(info) {
     auto resourceManagerValue{ ResourceManager::Constructor(env).New({}) };
 
     this->resourceManager = ResourceManager::Unwrap(resourceManagerValue);
+    this->resourceManager->SetRenderer(this->adapter->GetRenderer());
     this->resourceManager->Ref();
 
     auto rootValue{ BoxSceneNode::Constructor(env).New({ this->Value() }) };
@@ -81,7 +82,7 @@ void Scene::Attach(const CallbackInfo& info) {
     HandleScope scope(env);
 
     this->adapter->Attach();
-    this->resourceManager->Attach(this->adapter->GetRenderer());
+    this->resourceManager->SetRenderer(this->adapter->GetRenderer());
 
     auto self{ info.This().As<Object>() };
 

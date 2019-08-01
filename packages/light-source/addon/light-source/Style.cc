@@ -144,6 +144,36 @@ void Style::Apply(const YGNodeRef ygNode, const float viewportWidth, const float
     }
 }
 
+// TODO: store these in a bitset
+
+bool Style::HasBorder() const {
+    return this->border()
+        || this->borderTop()
+        || this->borderRight()
+        || this->borderBottom()
+        || this->borderLeft();
+}
+
+bool Style::HasPadding() const {
+    return this->padding()
+        || this->paddingTop()
+        || this->paddingRight()
+        || this->paddingBottom()
+        || this->paddingLeft();
+}
+
+bool Style::HasBorderRadius() const {
+    return this->borderRadius()
+        || this->borderRadiusTopLeft()
+        || this->borderRadiusTopRight()
+        || this->borderRadiusBottomLeft()
+        || this->borderRadiusBottomRight();
+}
+
+bool Style::IsLayoutOnly() const {
+    return !this->borderColor() && !this->backgroundColor() && this->backgroundImage().empty();
+}
+
 template<typename T>
 Value Style::JSGetter(const std::unique_ptr<T>& styleValue, Napi::Env env) const {
     return styleValue ? styleValue->ToJS(env) : env.Undefined();

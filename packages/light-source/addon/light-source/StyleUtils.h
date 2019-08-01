@@ -44,9 +44,9 @@ void CalculateObjectFitDimensions(StyleObjectFit objectFit,
                                   float boxHeight,
                                   float* fitWidth,
                                   float* fitHeight) {
-    auto imageWidth = static_cast<float>(image->GetWidth());
-    auto imageHeight = static_cast<float>(image->GetHeight());
-    auto imageAspectRatio = imageWidth / imageHeight;
+    auto imageWidth{ static_cast<float>(image->GetWidth()) };
+    auto imageHeight{ static_cast<float>(image->GetHeight()) };
+    auto imageAspectRatio{ imageWidth / imageHeight };
 
     *fitWidth = boxWidth;
     *fitHeight = boxHeight;

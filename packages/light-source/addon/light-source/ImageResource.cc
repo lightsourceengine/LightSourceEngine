@@ -6,62 +6,69 @@
 
 #include "ImageResource.h"
 #include "FileSystem.h"
+#include <PixelConversion.h>
 #include <nanosvg.h>
 #include <nanosvgrast.h>
 #include <stb_image.h>
 #include <fmt/format.h>
+
+using Napi::Object;
+using Napi::String;
 
 namespace ls {
 
 using NSVGimageHandle = std::unique_ptr<NSVGimage, decltype(&nsvgDelete)>;
 using NSVGrasterizerHandle = std::unique_ptr<NSVGrasterizer, decltype(&nsvgDeleteRasterizer)>;
 
-inline float ScaleFactor(const int source, const int dest);
+float ScaleFactor(const int, const int);
+std::shared_ptr<ImageInfo> DecodeImage(const ImageUri&, const std::vector<std::string>&,
+    const std::vector<std::string>&, PixelFormat);
+std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage*, const std::string, const int32_t, const int32_t);
 
-ImageResource::ImageResource(Napi::Env env, const std::string& id) : Resource(env, id) {
-    this->uri = id;
+ImageResource::ImageResource(Napi::Env env, const ImageUri& uri) : Resource(env, uri.GetId()), uri(uri) {
 }
 
 uint32_t ImageResource::GetTexture(Renderer* renderer) {
-    this->data.reset();
-    return 0;
+    if (this->textureId) {
+        return this->textureId;
+    }
+
+    if (!this->image || !this->image->data) {
+        return 0;
+    }
+
+    this->textureId = renderer->AddTexture(this->image->data.get(), this->image->format,
+        this->image->width, this->image->height);
+    this->image.reset();
+
+    return this->textureId;
 }
 
 void ImageResource::Load(Renderer* renderer,
         const std::vector<std::string>& extensions, const std::vector<std::string>& resourcePath) {
     auto initialState{ ResourceStateLoading };
-
-    this->AddRef();
+    const auto textureFormat{ renderer->GetTextureFormat() };
+    const auto& uri{ this->uri };
 
     try {
-        this->work = std::make_unique<AsyncWork>(
+        this->work = std::make_unique<AsyncWork<ImageInfo>>(
             this->env,
             this->id,
-            [=](Napi::Env env) {
-                this->LoadImage(this->uri, extensions, resourcePath);
+            [=](Napi::Env env) -> std::shared_ptr<ImageInfo> {
+                return DecodeImage(uri, extensions, resourcePath, textureFormat);
             },
-            [this](Napi::Env env, napi_status status, const std::string& message) {
-                // TODO: same code as FontResource
-                if (this->resourceState != ResourceStateLoading) {
-                    fmt::println("Warning: AsyncWork returned to a resource({}) in an unexpected state.",
-                        this->GetId());
-                    return;
-                }
+            [this](Napi::Env env, std::shared_ptr<ImageInfo> result, napi_status status, const std::string& message) {
+                // TODO: assert(this->resourceState != ResourceStateLoading)
+                // TODO: assert(this->GetRefCount() > 0)
 
-                this->RemoveRef();
+                this->image = result;
                 this->work.reset();
+                this->width = this->image->width;
+                this->height = this->image->height;
 
-                if (this->GetRefCount() > 0) {
-                    ResourceState nextState;
+                fmt::println("image load: width {} height {} status {} '{}'", width, height, status, message);
 
-                    if (status != napi_ok) {
-                        nextState = ResourceStateError;
-                    } else {
-                        nextState = ResourceStateReady;
-                    }
-
-                    this->SetStateAndNotifyListeners(nextState);
-                }
+                this->SetStateAndNotifyListeners(status != napi_ok ? ResourceStateError : ResourceStateReady);
             });
     } catch (std::exception& e) {
         this->RemoveRef();
@@ -71,21 +78,26 @@ void ImageResource::Load(Renderer* renderer,
     this->SetStateAndNotifyListeners(initialState);
 }
 
-void ImageResource::LoadImage(const std::string& uriOrFilename, const std::vector<std::string>& extensions,
-             const std::vector<std::string>& resourcePath) {
+std::shared_ptr<ImageInfo> LoadImage(const ImageUri& uri, const std::vector<std::string>& extensions,
+             const std::vector<std::string>& resourcePath, PixelFormat textureFormat) {
+    std::shared_ptr<ImageInfo> result;
+    auto uriOrFilename{ uri.GetUri() };
+
+    // TODO: support base64 encoded svgs
+    // TODO: support url encoding
+
     if (IsDataUri(uriOrFilename)) {
-        // TODO: support base64 encoded svgs
-
-        if (IsSvgDataUri(uriOrFilename)) {
-            auto data{ GetSvgUriData(uriOrFilename) };
-
-            // TODO: should url decode here
-            // TODO: get render width/height from uri params
-
-            LoadImageFromSvg(nsvgParse(const_cast<char *>(data.c_str()), "px", 96), 0, 0);
-        } else {
-            throw std::runtime_error("invalid data uri");
+        if (!IsSvgDataUri(uriOrFilename)) {
+            throw std::runtime_error(fmt::format("Invalid image data uri: {}", uriOrFilename));
         }
+
+        auto dataString{ GetSvgUriData(uriOrFilename) };
+
+        result = DecodeImageSvg(
+            nsvgParse(const_cast<char *>(dataString.data()), "px", 96),
+            uriOrFilename,
+            uri.GetWidth(),
+            uri.GetHeight());
     } else {
         std::string filename;
 
@@ -98,7 +110,7 @@ void ImageResource::LoadImage(const std::string& uriOrFilename, const std::vecto
         FileHandle file(fopen(filename.c_str(), "rb"), fclose);
 
         if (!file) {
-            throw std::runtime_error("Could not open file,");
+            throw std::runtime_error(fmt::format("Could not open image file: {}", uriOrFilename));
         }
 
         int32_t components{};
@@ -108,20 +120,29 @@ void ImageResource::LoadImage(const std::string& uriOrFilename, const std::vecto
         auto data{ stbi_load_from_file(file.get(), &width, &height, &components, 4) };
 
         if (data) {
-            this->width = width;
-            this->height = height;
-            this->data = std::shared_ptr<uint8_t>(data, [] (uint8_t* p) { stbi_image_free(p); });
-            this->format = PixelFormatRGBA;
+            result->width = width,
+            result->height = height,
+            result->data = std::shared_ptr<uint8_t>(data, [] (uint8_t* p) { stbi_image_free(p); });
+            result->format = PixelFormatRGBA;
         } else {
             fseek(file.get(), 0, SEEK_SET);
-            // TODO: get renderWidth / renderHeight from uri params
-            LoadImageFromSvg(nsvgParseFromFilePtr(file.get(), "px", 96), 0, 0);
+
+            result = DecodeImageSvg(
+                nsvgParseFromFilePtr(file.get(), "px", 96),
+                uriOrFilename,
+                uri.GetWidth(),
+                uri.GetHeight());
         }
     }
+
+    ConvertToFormat(result->data.get(), result->width * result->height * 4, textureFormat);
+    result->format = textureFormat;
+
+    return result;
 }
 
-void ImageResource::LoadImageFromSvg(
-        NSVGimage* svgImage, const int32_t scaleWidth, const int32_t scaleHeight) {
+std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage* svgImage, const std::string& uri, const int32_t scaleWidth,
+        const int32_t scaleHeight) {
     NSVGimageHandle svg(svgImage, nsvgDelete);
 
     // XXX: nsvgParse* methods do not check if parsing failed. NSVGImage can be left in a partially filled out state,
@@ -129,18 +150,18 @@ void ImageResource::LoadImageFromSvg(
     // cover all invalid XML use cases.
 
     if (svg == nullptr) {
-        throw std::runtime_error("Failed to parse image.");
+        throw std::runtime_error(fmt::format("Failed to parse svg image: {}", uri));
     }
 
     auto svgWidth{ static_cast<int32_t>(svg->width) };
     auto svgHeight{ static_cast<int32_t>(svg->height) };
 
     if (svgWidth < 0 || svgHeight < 0) {
-        throw std::runtime_error("Failed to parse image.");
+        throw std::runtime_error(fmt::format("Failed to parse svg image: {}", uri));
     }
 
     if ((svgWidth == 0 || svgHeight == 0) && (scaleWidth == 0 && scaleHeight == 0)) {
-        throw std::runtime_error("SVG contains no dimensions.");
+        throw std::runtime_error(fmt::format("No dimensions available for svg image: {}", uri));
     }
 
     auto scaleX{ 1.f };
@@ -163,11 +184,10 @@ void ImageResource::LoadImageFromSvg(
     NSVGrasterizerHandle rasterizer(nsvgCreateRasterizer(), nsvgDeleteRasterizer);
 
     if (rasterizer == nullptr) {
-        throw std::runtime_error("Failed to create rasterizer SVG image.");
+        throw std::runtime_error(fmt::format("Failed to create rasterizer for svg image: {}", uri));
     }
 
     std::shared_ptr<uint8_t> data(new uint8_t [width * height * 4], [](uint8_t* p){ delete [] p; });
-    // TODO: set format
 
     nsvgRasterizeFull(rasterizer.get(),
                       svg.get(),
@@ -180,13 +200,40 @@ void ImageResource::LoadImageFromSvg(
                       height,
                       width * 4);
 
-    this->width = width;
-    this->height = height;
-    this->data = data;
-    this->format = PixelFormatRGBA;
+    auto image{ std::make_shared<ImageInfo>() };
+
+    image->width = width,
+    image->height = height,
+    image->data = data;
+    image->format = PixelFormatRGBA;
+
+    return image;
 }
 
-inline float ScaleFactor(const int source, const int dest) {
+EdgeRect ToCapInsets(const Object& spec) {
+    return {
+        GetNumberOrDefault(spec, "top", 0),
+        GetNumberOrDefault(spec, "right", 0),
+        GetNumberOrDefault(spec, "bottom", 0),
+        GetNumberOrDefault(spec, "left", 0),
+    };
+}
+
+ImageUri ImageUri::FromObject(const Object& spec) {
+    auto uri{ GetString(spec, "uri") };
+    auto width{ GetNumberOrDefault(spec, "width", 0) };
+    auto height{ GetNumberOrDefault(spec, "height", 0) };
+    auto id{ GetStringOrEmpty(spec, "id") };
+
+    if (spec.Has("capInsets") && spec.Get("capInsets").IsObject()) {
+        return ImageUri(uri, id, width, height, ToCapInsets(spec.Get("capInsets").As<Object>()));
+    }
+
+    return ImageUri(uri, id, width, height);
+}
+
+inline
+float ScaleFactor(const int source, const int dest) {
     return 1.f + ((dest - source) / static_cast<float>(source));
 }
 

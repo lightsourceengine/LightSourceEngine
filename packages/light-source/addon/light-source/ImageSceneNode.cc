@@ -7,7 +7,6 @@
 #include "ImageSceneNode.h"
 #include "YGNode.h"
 #include "Scene.h"
-#include "ImageResource.h"
 #include "Style.h"
 #include "StyleUtils.h"
 #include <fmt/format.h>
@@ -74,7 +73,8 @@ Function ImageSceneNode::Constructor(Napi::Env env) {
 }
 
 Value ImageSceneNode::GetSource(const CallbackInfo& info) {
-    return this->uri.empty() ? info.Env().Undefined() : String::New(info.Env(), this->uri);
+    // TODO: return uri as object
+    return String::New(info.Env(), this->uri.GetId());
 }
 
 void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& value) {
@@ -85,7 +85,7 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
         return;
     }
 
-    auto newUri{ value.As<String>().Utf8Value() };
+    ImageUri newUri(value.As<String>().Utf8Value());
 
     if (newUri == this->uri) {
         return;
@@ -109,6 +109,7 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
     }
 
     this->imageListenerId = this->image->AddListener([&]() {
+        // TODO: what if image was removed? also, better state checking
         YGNodeMarkDirty(this->ygNode);
         this->image->RemoveListener(this->imageListenerId);
         this->imageListenerId = 0;
@@ -199,7 +200,8 @@ void ImageSceneNode::ClearImage() {
         this->imageListenerId = 0;
         this->image->RemoveRef();
         this->image = nullptr;
-        this->uri.clear();
+        // TODO: cheaper clear
+        this->uri = ImageUri();
     }
 }
 

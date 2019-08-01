@@ -20,7 +20,7 @@ union {
 
 namespace ls {
 
-const bool isBigEndian = (bint.c[0] == 1);
+const bool isBigEndian{ (bint.c[0] == 1) };
 
 inline
 void ToFormatLE(uint8_t* bytes, int32_t len, PixelFormat format) {

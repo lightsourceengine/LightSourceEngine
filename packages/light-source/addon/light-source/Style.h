@@ -101,6 +101,11 @@ class Style : public Napi::ObjectWrap<Style> {
 
     // Public Methods
 
+    bool HasBorder() const;
+    bool HasPadding() const;
+    bool HasBorderRadius() const;
+    bool IsLayoutOnly() const;
+
     static Napi::Function Constructor(Napi::Env env);
     static void Init(Napi::Env env);
     static Style* Empty();

@@ -9,6 +9,7 @@
 #include "StyleEnumMappings.h"
 #include "ResourceManager.h"
 #include "Scene.h"
+#include "Style.h"
 #include "BoxSceneNode.h"
 #include "ImageSceneNode.h"
 #include "TextSceneNode.h"
@@ -40,6 +41,7 @@ Object Init(Env env, Object exports) {
     ExportClass(&exports, ImageSceneNode::Constructor(env));
     ExportClass(&exports, TextSceneNode::Constructor(env));
 
+    Style::Init(env);
     ls::StyleEnumMappings::Init(env, exports);
 
     return exports;

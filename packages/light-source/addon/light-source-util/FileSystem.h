@@ -15,7 +15,6 @@ namespace ls {
 
 typedef std::unique_ptr<FILE, decltype(&fclose)> FileHandle;
 
-std::vector<uint8_t> ReadBytes(const std::string filename);
 bool HasExtension(const std::string& filename);
 bool FileExists(const std::string& filename);
 std::string Join(const std::string& path, const std::string& filename);

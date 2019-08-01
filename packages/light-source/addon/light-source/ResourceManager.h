@@ -25,7 +25,7 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     static Napi::Function Constructor(Napi::Env env);
 
     void RegisterImage(const Napi::CallbackInfo& info);
-    void RegisterFont(const Napi::CallbackInfo& info);
+    void AddFont(const Napi::CallbackInfo& info);
 
     Napi::Value GetImageExtensions(const Napi::CallbackInfo& info);
     void SetImageExtensions(const Napi::CallbackInfo& info, const Napi::Value& value);
@@ -33,19 +33,20 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     Napi::Value GetPath(const Napi::CallbackInfo& info);
     void SetPath(const Napi::CallbackInfo& info, const Napi::Value& value);
 
-    void Attach(Renderer* renderer);
-    void Detach();
+    void SetRenderer(Renderer* renderer);
 
+    void Attach();
+    void Detach();
     void ProcessEvents();
 
-    ImageResource* GetImage(const std::string& id);
-
+    ImageResource* GetImage(const ImageUri& uri);
     FontResource* FindFont(const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight);
 
  private:
     Renderer* renderer{};
     std::unordered_map<std::string, std::shared_ptr<ImageResource>> images;
     std::unordered_map<std::string, std::shared_ptr<FontResource>> fonts;
+    std::unordered_map<std::string, ImageUri> registeredImageUris;
     std::vector<std::string> imageExtensions;
     Napi::ObjectReference imageExtensionsObject;
     std::vector<std::string> path;
