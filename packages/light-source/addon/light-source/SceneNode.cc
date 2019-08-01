@@ -282,7 +282,7 @@ void SceneNode::Paint(Renderer* renderer) {
     }
 }
 
-void SceneNode::Layout(float width, float height, bool recalculate) const {
+void SceneNode::Layout(float width, float height, bool recalculate) {
     if (recalculate) {
         this->RefreshStyleRecursive();
     }

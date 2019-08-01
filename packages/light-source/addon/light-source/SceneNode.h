@@ -45,7 +45,7 @@ class SceneNode {
 
     void Destroy();
 
-    void Layout(float width, float height, bool recalculate) const;
+    void Layout(float width, float height, bool recalculate);
     Style* GetStyleOrEmpty() const { return this->style ? this->style : Style::Empty(); }
 
     virtual void Paint(Renderer* renderer);

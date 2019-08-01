@@ -107,7 +107,7 @@ void Scene::Resize(const CallbackInfo& info) {
         info[0].As<Number>().Int32Value(),
         info[1].As<Number>().Int32Value(),
         info[2].As<Boolean>());
-    this->shouldRecalculateLayout = true;
+    this->recalculateLayoutRequested = true;
 }
 
 void Scene::Frame(const CallbackInfo& info) {
@@ -164,8 +164,7 @@ void Scene::UpdateRootFontSize() {
 
     if (this->rootFontSize != computedFontSize) {
         this->rootFontSize = computedFontSize;
-
-        return this->shouldRecalculateLayout = true;
+        this->recalculateLayoutRequested = true;
     }
 }
 
