@@ -118,6 +118,7 @@ Function Style::Constructor(Napi::Env env) {
             StaticValue("UnitViewportMax", Number::New(env, StyleNumberUnitViewportMax)),
             StaticValue("UnitAuto", Number::New(env, StyleNumberUnitAuto)),
             StaticValue("UnitAnchor", Number::New(env, StyleNumberUnitAnchor)),
+            StaticValue("UnitRootEm", Number::New(env, StyleNumberUnitRootEm)),
 
             // Helper methods
 
@@ -141,11 +142,12 @@ Style* Style::Empty() {
     return empty;
 }
 
-void Style::Apply(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight) const {
+void Style::Apply(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight,
+        const int32_t rootFontSize) const {
     ygNode->setStyle(sEmptyStyle);
 
     for (auto& value : yogaValues) {
-        value->Apply(ygNode, viewportWidth, viewportHeight);
+        value->Apply(ygNode, viewportWidth, viewportHeight, rootFontSize);
     }
 }
 

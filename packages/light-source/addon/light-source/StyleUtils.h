@@ -32,6 +32,8 @@ float CalculateBackgroundDimension(const StyleNumberValue* styleDimension,
             return styleDimension->GetValuePercent() * scene->GetViewportMin();
         case StyleNumberUnitViewportMax:
             return styleDimension->GetValuePercent() * scene->GetViewportMax();
+        case StyleNumberUnitRootEm:
+            return styleDimension->GetValue() * scene->GetRootFontSize();
         default: // StyleNumberUnitAuto
             return imageDimension;
     }
@@ -127,6 +129,8 @@ float CalculateObjectPosition(const StyleNumberValue* objectPosition,
                 return objectPosition->GetValuePercent() * scene->GetViewportMin();
             case StyleNumberUnitViewportMax:
                 return objectPosition->GetValuePercent() * scene->GetViewportMax();
+            case StyleNumberUnitRootEm:
+                return objectPosition->GetValue() * scene->GetRootFontSize();
             default:
                 break;
         }
@@ -149,6 +153,8 @@ int32_t ComputeIntegerPointValue(const StyleNumberValue* styleValue, const Scene
             return styleValue->GetValuePercent() * scene->GetViewportMin();
         case StyleNumberUnitViewportMax:
             return styleValue->GetValuePercent() * scene->GetViewportMax();
+        case StyleNumberUnitRootEm:
+            return styleValue->GetValue() * scene->GetRootFontSize();
         default:
             return defaultValue;
     }

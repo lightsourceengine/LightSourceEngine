@@ -26,6 +26,8 @@ using Napi::Value;
 
 namespace ls {
 
+const auto DEFAULT_ROOT_FONT_SIZE{ 16 };
+
 Scene::Scene(const CallbackInfo& info) : ObjectWrap<Scene>(info) {
     auto env{ info.Env() };
     HandleScope scope(env);
@@ -49,6 +51,8 @@ Scene::Scene(const CallbackInfo& info) : ObjectWrap<Scene>(info) {
 
     self.Set(SymbolFor(env, "root"), rootValue);
     self.Set(SymbolFor(env, "resource"), resourceManagerValue);
+
+    this->rootFontSize = DEFAULT_ROOT_FONT_SIZE;
 }
 
 Function Scene::Constructor(Napi::Env env) {
@@ -103,17 +107,22 @@ void Scene::Resize(const CallbackInfo& info) {
         info[0].As<Number>().Int32Value(),
         info[1].As<Number>().Int32Value(),
         info[2].As<Boolean>());
+    this->shouldRecalculateLayout = true;
 }
 
 void Scene::Frame(const CallbackInfo& info) {
     auto renderer{ this->adapter->GetRenderer() };
 
-    renderer->Reset();
-
     this->resourceManager->ProcessEvents();
-    this->root->Layout(this->width, this->height);
-    this->root->Paint(renderer);
 
+    // TODO: root node should generate an event when font size changes
+    UpdateRootFontSize();
+
+    this->root->Layout(this->width, this->height, this->recalculateLayoutRequested);
+    this->recalculateLayoutRequested = false;
+
+    renderer->Reset();
+    this->root->Paint(renderer);
     renderer->Present();
 }
 
@@ -122,6 +131,42 @@ Value Scene::GetTitle(const CallbackInfo& info) {
 }
 
 void Scene::SetTitle(const CallbackInfo& info, const Napi::Value& value) {
+}
+
+void Scene::UpdateRootFontSize() {
+    auto rootStyleFontSize{ this->root->GetStyleOrEmpty()->fontSize() };
+    auto computedFontSize{ 0 };
+
+    if (rootStyleFontSize) {
+        switch (rootStyleFontSize->GetUnit()) {
+            case StyleNumberUnitPoint:
+                computedFontSize = rootStyleFontSize->GetValue();
+                break;
+            case StyleNumberUnitViewportWidth:
+                computedFontSize = rootStyleFontSize->GetValuePercent() * this->GetWidth();
+                break;
+            case StyleNumberUnitViewportHeight:
+                computedFontSize = rootStyleFontSize->GetValuePercent() * this->GetHeight();
+                break;
+            case StyleNumberUnitViewportMin:
+                computedFontSize = rootStyleFontSize->GetValuePercent() * this->GetViewportMax();
+                break;
+            case StyleNumberUnitViewportMax:
+                computedFontSize = rootStyleFontSize->GetValuePercent() * this->GetViewportMin();
+                break;
+            case StyleNumberUnitRootEm:
+                computedFontSize = rootStyleFontSize->GetValue() * DEFAULT_ROOT_FONT_SIZE;
+                break;
+            default:
+                break;
+        }
+    }
+
+    if (this->rootFontSize != computedFontSize) {
+        this->rootFontSize = computedFontSize;
+
+        return this->shouldRecalculateLayout = true;
+    }
 }
 
 } // namespace ls

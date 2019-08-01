@@ -33,14 +33,20 @@ class Scene : public Napi::ObjectWrap<Scene> {
     int32_t GetHeight() const { return this->height; }
     int32_t GetViewportMin() const { return std::min(this->width, this->height); }
     int32_t GetViewportMax() const { return std::max(this->width, this->height); }
+    int32_t GetRootFontSize() const { return this->rootFontSize; }
     ResourceManager* GetResourceManager() { return this->resourceManager; }
+
+ private:
+    void UpdateRootFontSize();
 
  private:
     ResourceManager* resourceManager{};
     SceneNode* root{};
+    int32_t rootFontSize{};
     std::unique_ptr<SceneAdapter> adapter;
     int32_t width{};
     int32_t height{};
+    bool recalculateLayoutRequested{false};
 };
 
 } // namespace ls

@@ -75,7 +75,8 @@ SS_ENUM_SEQ_DECL(
     StyleNumberUnitViewportMin,
     StyleNumberUnitViewportMax,
     StyleNumberUnitAuto,
-    StyleNumberUnitAnchor
+    StyleNumberUnitAnchor,
+    StyleNumberUnitRootEm
 )
 
 SS_ENUM_SEQ_DECL(

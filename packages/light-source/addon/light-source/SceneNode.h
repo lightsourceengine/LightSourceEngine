@@ -45,17 +45,18 @@ class SceneNode {
 
     void Destroy();
 
-    bool Layout(float width, float height) const;
+    void Layout(float width, float height, bool recalculate) const;
+    Style* GetStyleOrEmpty() const { return this->style ? this->style : Style::Empty(); }
 
     virtual void Paint(Renderer* renderer);
     virtual Napi::Reference<Napi::Object>* AsReference() = 0;
 
  protected:
     void SetParent(SceneNode* newParent);
-    Style* GetStyleOrEmpty() const { return this->style ? this->style : Style::Empty(); }
     virtual void ApplyStyle(Style* style);
     virtual void DestroyRecursive();
     void RemoveChild(SceneNode* child);
+    void RefreshStyleRecursive();
 
  protected:
     static int instanceCount;

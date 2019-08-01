@@ -77,7 +77,8 @@ Value SceneNode::GetStyle(const CallbackInfo& info) {
 
 void SceneNode::SyncStyleRecursive() {
     if (this->style) {
-        this->style->Apply(this->ygNode, this->scene->GetWidth(), this->scene->GetHeight());
+        this->style->Apply(this->ygNode,
+            this->scene->GetWidth(), this->scene->GetHeight(), this->scene->GetRootFontSize());
     }
 
     for (auto& child : this->children) {
@@ -124,8 +125,16 @@ void SceneNode::SetParent(SceneNode* newParent) {
     }
 }
 
+void SceneNode::RefreshStyleRecursive() {
+    if (this->style) {
+        this->ApplyStyle(this->style);
+    }
+
+    std::for_each(this->children.begin(), this->children.end(), [](SceneNode* node) { node->RefreshStyleRecursive(); });
+}
+
 void SceneNode::ApplyStyle(Style* style) {
-     style->Apply(this->ygNode, this->scene->GetWidth(), this->scene->GetHeight());
+     style->Apply(this->ygNode, this->scene->GetWidth(), this->scene->GetHeight(), this->scene->GetRootFontSize());
 }
 
 void SceneNode::AppendChild(const CallbackInfo& info) {
@@ -273,14 +282,14 @@ void SceneNode::Paint(Renderer* renderer) {
     }
 }
 
-bool SceneNode::Layout(float width, float height) const {
-    if (YGNodeIsDirty(this->ygNode)) {
-        YGNodeCalculateLayout(this->ygNode, width, height, YGDirectionLTR);
-
-        return true;
+void SceneNode::Layout(float width, float height, bool recalculate) const {
+    if (recalculate) {
+        this->RefreshStyleRecursive();
     }
 
-    return false;
+    if (YGNodeIsDirty(this->ygNode)) {
+        YGNodeCalculateLayout(this->ygNode, width, height, YGDirectionLTR);
+    }
 }
 
 } // namespace ls

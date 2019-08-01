@@ -22,7 +22,8 @@ class StyleValue {
     virtual ~StyleValue() = default;
 
     virtual Napi::Value ToJS(Napi::Env env) const = 0;
-    virtual void Apply(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight) const { }
+    virtual void Apply(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight,
+        const int32_t rootFontSize) const { }
 };
 
 template<typename E>
@@ -122,7 +123,8 @@ class YogaStyleEnumValue : public StyleEnumValue<E> {
     explicit YogaStyleEnumValue(E value) : StyleEnumValue<E>(value) {}
     virtual ~YogaStyleEnumValue() = default;
 
-    virtual void Apply(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight) const {
+    virtual void Apply(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight,
+            const int32_t rootFontSize) const {
         S(ygNode, this->Get());
     }
 };
@@ -135,7 +137,8 @@ class YogaStyleNumberValue : public StyleNumberValue {
     explicit YogaStyleNumberValue(const StyleNumber& number) : StyleNumberValue(number) {}
     virtual ~YogaStyleNumberValue() = default;
 
-    virtual void Apply(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight) const {
+    virtual void Apply(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight,
+            const int32_t rootFontSize) const {
         switch (this->number.unit) {
             case StyleNumberUnitAuto:
                 A(ygNode);
@@ -157,6 +160,8 @@ class YogaStyleNumberValue : public StyleNumberValue {
                 break;
             case StyleNumberUnitViewportMax:
                 S(ygNode, this->GetValuePercent() * viewportWidth > viewportHeight ? viewportWidth : viewportHeight);
+            case StyleNumberUnitRootEm:
+                S(ygNode, this->GetValue() * rootFontSize);
                 break;
             default:
                 break;
@@ -173,7 +178,8 @@ class YogaEdgeStyleNumberValue : public StyleNumberValue {
     explicit YogaEdgeStyleNumberValue(const StyleNumber& number) : StyleNumberValue(number) {}
     virtual ~YogaEdgeStyleNumberValue() = default;
 
-    virtual void Apply(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight) const {
+    virtual void Apply(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight,
+            const int32_t rootFontSize) const {
         switch (this->number.unit) {
             case StyleNumberUnitAuto:
                 A(ygNode, edge);
@@ -199,6 +205,9 @@ class YogaEdgeStyleNumberValue : public StyleNumberValue {
                 S(ygNode,
                   edge,
                   this->GetValuePercent() * viewportWidth > viewportHeight ? viewportWidth : viewportHeight);
+                break;
+            case StyleNumberUnitRootEm:
+                S(ygNode, edge, this->GetValue() * rootFontSize);
                 break;
             default:
                 break;

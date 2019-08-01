@@ -171,8 +171,8 @@ StyleEnumMappings.anchorFromString.forEach((value, key) => anchorResultFromStrin
 const parseResult = [0, 0]
 
 const ALPHABIT = 4294967296 // = 0xFFFFFFFF + 1 = 0x100000000
-const POINT_REGEX = /^(-?\d+\.?\d*)(px|vw|vh|vmin|vmax)$/
-const POINT_PERCENT_REGEX = /^(-?\d+\.?\d*)(px|%|vw|vh|vmin|vmax)$/
+const POINT_REGEX = /^(-?\d+\.?\d*)(px|vw|vh|vmin|vmax|rem)$/
+const POINT_PERCENT_REGEX = /^(-?\d+\.?\d*)(px|%|vw|vh|vmin|vmax|rem)$/
 
 const unitFromString = new Map([
   ['px', StyleBase.UnitPoint],
@@ -180,7 +180,8 @@ const unitFromString = new Map([
   ['vw', StyleBase.UnitViewportWidth],
   ['vh', StyleBase.UnitViewportHeight],
   ['vmin', StyleBase.UnitViewportMin],
-  ['vmax', StyleBase.UnitViewportMax]
+  ['vmax', StyleBase.UnitViewportMax],
+  ['rem', StyleBase.UnitRootEm]
 ])
 
 const hexCharCodeToInt = new Map()
@@ -572,7 +573,7 @@ class Style extends StyleBase {
 
   set textAlign (value) { super.textAlign = StyleEnumMappings.textAlignFromString.get(value) }
 
-  get textOverflow () { return StyleEnumMappings.textOverflowTpString.get(super.textOverflow) }
+  get textOverflow () { return StyleEnumMappings.textOverflowToString.get(super.textOverflow) }
 
   set textOverflow (value) { super.textOverflow = StyleEnumMappings.textOverflowFromString.get(value) }
 
