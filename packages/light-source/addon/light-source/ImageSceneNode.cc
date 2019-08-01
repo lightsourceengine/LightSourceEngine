@@ -57,6 +57,7 @@ Function ImageSceneNode::Constructor(Napi::Env env) {
             InstanceAccessor("parent", &SceneNode::GetParent, nullptr),
             InstanceAccessor("style", &SceneNode::GetStyle, &SceneNode::SetStyle),
 
+            InstanceMethod("destroy", &SceneNode::Destroy),
             InstanceMethod("appendChild", &SceneNode::AppendChild),
             InstanceMethod("removeChild", &SceneNode::RemoveChild),
 

@@ -28,16 +28,11 @@ const ELEMENTS = {
 }
 
 const appendChild = (parentInstance, child) => {
-  try {
-    parentInstance.appendChild(child)
-  } catch (e) {
-    console.log(e)
-  }
+  parentInstance.appendChild(child)
 }
 
 const removeChild = (parentInstance, child) => {
-  parentInstance.removeChild(child)
-  // TODO: destroy child
+  child.destroy()
 }
 
 const errorUnknownElementType = (type) => {

@@ -5,18 +5,24 @@
  */
 
 import { Element } from './Element'
+import { emptyObject } from './emptyObject'
+
+const getId = src => (src || emptyObject).id || (src || emptyObject).src || null
 
 export class ImageElement extends Element {
   updateProps (oldProps, newProps) {
     super.updateProps(oldProps, newProps)
 
-    // TODO: deeper compare of src once the structure is fleshed out
-    if (oldProps.src !== newProps.src) {
+    if (getId(oldProps.src) !== getId(newProps.src)) {
       this.node.src = newProps.src
     }
 
     if (oldProps.onLoad !== newProps.onLoad) {
       this.node.onLoad = newProps.onLoad
+    }
+
+    if (oldProps.onError !== newProps.onError) {
+      this.node.onError = newProps.onError
     }
   }
 }
