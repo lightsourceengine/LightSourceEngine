@@ -5,6 +5,7 @@
  */
 
 #include "Style.h"
+#include <napi-ext.h>
 #include <YGNode.h>
 #include <YGStyle.h>
 
@@ -117,6 +118,10 @@ Function Style::Constructor(Napi::Env env) {
             StaticValue("UnitViewportMax", Number::New(env, StyleNumberUnitViewportMax)),
             StaticValue("UnitAuto", Number::New(env, StyleNumberUnitAuto)),
             StaticValue("UnitAnchor", Number::New(env, StyleNumberUnitAnchor)),
+
+            // Helper methods
+
+            InstanceMethod(SymbolFor(env, "updateInternalFlags"), &Style::UpdateInternalFlags),
         });
 
         constructor.Reset(func, 1);
@@ -144,34 +149,18 @@ void Style::Apply(const YGNodeRef ygNode, const float viewportWidth, const float
     }
 }
 
-// TODO: store these in a bitset
+void Style::UpdateInternalFlags(const Napi::CallbackInfo& info) {
+    this->flags[StyleFlagsBorder] = this->border() || this->borderTop() || this->borderRight()
+        || this->borderBottom() || this->borderLeft();
 
-bool Style::HasBorder() const {
-    return this->border()
-        || this->borderTop()
-        || this->borderRight()
-        || this->borderBottom()
-        || this->borderLeft();
-}
+    this->flags[StyleFlagsPadding] = this->padding() || this->paddingTop() || this->paddingRight()
+        || this->paddingBottom() || this->paddingLeft();
 
-bool Style::HasPadding() const {
-    return this->padding()
-        || this->paddingTop()
-        || this->paddingRight()
-        || this->paddingBottom()
-        || this->paddingLeft();
-}
+    this->flags[StyleFlagsBorderRadius] = this->borderRadius() || this->borderRadiusTopLeft()
+        || this->borderRadiusTopRight() || this->borderRadiusBottomLeft() || this->borderRadiusBottomRight();
 
-bool Style::HasBorderRadius() const {
-    return this->borderRadius()
-        || this->borderRadiusTopLeft()
-        || this->borderRadiusTopRight()
-        || this->borderRadiusBottomLeft()
-        || this->borderRadiusBottomRight();
-}
-
-bool Style::IsLayoutOnly() const {
-    return !this->borderColor() && !this->backgroundColor() && this->backgroundImage().empty();
+    this->flags[StyleFlagsLayoutOnly] = !this->borderColor() && !this->backgroundColor()
+        && this->backgroundImage().empty();
 }
 
 template<typename T>

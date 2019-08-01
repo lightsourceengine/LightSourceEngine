@@ -156,8 +156,8 @@ void ResourceManager::SetRenderer(Renderer* renderer) {
     this->renderer = renderer;
 }
 
-ImageResource* ResourceManager::GetImage(const ImageUri& uri) {
-    auto p{ this->images.find(uri.GetId()) };
+ImageResource* ResourceManager::GetImage(const std::string& id) {
+    auto p{ this->images.find(id) };
 
     if (p != this->images.end()) {
         auto imageResource{ p->second.get() };
@@ -167,14 +167,25 @@ ImageResource* ResourceManager::GetImage(const ImageUri& uri) {
         return imageResource;
     }
 
+    return nullptr;
+}
+
+ImageResource* ResourceManager::LoadImage(const ImageUri& uri) {
+    ImageResource* imageResource{ this->GetImage(uri.GetId()) };
+
+    if (imageResource) {
+        return imageResource;
+    }
+
     auto registeredImage{ this->registeredImageUris.find(uri.GetId()) };
     const auto& imageUri{ registeredImage != this->registeredImageUris.end() ? registeredImage->second : uri };
-    auto imageResource{ std::make_shared<ImageResource>(this->Env(), imageUri) };
 
-    this->images[imageUri.GetId()] = imageResource;
-    imageResource->Load(this->renderer, this->imageExtensions, this->path);
+    auto imageResourceShared{ std::make_shared<ImageResource>(this->Env(), imageUri) };
 
-    return imageResource.get();
+    this->images[imageUri.GetId()] = imageResourceShared;
+    imageResourceShared->Load(this->renderer, this->imageExtensions, this->path);
+
+    return imageResourceShared.get();
 }
 
 FontResource* ResourceManager::FindFont(

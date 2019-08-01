@@ -22,7 +22,7 @@ std::string FontResource::MakeId(const std::string& family, StyleFontStyle fontS
     return fmt::format("{}:{}:{}", family, fontStyle, fontWeight);
 }
 
-void FontResource::Load(const std::vector<std::string>& path) {
+void FontResource::Load(const std::vector<std::string>& resourcePath) {
     auto initialState{ ResourceStateLoading };
     auto uri{ this->uri };
     auto index{ this-> index };
@@ -31,8 +31,8 @@ void FontResource::Load(const std::vector<std::string>& path) {
         this->work = std::make_unique<AsyncWork<FontInfo>>(
             this->env,
             this->id,
-            [path, uri, index](Napi::Env env) -> std::shared_ptr<FontInfo> {
-                return LoadFont(path, uri, index);
+            [resourcePath, uri, index](Napi::Env env) -> std::shared_ptr<FontInfo> {
+                return LoadFont(resourcePath, uri, index);
             },
             [this](Napi::Env env, std::shared_ptr<FontInfo> result, napi_status status, const std::string& message) {
                 // TODO: assert(this->resourceState != ResourceStateLoading)
@@ -44,7 +44,6 @@ void FontResource::Load(const std::vector<std::string>& path) {
                 this->SetStateAndNotifyListeners(status != napi_ok ? ResourceStateError : ResourceStateReady);
             });
     } catch (std::exception& e) {
-        this->RemoveRef();
         initialState = ResourceStateError;
     }
 

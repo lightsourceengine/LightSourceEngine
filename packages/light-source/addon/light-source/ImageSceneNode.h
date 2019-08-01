@@ -42,6 +42,7 @@ class ImageSceneNode : public Napi::ObjectWrap<ImageSceneNode>, public SceneNode
  private:
     void DestroyRecursive() override;
     void ClearImage();
+    void SetImage(ImageResource* newImage);
     bool DoCallbacks();
 };
 

@@ -44,12 +44,16 @@ void CalculateObjectFitDimensions(StyleObjectFit objectFit,
                                   float boxHeight,
                                   float* fitWidth,
                                   float* fitHeight) {
+    *fitWidth = boxWidth;
+    *fitHeight = boxHeight;
+
+    if (image->HasCapInsets()) {
+        return;
+    }
+
     auto imageWidth{ static_cast<float>(image->GetWidth()) };
     auto imageHeight{ static_cast<float>(image->GetHeight()) };
     auto imageAspectRatio{ imageWidth / imageHeight };
-
-    *fitWidth = boxWidth;
-    *fitHeight = boxHeight;
 
     switch (objectFit) {
         case StyleObjectFitContain:

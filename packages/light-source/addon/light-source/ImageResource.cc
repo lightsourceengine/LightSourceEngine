@@ -12,8 +12,11 @@
 #include <stb_image.h>
 #include <fmt/format.h>
 
+using Napi::EscapableHandleScope;
+using Napi::Number;
 using Napi::Object;
 using Napi::String;
+using Napi::Value;
 
 namespace ls {
 
@@ -28,33 +31,37 @@ std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage*, const std::string, const i
 ImageResource::ImageResource(Napi::Env env, const ImageUri& uri) : Resource(env, uri.GetId()), uri(uri) {
 }
 
-uint32_t ImageResource::GetTexture(Renderer* renderer) {
+bool ImageResource::Sync(Renderer* renderer) {
     if (this->textureId) {
-        return this->textureId;
+        return true;
     }
 
-    if (!this->image || !this->image->data) {
-        return 0;
+    if (!this->IsReady() || !this->image) {
+        return false;
     }
 
-    this->textureId = renderer->AddTexture(this->image->data.get(), this->image->format,
-        this->image->width, this->image->height);
+    this->textureId = renderer->AddTexture(
+        this->image->data.get(),
+        this->image->format,
+        this->image->width,
+        this->image->height);
+
     this->image.reset();
 
-    return this->textureId;
+    return (this->textureId != 0);
 }
 
 void ImageResource::Load(Renderer* renderer,
         const std::vector<std::string>& extensions, const std::vector<std::string>& resourcePath) {
     auto initialState{ ResourceStateLoading };
     const auto textureFormat{ renderer->GetTextureFormat() };
-    const auto& uri{ this->uri };
+    auto uri{ this->uri };
 
     try {
         this->work = std::make_unique<AsyncWork<ImageInfo>>(
             this->env,
             this->id,
-            [=](Napi::Env env) -> std::shared_ptr<ImageInfo> {
+            [uri, extensions, resourcePath, textureFormat](Napi::Env env) -> std::shared_ptr<ImageInfo> {
                 return DecodeImage(uri, extensions, resourcePath, textureFormat);
             },
             [this](Napi::Env env, std::shared_ptr<ImageInfo> result, napi_status status, const std::string& message) {
@@ -71,14 +78,13 @@ void ImageResource::Load(Renderer* renderer,
                 this->SetStateAndNotifyListeners(status != napi_ok ? ResourceStateError : ResourceStateReady);
             });
     } catch (std::exception& e) {
-        this->RemoveRef();
         initialState = ResourceStateError;
     }
 
     this->SetStateAndNotifyListeners(initialState);
 }
 
-std::shared_ptr<ImageInfo> LoadImage(const ImageUri& uri, const std::vector<std::string>& extensions,
+std::shared_ptr<ImageInfo> DecodeImage(const ImageUri& uri, const std::vector<std::string>& extensions,
              const std::vector<std::string>& resourcePath, PixelFormat textureFormat) {
     std::shared_ptr<ImageInfo> result;
     auto uriOrFilename{ uri.GetUri() };
@@ -120,6 +126,7 @@ std::shared_ptr<ImageInfo> LoadImage(const ImageUri& uri, const std::vector<std:
         auto data{ stbi_load_from_file(file.get(), &width, &height, &components, 4) };
 
         if (data) {
+            result = std::make_shared<ImageInfo>();
             result->width = width,
             result->height = height,
             result->data = std::shared_ptr<uint8_t>(data, [] (uint8_t* p) { stbi_image_free(p); });
@@ -135,8 +142,10 @@ std::shared_ptr<ImageInfo> LoadImage(const ImageUri& uri, const std::vector<std:
         }
     }
 
-    ConvertToFormat(result->data.get(), result->width * result->height * 4, textureFormat);
-    result->format = textureFormat;
+    if (result) {
+        ConvertToFormat(result->data.get(), result->width * result->height * 4, textureFormat);
+        result->format = textureFormat;
+    }
 
     return result;
 }
@@ -225,11 +234,48 @@ ImageUri ImageUri::FromObject(const Object& spec) {
     auto height{ GetNumberOrDefault(spec, "height", 0) };
     auto id{ GetStringOrEmpty(spec, "id") };
 
+    if (width < 0) {
+        width = 0;
+    }
+
+    if (height < 0) {
+        height = 0;
+    }
+
     if (spec.Has("capInsets") && spec.Get("capInsets").IsObject()) {
         return ImageUri(uri, id, width, height, ToCapInsets(spec.Get("capInsets").As<Object>()));
     }
 
     return ImageUri(uri, id, width, height);
+}
+
+Value ImageUri::ToObject(Napi::Env env) {
+    EscapableHandleScope scope(env);
+    auto imageUri{ Object::New(env) };
+
+    imageUri["id"] = String::New(env, this->GetId());
+    imageUri["uri"] = String::New(env, this->GetUri());
+
+    if (this->width > 0) {
+        imageUri["width"] = Number::New(env, this->width);
+    }
+
+    if (this->height > 0) {
+        imageUri["height"] = Number::New(env, this->height);
+    }
+
+    if (this->HasCapInsets()) {
+        auto capInsets{ Object::New(env) };
+
+        capInsets["top"] = Number::New(env, this->capInsets.top);
+        capInsets["right"] = Number::New(env, this->capInsets.right);
+        capInsets["bottom"] = Number::New(env, this->capInsets.bottom);
+        capInsets["left"] = Number::New(env, this->capInsets.left);
+
+        imageUri["capInsets"] = capInsets;
+    }
+
+    return scope.Escape(imageUri);
 }
 
 inline

@@ -18,6 +18,9 @@ using Napi::ObjectWrap;
 
 namespace ls {
 
+void AssignImage(ImageResource** targetImage, ImageResource* newImage);
+const int64_t white{ 0xFFFFFFFF };
+
 BoxSceneNode::BoxSceneNode(const CallbackInfo& info) : ObjectWrap<BoxSceneNode>(info), SceneNode(info) {
 }
 
@@ -50,6 +53,11 @@ Function BoxSceneNode::Constructor(Napi::Env env) {
 void BoxSceneNode::Paint(Renderer* renderer) {
     auto boxStyle{ this->GetStyleOrEmpty() };
 
+    if (boxStyle->IsLayoutOnly()) {
+        SceneNode::Paint(renderer);
+        return;
+    }
+
     auto x{ YGNodeLayoutGetLeft(this->ygNode) };
     auto y{ YGNodeLayoutGetTop(this->ygNode) };
     auto width{ YGNodeLayoutGetWidth(this->ygNode) };
@@ -60,7 +68,7 @@ void BoxSceneNode::Paint(Renderer* renderer) {
     auto dw{ 0.f };
     auto dh{ 0.f };
 
-    if (boxStyle->backgroundClip() == StyleBackgroundClipPaddingBox) {
+    if (boxStyle->backgroundClip() == StyleBackgroundClipPaddingBox && boxStyle->HasBorder()) {
         auto borderLeft{ YGNodeLayoutGetBorder(this->ygNode, YGEdgeLeft) };
         auto borderTop { YGNodeLayoutGetBorder(this->ygNode, YGEdgeTop) };
 
@@ -71,16 +79,13 @@ void BoxSceneNode::Paint(Renderer* renderer) {
     }
 
     if (this->roundedRectImage) {
-        if (this->roundedRectImage->IsReady() && style->backgroundColor()) {
-            // TODO: GetTexture() exception
-            renderer->DrawImage(this->roundedRectImage->GetTexture(renderer),
+        if (style->backgroundColor() && this->roundedRectImage->Sync(renderer)) {
+            renderer->DrawImage(this->roundedRectImage->GetTextureId(),
                                 { x + dx + 1, y + dy + 1, width + dw - 2, height + dh - 2 },
                                 this->roundedRectImage->GetCapInsets(),
                                 style->backgroundColor()->Get());
         }
-    } else if (this->backgroundImage && this->backgroundImage->IsReady()) {
-        renderer->PushClipRect({ x + dx, y + dy, width + dw, height + dh });
-
+    } else if (this->backgroundImage && this->backgroundImage->Sync(renderer)) {
         float fitWidth;
         float fitHeight;
 
@@ -99,38 +104,40 @@ void BoxSceneNode::Paint(Renderer* renderer) {
         float positionY{ y + dy
             + CalculateObjectPosition(boxStyle->backgroundPositionY(), false, height, fitHeight, 0, this->scene) };
 
+        renderer->PushClipRect({ x + dx, y + dy, width + dw, height + dh });
+
+        auto textureId{ this->backgroundImage->GetTextureId() };
+        Rect destRect{
+            YGRoundValueToPixelGrid(positionX, 1.f, false, false),
+            YGRoundValueToPixelGrid(positionY, 1.f, false, false),
+            YGRoundValueToPixelGrid(fitWidth, 1.f, false, false),
+            YGRoundValueToPixelGrid(fitHeight, 1.f, false, false),
+        };
+
         // TODO: mix opacity
-        // TODO: GetTexture() exception
-        renderer->DrawImage(this->backgroundImage->GetTexture(renderer),
-                            {
-                                YGRoundValueToPixelGrid(positionX, 1.f, false, false),
-                                YGRoundValueToPixelGrid(positionY, 1.f, false, false),
-                                YGRoundValueToPixelGrid(fitWidth, 1.f, false, false),
-                                YGRoundValueToPixelGrid(fitHeight, 1.f, false, false),
-                            },
-                            0xFFFFFFFF);
+
+        if (this->backgroundImage->HasCapInsets()) {
+            renderer->DrawImage(textureId, destRect, this->backgroundImage->GetCapInsets(), white);
+        } else {
+            renderer->DrawImage(textureId, destRect, white);
+        }
 
         renderer->PopClipRect();
     } else if (boxStyle->backgroundColor()) {
         renderer->DrawFillRect({ x + dx, y + dy, width + dw, height + dh }, *boxStyle->backgroundColor());
     }
 
-    if (this->roundedRectBorderImage) {
-        if (this->roundedRectBorderImage->IsReady() && style->borderColor()) {
-            // TODO: GetTexture() exception
-            renderer->DrawImage(this->roundedRectBorderImage->GetTexture(renderer),
-                                { x + dx, y + dy, width + dw, height + dh },
-                                this->roundedRectBorderImage->GetCapInsets(),
-                                *style->borderColor());
+    if (this->roundedRectStrokeImage) {
+        if (style->borderColor() && this->roundedRectStrokeImage->Sync(renderer)) {
+            renderer->DrawImage(
+                this->roundedRectStrokeImage->GetTextureId(),
+                { x + dx, y + dy, width + dw, height + dh },
+                this->roundedRectStrokeImage->GetCapInsets(),
+                *style->borderColor());
         }
     } else if (boxStyle->borderColor()) {
         renderer->DrawBorder(
-            {
-                x,
-                y,
-                width,
-                height,
-            },
+            { x, y, width, height },
             {
                 static_cast<int32_t>(YGNodeLayoutGetBorder(this->ygNode, YGEdgeTop)),
                 static_cast<int32_t>(YGNodeLayoutGetBorder(this->ygNode, YGEdgeRight)),
@@ -147,16 +154,20 @@ void BoxSceneNode::ApplyStyle(Style* style) {
     SceneNode::ApplyStyle(style);
 
     if (style->backgroundImage() != this->backgroundImageUri) {
-        this->ClearBackgroundImage();
+        ImageResource* newBackgroundImage;
 
         if (!style->backgroundImage().empty()) {
             this->backgroundImageUri = style->backgroundImage();
             // TODO: support full uri objects
-            this->backgroundImage = this->scene->GetResourceManager()->GetImage(ImageUri(this->backgroundImageUri));
+            newBackgroundImage = this->scene->GetResourceManager()->LoadImage(ImageUri(this->backgroundImageUri));
+        } else {
+            newBackgroundImage = nullptr;
         }
+
+        AssignImage(&this->backgroundImage, newBackgroundImage);
     }
 
-    if (style->HasBorderRadius()) {
+    if (style->HasBorderRadius() && (style->backgroundColor() || style->borderColor())) {
         auto borderRadius{ ComputeIntegerPointValue(
             style->borderRadius(), this->scene, 0) };
         auto borderRadiusTopLeft{ ComputeIntegerPointValue(
@@ -168,73 +179,91 @@ void BoxSceneNode::ApplyStyle(Style* style) {
         auto borderRadiusBottomRight{ ComputeIntegerPointValue(
             style->borderRadiusBottomRight(), this->scene, borderRadius) };
 
-        // TODO: check in resource manager first
+        ImageResource* newRoundedRectImage;
+        EdgeRect capInsets{
+            std::max(borderRadiusTopLeft, borderRadiusTopRight),
+            std::max(borderRadiusTopRight, borderRadiusBottomRight),
+            std::max(borderRadiusBottomLeft, borderRadiusBottomRight),
+            std::max(borderRadiusTopLeft, borderRadiusBottomLeft)
+        };
+
         if (style->backgroundColor()) {
-            ImageUri imageUri(
-                CreateRoundedRectangleUri(
-                    borderRadiusTopLeft, borderRadiusTopRight, borderRadiusBottomRight, borderRadiusBottomLeft, 0),
-                fmt::format("@border-radius:{},{},{},{},{}",
-                    borderRadiusTopLeft, borderRadiusTopRight, borderRadiusBottomRight, borderRadiusBottomLeft, 0),
-                0,
-                0,
-                {
-                    std::max(borderRadiusTopLeft, borderRadiusTopRight),
-                    std::max(borderRadiusTopRight, borderRadiusBottomRight),
-                    std::max(borderRadiusBottomLeft, borderRadiusBottomRight),
-                    std::max(borderRadiusTopLeft, borderRadiusBottomLeft)
-                });
+            auto borderRadiusImageId{
+                fmt::format("@border-radius:{},{},{},{}",
+                    borderRadiusTopLeft,
+                    borderRadiusTopRight,
+                    borderRadiusBottomRight,
+                    borderRadiusBottomLeft)
+            };
 
-            auto image = this->scene->GetResourceManager()->GetImage(imageUri);
+            newRoundedRectImage = this->scene->GetResourceManager()->GetImage(borderRadiusImageId);
 
-            SetRoundedRectImage(image);
+            if (!newRoundedRectImage) {
+                auto uri{ CreateRoundedRectangleUri(borderRadiusTopLeft, borderRadiusTopRight,
+                    borderRadiusBottomRight, borderRadiusBottomLeft, 0) };
+
+                newRoundedRectImage = this->scene->GetResourceManager()->LoadImage(
+                    { uri, borderRadiusImageId, 0, 0, capInsets });
+            }
+        } else {
+            newRoundedRectImage = nullptr;
         }
 
-//        if (style->borderColor() && style->border()) {
-//            auto border{ ComputeIntegerPointValue(style->border(), this->scene, 1) };
-//            auto uri = CreateRoundedRectangleUri(
-//                borderRadiusTopLeft, borderRadiusTopRight, borderRadiusBottomRight, borderRadiusBottomLeft, border);
-//
-//            fmt::println(uri);
-//
-//            auto image = this->scene->GetImageStore()->Acquire(uri);
-//
-//            SetRoundedRectBorderImage(image);
-//        }
-    }
-}
+        AssignImage(&this->roundedRectImage, newRoundedRectImage);
 
-void BoxSceneNode::SetRoundedRectImage(ImageResource* image) {
-    if (this->roundedRectImage) {
-        this->roundedRectImage->RemoveRef();
-        this->roundedRectImage = nullptr;
-    }
+        ImageResource* newRoundedRectStrokeImage;
 
-    this->roundedRectImage = image;
-}
+        if (style->borderColor() && style->border()) {
+            auto stroke{ ComputeIntegerPointValue(style->border(), this->scene, 0) };
 
-void BoxSceneNode::SetRoundedRectBorderImage(ImageResource* image) {
-    if (this->roundedRectBorderImage) {
-        this->roundedRectBorderImage->RemoveRef();
-        this->roundedRectBorderImage = nullptr;
-    }
+            auto borderRadiusStrokeImageId{
+                fmt::format("@border-radius-stroke:{},{},{},{},{}",
+                    borderRadiusTopLeft,
+                    borderRadiusTopRight,
+                    borderRadiusBottomRight,
+                    borderRadiusBottomLeft,
+                    stroke)
+            };
 
-    this->roundedRectBorderImage = image;
-}
+            newRoundedRectStrokeImage = this->scene->GetResourceManager()->GetImage(borderRadiusStrokeImageId);
 
-void BoxSceneNode::ClearBackgroundImage() {
-    if (this->backgroundImage) {
-        this->backgroundImage->RemoveRef();
-        this->backgroundImageUri.clear();
-        this->backgroundImage = nullptr;
+            if (!newRoundedRectStrokeImage) {
+                auto uri{ CreateRoundedRectangleUri(borderRadiusTopLeft, borderRadiusTopRight,
+                    borderRadiusBottomRight, borderRadiusBottomLeft, stroke) };
+
+                newRoundedRectStrokeImage = this->scene->GetResourceManager()->LoadImage(
+                    { uri, borderRadiusStrokeImageId, 0, 0, capInsets });
+            }
+        } else {
+            newRoundedRectStrokeImage = nullptr;
+        }
+
+        AssignImage(&this->roundedRectStrokeImage, newRoundedRectStrokeImage);
+    } else {
+        AssignImage(&this->roundedRectImage, nullptr);
+        AssignImage(&this->roundedRectStrokeImage, nullptr);
     }
 }
 
 void BoxSceneNode::DestroyRecursive() {
-    this->ClearBackgroundImage();
-    this->SetRoundedRectBorderImage(nullptr);
-    this->SetRoundedRectImage(nullptr);
+    AssignImage(&this->backgroundImage, nullptr);
+    AssignImage(&this->roundedRectImage, nullptr);
+    AssignImage(&this->roundedRectStrokeImage, nullptr);
 
     SceneNode::DestroyRecursive();
+}
+
+void AssignImage(ImageResource** targetImage, ImageResource* newImage) {
+    auto image = *targetImage;
+
+    if (image != newImage) {
+        if (image) {
+            image->RemoveRef();
+            *targetImage = nullptr;
+        }
+
+        *targetImage = newImage;
+    }
 }
 
 } // namespace ls

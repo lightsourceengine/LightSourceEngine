@@ -33,6 +33,7 @@ class ImageUri {
 
     bool operator==(const ImageUri& rhs) { return this->GetId() == rhs.GetId(); }
 
+    Napi::Value ToObject(Napi::Env env);
     static ImageUri FromObject(const Napi::Object& spec);
 
  private:
@@ -56,15 +57,18 @@ class ImageResource : public Resource {
     explicit ImageResource(Napi::Env env, const ImageUri& uri);
     virtual ~ImageResource() = default;
 
-    uint32_t GetTexture(Renderer* renderer);
+    uint32_t GetTextureId() { return this->textureId; }
     int32_t GetWidth() const { return this->width; }
     int32_t GetHeight() const { return this->height; }
     bool HasCapInsets() const { return this->uri.HasCapInsets(); }
     const EdgeRect& GetCapInsets() const { return this->uri.GetCapInsets(); }
 
- protected:
+    bool Sync(Renderer* renderer);
+
+ private:
     void Load(Renderer* renderer,
         const std::vector<std::string>& extensions, const std::vector<std::string>& resourcePath);
+    uint32_t UpdateTexture(Renderer* renderer);
 
  private:
     ImageUri uri;

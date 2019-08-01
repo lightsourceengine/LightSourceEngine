@@ -39,7 +39,9 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     void Detach();
     void ProcessEvents();
 
-    ImageResource* GetImage(const ImageUri& uri);
+    ImageResource* GetImage(const std::string& id);
+    ImageResource* LoadImage(const ImageUri& uri);
+
     FontResource* FindFont(const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight);
 
  private:

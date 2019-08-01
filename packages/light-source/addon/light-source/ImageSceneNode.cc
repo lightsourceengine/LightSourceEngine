@@ -73,8 +73,11 @@ Function ImageSceneNode::Constructor(Napi::Env env) {
 }
 
 Value ImageSceneNode::GetSource(const CallbackInfo& info) {
-    // TODO: return uri as object
-    return String::New(info.Env(), this->uri.GetId());
+    if (this->uri.GetId().empty()) {
+        return info.Env().Null();
+    } else {
+        return this->uri.ToObject(info.Env());
+    }
 }
 
 void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& value) {
@@ -93,28 +96,43 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
 
     this->ClearImage();
     this->uri = newUri;
-    this->image = this->scene->GetResourceManager()->GetImage(newUri);
+    this->image = this->scene->GetResourceManager()->LoadImage(newUri);
 
     if (!this->image) {
-        this->ClearImage();
+        YGNodeMarkDirty(this->ygNode);
+    } else if (this->image->IsReady()) {
         YGNodeMarkDirty(this->ygNode);
 
-        return;
+        if (!this->onLoadCallback.IsEmpty()) {
+             this->onLoadCallback.Call({});
+        }
+    } else if (this->image->HasError()) {
+        YGNodeMarkDirty(this->ygNode);
+
+        if (!this->onErrorCallback.IsEmpty()) {
+             this->onErrorCallback.Call({});
+        }
+    } else {
+        this->imageListenerId = this->image->AddListener([this]() {
+            if (this->image->IsReady()) {
+                YGNodeMarkDirty(this->ygNode);
+                this->image->RemoveListener(this->imageListenerId);
+                this->imageListenerId = 0;
+
+                if (!this->onLoadCallback.IsEmpty()) {
+                     this->onLoadCallback.Call({});
+                }
+            } else if (this->image->HasError()) {
+                YGNodeMarkDirty(this->ygNode);
+                this->image->RemoveListener(this->imageListenerId);
+                this->imageListenerId = 0;
+
+                if (!this->onErrorCallback.IsEmpty()) {
+                     this->onErrorCallback.Call({});
+                }
+            }
+        });
     }
-
-    if (this->DoCallbacks()) {
-        YGNodeMarkDirty(this->ygNode);
-
-        return;
-    }
-
-    this->imageListenerId = this->image->AddListener([&]() {
-        // TODO: what if image was removed? also, better state checking
-        YGNodeMarkDirty(this->ygNode);
-        this->image->RemoveListener(this->imageListenerId);
-        this->imageListenerId = 0;
-        this->DoCallbacks();
-    });
 }
 
 Value ImageSceneNode::GetOnLoadCallback(const CallbackInfo& info) {
@@ -142,7 +160,7 @@ void ImageSceneNode::SetOnErrorCallback(const CallbackInfo& info, const Napi::Va
 }
 
 void ImageSceneNode::Paint(Renderer* renderer) {
-    if (!this->image || !this->image->IsReady()) {
+    if (!this->image || !this->image->Sync(renderer)) {
         return;
     }
 
@@ -168,18 +186,22 @@ void ImageSceneNode::Paint(Renderer* renderer) {
         renderer->PushClipRect({ x, y, width, height });
     }
 
-    renderer->DrawImage(
-        // TODO: GetTexture exception
-        this->image->GetTexture(renderer),
-        {
-            YGRoundValueToPixelGrid(x + CalculateObjectPosition(
-                boxStyle->objectPositionX(), true, width, fitWidth, 0.5f, this->scene), 1.f, false, false),
-            YGRoundValueToPixelGrid(y + CalculateObjectPosition(
-                boxStyle->objectPositionY(), false, height, fitHeight, 0.5f, this->scene), 1.f, false, false),
-            YGRoundValueToPixelGrid(fitWidth, 1.f, false, false),
-            YGRoundValueToPixelGrid(fitHeight, 1.f, false, false),
-        },
-        boxStyle->tintColor() ? *boxStyle->tintColor() : 0xFFFFFFFF);
+    auto textureId{ this->image->GetTextureId() };
+    Rect destRect{
+         YGRoundValueToPixelGrid(x + CalculateObjectPosition(
+             boxStyle->objectPositionX(), true, width, fitWidth, 0.5f, this->scene), 1.f, false, false),
+         YGRoundValueToPixelGrid(y + CalculateObjectPosition(
+             boxStyle->objectPositionY(), false, height, fitHeight, 0.5f, this->scene), 1.f, false, false),
+         YGRoundValueToPixelGrid(fitWidth, 1.f, false, false),
+         YGRoundValueToPixelGrid(fitHeight, 1.f, false, false),
+     };
+     auto tintColor{ boxStyle->tintColor() ? *boxStyle->tintColor() : 0xFFFFFFFF };
+
+    if (this->image->HasCapInsets()) {
+        renderer->DrawImage(textureId, destRect, this->image->GetCapInsets(), tintColor);
+    } else {
+        renderer->DrawImage(textureId, destRect, tintColor);
+    }
 
     if (clip) {
         renderer->PopClipRect();
@@ -200,8 +222,7 @@ void ImageSceneNode::ClearImage() {
         this->imageListenerId = 0;
         this->image->RemoveRef();
         this->image = nullptr;
-        // TODO: cheaper clear
-        this->uri = ImageUri();
+        this->uri = {};
     }
 }
 

@@ -11,12 +11,21 @@
 #include <memory>
 #include <map>
 #include <algorithm>
+#include <bitset>
 #include "StyleValue.h"
 #include "StyleMacros.h"
 
 namespace ls {
 
 class Style : public Napi::ObjectWrap<Style> {
+ private:
+    enum StyleFlags {
+        StyleFlagsBorder,
+        StyleFlagsPadding,
+        StyleFlagsBorderRadius,
+        StyleFlagsLayoutOnly,
+    };
+
  public:
     explicit Style(const Napi::CallbackInfo& info);
     virtual ~Style() = default;
@@ -101,16 +110,17 @@ class Style : public Napi::ObjectWrap<Style> {
 
     // Public Methods
 
-    bool HasBorder() const;
-    bool HasPadding() const;
-    bool HasBorderRadius() const;
-    bool IsLayoutOnly() const;
+    bool HasBorder() const { return this->flags[StyleFlagsBorder]; }
+    bool HasPadding() const { return this->flags[StyleFlagsPadding]; }
+    bool HasBorderRadius() const { return this->flags[StyleFlagsBorderRadius]; }
+    bool IsLayoutOnly() const { return this->flags[StyleFlagsLayoutOnly]; }
 
     static Napi::Function Constructor(Napi::Env env);
     static void Init(Napi::Env env);
     static Style* Empty();
 
     void Apply(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight) const;
+    void UpdateInternalFlags(const Napi::CallbackInfo& info);
 
  private:
     template<typename T>
@@ -124,6 +134,7 @@ class Style : public Napi::ObjectWrap<Style> {
  private:
     static Style* empty;
     std::vector<StyleValue *>yogaValues;
+    std::bitset<4> flags;
 };
 
 } // namespace ls

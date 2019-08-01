@@ -158,6 +158,8 @@ export const ColorNames = {
   rebeccapurple: 0x663399
 }
 
+const $updateInternalFlags = Symbol.for('updateInternalFlags')
+
 const autoResultFromString = new Map([
   ['auto', [StyleBase.UnitAuto, 0]]
 ])
@@ -311,6 +313,8 @@ class Style extends StyleBase {
         this[prop] = props[prop]
       }
     }
+
+    this[$updateInternalFlags]()
   }
 
   // Layout

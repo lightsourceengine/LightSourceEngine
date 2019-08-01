@@ -29,13 +29,13 @@ class BoxSceneNode : public Napi::ObjectWrap<BoxSceneNode>, public SceneNode {
     void ApplyStyle(Style* style) override;
     void ClearBackgroundImage();
     void SetRoundedRectImage(ImageResource* image);
-    void SetRoundedRectBorderImage(ImageResource* image);
+    void SetRoundedRectStrokeImage(ImageResource* image);
 
  private:
     std::string backgroundImageUri{};
     ImageResource* backgroundImage{};
     ImageResource* roundedRectImage{};
-    ImageResource* roundedRectBorderImage{};
+    ImageResource* roundedRectStrokeImage{};
 };
 
 } // namespace ls
