@@ -137,9 +137,6 @@ Value SDLStageAdapter::GetDisplays(const CallbackInfo& info) {
     return displayArray;
 }
 
-void SDLStageAdapter::ProcessEvents() {
-}
-
 void SDLStageAdapter::Attach(const CallbackInfo& info) {
     this->Attach(info.Env());
 }

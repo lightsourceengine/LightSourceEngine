@@ -221,6 +221,7 @@ export class Stage {
     // destroy stage adapter
     if (adapter) {
       try {
+        adapter.resetCallbacks()
         adapter.destroy()
       } catch (e) {
         console.log('Error destroying stage adapter: ' + e)

@@ -89,7 +89,6 @@
         "light-source-sdl/SDLRenderer.cc",
         "light-source-sdl/SDLSceneAdapter.cc",
         "light-source-sdl/SDLStageAdapter.cc",
-        "light-source-sdl/SDLRenderer.cc",
         "light-source-sdl/InputDevice.cc",
         "light-source-sdl/SDLKeyboard.cc",
         "light-source-sdl/SDLGamepad.cc",
@@ -98,6 +97,27 @@
       "libraries": [
         "-L<(sdl_library_path)",
         "-lSDL2"
+      ]
+    },
+    {
+      "target_name": "light-source-ref",
+      "includes": [
+        "common.gypi",
+      ],
+      "include_dirs": [
+        "include",
+        "deps/fmt/include",
+        "light-source-util",
+      ],
+      "dependencies": [
+        "addon/deps/fmt/fmt.gyp:fmt",
+        "light-source-util",
+      ],
+      "sources": [
+        "light-source-ref/RefRenderer.cc",
+        "light-source-ref/RefSceneAdapter.cc",
+        "light-source-ref/RefStageAdapter.cc",
+        "light-source-ref/Init.cc",
       ]
     }
   ],

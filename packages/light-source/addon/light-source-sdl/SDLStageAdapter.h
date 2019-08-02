@@ -57,7 +57,6 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
     DeclareStageCallback(onGamepadAxisMotion);
     DeclareStageCallback(onQuit);
 
-    void ProcessEvents() override;
     std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) override;
 
  private:

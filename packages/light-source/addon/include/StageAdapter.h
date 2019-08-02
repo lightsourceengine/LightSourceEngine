@@ -16,7 +16,6 @@ class StageAdapter {
  public:
     virtual ~StageAdapter() = default;
 
-    virtual void ProcessEvents() = 0;
     virtual std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) = 0;
 };
 
