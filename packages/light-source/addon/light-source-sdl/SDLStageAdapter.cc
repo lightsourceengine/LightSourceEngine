@@ -69,8 +69,6 @@ SDLStageAdapter::SDLStageAdapter(const CallbackInfo& info) : ObjectWrap<SDLStage
 
     this->keyboard = ObjectWrap<SDLKeyboard>::Unwrap(SDLKeyboard::Constructor(env).New({}));
     this->keyboard->Ref();
-
-    this->RefreshDisplays(env);
 }
 
 Function SDLStageAdapter::Constructor(Napi::Env env) {
@@ -87,6 +85,7 @@ Function SDLStageAdapter::Constructor(Napi::Env env) {
             InstanceMethod("processEvents", &SDLStageAdapter::ProcessEvents),
             InstanceMethod("attach", &SDLStageAdapter::Attach),
             InstanceMethod("detach", &SDLStageAdapter::Detach),
+            InstanceMethod("destroy", &SDLStageAdapter::Destroy),
             CallbackInstanceAccessor(onQuit),
             CallbackInstanceAccessor(onKeyboardKeyUp),
             CallbackInstanceAccessor(onKeyboardKeyDown),
@@ -122,10 +121,7 @@ Value SDLStageAdapter::GetGamepads(const CallbackInfo& info) {
 }
 
 Value SDLStageAdapter::GetDisplays(const CallbackInfo& info) {
-    return this->displays.Value();
-}
-
-void SDLStageAdapter::RefreshDisplays(Napi::Env env) {
+    auto env{ info.Env() };
     auto displayCount{ SDL_GetNumVideoDisplays() };
 
     if (displayCount < 0) {
@@ -138,7 +134,7 @@ void SDLStageAdapter::RefreshDisplays(Napi::Env env) {
         displayArray.Set(static_cast<uint32_t>(i), ToDisplayObject(env, i));
     }
 
-    this->displays.Reset(displayArray, 1);
+    return displayArray;
 }
 
 void SDLStageAdapter::ProcessEvents() {
@@ -178,13 +174,26 @@ void SDLStageAdapter::Detach(const CallbackInfo& info) {
 }
 
 void SDLStageAdapter::Detach(Napi::Env env) {
-    // TODO: SDL_Quit() on raspberry pi after launching app
     this->ClearGamepads();
     this->isAttached = false;
 }
 
-std::unique_ptr<SceneAdapter> SDLStageAdapter::CreateSceneAdapter() {
-    return std::make_unique<SDLSceneAdapter>();
+void SDLStageAdapter::Destroy(const CallbackInfo& info) {
+    for (auto& ref : callbacks) {
+        ref.Reset();
+    }
+
+    if (this->keyboard) {
+        this->keyboard->Unref();
+        this->keyboard = nullptr;
+    }
+
+    this->ClearGamepads();
+    this->gamepadsByInstanceId.clear();
+}
+
+std::unique_ptr<SceneAdapter> SDLStageAdapter::CreateSceneAdapter(const SceneAdapterConfig& config) {
+    return std::make_unique<SDLSceneAdapter>(config);
 }
 
 Value SDLStageAdapter::ProcessEvents(const CallbackInfo& info) {
@@ -362,8 +371,6 @@ void SDLStageAdapter::SetCallback(FunctionReference* function, const Napi::Value
     } else {
         function->Reset();
     }
-
-    // TODO: throw if not null or undefined?
 }
 
 inline
@@ -384,8 +391,11 @@ void SDLStageAdapter::SyncGamepads(Napi::Env env) {
     this->ClearGamepads();
 
     for (int32_t i{ 0 }; i < SDL_NumJoysticks(); i++) {
-        // TODO: handle exception..
-        this->AddGamepad(env, i);
+        try {
+            this->AddGamepad(env, i);
+        } catch (std::exception& e) {
+            fmt::println("Error: Failed to get joystick at index {}", i);
+        }
     }
 }
 

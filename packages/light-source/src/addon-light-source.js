@@ -6,7 +6,19 @@
 
 import bindings from 'bindings'
 
-// TODO: check addon has been loaded
+let lib
+
+try {
+  lib = bindings('light-source')
+} catch (e) {
+  lib.addonError = e
+  lib.StyleBase = () => {}
+  lib.StyleEnumMappings = () => {}
+  lib.SceneBase = () => {}
+  lib.BoxSceneNode = () => {}
+  lib.ImageSceneNode = () => {}
+  lib.TextSceneNode = () => {}
+}
 
 export const {
   StyleBase,
@@ -14,8 +26,9 @@ export const {
   SceneBase,
   BoxSceneNode,
   ImageSceneNode,
-  TextSceneNode
-} = bindings('light-source')
+  TextSceneNode,
+  addonError
+} = lib
 
 /**
  * @class ResourceManager

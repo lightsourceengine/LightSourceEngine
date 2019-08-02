@@ -7,5 +7,17 @@
 import { Stage } from './Stage'
 import { Style } from './Style'
 
+const errorHandler = obj => {
+  if (obj) {
+    obj.message && console.log(obj.message)
+    obj.stack && console.log(obj.stack)
+  }
+
+  process.exit()
+};
+
+['SIGINT', 'SIGUSR1', 'SIGUSR2', 'uncaughtException', 'unhandledRejection'].forEach(
+  e => process.on(e, errorHandler))
+
 export { Style }
 export const stage = new Stage()

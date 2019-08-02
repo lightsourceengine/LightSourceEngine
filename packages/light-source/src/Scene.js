@@ -6,6 +6,7 @@
 
 import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode } from './addon-light-source'
 import { Style } from './Style'
+import EventEmitter from 'events'
 
 const $width = Symbol.for('width')
 const $height = Symbol.for('height')
@@ -13,6 +14,10 @@ const $fullscreen = Symbol.for('fullscreen')
 const $stage = Symbol.for('stage')
 const $root = Symbol.for('root')
 const $resource = Symbol.for('resource')
+const $destroy = Symbol.for('destroy')
+const $events = Symbol.for('events')
+const $displayIndex = Symbol.for('displayIndex')
+
 const nodeClass = new Map([
   ['img', ImageSceneNode],
   ['div', BoxSceneNode],
@@ -25,10 +30,12 @@ const nodeClassNotFound = tag => {
 }
 
 export class Scene extends SceneBase {
-  constructor (stage, stageAdapter) {
-    super(stageAdapter)
+  constructor (stage, stageAdapter, displayIndex, width, height, fullscreen) {
+    super(stageAdapter, displayIndex, width, height, fullscreen)
 
     this[$stage] = stage
+    this[$events] = new EventEmitter()
+    this[$displayIndex] = displayIndex
 
     this.root.style = new Style({
       position: 'absolute',
@@ -64,11 +71,30 @@ export class Scene extends SceneBase {
     return this[$height]
   }
 
+  get displayIndex () {
+    return this[$displayIndex]
+  }
+
+  // TODO: add refreshRate
+
+  // TODO: add vsync
+
   createNode (tag) {
     return new (nodeClass.get(tag) || nodeClassNotFound(tag))(this)
   }
 
   resize (width = 0, height = 0, fullscreen = true) {
     super.resize(width, height, fullscreen)
+  }
+
+  [$destroy] () {
+    if (this[$events]) {
+      this[$events].emit('destroying')
+      this[$events] = null
+    }
+
+    this[$stage] = null
+
+    super[$destroy]()
   }
 }

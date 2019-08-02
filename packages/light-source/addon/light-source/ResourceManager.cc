@@ -210,6 +210,17 @@ void ResourceManager::Detach() {
 void ResourceManager::ProcessEvents() {
 }
 
+void ResourceManager::Destroy() {
+    this->renderer = nullptr;
+    images.clear();
+    fonts.clear();
+    registeredImageUris.clear();
+    imageExtensions.clear();
+    imageExtensionsObject.Reset();
+    path.clear();
+    pathObject.Reset();
+}
+
 StyleFontStyle GetFontStyle(Object options, const char* name) {
     if (options.Has(name)) {
         auto prop{ options.Get(name) };

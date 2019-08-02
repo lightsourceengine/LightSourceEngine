@@ -16,9 +16,8 @@ class StageAdapter {
  public:
     virtual ~StageAdapter() = default;
 
-    virtual Napi::Value ProcessEvents(const Napi::CallbackInfo& info) = 0;
     virtual void ProcessEvents() = 0;
-    virtual std::unique_ptr<SceneAdapter> CreateSceneAdapter() = 0;
+    virtual std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) = 0;
 };
 
 } // namespace ls

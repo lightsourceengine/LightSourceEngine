@@ -23,6 +23,7 @@ class Scene : public Napi::ObjectWrap<Scene> {
     static Napi::Function Constructor(Napi::Env env);
     void Attach(const Napi::CallbackInfo& info);
     void Detach(const Napi::CallbackInfo& info);
+    void Destroy(const Napi::CallbackInfo& info);
     void Resize(const Napi::CallbackInfo& info);
     void Frame(const Napi::CallbackInfo& info);
 
@@ -42,8 +43,8 @@ class Scene : public Napi::ObjectWrap<Scene> {
  private:
     ResourceManager* resourceManager{};
     SceneNode* root{};
-    int32_t rootFontSize{};
     std::unique_ptr<SceneAdapter> adapter;
+    int32_t rootFontSize{};
     int32_t width{};
     int32_t height{};
     bool recalculateLayoutRequested{false};

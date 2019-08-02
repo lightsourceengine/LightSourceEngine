@@ -38,6 +38,7 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     void Attach();
     void Detach();
     void ProcessEvents();
+    void Destroy();
 
     ImageResource* GetImage(const std::string& id);
     ImageResource* LoadImage(const ImageUri& uri);

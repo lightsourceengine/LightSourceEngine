@@ -12,6 +12,13 @@ namespace ls {
 
 class Renderer;
 
+struct SceneAdapterConfig {
+    int32_t displayIndex;
+    int32_t width;
+    int32_t height;
+    bool fullscreen;
+};
+
 class SceneAdapter {
  public:
     virtual ~SceneAdapter() = default;
@@ -19,6 +26,8 @@ class SceneAdapter {
     virtual void Attach() = 0;
     virtual void Detach() = 0;
     virtual void Resize(int32_t width, int32_t height, bool fullscreen) = 0;
+    virtual void SetTitle(const std::string& title) = 0;
+    virtual std::string GetTitle() const = 0;
 
     virtual int32_t GetWidth() const = 0;
     virtual int32_t GetHeight() const = 0;

@@ -34,7 +34,12 @@ Scene::Scene(const CallbackInfo& info) : ObjectWrap<Scene>(info) {
 
     auto stageAdapter{ ObjectWrap<StageAdapter>::Unwrap(info[0].As<Object>()) };
 
-    this->adapter = stageAdapter->CreateSceneAdapter();
+    this->adapter = stageAdapter->CreateSceneAdapter({
+        info[1].As<Number>().Int32Value(),
+        info[2].As<Number>().Int32Value(),
+        info[3].As<Number>().Int32Value(),
+        info[4].As<Boolean>().Value(),
+    });
 
     auto resourceManagerValue{ ResourceManager::Constructor(env).New({}) };
 
@@ -71,6 +76,7 @@ Function Scene::Constructor(Napi::Env env) {
             InstanceMethod("resize", &Scene::Resize),
             InstanceMethod(SymbolFor(env, "attach"), &Scene::Attach),
             InstanceMethod(SymbolFor(env, "detach"), &Scene::Detach),
+            InstanceMethod(SymbolFor(env, "destroy"), &Scene::Destroy),
             InstanceMethod(SymbolFor(env, "frame"), &Scene::Frame),
         });
 
@@ -85,8 +91,9 @@ void Scene::Attach(const CallbackInfo& info) {
     auto env{ info.Env() };
     HandleScope scope(env);
 
+    // TODO: exceptions?
     this->adapter->Attach();
-    this->resourceManager->SetRenderer(this->adapter->GetRenderer());
+    this->resourceManager->Attach();
 
     auto self{ info.This().As<Object>() };
 
@@ -99,7 +106,29 @@ void Scene::Attach(const CallbackInfo& info) {
 }
 
 void Scene::Detach(const CallbackInfo& info) {
-    this->adapter->Detach();
+    if (this->resourceManager) {
+        this->resourceManager->Detach();
+    }
+
+    if (this->adapter) {
+        this->adapter->Detach();
+    }
+}
+
+void Scene::Destroy(const CallbackInfo& info) {
+    if (this->resourceManager) {
+        this->resourceManager->Destroy();
+        this->resourceManager->Unref();
+        this->resourceManager = nullptr;
+    }
+
+    if (this->root) {
+        this->root->Destroy();
+        this->root->AsReference()->Unref();
+        this->root = nullptr;
+    }
+
+    this->adapter.reset();
 }
 
 void Scene::Resize(const CallbackInfo& info) {
@@ -127,10 +156,15 @@ void Scene::Frame(const CallbackInfo& info) {
 }
 
 Value Scene::GetTitle(const CallbackInfo& info) {
-    return String::New(info.Env(), "");
+    return String::New(info.Env(), this->adapter->GetTitle());
 }
 
 void Scene::SetTitle(const CallbackInfo& info, const Napi::Value& value) {
+    if (value.IsString()) {
+        this->adapter->SetTitle(value.As<String>());
+    } else {
+        this->adapter->SetTitle("");
+    }
 }
 
 void Scene::UpdateRootFontSize() {

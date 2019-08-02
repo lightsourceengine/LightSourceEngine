@@ -32,7 +32,7 @@ const appendChild = (parentInstance, child) => {
 }
 
 const removeChild = (parentInstance, child) => {
-  child.destroy()
+  parentInstance.removeChild(child)
 }
 
 const errorUnknownElementType = (type) => {

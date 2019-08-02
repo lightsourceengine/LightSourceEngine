@@ -35,6 +35,6 @@ export class Element {
   }
 
   removeChild (child) {
-    this.node.removeChild(child.node)
+    child.node.destroy()
   }
 }

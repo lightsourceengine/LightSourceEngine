@@ -26,6 +26,10 @@ SDLRenderer::SDLRenderer() {
     }
 }
 
+SDLRenderer::~SDLRenderer() {
+    this->Detach();
+}
+
 void SDLRenderer::UpdateTextureFormats(const SDL_RendererInfo& info) {
     static const std::array<Uint32, 4> supportedPixelFormats{
         SDL_PIXELFORMAT_ARGB8888,

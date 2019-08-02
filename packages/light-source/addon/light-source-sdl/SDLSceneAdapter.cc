@@ -9,29 +9,45 @@
 
 namespace ls {
 
-SDLSceneAdapter::SDLSceneAdapter() : renderer(std::make_unique<SDLRenderer>()) {
+SDLSceneAdapter::SDLSceneAdapter(const SceneAdapterConfig& config)
+    : renderer(std::make_unique<SDLRenderer>()), config(config) {
+}
+
+SDLSceneAdapter::~SDLSceneAdapter() {
+    this->renderer.reset();
+
+    if (this->window) {
+        SDL_DestroyWindow(this->window);
+    }
 }
 
 void SDLSceneAdapter::Attach() {
-    auto displayIndex{ 0 };
-
-    this->window = SDL_CreateWindow("Light Source App",
-        SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex), SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex), 1280, 720, 0);
-
     if (!this->window) {
-        throw std::runtime_error(fmt::format("Failed to create an SDL window. SDL Error: {}", SDL_GetError()));
+        auto displayIndex{ this->config.displayIndex };
+
+        this->window = SDL_CreateWindow(
+            this->title.c_str(),
+            SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex),
+            SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex),
+            this->config.width,
+            this->config.height,
+            this->config.fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
+
+        if (!this->window) {
+            throw std::runtime_error(fmt::format("Failed to create an SDL window. SDL Error: {}", SDL_GetError()));
+        }
+
+        SDL_DisplayMode displayMode{};
+
+        SDL_GetWindowDisplayMode(window, &displayMode);
+
+        fmt::println("Window: size={},{} format={} refreshRate={} displayIndex={}",
+            displayMode.w,
+            displayMode.h,
+            SDL_GetPixelFormatName(displayMode.format),
+            displayMode.refresh_rate,
+            displayIndex);
     }
-
-    SDL_DisplayMode displayMode{};
-
-    SDL_GetWindowDisplayMode(window, &displayMode);
-
-    fmt::println("Window: size={},{} format={} refreshRate={} displayIndex={}",
-        displayMode.w,
-        displayMode.h,
-        SDL_GetPixelFormatName(displayMode.format),
-        displayMode.refresh_rate,
-        displayIndex);
 
     this->renderer->Attach(this->window);
 
@@ -41,14 +57,11 @@ void SDLSceneAdapter::Attach() {
 }
 
 void SDLSceneAdapter::Detach() {
-    if (!this->window) {
-        return;
+    if (this->renderer) {
+        this->renderer->Detach();
     }
 
-    this->renderer->Detach();
-
-    SDL_DestroyWindow(this->window);
-    this->window = nullptr;
+    // TODO: option to destroy window on detach
 }
 
 void SDLSceneAdapter::Resize(int32_t width, int32_t height, bool fullscreen) {
@@ -68,6 +81,14 @@ bool SDLSceneAdapter::GetFullscreen() const {
 
 Renderer* SDLSceneAdapter::GetRenderer() const {
     return this->renderer.get();
+}
+
+void SDLSceneAdapter::SetTitle(const std::string& title) {
+    this->title = title;
+
+    if (this->window) {
+        SDL_SetWindowTitle(this->window, this->title.c_str());
+    }
 }
 
 } // namespace ls

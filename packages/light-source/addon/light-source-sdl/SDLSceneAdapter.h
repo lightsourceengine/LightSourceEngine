@@ -15,13 +15,15 @@ namespace ls {
 
 class SDLSceneAdapter : public SceneAdapter {
  public:
-    SDLSceneAdapter();
-    virtual ~SDLSceneAdapter() = default;
+    explicit SDLSceneAdapter(const SceneAdapterConfig& config);
+    virtual ~SDLSceneAdapter();
 
     void Attach() override;
     void Detach() override;
     void Resize(int32_t width, int32_t height, bool fullscreen) override;
 
+    void SetTitle(const std::string& title) override;
+    std::string GetTitle() const override { return this->title; }
     int32_t GetWidth() const override;
     int32_t GetHeight() const override;
     bool GetFullscreen() const override;
@@ -33,6 +35,8 @@ class SDLSceneAdapter : public SceneAdapter {
     int32_t width{};
     int32_t height{};
     bool fullscreen{};
+    std::string title{"Light Source App"};
+    SceneAdapterConfig config;
 };
 
 } // namespace ls

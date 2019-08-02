@@ -16,7 +16,7 @@ namespace ls {
 class SDLRenderer : public Renderer {
  public:
     SDLRenderer();
-    ~SDLRenderer() = default;
+    virtual ~SDLRenderer();
 
     int32_t GetWidth() const override;
     int32_t GetHeight() const override;
