@@ -41,7 +41,7 @@ class FontResource : public Resource {
     StyleFontStyle fontStyle{};
     StyleFontWeight fontWeight{};
     std::shared_ptr<FontInfo> fontInfo{};
-    std::unique_ptr<AsyncWork<FontInfo>> work;
+    std::unique_ptr<Napi::AsyncTask<FontInfo>> task;
 
  private:
     void Load(const std::vector<std::string>& path);

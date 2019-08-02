@@ -6,14 +6,7 @@
 
 #include "napi-ext.h"
 
-using Napi::Error;
-using Napi::Function;
-using Napi::FunctionReference;
-using Napi::Object;
-using Napi::String;
-using Napi::Symbol;
-
-namespace ls {
+namespace Napi {
 
 Symbol SymbolFor(Napi::Env env, const char* key) {
     static FunctionReference symbolFor;
@@ -26,26 +19,26 @@ Symbol SymbolFor(Napi::Env env, const char* key) {
     return symbolFor({ String::New(env, key) }).As<Symbol>();
 }
 
-std::string GetString(const Object options, const char* name) {
-    if (!options.Has(name)) {
-        throw Error::New(options.Env(), fmt::format("Expected '{}' property in Object.", name));
+std::string ObjectGetString(const Object& object, const char* key) {
+    if (!object.Has(key)) {
+        throw Error::New(object.Env(), fmt::format("Expected '{}' property in Object.", key));
     }
 
-    auto value{ options.Get(name) };
+    auto value{ object.Get(key) };
 
     if (!value.IsString()) {
-        throw Error::New(options.Env(), fmt::format("Expected '{}' property in Object to be a String.", name));
+        throw Error::New(object.Env(), fmt::format("Expected '{}' property in Object to be a String.", key));
     }
 
     return value.As<String>();
 }
 
-std::string GetStringOrEmpty(const Object options, const char* name) {
-    if (!options.Has(name)) {
+std::string ObjectGetStringOrEmpty(const Object& object, const char* key) {
+    if (!object.Has(key)) {
         return "";
     }
 
-    auto value{ options.Get(name) };
+    auto value{ object.Get(key) };
 
     if (!value.IsString()) {
         return "";
@@ -54,4 +47,4 @@ std::string GetStringOrEmpty(const Object options, const char* name) {
     return value.As<Napi::String>();
 }
 
-} // namespace ls
+} // namespace Napi

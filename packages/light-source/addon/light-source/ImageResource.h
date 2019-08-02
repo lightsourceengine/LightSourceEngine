@@ -74,7 +74,7 @@ class ImageResource : public Resource {
     ImageUri uri;
     int32_t width;
     int32_t height;
-    std::unique_ptr<AsyncWork<ImageInfo>> work;
+    std::unique_ptr<Napi::AsyncTask<ImageInfo>> task;
     std::shared_ptr<ImageInfo> image;
     uint32_t textureId{};
 

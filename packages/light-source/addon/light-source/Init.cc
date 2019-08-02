@@ -19,7 +19,6 @@ using Napi::Env;
 using Napi::Function;
 using Napi::HandleScope;
 using Napi::Object;
-using ls::AsyncWork;
 using ls::ResourceManager;
 using ls::Scene;
 using ls::Style;

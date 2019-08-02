@@ -10,8 +10,18 @@
 
 namespace ls {
 
+/**
+ * Endianness of the runtime.
+ */
 extern const bool isBigEndian;
 
+/**
+ * In place conversion of a buffer of RGBA color values to the specified pixel format.
+ *
+ * @param bytes Byte buffer containing RGBA formatted color values
+ * @param len Size of bytes in bytes
+ * @param format Pixel format to convert to
+ */
 void ConvertToFormat(uint8_t* bytes, int32_t len, PixelFormat format);
 
 } // namespace ls

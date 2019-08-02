@@ -20,6 +20,7 @@ union {
 
 namespace ls {
 
+// TODO: use std::endian
 const bool isBigEndian{ (bint.c[0] == 1) };
 
 inline

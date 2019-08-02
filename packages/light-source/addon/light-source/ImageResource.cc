@@ -12,11 +12,15 @@
 #include <stb_image.h>
 #include <fmt/format.h>
 
+using Napi::AsyncTask;
 using Napi::EscapableHandleScope;
 using Napi::Number;
 using Napi::Object;
 using Napi::String;
 using Napi::Value;
+using Napi::ObjectGetString;
+using Napi::ObjectGetStringOrEmpty;
+using Napi::ObjectGetNumberOrDefault;
 
 namespace ls {
 
@@ -58,7 +62,7 @@ void ImageResource::Load(Renderer* renderer,
     auto uri{ this->uri };
 
     try {
-        this->work = std::make_unique<AsyncWork<ImageInfo>>(
+        this->task = std::make_unique<AsyncTask<ImageInfo>>(
             this->env,
             this->id,
             [uri, extensions, resourcePath, textureFormat](Napi::Env env) -> std::shared_ptr<ImageInfo> {
@@ -69,7 +73,7 @@ void ImageResource::Load(Renderer* renderer,
                 // TODO: assert(this->GetRefCount() > 0)
 
                 this->image = result;
-                this->work.reset();
+                this->task.reset();
                 this->width = this->image->width;
                 this->height = this->image->height;
 
@@ -221,18 +225,18 @@ std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage* svgImage, const std::string
 
 EdgeRect ToCapInsets(const Object& spec) {
     return {
-        GetNumberOrDefault(spec, "top", 0),
-        GetNumberOrDefault(spec, "right", 0),
-        GetNumberOrDefault(spec, "bottom", 0),
-        GetNumberOrDefault(spec, "left", 0),
+        ObjectGetNumberOrDefault(spec, "top", 0),
+        ObjectGetNumberOrDefault(spec, "right", 0),
+        ObjectGetNumberOrDefault(spec, "bottom", 0),
+        ObjectGetNumberOrDefault(spec, "left", 0),
     };
 }
 
 ImageUri ImageUri::FromObject(const Object& spec) {
-    auto uri{ GetString(spec, "uri") };
-    auto width{ GetNumberOrDefault(spec, "width", 0) };
-    auto height{ GetNumberOrDefault(spec, "height", 0) };
-    auto id{ GetStringOrEmpty(spec, "id") };
+    auto uri{ ObjectGetString(spec, "uri") };
+    auto width{ ObjectGetNumberOrDefault(spec, "width", 0) };
+    auto height{ ObjectGetNumberOrDefault(spec, "height", 0) };
+    auto id{ ObjectGetStringOrEmpty(spec, "id") };
 
     if (width < 0) {
         width = 0;

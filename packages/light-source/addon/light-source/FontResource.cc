@@ -8,6 +8,8 @@
 #include "FileSystem.h"
 #include <fmt/format.h>
 
+using Napi::AsyncTask;
+
 namespace ls {
 
 std::shared_ptr<FontInfo> LoadFont(
@@ -28,7 +30,7 @@ void FontResource::Load(const std::vector<std::string>& resourcePath) {
     auto index{ this-> index };
 
     try {
-        this->work = std::make_unique<AsyncWork<FontInfo>>(
+        this->task = std::make_unique<AsyncTask<FontInfo>>(
             this->env,
             this->id,
             [resourcePath, uri, index](Napi::Env env) -> std::shared_ptr<FontInfo> {
@@ -39,7 +41,7 @@ void FontResource::Load(const std::vector<std::string>& resourcePath) {
                 // TODO: assert(this->GetRefCount() > 0)
 
                 this->fontInfo = result;
-                this->work.reset();
+                this->task.reset();
 
                 this->SetStateAndNotifyListeners(status != napi_ok ? ResourceStateError : ResourceStateReady);
             });

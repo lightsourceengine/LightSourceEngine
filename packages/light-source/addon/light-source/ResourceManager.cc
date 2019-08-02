@@ -20,6 +20,8 @@ using Napi::Object;
 using Napi::ObjectReference;
 using Napi::String;
 using Napi::Value;
+using Napi::ObjectGetString;
+using Napi::ObjectGetNumberOrDefault;
 
 namespace ls {
 
@@ -88,11 +90,11 @@ void ResourceManager::AddFont(const Napi::CallbackInfo& info) {
     HandleScope scope(env);
 
     auto options{ info[0].As<Object>() };
-    auto family{ GetString(options, "family") };
-    auto uri{ GetString(options, "uri") };
+    auto family{ ObjectGetString(options, "family") };
+    auto uri{ ObjectGetString(options, "uri") };
     auto fontStyle{ GetFontStyle(options, "style") };
     auto fontWeight{ GetFontWeight(options, "weight") };
-    auto index{ GetNumberOrDefault(options, "index", 0) };
+    auto index{ ObjectGetNumberOrDefault(options, "index", 0) };
     auto fontId{ FontResource::MakeId(family, fontStyle, fontWeight) };
 
     if (this->fonts.find(fontId) != this->fonts.end()) {
