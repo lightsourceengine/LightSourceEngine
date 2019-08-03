@@ -16,14 +16,19 @@ class RefRenderer : public Renderer {
     virtual ~RefRenderer();
 
     int32_t GetWidth() const override;
+
     int32_t GetHeight() const override;
+
     void Reset() override;
+
     void Present() override;
 
     void Shift(float x, float y) override;
+
     void Unshift() override;
 
     void PushClipRect(const Rect& rect) override;
+
     void PopClipRect() override;
 
     void DrawFillRect(const Rect& rect, const int64_t fillColor) override;
@@ -33,18 +38,16 @@ class RefRenderer : public Renderer {
     void DrawImage(const uint32_t textureId, const Rect& rect, const int64_t tintColor) override;
 
     void DrawImage(
-        const uint32_t textureId,
-        const Rect& rect,
-        const EdgeRect& capInsets,
-        const uint32_t tintColor) override;
+        const uint32_t textureId, const Rect& rect, const EdgeRect& capInsets, const uint32_t tintColor) override;
 
-    uint32_t AddTexture(
-        const uint8_t* source,
-        PixelFormat sourceFormat,
-        const int32_t width,
-        const int32_t height) override;
+    void DrawQuad(
+        const uint32_t textureId, const Rect& srcRect, const Rect& destRect, const int64_t tintColor) override;
 
-    void RemoveTexture(const uint32_t textureId) override;
+    uint32_t CreateTexture(
+        const uint8_t* source, PixelFormat sourceFormat, const int32_t width, const int32_t height) override;
+
+    void DestroyTexture(const uint32_t textureId) override;
+
     PixelFormat GetTextureFormat() const override { return PixelFormatRGBA; }
 
  private:

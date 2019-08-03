@@ -55,12 +55,16 @@ void RefRenderer::DrawImage(const uint32_t textureId, const Rect& rect, const Ed
         const uint32_t tintColor) {
 }
 
-uint32_t RefRenderer::AddTexture(const uint8_t* source, PixelFormat sourceFormat,
+void RefRenderer::DrawQuad(const uint32_t textureId, const Rect& srcRect, const Rect& destRect,
+        const int64_t tintColor) {
+}
+
+uint32_t RefRenderer::CreateTexture(const uint8_t* source, PixelFormat sourceFormat,
         const int32_t width, const int32_t height) {
     return nextTextureId++;
 }
 
-void RefRenderer::RemoveTexture(const uint32_t textureId) {
+void RefRenderer::DestroyTexture(const uint32_t textureId) {
 }
 
 } // namespace ls

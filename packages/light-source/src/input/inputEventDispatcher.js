@@ -34,54 +34,54 @@ const updateMapping = (device, mappings) => {
 }
 
 export const inputEventDispatcher = (adapter, mappings, emitter) => {
-  adapter.onGamepadConnected = (gamepad) => {
+  adapter.setCallback('connected', (gamepad) => {
     updateMapping(gamepad, mappings)
     emitter.emit(
       gamepadConnectedEventType,
       gamepadConnectedEvent._reset(gamepad, now()))
-  }
+  })
 
-  adapter.onGamepadDisconnected = (gamepad) => {
+  adapter.setCallback('disconnected', (gamepad) => {
     emitter.emit(
       gamepadDisconnectedEventType,
       gamepadDisconnectedEvent._reset(gamepad, now()))
-  }
+  })
 
-  adapter.onKeyboardKeyUp = (keyboard, button) => {
+  adapter.setCallback('keyup', (keyboard, button) => {
     const timestamp = now()
 
     emitter.emit(
       keyboardKeyUpEventType,
       keyboardKeyUpEvent._reset(keyboard, timestamp, button))
-  }
+  })
 
-  adapter.onKeyboardKeyDown = (keyboard, button, repeat) => {
+  adapter.setCallback('keydown', (keyboard, button, repeat) => {
     const timestamp = now()
 
     emitter.emit(
       keyboardKeyDownEventType,
       keyboardKeyDownEvent._reset(keyboard, timestamp, button, true, repeat))
-  }
+  })
 
-  adapter.onGamepadButtonUp = (gamepad, button) => {
+  adapter.setCallback('buttonup', (gamepad, button) => {
     const timestamp = now()
 
     emitter.emit(
       gamepadButtonUpEventType,
       gamepadButtonUpEvent._reset(gamepad, timestamp, button))
-  }
+  })
 
-  adapter.onGamepadButtonDown = (gamepad, button) => {
+  adapter.setCallback('buttondown', (gamepad, button) => {
     const timestamp = now()
 
     emitter.emit(
       gamepadButtonDownEventType,
       gamepadButtonDownEvent._reset(gamepad, timestamp, button, true))
-  }
+  })
 
-  adapter.onGamepadAxisMotion = (gamepad, axis, value) => {
+  adapter.setCallback('axismotion', (gamepad, axis, value) => {
     const timestamp = now()
 
     emitter.emit(gamepadAxisMotionEventType, gamepadAxisMotionEvent._reset(gamepad, timestamp, axis, value))
-  }
+  })
 }

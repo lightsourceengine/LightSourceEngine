@@ -10,11 +10,6 @@
 #include <napi.h>
 #include <StageAdapter.h>
 
-#define DeclareStageCallback(NAME) \
-    public: Napi::Value Get_##NAME(const Napi::CallbackInfo& info) { return this->callbacks[NAME].Value(); } \
-    public: void Set_##NAME(const Napi::CallbackInfo& info, const Napi::Value& value) \
-        { this->SetCallback(&this->callbacks[NAME], value); }
-
 namespace ls {
 
 class SDLKeyboard;
@@ -22,16 +17,16 @@ class SDLGamepad;
 
 class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAdapter> {
  private:
-    enum StageCallbacks {
-        onGamepadConnected,
-        onGamepadDisconnected,
-        onKeyboardKeyUp,
-        onKeyboardKeyDown,
-        onGamepadButtonUp,
-        onGamepadButtonDown,
-        onGamepadAxisMotion,
-        onQuit,
-        StageCallbacksCount,
+    enum StageCallback {
+        StageCallbackGamepadConnected,
+        StageCallbackGamepadDisconnected,
+        StageCallbackKeyboardKeyUp,
+        StageCallbackKeyboardKeyDown,
+        StageCallbackGamepadButtonUp,
+        StageCallbackGamepadButtonDown,
+        StageCallbackGamepadAxisMotion,
+        StageCallbackQuit,
+        StageCallbackCount,
     };
 
  public:
@@ -39,30 +34,21 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
     virtual ~SDLStageAdapter() = default;
 
     static Napi::Function Constructor(Napi::Env env);
-    Napi::Value GetKeyboard(const Napi::CallbackInfo& info);
-    Napi::Value GetGamepads(const Napi::CallbackInfo& info);
-    Napi::Value GetDisplays(const Napi::CallbackInfo& info);
-    Napi::Value ProcessEvents(const Napi::CallbackInfo& info);
-    void Attach(const Napi::CallbackInfo& info);
-    void Detach(const Napi::CallbackInfo& info);
-    void ResetCallbacks(const Napi::CallbackInfo& info);
-    void Destroy(const Napi::CallbackInfo& info);
 
-    DeclareStageCallback(onGamepadConnected);
-    DeclareStageCallback(onGamepadDisconnected);
-    DeclareStageCallback(onKeyboardKeyUp);
-    DeclareStageCallback(onKeyboardKeyDown);
-    DeclareStageCallback(onGamepadButtonUp);
-    DeclareStageCallback(onGamepadButtonDown);
-    DeclareStageCallback(onGamepadAxisMotion);
-    DeclareStageCallback(onQuit);
+    Napi::Value GetKeyboard(const Napi::CallbackInfo& info) override;
+    Napi::Value GetGamepads(const Napi::CallbackInfo& info) override;
+    Napi::Value GetDisplays(const Napi::CallbackInfo& info) override;
+    Napi::Value ProcessEvents(const Napi::CallbackInfo& info) override;
+    void Attach(const Napi::CallbackInfo& info) override;
+    void Detach(const Napi::CallbackInfo& info) override;
+    void Destroy(const Napi::CallbackInfo& info) override;
+    void SetCallback(const Napi::CallbackInfo& info) override;
 
     std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) override;
 
  private:
-    void SetCallback(Napi::FunctionReference* function, const Napi::Value& value);
-    inline void Call(const StageCallbacks callbackId, const std::initializer_list<napi_value>& args);
-    inline bool IsCallbackEmpty(const StageCallbacks callbackId);
+    inline void Call(const StageCallback callbackId, const std::initializer_list<napi_value>& args);
+    inline bool IsCallbackEmpty(const StageCallback callbackId);
     void SyncGamepads(Napi::Env env);
     void ClearGamepads();
     SDLGamepad* AddGamepad(Napi::Env env, int32_t index);
@@ -75,8 +61,9 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
 
  private:
     static constexpr int NUM_EVENTS_PER_FRAME{20};
+    static std::unordered_map<std::string, StageCallback> callbackMap;
 
-    Napi::FunctionReference callbacks[StageCallbacksCount];
+    Napi::FunctionReference callbacks[StageCallbackCount];
     SDLKeyboard* keyboard{};
     std::unordered_map<int32_t, SDLGamepad*> gamepadsByInstanceId{};
     bool isAttached{false};

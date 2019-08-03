@@ -280,7 +280,34 @@ void SDLRenderer::DrawImage(const uint32_t textureId, const Rect& rect, const Ed
     SDL_RenderCopy(this->renderer, texture, &srcRect, &destRect);
 }
 
-uint32_t SDLRenderer::AddTexture(const uint8_t* source, PixelFormat sourceFormat,
+void SDLRenderer::DrawQuad(const uint32_t textureId, const Rect& srcRect, const Rect& destRect,
+        const int64_t tintColor) {
+    auto it{ this->textures.find(textureId) };
+
+    if (it == this->textures.end()) {
+        return;
+    }
+
+    SDL_Rect src{
+        static_cast<int32_t>(srcRect.x),
+        static_cast<int32_t>(srcRect.y),
+        static_cast<int32_t>(srcRect.width),
+        static_cast<int32_t>(srcRect.height),
+    };
+
+    SDL_Rect dest{
+        static_cast<int32_t>(destRect.x + this->xOffset),
+        static_cast<int32_t>(destRect.y + this->yOffset),
+        static_cast<int32_t>(destRect.width),
+        static_cast<int32_t>(destRect.height),
+    };
+
+    SetTextureTintColor(it->second, tintColor);
+
+    SDL_RenderCopy(this->renderer, it->second, &src, &dest);
+}
+
+uint32_t SDLRenderer::CreateTexture(const uint8_t* source, PixelFormat sourceFormat,
         const int32_t width, const int32_t height) {
     void* pixels;
     int pitch;
@@ -322,7 +349,7 @@ uint32_t SDLRenderer::AddTexture(const uint8_t* source, PixelFormat sourceFormat
     return 0;
 }
 
-void SDLRenderer::RemoveTexture(const uint32_t textureId) {
+void SDLRenderer::DestroyTexture(const uint32_t textureId) {
     auto it{ this->textures.find(textureId) };
 
     if (it == this->textures.end()) {

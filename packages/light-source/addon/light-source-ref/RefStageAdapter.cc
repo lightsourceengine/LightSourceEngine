@@ -37,11 +37,11 @@ Function RefStageAdapter::Constructor(Napi::Env env) {
             InstanceMethod("getKeyboard", &RefStageAdapter::GetKeyboard),
             InstanceMethod("getGamepads", &RefStageAdapter::GetGamepads),
             InstanceMethod("getDisplays", &RefStageAdapter::GetDisplays),
-            InstanceMethod("resetCallbacks", &RefStageAdapter::ResetCallbacks),
             InstanceMethod("processEvents", &RefStageAdapter::ProcessEvents),
             InstanceMethod("attach", &RefStageAdapter::Attach),
             InstanceMethod("detach", &RefStageAdapter::Detach),
             InstanceMethod("destroy", &RefStageAdapter::Destroy),
+            InstanceMethod("setCallback", &RefStageAdapter::SetCallback),
         });
 
         constructor.Reset(func, 1);
@@ -72,7 +72,7 @@ void RefStageAdapter::Detach(const CallbackInfo& info) {
 void RefStageAdapter::Destroy(const CallbackInfo& info) {
 }
 
-void RefStageAdapter::ResetCallbacks(const CallbackInfo& info) {
+void RefStageAdapter::SetCallback(const CallbackInfo& info) {
 }
 
 std::unique_ptr<SceneAdapter> RefStageAdapter::CreateSceneAdapter(const SceneAdapterConfig& config) {

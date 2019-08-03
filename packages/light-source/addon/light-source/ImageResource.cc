@@ -44,7 +44,7 @@ bool ImageResource::Sync(Renderer* renderer) {
         return false;
     }
 
-    this->textureId = renderer->AddTexture(
+    this->textureId = renderer->CreateTexture(
         this->image->data.get(),
         this->image->format,
         this->image->width,
