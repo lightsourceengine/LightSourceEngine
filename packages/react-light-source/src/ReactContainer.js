@@ -7,18 +7,8 @@
 import { Reconciler } from './Reconciler'
 import { RootElement } from './RootElement'
 
-const $events = Symbol.for('events')
-
 export class ReactContainer {
   constructor (scene) {
-    if (!scene || !scene[$events]) {
-      throw Error('Invalid Scene object.')
-    }
-
-    scene[$events].once('destroying', () => {
-      this.render()
-    })
-
     this._reconciler = Reconciler(scene)
     this._container = this._reconciler.createContainer(new RootElement(scene.root))
   }
