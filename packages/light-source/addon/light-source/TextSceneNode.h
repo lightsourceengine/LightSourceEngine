@@ -8,8 +8,11 @@
 
 #include <napi.h>
 #include "SceneNode.h"
+#include "TextBlock.h"
 
 namespace ls {
+
+class FontResource;
 
 class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
  public:
@@ -18,7 +21,21 @@ class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
 
     static Napi::Function Constructor(Napi::Env env);
 
+    Napi::Value GetText(const Napi::CallbackInfo& info);
+    void SetText(const Napi::CallbackInfo& info, const Napi::Value& value);
+
     Napi::Reference<Napi::Object>* AsReference() override { return this; }
+    void Paint(Renderer* renderer) override;
+
+ private:
+    void ApplyStyle(Style* style) override;
+    bool SetFontResource(FontResource* newFontResource);
+    void DestroyRecursive() override;
+
+ private:
+    TextBlock textBlock;
+    FontResource* fontResource{};
+    uint32_t fontResourceListenerId{};
 };
 
 } // namespace ls

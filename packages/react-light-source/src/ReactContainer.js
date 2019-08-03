@@ -28,10 +28,6 @@ export class ReactContainer {
   findSceneNode (component) {
     const element = this.findElement(component)
 
-    if (element) {
-      return element.node
-    }
-
-    return null
+    return element.node || null
   }
 }

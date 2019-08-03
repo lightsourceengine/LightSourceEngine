@@ -9,5 +9,9 @@ import { Element } from './Element'
 export class TextElement extends Element {
   updateProps (oldProps, newProps) {
     super.updateProps(oldProps, newProps)
+
+    if (oldProps.children !== newProps.children) {
+      this.node.text = newProps.children
+    }
   }
 }

@@ -62,6 +62,7 @@
         "light-source/FontResource.cc",
         "light-source/ImageResource.cc",
         "light-source/ResourceManager.cc",
+        "light-source/TextBlock.cc",
         "light-source/SceneNode.cc",
         "light-source/BoxSceneNode.cc",
         "light-source/ImageSceneNode.cc",

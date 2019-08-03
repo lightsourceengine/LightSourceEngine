@@ -195,6 +195,7 @@ FontResource* ResourceManager::FindFont(
     auto p{ this->fonts.find(FontResource::MakeId(family, fontStyle, fontWeight)) };
 
     if (p != this->fonts.end()) {
+        p->second->AddRef();
         return p->second.get();
     }
 
