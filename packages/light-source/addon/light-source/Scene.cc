@@ -5,7 +5,7 @@
  */
 
 #include "Scene.h"
-#include "BoxSceneNode.h"
+#include "RootSceneNode.h"
 #include "napi-ext.h"
 #include <StageAdapter.h>
 #include <fmt/format.h>
@@ -26,8 +26,6 @@ using Napi::Value;
 
 namespace ls {
 
-const auto DEFAULT_ROOT_FONT_SIZE{ 16 };
-
 Scene::Scene(const CallbackInfo& info) : ObjectWrap<Scene>(info) {
     auto env{ info.Env() };
     HandleScope scope(env);
@@ -47,7 +45,7 @@ Scene::Scene(const CallbackInfo& info) : ObjectWrap<Scene>(info) {
     this->resourceManager->SetRenderer(this->adapter->GetRenderer());
     this->resourceManager->Ref();
 
-    auto rootValue{ BoxSceneNode::Constructor(env).New({ this->Value() }) };
+    auto rootValue{ RootSceneNode::Constructor(env).New({ this->Value() }) };
 
     this->root = ObjectWrap<SceneNode>::Unwrap(rootValue);
     this->root->AsReference()->Ref();
@@ -56,8 +54,6 @@ Scene::Scene(const CallbackInfo& info) : ObjectWrap<Scene>(info) {
 
     self.Set(SymbolFor(env, "root"), rootValue);
     self.Set(SymbolFor(env, "resource"), resourceManagerValue);
-
-    this->rootFontSize = DEFAULT_ROOT_FONT_SIZE;
 }
 
 Function Scene::Constructor(Napi::Env env) {
@@ -144,9 +140,6 @@ void Scene::Frame(const CallbackInfo& info) {
 
     this->resourceManager->ProcessEvents();
 
-    // TODO: root node should generate an event when font size changes
-    UpdateRootFontSize();
-
     this->root->Layout(this->width, this->height, this->recalculateLayoutRequested);
     this->recalculateLayoutRequested = false;
 
@@ -167,37 +160,9 @@ void Scene::SetTitle(const CallbackInfo& info, const Napi::Value& value) {
     }
 }
 
-void Scene::UpdateRootFontSize() {
-    auto rootStyleFontSize{ this->root->GetStyleOrEmpty()->fontSize() };
-    auto computedFontSize{ 0 };
-
-    if (rootStyleFontSize) {
-        switch (rootStyleFontSize->GetUnit()) {
-            case StyleNumberUnitPoint:
-                computedFontSize = rootStyleFontSize->GetValue();
-                break;
-            case StyleNumberUnitViewportWidth:
-                computedFontSize = rootStyleFontSize->GetValuePercent() * this->GetWidth();
-                break;
-            case StyleNumberUnitViewportHeight:
-                computedFontSize = rootStyleFontSize->GetValuePercent() * this->GetHeight();
-                break;
-            case StyleNumberUnitViewportMin:
-                computedFontSize = rootStyleFontSize->GetValuePercent() * this->GetViewportMax();
-                break;
-            case StyleNumberUnitViewportMax:
-                computedFontSize = rootStyleFontSize->GetValuePercent() * this->GetViewportMin();
-                break;
-            case StyleNumberUnitRootEm:
-                computedFontSize = rootStyleFontSize->GetValue() * DEFAULT_ROOT_FONT_SIZE;
-                break;
-            default:
-                break;
-        }
-    }
-
-    if (this->rootFontSize != computedFontSize) {
-        this->rootFontSize = computedFontSize;
+void Scene::NotifyRootFontSizeChanged(int32_t rootFontSize) {
+    if (this->rootFontSize != rootFontSize) {
+        this->rootFontSize = rootFontSize;
         this->recalculateLayoutRequested = true;
     }
 }
