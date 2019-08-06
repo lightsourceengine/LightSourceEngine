@@ -13,7 +13,7 @@ const throwBadPropsArg = () => { throw Error('Invalid props arg passed to Elemen
 /**
  * @class Element
  * @classdesc
- * 
+ *
  * Base class for React elements.
  *
  * <p>React elements are specialized components that provide the React reconciler with a way to communicate

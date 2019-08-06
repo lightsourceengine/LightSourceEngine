@@ -17,7 +17,7 @@ describe('renderer()', () => {
     scene = stage.createScene()
   })
   afterEach(async () => {
-    await new Promise(resolve => _testOnlyReconcilers.has(scene) ? renderer(scene).unmount(resolve) : resolve())
+    await new Promise(resolve => _testOnlyReconcilers.has(scene) ? renderer(scene).disconnect(resolve) : resolve())
     stage[Symbol.for('destroy')]()
     scene = null
   })
@@ -50,12 +50,12 @@ describe('renderer()', () => {
     assert.equal(_testOnlyReconcilers.size, 1)
     assert.equal(_testOnlyContainers.size, 2)
 
-    renderer(sceneNode1).unmount()
+    renderer(sceneNode1).disconnect()
 
     assert.equal(_testOnlyReconcilers.size, 1)
     assert.equal(_testOnlyContainers.size, 1)
 
-    renderer(sceneNode2).unmount()
+    renderer(sceneNode2).disconnect()
 
     assert.equal(_testOnlyReconcilers.size, 0)
     assert.equal(_testOnlyContainers.size, 0)
