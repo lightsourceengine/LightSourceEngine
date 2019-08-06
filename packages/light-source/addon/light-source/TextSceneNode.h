@@ -12,7 +12,7 @@
 
 namespace ls {
 
-class FontResource;
+class FontSampleResource;
 
 class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
  public:
@@ -29,13 +29,13 @@ class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
 
  private:
     void ApplyStyle(Style* style) override;
-    bool SetFontResource(FontResource* newFontResource);
+    bool SetFont(FontSampleResource* newFont);
     void DestroyRecursive() override;
 
  private:
     TextBlock textBlock;
-    FontResource* fontResource{};
-    uint32_t fontResourceListenerId{};
+    FontSampleResource* font{};
+    uint32_t fontListenerId{};
 };
 
 } // namespace ls

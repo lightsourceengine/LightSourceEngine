@@ -14,6 +14,7 @@
 #include "ImageSceneNode.h"
 #include "TextSceneNode.h"
 #include "napi-ext.h"
+#include <fmt/format.h>
 
 using Napi::Env;
 using Napi::Function;

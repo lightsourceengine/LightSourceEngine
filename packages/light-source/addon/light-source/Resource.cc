@@ -16,12 +16,16 @@ constexpr uint8_t DispatchStateHasRemovals = 1 << 1;
 Resource::Resource(Napi::Env env, const std::string& id) : env(env), id(id) {
 }
 
-void Resource::SetStateAndNotifyListeners(ResourceState newState) {
+void Resource::SetState(ResourceState newState) {
     if (this->resourceState == newState) {
         return;
     }
 
     this->resourceState = newState;
+}
+
+void Resource::SetStateAndNotifyListeners(ResourceState newState) {
+    this->SetState(newState);
 
     if (this->listeners.empty()) {
         return;

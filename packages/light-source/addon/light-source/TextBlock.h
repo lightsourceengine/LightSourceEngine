@@ -8,15 +8,29 @@
 
 #include <napi.h>
 #include "StyleEnums.h"
+#include "Renderer.h"
+#include "FontMetrics.h"
 
 namespace ls {
 
 class Renderer;
+class FontSampleResource;
 
 class TextBlock {
+ private:
+    struct CodepointRect : Rect {
+        CodepointRect() {}
+        CodepointRect(float x, float y, float width, float height, int32_t codepoint)
+            : codepoint(codepoint) { this->x = x; this->y = y; this->width = width; this->height = height; }
+
+        int32_t codepoint;
+    };
+
  public:
     TextBlock();
-    virtual ~TextBlock() = default;
+    ~TextBlock();
+
+    void SetFont(FontSampleResource* font);
 
     std::string GetText() const { return this->text; }
     void SetText(const std::string& text);
@@ -28,22 +42,33 @@ class TextBlock {
     void SetMaxLines(int32_t maxLines);
 
     bool IsDirty() const { return this->isDirty; }
-
-    void Layout();
-    void Paint(Renderer* renderer);
-
     float GetComputedWidth() const { return this->computedWidth; }
     float GetComputedHeight() const { return this->computedHeight; }
 
+    void Layout(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode);
+    void Paint(Renderer* renderer, float x, float y, int64_t color);
+
  private:
+    void MarkDirty();
+    int32_t TransformCodepoint(int32_t codepoint);
+
+ private:
+    FontSampleResource* font{};
     bool isDirty{false};
     float computedWidth{0};
     float computedHeight{0};
+    float measuredWidth{};
+    int32_t measuredWidthMode{};
+    float measuredHeight{};
+    int32_t measuredHeightMode{};
     std::string text;
     StyleTextOverflow textOverflow{};
     StyleTextTransform textTransform{};
     StyleTextAlign textAlign{};
     int32_t maxLines{};
+    mutable std::vector<CodepointRect> quads;
+
+    friend class LayoutLine;
 };
 
 } // namespace ls

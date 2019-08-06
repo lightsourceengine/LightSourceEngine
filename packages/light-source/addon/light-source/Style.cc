@@ -163,6 +163,8 @@ void Style::UpdateInternalFlags(const Napi::CallbackInfo& info) {
 
     this->flags[StyleFlagsLayoutOnly] = !this->borderColor() && !this->backgroundColor()
         && this->backgroundImage().empty();
+
+    this->flags[StyleFlagsHasFont] = !this->fontFamily().empty() && this->fontSize();
 }
 
 template<typename T>

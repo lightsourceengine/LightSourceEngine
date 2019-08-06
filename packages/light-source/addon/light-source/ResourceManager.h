@@ -11,6 +11,7 @@
 #include <vector>
 #include <memory>
 #include "FontResource.h"
+#include "FontSampleResource.h"
 #include "ImageResource.h"
 
 namespace ls {
@@ -43,12 +44,21 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     ImageResource* GetImage(const std::string& id);
     ImageResource* LoadImage(const ImageUri& uri);
 
+    FontSampleResource* LoadFontSample(const std::string& family, StyleFontStyle fontStyle,
+        StyleFontWeight fontWeight, int32_t fontSize);
+    FontSampleResource* FindFontSample(const std::string& family, StyleFontStyle fontStyle,
+        StyleFontWeight fontWeight, int32_t fontSize);
+
     FontResource* FindFont(const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight);
+
+ private:
+    FontResource* FindFontInternal(const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight);
 
  private:
     Renderer* renderer{};
     std::unordered_map<std::string, std::shared_ptr<ImageResource>> images;
     std::unordered_map<std::string, std::shared_ptr<FontResource>> fonts;
+    std::unordered_map<std::string, std::shared_ptr<FontSampleResource>> fontSamples;
     std::unordered_map<std::string, ImageUri> registeredImageUris;
     std::vector<std::string> imageExtensions;
     Napi::ObjectReference imageExtensionsObject;

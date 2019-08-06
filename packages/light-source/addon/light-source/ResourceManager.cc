@@ -182,24 +182,81 @@ ImageResource* ResourceManager::LoadImage(const ImageUri& uri) {
     auto registeredImage{ this->registeredImageUris.find(uri.GetId()) };
     const auto& imageUri{ registeredImage != this->registeredImageUris.end() ? registeredImage->second : uri };
 
-    auto imageResourceShared{ std::make_shared<ImageResource>(this->Env(), imageUri) };
+    try {
+        auto imageResourceShared{ std::make_shared<ImageResource>(this->Env(), imageUri) };
 
-    this->images[imageUri.GetId()] = imageResourceShared;
-    imageResourceShared->Load(this->renderer, this->imageExtensions, this->path);
+        this->images[imageUri.GetId()] = imageResourceShared;
+        imageResourceShared->Load(this->renderer, this->imageExtensions, this->path);
 
-    return imageResourceShared.get();
-}
-
-FontResource* ResourceManager::FindFont(
-        const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight) {
-    auto p{ this->fonts.find(FontResource::MakeId(family, fontStyle, fontWeight)) };
-
-    if (p != this->fonts.end()) {
-        p->second->AddRef();
-        return p->second.get();
+        return imageResourceShared.get();
+    } catch (std::exception& e) {
+        fmt::println("Error: LoadImage: {}", e.what());
     }
 
     return nullptr;
+}
+
+FontSampleResource* ResourceManager::LoadFontSample(const std::string& family, StyleFontStyle fontStyle,
+        StyleFontWeight fontWeight, int32_t fontSize) {
+    FontSampleResource* fontSample{ this->FindFontSample(family, fontStyle, fontWeight, fontSize) };
+
+    if (fontSample) {
+        return fontSample;
+    }
+
+    auto font{ this->FindFontInternal(family, fontStyle, fontWeight) };
+
+    if (!font) {
+        return nullptr;
+    }
+
+    try {
+        auto newFontSample{ std::make_shared<FontSampleResource>(this->Env(), font, fontSize) };
+
+        this->fontSamples[newFontSample->GetId()] = newFontSample;
+
+        return newFontSample.get();
+    } catch (std::exception& e) {
+        fmt::println("Error: LoadFontSample: {}", e.what());
+        font->RemoveRef();
+    }
+
+    return nullptr;
+}
+
+FontSampleResource* ResourceManager::FindFontSample(const std::string& family, StyleFontStyle fontStyle,
+        StyleFontWeight fontWeight, int32_t fontSize) {
+    auto iter{ this->fontSamples.find(FontSampleResource::MakeId(family, fontStyle, fontWeight, fontSize)) };
+
+    if (iter != this->fontSamples.end()) {
+        iter->second->AddRef();
+
+        return iter->second.get();
+    }
+
+    return nullptr;
+}
+
+FontResource* ResourceManager::FindFontInternal(const std::string& family, StyleFontStyle fontStyle,
+        StyleFontWeight fontWeight) {
+    auto iter{ this->fonts.find(FontResource::MakeId(family, fontStyle, fontWeight)) };
+
+    if (iter != this->fonts.end()) {
+        return iter->second.get();
+    }
+
+    return nullptr;
+}
+
+FontResource* ResourceManager::FindFont(const std::string& family, StyleFontStyle fontStyle,
+        StyleFontWeight fontWeight) {
+    auto font{ this->FindFontInternal(family, fontStyle, fontWeight) };
+
+    if (font) {
+        font->AddRef();
+    }
+
+    return font;
 }
 
 void ResourceManager::Attach() {

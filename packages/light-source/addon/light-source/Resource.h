@@ -41,6 +41,7 @@ class Resource {
     bool HasError() const { return this->resourceState == ResourceStateError; }
 
  protected:
+    void SetState(ResourceState newState);
     void SetStateAndNotifyListeners(ResourceState newState);
 
  private:

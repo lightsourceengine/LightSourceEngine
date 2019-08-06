@@ -24,6 +24,8 @@ class Style : public Napi::ObjectWrap<Style> {
         StyleFlagsPadding,
         StyleFlagsBorderRadius,
         StyleFlagsLayoutOnly,
+        StyleFlagsHasFont,
+        StyleFlagsCount,
     };
 
  public:
@@ -114,6 +116,7 @@ class Style : public Napi::ObjectWrap<Style> {
     bool HasPadding() const { return this->flags[StyleFlagsPadding]; }
     bool HasBorderRadius() const { return this->flags[StyleFlagsBorderRadius]; }
     bool IsLayoutOnly() const { return this->flags[StyleFlagsLayoutOnly]; }
+    bool HasFont() const { return this->flags[StyleFlagsHasFont]; }
 
     static Napi::Function Constructor(Napi::Env env);
     static void Init(Napi::Env env);
@@ -135,7 +138,7 @@ class Style : public Napi::ObjectWrap<Style> {
  private:
     static Style* empty;
     std::vector<StyleValue *>yogaValues;
-    std::bitset<4> flags;
+    std::bitset<StyleFlagsCount> flags;
 };
 
 } // namespace ls

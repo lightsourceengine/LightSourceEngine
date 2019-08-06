@@ -10,16 +10,12 @@
 #include "napi-ext.h"
 #include "Resource.h"
 #include <memory>
-#include <stb_truetype.h>
+
+struct stbtt_fontinfo;
 
 namespace ls {
 
 class ResourceManager;
-
-struct FontInfo {
-    stbtt_fontinfo stbFontInfo{};
-    std::unique_ptr<uint8_t[]> ttf;
-};
 
 class FontResource : public Resource {
  public:
@@ -28,11 +24,11 @@ class FontResource : public Resource {
     virtual ~FontResource() = default;
 
     static std::string MakeId(const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight);
-    const std::string& GetFamily() const { return this->family; }
+    const std::string& GetFontFamily() const { return this->family; }
     StyleFontStyle GetFontStyle() const { return this->fontStyle; }
     StyleFontWeight GetFontWeight() const { return this->fontWeight; }
 
-    stbtt_fontinfo* GetFontInfo() { return this->fontInfo ? &this->fontInfo->stbFontInfo : nullptr; }
+    std::shared_ptr<stbtt_fontinfo> GetFontInfo() { return this->fontInfo; }
 
  private:
     std::string uri;
@@ -40,8 +36,8 @@ class FontResource : public Resource {
     std::string family;
     StyleFontStyle fontStyle{};
     StyleFontWeight fontWeight{};
-    std::shared_ptr<FontInfo> fontInfo{};
-    std::unique_ptr<Napi::AsyncTask<FontInfo>> task;
+    std::shared_ptr<stbtt_fontinfo> fontInfo{};
+    std::unique_ptr<Napi::AsyncTask<stbtt_fontinfo>> task;
 
  private:
     void Load(const std::vector<std::string>& path);

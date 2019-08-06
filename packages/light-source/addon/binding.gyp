@@ -43,6 +43,7 @@
         "deps/stb_image/include",
         "deps/nanosvg/include",
         "deps/stb_truetype/include",
+        "deps/utf8_v2_3_4/",
         "light-source-util",
       ],
       "dependencies": [
@@ -58,8 +59,10 @@
         "light-source/StyleEnumMappings.cc",
         "light-source/StyleEnums.cc",
         "light-source/StyleValue.cc",
+        "light-source/FontMetrics.cc",
         "light-source/Resource.cc",
         "light-source/FontResource.cc",
+        "light-source/FontSampleResource.cc",
         "light-source/ImageResource.cc",
         "light-source/ResourceManager.cc",
         "light-source/TextBlock.cc",

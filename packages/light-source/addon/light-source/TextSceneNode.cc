@@ -5,8 +5,9 @@
  */
 
 #include "TextSceneNode.h"
-#include "FontResource.h"
+#include "FontSampleResource.h"
 #include "Scene.h"
+#include "StyleUtils.h"
 #include <fmt/format.h>
 
 using Napi::CallbackInfo;
@@ -20,8 +21,6 @@ using Napi::Value;
 
 namespace ls {
 
-constexpr YGSize emptySize{ 0.f, 0.f };
-
 TextSceneNode::TextSceneNode(const CallbackInfo& info) : ObjectWrap<TextSceneNode>(info), SceneNode(info) {
     this->isLeaf = true;
 
@@ -30,6 +29,8 @@ TextSceneNode::TextSceneNode(const CallbackInfo& info) : ObjectWrap<TextSceneNod
     YGNodeSetMeasureFunc(
         this->ygNode,
         [](YGNodeRef nodeRef, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) -> YGSize {
+            static const YGSize emptySize{ 0.f, 0.f };
+
             auto self { static_cast<TextSceneNode*>(YGNodeGetContext(nodeRef)) };
 
             if (!self) {
@@ -38,7 +39,13 @@ TextSceneNode::TextSceneNode(const CallbackInfo& info) : ObjectWrap<TextSceneNod
 
             auto& textBlock{ self->textBlock };
 
-            textBlock.Layout();
+            if (textBlock.IsDirty()) {
+                textBlock.Layout(width, widthMode, height, heightMode);
+            }
+
+            fmt::println("text measure: {} {} {} {}, result: {} {}",
+                width, YGMeasureModeToString(widthMode), height, YGMeasureModeToString(heightMode),
+                textBlock.GetComputedWidth(), textBlock.GetComputedHeight());
 
             return { textBlock.GetComputedWidth(), textBlock.GetComputedHeight() };
     });
@@ -73,7 +80,16 @@ Function TextSceneNode::Constructor(Napi::Env env) {
 }
 
 void TextSceneNode::Paint(Renderer* renderer) {
-    this->textBlock.Paint(renderer);
+    auto myStyle{ this->GetStyleOrEmpty() };
+
+    if (!myStyle->color()) {
+        return;
+    }
+
+    auto x{ YGNodeLayoutGetLeft(this->ygNode) };
+    auto y{ YGNodeLayoutGetTop(this->ygNode) };
+
+    this->textBlock.Paint(renderer, x, y, myStyle->color()->Get());
 }
 
 Value TextSceneNode::GetText(const CallbackInfo& info) {
@@ -98,18 +114,38 @@ void TextSceneNode::ApplyStyle(Style* style) {
     SceneNode::ApplyStyle(style);
 
     auto myStyle{ this->GetStyleOrEmpty() };
+    FontSampleResource* selectedFont;
 
-    auto selectedFontResource{ this->scene->GetResourceManager()->FindFont(myStyle->fontFamily(), myStyle->fontStyle(),
-        myStyle->fontWeight()) };
+    if (myStyle->HasFont()) {
+        fmt::println("looking for font");
+        selectedFont = this->scene->GetResourceManager()->FindFontSample(
+            myStyle->fontFamily(),
+            myStyle->fontStyle(),
+            myStyle->fontWeight(),
+            ComputeIntegerPointValue(myStyle->fontSize(), this->scene, 16));
 
-    if (!this->SetFontResource(selectedFontResource)) {
-        if (selectedFontResource) {
-            selectedFontResource->RemoveRef();
+        if (selectedFont == nullptr) {
+            fmt::println("loading for font");
+            selectedFont = this->scene->GetResourceManager()->LoadFontSample(
+                myStyle->fontFamily(),
+                myStyle->fontStyle(),
+                myStyle->fontWeight(),
+                ComputeIntegerPointValue(myStyle->fontSize(), this->scene, 16));
         }
     } else {
+        selectedFont = nullptr;
+    }
+
+    if (!this->SetFont(selectedFont)) {
+        if (selectedFont) {
+            selectedFont->RemoveRef();
+        }
+    } else {
+        // TODO: font may not be ready
         YGNodeMarkDirty(this->ygNode);
     }
 
+    this->textBlock.SetFont(selectedFont);
     this->textBlock.SetTextOverflow(myStyle->textOverflow());
     this->textBlock.SetTextAlign(myStyle->textAlign());
     this->textBlock.SetTextTransform(myStyle->textTransform());
@@ -129,34 +165,36 @@ void TextSceneNode::ApplyStyle(Style* style) {
     }
 }
 
-bool TextSceneNode::SetFontResource(FontResource* newFontResource) {
-    if (newFontResource == this->fontResource) {
+bool TextSceneNode::SetFont(FontSampleResource* newFont) {
+    if (newFont == this->font) {
         return false;
     }
 
-    if (this->fontResource) {
-        this->fontResource->RemoveListener(this->fontResourceListenerId);
-        this->fontResource->RemoveRef();
-        this->fontResource = nullptr;
-        this->fontResourceListenerId = 0;
+    if (this->font) {
+        this->font->RemoveListener(this->fontListenerId);
+        this->font->RemoveRef();
+        this->font = nullptr;
+        this->fontListenerId = 0;
     }
 
-    if (newFontResource) {
-        this->fontResourceListenerId = newFontResource->AddListener([this]() {
-            if (this->fontResource->IsReady() || this->fontResource->HasError()) {
+    if (newFont) {
+        this->fontListenerId = newFont->AddListener([this]() {
+            if (this->font->IsReady() || this->font->HasError()) {
+                fmt::println("got font sample response");
                 YGNodeMarkDirty(this->ygNode);
-                this->fontResource->RemoveListener(this->fontResourceListenerId);
-                this->fontResourceListenerId = 0;
+                this->font->RemoveListener(this->fontListenerId);
+                this->fontListenerId = 0;
             }
         });
-        this->fontResource = newFontResource;
+
+        this->font = newFont;
     }
 
     return true;
 }
 
 void TextSceneNode::DestroyRecursive() {
-    this->SetFontResource(nullptr);
+    this->SetFont(nullptr);
 
     SceneNode::DestroyRecursive();
 }
