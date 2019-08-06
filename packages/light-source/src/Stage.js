@@ -21,6 +21,7 @@ const $frame = Symbol.for('frame')
 const $scene = Symbol.for('scene')
 const $destroy = Symbol.for('destroy')
 const $displays = Symbol.for('displays')
+const $exitListener = Symbol.for('exitListener')
 
 export class Stage {
   constructor () {
@@ -29,6 +30,7 @@ export class Stage {
     this[$fps] = 60
     this[$scene] = null
     this[$displays] = []
+    this[$exitListener] = null
   }
 
   get fps () {
@@ -87,7 +89,7 @@ export class Stage {
 
     inputEventDispatcher(this[$adapter], new Map(), new EventEmitter())
 
-    process.on('exit', () => {
+    process.on('exit', this[$exitListener] = () => {
       if (this[$adapter]) {
         try {
           this[$destroy]()
@@ -192,6 +194,11 @@ export class Stage {
     const scene = this[$scene]
     const adapter = this[$adapter]
     const audioAdapter = this[$audioAdapter]
+
+    if (this[$exitListener]) {
+      process.off('exit', this[$exitListener])
+      this[$exitListener] = null
+    }
 
     clearTimeout(this[$mainLoopHandle])
     this[$mainLoopHandle] = null

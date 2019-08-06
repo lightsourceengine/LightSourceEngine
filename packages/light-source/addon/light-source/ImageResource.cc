@@ -65,7 +65,7 @@ void ImageResource::Load(Renderer* renderer,
         this->task = std::make_unique<AsyncTask<ImageInfo>>(
             this->env,
             this->id,
-            [uri, extensions, resourcePath, textureFormat](Napi::Env env) -> std::shared_ptr<ImageInfo> {
+            [uri, extensions, resourcePath, textureFormat]() -> std::shared_ptr<ImageInfo> {
                 return DecodeImage(uri, extensions, resourcePath, textureFormat);
             },
             [this](Napi::Env env, std::shared_ptr<ImageInfo> result, napi_status status, const std::string& message) {
@@ -73,9 +73,15 @@ void ImageResource::Load(Renderer* renderer,
                 // TODO: assert(this->GetRefCount() > 0)
 
                 this->image = result;
+
+                if (this->image) {
+                    this->width = this->image->width;
+                    this->height = this->image->height;
+                } else {
+                    this->width = this->height = 0;
+                }
+
                 this->task.reset();
-                this->width = this->image->width;
-                this->height = this->image->height;
 
                 fmt::println("image load: width {} height {} status {} '{}'", width, height, status, message);
 

@@ -6,8 +6,11 @@
 
 import { performance } from 'perf_hooks'
 
-// Add performance to the global scope to mirror the browser environment so modules can access the high
-// resolution timer. scheduler and react-reconciler need performance.now().
+/*
+ * Add performance to the global scope to mirror the browser environment so modules (scheduler and react-reconciler)
+ * can access the high resolution timer (global.performance.now).
+ */
+
 if (!global.performance) {
   global.performance = performance
 }

@@ -271,6 +271,7 @@ void ResourceManager::ProcessEvents() {
 void ResourceManager::Destroy() {
     this->renderer = nullptr;
     images.clear();
+    fontSamples.clear();
     fonts.clear();
     registeredImageUris.clear();
     imageExtensions.clear();

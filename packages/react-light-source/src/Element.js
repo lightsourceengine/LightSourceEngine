@@ -7,33 +7,67 @@
 import { Style } from 'light-source'
 import { emptyObject } from './emptyObject'
 
+const throwBadNodeArg = () => { throw Error('Invalid node arg passed to Element constructor.') }
+const throwBadPropsArg = () => { throw Error('Invalid props arg passed to Element constructor.') }
+
+/**
+ * @class Element
+ * @classdesc
+ * 
+ * Base class for React elements.
+ *
+ * <p>React elements are specialized components that provide the React reconciler with a way to communicate
+ * with a rendering system. React elements appear in jsx with first letter lowercase names, such as &lt;div/&gt;.</p>
+ */
 export class Element {
   constructor (node, props) {
-    // TODO: assert node
+    node || throwBadNodeArg()
+    props || throwBadPropsArg()
+
     this.node = node
     this.updateProps(emptyObject, props)
   }
 
+  /**
+   * Notify element of a property change.
+   *
+   * @param {Object} oldProps
+   * @param {Object} newProps
+   */
   updateProps (oldProps, newProps) {
     if (oldProps.style !== newProps.style) {
       const { style } = newProps
 
-      this.node.style = style
-        ? style instanceof Style ? style : new Style(style)
-        : style
+      this.node.style = style ? (style instanceof Style ? style : new Style(style)) : style
     }
 
     this.props = newProps
   }
 
-  appendChild (child, before) {
-    if (before) {
-      this.node.insertBefore(child.node, before.node)
-    } else {
-      this.node.appendChild(child.node)
-    }
+  /**
+   * Append a child element.
+   *
+   * @param {Element} child
+   */
+  appendChild (child) {
+    this.node.appendChild(child.node)
   }
 
+  /**
+   * Insert a child element before another child element.
+   *
+   * @param {Element} child
+   * @param {Element} before
+   */
+  insertBefore (child, before) {
+    this.node.insertBefore(child.node, before.node)
+  }
+
+  /**
+   * Remove a child element.
+   *
+   * @param {Element} child
+   */
   removeChild (child) {
     child.node.destroy()
   }

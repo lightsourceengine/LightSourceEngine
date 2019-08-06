@@ -7,7 +7,11 @@
 import { Element } from './Element'
 
 export class BoxElement extends Element {
-  updateProps (oldProps, newProps) {
-    super.updateProps(oldProps, newProps)
-  }
+  /**
+   * @class BoxElement
+   * @extends Element
+   * @classdesc
+   *
+   * Maps &lt;box&gt; or &lt;div&gt; element to a BoxSceneNode.
+   */
 }

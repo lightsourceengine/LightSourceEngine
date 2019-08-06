@@ -7,13 +7,25 @@
 import { Element } from './Element'
 import { emptyObject } from './emptyObject'
 
-const getId = src => (src || emptyObject).id || (src || emptyObject).src || null
+const getId = src => typeof src === 'string' ? src : src.id || src.uri || null
 
 export class ImageElement extends Element {
+  /**
+   * @class ImageElement
+   * @extends Element
+   *
+   * @classdesc
+   *
+   * Maps &lt;img&gt; element to an ImageSceneNode.
+   */
+
+  /**
+   * @override
+   */
   updateProps (oldProps, newProps) {
     super.updateProps(oldProps, newProps)
 
-    if (getId(oldProps.src) !== getId(newProps.src)) {
+    if (getId(oldProps.src || emptyObject) !== getId(newProps.src || emptyObject)) {
       this.node.src = newProps.src
     }
 

@@ -112,16 +112,16 @@ void Scene::Detach(const CallbackInfo& info) {
 }
 
 void Scene::Destroy(const CallbackInfo& info) {
-    if (this->resourceManager) {
-        this->resourceManager->Destroy();
-        this->resourceManager->Unref();
-        this->resourceManager = nullptr;
-    }
-
     if (this->root) {
         this->root->Destroy();
         this->root->AsReference()->Unref();
         this->root = nullptr;
+    }
+
+    if (this->resourceManager) {
+        this->resourceManager->Destroy();
+        this->resourceManager->Unref();
+        this->resourceManager = nullptr;
     }
 
     this->adapter.reset();

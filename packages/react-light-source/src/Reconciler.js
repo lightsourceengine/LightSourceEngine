@@ -102,7 +102,7 @@ export function Reconciler (scene) {
     removeChildFromContainer: removeChild,
 
     insertBefore (parentInstance, child, beforeChild) {
-      parentInstance.insertChild(child, beforeChild)
+      parentInstance.insertBefore(child, beforeChild)
     },
 
     commitUpdate (instance, updatePayload, type, oldProps, newProps) {

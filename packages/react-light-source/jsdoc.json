@@ -23,5 +23,9 @@
     },
     "cleverLinks": false,
     "monospaceLinks": false
+  },
+  "docdash": {
+    "collapse": true,
+    "search": true
   }
 }

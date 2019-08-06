@@ -36,12 +36,14 @@ Function RootSceneNode::Constructor(Napi::Env env) {
             InstanceAccessor("y", &SceneNode::GetY, nullptr),
             InstanceAccessor("width", &SceneNode::GetWidth, nullptr),
             InstanceAccessor("height", &SceneNode::GetHeight, nullptr),
-
             InstanceAccessor("parent", &SceneNode::GetParent, nullptr),
+            InstanceAccessor("children", &SceneNode::GetChildren, nullptr),
+            InstanceAccessor("scene", &SceneNode::GetScene, nullptr),
             InstanceAccessor("style", &SceneNode::GetStyle, &SceneNode::SetStyle),
 
             InstanceMethod("destroy", &SceneNode::Destroy),
             InstanceMethod("appendChild", &SceneNode::AppendChild),
+            InstanceMethod("insertBefore", &SceneNode::InsertBefore),
             InstanceMethod("removeChild", &SceneNode::RemoveChild),
         });
 

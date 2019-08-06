@@ -54,7 +54,7 @@ T ObjectGetNumberOrDefault(const Object& object, const char* key, T defaultValue
 template<typename T>
 class AsyncTask {
  public:
-    typedef std::function<std::shared_ptr<T> (Napi::Env)> ExecuteFunction;
+    typedef std::function<std::shared_ptr<T> ()> ExecuteFunction;
     typedef std::function<void(Napi::Env, std::shared_ptr<T>, napi_status, const std::string&)> CompleteFunction;
 
  public:

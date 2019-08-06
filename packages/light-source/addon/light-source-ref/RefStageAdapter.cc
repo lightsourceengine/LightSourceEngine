@@ -11,8 +11,6 @@
 using Napi::Array;
 using Napi::Boolean;
 using Napi::CallbackInfo;
-using Napi::Error;
-using Napi::EscapableHandleScope;
 using Napi::Function;
 using Napi::FunctionReference;
 using Napi::HandleScope;
@@ -60,7 +58,25 @@ Value RefStageAdapter::GetGamepads(const CallbackInfo& info) {
 }
 
 Value RefStageAdapter::GetDisplays(const CallbackInfo& info) {
-    return Array::New(info.Env());
+    auto env{ info.Env() };
+    HandleScope scope(env);
+    auto displays{ Array::New(env, 1) };
+    auto display{ Object::New(env) };
+    auto mode{ Object::New(env) };
+    auto modes{ Array::New(env, 1) };
+
+    mode["width"] = Number::New(env, 1280);
+    mode["height"] = Number::New(env, 720);
+
+    modes[0u] = mode;
+
+    display["name"] = String::New(env, "mock display");
+    display["defaultMode"] = mode;
+    display["modes"] = modes;
+
+    displays[0u] = display;
+
+    return displays;
 }
 
 void RefStageAdapter::Attach(const CallbackInfo& info) {

@@ -10,6 +10,7 @@
 #include "StyleUtils.h"
 #include <fmt/format.h>
 
+using Napi::Array;
 using Napi::CallbackInfo;
 using Napi::Error;
 using Napi::Function;
@@ -43,10 +44,6 @@ TextSceneNode::TextSceneNode(const CallbackInfo& info) : ObjectWrap<TextSceneNod
                 textBlock.Layout(width, widthMode, height, heightMode);
             }
 
-            fmt::println("text measure: {} {} {} {}, result: {} {}",
-                width, YGMeasureModeToString(widthMode), height, YGMeasureModeToString(heightMode),
-                textBlock.GetComputedWidth(), textBlock.GetComputedHeight());
-
             return { textBlock.GetComputedWidth(), textBlock.GetComputedHeight() };
     });
 }
@@ -62,14 +59,17 @@ Function TextSceneNode::Constructor(Napi::Env env) {
             InstanceAccessor("y", &SceneNode::GetY, nullptr),
             InstanceAccessor("width", &SceneNode::GetWidth, nullptr),
             InstanceAccessor("height", &SceneNode::GetHeight, nullptr),
-
             InstanceAccessor("parent", &SceneNode::GetParent, nullptr),
+            InstanceAccessor("children", &SceneNode::GetChildren, nullptr),
+            InstanceAccessor("scene", &SceneNode::GetScene, nullptr),
             InstanceAccessor("style", &SceneNode::GetStyle, &SceneNode::SetStyle),
-            InstanceAccessor("text", &TextSceneNode::GetText, &TextSceneNode::SetText),
 
             InstanceMethod("destroy", &SceneNode::Destroy),
             InstanceMethod("appendChild", &SceneNode::AppendChild),
+            InstanceMethod("insertBefore", &SceneNode::InsertBefore),
             InstanceMethod("removeChild", &SceneNode::RemoveChild),
+
+            InstanceAccessor("text", &TextSceneNode::GetText, &TextSceneNode::SetText),
         });
 
         constructor.Reset(func, 1);
@@ -117,7 +117,6 @@ void TextSceneNode::ApplyStyle(Style* style) {
     FontSampleResource* selectedFont;
 
     if (myStyle->HasFont()) {
-        fmt::println("looking for font");
         selectedFont = this->scene->GetResourceManager()->FindFontSample(
             myStyle->fontFamily(),
             myStyle->fontStyle(),
@@ -125,7 +124,6 @@ void TextSceneNode::ApplyStyle(Style* style) {
             ComputeIntegerPointValue(myStyle->fontSize(), this->scene, 16));
 
         if (selectedFont == nullptr) {
-            fmt::println("loading for font");
             selectedFont = this->scene->GetResourceManager()->LoadFontSample(
                 myStyle->fontFamily(),
                 myStyle->fontStyle(),
@@ -180,7 +178,7 @@ bool TextSceneNode::SetFont(FontSampleResource* newFont) {
     if (newFont) {
         this->fontListenerId = newFont->AddListener([this]() {
             if (this->font->IsReady() || this->font->HasError()) {
-                fmt::println("got font sample response");
+                this->textBlock.SetFont(this->font);
                 YGNodeMarkDirty(this->ygNode);
                 this->font->RemoveListener(this->fontListenerId);
                 this->fontListenerId = 0;

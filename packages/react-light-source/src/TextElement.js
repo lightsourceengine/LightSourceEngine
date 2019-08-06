@@ -7,6 +7,18 @@
 import { Element } from './Element'
 
 export class TextElement extends Element {
+  /**
+   * @class TextElement
+   * @extends Element
+   *
+   * @classdesc
+   *
+   * Maps &lt;text&gt; element to an TextSceneNode.
+   */
+
+  /**
+   * @override
+   */
   updateProps (oldProps, newProps) {
     super.updateProps(oldProps, newProps)
 

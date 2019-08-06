@@ -36,7 +36,7 @@ void FontResource::Load(const std::vector<std::string>& resourcePath) {
         this->task = std::make_unique<AsyncTask<stbtt_fontinfo>>(
             this->env,
             this->id,
-            [path, uri, index](Napi::Env env) -> std::shared_ptr<stbtt_fontinfo> {
+            [path, uri, index]() -> std::shared_ptr<stbtt_fontinfo> {
                 return LoadFont(path, uri, index);
             },
             [this](Napi::Env env, std::shared_ptr<stbtt_fontinfo> result, napi_status status,

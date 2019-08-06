@@ -29,12 +29,13 @@ class SceneNode {
     Napi::Value GetY(const Napi::CallbackInfo& info);
     Napi::Value GetWidth(const Napi::CallbackInfo& info);
     Napi::Value GetHeight(const Napi::CallbackInfo& info);
-
     Napi::Value GetParent(const Napi::CallbackInfo& info);
+    Napi::Value GetScene(const Napi::CallbackInfo& info);
+    Napi::Value GetChildren(const Napi::CallbackInfo& info);
 
     Napi::Value GetStyle(const Napi::CallbackInfo& info);
-
     void SetStyle(const Napi::CallbackInfo& info, const Napi::Value& value);
+
     void SyncStyleRecursive();
 
     void AppendChild(const Napi::CallbackInfo& info);

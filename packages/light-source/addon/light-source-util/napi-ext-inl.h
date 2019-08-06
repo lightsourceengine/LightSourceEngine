@@ -90,7 +90,7 @@ void AsyncTask<T>::OnExecute(napi_env env, void* self) {
     }
 
     try {
-        asyncWork->result = asyncWork->execute(asyncWork->env);
+        asyncWork->result = asyncWork->execute();
         asyncWork->status = napi_ok;
     } catch (std::exception& e) {
         asyncWork->message = e.what();
@@ -106,7 +106,15 @@ void AsyncTask<T>::OnComplete(napi_env env, napi_status status, void* self) {
         return;
     }
 
-    asyncWork->complete(asyncWork->env, asyncWork->result, asyncWork->status, asyncWork->message);
+    if (asyncWork->complete) {
+        // Copy data to the stack because the complete callback could delete asyncWork.
+        auto result{ asyncWork->result };
+        auto asyncWorkStatus{ asyncWork->status };
+        auto message{ asyncWork->message };
+        auto complete{ asyncWork->complete };
+
+        complete(env, result, asyncWorkStatus, message);
+    }
 }
 
 } // namespace Napi

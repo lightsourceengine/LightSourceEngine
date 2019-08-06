@@ -8,11 +8,17 @@ import { Element } from './Element'
 import { emptyObject } from './emptyObject'
 
 export class RootElement extends Element {
+  /**
+   * @class
+   * @extends Element
+   * @classdesc
+   *
+   * Special wrapper element for wrapping the root SceneNode of the renderer's container.
+   *
+   * <p>Note, no element tag maps to this element. It is used for the reconciler to modify the roots children. The
+   * reconciler will never set or update props on this element.</p>
+   */
   constructor (node) {
     super(node, emptyObject)
-  }
-
-  updateProps (oldProps, newProps) {
-    super.updateProps(oldProps, newProps)
   }
 }

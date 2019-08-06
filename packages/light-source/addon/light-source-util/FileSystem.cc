@@ -23,7 +23,7 @@ constexpr auto PATH_SEPARATOR =
 namespace ls {
 
 bool HasExtension(const std::string& filename) {
-    auto sepIndex = filename.find_last_of(PATH_SEPARATOR);
+    auto sepIndex{ filename.find_last_of(PATH_SEPARATOR) };
 
     if (sepIndex == std::string::npos) {
         sepIndex = 0;

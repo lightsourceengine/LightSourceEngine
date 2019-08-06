@@ -10,8 +10,10 @@
 #include <fmt/format.h>
 #include <algorithm>
 
+using Napi::Array;
 using Napi::CallbackInfo;
 using Napi::Error;
+using Napi::EscapableHandleScope;
 using Napi::HandleScope;
 using Napi::Number;
 using Napi::Object;
@@ -65,6 +67,27 @@ Value SceneNode::GetParent(const CallbackInfo& info) {
     }
 
     return this->parent->AsReference()->Value();
+}
+
+Value SceneNode::GetScene(const CallbackInfo& info) {
+    if (this->scene == nullptr) {
+        return info.Env().Null();
+    }
+
+    return this->scene->Value();
+}
+
+Napi::Value SceneNode::GetChildren(const Napi::CallbackInfo& info) {
+    auto env{ info.Env() };
+    EscapableHandleScope scope(env);
+    auto childArray{ Array::New(env, this->children.size() )};
+    auto i{ 0u };
+
+    for (auto& child : this->children) {
+        childArray[i++] = child->AsReference()->Value();
+    }
+
+    return scope.Escape(childArray);
 }
 
 Value SceneNode::GetStyle(const CallbackInfo& info) {
