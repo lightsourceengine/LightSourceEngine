@@ -948,6 +948,13 @@ balanced-match@^1.0.0:
   resolved "http://192.168.1.71:4873/balanced-match/-/balanced-match-1.0.0.tgz#89b4d199ab2bee49de164ea02b89ce462d71b767"
   integrity sha1-ibTRmasr7kneFk6gK4nORi1xt2c=
 
+bindings@^1.5.0:
+  version "1.5.0"
+  resolved "http://192.168.1.71:4873/bindings/-/bindings-1.5.0.tgz#10353c9e945334bc0511a6d90b38fbc7c9c504df"
+  integrity sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==
+  dependencies:
+    file-uri-to-path "1.0.0"
+
 bluebird@^3.5.4:
   version "3.5.5"
   resolved "http://192.168.1.71:4873/bluebird/-/bluebird-3.5.5.tgz#a8d0afd73251effbbd5fe384a77d73003c17a71f"
@@ -1652,6 +1659,11 @@ file-entry-cache@^5.0.1:
   dependencies:
     flat-cache "^2.0.1"
 
+file-uri-to-path@1.0.0:
+  version "1.0.0"
+  resolved "http://192.168.1.71:4873/file-uri-to-path/-/file-uri-to-path-1.0.0.tgz#553a7b8446ff6f684359c445f1e37a05dacc33dd"
+  integrity sha512-0Zt+s3L7Vf1biwWZ29aARiVYLx7iMGnEUl9x33fbB/j3jR81u/O2LbqK+Bm1CDSNDKVtJ/YjwY7TUd5SkeLQLw==
+
 find-cache-dir@^2.0.0, find-cache-dir@^2.1.0:
   version "2.1.0"
   resolved "http://192.168.1.71:4873/find-cache-dir/-/find-cache-dir-2.1.0.tgz#8d0f94cd13fe43c6c7c261a0d86115ca918c05f7"
@@ -2228,10 +2240,13 @@ levn@^0.3.0, levn@~0.3.0:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
 
-light-source@1.0.0-alpha.0:
-  version "1.0.0-alpha.0"
-  resolved "http://192.168.1.71:4873/light-source/-/light-source-1.0.0-alpha.0.tgz#93a8f4fc856a60d683ca7f741ee840e703d073d0"
-  integrity sha512-AqNZGl0w0RHLXnt0BH/fjYPte7iPwL5yQOK3a09S0jQJwOB/VtedXQ4NFAtkequg53QGpIgUJNJaT/o2oFYa4g==
+light-source@1.0.0-alpha.1:
+  version "1.0.0-alpha.1"
+  resolved "http://192.168.1.71:4873/light-source/-/light-source-1.0.0-alpha.1.tgz#7bdfb98ec22ca0a3af679f7bf07b967f107fd0f4"
+  integrity sha512-i4t3msMZSGu2xyGFeTBCK75S5ttMzpIsG/+i1Qo9NSriAZTmn3IKNQPtjv4mwK+4EwkRmGuLqHb4cHjs4nSVxA==
+  dependencies:
+    bindings "^1.5.0"
+    node-addon-api "^1.7.1"
 
 linkify-it@^2.0.0:
   version "2.2.0"
@@ -2559,6 +2574,11 @@ nise@^1.4.10:
     just-extend "^4.0.2"
     lolex "^4.1.0"
     path-to-regexp "^1.7.0"
+
+node-addon-api@^1.7.1:
+  version "1.7.1"
+  resolved "http://192.168.1.71:4873/node-addon-api/-/node-addon-api-1.7.1.tgz#cf813cd69bb8d9100f6bdca6755fc268f54ac492"
+  integrity sha512-2+DuKodWvwRTrCfKOeR24KIc5unKjOh8mz17NCzVnHWfjAdDqbfbjqh7gUT+BkXBRQM52+xCHciKWonJ3CbJMQ==
 
 node-environment-flags@1.0.5:
   version "1.0.5"
