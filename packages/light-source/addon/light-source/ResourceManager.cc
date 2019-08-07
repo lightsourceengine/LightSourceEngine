@@ -89,6 +89,10 @@ void ResourceManager::AddFont(const Napi::CallbackInfo& info) {
     auto env{ info.Env() };
     HandleScope scope(env);
 
+    if (!info[0].IsObject()) {
+        throw Error::New(env, "addFont() expects a font into Object.");
+    }
+
     auto options{ info[0].As<Object>() };
     auto family{ ObjectGetString(options, "family") };
     auto uri{ ObjectGetString(options, "uri") };
