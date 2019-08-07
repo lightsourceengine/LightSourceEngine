@@ -49,25 +49,14 @@ Function ImageSceneNode::Constructor(Napi::Env env) {
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        auto func = DefineClass(env, "ImageSceneNode", {
-            InstanceAccessor("x", &SceneNode::GetX, nullptr),
-            InstanceAccessor("y", &SceneNode::GetY, nullptr),
-            InstanceAccessor("width", &SceneNode::GetWidth, nullptr),
-            InstanceAccessor("height", &SceneNode::GetHeight, nullptr),
-            InstanceAccessor("parent", &SceneNode::GetParent, nullptr),
-            InstanceAccessor("children", &SceneNode::GetChildren, nullptr),
-            InstanceAccessor("scene", &SceneNode::GetScene, nullptr),
-            InstanceAccessor("style", &SceneNode::GetStyle, &SceneNode::SetStyle),
-
-            InstanceMethod("destroy", &SceneNode::Destroy),
-            InstanceMethod("appendChild", &SceneNode::AppendChild),
-            InstanceMethod("insertBefore", &SceneNode::InsertBefore),
-            InstanceMethod("removeChild", &SceneNode::RemoveChild),
-
-            InstanceAccessor("src", &ImageSceneNode::GetSource, &ImageSceneNode::SetSource),
-            InstanceAccessor("onLoad", &ImageSceneNode::GetOnLoadCallback, &ImageSceneNode::SetOnLoadCallback),
-            InstanceAccessor("onError", &ImageSceneNode::GetOnErrorCallback, &ImageSceneNode::SetOnErrorCallback),
-        });
+        auto func = DefineClass(
+            env,
+            "ImageSceneNode",
+            SceneNode::Extend<ImageSceneNode>({
+                InstanceAccessor("src", &ImageSceneNode::GetSource, &ImageSceneNode::SetSource),
+                InstanceAccessor("onLoad", &ImageSceneNode::GetOnLoadCallback, &ImageSceneNode::SetOnLoadCallback),
+                InstanceAccessor("onError", &ImageSceneNode::GetOnErrorCallback, &ImageSceneNode::SetOnErrorCallback),
+            }));
 
         constructor.Reset(func, 1);
         constructor.SuppressDestruct();

@@ -94,10 +94,12 @@ class LayoutLine {
         this->textBlock.quads.erase(this->textBlock.quads.begin() + spaceIndex, this->textBlock.quads.end());
         this->DoLineBreak();
 
-        for (auto i{ 0 }; i < codepoints.size(); i++) {
+        auto codepointsLen{ static_cast<int32_t>(codepoints.size()) };
+
+        for (auto i{ 0 }; i < codepointsLen; i++) {
             this->codepoint = codepoints[i];
             this->fontMetrics->GetCodepointMetrics(this->codepoint, &metrics);
-            this->DoAppend(codepoints[i], (i + 1 < codepoints.size()) ? codepoints[i + 1] : 0, metrics);
+            this->DoAppend(codepoints[i], (i + 1 < codepointsLen) ? codepoints[i + 1] : 0, metrics);
         }
 
         return true;
@@ -369,9 +371,6 @@ void TextBlock::MarkDirty() {
 }
 
 int32_t TextBlock::TransformCodepoint(int32_t codepoint) {
-    // TODO: make this configurable
-    static auto loc{ std::locale("en_US.UTF-8") };
-
     switch (this->textTransform) {
         case StyleTextTransformUppercase:
             return ToUpper(codepoint);

@@ -85,6 +85,8 @@ export class Stage {
       } catch (e) {
         // ignore
       }
+
+      // TODO: throw ?
     }
 
     inputEventDispatcher(this[$adapter], new Map(), new EventEmitter())

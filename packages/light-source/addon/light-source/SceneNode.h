@@ -53,6 +53,9 @@ class SceneNode {
     virtual Napi::Reference<Napi::Object>* AsReference() = 0;
 
  protected:
+     template<typename T>
+     static std::vector<Napi::ClassPropertyDescriptor<T>> Extend(
+         const std::initializer_list<Napi::ClassPropertyDescriptor<T>>& subClassProperties);
     void SetParent(SceneNode* newParent);
     virtual void ApplyStyle(Style* style);
     virtual void DestroyRecursive();
@@ -68,5 +71,30 @@ class SceneNode {
     Style* style{};
     std::vector<SceneNode*> children{};
 };
+
+template<typename T>
+std::vector<Napi::ClassPropertyDescriptor<T>> SceneNode::Extend(
+        const std::initializer_list<Napi::ClassPropertyDescriptor<T>>& subClassProperties) {
+    std::vector<Napi::ClassPropertyDescriptor<T>> result = {
+        Napi::ObjectWrap<T>::InstanceAccessor("x", &SceneNode::GetX, nullptr),
+        Napi::ObjectWrap<T>::InstanceAccessor("y", &SceneNode::GetY, nullptr),
+        Napi::ObjectWrap<T>::InstanceAccessor("width", &SceneNode::GetWidth, nullptr),
+        Napi::ObjectWrap<T>::InstanceAccessor("height", &SceneNode::GetHeight, nullptr),
+        Napi::ObjectWrap<T>::InstanceAccessor("parent", &SceneNode::GetParent, nullptr),
+        Napi::ObjectWrap<T>::InstanceAccessor("children", &SceneNode::GetChildren, nullptr),
+        Napi::ObjectWrap<T>::InstanceAccessor("scene", &SceneNode::GetScene, nullptr),
+        Napi::ObjectWrap<T>::InstanceAccessor("style", &SceneNode::GetStyle, &SceneNode::SetStyle),
+        Napi::ObjectWrap<T>::InstanceMethod("destroy", &SceneNode::Destroy),
+        Napi::ObjectWrap<T>::InstanceMethod("appendChild", &SceneNode::AppendChild),
+        Napi::ObjectWrap<T>::InstanceMethod("insertBefore", &SceneNode::InsertBefore),
+        Napi::ObjectWrap<T>::InstanceMethod("removeChild", &SceneNode::RemoveChild),
+    };
+
+    for (auto& property : subClassProperties) {
+        result.push_back(property);
+    }
+
+    return result;
+}
 
 } // namespace ls

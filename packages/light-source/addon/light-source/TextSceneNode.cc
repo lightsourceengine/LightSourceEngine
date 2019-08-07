@@ -54,23 +54,12 @@ Function TextSceneNode::Constructor(Napi::Env env) {
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        auto func = DefineClass(env, "TextSceneNode", {
-            InstanceAccessor("x", &SceneNode::GetX, nullptr),
-            InstanceAccessor("y", &SceneNode::GetY, nullptr),
-            InstanceAccessor("width", &SceneNode::GetWidth, nullptr),
-            InstanceAccessor("height", &SceneNode::GetHeight, nullptr),
-            InstanceAccessor("parent", &SceneNode::GetParent, nullptr),
-            InstanceAccessor("children", &SceneNode::GetChildren, nullptr),
-            InstanceAccessor("scene", &SceneNode::GetScene, nullptr),
-            InstanceAccessor("style", &SceneNode::GetStyle, &SceneNode::SetStyle),
-
-            InstanceMethod("destroy", &SceneNode::Destroy),
-            InstanceMethod("appendChild", &SceneNode::AppendChild),
-            InstanceMethod("insertBefore", &SceneNode::InsertBefore),
-            InstanceMethod("removeChild", &SceneNode::RemoveChild),
-
-            InstanceAccessor("text", &TextSceneNode::GetText, &TextSceneNode::SetText),
-        });
+        auto func = DefineClass(
+            env,
+            "TextSceneNode",
+            SceneNode::Extend<TextSceneNode>({
+                InstanceAccessor("text", &TextSceneNode::GetText, &TextSceneNode::SetText),
+            }));
 
         constructor.Reset(func, 1);
         constructor.SuppressDestruct();
