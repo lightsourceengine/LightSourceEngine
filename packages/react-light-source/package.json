@@ -1,7 +1,7 @@
 {
   "name": "react-light-source",
   "description": "Light Source Engine",
-  "version": "1.0.0-alpha.0",
+  "version": "1.0.0-alpha.1",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -18,7 +18,7 @@
     "docs/"
   ],
   "dependencies": {
-    "light-source": "1.0.0-alpha.0"
+    "light-source": "1.0.0-alpha.1"
   },
   "peerDependencies": {
     "react": "^16.8.6",
