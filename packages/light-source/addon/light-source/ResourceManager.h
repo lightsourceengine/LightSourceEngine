@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <vector>
 #include <memory>
+#include "AsyncTaskQueue.h"
 #include "FontResource.h"
 #include "FontSampleResource.h"
 #include "ImageResource.h"
@@ -34,7 +35,9 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     Napi::Value GetPath(const Napi::CallbackInfo& info);
     void SetPath(const Napi::CallbackInfo& info, const Napi::Value& value);
 
-    void SetRenderer(Renderer* renderer);
+    Napi::Value GetFonts(const Napi::CallbackInfo& info);
+
+    void PostConstruct(Renderer* renderer);
 
     void Attach();
     void Detach();
@@ -53,6 +56,8 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
 
  private:
     FontResource* FindFontInternal(const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight);
+    void LoadFont(const std::string& id, const std::string& uri, const int32_t index,
+        const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight);
 
  private:
     Renderer* renderer{};
@@ -60,10 +65,9 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     std::unordered_map<std::string, std::shared_ptr<FontResource>> fonts;
     std::unordered_map<std::string, std::shared_ptr<FontSampleResource>> fontSamples;
     std::unordered_map<std::string, ImageUri> registeredImageUris;
-    std::vector<std::string> imageExtensions;
-    Napi::ObjectReference imageExtensionsObject;
+    std::vector<std::string> imageExtensions{ ".jpg", ".jpeg", ".png", ".gif", ".svg" };
     std::vector<std::string> path;
-    Napi::ObjectReference pathObject;
+    AsyncTaskQueue asyncTaskQueue;
 };
 
 } // namespace ls

@@ -6,13 +6,13 @@
 
 #include "ImageResource.h"
 #include "FileSystem.h"
+#include <napi-ext.h>
 #include <PixelConversion.h>
 #include <nanosvg.h>
 #include <nanosvgrast.h>
 #include <stb_image.h>
 #include <fmt/format.h>
 
-using Napi::AsyncTask;
 using Napi::EscapableHandleScope;
 using Napi::Number;
 using Napi::Object;
@@ -32,7 +32,7 @@ std::shared_ptr<ImageInfo> DecodeImage(const ImageUri&, const std::vector<std::s
     const std::vector<std::string>&, PixelFormat);
 std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage*, const std::string, const int32_t, const int32_t);
 
-ImageResource::ImageResource(Napi::Env env, const ImageUri& uri) : Resource(env, uri.GetId()), uri(uri) {
+ImageResource::ImageResource(const ImageUri& uri) : Resource(uri.GetId()), uri(uri) {
 }
 
 bool ImageResource::Sync(Renderer* renderer) {
@@ -55,38 +55,46 @@ bool ImageResource::Sync(Renderer* renderer) {
     return (this->textureId != 0);
 }
 
-void ImageResource::Load(Renderer* renderer,
+void ImageResource::Load(AsyncTaskQueue* taskQueue, Renderer* renderer,
         const std::vector<std::string>& extensions, const std::vector<std::string>& resourcePath) {
     auto initialState{ ResourceStateLoading };
     const auto textureFormat{ renderer->GetTextureFormat() };
     auto uri{ this->uri };
 
     try {
-        this->task = std::make_unique<AsyncTask<ImageInfo>>(
-            this->env,
-            this->id,
+        this->task = std::make_shared<Task>(
             [uri, extensions, resourcePath, textureFormat]() -> std::shared_ptr<ImageInfo> {
                 return DecodeImage(uri, extensions, resourcePath, textureFormat);
             },
-            [this](Napi::Env env, std::shared_ptr<ImageInfo> result, napi_status status, const std::string& message) {
+            [this](std::shared_ptr<TaskResult> taskResult) {
+                assert(taskResult != nullptr);
+
                 // TODO: assert(this->resourceState != ResourceStateLoading)
                 // TODO: assert(this->GetRefCount() > 0)
 
-                this->image = result;
-
-                if (this->image) {
-                    this->width = this->image->width;
-                    this->height = this->image->height;
-                } else {
-                    this->width = this->height = 0;
-                }
+                this->image = std::static_pointer_cast<ImageInfo>(taskResult);
+                this->width = this->image->width;
+                this->height = this->image->height;
 
                 this->task.reset();
 
-                fmt::println("image load: width {} height {} status {} '{}'", width, height, status, message);
+                fmt::println("image load: {}x{}", width, height);
 
-                this->SetStateAndNotifyListeners(status != napi_ok ? ResourceStateError : ResourceStateReady);
+                this->SetStateAndNotifyListeners(ResourceStateReady);
+            },
+            [this](const std::string& message) {
+                fmt::println("image load: Error: {}", message);
+                this->width = this->height = 0;
+                this->SetStateAndNotifyListeners(ResourceStateError);
             });
+    } catch (std::exception& e) {
+        initialState = ResourceStateError;
+    }
+
+    try {
+        if (this->task) {
+            taskQueue->Submit(this->task);
+        }
     } catch (std::exception& e) {
         initialState = ResourceStateError;
     }

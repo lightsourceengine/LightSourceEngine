@@ -5,6 +5,7 @@
  */
 
 #include "napi-ext.h"
+#include <fmt/format.h>
 
 namespace Napi {
 

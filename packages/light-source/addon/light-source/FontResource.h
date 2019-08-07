@@ -7,8 +7,8 @@
 #pragma once
 
 #include "StyleEnums.h"
-#include "napi-ext.h"
 #include "Resource.h"
+#include <napi.h>
 #include <memory>
 
 struct stbtt_fontinfo;
@@ -16,10 +16,12 @@ struct stbtt_fontinfo;
 namespace ls {
 
 class ResourceManager;
+class AsyncTaskQueue;
+class Task;
 
 class FontResource : public Resource {
  public:
-    explicit FontResource(Napi::Env env, const std::string& id, const std::string& uri, const int32_t index,
+    explicit FontResource(const std::string& id, const std::string& uri, const int32_t index,
         const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight);
     virtual ~FontResource() = default;
 
@@ -28,7 +30,9 @@ class FontResource : public Resource {
     StyleFontStyle GetFontStyle() const { return this->fontStyle; }
     StyleFontWeight GetFontWeight() const { return this->fontWeight; }
 
-    std::shared_ptr<stbtt_fontinfo> GetFontInfo() { return this->fontInfo; }
+    std::shared_ptr<stbtt_fontinfo> GetFontInfo() const { return this->fontInfo; }
+
+    Napi::Value ToObject(Napi::Env env);
 
  private:
     std::string uri;
@@ -36,11 +40,11 @@ class FontResource : public Resource {
     std::string family;
     StyleFontStyle fontStyle{};
     StyleFontWeight fontWeight{};
-    std::shared_ptr<stbtt_fontinfo> fontInfo{};
-    std::unique_ptr<Napi::AsyncTask<stbtt_fontinfo>> task;
+    mutable std::shared_ptr<stbtt_fontinfo> fontInfo;
+    std::shared_ptr<Task> task;
 
  private:
-    void Load(const std::vector<std::string>& path);
+    void Load(AsyncTaskQueue* taskQueue, const std::vector<std::string>& path);
 
     friend ResourceManager;
 };

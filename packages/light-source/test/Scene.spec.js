@@ -83,16 +83,24 @@ describe('Scene', () => {
       assert.strictEqual(scene.title, 'App Title')
     })
   })
-  // describe('resource', () => {
-  //   it('should add a new font', () => {
-  //     scene.resource.addFont({ family: 'arrow', uri: 'test/arrow.ttf' })
-  //   })
-  //   it('should throw an error when passed an invalid font info Object', () => {
-  //     for (const font of [null, '', {}, { family: '' }, { uri: '' }]) {
-  //       assert.throws(() => scene.resource.addFont(font))
-  //     }
-  //   })
-  // })
+  describe('resource', () => {
+    it('should register a new font', () => {
+      scene.resource.addFont({ family: 'arrow', uri: 'test/arrow.ttf' })
+      assert.lengthOf(scene.resource.fonts, 1)
+      assert.include(scene.resource.fonts[0], { family: 'arrow', style: 'normal', weight: 'normal' })
+    })
+    it('should throw error when font is already registered', () => {
+      scene.resource.addFont({ family: 'arrow', uri: 'test/arrow.ttf' })
+      assert.throws(() => scene.resource.addFont({ family: 'arrow', uri: 'test/arrow.ttf' }))
+      assert.lengthOf(scene.resource.fonts, 1)
+    })
+    it('should throw an error when passed an invalid font info Object', () => {
+      for (const font of [null, '', {}, { family: '' }, { uri: '' }]) {
+        assert.throws(() => scene.resource.addFont(font))
+      }
+      assert.lengthOf(scene.resource.fonts, 0)
+    })
+  })
   describe('attach()', () => {
     it('should...', () => {
       scene[$attach]()

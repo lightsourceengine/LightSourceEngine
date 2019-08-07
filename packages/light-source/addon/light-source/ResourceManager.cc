@@ -8,6 +8,7 @@
 #include "napi-ext.h"
 #include "Renderer.h"
 #include <algorithm>
+#include <algorithm>
 #include <fmt/format.h>
 
 using Napi::Array;
@@ -32,12 +33,6 @@ Array VectorToArray(Napi::Env env, const std::vector<std::string>& vector);
 void ValidateStringArray(Napi::Env env, const Array& array);
 
 ResourceManager::ResourceManager(const CallbackInfo& info) : ObjectWrap<ResourceManager>(info) {
-    auto env{ info.Env() };
-    HandleScope scope(env);
-
-    this->pathObject.Reset(VectorToArray(env, this->path));
-    this->imageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".svg" };
-    this->imageExtensionsObject.Reset(VectorToArray(env, this->imageExtensions), 1);
 }
 
 Function ResourceManager::Constructor(Napi::Env env) {
@@ -49,6 +44,7 @@ Function ResourceManager::Constructor(Napi::Env env) {
         auto func = DefineClass(env, "ResourceManager", {
             InstanceMethod("registerImage", &ResourceManager::RegisterImage),
             InstanceMethod("addFont", &ResourceManager::AddFont),
+            InstanceAccessor("fonts", &ResourceManager::GetFonts, nullptr),
             InstanceAccessor("path", &ResourceManager::GetPath, &ResourceManager::SetPath),
             InstanceAccessor("imageExtensions",
                 &ResourceManager::GetImageExtensions, &ResourceManager::SetImageExtensions),
@@ -59,6 +55,18 @@ Function ResourceManager::Constructor(Napi::Env env) {
     }
 
     return constructor.Value();
+}
+
+Value ResourceManager::GetFonts(const CallbackInfo& info) {
+    auto env{ info.Env() };
+    auto fontArray{ Array::New(env, this->fonts.size()) };
+    auto i{ 0u };
+
+    for (auto& p : this->fonts) {
+        fontArray.Set(i++, p.second->ToObject(env));
+    }
+
+    return fontArray;
 }
 
 void ResourceManager::RegisterImage(const Napi::CallbackInfo& info) {
@@ -105,15 +113,31 @@ void ResourceManager::AddFont(const Napi::CallbackInfo& info) {
         throw Error::New(env, fmt::format("Font '{}' already registered.", fontId));
     }
 
-    auto fontResource{ std::make_shared<FontResource>(info.Env(), fontId, uri, index, family, fontStyle, fontWeight) };
+    try {
+        this->LoadFont(fontId, uri, index, family, fontStyle, fontWeight);
+    } catch (std::exception& e) {
+        throw Error::New(env, e.what());
+    }
+}
 
-    this->fonts[fontId] = fontResource;
+void ResourceManager::LoadFont(const std::string& id, const std::string& uri, const int32_t index,
+        const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight) {
+    auto fontResource{ std::make_shared<FontResource>(id, uri, index, family, fontStyle, fontWeight) };
 
-    fontResource->Load(this->path);
+    this->fonts[id] = fontResource;
+
+    fontResource->Load(&this->asyncTaskQueue, this->path);
+
+    if (fontResource->HasError()) {
+        this->fonts.erase(id);
+        throw std::runtime_error(fmt::format("Failed to create font resource: {}", uri));
+    }
+
+    fontResource->AddRef();
 }
 
 Value ResourceManager::GetImageExtensions(const CallbackInfo& info) {
-    return this->imageExtensionsObject.Value();
+    return VectorToArray(info.Env(), this->imageExtensions);
 }
 
 void ResourceManager::SetImageExtensions(const Napi::CallbackInfo& info, const Napi::Value& value) {
@@ -130,12 +154,10 @@ void ResourceManager::SetImageExtensions(const Napi::CallbackInfo& info, const N
     } else {
         throw Error::New(env, "imageExtensions can only be assigned to an array of strings");
     }
-
-    this->imageExtensionsObject.Reset(VectorToArray(env, this->imageExtensions), 1);
 }
 
 Napi::Value ResourceManager::GetPath(const Napi::CallbackInfo& info) {
-    return this->pathObject.Value();
+    return VectorToArray(info.Env(), this->path);
 }
 
 void ResourceManager::SetPath(const Napi::CallbackInfo& info, const Napi::Value& value) {
@@ -154,11 +176,10 @@ void ResourceManager::SetPath(const Napi::CallbackInfo& info, const Napi::Value&
     } else {
         throw Error::New(env, "path can only be assigned to a string or an array of strings");
     }
-
-    this->pathObject.Reset(VectorToArray(env, this->path), 1);
 }
 
-void ResourceManager::SetRenderer(Renderer* renderer) {
+void ResourceManager::PostConstruct(Renderer* renderer) {
+    this->asyncTaskQueue.Init();
     this->renderer = renderer;
 }
 
@@ -187,10 +208,10 @@ ImageResource* ResourceManager::LoadImage(const ImageUri& uri) {
     const auto& imageUri{ registeredImage != this->registeredImageUris.end() ? registeredImage->second : uri };
 
     try {
-        auto imageResourceShared{ std::make_shared<ImageResource>(this->Env(), imageUri) };
+        auto imageResourceShared{ std::make_shared<ImageResource>(imageUri) };
 
         this->images[imageUri.GetId()] = imageResourceShared;
-        imageResourceShared->Load(this->renderer, this->imageExtensions, this->path);
+        imageResourceShared->Load(&this->asyncTaskQueue, this->renderer, this->imageExtensions, this->path);
 
         return imageResourceShared.get();
     } catch (std::exception& e) {
@@ -215,7 +236,7 @@ FontSampleResource* ResourceManager::LoadFontSample(const std::string& family, S
     }
 
     try {
-        auto newFontSample{ std::make_shared<FontSampleResource>(this->Env(), font, fontSize) };
+        auto newFontSample{ std::make_shared<FontSampleResource>(font, fontSize) };
 
         this->fontSamples[newFontSample->GetId()] = newFontSample;
 
@@ -270,18 +291,18 @@ void ResourceManager::Detach() {
 }
 
 void ResourceManager::ProcessEvents() {
+    this->asyncTaskQueue.ProcessCompleteTasks();
 }
 
 void ResourceManager::Destroy() {
     this->renderer = nullptr;
-    images.clear();
-    fontSamples.clear();
-    fonts.clear();
-    registeredImageUris.clear();
-    imageExtensions.clear();
-    imageExtensionsObject.Reset();
-    path.clear();
-    pathObject.Reset();
+
+    this->images.clear();
+    this->fontSamples.clear();
+    this->fonts.clear();
+    this->registeredImageUris.clear();
+
+    this->asyncTaskQueue.Shutdown();
 }
 
 StyleFontStyle GetFontStyle(Object options, const char* name) {

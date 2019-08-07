@@ -13,7 +13,7 @@ uint32_t Resource::nextListenerId{1};
 constexpr uint8_t DispatchStateDispatching = 1 << 0;
 constexpr uint8_t DispatchStateHasRemovals = 1 << 1;
 
-Resource::Resource(Napi::Env env, const std::string& id) : env(env), id(id) {
+Resource::Resource(const std::string& id) : id(id) {
 }
 
 void Resource::SetState(ResourceState newState) {
@@ -83,6 +83,21 @@ void Resource::RemoveListenerById(const uint32_t listenerId) {
         [listenerId](std::pair<uint32_t, std::function<void()>> const & p) { return p.first == listenerId; }) };
 
     this->listeners.erase(removals, this->listeners.end());
+}
+
+std::string ResourceStateToString(ResourceState state) {
+    switch (state) {
+        case ResourceStateInit:
+            return "init";
+        case ResourceStateReady:
+            return "ready";
+        case ResourceStateError:
+            return "error";
+        case ResourceStateLoading:
+            return "loading";
+    }
+
+    return "unknown";
 }
 
 } // namespace ls

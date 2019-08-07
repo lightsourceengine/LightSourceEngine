@@ -17,7 +17,7 @@ class FontResource;
 
 class FontSampleResource : public Resource {
  public:
-    explicit FontSampleResource(Napi::Env env, FontResource* fontResource, int32_t fontSize);
+    explicit FontSampleResource(FontResource* fontResource, int32_t fontSize);
     virtual ~FontSampleResource();
 
     static std::string MakeId(const std::string& fontFamily, StyleFontStyle fontStyle, StyleFontWeight fontWeight,

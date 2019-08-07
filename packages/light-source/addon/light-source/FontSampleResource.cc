@@ -10,8 +10,8 @@
 
 namespace ls {
 
-FontSampleResource::FontSampleResource(Napi::Env env, FontResource* fontResource, int32_t fontSize)
-: Resource(env, MakeId(fontResource->GetFontFamily(), fontResource->GetFontStyle(), fontResource->GetFontWeight(),
+FontSampleResource::FontSampleResource(FontResource* fontResource, int32_t fontSize)
+: Resource(MakeId(fontResource->GetFontFamily(), fontResource->GetFontStyle(), fontResource->GetFontWeight(),
     fontSize)),
   fontResource(fontResource),
   fontSize(fontSize) {

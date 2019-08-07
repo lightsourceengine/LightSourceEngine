@@ -45,6 +45,7 @@
         "deps/stb_truetype/include",
         "deps/utf8_v2_3_4/",
         "light-source-util",
+        "deps/concurrentqueue/include",
       ],
       "dependencies": [
         "addon/deps/yoga/yoga.gyp:yoga",
@@ -55,6 +56,7 @@
         "light-source-util",
       ],
       "sources": [
+        "light-source/AsyncTaskQueue.cc",
         "light-source/Style.cc",
         "light-source/StyleEnumMappings.cc",
         "light-source/StyleEnums.cc",

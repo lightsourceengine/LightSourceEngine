@@ -21,11 +21,13 @@ enum ResourceState : uint8_t {
     ResourceStateLoading,
 };
 
+std::string ResourceStateToString(ResourceState state);
+
 class ResourceManager;
 
 class Resource {
  public:
-    explicit Resource(Napi::Env env, const std::string& id);
+    explicit Resource(const std::string& id);
     virtual ~Resource() = default;
 
     uint32_t AddListener(std::function<void()> listener);
@@ -48,7 +50,6 @@ class Resource {
     void RemoveListenerById(const uint32_t listenerId);
 
  protected:
-    Napi::Env env;
     std::string id;
     ResourceState resourceState{ ResourceStateInit };
 

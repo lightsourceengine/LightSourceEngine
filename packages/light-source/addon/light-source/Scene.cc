@@ -42,7 +42,7 @@ Scene::Scene(const CallbackInfo& info) : ObjectWrap<Scene>(info) {
     auto resourceManagerValue{ ResourceManager::Constructor(env).New({}) };
 
     this->resourceManager = ResourceManager::Unwrap(resourceManagerValue);
-    this->resourceManager->SetRenderer(this->adapter->GetRenderer());
+    this->resourceManager->PostConstruct(this->adapter->GetRenderer());
     this->resourceManager->Ref();
 
     auto rootValue{ RootSceneNode::Constructor(env).New({ this->Value() }) };

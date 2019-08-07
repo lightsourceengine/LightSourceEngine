@@ -8,7 +8,7 @@
 
 #include <Renderer.h>
 #include "Resource.h"
-#include "napi-ext.h"
+#include "AsyncTaskQueue.h"
 
 namespace ls {
 
@@ -45,7 +45,7 @@ class ImageUri {
     bool hasCapInsets{false};
 };
 
-struct ImageInfo {
+struct ImageInfo : public TaskResult {
     int32_t width;
     int32_t height;
     PixelFormat format;
@@ -54,7 +54,7 @@ struct ImageInfo {
 
 class ImageResource : public Resource {
  public:
-    explicit ImageResource(Napi::Env env, const ImageUri& uri);
+    explicit ImageResource(const ImageUri& uri);
     virtual ~ImageResource() = default;
 
     uint32_t GetTextureId() { return this->textureId; }
@@ -66,7 +66,7 @@ class ImageResource : public Resource {
     bool Sync(Renderer* renderer);
 
  private:
-    void Load(Renderer* renderer,
+    void Load(AsyncTaskQueue* taskQueue, Renderer* renderer,
         const std::vector<std::string>& extensions, const std::vector<std::string>& resourcePath);
     uint32_t UpdateTexture(Renderer* renderer);
 
@@ -74,7 +74,7 @@ class ImageResource : public Resource {
     ImageUri uri;
     int32_t width;
     int32_t height;
-    std::unique_ptr<Napi::AsyncTask<ImageInfo>> task;
+    std::shared_ptr<Task> task;
     std::shared_ptr<ImageInfo> image;
     uint32_t textureId{};
 
