@@ -17,11 +17,13 @@ const $audioAdapter = Symbol.for('audioAdapter')
 const $mainLoopHandle = Symbol.for('mainLoopHandle')
 const $fps = Symbol.for('fps')
 const $attach = Symbol.for('attach')
+const $detach = Symbol.for('detach')
 const $frame = Symbol.for('frame')
 const $scene = Symbol.for('scene')
 const $destroy = Symbol.for('destroy')
 const $displays = Symbol.for('displays')
 const $exitListener = Symbol.for('exitListener')
+const $quitRequested = Symbol.for('quitRequested')
 
 export class Stage {
   constructor () {
@@ -87,6 +89,7 @@ export class Stage {
       }
 
       // TODO: throw ?
+      throw e
     }
 
     inputEventDispatcher(this[$adapter], new Map(), new EventEmitter())
@@ -105,7 +108,7 @@ export class Stage {
 
   createScene ({ displayIndex, width, height, fullscreen } = {}) {
     if (!this[$adapter]) {
-      throw Error('Stage has not been initialized.')
+      this.init()
     }
 
     if (this[$scene]) {
@@ -177,19 +180,33 @@ export class Stage {
       const tick = now()
       const delta = tick - lastTick
 
+      if (!adapter.processEvents() || this[$quitRequested]) {
+        return
+      }
+
       lastTick = tick
 
-      if (adapter.processEvents()) {
-        scene[$frame](delta)
-        this[$mainLoopHandle] = setTimeout(mainLoop, 1000 / this[$fps])
-      }
+      scene[$frame](delta)
+
+      this[$mainLoopHandle] = setTimeout(mainLoop, 1000 / this[$fps])
     }
 
     this[$mainLoopHandle] = setTimeout(mainLoop, 0)
   }
 
-  stop (options) {
+  stop () {
+    if (this[$mainLoopHandle]) {
+      // TODO: handle exceptions...
+      this[$scene][$detach]()
+      this[$adapter].detach()
 
+      clearTimeout(this[$mainLoopHandle])
+      this[$mainLoopHandle] = null
+    }
+  }
+
+  quit () {
+    this[$quitRequested] = true
   }
 
   [$destroy] () {

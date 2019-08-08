@@ -36,6 +36,8 @@ void SDLSceneAdapter::Attach() {
             throw std::runtime_error(fmt::format("Failed to create an SDL window. SDL Error: {}", SDL_GetError()));
         }
 
+        SDL_ShowCursor(SDL_DISABLE);
+
         SDL_DisplayMode displayMode{};
 
         SDL_GetWindowDisplayMode(window, &displayMode);

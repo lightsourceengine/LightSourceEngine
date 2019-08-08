@@ -123,7 +123,6 @@ Value ImageResource::ToObject(Napi::Env env) const {
 void ImageResource::Detach(Renderer* renderer) {
     if (resourceState == ResourceStateReady) {
         if (this->textureId) {
-            fmt::println("destroying texture...");
             renderer->DestroyTexture(this->textureId);
             this->textureId = 0;
         }

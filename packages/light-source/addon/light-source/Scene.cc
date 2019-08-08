@@ -84,6 +84,10 @@ Function Scene::Constructor(Napi::Env env) {
 }
 
 void Scene::Attach(const CallbackInfo& info) {
+    if (this->isAttached) {
+        return;
+    }
+
     auto env{ info.Env() };
     HandleScope scope(env);
 
@@ -99,9 +103,15 @@ void Scene::Attach(const CallbackInfo& info) {
     self.Set(SymbolFor(env, "width"), Number::New(env, this->width));
     self.Set(SymbolFor(env, "height"), Number::New(env, this->height));
     self.Set(SymbolFor(env, "fullscreen"), Boolean::New(env, this->adapter->GetFullscreen()));
+
+    this->isAttached = true;
 }
 
 void Scene::Detach(const CallbackInfo& info) {
+    if (!this->isAttached) {
+        return;
+    }
+
     if (this->resourceManager) {
         this->resourceManager->Detach();
     }
@@ -109,6 +119,8 @@ void Scene::Detach(const CallbackInfo& info) {
     if (this->adapter) {
         this->adapter->Detach();
     }
+
+    this->isAttached = false;
 }
 
 void Scene::Destroy(const CallbackInfo& info) {
@@ -142,6 +154,10 @@ void Scene::Frame(const CallbackInfo& info) {
 
     this->root->Layout(this->width, this->height, this->recalculateLayoutRequested);
     this->recalculateLayoutRequested = false;
+
+    if (!this->isAttached) {
+        return;
+    }
 
     renderer->Reset();
     this->root->Paint(renderer);
