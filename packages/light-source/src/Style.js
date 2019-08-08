@@ -240,7 +240,13 @@ const parseColorValue = value => {
       return fromHexHashString(value)
     }
 
-    return ColorNames[value.toLowerCase()] || ThrowErrorUnknownColorName(value)
+    const color = ColorNames[value.toLowerCase()]
+
+    if (color === undefined) {
+      ThrowErrorUnknownColorName(value)
+    }
+
+    return color
   }
 
   return value & 0xFFFFFF
