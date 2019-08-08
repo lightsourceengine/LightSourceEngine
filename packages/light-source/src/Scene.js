@@ -43,7 +43,8 @@ export class Scene extends SceneBase {
       top: 0,
       right: 0,
       bottom: 0,
-      fontSize: 16
+      fontSize: 16,
+      backgroundColor: 'black'
     })
   }
 

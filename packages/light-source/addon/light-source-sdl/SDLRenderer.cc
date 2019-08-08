@@ -307,6 +307,11 @@ void SDLRenderer::DrawQuad(const uint32_t textureId, const Rect& srcRect, const 
     SDL_RenderCopy(this->renderer, it->second, &src, &dest);
 }
 
+void SDLRenderer::ClearScreen(const int64_t color) {
+    SetRenderDrawColor(color);
+    SDL_RenderClear(this->renderer);
+}
+
 uint32_t SDLRenderer::CreateTexture(const uint8_t* source, PixelFormat sourceFormat,
         const int32_t width, const int32_t height) {
     void* pixels;

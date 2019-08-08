@@ -43,6 +43,8 @@ class RefRenderer : public Renderer {
     void DrawQuad(
         const uint32_t textureId, const Rect& srcRect, const Rect& destRect, const int64_t tintColor) override;
 
+    void ClearScreen(const int64_t color) override;
+
     uint32_t CreateTexture(
         const uint8_t* source, PixelFormat sourceFormat, const int32_t width, const int32_t height) override;
 

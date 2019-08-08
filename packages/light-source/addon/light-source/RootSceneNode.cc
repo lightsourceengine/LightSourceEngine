@@ -74,4 +74,14 @@ void RootSceneNode::ApplyStyle(Style* style) {
     this->scene->NotifyRootFontSizeChanged(computedFontSize);
 }
 
+void RootSceneNode::Paint(Renderer* renderer) {
+    auto backgroundColor{ this->GetStyleOrEmpty()->backgroundColor() };
+
+    if (backgroundColor) {
+        renderer->ClearScreen(backgroundColor->Get());
+    }
+
+    SceneNode::Paint(renderer);
+}
+
 } // namespace ls

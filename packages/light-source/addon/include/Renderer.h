@@ -140,6 +140,11 @@ class Renderer {
         const uint32_t textureId, const Rect& srcRect, const Rect& destRect, const int64_t tintColor) = 0;
 
     /**
+     * Clear the entire renderable area with the specified color.
+     */
+    virtual void ClearScreen(const int64_t color) = 0;
+
+    /**
      * Create a new texture.
      *
      * @param source Image pixels. The length, in bytes, is width * height * (# sourceFormat channels)

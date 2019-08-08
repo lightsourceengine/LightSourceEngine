@@ -59,6 +59,9 @@ void RefRenderer::DrawQuad(const uint32_t textureId, const Rect& srcRect, const 
         const int64_t tintColor) {
 }
 
+void RefRenderer::ClearScreen(const int64_t color) {
+}
+
 uint32_t RefRenderer::CreateTexture(const uint8_t* source, PixelFormat sourceFormat,
         const int32_t width, const int32_t height) {
     return nextTextureId++;
