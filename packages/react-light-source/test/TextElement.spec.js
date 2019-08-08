@@ -6,11 +6,11 @@
 
 import { assert } from 'chai'
 import React from 'react'
-import { renderAsync, root, before, after } from './test-env'
+import { renderAsync, root, beforeSceneTest, afterSceneTest } from './test-env'
 
 describe('TextElement', () => {
-  beforeEach(before)
-  afterEach(after)
+  beforeEach(beforeSceneTest)
+  afterEach(afterSceneTest)
   describe('prop: text', () => {
     it('should set text', async () => {
       await renderAsync(<text>Hello</text>)

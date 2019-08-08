@@ -58,7 +58,10 @@ void SDLSceneAdapter::Attach() {
 void SDLSceneAdapter::Detach() {
     this->renderer.Detach();
 
-    // TODO: option to destroy window on detach
+    if (this->window) {
+        SDL_DestroyWindow(this->window);
+        this->window = nullptr;
+    }
 }
 
 void SDLSceneAdapter::Resize(int32_t width, int32_t height, bool fullscreen) {

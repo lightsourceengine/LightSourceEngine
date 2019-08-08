@@ -6,13 +6,17 @@
 
 import { assert } from 'chai'
 import React from 'react'
-import { root, container, before, after } from './test-env'
+import { stage } from 'light-source'
+import { root, container, beforeSceneTest, afterSceneTest } from './test-env'
 
 const testImagePath = 'test/640x480.png'
 
 describe('ImageElement', () => {
-  beforeEach(before)
-  afterEach(after)
+  beforeEach(() => {
+    beforeSceneTest()
+    stage.start()
+  })
+  afterEach(afterSceneTest)
   describe('prop: src', () => {
     it('should call onLoad after image loaded', async () => {
       await new Promise((resolve, reject) => {

@@ -13,22 +13,29 @@ const state = {
   container: null
 }
 
-export const renderAsync =
-  (component) => new Promise(resolve => { state.container.render(component, () => resolve()) })
-
-export const before = () => {
-  stage.init({ adapter: 'light-source-ref' })
-  state.scene = stage.createScene()
-  state.container = new ReactRenderer(new Reconciler(state.scene), state.scene.root)
+export const renderAsync = (component) => {
+  return new Promise(resolve => { container().render(component, () => resolve()) })
 }
 
-export const after = async () => {
-  await new Promise((resolve) => state.container.disconnect(() => resolve()) || resolve())
+export const beforeSceneTest = () => {
+  stage.init({ adapter: 'light-source-ref' })
+  state.scene = stage.createScene()
+}
+
+export const afterSceneTest = async () => {
+  await new Promise((resolve) => container().disconnect(() => resolve()) || resolve())
   stage[Symbol.for('destroy')]()
   state.scene = null
   state.container = null
 }
 
-export const container = () => state.container
+export const container = () => {
+  if (!state.container) {
+    state.container = new ReactRenderer(new Reconciler(state.scene), state.scene.root)
+  }
+
+  return state.container
+}
+
 export const scene = () => state.scene
 export const root = () => state.scene.root

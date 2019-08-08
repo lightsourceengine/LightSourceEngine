@@ -7,7 +7,7 @@
 import { assert } from 'chai'
 import React from 'react'
 import { Element } from '../src/Element'
-import { renderAsync, root, container, before, after } from './test-env'
+import { renderAsync, root, container, beforeSceneTest, afterSceneTest } from './test-env'
 
 const assertClassName = (obj, expectedClassName) => {
   assert.equal(Object.getPrototypeOf(obj).constructor.name, expectedClassName)
@@ -26,9 +26,9 @@ class TestComponentClass extends React.Component {
 }
 
 describe('ReactContainer', () => {
-  beforeEach(before)
+  beforeEach(beforeSceneTest)
   afterEach(async () => {
-    await after()
+    await afterSceneTest()
     TestComponentClass.instance = null
   })
   describe('render()', () => {

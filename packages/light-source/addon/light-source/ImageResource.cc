@@ -35,6 +35,12 @@ std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage*, const std::string, const i
 ImageResource::ImageResource(const ImageUri& uri) : Resource(uri.GetId()), uri(uri) {
 }
 
+ImageResource::~ImageResource() {
+    if (this->task) {
+        this->task->Cancel();
+    }
+}
+
 bool ImageResource::Sync(Renderer* renderer) {
     if (this->textureId) {
         return true;
@@ -112,6 +118,18 @@ Value ImageResource::ToObject(Napi::Env env) const {
     font["state"] = String::New(env, ResourceStateToString(this->resourceState));
 
     return scope.Escape(font);
+}
+
+void ImageResource::Detach(Renderer* renderer) {
+    if (resourceState == ResourceStateReady) {
+        if (this->textureId) {
+            fmt::println("destroying texture...");
+            renderer->DestroyTexture(this->textureId);
+            this->textureId = 0;
+        }
+
+        resourceState = ResourceStateInit;
+    }
 }
 
 std::shared_ptr<ImageInfo> DecodeImage(const ImageUri& uri, const std::vector<std::string>& extensions,

@@ -7,11 +7,11 @@
 import { assert } from 'chai'
 import { Style } from 'light-source'
 import React from 'react'
-import { renderAsync, root, before, after } from './test-env'
+import { renderAsync, root, beforeSceneTest, afterSceneTest } from './test-env'
 
 describe('BoxElement', () => {
-  beforeEach(before)
-  afterEach(after)
+  beforeEach(beforeSceneTest)
+  afterEach(afterSceneTest)
   describe('prop: style', () => {
     it('should set style with Style object', async () => {
       await renderAsync(<box style={new Style({ backgroundColor: 'red' })} />)

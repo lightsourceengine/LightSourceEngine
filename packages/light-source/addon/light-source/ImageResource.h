@@ -55,7 +55,7 @@ struct ImageInfo : public TaskResult {
 class ImageResource : public Resource {
  public:
     explicit ImageResource(const ImageUri& uri);
-    virtual ~ImageResource() = default;
+    virtual ~ImageResource();
 
     uint32_t GetTextureId() const { return this->textureId; }
     int32_t GetWidth() const { return this->width; }
@@ -69,8 +69,9 @@ class ImageResource : public Resource {
     Napi::Value ToObject(Napi::Env env) const;
 
  private:
-    void Load(AsyncTaskQueue* taskQueue, Renderer* renderer,
-        const std::vector<std::string>& extensions, const std::vector<std::string>& resourcePath);
+    void Load(AsyncTaskQueue* taskQueue, Renderer* renderer, const std::vector<std::string>& extensions,
+        const std::vector<std::string>& resourcePath);
+    void Detach(Renderer* renderer);
     uint32_t UpdateTexture(Renderer* renderer);
 
  private:

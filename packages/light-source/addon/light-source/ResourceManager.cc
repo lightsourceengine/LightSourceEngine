@@ -298,9 +298,19 @@ FontResource* ResourceManager::FindFont(const std::string& family, StyleFontStyl
 }
 
 void ResourceManager::Attach() {
+    for (auto& entry : this->images) {
+        auto imageResource{ entry.second };
+
+        if (imageResource->resourceState == ResourceStateInit) {
+            imageResource->Load(&this->asyncTaskQueue, this->renderer, this->imageExtensions, this->path);
+        }
+    }
 }
 
 void ResourceManager::Detach() {
+    for (auto& resource : this->images) {
+        resource.second->Detach(this->renderer);
+    }
 }
 
 void ResourceManager::ProcessEvents() {
@@ -308,6 +318,12 @@ void ResourceManager::ProcessEvents() {
 }
 
 void ResourceManager::Destroy() {
+    if (!this->renderer) {
+        return;
+    }
+
+    this->Detach();
+
     this->renderer = nullptr;
 
     this->images.clear();
