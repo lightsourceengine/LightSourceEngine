@@ -29,8 +29,8 @@ class RefSceneAdapter : public SceneAdapter {
     Renderer* GetRenderer() const override;
 
  private:
-    std::unique_ptr<RefRenderer> renderer;
     SceneAdapterConfig config;
+    mutable RefRenderer renderer;
     std::string title;
 };
 

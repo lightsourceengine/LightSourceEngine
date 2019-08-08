@@ -44,6 +44,7 @@ class ImageSceneNode : public Napi::ObjectWrap<ImageSceneNode>, public SceneNode
     void ClearImage();
     void SetImage(ImageResource* newImage);
     bool DoCallbacks();
+    void AppendChild(SceneNode* child) override;
 };
 
 } // namespace ls

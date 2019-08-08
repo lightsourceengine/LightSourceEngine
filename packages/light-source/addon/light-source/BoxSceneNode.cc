@@ -88,9 +88,9 @@ void BoxSceneNode::Paint(Renderer* renderer) {
                 boxStyle->backgroundFit(), this->backgroundImage, width, height, &fitWidth, &fitHeight);
         }
 
-        float positionX{ x + dx
+        auto positionX{ x + dx
             + CalculateObjectPosition(boxStyle->backgroundPositionX(), true, width, fitWidth, 0, this->scene) };
-        float positionY{ y + dy
+        auto positionY{ y + dy
             + CalculateObjectPosition(boxStyle->backgroundPositionY(), false, height, fitHeight, 0, this->scene) };
 
         renderer->PushClipRect({ x + dx, y + dy, width + dw, height + dh });

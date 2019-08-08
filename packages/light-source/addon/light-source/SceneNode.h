@@ -36,16 +36,13 @@ class SceneNode {
     Napi::Value GetStyle(const Napi::CallbackInfo& info);
     void SetStyle(const Napi::CallbackInfo& info, const Napi::Value& value);
 
-    void SyncStyleRecursive();
-
     void AppendChild(const Napi::CallbackInfo& info);
     void InsertBefore(const Napi::CallbackInfo& info);
     void RemoveChild(const Napi::CallbackInfo& info);
-
     void Destroy(const Napi::CallbackInfo& info);
 
     void Destroy();
-
+    void SyncStyleRecursive();
     void Layout(float width, float height, bool recalculate);
     Style* GetStyleOrEmpty() const { return this->style ? this->style : Style::Empty(); }
 
@@ -59,17 +56,19 @@ class SceneNode {
     void SetParent(SceneNode* newParent);
     virtual void ApplyStyle(Style* style);
     virtual void DestroyRecursive();
+    virtual void AppendChild(SceneNode* child);
+    void InsertBefore(SceneNode* child, SceneNode* before);
     void RemoveChild(SceneNode* child);
     void RefreshStyleRecursive();
+    void ValidateInsertCandidate(SceneNode* child);
 
  protected:
     static int instanceCount;
+    std::vector<SceneNode*> children{};
     YGNodeRef ygNode{};
-    bool isLeaf{false};
     Scene* scene{};
     SceneNode* parent{};
     Style* style{};
-    std::vector<SceneNode*> children{};
 };
 
 template<typename T>

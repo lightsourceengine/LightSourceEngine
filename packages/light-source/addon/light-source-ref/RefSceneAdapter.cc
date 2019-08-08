@@ -9,8 +9,7 @@
 
 namespace ls {
 
-RefSceneAdapter::RefSceneAdapter(const SceneAdapterConfig& config)
-    : renderer(std::make_unique<RefRenderer>()), config(config) {
+RefSceneAdapter::RefSceneAdapter(const SceneAdapterConfig& config) : config(config) {
 }
 
 RefSceneAdapter::~RefSceneAdapter() {
@@ -38,7 +37,7 @@ bool RefSceneAdapter::GetFullscreen() const {
 }
 
 Renderer* RefSceneAdapter::GetRenderer() const {
-    return this->renderer.get();
+    return &this->renderer;
 }
 
 } // namespace ls

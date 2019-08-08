@@ -31,6 +31,7 @@ class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
     void ApplyStyle(Style* style) override;
     bool SetFont(FontSampleResource* newFont);
     void DestroyRecursive() override;
+    void AppendChild(SceneNode* child) override;
 
  private:
     TextBlock textBlock;

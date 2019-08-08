@@ -12,6 +12,7 @@
 #include "Style.h"
 #include "BoxSceneNode.h"
 #include "ImageSceneNode.h"
+#include "RootSceneNode.h"
 #include "TextSceneNode.h"
 #include "napi-ext.h"
 #include <fmt/format.h>
@@ -23,8 +24,10 @@ using Napi::Object;
 using ls::ResourceManager;
 using ls::Scene;
 using ls::Style;
+using ls::SceneNode;
 using ls::BoxSceneNode;
 using ls::ImageSceneNode;
+using ls::RootSceneNode;
 using ls::TextSceneNode;
 
 void ExportClass(Object* exports, const Function& constructor) {
@@ -40,9 +43,12 @@ Object Init(Env env, Object exports) {
     ExportClass(&exports, BoxSceneNode::Constructor(env));
     ExportClass(&exports, ImageSceneNode::Constructor(env));
     ExportClass(&exports, TextSceneNode::Constructor(env));
+    ExportClass(&exports, RootSceneNode::Constructor(env));
 
     Style::Init(env);
     ls::StyleEnumMappings::Init(env, exports);
+
+    exports["getSceneNodeInstanceCount"] = Function::New(env, &SceneNode::GetInstanceCount);
 
     return exports;
 }

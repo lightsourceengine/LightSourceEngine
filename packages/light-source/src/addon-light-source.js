@@ -18,6 +18,7 @@ try {
   lib.BoxSceneNode = () => {}
   lib.ImageSceneNode = () => {}
   lib.TextSceneNode = () => {}
+  lib.getSceneNodeInstanceCount = () => 0
 }
 
 export const {
@@ -27,6 +28,8 @@ export const {
   BoxSceneNode,
   ImageSceneNode,
   TextSceneNode,
+  RootSceneNode,
+  getSceneNodeInstanceCount,
   addonError
 } = lib
 

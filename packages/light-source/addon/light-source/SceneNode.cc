@@ -63,7 +63,7 @@ Value SceneNode::GetHeight(const CallbackInfo& info) {
 
 Value SceneNode::GetParent(const CallbackInfo& info) {
     if (this->parent == nullptr) {
-        return info.Env().Undefined();
+        return info.Env().Null();
     }
 
     return this->parent->AsReference()->Value();
@@ -95,7 +95,7 @@ Value SceneNode::GetStyle(const CallbackInfo& info) {
         return this->style->Value();
     }
 
-    return info.Env().Undefined();
+    return info.Env().Null();
 }
 
 void SceneNode::SyncStyleRecursive() {
@@ -161,61 +161,29 @@ void SceneNode::ApplyStyle(Style* style) {
 }
 
 void SceneNode::AppendChild(const CallbackInfo& info) {
-    auto env{ info.Env() };
-
-    if (this->isLeaf) {
-        throw Error::New(env, "Cannot append to leaf views.");
-    }
-
     auto childObject{ info[0].As<Object>() };
     auto child{ ObjectWrap<SceneNode>::Unwrap(childObject) };
 
-    if (child == nullptr) {
-        throw Error::New(env, "Child must be a SceneNode instance.");
-    }
+    this->ValidateInsertCandidate(child);
 
-    if (child->parent != nullptr) {
-        throw Error::New(env, "Child already has a parent.");
-    }
-
-    this->children.push_back(child);
-    child->AsReference()->Ref();
-    child->SetParent(this);
-
-    YGNodeInsertChild(this->ygNode, child->ygNode, YGNodeGetChildCount(this->ygNode));
+    this->AppendChild(child);
 }
 
 void SceneNode::InsertBefore(const CallbackInfo& info) {
     auto env{ info.Env() };
-
-    if (this->isLeaf) {
-        throw Error::New(env, "Cannot append to leaf views.");
-    }
-
     auto childObject{ info[0].As<Object>() };
     auto child{ ObjectWrap<SceneNode>::Unwrap(childObject) };
 
-    if (child == nullptr) {
-        throw Error::New(env, "Child must be a SceneNode instance.");
-    }
-
-    if (child->parent != nullptr) {
-        throw Error::New(env, "Child already has a parent.");
-    }
+    this->ValidateInsertCandidate(child);
 
     auto beforeObject{ info[1].As<Object>() };
     auto before{ ObjectWrap<SceneNode>::Unwrap(beforeObject) };
-    auto beforeIterator{ std::find(this->children.begin(), this->children.end(), before) };
 
-    if (beforeIterator == this->children.end()) {
-        throw Error::New(env, "Before must be a child of this SceneNode.");
+    if (before == nullptr || before->parent != this) {
+        throw Error::New(env, "before must be a child of this SceneNode");
     }
 
-    this->children.insert(beforeIterator, before);
-    child->AsReference()->Ref();
-    child->SetParent(this);
-
-    YGNodeInsertChild(this->ygNode, child->ygNode, std::distance(this->children.begin(), beforeIterator));
+    this->InsertBefore(child, before);
 }
 
 void SceneNode::RemoveChild(const CallbackInfo& info) {
@@ -232,6 +200,39 @@ void SceneNode::RemoveChild(const CallbackInfo& info) {
     }
 
     this->RemoveChild(child);
+}
+
+void SceneNode::AppendChild(SceneNode* child) {
+    this->children.push_back(child);
+    child->AsReference()->Ref();
+    child->SetParent(this);
+
+    YGNodeInsertChild(this->ygNode, child->ygNode, YGNodeGetChildCount(this->ygNode));
+}
+
+void SceneNode::InsertBefore(SceneNode* child, SceneNode* before) {
+    auto beforeIndex{ -1 };
+    auto childrenLen{ static_cast<int32_t>(this->children.size()) };
+
+    for (auto i{ 0 }; i < childrenLen; i++) {
+        if (this->children[i] == before) {
+            beforeIndex = i;
+            break;
+        }
+    }
+
+    auto reference{ child->AsReference() };
+
+    if (beforeIndex < 0) {
+        throw Error::New(reference->Env(), "before is not a child of SceneNode.");
+    }
+
+    this->children.insert(this->children.begin() + beforeIndex, child);
+
+    reference->Ref();
+    child->SetParent(this);
+
+    YGNodeInsertChild(this->ygNode, child->ygNode, beforeIndex);
 }
 
 void SceneNode::RemoveChild(SceneNode* child) {
@@ -258,6 +259,10 @@ void SceneNode::Destroy() {
 }
 
 void SceneNode::DestroyRecursive() {
+    if (this->scene == nullptr) {
+        return;
+    }
+
     instanceCount--;
 
     std::for_each(this->children.begin(), this->children.end(), [](SceneNode* node) { node->DestroyRecursive(); });
@@ -312,6 +317,22 @@ void SceneNode::Layout(float width, float height, bool recalculate) {
 
     if (YGNodeIsDirty(this->ygNode)) {
         YGNodeCalculateLayout(this->ygNode, width, height, YGDirectionLTR);
+    }
+}
+
+void SceneNode::ValidateInsertCandidate(SceneNode* child) {
+    auto env{ this->AsReference()->Env() };
+
+    if (child == nullptr) {
+        throw Error::New(env, "child must be a SceneNode instance.");
+    }
+
+    if (child == this) {
+        throw Error::New(env, "child cannot equal this");
+    }
+
+    if (child->parent != nullptr) {
+        throw Error::New(env, "child already has a parent.");
     }
 }
 

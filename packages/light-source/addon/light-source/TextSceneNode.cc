@@ -23,19 +23,15 @@ using Napi::Value;
 namespace ls {
 
 TextSceneNode::TextSceneNode(const CallbackInfo& info) : ObjectWrap<TextSceneNode>(info), SceneNode(info) {
-    this->isLeaf = true;
-
     YGNodeSetContext(this->ygNode, this);
 
     YGNodeSetMeasureFunc(
         this->ygNode,
         [](YGNodeRef nodeRef, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) -> YGSize {
-            static const YGSize emptySize{ 0.f, 0.f };
-
             auto self { static_cast<TextSceneNode*>(YGNodeGetContext(nodeRef)) };
 
             if (!self) {
-                return emptySize;
+                return { 0.f, 0.f };
             }
 
             auto& textBlock{ self->textBlock };
@@ -184,6 +180,10 @@ void TextSceneNode::DestroyRecursive() {
     this->SetFont(nullptr);
 
     SceneNode::DestroyRecursive();
+}
+
+void TextSceneNode::AppendChild(SceneNode* child) {
+    throw Error::New(this->Env(), "appendChild is an unsupported operation on text nodes");
 }
 
 } // namespace ls

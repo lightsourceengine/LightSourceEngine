@@ -5,25 +5,19 @@
  */
 
 import { assert } from 'chai'
-import { Stage } from '../src/Stage'
 import { BoxSceneNode, TextSceneNode, ImageSceneNode } from '../src/addon-light-source'
+import { afterSceneTest, beforeSceneTest, createNode } from '.'
 
 const $attach = Symbol.for('attach')
 const $detach = Symbol.for('detach')
 
-let stage
-let scene
-
 describe('Scene', () => {
+  let scene
   beforeEach(() => {
-    stage = new Stage()
-    stage.init({ adapter: 'light-source-ref' })
-    scene = stage.createScene({ width: 1280, height: 720 })
+    scene = beforeSceneTest()
   })
   afterEach(() => {
-    stage[Symbol.for('destroy')]()
-    stage = null
-    scene = null
+    scene = afterSceneTest()
   })
   describe('createNode()', () => {
     it('should create a new SceneNode by tag name', () => {
@@ -35,12 +29,12 @@ describe('Scene', () => {
       ]
 
       for (const input of inputs) {
-        assert.instanceOf(scene.createNode(input[0]), input[1])
+        assert.instanceOf(createNode(input[0]), input[1])
       }
     })
     it('should throw Error for unsupported tag name', () => {
       for (const tag of ['', 'body', null, undefined]) {
-        assert.throws(() => scene.createNode(tag))
+        assert.throws(() => createNode(tag))
       }
     })
   })
@@ -65,11 +59,6 @@ describe('Scene', () => {
   describe('displayIndex', () => {
     it('should get displayIndex', () => {
       assert.equal(scene.displayIndex, 0)
-    })
-  })
-  describe('stage', () => {
-    it('should get stage', () => {
-      assert.strictEqual(scene.stage, stage)
     })
   })
   describe('root', () => {

@@ -13,6 +13,7 @@
 
 using Napi::Array;
 using Napi::CallbackInfo;
+using Napi::Error;
 using Napi::Function;
 using Napi::FunctionReference;
 using Napi::HandleScope;
@@ -23,8 +24,6 @@ using Napi::Value;
 namespace ls {
 
 ImageSceneNode::ImageSceneNode(const CallbackInfo& info) : ObjectWrap<ImageSceneNode>(info), SceneNode(info) {
-    this->isLeaf = true;
-
     YGNodeSetContext(this->ygNode, this);
 
     YGNodeSetMeasureFunc(
@@ -74,14 +73,16 @@ Value ImageSceneNode::GetSource(const CallbackInfo& info) {
 }
 
 void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& value) {
-    if (!value.IsString()) {
+    std::string str{ value.IsString() ? value.As<String>().Utf8Value() : "" };
+
+    if (str.empty()) {
         this->ClearImage();
         YGNodeMarkDirty(this->ygNode);
 
         return;
     }
 
-    ImageUri newUri(value.As<String>().Utf8Value());
+    ImageUri newUri(str);
 
     if (newUri == this->uri) {
         return;
@@ -239,6 +240,10 @@ bool ImageSceneNode::DoCallbacks() {
     }
 
     return false;
+}
+
+void ImageSceneNode::AppendChild(SceneNode* child) {
+    throw Error::New(this->Env(), "appendChild is an unsupported operation on img nodes");
 }
 
 } // namespace ls
