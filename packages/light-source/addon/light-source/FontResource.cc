@@ -135,7 +135,7 @@ std::shared_ptr<TaskResult> LoadFont(const std::vector<std::string>& path, const
     return result;
 }
 
-Value FontResource::ToObject(Napi::Env env) {
+Value FontResource::ToObject(Napi::Env env) const {
     EscapableHandleScope scope(env);
     auto font{ Object::New(env) };
 

@@ -30,13 +30,13 @@ class SDLSceneAdapter : public SceneAdapter {
     Renderer* GetRenderer() const override;
 
  private:
-    std::unique_ptr<SDLRenderer> renderer{};
+    SceneAdapterConfig config;
+    mutable SDLRenderer renderer;
     SDL_Window* window{};
     int32_t width{};
     int32_t height{};
     bool fullscreen{};
     std::string title{"Light Source App"};
-    SceneAdapterConfig config;
 };
 
 } // namespace ls

@@ -36,6 +36,7 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     void SetPath(const Napi::CallbackInfo& info, const Napi::Value& value);
 
     Napi::Value GetFonts(const Napi::CallbackInfo& info);
+    Napi::Value GetImages(const Napi::CallbackInfo& info);
 
     void PostConstruct(Renderer* renderer);
 

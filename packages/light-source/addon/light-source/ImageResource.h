@@ -33,7 +33,7 @@ class ImageUri {
 
     bool operator==(const ImageUri& rhs) { return this->GetId() == rhs.GetId(); }
 
-    Napi::Value ToObject(Napi::Env env);
+    Napi::Value ToObject(Napi::Env env) const;
     static ImageUri FromObject(const Napi::Object& spec);
 
  private:
@@ -57,13 +57,16 @@ class ImageResource : public Resource {
     explicit ImageResource(const ImageUri& uri);
     virtual ~ImageResource() = default;
 
-    uint32_t GetTextureId() { return this->textureId; }
+    uint32_t GetTextureId() const { return this->textureId; }
     int32_t GetWidth() const { return this->width; }
     int32_t GetHeight() const { return this->height; }
     bool HasCapInsets() const { return this->uri.HasCapInsets(); }
     const EdgeRect& GetCapInsets() const { return this->uri.GetCapInsets(); }
+    const ImageUri& GetUri() const { return this->uri; }
 
     bool Sync(Renderer* renderer);
+
+    Napi::Value ToObject(Napi::Env env) const;
 
  private:
     void Load(AsyncTaskQueue* taskQueue, Renderer* renderer,

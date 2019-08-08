@@ -57,6 +57,8 @@ class SDLRenderer : public Renderer {
 
     void Detach();
 
+    void Destroy();
+
  private:
     void SetRenderDrawColor(const int64_t color);
     void UpdateTextureFormats(const SDL_RendererInfo& info);

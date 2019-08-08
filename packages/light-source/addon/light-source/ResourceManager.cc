@@ -45,6 +45,7 @@ Function ResourceManager::Constructor(Napi::Env env) {
             InstanceMethod("registerImage", &ResourceManager::RegisterImage),
             InstanceMethod("addFont", &ResourceManager::AddFont),
             InstanceAccessor("fonts", &ResourceManager::GetFonts, nullptr),
+            InstanceAccessor("images", &ResourceManager::GetImages, nullptr),
             InstanceAccessor("path", &ResourceManager::GetPath, &ResourceManager::SetPath),
             InstanceAccessor("imageExtensions",
                 &ResourceManager::GetImageExtensions, &ResourceManager::SetImageExtensions),
@@ -67,6 +68,18 @@ Value ResourceManager::GetFonts(const CallbackInfo& info) {
     }
 
     return fontArray;
+}
+
+Value ResourceManager::GetImages(const CallbackInfo& info) {
+    auto env{ info.Env() };
+    auto imagesArray{ Array::New(env, this->images.size()) };
+    auto i{ 0u };
+
+    for (auto& p : this->images) {
+        imagesArray.Set(i++, p.second->ToObject(env));
+    }
+
+    return imagesArray;
 }
 
 void ResourceManager::RegisterImage(const Napi::CallbackInfo& info) {

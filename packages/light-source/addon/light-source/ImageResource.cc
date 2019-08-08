@@ -102,6 +102,18 @@ void ImageResource::Load(AsyncTaskQueue* taskQueue, Renderer* renderer,
     this->SetStateAndNotifyListeners(initialState);
 }
 
+Value ImageResource::ToObject(Napi::Env env) const {
+    EscapableHandleScope scope(env);
+    auto font{ Object::New(env) };
+
+    font["uri"] = this->GetUri().ToObject(env);
+    font["resourceId"] = String::New(env, this->GetId());
+    font["refs"] = Number::New(env, this->GetRefCount());
+    font["state"] = String::New(env, ResourceStateToString(this->resourceState));
+
+    return scope.Escape(font);
+}
+
 std::shared_ptr<ImageInfo> DecodeImage(const ImageUri& uri, const std::vector<std::string>& extensions,
              const std::vector<std::string>& resourcePath, PixelFormat textureFormat) {
     std::shared_ptr<ImageInfo> result;
@@ -267,7 +279,7 @@ ImageUri ImageUri::FromObject(const Object& spec) {
     return ImageUri(uri, id, width, height);
 }
 
-Value ImageUri::ToObject(Napi::Env env) {
+Value ImageUri::ToObject(Napi::Env env) const {
     EscapableHandleScope scope(env);
     auto imageUri{ Object::New(env) };
 

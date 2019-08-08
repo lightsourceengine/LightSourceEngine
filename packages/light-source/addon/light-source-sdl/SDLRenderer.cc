@@ -27,7 +27,7 @@ SDLRenderer::SDLRenderer() {
 }
 
 SDLRenderer::~SDLRenderer() {
-    this->Detach();
+    this->Destroy();
 }
 
 void SDLRenderer::UpdateTextureFormats(const SDL_RendererInfo& info) {
@@ -426,6 +426,10 @@ void SDLRenderer::Detach() {
 
     SDL_DestroyRenderer(this->renderer);
     this->renderer = nullptr;
+}
+
+void SDLRenderer::Destroy() {
+    this->Detach();
 }
 
 inline

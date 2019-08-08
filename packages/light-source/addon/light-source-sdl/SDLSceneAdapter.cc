@@ -9,12 +9,11 @@
 
 namespace ls {
 
-SDLSceneAdapter::SDLSceneAdapter(const SceneAdapterConfig& config)
-    : renderer(std::make_unique<SDLRenderer>()), config(config) {
+SDLSceneAdapter::SDLSceneAdapter(const SceneAdapterConfig& config) : config(config) {
 }
 
 SDLSceneAdapter::~SDLSceneAdapter() {
-    this->renderer.reset();
+    this->renderer.Destroy();
 
     if (this->window) {
         SDL_DestroyWindow(this->window);
@@ -49,17 +48,15 @@ void SDLSceneAdapter::Attach() {
             displayIndex);
     }
 
-    this->renderer->Attach(this->window);
+    this->renderer.Attach(this->window);
 
-    this->width = this->renderer->GetWidth();
-    this->height = this->renderer->GetHeight();
+    this->width = this->renderer.GetWidth();
+    this->height = this->renderer.GetHeight();
     this->fullscreen = false;
 }
 
 void SDLSceneAdapter::Detach() {
-    if (this->renderer) {
-        this->renderer->Detach();
-    }
+    this->renderer.Detach();
 
     // TODO: option to destroy window on detach
 }
@@ -80,7 +77,7 @@ bool SDLSceneAdapter::GetFullscreen() const {
 }
 
 Renderer* SDLSceneAdapter::GetRenderer() const {
-    return this->renderer.get();
+    return &this->renderer;
 }
 
 void SDLSceneAdapter::SetTitle(const std::string& title) {

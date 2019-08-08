@@ -32,7 +32,7 @@ class FontResource : public Resource {
 
     std::shared_ptr<stbtt_fontinfo> GetFontInfo() const { return this->fontInfo; }
 
-    Napi::Value ToObject(Napi::Env env);
+    Napi::Value ToObject(Napi::Env env) const;
 
  private:
     std::string uri;
