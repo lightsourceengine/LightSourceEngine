@@ -8,6 +8,7 @@ import { Direction } from './Direction'
 
 const HORIZONTAL = 1
 const VERTICAL = 2
+
 const OFFSET = []
 
 OFFSET[HORIZONTAL] = []
@@ -18,7 +19,7 @@ OFFSET[VERTICAL] = []
 OFFSET[VERTICAL][Direction.UP] = -1
 OFFSET[VERTICAL][Direction.DOWN] = 1
 
-export class Waypoint {
+export class FixedListWaypoint {
   constructor (navigation) {
     this.navigation = navigation
   }
@@ -53,22 +54,22 @@ export class Waypoint {
         this._syncChildFocus(navigate)
         break
       case Direction.DOWN:
-        if (pending && navigation === VERTICAL && !pending.isDescendent(owner)) {
+        if (pending && navigation === VERTICAL && !isDescendent(pending, owner)) {
           focalPathIndex = 0
         }
         break
       case Direction.UP:
-        if (pending && navigation === VERTICAL && !pending.isDescendent(owner)) {
+        if (pending && navigation === VERTICAL && !isDescendent(pending, owner)) {
           focalPathIndex = _focalPath.length - 1
         }
         break
       case Direction.RIGHT:
-        if (pending && navigation === HORIZONTAL && !pending.isDescendent(owner)) {
+        if (pending && navigation === HORIZONTAL && !isDescendent(pending, owner)) {
           focalPathIndex = 0
         }
         break
       case Direction.LEFT:
-        if (pending && navigation === HORIZONTAL && !pending.isDescendent(owner)) {
+        if (pending && navigation === HORIZONTAL && !isDescendent(pending, owner)) {
           focalPathIndex = _focalPath.length - 1
         }
         break
@@ -127,4 +128,18 @@ const findFocusable = (node) => {
   }
 
   return null
+}
+
+const isDescendent = (a, b) => {
+  let walker = a
+
+  while (walker != null) {
+    if (b === walker.parent) {
+      return true
+    }
+
+    walker = walker.parent
+  }
+
+  return false
 }

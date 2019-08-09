@@ -193,7 +193,7 @@ for (let i = 0; i < 16; i++) {
   hexCharCodeToInt.set(hexDigit.toUpperCase().charCodeAt(0), i)
 }
 
-const ErrorHexColorString = value => { Error(`Malformed hex color string in Style: ${value}.`) }
+const ErrorHexColorString = value => Error(`Malformed hex color string in Style: ${value}.`)
 const ThrowErrorUnknownColorName = value => { throw Error(`Unsupported color name in Style: ${value}`) }
 
 const fromHexHashString = value => {

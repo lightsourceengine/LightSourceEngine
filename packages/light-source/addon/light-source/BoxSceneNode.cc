@@ -30,7 +30,9 @@ Function BoxSceneNode::Constructor(Napi::Env env) {
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        auto func{ DefineClass(env, "BoxSceneNode", SceneNode::Extend<BoxSceneNode>(env, {})) };
+        auto func{ DefineClass(env, "BoxSceneNode", SceneNode::Extend<BoxSceneNode>(env, {
+            InstanceValue("waypoint", env.Null(), napi_writable),
+        })) };
 
         constructor.Reset(func, 1);
         constructor.SuppressDestruct();
