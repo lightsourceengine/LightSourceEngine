@@ -5,8 +5,8 @@
  */
 
 import { assert } from 'chai'
-import { BoxSceneNode, TextSceneNode, ImageSceneNode } from '../src/addon'
-import { afterSceneTest, beforeSceneTest, createNode } from '.'
+import { BoxSceneNode, TextSceneNode, ImageSceneNode } from '../../src/addon'
+import { afterSceneTest, beforeSceneTest, createNode } from '..'
 
 const $attach = Symbol.for('attach')
 const $detach = Symbol.for('detach')

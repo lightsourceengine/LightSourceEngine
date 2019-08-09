@@ -4,8 +4,8 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { afterSceneTest, beforeSceneTest, createNode } from '.'
-import { ImageSceneNode } from '../src/addon'
+import { afterSceneTest, beforeSceneTest, createNode } from '..'
+import { ImageSceneNode } from '../../src/addon'
 import { assert } from 'chai'
 import { join } from 'path'
 
@@ -64,7 +64,7 @@ describe('ImageSceneNode', () => {
 
       for (const input of images) {
         const node = createNode('img')
-        const uri = join('test', input)
+        const uri = join('test/resources', input)
 
         node.src = uri
         assert.include(node.src, { id: uri, uri: uri })
@@ -76,7 +76,7 @@ describe('ImageSceneNode', () => {
     })
     it('should be assignable to a resource uri', async () => {
       scene.stage.start()
-      scene.resource.path = 'test'
+      scene.resource.path = 'test/resources'
       const promises = []
 
       for (const input of images) {
@@ -107,7 +107,7 @@ describe('ImageSceneNode', () => {
       scene.stage.start()
 
       const node = createNode('img')
-      const uri = 'test/640x480'
+      const uri = 'test/resources/640x480'
 
       node.src = uri
       assert.include(node.src, { id: uri, uri: uri })
@@ -118,7 +118,7 @@ describe('ImageSceneNode', () => {
       scene.stage.start()
 
       const node = createNode('img')
-      const uri = 'test/invalid.jpg'
+      const uri = 'test/resources/invalid.jpg'
 
       node.src = uri
       assert.include(node.src, { id: uri, uri: uri })

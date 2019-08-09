@@ -5,7 +5,7 @@
  */
 
 import { assert } from 'chai'
-import { Stage } from '../src/Stage'
+import { Stage } from '../../src/stage/Stage'
 
 let stage
 

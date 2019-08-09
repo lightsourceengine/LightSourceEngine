@@ -5,7 +5,7 @@
  */
 
 import { assert } from 'chai'
-import { Style } from '../src/Style'
+import { Style } from '../../src/style/Style'
 
 const alphaBit = 4294967296
 

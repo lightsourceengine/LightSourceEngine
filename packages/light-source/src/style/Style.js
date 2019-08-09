@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { StyleBase, StyleEnumMappings } from './addon'
+import { StyleBase, StyleEnumMappings } from '../addon'
 
 export const ColorNames = {
   // from: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#Color_keywords

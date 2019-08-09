@@ -4,11 +4,11 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { Scene } from './Scene'
+import { Scene } from '../scene/Scene'
 import bindings from 'bindings'
 import { performance } from 'perf_hooks'
-import { addonError } from './addon'
-import { InputManager } from './input/InputManager'
+import { addonError } from '../addon'
+import { InputManager } from '../input/InputManager'
 
 const { now } = performance
 const $adapter = Symbol.for('adapter')

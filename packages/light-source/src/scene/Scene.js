@@ -4,8 +4,8 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode } from './addon'
-import { Style } from './Style'
+import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode } from '../addon'
+import { Style } from '../style/Style'
 import EventEmitter from 'events'
 
 const $width = Symbol.for('width')
