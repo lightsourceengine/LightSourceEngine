@@ -4,8 +4,8 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { afterSceneTest, beforeSceneTest, createNode } from './index'
-import { ImageSceneNode } from '../src/addon-light-source'
+import { afterSceneTest, beforeSceneTest, createNode } from '.'
+import { ImageSceneNode } from '../src/addon'
 import { assert } from 'chai'
 import { join } from 'path'
 
@@ -60,6 +60,7 @@ describe('ImageSceneNode', () => {
     })
     it('should be assignable to a relative file path', async () => {
       scene.stage.start()
+      const promises = []
 
       for (const input of images) {
         const node = createNode('img')
@@ -68,12 +69,15 @@ describe('ImageSceneNode', () => {
         node.src = uri
         assert.include(node.src, { id: uri, uri: uri })
 
-        await expectOnLoad(node)
+        promises.push(expectOnLoad(node))
       }
+
+      await Promise.all(promises)
     })
     it('should be assignable to a resource uri', async () => {
       scene.stage.start()
       scene.resource.path = 'test'
+      const promises = []
 
       for (const input of images) {
         const node = createNode('img')
@@ -82,8 +86,10 @@ describe('ImageSceneNode', () => {
         node.src = uri
         assert.include(node.src, { id: uri, uri: uri })
 
-        await expectOnLoad(node)
+        promises.push(expectOnLoad(node))
       }
+
+      await Promise.all(promises)
     })
     it('should be assignable to an svg uri', async () => {
       scene.stage.start()

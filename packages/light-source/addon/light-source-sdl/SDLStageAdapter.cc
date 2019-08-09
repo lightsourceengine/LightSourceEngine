@@ -94,6 +94,7 @@ Function SDLStageAdapter::Constructor(Napi::Env env) {
             InstanceMethod("detach", &SDLStageAdapter::Detach),
             InstanceMethod("destroy", &SDLStageAdapter::Destroy),
             InstanceMethod("setCallback", &SDLStageAdapter::SetCallback),
+            InstanceMethod("addGameControllerMappings", &SDLStageAdapter::AddGameControllerMappings),
         });
 
         constructor.Reset(func, 1);
@@ -135,6 +136,25 @@ Value SDLStageAdapter::GetDisplays(const CallbackInfo& info) {
     }
 
     return displayArray;
+}
+
+Value SDLStageAdapter::AddGameControllerMappings(const CallbackInfo& info) {
+    auto env{ info.Env() };
+    auto source{ info[0].As<String>().Utf8Value() };
+
+    auto rwops{ SDL_RWFromConstMem(source.c_str(), static_cast<int32_t>(source.size())) };
+
+    if (rwops == nullptr) {
+        throw Error::New(env, fmt::format("addGameControllerMappings(): {}", SDL_GetError()));
+    }
+
+    auto result{ SDL_GameControllerAddMappingsFromRW(rwops, 1) };
+
+    if (result == -1) {
+        throw Error::New(env, fmt::format("addGameControllerMappings(): {}", SDL_GetError()));
+    }
+
+    return Number::New(env, result);
 }
 
 void SDLStageAdapter::SetCallback(const CallbackInfo& info) {

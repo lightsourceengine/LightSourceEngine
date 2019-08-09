@@ -89,7 +89,7 @@ void CalculateObjectFitDimensions(StyleObjectFit objectFit,
         case StyleObjectFitNone:
             *fitWidth = imageWidth;
             *fitHeight = imageHeight;
-        break;
+            break;
         case StyleObjectFitFill:
 //            fitWidth = boxWidth;
 //            fitHeight = boxHeight;

@@ -18,9 +18,9 @@ describe('Stage', () => {
     stage[Symbol.for('destroy')]()
     stage = null
   })
-  describe('gamepads', () => {
-    it('should get gamepads from adapter', () => {
-      assert.lengthOf(stage.gamepads, 0)
+  describe('fps', () => {
+    it('should...', () => {
+      assert.isTrue(true)
     })
   })
 })

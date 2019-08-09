@@ -5,7 +5,7 @@
  */
 
 import { Stage } from '../src/Stage'
-import { getSceneNodeInstanceCount } from '../src/addon-light-source'
+import { getSceneNodeInstanceCount } from '../src/addon'
 import { assert } from 'chai'
 
 let stage

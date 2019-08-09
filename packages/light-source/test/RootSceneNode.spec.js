@@ -4,9 +4,9 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { afterSceneTest, beforeSceneTest } from './index'
+import { afterSceneTest, beforeSceneTest } from '.'
 import { assert } from 'chai'
-import { RootSceneNode } from '../src/addon-light-source'
+import { RootSceneNode } from '../src/addon'
 
 describe('RootSceneNode', () => {
   before(beforeSceneTest)

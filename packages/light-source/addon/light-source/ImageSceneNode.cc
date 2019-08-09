@@ -243,7 +243,7 @@ bool ImageSceneNode::DoCallbacks() {
 }
 
 void ImageSceneNode::AppendChild(SceneNode* child) {
-    throw Error::New(this->Env(), "appendChild is an unsupported operation on img nodes");
+    throw Error::New(this->Env(), "appendChild() is an unsupported operation on img nodes");
 }
 
 } // namespace ls

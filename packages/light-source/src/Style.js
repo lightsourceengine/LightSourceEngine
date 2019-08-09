@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { StyleBase, StyleEnumMappings } from './addon-light-source'
+import { StyleBase, StyleEnumMappings } from './addon'
 
 export const ColorNames = {
   // from: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#Color_keywords
@@ -615,7 +615,7 @@ class Style extends StyleBase {
       throw Error()
     }
 
-    return ((a & 0xFF) << 24 | color) + ALPHABIT
+    return (((a & 0xFF) << 24) | color) | ALPHABIT
   }
 }
 

@@ -5,7 +5,7 @@
  */
 
 import { assert } from 'chai'
-import { BoxSceneNode, TextSceneNode, ImageSceneNode } from '../src/addon-light-source'
+import { BoxSceneNode, TextSceneNode, ImageSceneNode } from '../src/addon'
 import { afterSceneTest, beforeSceneTest, createNode } from '.'
 
 const $attach = Symbol.for('attach')

@@ -28,7 +28,7 @@ TextSceneNode::TextSceneNode(const CallbackInfo& info) : ObjectWrap<TextSceneNod
     YGNodeSetMeasureFunc(
         this->ygNode,
         [](YGNodeRef nodeRef, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) -> YGSize {
-            auto self { static_cast<TextSceneNode*>(YGNodeGetContext(nodeRef)) };
+            auto self{ static_cast<TextSceneNode*>(YGNodeGetContext(nodeRef)) };
 
             if (!self) {
                 return { 0.f, 0.f };
@@ -164,9 +164,9 @@ bool TextSceneNode::SetFont(FontSampleResource* newFont) {
         this->fontListenerId = newFont->AddListener([this]() {
             if (this->font->IsReady() || this->font->HasError()) {
                 this->textBlock.SetFont(this->font);
-                YGNodeMarkDirty(this->ygNode);
                 this->font->RemoveListener(this->fontListenerId);
                 this->fontListenerId = 0;
+                YGNodeMarkDirty(this->ygNode);
             }
         });
 
@@ -183,7 +183,7 @@ void TextSceneNode::DestroyRecursive() {
 }
 
 void TextSceneNode::AppendChild(SceneNode* child) {
-    throw Error::New(this->Env(), "appendChild is an unsupported operation on text nodes");
+    throw Error::New(this->Env(), "appendChild() is an unsupported operation on text nodes");
 }
 
 } // namespace ls

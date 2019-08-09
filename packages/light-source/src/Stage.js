@@ -5,11 +5,10 @@
  */
 
 import { Scene } from './Scene'
-import { inputEventDispatcher } from './input/inputEventDispatcher'
 import bindings from 'bindings'
-import { EventEmitter } from 'events'
 import { performance } from 'perf_hooks'
-import { addonError } from './addon-light-source'
+import { addonError } from './addon'
+import { InputManager } from './input/InputManager'
 
 const { now } = performance
 const $adapter = Symbol.for('adapter')
@@ -24,6 +23,8 @@ const $destroy = Symbol.for('destroy')
 const $displays = Symbol.for('displays')
 const $exitListener = Symbol.for('exitListener')
 const $quitRequested = Symbol.for('quitRequested')
+const $input = Symbol.for('input')
+const $syncStageAdapter = Symbol.for('syncStageAdapter')
 
 export class Stage {
   constructor () {
@@ -33,6 +34,7 @@ export class Stage {
     this[$scene] = null
     this[$displays] = []
     this[$exitListener] = null
+    this[$input] = new InputManager()
   }
 
   get fps () {
@@ -44,12 +46,8 @@ export class Stage {
     this[$fps] = value
   }
 
-  get keyboard () {
-    return this[$adapter].getKeyboard()
-  }
-
-  get gamepads () {
-    return this[$adapter].getGamepads()
+  get input () {
+    return this[$input]
   }
 
   get displays () {
@@ -92,7 +90,7 @@ export class Stage {
       throw e
     }
 
-    inputEventDispatcher(this[$adapter], new Map(), new EventEmitter())
+    this[$input][$syncStageAdapter]()
 
     process.on('exit', this[$exitListener] = () => {
       if (this[$adapter]) {
