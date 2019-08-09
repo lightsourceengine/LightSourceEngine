@@ -51,7 +51,7 @@ Function ImageSceneNode::Constructor(Napi::Env env) {
         auto func = DefineClass(
             env,
             "ImageSceneNode",
-            SceneNode::Extend<ImageSceneNode>({
+            SceneNode::Extend<ImageSceneNode>(env, {
                 InstanceAccessor("src", &ImageSceneNode::GetSource, &ImageSceneNode::SetSource),
                 InstanceAccessor("onLoad", &ImageSceneNode::GetOnLoadCallback, &ImageSceneNode::SetOnLoadCallback),
                 InstanceAccessor("onError", &ImageSceneNode::GetOnErrorCallback, &ImageSceneNode::SetOnErrorCallback),

@@ -51,7 +51,7 @@ class SceneNode {
 
  protected:
      template<typename T>
-     static std::vector<Napi::ClassPropertyDescriptor<T>> Extend(
+     static std::vector<Napi::ClassPropertyDescriptor<T>> Extend(Napi::Env env,
          const std::initializer_list<Napi::ClassPropertyDescriptor<T>>& subClassProperties);
     void SetParent(SceneNode* newParent);
     virtual void ApplyStyle(Style* style);
@@ -72,9 +72,11 @@ class SceneNode {
 };
 
 template<typename T>
-std::vector<Napi::ClassPropertyDescriptor<T>> SceneNode::Extend(
+std::vector<Napi::ClassPropertyDescriptor<T>> SceneNode::Extend(Napi::Env env,
         const std::initializer_list<Napi::ClassPropertyDescriptor<T>>& subClassProperties) {
     std::vector<Napi::ClassPropertyDescriptor<T>> result = {
+        Napi::ObjectWrap<T>::InstanceValue("focusable", Napi::Boolean::New(env, false), napi_writable),
+        Napi::ObjectWrap<T>::InstanceValue("waypoint", env.Null(), napi_writable),
         Napi::ObjectWrap<T>::InstanceAccessor("x", &SceneNode::GetX, nullptr),
         Napi::ObjectWrap<T>::InstanceAccessor("y", &SceneNode::GetY, nullptr),
         Napi::ObjectWrap<T>::InstanceAccessor("width", &SceneNode::GetWidth, nullptr),

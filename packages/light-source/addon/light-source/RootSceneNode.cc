@@ -31,7 +31,7 @@ Function RootSceneNode::Constructor(Napi::Env env) {
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        auto func{ DefineClass(env, "RootSceneNode", SceneNode::Extend<RootSceneNode>({})) };
+        auto func{ DefineClass(env, "RootSceneNode", SceneNode::Extend<RootSceneNode>(env, {})) };
 
         constructor.Reset(func, 1);
         constructor.SuppressDestruct();
