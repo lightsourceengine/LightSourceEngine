@@ -30,7 +30,8 @@ using NSVGrasterizerHandle = std::unique_ptr<NSVGrasterizer, decltype(&nsvgDelet
 float ScaleFactor(const int, const int);
 std::shared_ptr<ImageInfo> DecodeImage(const ImageUri&, const std::vector<std::string>&,
     const std::vector<std::string>&, PixelFormat);
-std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage*, const std::string, const int32_t, const int32_t);
+std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage* svgImage, const std::string& uri, const int32_t scaleWidth,
+        const int32_t scaleHeight);
 
 ImageResource::ImageResource(const ImageUri& uri) : Resource(uri.GetId()), uri(uri) {
 }
