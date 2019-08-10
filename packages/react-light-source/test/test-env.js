@@ -7,14 +7,33 @@
 import { stage } from 'light-source'
 import { ReactRenderer } from '../src/ReactRenderer'
 import { Reconciler } from '../src/Reconciler'
+import React from 'react'
 
 const state = {
   scene: null,
   container: null
 }
 
-export const renderAsync = (component) => {
-  return new Promise(resolve => { container().render(component, () => resolve()) })
+class Catch extends React.Component {
+  componentDidCatch (error, info) {
+    this.props.context.caught = error
+  }
+
+  render () {
+    return this.props.children
+  }
+}
+
+export const renderAsync = async (component) => {
+  const context = { caught: null }
+
+  await new Promise(resolve => {
+    container().render(<Catch context={context}>{component}</Catch>, () => resolve())
+  })
+
+  if (context.caught !== null) {
+    throw context.caught.message
+  }
 }
 
 export const beforeSceneTest = () => {

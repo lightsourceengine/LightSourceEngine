@@ -41,6 +41,8 @@ export class Element {
       this.node.style = style ? (style instanceof Style ? style : new Style(style)) : style
     }
 
+    this.node.focusable = !!newProps.focusable
+
     this.props = newProps
   }
 

@@ -5,6 +5,7 @@
  */
 
 import { Element } from './Element'
+import { waypoint } from 'light-source'
 
 export class BoxElement extends Element {
   /**
@@ -14,4 +15,19 @@ export class BoxElement extends Element {
    *
    * Maps &lt;box&gt; or &lt;div&gt; element to a BoxSceneNode.
    */
+
+  /**
+   * @override
+   */
+  updateProps (oldProps, newProps) {
+    super.updateProps(oldProps, newProps)
+
+    if (oldProps.waypoint !== newProps.waypoint) {
+      if (typeof newProps.waypoint === 'string') {
+        this.node.waypoint = waypoint(newProps.waypoint)
+      } else {
+        this.node.waypoint = newProps.waypoint
+      }
+    }
+  }
 }

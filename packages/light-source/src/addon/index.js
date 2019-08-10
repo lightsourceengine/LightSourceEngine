@@ -11,14 +11,17 @@ let lib
 try {
   lib = bindings('light-source')
 } catch (e) {
-  lib.addonError = e
-  lib.StyleBase = () => {}
-  lib.StyleEnumMappings = () => {}
-  lib.SceneBase = () => {}
-  lib.BoxSceneNode = () => {}
-  lib.ImageSceneNode = () => {}
-  lib.TextSceneNode = () => {}
-  lib.getSceneNodeInstanceCount = () => 0
+  lib = {
+    StyleBase: () => {},
+    StyleEnumMappings: () => {},
+    SceneBase: () => {},
+    BoxSceneNode: () => {},
+    ImageSceneNode: () => {},
+    RootSceneNode: () => {},
+    TextSceneNode: () => {},
+    getSceneNodeInstanceCount: () => 0,
+    addonError: e,
+  }
 }
 
 export const {
@@ -27,8 +30,8 @@ export const {
   SceneBase,
   BoxSceneNode,
   ImageSceneNode,
-  TextSceneNode,
   RootSceneNode,
+  TextSceneNode,
   getSceneNodeInstanceCount,
   addonError
 } = lib

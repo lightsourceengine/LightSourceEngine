@@ -6,6 +6,7 @@
 
 import { Stage } from './stage/Stage'
 import { Style } from './style/Style'
+import { waypoint } from './scene/waypoint'
 
 const errorHandler = obj => {
   if (obj) {
@@ -19,5 +20,9 @@ const errorHandler = obj => {
 ['SIGINT', 'SIGUSR1', 'SIGUSR2', 'uncaughtException', 'unhandledRejection'].forEach(
   e => process.on(e, errorHandler))
 
-export { Style }
+export {
+  Style,
+  waypoint
+}
+
 export const stage = new Stage()

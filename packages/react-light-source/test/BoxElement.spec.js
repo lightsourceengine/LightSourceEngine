@@ -24,4 +24,32 @@ describe('BoxElement', () => {
       assert.equal(root().children[0].style.backgroundColor, 0xFF0000)
     })
   })
+  describe('prop: waypoint', () => {
+    it('should set waypoint to horizontal navigation', async () => {
+      await renderAsync(<box waypoint='horizontal' />)
+
+      assert.equal(root().children[0].waypoint.tag, 'horizontal')
+    })
+    it('should set waypoint to vertical navigation', async () => {
+      await renderAsync(<box waypoint='vertical' />)
+
+      assert.equal(root().children[0].waypoint.tag, 'vertical')
+    })
+    it('', async () => {
+      const customWaypoint = { tag: 'custom', resolve () {}, navigate () {} }
+
+      await renderAsync(<box waypoint={customWaypoint} />)
+
+      assert.strictEqual(root().children[0].waypoint, customWaypoint)
+    })
+    it('should throw error for an invalid waypoint tag', async () => {
+      try {
+        await renderAsync(<box waypoint='test' />)
+      } catch (e) {
+        return
+      }
+
+      assert.fail('expected exception')
+    })
+  })
 })
