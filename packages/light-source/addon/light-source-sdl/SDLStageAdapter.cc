@@ -239,11 +239,16 @@ Value SDLStageAdapter::ProcessEvents(const CallbackInfo& info) {
     auto eventCount{ SDL_PeepEvents(eventBuffer, NUM_EVENTS_PER_FRAME, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT) };
 
     if (eventCount < 0) {
+        fmt::println("SDL_PeepEvents(): {}", SDL_GetError());
         return Boolean::New(env, false);
     }
 
     while (eventIndex < eventCount) {
-        HandleScope scope(env);
+        if (!this->isAttached) {
+            break;
+        }
+
+        EscapableHandleScope scope(env);
         float value;
         const auto& event = eventBuffer[eventIndex++];
 
@@ -253,7 +258,7 @@ Value SDLStageAdapter::ProcessEvents(const CallbackInfo& info) {
                     Call(StageCallbackQuit, {});
                 }
                 // TODO: user override?
-                return Boolean::New(env, false);
+                return scope.Escape(Boolean::New(env, false));
             case SDL_KEYUP:
                 if (!IsCallbackEmpty(StageCallbackKeyboardKeyUp)) {
                     Call(StageCallbackKeyboardKeyUp, {
@@ -267,7 +272,7 @@ Value SDLStageAdapter::ProcessEvents(const CallbackInfo& info) {
                     Call(StageCallbackKeyboardKeyDown, {
                         this->keyboard->Value(),
                         Number::New(env, event.key.keysym.scancode),
-                        Number::New(env, event.key.repeat != 0),
+                        Boolean::New(env, event.key.repeat != 0),
                     });
                 }
                 break;

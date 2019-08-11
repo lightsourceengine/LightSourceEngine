@@ -43,6 +43,30 @@ export class Element {
 
     this.node.focusable = !!newProps.focusable
 
+    if (oldProps.onFocus !== newProps.onFocus) {
+      this.node.onFocus = newProps.onFocus
+    }
+
+    if (oldProps.onBlur !== newProps.onBlur) {
+      this.node.onBlur = newProps.onBlur
+    }
+
+    if (oldProps.onKeyUp !== newProps.onKeyUp) {
+      this.node.onKeyUp = newProps.onKeyUp
+    }
+
+    if (oldProps.onKeyDown !== newProps.onKeyDown) {
+      this.node.onKeyDown = newProps.onKeyDown
+    }
+
+    if (oldProps.onButtonUp !== newProps.onButtonUp) {
+      this.node.onButtonUp = newProps.onButtonUp
+    }
+
+    if (oldProps.onButtonDown !== newProps.onButtonDown) {
+      this.node.onButtonDown = newProps.onButtonDown
+    }
+
     this.props = newProps
   }
 

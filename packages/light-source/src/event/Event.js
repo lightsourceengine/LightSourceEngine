@@ -3,86 +3,41 @@
  *
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
-import assert from 'assert'
 
-/**
- * Base class for events that take place in the view graph.
- */
+const $phase = Symbol.for('phase')
+const $type = Symbol.for('type')
+const $timestamp = Symbol.for('timestamp')
+
 export class Event {
-  /**
-   * Creates an Event object.
-   *
-   * @param type {string} Event name.
-   * @param cancelable {boolean} Is this event cancelable?
-   * @param bubbles {boolean} Does this event bubble through the view graph?
-   */
-  constructor (type, cancelable, bubbles) {
-    assert(typeof type === 'string', 'Event type must be a string.')
+  static PhaseNone = 0
 
-    /**
-     * The name of the event.
-     *
-     * @property {string}
-     * @name Event#type
-     */
-    Object.defineProperty(this, 'type', {
-      value: type,
-      writable: false
-    })
+  static PhaseCapture = 1
 
-    /**
-     * Indicates whether the event can be canceled.
-     *
-     * @property {boolean}
-     * @name Event#cancelable
-     */
-    Object.defineProperty(this, 'cancelable', {
-      value: !!cancelable,
-      writable: false
-    })
+  static PhaseBubble = 2
 
-    /**
-     * Indicates whether the event bubbles up through the view graph or not.
-     *
-     * @property {boolean}
-     * @name Event#bubbles
-     */
-    Object.defineProperty(this, 'bubbles', {
-      value: !!bubbles,
-      writable: false
-    })
-
-    this._canceled = false
-    this._timestamp = 0
+  constructor (type, timestamp) {
+    this[$type] = type
+    this[$timestamp] = timestamp
+    this[$phase] = Event.PhaseNone
   }
 
-  cancel () {
-    this.cancelable && (this._canceled = true)
+  get phase () {
+    return this[$phase]
   }
 
-  /**
-   * Was cancel() called on this event?
-   *
-   * @returns {boolean}
-   */
-  get canceled () {
-    return this._canceled
+  get name () {
+    return Symbol.keyFor(this[$type])
   }
 
-  /**
-   * The time which the event was created in milliseconds. This value is a high resolution timestamp relative to
-   * performance.timeOrigin.
-   *
-   * @returns {number}
-   */
+  get type () {
+    return this[$type]
+  }
+
   get timestamp () {
-    return this._timestamp
+    return this[$timestamp]
   }
 
-  _reset (timestamp) {
-    this._canceled = false
-    this._timestamp = timestamp
+  stop () {
 
-    return this
   }
 }

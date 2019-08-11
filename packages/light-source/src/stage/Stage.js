@@ -9,6 +9,8 @@ import bindings from 'bindings'
 import { performance } from 'perf_hooks'
 import { addonError } from '../addon'
 import { InputManager } from '../input/InputManager'
+import { EventEmitter } from '../util/EventEmitter'
+import { EventType } from '../event/EventType'
 
 const { now } = performance
 const $adapter = Symbol.for('adapter')
@@ -24,7 +26,9 @@ const $displays = Symbol.for('displays')
 const $exitListener = Symbol.for('exitListener')
 const $quitRequested = Symbol.for('quitRequested')
 const $input = Symbol.for('input')
-const $syncStageAdapter = Symbol.for('syncStageAdapter')
+const $bind = Symbol.for('bind')
+const $unbind = Symbol.for('unbind')
+const $events = Symbol.for('events')
 
 export class Stage {
   constructor () {
@@ -35,6 +39,16 @@ export class Stage {
     this[$displays] = []
     this[$exitListener] = null
     this[$input] = new InputManager()
+    this[$events] = new EventEmitter([
+      EventType.KeyDown,
+      EventType.KeyUp,
+      EventType.AxisMotion,
+      EventType.DeviceConnected,
+      EventType.DeviceDisconnected,
+      EventType.DeviceButtonDown,
+      EventType.DeviceButtonUp,
+      EventType.DeviceAxisMotion
+    ])
   }
 
   get fps () {
@@ -52,6 +66,14 @@ export class Stage {
 
   get displays () {
     return this[$displays]
+  }
+
+  on (id, listener) {
+    this[$events].on(id, listener)
+  }
+
+  off (id, listener) {
+    this[$events].off(id, listener)
   }
 
   init ({ adapter, audioAdapter } = {}) {
@@ -90,7 +112,7 @@ export class Stage {
       throw e
     }
 
-    this[$input][$syncStageAdapter]()
+    this[$input][$bind](this)
 
     process.on('exit', this[$exitListener] = () => {
       if (this[$adapter]) {
@@ -216,6 +238,8 @@ export class Stage {
       process.off('exit', this[$exitListener])
       this[$exitListener] = null
     }
+
+    this[$input][$unbind]()
 
     clearTimeout(this[$mainLoopHandle])
     this[$mainLoopHandle] = null

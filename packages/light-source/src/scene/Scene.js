@@ -6,7 +6,8 @@
 
 import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode } from '../addon'
 import { Style } from '../style/Style'
-import EventEmitter from 'events'
+import { EventEmitter } from '../util/EventEmitter'
+import { EventType } from '../event/EventType'
 
 const $width = Symbol.for('width')
 const $height = Symbol.for('height')
@@ -17,6 +18,10 @@ const $resource = Symbol.for('resource')
 const $destroy = Symbol.for('destroy')
 const $events = Symbol.for('events')
 const $displayIndex = Symbol.for('displayIndex')
+const $capture = Symbol.for('capture')
+const $bubble = Symbol.for('bubble')
+const $focus = Symbol.for('focus')
+const $destroying = Symbol.for('destroying')
 
 const nodeClass = new Map([
   ['img', ImageSceneNode],
@@ -34,8 +39,19 @@ export class Scene extends SceneBase {
     super(stageAdapter, displayIndex, width, height, fullscreen)
 
     this[$stage] = stage
-    this[$events] = new EventEmitter()
     this[$displayIndex] = displayIndex
+    this[$events] = new EventEmitter([
+      $destroying,
+      EventType.KeyDown,
+      EventType.KeyUp,
+      EventType.AxisMotion,
+      EventType.DeviceConnected,
+      EventType.DeviceDisconnected,
+      EventType.DeviceButtonDown,
+      EventType.DeviceButtonUp,
+      EventType.DeviceAxisMotion
+    ])
+    this[$focus] = null
 
     this.root.style = new Style({
       position: 'absolute',
@@ -76,6 +92,24 @@ export class Scene extends SceneBase {
     return this[$displayIndex]
   }
 
+  on (id, listener) {
+    this[$events].on(id, listener)
+  }
+
+  off (id, listener) {
+    this[$events].off(id, listener)
+  }
+
+  setFocus (node) {
+    // TODO: validate node
+    // TODO: dispatch events
+    this[$focus] = node
+  }
+
+  getFocus () {
+    return this[$focus]
+  }
+
   // TODO: add refreshRate
 
   // TODO: add vsync
@@ -90,12 +124,20 @@ export class Scene extends SceneBase {
 
   [$destroy] () {
     if (this[$events]) {
-      this[$events].emit('destroying')
+      this[$events].emit({ type: $destroying })
       this[$events] = null
     }
 
     this[$stage] = null
 
     super[$destroy]()
+  }
+
+  [$capture] (event) {
+
+  }
+
+  [$bubble] (event) {
+
   }
 }

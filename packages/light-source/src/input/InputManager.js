@@ -4,54 +4,47 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { EventEmitter } from 'events'
 import { performance } from 'perf_hooks'
-import { KeyboardEvent } from '../event/KeyboardEvent'
-import { GamepadButtonEvent } from '../event/GamepadButtonEvent'
-import { GamepadAxisEvent } from '../event/GamepadAxisEvent'
-import { GamepadEvent } from '../event/GamepadEvent'
+import { ScanCode } from './ScanCode'
+import { StandardKey } from './StandardKey'
+import { KeyEvent } from '../event/KeyEvent'
+import { DeviceEvent } from '../event/DeviceEvent'
+import { DeviceAxisEvent } from '../event/DeviceAxisEvent'
+import { DeviceButtonEvent } from '../event/DeviceButtonEvent'
 
 const { now } = performance
-
-const keyboardKeyUpEventType = 'keyboard:keyup'
-const keyboardKeyUpEvent = new KeyboardEvent(keyboardKeyUpEventType, true, true)
-const keyboardKeyDownEventType = 'keyboard:keydown'
-const keyboardKeyDownEvent = new KeyboardEvent(keyboardKeyDownEventType, true, true)
-const gamepadButtonUpEventType = 'gamepad:buttonup'
-const gamepadButtonUpEvent = new GamepadButtonEvent(gamepadButtonUpEventType)
-const gamepadButtonDownEventType = 'gamepad:buttondown'
-const gamepadButtonDownEvent = new GamepadButtonEvent(gamepadButtonDownEventType)
-const gamepadAxisMotionEventType = 'gamepad:axismotion'
-const gamepadAxisMotionEvent = new GamepadAxisEvent(gamepadAxisMotionEventType)
-const gamepadConnectedEventType = 'gamepad:connected'
-const gamepadConnectedEvent = new GamepadEvent(gamepadConnectedEventType)
-const gamepadDisconnectedEventType = 'gamepad:disconnected'
-const gamepadDisconnectedEvent = new GamepadEvent(gamepadDisconnectedEventType)
-
-const $stage = Symbol.for('stage')
+const keyboardUuid = 'keyboard'
 const $adapter = Symbol.for('adapter')
-const $syncStageAdapter = Symbol.for('syncStageAdapter')
+const $bind = Symbol.for('bind')
+const $unbind = Symbol.for('unbind')
+const $mappings = Symbol.for('mappings')
+const $scene = Symbol.for('scene')
+const $capture = Symbol.for('capture')
+const $bubble = Symbol.for('capture')
+const $events = Symbol.for('events')
 
 export class InputManager {
   constructor () {
-    this[$syncStageAdapter](null)
-  }
+    this[$adapter] = unintializedStageAdapter
 
-  [$syncStageAdapter] (stage) {
-    if (stage) {
-      this[$adapter] = stage[$adapter]
-      inputEventDispatcher(this[$adapter], new Map(), new EventEmitter())
-    } else {
-      this[$adapter] = new UnintializedStageAdapter()
-    }
+    const keyboardMapping = new Map([
+      [ScanCode.UP, StandardKey.UP],
+      [ScanCode.RIGHT, StandardKey.RIGHT],
+      [ScanCode.DOWN, StandardKey.DOWN],
+      [ScanCode.LEFT, StandardKey.LEFT]
+    ])
+
+    this[$mappings] = new Map([
+      [keyboardUuid, keyboardMapping]
+    ])
   }
 
   get keyboard () {
-    return this[$stage][$adapter].getKeyboard()
+    return this[$adapter].getKeyboard()
   }
 
   get gamepads () {
-    return this[$stage][$adapter].getGamepads()
+    return this[$adapter].getGamepads()
   }
 
   addGameControllerMappings (csv) {
@@ -65,81 +58,174 @@ export class InputManager {
 
     return adapter.addGameControllerMappings(csv)
   }
-}
 
-const inputEventDispatcher = (adapter, mappings, emitter) => {
-  adapter.setCallback('connected', (gamepad) => {
-    updateMapping(gamepad, mappings)
-    emitter.emit(
-      gamepadConnectedEventType,
-      gamepadConnectedEvent._reset(gamepad, now()))
-  })
+  [$bind] (stage) {
+    const adapter = this[$adapter] = stage[$adapter]
 
-  adapter.setCallback('disconnected', (gamepad) => {
-    emitter.emit(
-      gamepadDisconnectedEventType,
-      gamepadDisconnectedEvent._reset(gamepad, now()))
-  })
+    adapter.setCallback('connected', (gamepad) => {
+      // updateMapping(gamepad, mappings)
 
-  adapter.setCallback('keyup', (keyboard, button) => {
-    const timestamp = now()
+      stage[$events].emit(new DeviceEvent(gamepad, true, now()))
+    })
 
-    emitter.emit(
-      keyboardKeyUpEventType,
-      keyboardKeyUpEvent._reset(keyboard, timestamp, button))
-  })
+    adapter.setCallback('disconnected', (gamepad) => {
+      stage[$events].emit(new DeviceEvent(gamepad, false, now()))
+    })
 
-  adapter.setCallback('keydown', (keyboard, button, repeat) => {
-    const timestamp = now()
+    adapter.setCallback('keyup', (keyboard, button) => {
+      const timestamp = now()
+      const hardwareEvent = new DeviceButtonEvent(keyboard, button, false, false, timestamp)
 
-    emitter.emit(
-      keyboardKeyDownEventType,
-      keyboardKeyDownEvent._reset(keyboard, timestamp, button, true, repeat))
-  })
+      stage[$scene][$bubble](hardwareEvent)
 
-  adapter.setCallback('buttonup', (gamepad, button) => {
-    const timestamp = now()
+      const mapping = this[$mappings].get(keyboard.uuid)
 
-    emitter.emit(
-      gamepadButtonUpEventType,
-      gamepadButtonUpEvent._reset(gamepad, timestamp, button))
-  })
+      if (!mapping) {
+        console.log(`no mapping for: ${keyboard.uuid}`)
+        return
+      }
 
-  adapter.setCallback('buttondown', (gamepad, button) => {
-    const timestamp = now()
+      if (!mapping.has(button)) {
+        console.log(`unmapped keyboard button: ${button}`)
+        return
+      }
 
-    emitter.emit(
-      gamepadButtonDownEventType,
-      gamepadButtonDownEvent._reset(gamepad, timestamp, button, true))
-  })
+      const keyEvent = new KeyEvent(
+        mapping.get(button),
+        false,
+        false,
+        'standard',
+        { device: keyboard, button: button },
+        timestamp)
 
-  adapter.setCallback('axismotion', (gamepad, axis, value) => {
-    const timestamp = now()
+      stage[$scene][$bubble](keyEvent)
+    })
 
-    emitter.emit(gamepadAxisMotionEventType, gamepadAxisMotionEvent._reset(gamepad, timestamp, axis, value))
-  })
+    adapter.setCallback('keydown', (keyboard, button, repeat) => {
+      const timestamp = now()
+      const hardwareEvent = new DeviceButtonEvent(keyboard, button, true, repeat, timestamp)
+
+      stage[$scene][$bubble](hardwareEvent)
+
+      const mapping = this[$mappings].get(keyboard.uuid)
+
+      if (!mapping) {
+        console.log(`no mapping for: ${keyboard.uuid}`)
+        return
+      }
+
+      if (!mapping.has(button)) {
+        console.log(`unmapped keyboard button: ${button}`)
+        return
+      }
+
+      const keyEvent = new KeyEvent(
+        mapping.get(button),
+        true,
+        repeat,
+        'standard',
+        { device: keyboard, button: button },
+        timestamp)
+
+      stage[$scene][$capture](keyEvent)
+
+      stage[$scene][$bubble](keyEvent)
+    })
+
+    adapter.setCallback('buttonup', (gamepad, button) => {
+      const timestamp = now()
+      const hardwareEvent = new DeviceButtonEvent(gamepad, button, false, false, timestamp)
+
+      stage[$scene][$bubble](hardwareEvent)
+
+      const mapping = this[$mappings].get(gamepad.uuid)
+
+      if (!mapping) {
+        console.log(`no mapping for: ${gamepad.uuid}`)
+        return
+      }
+
+      if (!mapping.has(button)) {
+        console.log(`unmapped keyboard button: ${button}`)
+        return
+      }
+
+      const keyEvent = new KeyEvent(
+        this[mapping].get(button),
+        false,
+        false,
+        'standard',
+        { device: gamepad, button: button },
+        timestamp)
+
+      stage[$scene][$bubble](keyEvent)
+    })
+
+    adapter.setCallback('buttondown', (gamepad, button) => {
+      const timestamp = now()
+      const hardwareEvent = new DeviceButtonEvent(gamepad, button, true, false, timestamp)
+
+      stage[$scene][$bubble](hardwareEvent)
+
+      const mapping = this[$mappings].get(gamepad.uuid)
+
+      if (!mapping) {
+        console.log(`no mapping for: ${gamepad.uuid}`)
+        return
+      }
+
+      if (!mapping.has(button)) {
+        console.log(`unmapped keyboard button: ${button}`)
+        return
+      }
+
+      const keyEvent = new KeyEvent(
+        this[mapping].get(button),
+        true,
+        false,
+        'standard',
+        { device: gamepad, button: button },
+        timestamp)
+
+      stage[$scene][$capture](keyEvent)
+
+      stage[$scene][$bubble](keyEvent)
+    })
+
+    adapter.setCallback('axismotion', (gamepad, axis, value) => {
+      const timestamp = now()
+      const hardwareEvent = new DeviceAxisEvent(gamepad, axis, value, timestamp)
+
+      stage[$scene][$bubble](hardwareEvent)
+
+      // TODO: mapping
+    })
+  }
+
+  [$unbind] () {
+    // TODO: clear callbacks?
+    this[$adapter] = unintializedStageAdapter
+  }
 }
 
 const throwStageAdapterNotInitialized = () => {
   throw Error('stage.init() must be called before accessing input')
 }
 
-class UnintializedStageAdapter {
+const unintializedStageAdapter = {
   addGameControllerMappings (csv) {
     throwStageAdapterNotInitialized()
-  }
-
+  },
   get keyboard () {
     throwStageAdapterNotInitialized()
-  }
-
+  },
   get gamepads () {
     throwStageAdapterNotInitialized()
   }
 }
 
-const updateMapping = (device, mappings) => {
-  const { uuid, mapping } = device
-
-  !mappings.has(uuid) && mapping && mappings.set(uuid, mapping)
-}
+// const updateMapping = (device, mappings) => {
+//   const { uuid, mapping } = device
+//
+//   !mappings.has(uuid) && mapping && mappings.set(uuid, mapping)
+// }

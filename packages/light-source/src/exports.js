@@ -6,6 +6,7 @@
 
 import { Stage } from './stage/Stage'
 import { Style } from './style/Style'
+import { ScanCode } from './input/ScanCode'
 import { waypoint } from './scene/waypoint'
 
 const errorHandler = obj => {
@@ -17,12 +18,13 @@ const errorHandler = obj => {
   process.exit()
 };
 
-['SIGINT', 'SIGUSR1', 'SIGUSR2', 'uncaughtException', 'unhandledRejection'].forEach(
-  e => process.on(e, errorHandler))
+['SIGINT', 'uncaughtException', 'unhandledRejection'].forEach(e => process.on(e, errorHandler))
+
+const stage = new Stage()
 
 export {
+  ScanCode,
   Style,
+  stage,
   waypoint
 }
-
-export const stage = new Stage()
