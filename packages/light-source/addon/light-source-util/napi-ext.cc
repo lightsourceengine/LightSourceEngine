@@ -48,4 +48,36 @@ std::string ObjectGetStringOrEmpty(const Object& object, const char* key) {
     return value.As<Napi::String>();
 }
 
+std::string ToLowerCase(Napi::Env env, Napi::String text) {
+    HandleScope scope(env);
+    static FunctionReference toLowerCase;
+
+    if (toLowerCase.IsEmpty()) {
+        toLowerCase.Reset(env.Global()
+                .Get("String").As<Function>()
+                .Get("prototype").As<Object>()
+                .Get("toLowerCase").As<Function>(),
+            1);
+        toLowerCase.SuppressDestruct();
+    }
+
+    return toLowerCase.Call(text, {}).As<String>();
+}
+
+std::string ToUpperCase(Napi::Env env, Napi::String text) {
+    HandleScope scope(env);
+    static FunctionReference toUpperCase;
+
+    if (toUpperCase.IsEmpty()) {
+        toUpperCase.Reset(env.Global()
+                .Get("String").As<Function>()
+                .Get("prototype").As<Object>()
+                .Get("toUpperCase").As<Function>(),
+            1);
+        toUpperCase.SuppressDestruct();
+    }
+
+    return toUpperCase.Call(text, {}).As<String>();
+}
+
 } // namespace Napi

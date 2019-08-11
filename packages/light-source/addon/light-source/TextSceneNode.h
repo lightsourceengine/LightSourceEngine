@@ -32,8 +32,12 @@ class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
     bool SetFont(FontSampleResource* newFont);
     void DestroyRecursive() override;
     void AppendChild(SceneNode* child) override;
+    std::string ApplyTextTransform(const std::string& text);
+    std::string ApplyTextTransform(Napi::String text);
 
  private:
+    std::string text;
+    StyleTextTransform textTransform{StyleTextTransformNone};
     TextBlock textBlock;
     FontSampleResource* font{};
     uint32_t fontListenerId{};

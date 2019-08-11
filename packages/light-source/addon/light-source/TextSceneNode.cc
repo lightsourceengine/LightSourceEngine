@@ -8,6 +8,7 @@
 #include "FontSampleResource.h"
 #include "Scene.h"
 #include "StyleUtils.h"
+#include <napi-ext.h>
 #include <fmt/format.h>
 
 using Napi::Array;
@@ -16,6 +17,7 @@ using Napi::Error;
 using Napi::Function;
 using Napi::FunctionReference;
 using Napi::HandleScope;
+using Napi::Object;
 using Napi::ObjectWrap;
 using Napi::String;
 using Napi::Value;
@@ -78,14 +80,15 @@ void TextSceneNode::Paint(Renderer* renderer) {
 }
 
 Value TextSceneNode::GetText(const CallbackInfo& info) {
-    return String::New(info.Env(), this->textBlock.GetText());
+    return String::New(info.Env(), this->text);
 }
 
 void TextSceneNode::SetText(const CallbackInfo& info, const Napi::Value& value) {
     if (value.IsString()) {
-        this->textBlock.SetText(value.As<String>());
+        this->text = value.As<String>();
+        this->textBlock.SetText(this->ApplyTextTransform(this->text));
     } else if (value.IsNull() || value.IsUndefined()) {
-        this->textBlock.SetText(std::string());
+        this->textBlock.SetText("");
     } else {
         throw Error::New(info.Env(), "Cannot assign non-string value to text property.");
     }
@@ -131,7 +134,13 @@ void TextSceneNode::ApplyStyle(Style* style) {
     this->textBlock.SetFont(selectedFont);
     this->textBlock.SetTextOverflow(myStyle->textOverflow());
     this->textBlock.SetTextAlign(myStyle->textAlign());
-    this->textBlock.SetTextTransform(myStyle->textTransform());
+
+    auto newTextTransform{ myStyle->textTransform() };
+
+    if (this->textTransform != newTextTransform) {
+        this->textTransform = newTextTransform;
+        this->textBlock.SetText(this->ApplyTextTransform(this->text));
+    }
 
     int32_t maxLines;
 
@@ -184,6 +193,21 @@ void TextSceneNode::DestroyRecursive() {
 
 void TextSceneNode::AppendChild(SceneNode* child) {
     throw Error::New(this->Env(), "appendChild() is an unsupported operation on text nodes");
+}
+
+std::string TextSceneNode::ApplyTextTransform(const std::string& text) {
+    return this->ApplyTextTransform(String::New(this->Env(), text));
+}
+
+std::string TextSceneNode::ApplyTextTransform(Napi::String text) {
+    switch (this->textTransform) {
+        case StyleTextTransformUppercase:
+            return ToUpperCase(this->Env(), text);
+        case StyleTextTransformLowercase:
+            return ToLowerCase(this->Env(), text);
+        case StyleTextTransformNone:
+            return text;
+    }
 }
 
 } // namespace ls

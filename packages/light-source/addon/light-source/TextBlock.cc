@@ -9,7 +9,6 @@
 #include "Yoga.h"
 #include <utf8.h>
 #include <algorithm>
-#include <locale>
 #include <fmt/format.h>
 
 namespace ls {
@@ -17,12 +16,8 @@ namespace ls {
 constexpr int32_t UnicodeDot{ 0x2E };
 constexpr int32_t UnicodeNewLine{ 0x0A };
 constexpr int32_t UnicodeEllipsis{ 0x2026 };
-// TODO: make this configurable
-static auto lsLocale{ std::locale("en_US.UTF-8") };
 
-bool IsSpace(int32_t codepoint);
-int32_t ToUpper(int32_t codepoint);
-int32_t ToLower(int32_t codepoint);
+bool IsNonBreakingSpace(int32_t codepoint);
 
 class LayoutLine {
  public:
@@ -114,7 +109,7 @@ class LayoutLine {
             return this->LineBreakAtLastSpace();
         }
 
-        auto space{ IsSpace(codepoint) };
+        auto space{ IsNonBreakingSpace(codepoint) };
 
         if (this->cursorIndex < 0 && space) {
             return true;
@@ -283,13 +278,6 @@ void TextBlock::SetTextOverflow(StyleTextOverflow textOverflow) {
     }
 }
 
-void TextBlock::SetTextTransform(StyleTextTransform textTransform) {
-    if (this->textTransform != textTransform) {
-        this->textTransform = textTransform;
-        this->MarkDirty();
-    }
-}
-
 void TextBlock::SetTextAlign(StyleTextAlign textAlign) {
     if (this->textAlign != textAlign) {
         this->textAlign = textAlign;
@@ -322,7 +310,7 @@ void TextBlock::Layout(float width, YGMeasureMode widthMode, float height, YGMea
     LayoutLine line(*this, width, height);
 
     while (textIter != this->text.end()) {
-        auto codepoint{ this->TransformCodepoint(utf8::unchecked::next(textIter)) };
+        auto codepoint{ utf8::unchecked::next(textIter) };
 
         if (codepoint == UnicodeNewLine) {
             if (line.LineBreak()) {
@@ -334,7 +322,7 @@ void TextBlock::Layout(float width, YGMeasureMode widthMode, float height, YGMea
 
         fontMetrics->GetCodepointMetricsOrFallback(codepoint, &metrics);
 
-        if (IsSpace(codepoint) && IsSpace(line.GetCodepoint())) {
+        if (IsNonBreakingSpace(codepoint) && IsNonBreakingSpace(line.GetCodepoint())) {
             continue;
         }
 
@@ -370,30 +358,29 @@ void TextBlock::MarkDirty() {
     this->computedWidth = this->computedHeight = 0;
 }
 
-int32_t TextBlock::TransformCodepoint(int32_t codepoint) {
-    switch (this->textTransform) {
-        case StyleTextTransformUppercase:
-            return ToUpper(codepoint);
-        case StyleTextTransformLowercase:
-            return ToLower(codepoint);
-        default:
-            return codepoint;
+inline
+bool IsNonBreakingSpace(int32_t codepoint) {
+    switch(codepoint) {
+        case 0x0020:
+        case 0x180E:
+        case 0x2000:
+        case 0x2001:
+        case 0x2002:
+        case 0x2003:
+        case 0x2004:
+        case 0x2005:
+        case 0x2006:
+        case 0x2007:
+        case 0x2008:
+        case 0x2009:
+        case 0x200A:
+        case 0x200B:
+        case 0x205F:
+        case 0x3000:
+            return true;
     }
-}
 
-inline
-bool IsSpace(int32_t codepoint) {
-    return std::isspace<wchar_t>(codepoint, lsLocale);
-}
-
-inline
-int32_t ToUpper(int32_t codepoint) {
-    return std::toupper<wchar_t>(codepoint, lsLocale);
-}
-
-inline
-int32_t ToLower(int32_t codepoint) {
-    return std::tolower<wchar_t>(codepoint, lsLocale);
+    return false;
 }
 
 } // namespace ls

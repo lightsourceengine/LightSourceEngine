@@ -80,6 +80,8 @@ const char* StyleBackgroundClipToString(const StyleBackgroundClip value) {
 
 const char* StyleTextTransformToString(const StyleTextTransform value) {
   switch (value) {
+    case StyleTextTransformNone:
+        return "none";
     case StyleTextTransformUppercase:
         return "uppercase";
     case StyleTextTransformLowercase:

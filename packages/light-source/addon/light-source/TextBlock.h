@@ -31,13 +31,10 @@ class TextBlock {
     ~TextBlock();
 
     void SetFont(FontSampleResource* font);
-
-    std::string GetText() const { return this->text; }
     void SetText(const std::string& text);
     void SetText(std::string&& text);
 
     void SetTextOverflow(StyleTextOverflow textOverflow);
-    void SetTextTransform(StyleTextTransform textTransform);
     void SetTextAlign(StyleTextAlign textAlign);
     void SetMaxLines(int32_t maxLines);
 
@@ -50,7 +47,6 @@ class TextBlock {
 
  private:
     void MarkDirty();
-    int32_t TransformCodepoint(int32_t codepoint);
 
  private:
     FontSampleResource* font{};
@@ -63,7 +59,6 @@ class TextBlock {
     int32_t measuredHeightMode{};
     std::string text;
     StyleTextOverflow textOverflow{};
-    StyleTextTransform textTransform{};
     StyleTextAlign textAlign{};
     int32_t maxLines{};
     mutable std::vector<CodepointRect> quads;

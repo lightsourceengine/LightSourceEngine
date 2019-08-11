@@ -54,6 +54,7 @@ SS_ENUM_SEQ_DECL(
 
 SS_ENUM_SEQ_DECL(
     StyleTextTransform,
+    StyleTextTransformNone,
     StyleTextTransformUppercase,
     StyleTextTransformLowercase
 )

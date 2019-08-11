@@ -42,6 +42,16 @@ std::string ObjectGetStringOrEmpty(const Object& object, const char* key);
 template<typename T>
 T ObjectGetNumberOrDefault(const Object& object, const char* key, T defaultValue);
 
+/**
+ * Call text.toLowerCase().
+ */
+std::string ToLowerCase(Napi::Env env, Napi::String text);
+
+/**
+ * Call text.toLowerCase().
+ */
+std::string ToUpperCase(Napi::Env env, Napi::String text);
+
 } // namespace Napi
 
 #include "napi-ext-inl.h"

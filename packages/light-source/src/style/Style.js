@@ -166,7 +166,10 @@ const autoResultFromString = new Map([
 
 const anchorResultFromString = new Map()
 
-StyleEnumMappings.anchorFromString.forEach((value, key) => anchorResultFromString.set(key, [StyleBase.UnitAnchor, value]))
+if (StyleEnumMappings.anchorFromString) {
+  StyleEnumMappings.anchorFromString.forEach(
+    (value, key) => anchorResultFromString.set(key, [StyleBase.UnitAnchor, value]))
+}
 
 const parseResult = [0, 0]
 
@@ -194,7 +197,7 @@ for (let i = 0; i < 16; i++) {
 }
 
 const ErrorHexColorString = value => Error(`Malformed hex color string in Style: ${value}.`)
-const ThrowErrorUnknownColorName = value => { throw Error(`Unsupported color name in Style: ${value}`) }
+const throwErrorUnknownColorName = value => { throw Error(`Unsupported color name in Style: ${value}`) }
 
 const fromHexHashString = value => {
   let color = 0
@@ -243,7 +246,7 @@ const parseColorValue = value => {
     const color = ColorNames[value.toLowerCase()]
 
     if (color === undefined) {
-      ThrowErrorUnknownColorName(value)
+      throwErrorUnknownColorName(value)
     }
 
     return color
