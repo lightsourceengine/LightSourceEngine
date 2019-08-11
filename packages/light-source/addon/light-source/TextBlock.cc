@@ -360,7 +360,7 @@ void TextBlock::MarkDirty() {
 
 inline
 bool IsNonBreakingSpace(int32_t codepoint) {
-    switch(codepoint) {
+    switch (codepoint) {
         case 0x0020:
         case 0x180E:
         case 0x2000:
