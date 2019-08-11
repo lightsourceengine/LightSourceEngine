@@ -11,17 +11,10 @@ import { KeyEvent } from '../event/KeyEvent'
 import { DeviceEvent } from '../event/DeviceEvent'
 import { DeviceAxisEvent } from '../event/DeviceAxisEvent'
 import { DeviceButtonEvent } from '../event/DeviceButtonEvent'
+import { $adapter, $bind, $unbind, $mappings, $scene, $capture, $bubble, $events } from '../util/InternalSymbols'
 
 const { now } = performance
 const keyboardUuid = 'keyboard'
-const $adapter = Symbol.for('adapter')
-const $bind = Symbol.for('bind')
-const $unbind = Symbol.for('unbind')
-const $mappings = Symbol.for('mappings')
-const $scene = Symbol.for('scene')
-const $capture = Symbol.for('capture')
-const $bubble = Symbol.for('capture')
-const $events = Symbol.for('events')
 
 export class InputManager {
   constructor () {

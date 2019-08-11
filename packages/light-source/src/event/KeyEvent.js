@@ -6,13 +6,9 @@
 
 import { Event } from './Event'
 import { EventType } from './EventType'
+import { $key, $pressed, $repeat, $mapping, $source } from '../util/InternalSymbols'
 
 const { KeyUp, KeyDown } = EventType
-const $key = Symbol.for('key')
-const $pressed = Symbol.for('pressed')
-const $repeat = Symbol.for('repeat')
-const $mapping = Symbol.for('mapping')
-const $source = Symbol.for('source')
 
 export class KeyEvent extends Event {
   constructor (key, pressed, repeat, mapping, source, timestamp) {

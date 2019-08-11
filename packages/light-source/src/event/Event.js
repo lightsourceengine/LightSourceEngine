@@ -4,9 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-const $phase = Symbol.for('phase')
-const $type = Symbol.for('type')
-const $timestamp = Symbol.for('timestamp')
+import { $phase, $type, $timestamp } from '../util/InternalSymbols'
 
 export class Event {
   static PhaseNone = 0

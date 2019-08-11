@@ -11,24 +11,26 @@ import { addonError } from '../addon'
 import { InputManager } from '../input/InputManager'
 import { EventEmitter } from '../util/EventEmitter'
 import { EventType } from '../event/EventType'
+import {
+  $adapter,
+  $audioAdapter,
+  $mainLoopHandle,
+  $fps,
+  $attach,
+  $detach,
+  $destroy,
+  $frame,
+  $displays,
+  $exitListener,
+  $quitRequested,
+  $input,
+  $bind,
+  $unbind,
+  $events,
+  $scene
+} from '../util/InternalSymbols'
 
 const { now } = performance
-const $adapter = Symbol.for('adapter')
-const $audioAdapter = Symbol.for('audioAdapter')
-const $mainLoopHandle = Symbol.for('mainLoopHandle')
-const $fps = Symbol.for('fps')
-const $attach = Symbol.for('attach')
-const $detach = Symbol.for('detach')
-const $frame = Symbol.for('frame')
-const $scene = Symbol.for('scene')
-const $destroy = Symbol.for('destroy')
-const $displays = Symbol.for('displays')
-const $exitListener = Symbol.for('exitListener')
-const $quitRequested = Symbol.for('quitRequested')
-const $input = Symbol.for('input')
-const $bind = Symbol.for('bind')
-const $unbind = Symbol.for('unbind')
-const $events = Symbol.for('events')
 
 export class Stage {
   constructor () {
@@ -249,7 +251,7 @@ export class Stage {
       try {
         scene[$destroy]()
       } catch (e) {
-        console.log('Error destroying scene: ' + e)
+        console.log(`Error destroying scene: ${e}`)
       }
 
       this[$scene] = null
@@ -260,7 +262,7 @@ export class Stage {
       try {
         audioAdapter.destroy()
       } catch (e) {
-        console.log('Error destroying audio adapter: ' + e)
+        console.log(`Error destroying audio adapter: ${e}`)
       }
 
       this[$audioAdapter] = null
@@ -271,7 +273,7 @@ export class Stage {
       try {
         adapter.destroy()
       } catch (e) {
-        console.log('Error destroying stage adapter: ' + e)
+        console.log(`Error destroying stage adapter: ${e}`)
       }
 
       this[$adapter] = null

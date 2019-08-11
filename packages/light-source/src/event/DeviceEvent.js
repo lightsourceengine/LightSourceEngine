@@ -6,11 +6,9 @@
 
 import { Event } from './Event'
 import { EventType } from './EventType'
+import { $device, $connected } from '../util/InternalSymbols'
 
 const { DeviceConnected, DeviceDisconnected } = EventType
-
-const $device = Symbol.for('device')
-const $connected = Symbol.for('connected')
 
 export class DeviceEvent extends Event {
   constructor (device, connected, timestamp) {

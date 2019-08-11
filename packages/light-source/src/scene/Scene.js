@@ -8,20 +8,21 @@ import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode } from '../addon
 import { Style } from '../style/Style'
 import { EventEmitter } from '../util/EventEmitter'
 import { EventType } from '../event/EventType'
-
-const $width = Symbol.for('width')
-const $height = Symbol.for('height')
-const $fullscreen = Symbol.for('fullscreen')
-const $stage = Symbol.for('stage')
-const $root = Symbol.for('root')
-const $resource = Symbol.for('resource')
-const $destroy = Symbol.for('destroy')
-const $events = Symbol.for('events')
-const $displayIndex = Symbol.for('displayIndex')
-const $capture = Symbol.for('capture')
-const $bubble = Symbol.for('bubble')
-const $focus = Symbol.for('focus')
-const $destroying = Symbol.for('destroying')
+import {
+  $width,
+  $height,
+  $fullscreen,
+  $stage,
+  $root,
+  $resource,
+  $destroy,
+  $displayIndex,
+  $focus,
+  $destroying,
+  $capture,
+  $bubble,
+  $events
+} from '../util/InternalSymbols'
 
 const nodeClass = new Map([
   ['img', ImageSceneNode],

@@ -6,31 +6,33 @@
 
 import { Event } from './Event'
 import { EventType } from './EventType'
+import { $device, $button, $pressed, $repeat } from '../util/InternalSymbols'
 
 const { DeviceButtonDown, DeviceButtonUp } = EventType
-
-const $buttonState = Symbol.for('buttonState')
-const buttonMask = 0xFFFF
-const pressedFlag = 1 << 16
-const repeatFlag = 1 << 17
 
 export class DeviceButtonEvent extends Event {
   constructor (device, button, pressed, repeat, timestamp) {
     super(pressed ? DeviceButtonDown : DeviceButtonUp, timestamp)
 
-    this.device = device
-    this[$buttonState] = (button & buttonMask) | (pressed ? pressedFlag : 0) | (repeat ? repeatFlag : 0)
+    this[$device] = device
+    this[$button] = button
+    this[$pressed] = pressed
+    this[$repeat] = repeat
+  }
+
+  get device () {
+    return this[$repeat]
   }
 
   get button () {
-    return this[$buttonState] & buttonMask
+    return this[$button]
   }
 
   get pressed () {
-    return (this[$buttonState] & pressedFlag) !== 0
+    return this[$pressed]
   }
 
   get repeat () {
-    return (this[$buttonState] & repeatFlag) !== 0
+    return this[$repeat]
   }
 }

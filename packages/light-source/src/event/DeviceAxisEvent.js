@@ -6,12 +6,9 @@
 
 import { Event } from './Event'
 import { EventType } from './EventType'
+import { $device, $axis, $value } from '../util/InternalSymbols'
 
 const { DeviceAxisMotion } = EventType
-
-const $device = Symbol.for('device')
-const $axis = Symbol.for('axis')
-const $value = Symbol.for('value')
 
 export class DeviceAxisEvent extends Event {
   constructor (device, axis, value, timestamp) {
