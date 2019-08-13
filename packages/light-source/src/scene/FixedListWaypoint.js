@@ -5,13 +5,16 @@
  */
 
 import { Direction } from './Direction'
+import { $hasFocus } from '../util/InternalSymbols'
 
 const $navigation = Symbol.for('navigation')
-const $focalPath = Symbol.for('focalPath')
 const $focalPathIndex = Symbol.for('focalPathIndex')
+const pass = Object.freeze([null, false])
 
 const horizontalTag = 'horizontal'
 const verticalTag = 'vertical'
+
+const { UP, DOWN, LEFT, RIGHT } = Direction
 
 const HORIZONTAL = 1
 const VERTICAL = 2
@@ -20,12 +23,12 @@ const OFFSET = []
 OFFSET[0] = []
 
 OFFSET[HORIZONTAL] = []
-OFFSET[HORIZONTAL][Direction.LEFT] = -1
-OFFSET[HORIZONTAL][Direction.RIGHT] = 1
+OFFSET[HORIZONTAL][LEFT] = -1
+OFFSET[HORIZONTAL][RIGHT] = 1
 
 OFFSET[VERTICAL] = []
-OFFSET[VERTICAL][Direction.UP] = -1
-OFFSET[VERTICAL][Direction.DOWN] = 1
+OFFSET[VERTICAL][UP] = -1
+OFFSET[VERTICAL][DOWN] = 1
 
 export class FixedListWaypoint {
   constructor (tag) {
@@ -39,100 +42,87 @@ export class FixedListWaypoint {
       throw Error(`FixedListWaypoint tag should be ${horizontalTag} or ${verticalTag}. Got ${tag}`)
     }
 
-    this[$focalPath] = null
     this[$focalPathIndex] = -1
   }
 
-  navigate (owner, navigate) {
-    this._createFocalPath(owner)
-
-    const offset = OFFSET[this[$navigation]][navigate.direction]
+  navigate (owner, direction) {
+    const offset = OFFSET[this[$navigation]][direction]
 
     if (!offset) {
-      navigate.pass()
-      return
+      return pass
     }
 
     const nextFocalPathIndex = this[$focalPathIndex] + offset
-    const focalPath = this[$focalPath]
+    const focalPath = createFocalPath(owner)
+
+    // TODO: index out of range?
+
+    let moved = false
 
     if (nextFocalPathIndex >= 0 && nextFocalPathIndex < focalPath.length) {
-      navigate.done(focalPath[this[$focalPathIndex] = nextFocalPathIndex])
-    } else {
-      navigate.continue(focalPath[this[$focalPathIndex]])
+      this[$focalPathIndex] = nextFocalPathIndex
+      moved = true
     }
+
+    return [focalPath[this[$focalPathIndex]], moved]
   }
 
-  resolve (owner, navigate) {
-    this._createFocalPath(owner)
-
+  resolve (owner, pending, direction) {
     let focalPathIndex = this[$focalPathIndex]
     const navigation = this[$navigation]
-    const focalPath = this[$focalPath]
-    const { direction, pending } = navigate
+    const focalPath = createFocalPath(owner)
 
     switch (direction) {
-      case Direction.NONE:
-        this._syncChildFocus(navigate)
-        break
-      case Direction.DOWN:
+      case DOWN:
         if (pending && navigation === VERTICAL && !isDescendent(pending, owner)) {
+          console.log('resolve: reset')
           focalPathIndex = 0
         }
         break
-      case Direction.UP:
+      case UP:
         if (pending && navigation === VERTICAL && !isDescendent(pending, owner)) {
+          console.log('resolve: reset')
           focalPathIndex = focalPath.length - 1
         }
         break
-      case Direction.RIGHT:
+      case RIGHT:
         if (pending && navigation === HORIZONTAL && !isDescendent(pending, owner)) {
+          console.log('resolve: reset')
           focalPathIndex = 0
         }
         break
-      case Direction.LEFT:
+      case LEFT:
         if (pending && navigation === HORIZONTAL && !isDescendent(pending, owner)) {
+          console.log('resolve: reset')
           focalPathIndex = focalPath.length - 1
         }
         break
       default:
-        throw Error('Unknown direction: ' + direction)
+        throw Error(`Unknown direction: ${direction}`)
     }
 
-    return navigate.done(focalPath[(this[$focalPathIndex] = focalPathIndex)])
+    // TODO: out of range
+
+    if (focalPathIndex === -1) {
+      console.log('resolve: reset (-1)')
+      focalPathIndex = 0
+    }
+
+    return focalPath[(this[$focalPathIndex] = focalPathIndex)]
   }
 
-  _createFocalPath (app) {
-    const path = []
-    let result
+  sync (owner) {
+    let i = 0
 
-    for (const child of app.children) {
-      (result = findFocusable(child)) && path.push(result)
-    }
-
-    if (path.length === 0) {
-      throw Error('Waypoint expects to be associated with a node with focusable children.')
-    }
-
-    this[$focalPath] = path
-  }
-
-  _syncChildFocus (navigate) {
-    const focalPath = this[$focalPath]
-    const { pending } = navigate
-
-    if (focalPath[this[$focalPathIndex]] !== pending) {
-      let i = focalPath.length - 1
-
-      while (i--) {
-        if (focalPath[i] === pending) {
-          this.focalPathIndex = i
-          return navigate.done(focalPath[i])
-        }
+    for (const node of createFocalPath(owner)) {
+      if (node[$hasFocus]) {
+        this[$focalPathIndex] = i
+        return
       }
+      i++
     }
 
-    return navigate.pass()
+    // this[$focalPathIndex] = -1
   }
 }
 
@@ -150,6 +140,21 @@ const findFocusable = (node) => {
   }
 
   return null
+}
+
+const createFocalPath = (node) => {
+  const path = []
+  let result
+
+  for (const child of node.children) {
+    (result = findFocusable(child)) && path.push(result)
+  }
+
+  if (path.length === 0) {
+    throw Error('Waypoint expects to be associated with a node with focusable children.')
+  }
+
+  return path
 }
 
 const isDescendent = (a, b) => {

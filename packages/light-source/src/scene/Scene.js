@@ -8,6 +8,7 @@ import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode } from '../addon
 import { Style } from '../style/Style'
 import { EventEmitter } from '../util/EventEmitter'
 import { EventType } from '../event/EventType'
+import { navigationManager } from './navigationManager'
 import {
   $width,
   $height,
@@ -17,12 +18,19 @@ import {
   $resource,
   $destroy,
   $displayIndex,
-  $focus,
+  $activeNode,
   $destroying,
   $capture,
   $bubble,
-  $events
+  $events,
+  $navigationManager,
+  $setActiveNode, $hasFocus
 } from '../util/InternalSymbols'
+import { BlurEvent } from '../event/BlurEvent'
+import { FocusEvent } from '../event/FocusEvent'
+import { performance } from 'perf_hooks'
+
+const { now } = performance
 
 const nodeClass = new Map([
   ['img', ImageSceneNode],
@@ -31,8 +39,45 @@ const nodeClass = new Map([
   ['text', TextSceneNode]
 ])
 
-const nodeClassNotFound = tag => {
+const eventToCallbackProperty = new Map([
+  [EventType.KeyUp, 'onKeyUp'],
+  [EventType.KeyDown, 'onKeyDown'],
+  [EventType.AxisMotion, 'onAxisMotion'],
+  [EventType.DeviceButtonUp, 'onDeviceButtonUp'],
+  [EventType.DeviceButtonDown, 'onDeviceButtonDown'],
+  [EventType.DeviceAxisMotion, 'onDeviceAxisMotion'],
+  [EventType.Focus, 'onFocus'],
+  [EventType.Blur, 'onBlur']
+])
+
+const throwNodeClassNotFound = tag => {
   throw new Error(`'${tag}' is not a valid scene node tag.`)
+}
+
+const ErrorUnsupportedEvent = event => Error(`Event ${event.name} unsupported by Scene.`)
+
+const setHasFocus = node => {
+  node[$hasFocus] = true
+  node.waypoint && node.waypoint.sync(node)
+
+  return true
+}
+
+const clearHasFocus = node => {
+  node[$hasFocus] = false
+  node.waypoint && node.waypoint.sync(node)
+
+  return true
+}
+
+const traverseAncestors = (node, func) => {
+  while (node) {
+    if (!func(node)) {
+      break
+    }
+
+    node = node.parent
+  }
 }
 
 export class Scene extends SceneBase {
@@ -52,7 +97,8 @@ export class Scene extends SceneBase {
       EventType.DeviceButtonUp,
       EventType.DeviceAxisMotion
     ])
-    this[$focus] = null
+    this[$activeNode] = null
+    this[$navigationManager] = navigationManager
 
     this.root.style = new Style({
       position: 'absolute',
@@ -101,14 +147,8 @@ export class Scene extends SceneBase {
     this[$events].off(id, listener)
   }
 
-  setFocus (node) {
-    // TODO: validate node
-    // TODO: dispatch events
-    this[$focus] = node
-  }
-
-  getFocus () {
-    return this[$focus]
+  get activeNode () {
+    return this[$activeNode]
   }
 
   // TODO: add refreshRate
@@ -116,7 +156,7 @@ export class Scene extends SceneBase {
   // TODO: add vsync
 
   createNode (tag) {
-    return new (nodeClass.get(tag) || nodeClassNotFound(tag))(this)
+    return new (nodeClass.get(tag) || throwNodeClassNotFound(tag))(this)
   }
 
   resize (width = 0, height = 0, fullscreen = true) {
@@ -130,15 +170,83 @@ export class Scene extends SceneBase {
     }
 
     this[$stage] = null
-
+    this[$activeNode] = null
+    this[$navigationManager] = null
     super[$destroy]()
   }
 
   [$capture] (event) {
+    const activeNode = this[$activeNode]
 
+    if (!activeNode || event.cancelled) {
+      return
+    }
+
+    this[$navigationManager](this, activeNode, event)
   }
 
   [$bubble] (event) {
+    const activeNode = this[$activeNode]
 
+    if (!activeNode || event.cancelled) {
+      return
+    }
+
+    const callbackProperty = eventToCallbackProperty.get(event.type)
+
+    if (!callbackProperty) {
+      throw ErrorUnsupportedEvent(event)
+    }
+
+    traverseAncestors(activeNode, node => {
+      node[callbackProperty] && node[callbackProperty](event)
+
+      return !event.cancelled
+    })
+
+    event.cancelled || this[$events].emit(event)
+    event.cancelled || this.stage[$events].emit(event)
+  }
+
+  [$setActiveNode] (node) {
+    // TODO: validate node
+
+    if (this[$activeNode] === node) { // TODO: null === undefined
+      return
+    }
+
+    const timestamp = now()
+
+    if (this[$activeNode]) {
+      traverseAncestors(this[$activeNode], clearHasFocus)
+
+      const blurEvent = new BlurEvent(timestamp)
+
+      traverseAncestors(this[$activeNode], node => {
+        node.onBlur && node.onBlur(blurEvent)
+
+        return !blurEvent.cancelled
+      })
+
+      blurEvent.cancelled || this[$events].emit(blurEvent)
+      blurEvent.cancelled || this.stage[$events].emit(blurEvent)
+    }
+
+    this[$activeNode] = node
+
+    if (this[$activeNode]) {
+      traverseAncestors(this[$activeNode], setHasFocus)
+
+      const focusEvent = new FocusEvent(timestamp)
+
+      traverseAncestors(this[$activeNode], node => {
+        node.onFocus && node.onFocus(focusEvent)
+
+        return !focusEvent.cancelled
+      })
+
+      focusEvent.cancelled || this[$events].emit(focusEvent)
+      focusEvent.cancelled || this.stage[$events].emit(focusEvent)
+    }
   }
 }

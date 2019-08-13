@@ -336,4 +336,16 @@ void SceneNode::ValidateInsertCandidate(SceneNode* child) {
     }
 }
 
+void SceneNode::Focus(const CallbackInfo& info) {
+    HandleScope scope(info.Env());
+
+    this->scene->SetActiveNode(this->AsReference()->Value());
+}
+
+void SceneNode::Blur(const CallbackInfo& info) {
+    HandleScope scope(info.Env());
+
+    this->scene->SetActiveNode(info.Env().Null());
+}
+
 } // namespace ls

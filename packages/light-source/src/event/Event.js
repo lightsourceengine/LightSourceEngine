@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { $phase, $type, $timestamp } from '../util/InternalSymbols'
+import { $phase, $type, $timestamp, $cancelled } from '../util/InternalSymbols'
 
 export class Event {
   static PhaseNone = 0
@@ -17,6 +17,7 @@ export class Event {
     this[$type] = type
     this[$timestamp] = timestamp
     this[$phase] = Event.PhaseNone
+    this[$cancelled] = false
   }
 
   get phase () {
@@ -35,7 +36,11 @@ export class Event {
     return this[$timestamp]
   }
 
-  stop () {
+  get cancelled () {
+    return this[$cancelled]
+  }
 
+  stop () {
+    this[$cancelled] = true
   }
 }

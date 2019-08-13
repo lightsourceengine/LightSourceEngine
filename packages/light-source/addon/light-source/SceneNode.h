@@ -10,6 +10,7 @@
 #include <vector>
 #include <map>
 #include <Renderer.h>
+#include <napi-ext.h>
 #include "Style.h"
 
 namespace ls {
@@ -40,6 +41,8 @@ class SceneNode {
     void InsertBefore(const Napi::CallbackInfo& info);
     void RemoveChild(const Napi::CallbackInfo& info);
     void Destroy(const Napi::CallbackInfo& info);
+    void Focus(const Napi::CallbackInfo& info);
+    void Blur(const Napi::CallbackInfo& info);
 
     void Destroy();
     void SyncStyleRecursive();
@@ -78,10 +81,14 @@ std::vector<Napi::ClassPropertyDescriptor<T>> SceneNode::Extend(Napi::Env env,
         Napi::ObjectWrap<T>::InstanceValue("focusable", Napi::Boolean::New(env, false), napi_writable),
         Napi::ObjectWrap<T>::InstanceValue("onKeyUp", env.Null(), napi_writable),
         Napi::ObjectWrap<T>::InstanceValue("onKeyDown", env.Null(), napi_writable),
+        Napi::ObjectWrap<T>::InstanceValue("onAxisMotion", env.Null(), napi_writable),
         Napi::ObjectWrap<T>::InstanceValue("onDeviceButtonUp", env.Null(), napi_writable),
         Napi::ObjectWrap<T>::InstanceValue("onDeviceButtonDown", env.Null(), napi_writable),
+        Napi::ObjectWrap<T>::InstanceValue("onDeviceAxisMotion", env.Null(), napi_writable),
         Napi::ObjectWrap<T>::InstanceValue("onFocus", env.Null(), napi_writable),
         Napi::ObjectWrap<T>::InstanceValue("onBlur", env.Null(), napi_writable),
+        Napi::ObjectWrap<T>::InstanceValue(
+            Napi::SymbolFor(env, "hasFocus"), Napi::Boolean::New(env, false), napi_writable),
         Napi::ObjectWrap<T>::InstanceAccessor("x", &SceneNode::GetX, nullptr),
         Napi::ObjectWrap<T>::InstanceAccessor("y", &SceneNode::GetY, nullptr),
         Napi::ObjectWrap<T>::InstanceAccessor("width", &SceneNode::GetWidth, nullptr),
@@ -94,6 +101,8 @@ std::vector<Napi::ClassPropertyDescriptor<T>> SceneNode::Extend(Napi::Env env,
         Napi::ObjectWrap<T>::InstanceMethod("appendChild", &SceneNode::AppendChild),
         Napi::ObjectWrap<T>::InstanceMethod("insertBefore", &SceneNode::InsertBefore),
         Napi::ObjectWrap<T>::InstanceMethod("removeChild", &SceneNode::RemoveChild),
+        Napi::ObjectWrap<T>::InstanceMethod("focus", &SceneNode::Focus),
+        Napi::ObjectWrap<T>::InstanceMethod("blur", &SceneNode::Blur),
     };
 
     for (auto& property : subClassProperties) {

@@ -59,12 +59,20 @@ export class Element {
       this.node.onKeyDown = newProps.onKeyDown
     }
 
-    if (oldProps.onButtonUp !== newProps.onButtonUp) {
-      this.node.onButtonUp = newProps.onButtonUp
+    if (oldProps.onAxisMotion !== newProps.onAxisMotion) {
+      this.node.onAxisMotion = newProps.onAxisMotion
     }
 
-    if (oldProps.onButtonDown !== newProps.onButtonDown) {
-      this.node.onButtonDown = newProps.onButtonDown
+    if (oldProps.onDeviceButtonUp !== newProps.onDeviceButtonUp) {
+      this.node.onDeviceButtonUp = newProps.onDeviceButtonUp
+    }
+
+    if (oldProps.onDeviceButtonDown !== newProps.onDeviceButtonDown) {
+      this.node.onDeviceButtonDown = newProps.onDeviceButtonDown
+    }
+
+    if (oldProps.onDeviceAxisMotion !== newProps.onDeviceAxisMotion) {
+      this.node.onDeviceAxisMotion = newProps.onDeviceAxisMotion
     }
 
     this.props = newProps

@@ -37,6 +37,7 @@ class Scene : public Napi::ObjectWrap<Scene> {
     int32_t GetRootFontSize() const { return this->rootFontSize; }
     ResourceManager* GetResourceManager() { return this->resourceManager; }
     void NotifyRootFontSizeChanged(int32_t rootFontSize);
+    void SetActiveNode(Napi::Value node);
 
  private:
     ResourceManager* resourceManager{};

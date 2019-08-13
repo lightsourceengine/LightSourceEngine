@@ -73,13 +73,7 @@ export class InputManager {
 
       const mapping = this[$mappings].get(keyboard.uuid)
 
-      if (!mapping) {
-        console.log(`no mapping for: ${keyboard.uuid}`)
-        return
-      }
-
-      if (!mapping.has(button)) {
-        console.log(`unmapped keyboard button: ${button}`)
+      if (!mapping || !mapping.has(button)) {
         return
       }
 
@@ -102,13 +96,7 @@ export class InputManager {
 
       const mapping = this[$mappings].get(keyboard.uuid)
 
-      if (!mapping) {
-        console.log(`no mapping for: ${keyboard.uuid}`)
-        return
-      }
-
-      if (!mapping.has(button)) {
-        console.log(`unmapped keyboard button: ${button}`)
+      if (!mapping || !mapping.has(button)) {
         return
       }
 
@@ -133,13 +121,7 @@ export class InputManager {
 
       const mapping = this[$mappings].get(gamepad.uuid)
 
-      if (!mapping) {
-        console.log(`no mapping for: ${gamepad.uuid}`)
-        return
-      }
-
-      if (!mapping.has(button)) {
-        console.log(`unmapped keyboard button: ${button}`)
+      if (!mapping || !mapping.has(button)) {
         return
       }
 
@@ -162,13 +144,7 @@ export class InputManager {
 
       const mapping = this[$mappings].get(gamepad.uuid)
 
-      if (!mapping) {
-        console.log(`no mapping for: ${gamepad.uuid}`)
-        return
-      }
-
-      if (!mapping.has(button)) {
-        console.log(`unmapped keyboard button: ${button}`)
+      if (!mapping || !mapping.has(button)) {
         return
       }
 

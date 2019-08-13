@@ -620,6 +620,18 @@ class Style extends StyleBase {
 
     return (((a & 0xFF) << 24) | color) | ALPHABIT
   }
+
+  static createStyleSheet (obj) {
+    const result = {}
+
+    for (const key in obj) {
+      const entry = obj[key]
+
+      result[key] = entry instanceof Style ? entry : new Style(obj[key])
+    }
+
+    return result
+  }
 }
 
 export { Style }

@@ -6,7 +6,7 @@
 
 #include "Scene.h"
 #include "RootSceneNode.h"
-#include "napi-ext.h"
+#include <napi-ext.h>
 #include <StageAdapter.h>
 #include <fmt/format.h>
 
@@ -22,6 +22,7 @@ using Napi::Object;
 using Napi::ObjectWrap;
 using Napi::Reference;
 using Napi::String;
+using Napi::SymbolFor;
 using Napi::Value;
 
 namespace ls {
@@ -181,6 +182,21 @@ void Scene::NotifyRootFontSizeChanged(int32_t rootFontSize) {
         this->rootFontSize = rootFontSize;
         this->recalculateLayoutRequested = true;
     }
+}
+
+void Scene::SetActiveNode(Napi::Value node) {
+    static FunctionReference setActiveNode;
+
+    auto env{ this->Env() };
+    HandleScope scope(env);
+    auto self{ this->Value() };
+
+    if (setActiveNode.IsEmpty()) {
+        setActiveNode.Reset(self.Get("__proto__").As<Object>().Get(SymbolFor(env, "setActiveNode")).As<Function>(), 1);
+        setActiveNode.SuppressDestruct();
+    }
+
+    setActiveNode.Call(self, { node });
 }
 
 } // namespace ls
