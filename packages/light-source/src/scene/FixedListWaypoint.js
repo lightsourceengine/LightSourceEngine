@@ -75,25 +75,21 @@ export class FixedListWaypoint {
     switch (direction) {
       case DOWN:
         if (pending && navigation === VERTICAL && !isDescendent(pending, owner)) {
-          console.log('resolve: reset')
           focalPathIndex = 0
         }
         break
       case UP:
         if (pending && navigation === VERTICAL && !isDescendent(pending, owner)) {
-          console.log('resolve: reset')
           focalPathIndex = focalPath.length - 1
         }
         break
       case RIGHT:
         if (pending && navigation === HORIZONTAL && !isDescendent(pending, owner)) {
-          console.log('resolve: reset')
           focalPathIndex = 0
         }
         break
       case LEFT:
         if (pending && navigation === HORIZONTAL && !isDescendent(pending, owner)) {
-          console.log('resolve: reset')
           focalPathIndex = focalPath.length - 1
         }
         break
@@ -104,7 +100,6 @@ export class FixedListWaypoint {
     // TODO: out of range
 
     if (focalPathIndex === -1) {
-      console.log('resolve: reset (-1)')
       focalPathIndex = 0
     }
 

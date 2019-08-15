@@ -11,7 +11,19 @@ import { KeyEvent } from '../event/KeyEvent'
 import { DeviceEvent } from '../event/DeviceEvent'
 import { DeviceAxisEvent } from '../event/DeviceAxisEvent'
 import { DeviceButtonEvent } from '../event/DeviceButtonEvent'
-import { $adapter, $bind, $unbind, $mappings, $scene, $capture, $bubble, $events } from '../util/InternalSymbols'
+import {
+  $adapter,
+  $bind,
+  $unbind,
+  $mappings,
+  $scene,
+  $capture,
+  $bubble,
+  $events,
+  $keyToDirectionMap
+} from '../util/InternalSymbols'
+import { KeyMapping } from './KeyMapping'
+import { Direction } from '../scene/Direction'
 
 const { now } = performance
 const keyboardUuid = 'keyboard'
@@ -20,15 +32,22 @@ export class InputManager {
   constructor () {
     this[$adapter] = unintializedStageAdapter
 
-    const keyboardMapping = new Map([
-      [ScanCode.UP, StandardKey.UP],
-      [ScanCode.RIGHT, StandardKey.RIGHT],
-      [ScanCode.DOWN, StandardKey.DOWN],
-      [ScanCode.LEFT, StandardKey.LEFT]
+    const keyboardMapping = new KeyMapping('standard', [
+      [StandardKey.UP, ScanCode.UP],
+      [StandardKey.RIGHT, ScanCode.RIGHT],
+      [StandardKey.DOWN, ScanCode.DOWN],
+      [StandardKey.LEFT, ScanCode.LEFT]
     ])
 
     this[$mappings] = new Map([
       [keyboardUuid, keyboardMapping]
+    ])
+
+    this[$keyToDirectionMap] = new Map([
+      [StandardKey.UP, Direction.UP],
+      [StandardKey.RIGHT, Direction.RIGHT],
+      [StandardKey.DOWN, Direction.DOWN],
+      [StandardKey.LEFT, Direction.LEFT]
     ])
   }
 
@@ -38,6 +57,22 @@ export class InputManager {
 
   get gamepads () {
     return this[$adapter].getGamepads()
+  }
+
+  addKeyMapping (uuid, keyMapping) {
+    if (typeof uuid === 'string') {
+      throw Error()
+    }
+
+    this[$mappings].set(uuid, keyMapping)
+  }
+
+  getKeyMapping (uuid) {
+    return this[$mappings].get(uuid)
+  }
+
+  removeKeyMapping (uuid) {
+    this[$mappings].delete(uuid)
   }
 
   addGameControllerMappings (csv) {
@@ -73,15 +108,15 @@ export class InputManager {
 
       const mapping = this[$mappings].get(keyboard.uuid)
 
-      if (!mapping || !mapping.has(button)) {
+      if (!mapping || !mapping.hasKey(button)) {
         return
       }
 
       const keyEvent = new KeyEvent(
-        mapping.get(button),
+        mapping.getKey(button),
         false,
         false,
-        'standard',
+        mapping.name,
         { device: keyboard, button: button },
         timestamp)
 
@@ -96,15 +131,15 @@ export class InputManager {
 
       const mapping = this[$mappings].get(keyboard.uuid)
 
-      if (!mapping || !mapping.has(button)) {
+      if (!mapping || !mapping.hasKey(button)) {
         return
       }
 
       const keyEvent = new KeyEvent(
-        mapping.get(button),
+        mapping.getKey(button),
         true,
         repeat,
-        'standard',
+        mapping.name,
         { device: keyboard, button: button },
         timestamp)
 
@@ -121,15 +156,15 @@ export class InputManager {
 
       const mapping = this[$mappings].get(gamepad.uuid)
 
-      if (!mapping || !mapping.has(button)) {
+      if (!mapping || !mapping.hasKey(button)) {
         return
       }
 
       const keyEvent = new KeyEvent(
-        this[mapping].get(button),
+        this[mapping].getKey(button),
         false,
         false,
-        'standard',
+        mapping.name,
         { device: gamepad, button: button },
         timestamp)
 
@@ -144,15 +179,15 @@ export class InputManager {
 
       const mapping = this[$mappings].get(gamepad.uuid)
 
-      if (!mapping || !mapping.has(button)) {
+      if (!mapping || !mapping.hasKey(button)) {
         return
       }
 
       const keyEvent = new KeyEvent(
-        this[mapping].get(button),
+        this[mapping].getKey(button),
         true,
         false,
-        'standard',
+        mapping.name,
         { device: gamepad, button: button },
         timestamp)
 

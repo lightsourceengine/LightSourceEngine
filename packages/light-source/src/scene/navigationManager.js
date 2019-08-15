@@ -4,25 +4,17 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { Direction } from './Direction'
-import { StandardKey } from '../input/StandardKey'
-import { $setActiveNode } from '../util/InternalSymbols'
-
-const standardKeyToDirection = new Map([
-  [StandardKey.UP, Direction.UP],
-  [StandardKey.RIGHT, Direction.RIGHT],
-  [StandardKey.DOWN, Direction.DOWN],
-  [StandardKey.LEFT, Direction.LEFT]
-])
+import { $keyToDirectionMap, $setActiveNode } from '../util/InternalSymbols'
 
 export const navigationManager = (scene, focus, event) => {
   const { key } = event
+  const keyToDirectionMap = scene.stage[$keyToDirectionMap]
 
-  if (!standardKeyToDirection.has(key)) {
+  if (!keyToDirectionMap.has(key)) {
     return
   }
 
-  const direction = standardKeyToDirection.get(key)
+  const direction = keyToDirectionMap.get(key)
   let walker = scene.activeNode
   let candidate
 
