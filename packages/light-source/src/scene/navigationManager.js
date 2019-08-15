@@ -8,7 +8,7 @@ import { $keyToDirectionMap, $setActiveNode } from '../util/InternalSymbols'
 
 export const navigationManager = (scene, focus, event) => {
   const { key } = event
-  const keyToDirectionMap = scene.stage[$keyToDirectionMap]
+  const keyToDirectionMap = scene.stage.input[$keyToDirectionMap]
 
   if (!keyToDirectionMap.has(key)) {
     return
