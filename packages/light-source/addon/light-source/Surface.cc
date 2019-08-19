@@ -34,34 +34,27 @@ Surface::Surface(Surface&& other) {
 }
 
 void Surface::Blit(const int32_t x, const int32_t y, const Surface& surface) const {
-    if (surface.IsEmpty()) {
-        return;
-    }
-
-    // TODO: negative?
+    // intersect this with surface arg
     auto x1{ std::max(x, 0) };
     auto x2{ std::min(x + surface.width, this->width) };
-
-    // TODO: negative?
     auto y1{ std::max(y, 0) };
     auto y2{ std::min(y + surface.height, this->height) };
 
+    // bail if no intersection
     if (y2 - y1 <= 0 || x2 - x1 <= 0) {
         return;
     }
 
-    auto dest{ this->Pixels() };
+    // if a part of surface is outside of the bounds of this, clip it.
+    auto sx{ x < 0 ? std::abs(x) : 0 };
+    auto sy{ y < 0 ? std::abs(y) : 0 };
+    auto spitch{ x2 - x1 };
+
+    auto dest{ this->pixels.get() };
     auto source{ surface.Pixels() };
-    auto copyWidth{ x2 - x1 };
 
-    int32_t s = 0;
-
-    // TODO: source x, source y
-
-    for (int32_t d = y1; d < y2; d++) {
-        // TODO: source might be clipped..
-        std::memcpy(&dest[d * this->width + x1], &source[s * surface.width], copyWidth);
-        s++;
+    for (auto dy{ y1 }; dy < y2; dy++, sy++) {
+        std::memcpy(&dest[dy * this->width + x1], &source[(sy * surface.width) + sx], spitch);
     }
 }
 

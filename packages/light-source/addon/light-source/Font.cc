@@ -15,7 +15,7 @@ constexpr int32_t UnicodeFallback{ 0xFFFD };
 constexpr int32_t UnicodeQuestionMark{ 0x3F };
 
 Font::Font(std::shared_ptr<stbtt_fontinfo> info, int32_t fontSize) : info(info), bitmapBuffer(fontSize*fontSize) {
-    stbtt_fontinfo* fontInfo{ info.get() };
+    auto fontInfo{ info.get() };
     int32_t ascent{0};
     int32_t descent{0};
     int32_t lineGap{0};
@@ -62,8 +62,6 @@ bool Font::LoadGlyph(int32_t codepoint) {
 
     return this->glyphIndex > 0;
 }
-
-// bool LoadFallbackGlyph();
 
 float Font::GetGlyphAdvance() const {
     int32_t advance{0};
