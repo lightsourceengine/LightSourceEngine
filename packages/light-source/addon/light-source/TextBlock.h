@@ -7,14 +7,14 @@
 #pragma once
 
 #include <napi.h>
+#include <memory>
 #include "StyleEnums.h"
 #include "Renderer.h"
-#include "FontMetrics.h"
 
 namespace ls {
 
 class Renderer;
-class FontSampleResource;
+class Font;
 
 class TextBlock {
  private:
@@ -28,9 +28,8 @@ class TextBlock {
 
  public:
     TextBlock();
-    ~TextBlock();
 
-    void SetFont(FontSampleResource* font);
+    void SetFont(std::shared_ptr<Font> font);
     void SetText(const std::string& text);
     void SetText(std::string&& text);
 
@@ -49,7 +48,7 @@ class TextBlock {
     void MarkDirty();
 
  private:
-    FontSampleResource* font{};
+    std::shared_ptr<Font> font;
     bool isDirty{false};
     float computedWidth{0};
     float computedHeight{0};
@@ -62,6 +61,7 @@ class TextBlock {
     StyleTextAlign textAlign{};
     int32_t maxLines{};
     mutable std::vector<CodepointRect> quads;
+    int32_t textureId{0};
 
     friend class LayoutLine;
 };

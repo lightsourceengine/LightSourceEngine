@@ -11,11 +11,11 @@
 
 namespace ls {
 
-uint32_t SDLRenderer::nextTextureId{ 1 };
 SDL_Rect GetRendererSize(SDL_Renderer* renderer);
 PixelFormat ToPixelFormat(Uint32 pixelFormat);
 void SetTextureTintColor(SDL_Texture* texture, const int64_t color);
 
+uint32_t SDLRenderer::nextTextureId{ 1 };
 const int64_t COLOR32{ 0xFFFFFFFF };
 
 SDLRenderer::SDLRenderer() {
@@ -314,6 +314,8 @@ void SDLRenderer::ClearScreen(const int64_t color) {
 
 uint32_t SDLRenderer::CreateTexture(const uint8_t* source, PixelFormat sourceFormat,
         const int32_t width, const int32_t height) {
+    assert(sourceFormat == this->textureFormat || sourceFormat == PixelFormatAlpha);
+
     void* pixels;
     int pitch;
     auto texture{
@@ -321,6 +323,7 @@ uint32_t SDLRenderer::CreateTexture(const uint8_t* source, PixelFormat sourceFor
     };
 
     if (!texture) {
+        fmt::println("Failed to create texture. SDL Error: {}", SDL_GetError());
         return 0;
     }
 
@@ -329,24 +332,42 @@ uint32_t SDLRenderer::CreateTexture(const uint8_t* source, PixelFormat sourceFor
     if (SDL_LockTexture(texture, nullptr, &pixels, &pitch) == 0) {
         auto dest{ reinterpret_cast<uint8_t*>(pixels) };
         auto stride{ width * 4 };
+        auto copied{ true };
 
-        // TODO: sourceFormat != sdlTextureFormat
-        if (pitch == stride) {
-            memcpy(dest, source, stride * height);
-        } else {
-            for (auto h{ 0 }; h < height; h++) {
-                memcpy(&dest[h*pitch], source, stride);
-                source += stride;
+        if (sourceFormat == this->textureFormat) {
+            if (pitch == stride) {
+                memcpy(dest, source, stride * height);
+            } else {
+                for (auto h{ 0 }; h < height; h++) {
+                    memcpy(&dest[h*pitch], source, stride);
+                    source += stride;
+                }
             }
+        } else if (sourceFormat == PixelFormatAlpha) {
+            for (int32_t h{ 0 }; h < height; h++) {
+                for (int32_t w{ 0 }; w < width; w++) {
+                    auto destPixel{ &dest[h*pitch + w*4] };
+                    auto component{ *source++ }; // NOLINT(readability/pointer_notation)
+
+                    destPixel[0] = component;
+                    destPixel[1] = component;
+                    destPixel[2] = component;
+                    destPixel[3] = component;
+                }
+            }
+        } else {
+            copied = false;
         }
 
         SDL_UnlockTexture(texture);
 
-        auto textureId{ nextTextureId++ };
+        if (copied) {
+            auto textureId{ nextTextureId++ };
 
-        this->textures[textureId] = texture;
+            this->textures[textureId] = texture;
 
-        return textureId;
+            return textureId;
+        }
     }
 
     SDL_DestroyTexture(texture);

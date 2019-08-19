@@ -234,47 +234,6 @@ ImageResource* ResourceManager::LoadImage(const ImageUri& uri) {
     return nullptr;
 }
 
-FontSampleResource* ResourceManager::LoadFontSample(const std::string& family, StyleFontStyle fontStyle,
-        StyleFontWeight fontWeight, int32_t fontSize) {
-    FontSampleResource* fontSample{ this->FindFontSample(family, fontStyle, fontWeight, fontSize) };
-
-    if (fontSample) {
-        return fontSample;
-    }
-
-    auto font{ this->FindFontInternal(family, fontStyle, fontWeight) };
-
-    if (!font) {
-        return nullptr;
-    }
-
-    try {
-        auto newFontSample{ std::make_shared<FontSampleResource>(font, fontSize) };
-
-        this->fontSamples[newFontSample->GetId()] = newFontSample;
-
-        return newFontSample.get();
-    } catch (std::exception& e) {
-        fmt::println("Error: LoadFontSample: {}", e.what());
-        font->RemoveRef();
-    }
-
-    return nullptr;
-}
-
-FontSampleResource* ResourceManager::FindFontSample(const std::string& family, StyleFontStyle fontStyle,
-        StyleFontWeight fontWeight, int32_t fontSize) {
-    auto iter{ this->fontSamples.find(FontSampleResource::MakeId(family, fontStyle, fontWeight, fontSize)) };
-
-    if (iter != this->fontSamples.end()) {
-        iter->second->AddRef();
-
-        return iter->second.get();
-    }
-
-    return nullptr;
-}
-
 FontResource* ResourceManager::FindFontInternal(const std::string& family, StyleFontStyle fontStyle,
         StyleFontWeight fontWeight) {
     auto iter{ this->fonts.find(FontResource::MakeId(family, fontStyle, fontWeight)) };
@@ -327,7 +286,6 @@ void ResourceManager::Destroy() {
     this->renderer = nullptr;
 
     this->images.clear();
-    this->fontSamples.clear();
     this->fonts.clear();
     this->registeredImageUris.clear();
 

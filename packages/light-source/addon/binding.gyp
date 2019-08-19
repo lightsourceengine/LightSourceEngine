@@ -28,6 +28,7 @@
       "sources": [
         "light-source-util/PixelConversion.cc",
         "light-source-util/FileSystem.cc",
+        "light-source-util/Timer.cc",
         "light-source-util/napi-ext.cc",
       ]
     },
@@ -61,10 +62,10 @@
         "light-source/StyleEnumMappings.cc",
         "light-source/StyleEnums.cc",
         "light-source/StyleValue.cc",
-        "light-source/FontMetrics.cc",
+        "light-source/Surface.cc",
+        "light-source/Font.cc",
         "light-source/Resource.cc",
         "light-source/FontResource.cc",
-        "light-source/FontSampleResource.cc",
         "light-source/ImageResource.cc",
         "light-source/ResourceManager.cc",
         "light-source/TextBlock.cc",

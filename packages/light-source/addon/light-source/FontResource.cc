@@ -7,6 +7,7 @@
 #include "FontResource.h"
 #include "FileSystem.h"
 #include "AsyncTaskQueue.h"
+#include "Font.h"
 #include <stb_truetype.h>
 #include <fmt/format.h>
 #include <cstring>
@@ -46,6 +47,29 @@ FontResource::FontResource(const std::string& id, const std::string& uri, const 
 
 std::string FontResource::MakeId(const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight) {
     return fmt::format("{}:{}:{}", family, fontStyle, fontWeight);
+}
+
+std::shared_ptr<Font> FontResource::GetFont(int32_t fontSize) const {
+    // TODO: assert font size
+    // TODO: assert fontInfo / ready
+
+    auto it{ this->fontsBySize.find(fontSize) };
+
+    if (it == this->fontsBySize.end()) {
+        std::shared_ptr<Font> font;
+
+        try {
+            font = std::make_shared<Font>(this->fontInfo, fontSize);
+            this->fontsBySize.insert(std::make_pair(fontSize, font));
+        } catch (std::exception& e) {
+            fmt::println("Failed to create font {} @ {}px. Error: {}", this->family, fontSize, e.what());
+            font.reset();
+        }
+
+        return font;
+    }
+
+    return it->second;
 }
 
 void FontResource::Load(AsyncTaskQueue* taskQueue, const std::vector<std::string>& resourcePath) {

@@ -12,7 +12,6 @@
 #include <memory>
 #include "AsyncTaskQueue.h"
 #include "FontResource.h"
-#include "FontSampleResource.h"
 #include "ImageResource.h"
 
 namespace ls {
@@ -48,11 +47,6 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     ImageResource* GetImage(const std::string& id);
     ImageResource* LoadImage(const ImageUri& uri);
 
-    FontSampleResource* LoadFontSample(const std::string& family, StyleFontStyle fontStyle,
-        StyleFontWeight fontWeight, int32_t fontSize);
-    FontSampleResource* FindFontSample(const std::string& family, StyleFontStyle fontStyle,
-        StyleFontWeight fontWeight, int32_t fontSize);
-
     FontResource* FindFont(const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight);
 
  private:
@@ -64,7 +58,6 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     Renderer* renderer{};
     std::unordered_map<std::string, std::shared_ptr<ImageResource>> images;
     std::unordered_map<std::string, std::shared_ptr<FontResource>> fonts;
-    std::unordered_map<std::string, std::shared_ptr<FontSampleResource>> fontSamples;
     std::unordered_map<std::string, ImageUri> registeredImageUris;
     std::vector<std::string> imageExtensions{ ".jpg", ".jpeg", ".png", ".gif", ".svg" };
     std::vector<std::string> path;

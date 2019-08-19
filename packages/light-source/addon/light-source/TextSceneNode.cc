@@ -5,7 +5,6 @@
  */
 
 #include "TextSceneNode.h"
-#include "FontSampleResource.h"
 #include "Scene.h"
 #include "StyleUtils.h"
 #include <napi-ext.h>
@@ -23,6 +22,8 @@ using Napi::String;
 using Napi::Value;
 
 namespace ls {
+
+constexpr int32_t defaultFontSize{ 16 };
 
 TextSceneNode::TextSceneNode(const CallbackInfo& info) : ObjectWrap<TextSceneNode>(info), SceneNode(info) {
     YGNodeSetContext(this->ygNode, this);
@@ -102,36 +103,28 @@ void TextSceneNode::ApplyStyle(Style* style) {
     SceneNode::ApplyStyle(style);
 
     auto myStyle{ this->GetStyleOrEmpty() };
-    FontSampleResource* selectedFont;
+    FontResource* selectedFont;
+    int32_t fontSize;
 
     if (myStyle->HasFont()) {
-        selectedFont = this->scene->GetResourceManager()->FindFontSample(
+        selectedFont = this->scene->GetResourceManager()->FindFont(
             myStyle->fontFamily(),
             myStyle->fontStyle(),
-            myStyle->fontWeight(),
-            ComputeIntegerPointValue(myStyle->fontSize(), this->scene, 16));
-
-        if (selectedFont == nullptr) {
-            selectedFont = this->scene->GetResourceManager()->LoadFontSample(
-                myStyle->fontFamily(),
-                myStyle->fontStyle(),
-                myStyle->fontWeight(),
-                ComputeIntegerPointValue(myStyle->fontSize(), this->scene, 16));
-        }
+            myStyle->fontWeight());
+        fontSize = ComputeIntegerPointValue(myStyle->fontSize(), this->scene, defaultFontSize);
     } else {
         selectedFont = nullptr;
+        fontSize = defaultFontSize;
     }
 
-    if (!this->SetFont(selectedFont)) {
-        if (selectedFont) {
-            selectedFont->RemoveRef();
-        }
+    this->SetFontResource(selectedFont);
+
+    if (selectedFont != nullptr && selectedFont->IsReady()) {
+        this->textBlock.SetFont(selectedFont->GetFont(fontSize));
     } else {
-        // TODO: font may not be ready
-        YGNodeMarkDirty(this->ygNode);
+        this->textBlock.SetFont(nullptr);
     }
 
-    this->textBlock.SetFont(selectedFont);
     this->textBlock.SetTextOverflow(myStyle->textOverflow());
     this->textBlock.SetTextAlign(myStyle->textAlign());
 
@@ -157,36 +150,47 @@ void TextSceneNode::ApplyStyle(Style* style) {
     }
 }
 
-bool TextSceneNode::SetFont(FontSampleResource* newFont) {
-    if (newFont == this->font) {
-        return false;
+void TextSceneNode::SetFontResource(FontResource* newFontResource) {
+    if (newFontResource == this->fontResource) {
+        if (newFontResource) {
+            newFontResource->RemoveRef();
+        }
+
+        return;
     }
 
-    if (this->font) {
-        this->font->RemoveListener(this->fontListenerId);
-        this->font->RemoveRef();
-        this->font = nullptr;
-        this->fontListenerId = 0;
+    if (this->fontResource) {
+        this->fontResource->RemoveListener(this->fontResourceListenerId);
+        this->fontResource->RemoveRef();
+        this->fontResource = nullptr;
+        this->fontResourceListenerId = 0;
     }
 
-    if (newFont) {
-        this->fontListenerId = newFont->AddListener([this]() {
-            if (this->font->IsReady() || this->font->HasError()) {
-                this->textBlock.SetFont(this->font);
-                this->font->RemoveListener(this->fontListenerId);
-                this->fontListenerId = 0;
+    if (newFontResource) {
+        this->fontResourceListenerId = newFontResource->AddListener([this]() {
+            if (this->fontResource->IsReady() || this->fontResource->HasError()) {
+                if (this->fontResource->IsReady()) {
+                    int32_t fontSize{ ComputeIntegerPointValue(
+                        this->GetStyleOrEmpty()->fontSize(), this->scene, defaultFontSize) };
+
+                    this->textBlock.SetFont(this->fontResource->GetFont(fontSize));
+                } else {
+                    this->textBlock.SetFont(nullptr);
+                }
+
+                this->fontResource->RemoveListener(this->fontResourceListenerId);
+                this->fontResourceListenerId = 0;
                 YGNodeMarkDirty(this->ygNode);
             }
         });
 
-        this->font = newFont;
+        this->fontResource = newFontResource;
     }
-
-    return true;
 }
 
 void TextSceneNode::DestroyRecursive() {
-    this->SetFont(nullptr);
+    this->SetFontResource(nullptr);
+    this->textBlock.SetFont(nullptr);
 
     SceneNode::DestroyRecursive();
 }

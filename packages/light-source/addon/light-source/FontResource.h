@@ -10,6 +10,7 @@
 #include "Resource.h"
 #include <napi.h>
 #include <memory>
+#include <unordered_map>
 
 struct stbtt_fontinfo;
 
@@ -18,6 +19,7 @@ namespace ls {
 class ResourceManager;
 class AsyncTaskQueue;
 class Task;
+class Font;
 
 class FontResource : public Resource {
  public:
@@ -30,7 +32,7 @@ class FontResource : public Resource {
     StyleFontStyle GetFontStyle() const { return this->fontStyle; }
     StyleFontWeight GetFontWeight() const { return this->fontWeight; }
 
-    std::shared_ptr<stbtt_fontinfo> GetFontInfo() const { return this->fontInfo; }
+    std::shared_ptr<Font> GetFont(int32_t fontSize) const;
 
     Napi::Value ToObject(Napi::Env env) const;
 
@@ -41,6 +43,7 @@ class FontResource : public Resource {
     StyleFontStyle fontStyle{};
     StyleFontWeight fontWeight{};
     mutable std::shared_ptr<stbtt_fontinfo> fontInfo;
+    mutable std::unordered_map<int32_t, std::shared_ptr<Font>> fontsBySize;
     std::shared_ptr<Task> task;
 
  private:
