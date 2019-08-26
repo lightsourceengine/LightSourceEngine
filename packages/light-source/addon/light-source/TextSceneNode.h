@@ -6,13 +6,16 @@
 
 #pragma once
 
-#include <napi.h>
 #include "SceneNode.h"
-#include "TextBlock.h"
+#include "TextLine.h"
+#include <napi.h>
+#include <vector>
 
 namespace ls {
 
 class FontResource;
+class LayerResource;
+class Font;
 
 class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
  public:
@@ -28,19 +31,23 @@ class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
     void Paint(Renderer* renderer) override;
 
  private:
-    void ApplyStyle(Style* style) override;
-    void SetFontResource(FontResource* newFontResource);
+    void ApplyStyle(Style* newStyle, Style* oldStyle) override;
+    bool SetFont(Style* style);
+    void ClearFont();
     void DestroyRecursive() override;
     void AppendChild(SceneNode* child) override;
-    std::string ApplyTextTransform(const std::string& text);
-    std::string ApplyTextTransform(Napi::String text);
+    YGSize Measure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode);
 
  private:
     std::string text;
-    StyleTextTransform textTransform{StyleTextTransformNone};
-    TextBlock textBlock;
+
     FontResource* fontResource{};
+    std::shared_ptr<Font> font;
     uint32_t fontResourceListenerId{};
+    LayerResource* layer{};
+    std::vector<TextLine> textLines;
+    float computedTextWidth{0};
+    float computedTextHeight{0};
 };
 
 } // namespace ls

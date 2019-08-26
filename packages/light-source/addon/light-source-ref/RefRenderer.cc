@@ -62,9 +62,17 @@ void RefRenderer::DrawQuad(const uint32_t textureId, const Rect& srcRect, const 
 void RefRenderer::ClearScreen(const int64_t color) {
 }
 
-uint32_t RefRenderer::CreateTexture(const uint8_t* source, PixelFormat sourceFormat,
-        const int32_t width, const int32_t height) {
+uint32_t RefRenderer::CreateTexture(const int32_t width, const int32_t height) {
     return nextTextureId++;
+}
+
+uint32_t RefRenderer::CreateTexture(const int32_t width, const int32_t height,
+        const uint8_t* source, PixelFormat sourceFormat) {
+    return this->CreateTexture(width, height);
+}
+
+LockTextureInfo RefRenderer::LockTexture(const uint32_t textureId) {
+    return {};
 }
 
 void RefRenderer::DestroyTexture(const uint32_t textureId) {

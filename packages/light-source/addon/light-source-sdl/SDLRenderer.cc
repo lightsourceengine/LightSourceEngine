@@ -312,8 +312,27 @@ void SDLRenderer::ClearScreen(const int64_t color) {
     SDL_RenderClear(this->renderer);
 }
 
-uint32_t SDLRenderer::CreateTexture(const uint8_t* source, PixelFormat sourceFormat,
-        const int32_t width, const int32_t height) {
+uint32_t SDLRenderer::CreateTexture(const int32_t width, const int32_t height) {
+    auto texture{
+        SDL_CreateTexture(this->renderer, this->sdlTextureFormat, SDL_TEXTUREACCESS_STREAMING, width, height)
+    };
+
+    if (!texture) {
+        fmt::println("Failed to create texture. SDL Error: {}", SDL_GetError());
+        return 0;
+    }
+
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+
+    auto textureId{ nextTextureId++ };
+
+    this->textures[textureId] = texture;
+
+    return textureId;
+}
+
+uint32_t SDLRenderer::CreateTexture(const int32_t width, const int32_t height,
+        const uint8_t* source, PixelFormat sourceFormat) {
     assert(sourceFormat == this->textureFormat || sourceFormat == PixelFormatAlpha);
 
     void* pixels;
@@ -373,6 +392,45 @@ uint32_t SDLRenderer::CreateTexture(const uint8_t* source, PixelFormat sourceFor
     SDL_DestroyTexture(texture);
 
     return 0;
+}
+
+LockTextureInfo SDLRenderer::LockTexture(const uint32_t textureId) {
+    LockTextureInfo result;
+
+    void* pixels{nullptr};
+    int32_t textureWidth{0};
+    int32_t textureHeight{0};
+    int32_t texturePitch{0};
+
+    auto it{ this->textures.find(textureId) };
+
+    if (it == this->textures.end()) {
+        return {};
+    }
+
+    if (SDL_QueryTexture(it->second, nullptr, nullptr, &textureWidth, &textureHeight) != 0) {
+        return {};
+    }
+
+    if (SDL_LockTexture(it->second, nullptr, &pixels, &texturePitch) != 0) {
+        return {};
+    }
+
+    auto deleter = [this, textureId](uint8_t* data) {
+        auto it{ this->textures.find(textureId) };
+
+        if (it != this->textures.end()) {
+            SDL_UnlockTexture(it->second);
+        }
+    };
+
+    return {
+        std::shared_ptr<uint8_t>(reinterpret_cast<uint8_t*>(pixels), deleter),
+        textureWidth,
+        textureHeight,
+        texturePitch,
+        this->GetTextureFormat()
+    };
 }
 
 void SDLRenderer::DestroyTexture(const uint32_t textureId) {

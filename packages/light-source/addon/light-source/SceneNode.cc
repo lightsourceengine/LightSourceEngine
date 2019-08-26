@@ -111,25 +111,30 @@ void SceneNode::SyncStyleRecursive() {
 
 void SceneNode::SetStyle(const CallbackInfo& info, const Napi::Value& value) {
     HandleScope scope(info.Env());
-
-    if (this->style) {
-        this->style->Unref();
-        this->style = nullptr;
-    }
+    Style* newStyle;
+    auto oldStyle{ this->style };
 
     if (!value.IsObject()) {
+        newStyle = nullptr;
+    } else {
+        newStyle = ObjectWrap<Style>::Unwrap(value.As<Object>());
+    }
+
+    if (newStyle == oldStyle) {
         return;
     }
 
-    this->style = ObjectWrap<Style>::Unwrap(value.As<Object>());
-
-    if (!this->style) {
-        return;
+    if (newStyle) {
+        newStyle->Ref();
     }
 
-    this->style->Ref();
+    this->style = newStyle;
 
-    this->ApplyStyle(this->style);
+    this->ApplyStyle(newStyle, oldStyle);
+
+    if (oldStyle) {
+        oldStyle->Unref();
+    }
 }
 
 void SceneNode::SetParent(SceneNode* newParent) {
@@ -150,14 +155,22 @@ void SceneNode::SetParent(SceneNode* newParent) {
 
 void SceneNode::RefreshStyleRecursive() {
     if (this->style) {
-        this->ApplyStyle(this->style);
+        this->ApplyStyle(this->style, this->style);
     }
 
     std::for_each(this->children.begin(), this->children.end(), [](SceneNode* node) { node->RefreshStyleRecursive(); });
 }
 
-void SceneNode::ApplyStyle(Style* style) {
-     style->Apply(this->ygNode, this->scene->GetWidth(), this->scene->GetHeight(), this->scene->GetRootFontSize());
+void SceneNode::ApplyStyle(Style* newStyle, Style* oldStyle) {
+    if (newStyle == nullptr) {
+        newStyle = Style::Empty();
+    }
+
+    newStyle->Apply(
+        this->ygNode,
+        this->scene->GetWidth(),
+        this->scene->GetHeight(),
+        this->scene->GetRootFontSize());
 }
 
 void SceneNode::AppendChild(const CallbackInfo& info) {

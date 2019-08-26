@@ -141,6 +141,7 @@ SS_ENUM_SEQ_DECL(
     fontSize,
     fontStyle,
     fontWeight,
+    lineHeight,
     maxLines,
     objectFit,
     objectPositionX,

@@ -10,11 +10,13 @@
 
 namespace ls {
 
-constexpr int32_t UnicodeSpace{ 0x20 };
 constexpr int32_t UnicodeFallback{ 0xFFFD };
 constexpr int32_t UnicodeQuestionMark{ 0x3F };
+constexpr int32_t UnicodeDot{ 0x2E };
+constexpr int32_t UnicodeEllipsis{ 0x2026 };
 
-Font::Font(std::shared_ptr<stbtt_fontinfo> info, int32_t fontSize) : info(info), bitmapBuffer(fontSize*fontSize) {
+Font::Font(std::shared_ptr<stbtt_fontinfo> info, int32_t fontSize)
+: info(info), bitmapBuffer(fontSize*fontSize), fontSize(fontSize) {
     auto fontInfo{ info.get() };
     int32_t ascent{0};
     int32_t descent{0};
@@ -26,18 +28,20 @@ Font::Font(std::shared_ptr<stbtt_fontinfo> info, int32_t fontSize) : info(info),
     this->ascent = ascent * scale;
     this->lineHeight = (ascent - descent + lineGap) * this->scale;
 
-    this->fallbackGlyphIndex = this->CodepointToGlyphIndex(UnicodeFallback);
-
-    if (this->fallbackGlyphIndex <= 0) {
-        this->fallbackGlyphIndex = this->CodepointToGlyphIndex(UnicodeQuestionMark);
+    if (this->CodepointToGlyphIndex(UnicodeFallback) > 0) {
+        this->fallbackCodepoint = UnicodeFallback;
+    } else if (this->CodepointToGlyphIndex(UnicodeQuestionMark) > 0) {
+        this->fallbackCodepoint = UnicodeQuestionMark;
+    } else {
+        this->fallbackCodepoint = 0;
     }
 
-    if (this->fallbackGlyphIndex <= 0) {
-        this->fallbackGlyphIndex = this->CodepointToGlyphIndex(UnicodeSpace);
-    }
-
-    if (this->fallbackGlyphIndex <= 0) {
-        this->fallbackGlyphIndex = 0;
+    if (this->CodepointToGlyphIndex(UnicodeEllipsis) > 0) {
+        this->ellipsisCodepoint = UnicodeEllipsis;
+        this->ellipsisCodepointRepeat = 1;
+    } else if (this->CodepointToGlyphIndex(UnicodeDot) > 0) {
+        this->ellipsisCodepoint = UnicodeDot;
+        this->ellipsisCodepointRepeat = 3;
     }
 }
 
@@ -51,7 +55,15 @@ Font::~Font() {
     }
 }
 
-bool Font::LoadGlyph(int32_t codepoint) {
+bool Font::HasEllipsisCodepoint() const {
+    return this->ellipsisCodepoint > 0;
+}
+
+std::tuple<int32_t, int32_t> Font::GetEllipsisCodepoint() const {
+    return std::make_tuple(this->ellipsisCodepoint, this->ellipsisCodepointRepeat);
+}
+
+int32_t Font::LoadGlyph(int32_t codepoint) {
     this->codepoint = codepoint;
     this->glyphIndex = this->CodepointToGlyphIndex(codepoint);
 
@@ -60,7 +72,17 @@ bool Font::LoadGlyph(int32_t codepoint) {
         this->glyphIndex = 0;
     }
 
-    return this->glyphIndex > 0;
+    return this->codepoint;
+}
+
+int32_t Font::LoadGlyphOrFallback(int32_t codepoint) {
+    auto result{ this->LoadGlyph(codepoint) };
+
+    if (result <= 0) {
+        return this->LoadGlyph(this->fallbackCodepoint);
+    }
+
+    return result;
 }
 
 float Font::GetGlyphAdvance() const {
@@ -90,20 +112,38 @@ float Font::GetGlyphKerning(int32_t nextCodepoint) const {
     return kerning;
 }
 
+float Font::GetKerning(int32_t codepoint, int32_t nextCodepoint) const {
+    auto key{ (static_cast<uint64_t>(codepoint) << 32) | (static_cast<uint64_t>(nextCodepoint) & 0xFFFFFFFF) };
+    auto it{ this->kerningTable.find(key) };
+
+    if (it != this->kerningTable.end()) {
+        return it->second;
+    }
+
+    auto kerning{ stbtt_GetGlyphKernAdvance(
+        this->info.get(),
+        this->CodepointToGlyphIndex(codepoint),
+        this->CodepointToGlyphIndex(nextCodepoint)) * this->scale
+    };
+
+    this->kerningTable.insert(std::make_pair(key, kerning));
+
+    return kerning;
+}
+
 bool Font::HasGlyphBitmap() const {
     return stbtt_IsGlyphEmpty(this->info.get(), this->glyphIndex) == 0;
 }
 
-Surface Font::GetGlyphBitmapSubpixel(float shiftX, float shiftY, int32_t* baselineOffset) const {
-    *baselineOffset = 0;
-
+std::tuple<Surface, int32_t> Font::GetGlyphBitmapSubpixel(float shiftX, float shiftY) const {
     if (this->glyphIndex <= 0) {
-        return { nullptr, 0, 0 };
+        return std::make_tuple(Surface(nullptr, 0, 0), 0);
     }
 
     int32_t bitmapWidth{0};
     int32_t bitmapHeight{0};
     int32_t bitmapX{0};
+    int32_t baselineOffset{0};
 
     auto bitmap{ this->GetGlyphBitmapSubpixel(
         shiftX,
@@ -112,14 +152,14 @@ Surface Font::GetGlyphBitmapSubpixel(float shiftX, float shiftY, int32_t* baseli
         &bitmapWidth,
         &bitmapHeight,
         &bitmapX,
-        baselineOffset)
+        &baselineOffset)
     };
 
     if (!bitmap) {
         bitmapWidth = bitmapHeight = 0;
     }
 
-    return { bitmap, bitmapWidth, bitmapHeight };
+    return std::make_tuple(Surface(bitmap, bitmapWidth, bitmapHeight), baselineOffset);
 }
 
 int32_t Font::CodepointToGlyphIndex(int32_t codepoint) const {

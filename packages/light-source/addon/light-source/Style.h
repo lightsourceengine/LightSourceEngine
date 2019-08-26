@@ -100,6 +100,7 @@ class Style : public Napi::ObjectWrap<Style> {
     DefineStyleNumberProperty(fontSize);
     DefineStyleEnumProperty(fontStyle, StyleFontStyle);
     DefineStyleEnumProperty(fontWeight, StyleFontWeight);
+    DefineStyleNumberProperty(lineHeight);
     DefineStyleNumberProperty(maxLines);
     DefineStyleEnumProperty(objectFit, StyleObjectFit);
     DefineStyleNumberProperty(objectPositionX);

@@ -48,8 +48,12 @@ class SDLRenderer : public Renderer {
 
     void ClearScreen(const int64_t color) override;
 
-    uint32_t CreateTexture(
-        const uint8_t* source, PixelFormat sourceFormat, const int32_t width, const int32_t height) override;
+    uint32_t CreateTexture(const int32_t width, const int32_t height) override;
+
+    uint32_t CreateTexture(const int32_t width, const int32_t height,
+        const uint8_t* source, PixelFormat sourceFormat) override;
+
+    LockTextureInfo LockTexture(const uint32_t textureId) override;
 
     void DestroyTexture(const uint32_t textureId) override;
 

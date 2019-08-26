@@ -8,6 +8,7 @@
 
 #include <unordered_map>
 #include <vector>
+#include <tuple>
 #include <stb_truetype.h>
 #include "Surface.h"
 
@@ -28,14 +29,18 @@ class Font {
 
     float GetAscent() const { return this->ascent; }
     float GetLineHeight() const { return this->lineHeight; }
+    int32_t GetSize() const { return this->fontSize; }
 
-     bool LoadGlyph(int32_t codepoint);
-//     bool LoadFallbackGlyph();
+    int32_t LoadGlyph(int32_t codepoint);
+    int32_t LoadGlyphOrFallback(int32_t codepoint);
 
-     float GetGlyphAdvance() const;
-     float GetGlyphKerning(int32_t nextCodepoint) const;
-     bool HasGlyphBitmap() const;
-     Surface GetGlyphBitmapSubpixel(float shiftX, float shiftY, int32_t* baselineOffset) const;
+    float GetGlyphAdvance() const;
+    float GetKerning(int32_t codepoint, int32_t nextCodepoint) const;
+    float GetGlyphKerning(int32_t nextCodepoint) const;
+    bool HasEllipsisCodepoint() const;
+    std::tuple<int32_t, int32_t> GetEllipsisCodepoint() const;
+    bool HasGlyphBitmap() const;
+    std::tuple<Surface, int32_t> GetGlyphBitmapSubpixel(float shiftX, float shiftY) const;
 
  private:
     int32_t CodepointToGlyphIndex(int32_t codepoint) const;
@@ -47,12 +52,15 @@ class Font {
  private:
     std::shared_ptr<stbtt_fontinfo> info;
     mutable std::vector<uint8_t> bitmapBuffer;
+    int32_t fontSize;
     float scale;
     float ascent;
     float lineHeight;
     int32_t glyphIndex{0};
     int32_t codepoint{0};
-    int32_t fallbackGlyphIndex{0};
+    int32_t fallbackCodepoint{0};
+    int32_t ellipsisCodepoint{0};
+    int32_t ellipsisCodepointRepeat{0};
     mutable std::unordered_map<int32_t, int32_t> glyphIndexTable;
     mutable std::unordered_map<int32_t, Shape> shapeTable;
     mutable std::unordered_map<uint64_t, float> kerningTable;

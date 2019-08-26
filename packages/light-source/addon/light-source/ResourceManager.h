@@ -8,6 +8,7 @@
 
 #include <napi.h>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <memory>
 #include "AsyncTaskQueue.h"
@@ -17,6 +18,7 @@
 namespace ls {
 
 class Renderer;
+class LayerResource;
 
 class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
  public:
@@ -49,6 +51,9 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
 
     FontResource* FindFont(const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight);
 
+    LayerResource* CreateLayerResource();
+    void RemoveLayerResource(LayerResource* layerResource);
+
  private:
     FontResource* FindFontInternal(const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight);
     void LoadFont(const std::string& id, const std::string& uri, const int32_t index,
@@ -58,6 +63,7 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     Renderer* renderer{};
     std::unordered_map<std::string, std::shared_ptr<ImageResource>> images;
     std::unordered_map<std::string, std::shared_ptr<FontResource>> fonts;
+    std::unordered_set<LayerResource*> layers;
     std::unordered_map<std::string, ImageUri> registeredImageUris;
     std::vector<std::string> imageExtensions{ ".jpg", ".jpeg", ".png", ".gif", ".svg" };
     std::vector<std::string> path;

@@ -141,14 +141,14 @@ void BoxSceneNode::Paint(Renderer* renderer) {
     SceneNode::Paint(renderer);
 }
 
-void BoxSceneNode::ApplyStyle(Style* style) {
-    SceneNode::ApplyStyle(style);
+void BoxSceneNode::ApplyStyle(Style* newStyle, Style* oldStyle) {
+    SceneNode::ApplyStyle(newStyle, oldStyle);
 
-    if (style->backgroundImage() != this->backgroundImageUri) {
+    if (newStyle->backgroundImage() != this->backgroundImageUri) {
         ImageResource* newBackgroundImage;
 
-        if (!style->backgroundImage().empty()) {
-            this->backgroundImageUri = style->backgroundImage();
+        if (!newStyle->backgroundImage().empty()) {
+            this->backgroundImageUri = newStyle->backgroundImage();
             // TODO: support full uri objects
             newBackgroundImage = this->scene->GetResourceManager()->LoadImage(ImageUri(this->backgroundImageUri));
         } else {
@@ -158,17 +158,17 @@ void BoxSceneNode::ApplyStyle(Style* style) {
         AssignImage(&this->backgroundImage, newBackgroundImage);
     }
 
-    if (style->HasBorderRadius() && (style->backgroundColor() || style->borderColor())) {
+    if (newStyle->HasBorderRadius() && (newStyle->backgroundColor() || newStyle->borderColor())) {
         auto borderRadius{ ComputeIntegerPointValue(
-            style->borderRadius(), this->scene, 0) };
+            newStyle->borderRadius(), this->scene, 0) };
         auto borderRadiusTopLeft{ ComputeIntegerPointValue(
-            style->borderRadiusTopLeft(), this->scene, borderRadius) };
+            newStyle->borderRadiusTopLeft(), this->scene, borderRadius) };
         auto borderRadiusTopRight{ ComputeIntegerPointValue(
-            style->borderRadiusTopRight(), this->scene, borderRadius) };
+            newStyle->borderRadiusTopRight(), this->scene, borderRadius) };
         auto borderRadiusBottomLeft{ ComputeIntegerPointValue(
-            style->borderRadiusBottomLeft(), this->scene, borderRadius) };
+            newStyle->borderRadiusBottomLeft(), this->scene, borderRadius) };
         auto borderRadiusBottomRight{ ComputeIntegerPointValue(
-            style->borderRadiusBottomRight(), this->scene, borderRadius) };
+            newStyle->borderRadiusBottomRight(), this->scene, borderRadius) };
 
         ImageResource* newRoundedRectImage;
         EdgeRect capInsets{
@@ -178,7 +178,7 @@ void BoxSceneNode::ApplyStyle(Style* style) {
             std::max(borderRadiusTopLeft, borderRadiusBottomLeft)
         };
 
-        if (style->backgroundColor()) {
+        if (newStyle->backgroundColor()) {
             auto borderRadiusImageId{
                 fmt::format("@border-radius:{},{},{},{}",
                     borderRadiusTopLeft,
@@ -204,8 +204,8 @@ void BoxSceneNode::ApplyStyle(Style* style) {
 
         ImageResource* newRoundedRectStrokeImage;
 
-        if (style->borderColor() && style->border()) {
-            auto stroke{ ComputeIntegerPointValue(style->border(), this->scene, 0) };
+        if (newStyle->borderColor() && newStyle->border()) {
+            auto stroke{ ComputeIntegerPointValue(newStyle->border(), this->scene, 0) };
 
             auto borderRadiusStrokeImageId{
                 fmt::format("@border-radius-stroke:{},{},{},{},{}",

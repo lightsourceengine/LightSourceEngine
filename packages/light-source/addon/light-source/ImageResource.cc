@@ -52,10 +52,10 @@ bool ImageResource::Sync(Renderer* renderer) {
     }
 
     this->textureId = renderer->CreateTexture(
-        this->image->data.get(),
-        this->image->format,
         this->image->width,
-        this->image->height);
+        this->image->height,
+        this->image->data.get(),
+        this->image->format);
 
     this->image.reset();
 

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <Renderer.h>
 #include <memory>
 
 namespace ls {
@@ -14,19 +15,24 @@ class Surface {
  public:
     Surface(int32_t width, int32_t height);
     Surface(std::shared_ptr<uint8_t> pixels, int32_t width, int32_t height);
+    Surface(std::shared_ptr<uint8_t> pixels, int32_t width, int32_t height, int32_t pitch, PixelFormat format);
     explicit Surface(Surface&& other);
 
     void Blit(const int32_t x, const int32_t y, const Surface& surface) const;
+    void FillTransparent();
 
     bool IsEmpty() const { return this->width == 0 || this->height == 0; }
     int32_t Width() const { return this->width; }
     int32_t Height() const { return this->height; }
     uint8_t* Pixels() const { return this->pixels.get(); }
+    PixelFormat Format() const { return this->format; }
 
  private:
     int32_t width;
     int32_t height;
+    int32_t pitch;
     mutable std::shared_ptr<uint8_t> pixels;
+    PixelFormat format;
 };
 
 } // namespace ls

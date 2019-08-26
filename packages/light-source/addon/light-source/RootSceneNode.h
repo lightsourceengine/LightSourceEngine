@@ -22,7 +22,7 @@ class RootSceneNode : public Napi::ObjectWrap<RootSceneNode>, public SceneNode {
     void Paint(Renderer* renderer) override;
 
  private:
-    void ApplyStyle(Style* style) override;
+    void ApplyStyle(Style* newStyle, Style* oldStyle) override;
 };
 
 } // namespace ls

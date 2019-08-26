@@ -558,6 +558,10 @@ class Style extends StyleBase {
 
   set fontWeight (value) { super.fontWeight = StyleEnumMappings.fontWeightFromString.get(value) }
 
+  get lineHeight () { return super.lineHeight }
+
+  set lineHeight (value) { super.lineHeight = parsePointValue(value, POINT_REGEX, undefined, 0) }
+
   get maxLines () { return super.maxLines }
 
   set maxLines (value) { super.maxLines = parsePositiveInteger(value) }

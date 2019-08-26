@@ -7,6 +7,7 @@
 #include "ResourceManager.h"
 #include "napi-ext.h"
 #include "Renderer.h"
+#include "LayerResource.h"
 #include <algorithm>
 #include <algorithm>
 #include <fmt/format.h>
@@ -270,6 +271,8 @@ void ResourceManager::Detach() {
     for (auto& resource : this->images) {
         resource.second->Detach(this->renderer);
     }
+
+    // TODO: clean up layers
 }
 
 void ResourceManager::ProcessEvents() {
@@ -287,9 +290,27 @@ void ResourceManager::Destroy() {
 
     this->images.clear();
     this->fonts.clear();
+    // TODO: clean up layers
     this->registeredImageUris.clear();
 
     this->asyncTaskQueue.Shutdown();
+}
+
+LayerResource* ResourceManager::CreateLayerResource() {
+    auto layerResource{ new LayerResource(this->renderer) };
+
+    this->layers.insert(layerResource);
+
+    return layerResource;
+}
+
+void ResourceManager::RemoveLayerResource(LayerResource* layerResource) {
+    auto it{ this->layers.find(layerResource) };
+
+    if (it != this->layers.end()) {
+        delete *it; // NOLINT(readability/pointer_notation)
+        this->layers.erase(it);
+    }
 }
 
 StyleFontStyle GetFontStyle(Object options, const char* name) {

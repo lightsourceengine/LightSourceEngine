@@ -57,7 +57,7 @@ class SceneNode {
      static std::vector<Napi::ClassPropertyDescriptor<T>> Extend(Napi::Env env,
          const std::initializer_list<Napi::ClassPropertyDescriptor<T>>& subClassProperties);
     void SetParent(SceneNode* newParent);
-    virtual void ApplyStyle(Style* style);
+    virtual void ApplyStyle(Style* newStyle, Style* oldStyle);
     virtual void DestroyRecursive();
     virtual void AppendChild(SceneNode* child);
     void InsertBefore(SceneNode* child, SceneNode* before);

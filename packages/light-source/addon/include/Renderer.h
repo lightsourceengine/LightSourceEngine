@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 namespace ls {
 
@@ -46,6 +47,24 @@ struct Rect {
     float y;
     float width;
     float height;
+};
+
+/**
+ * Return type for Renderer.LockTexture().
+ */
+struct LockTextureInfo {
+    // texture image pixels
+    std::shared_ptr<uint8_t> pixels;
+
+    // dimensions of texture in pixels
+    int32_t width{0};
+    int32_t height{0};
+
+    // # of bytes to advance pixels pointer to get to beginning of next line of pixels
+    int32_t pitch{0};
+
+    // format of pixels
+    PixelFormat format{PixelFormatUnknown};
 };
 
 /**
@@ -147,19 +166,42 @@ class Renderer {
     /**
      * Create a new texture.
      *
-     * @param source Image pixels. The length, in bytes, is width * height * (# sourceFormat channels)
-     * @param sourceFormat Pixel format of source. This must be PixelFormatAlpha or GetTextureFormat()
      * @param width Width, in pixels, of new texture.
      * @param height Height, in pixels, of new texture.
      * @return 0 - Failed to create a texture; > 0 - Texture created successfully
      */
-    virtual uint32_t CreateTexture(
-        const uint8_t* source, PixelFormat sourceFormat, const int32_t width, const int32_t height) = 0;
+    virtual uint32_t CreateTexture(const int32_t width, const int32_t height) = 0;
+
+    /**
+     * Create a new texture.
+     *
+     * @param width Width, in pixels, of new texture.
+     * @param height Height, in pixels, of new texture.
+     * @param source Image pixels. The length, in bytes, is width * height * (# sourceFormat channels)
+     * @param sourceFormat Pixel format of source. This must be PixelFormatAlpha or GetTextureFormat()
+     * @return 0 - Failed to create a texture; > 0 - Texture created successfully
+     */
+    virtual uint32_t CreateTexture(const int32_t width, const int32_t height,
+        const uint8_t* source, PixelFormat sourceFormat) = 0;
 
     /**
      * Destroy a texture.
      */
     virtual void DestroyTexture(const uint32_t textureId) = 0;
+
+    /**
+     * Get write only access to a texture's pixels.
+     *
+     * Do not use this method to read texture pixel data. The pixel data buffer may or may not contain the latest
+     * state of the texture (for performance reasons). This method is only for writing data into a texture.
+     *
+     * To release access to this texture's pixels, call LockTextureInfo destructor by letting the return value
+     * fall out of scope. Note, the pixels must be unlocked before rendering this texture.
+     *
+     * @param textureId Texture to lock.
+     * @return Pixels to write to. If texture does not exist, pixels will be null.
+     */
+    virtual LockTextureInfo LockTexture(const uint32_t textureId) = 0;
 
     /**
      * Get the pixel format for all new textures.

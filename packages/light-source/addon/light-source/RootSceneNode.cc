@@ -40,8 +40,8 @@ Function RootSceneNode::Constructor(Napi::Env env) {
     return constructor.Value();
 }
 
-void RootSceneNode::ApplyStyle(Style* style) {
-    SceneNode::ApplyStyle(style);
+void RootSceneNode::ApplyStyle(Style* newStyle, Style* oldStyle) {
+    SceneNode::ApplyStyle(newStyle, oldStyle);
 
     auto rootStyleFontSize{ this->GetStyleOrEmpty()->fontSize() };
     auto computedFontSize{ 0 };
