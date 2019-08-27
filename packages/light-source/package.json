@@ -16,7 +16,6 @@
   "files": [
     "dist/",
     "addon/",
-    "docs/",
     "binding.gyp"
   ],
   "dependencies": {
