@@ -26,7 +26,7 @@ class BoxSceneNode : public Napi::ObjectWrap<BoxSceneNode>, public SceneNode {
 
  private:
     void DestroyRecursive() override;
-    void ApplyStyle(Style* newStyle, Style* oldStyle) override;
+    void UpdateStyle(Style* newStyle, Style* oldStyle) override;
     void ClearBackgroundImage();
     void SetRoundedRectImage(ImageResource* image);
     void SetRoundedRectStrokeImage(ImageResource* image);

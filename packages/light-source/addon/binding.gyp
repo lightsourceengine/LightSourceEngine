@@ -69,7 +69,7 @@
         "light-source/ImageResource.cc",
         "light-source/LayerResource.cc",
         "light-source/ResourceManager.cc",
-        "light-source/TextLine.cc",
+        "light-source/TextBlock.cc",
         "light-source/SceneNode.cc",
         "light-source/RootSceneNode.cc",
         "light-source/BoxSceneNode.cc",

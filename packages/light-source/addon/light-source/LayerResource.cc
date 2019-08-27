@@ -15,6 +15,7 @@ LayerResource::LayerResource(Renderer* renderer) : renderer(renderer) {
 bool LayerResource::Sync(const int32_t width, const int32_t height) {
     if (this->textureId) {
         if (width <= this->width && height <= this->height) {
+            this->isDirty = false;
             return true;
         }
 
@@ -32,6 +33,8 @@ bool LayerResource::Sync(const int32_t width, const int32_t height) {
         this->hasError = true;
     }
 
+    this->isDirty = false;
+
     return this->textureId > 0;
 }
 
@@ -41,6 +44,7 @@ void LayerResource::Release() {
         this->textureId = 0;
         this->width = this->height = 0;
         this->hasError = false;
+        this->isDirty = true;
     }
 }
 

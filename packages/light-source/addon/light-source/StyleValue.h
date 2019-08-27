@@ -24,6 +24,9 @@ class StyleValue {
     virtual Napi::Value ToJS(Napi::Env env) const = 0;
     virtual void Apply(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight,
         const int32_t rootFontSize) const { }
+    virtual void ApplyRootFontSize(const YGNodeRef ygNode, const int32_t rootFontSize) const {}
+    virtual void ApplyViewportSize(const YGNodeRef ygNode,
+        const float viewportWidth, const float viewportHeight) const {}
 };
 
 template<typename E>
@@ -82,9 +85,6 @@ class StyleColorValue : public StyleValue {
 
     static bool ToValue(Napi::Value value, int64_t* result);
 
-    // TODO: rgb
-    // TODO: endianess
-
  private:
     int64_t value{};
 };
@@ -100,17 +100,13 @@ class StyleNumberValue : public StyleValue {
     virtual ~StyleNumberValue() = default;
 
     StyleNumberUnit GetUnit() const { return this->number.unit; }
-
     float GetValue() const { return this->number.value; }
-
     float GetValuePercent() const { return this->number.value / 100.f; }
-
     int32_t Int32Value() const { return static_cast<int32_t>(this->number.value); }
-
     void Set(const StyleNumber& number) { this->number = number; }
-
+    bool IsRootFontSizeDependent() const;
+    bool IsViewportSizeDependent() const;
     Napi::Value ToJS(Napi::Env env) const;
-
     static bool ToValue(Napi::Value value, StyleNumber* result);
 
  protected:
@@ -137,8 +133,8 @@ class YogaStyleNumberValue : public StyleNumberValue {
     explicit YogaStyleNumberValue(const StyleNumber& number) : StyleNumberValue(number) {}
     virtual ~YogaStyleNumberValue() = default;
 
-    virtual void Apply(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight,
-            const int32_t rootFontSize) const {
+    void Apply(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight,
+            const int32_t rootFontSize) const override {
         switch (this->number.unit) {
             case StyleNumberUnitAuto:
                 A(ygNode);
@@ -160,8 +156,34 @@ class YogaStyleNumberValue : public StyleNumberValue {
                 break;
             case StyleNumberUnitViewportMax:
                 S(ygNode, this->GetValuePercent() * viewportWidth > viewportHeight ? viewportWidth : viewportHeight);
+                break;
             case StyleNumberUnitRootEm:
                 S(ygNode, this->GetValue() * rootFontSize);
+                break;
+            default:
+                break;
+        }
+    }
+
+    void ApplyRootFontSize(const YGNodeRef ygNode, const int32_t rootFontSize) const override {
+        if (this->number.unit == StyleNumberUnitRootEm) {
+            S(ygNode, this->GetValue() * rootFontSize);
+        }
+    }
+    void ApplyViewportSize(const YGNodeRef ygNode,
+            const float viewportWidth, const float viewportHeight) const override {
+        switch (this->number.unit) {
+            case StyleNumberUnitViewportWidth:
+                S(ygNode, this->GetValuePercent() * viewportWidth);
+                break;
+            case StyleNumberUnitViewportHeight:
+                S(ygNode, this->GetValuePercent() * viewportHeight);
+                break;
+            case StyleNumberUnitViewportMin:
+                S(ygNode, this->GetValuePercent() * viewportWidth > viewportHeight ? viewportHeight : viewportWidth);
+                break;
+            case StyleNumberUnitViewportMax:
+                S(ygNode, this->GetValuePercent() * viewportWidth > viewportHeight ? viewportWidth : viewportHeight);
                 break;
             default:
                 break;

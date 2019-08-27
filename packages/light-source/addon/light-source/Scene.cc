@@ -145,7 +145,7 @@ void Scene::Resize(const CallbackInfo& info) {
         info[0].As<Number>().Int32Value(),
         info[1].As<Number>().Int32Value(),
         info[2].As<Boolean>());
-    this->recalculateLayoutRequested = true;
+    this->isSizeDirty = true;
 }
 
 void Scene::Frame(const CallbackInfo& info) {
@@ -153,8 +153,17 @@ void Scene::Frame(const CallbackInfo& info) {
 
     this->resourceManager->ProcessEvents();
 
-    this->root->Layout(this->width, this->height, this->recalculateLayoutRequested);
-    this->recalculateLayoutRequested = false;
+    if (this->isSizeDirty) {
+        this->root->OnViewportSizeChange();
+        this->isSizeDirty = false;
+    }
+
+    if (this->isRootFontSizeDirty) {
+        this->root->OnRootFontSizeChange();
+        this->isRootFontSizeDirty = false;
+    }
+
+    this->root->Layout(this->width, this->height);
 
     if (!this->isAttached) {
         return;
@@ -180,7 +189,7 @@ void Scene::SetTitle(const CallbackInfo& info, const Napi::Value& value) {
 void Scene::NotifyRootFontSizeChanged(int32_t rootFontSize) {
     if (this->rootFontSize != rootFontSize) {
         this->rootFontSize = rootFontSize;
-        this->recalculateLayoutRequested = true;
+        this->isRootFontSizeDirty = true;
     }
 }
 

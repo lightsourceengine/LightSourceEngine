@@ -141,8 +141,8 @@ void BoxSceneNode::Paint(Renderer* renderer) {
     SceneNode::Paint(renderer);
 }
 
-void BoxSceneNode::ApplyStyle(Style* newStyle, Style* oldStyle) {
-    SceneNode::ApplyStyle(newStyle, oldStyle);
+void BoxSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
+    SceneNode::UpdateStyle(newStyle, oldStyle);
 
     if (newStyle->backgroundImage() != this->backgroundImageUri) {
         ImageResource* newBackgroundImage;

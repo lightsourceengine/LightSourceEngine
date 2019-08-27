@@ -6,12 +6,13 @@
 
 #include "TextSceneNode.h"
 #include "Scene.h"
+#include "Font.h"
+#include "Surface.h"
 #include "StyleUtils.h"
 #include "LayerResource.h"
 #include "Timer.h"
 #include <Utils.h>
 #include <napi-ext.h>
-#include <utf8.h>
 #include <fmt/format.h>
 
 using Napi::Array;
@@ -27,11 +28,9 @@ using Napi::Value;
 
 namespace ls {
 
-constexpr int32_t UnicodeNewLine{ 0x0A };
 int32_t GetMaxLines(Style* style);
 bool LineHeightsEqual(Style* a, Style* b);
 std::string TextTransform(Napi::Env env, StyleTextTransform transform, const std::string& text);
-bool CanAdvanceLine(int32_t currentLineNumber, float lineHeight, float heightLimit, int32_t maxLines);
 
 constexpr int32_t defaultFontSize{ 16 };
 
@@ -73,13 +72,12 @@ Function TextSceneNode::Constructor(Napi::Env env) {
 
 void TextSceneNode::Paint(Renderer* renderer) {
     auto myStyle{ this->GetStyleOrEmpty() };
+    auto width{ std::min(YGNodeLayoutGetWidth(this->ygNode), static_cast<float>(this->scene->GetWidth())) };
+    auto height{ std::min(YGNodeLayoutGetHeight(this->ygNode), static_cast<float>(this->scene->GetHeight())) };
 
-    if (!myStyle->color()) {
+    if (width <= 0 || height <= 0 || this->textBlock.IsEmpty() || !myStyle->color()) {
         return;
     }
-
-    auto x{ YGNodeLayoutGetLeft(this->ygNode) };
-    auto y{ YGNodeLayoutGetTop(this->ygNode) };
 
     if (!this->layer) {
         this->layer = this->scene->GetResourceManager()->CreateLayerResource();
@@ -89,15 +87,14 @@ void TextSceneNode::Paint(Renderer* renderer) {
         return;
     }
 
-    // TODO: layout size may have changed (layout should invalidate layer)
-    if (!this->layer->IsReady() && !this->textLines.empty()) {
-        fmt::println("layer size {}x{}", YGNodeLayoutGetWidth(this->ygNode), YGNodeLayoutGetHeight(this->ygNode));
+    if (this->layer->IsDirty()) {
+        fmt::println("layer size {}x{}", width, height);
 
-        // TODO: layout dimension could be 0
+        Timer t{ "text paint" };
 
-        this->layer->Sync(
-            std::min(static_cast<int32_t>(YGNodeLayoutGetWidth(this->ygNode)), this->scene->GetWidth()),
-            std::min(static_cast<int32_t>(YGNodeLayoutGetHeight(this->ygNode)), this->scene->GetHeight()));
+        this->layer->Sync(static_cast<int32_t>(width), static_cast<int32_t>(height));
+
+        t.Log();
 
         auto lockTextureInfo{ renderer->LockTexture(this->layer->TextureId()) };
 
@@ -110,18 +107,19 @@ void TextSceneNode::Paint(Renderer* renderer) {
 
         surface.FillTransparent();
 
-        auto y{ 0.f };
+        t.Log();
 
-        for (auto& textLine : this->textLines) {
-            textLine.Paint(0, y, surface);
-            y += this->font->GetLineHeight();
-        }
+        this->textBlock.Paint(
+            surface,
+            CalculateLineHeight(this->style->lineHeight(), this->scene, font->GetLineHeight()),
+            this->style->textAlign(),
+            width);
     }
 
     if (this->layer->IsReady()) {
         renderer->DrawImage(
             this->layer->TextureId(),
-            { x, y, static_cast<float>(this->layer->Width()), static_cast<float>(this->layer->Height()) },
+            { YGNodeLayoutGetLeft(this->ygNode), YGNodeLayoutGetTop(this->ygNode), width, height },
             myStyle->color()->Get());
     }
 }
@@ -218,10 +216,38 @@ bool TextSceneNode::SetFont(Style* style) {
     return dirty;
 }
 
-void TextSceneNode::ApplyStyle(Style* newStyle, Style* oldStyle) {
-    SceneNode::ApplyStyle(newStyle, oldStyle);
+void MarkDirtyIfViewportSizeDependent(YGNode* ygNode, const StyleNumberValue* value) {
+    if (value && value->IsViewportSizeDependent()) {
+        YGNodeMarkDirty(ygNode);
+    }
+}
 
-    // TODO: keep line height and max lines and font size (rem, viewport calc)
+void MarkDirtyIfRootFontSizeDependent(YGNode* ygNode, const StyleNumberValue* value) {
+    if (value && value->IsRootFontSizeDependent()) {
+        YGNodeMarkDirty(ygNode);
+    }
+}
+
+void TextSceneNode::OnViewportSizeChange() {
+    SceneNode::OnViewportSizeChange();
+
+    if (this->style) {
+        MarkDirtyIfViewportSizeDependent(this->ygNode, this->style->lineHeight());
+        MarkDirtyIfViewportSizeDependent(this->ygNode, this->style->fontSize());
+    }
+}
+
+void TextSceneNode::OnRootFontSizeChange() {
+    SceneNode::OnRootFontSizeChange();
+
+    if (this->style) {
+        MarkDirtyIfRootFontSizeDependent(this->ygNode, this->style->lineHeight());
+        MarkDirtyIfRootFontSizeDependent(this->ygNode, this->style->fontSize());
+    }
+}
+
+void TextSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
+    SceneNode::UpdateStyle(newStyle, oldStyle);
 
     if (newStyle == oldStyle) {
         return;
@@ -233,11 +259,14 @@ void TextSceneNode::ApplyStyle(Style* newStyle, Style* oldStyle) {
 
     if (fontChanged
             || current->textOverflow() != style->textOverflow()
-            || current->textAlign() != style->textAlign()
             || current->textTransform() != style->textTransform()
             || GetMaxLines(current) != GetMaxLines(style)
             || !LineHeightsEqual(current, style)) {
         YGNodeMarkDirty(this->ygNode);
+    }
+
+    if (current->textAlign() != style->textAlign() && this->layer) {
+        this->layer->MarkDirty();
     }
 }
 
@@ -265,74 +294,24 @@ void TextSceneNode::AppendChild(SceneNode* child) {
 }
 
 YGSize TextSceneNode::Measure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
-    this->textLines.clear();
-    this->computedTextWidth = this->computedTextHeight = 0.f;
+    this->textBlock.Clear();
+    this->textBlock.SetFont(this->font);
 
-    if (!this->font || !this->style || this->text.empty()) {
-        return { 0.f, 0.f };
+    if (this->layer) {
+        this->layer->MarkDirty();
     }
 
-    auto transformedText{ TextTransform(this->Env(), this->style->textTransform(), this->text) };
-    auto textIter{ transformedText.begin() };
-    auto lineHeight{ font->GetLineHeight() };
-    int32_t codepoint;
-    bool appendResult;
-    bool hardLineBreak;
-    auto maxLines{ GetMaxLines(this->GetStyleOrEmpty()) };
-
-    this->textLines.emplace_back(TextLine(this->font));
-
-    while (textIter != transformedText.end()) {
-        codepoint = utf8::unchecked::next(textIter);
-
-        if (codepoint == UnicodeNewLine) {
-            appendResult = false;
-            hardLineBreak = true;
-        } else {
-            appendResult = this->textLines.back().Append(codepoint, width);
-            hardLineBreak = false;
-        }
-
-        if (!appendResult) {
-            auto lineNumber{ static_cast<int32_t>(this->textLines.size()) };
-
-            if (!CanAdvanceLine(lineNumber, lineHeight, height, maxLines)) {
-                if (width > 0 && this->GetStyleOrEmpty()->textOverflow() == StyleTextOverflowEllipsis) {
-                    this->textLines.back().Ellipsize(width);
-                }
-
-                break;
-            }
-
-            this->textLines.emplace_back(this->textLines.back().Break(hardLineBreak));
-        }
+    if (this->style) {
+        this->textBlock.Layout(
+            TextTransform(this->Env(), this->style->textTransform(), this->text),
+            width,
+            height,
+            this->style->textOverflow() == StyleTextOverflowEllipsis,
+            CalculateLineHeight(this->style->lineHeight(), this->scene, font->GetLineHeight()),
+            GetMaxLines(this->style));
     }
 
-    this->textLines.back().Finalize();
-
-    while (!this->textLines.empty()) {
-        if (!this->textLines.back().IsEmpty()) {
-            break;
-        }
-
-        this->textLines.pop_back();
-    }
-
-    this->computedTextWidth = 0.f;
-
-    for (auto& textLine : this->textLines) {
-        this->computedTextWidth = std::max(this->computedTextWidth, textLine.Width());
-    }
-
-    this->computedTextWidth = std::ceil(this->computedTextWidth);
-    this->computedTextHeight = std::ceil(this->textLines.size() * lineHeight);
-
-    return { this->computedTextWidth, this->computedTextHeight };
-}
-
-bool CanAdvanceLine(int32_t currentLineNumber, float lineHeight, float heightLimit, int32_t maxLines) {
-    return (maxLines == 0 || currentLineNumber < maxLines)
-        && (heightLimit == 0 || ((currentLineNumber + 1) * lineHeight) < heightLimit);
+    return { this->textBlock.GetComputedWidth(), this->textBlock.GetComputedHeight() };
 }
 
 int32_t GetMaxLines(Style* style) {

@@ -98,17 +98,6 @@ Value SceneNode::GetStyle(const CallbackInfo& info) {
     return info.Env().Null();
 }
 
-void SceneNode::SyncStyleRecursive() {
-    if (this->style) {
-        this->style->Apply(this->ygNode,
-            this->scene->GetWidth(), this->scene->GetHeight(), this->scene->GetRootFontSize());
-    }
-
-    for (auto& child : this->children) {
-        child->SyncStyleRecursive();
-    }
-}
-
 void SceneNode::SetStyle(const CallbackInfo& info, const Napi::Value& value) {
     HandleScope scope(info.Env());
     Style* newStyle;
@@ -130,7 +119,7 @@ void SceneNode::SetStyle(const CallbackInfo& info, const Napi::Value& value) {
 
     this->style = newStyle;
 
-    this->ApplyStyle(newStyle, oldStyle);
+    this->UpdateStyle(newStyle, oldStyle);
 
     if (oldStyle) {
         oldStyle->Unref();
@@ -153,20 +142,32 @@ void SceneNode::SetParent(SceneNode* newParent) {
     }
 }
 
-void SceneNode::RefreshStyleRecursive() {
+void SceneNode::OnViewportSizeChange() {
     if (this->style) {
-        this->ApplyStyle(this->style, this->style);
+        this->style->ApplyViewportSize(this->ygNode, this->scene->GetWidth(), this->scene->GetHeight());
     }
 
-    std::for_each(this->children.begin(), this->children.end(), [](SceneNode* node) { node->RefreshStyleRecursive(); });
+    for (auto child : this->children) {
+        child->OnRootFontSizeChange();
+    }
 }
 
-void SceneNode::ApplyStyle(Style* newStyle, Style* oldStyle) {
+void SceneNode::OnRootFontSizeChange() {
+    if (this->style) {
+        this->style->ApplyRootFontSize(this->ygNode, this->scene->GetRootFontSize());
+    }
+
+    for (auto child : this->children) {
+        child->OnRootFontSizeChange();
+    }
+}
+
+void SceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
     if (newStyle == nullptr) {
         newStyle = Style::Empty();
     }
 
-    newStyle->Apply(
+    newStyle->Reset(
         this->ygNode,
         this->scene->GetWidth(),
         this->scene->GetHeight(),
@@ -278,7 +279,9 @@ void SceneNode::DestroyRecursive() {
 
     instanceCount--;
 
-    std::for_each(this->children.begin(), this->children.end(), [](SceneNode* node) { node->DestroyRecursive(); });
+    for (auto child : this->children) {
+        child->DestroyRecursive();
+    }
 
     this->children.clear();
     this->SetParent(nullptr);
@@ -323,11 +326,7 @@ void SceneNode::Paint(Renderer* renderer) {
     }
 }
 
-void SceneNode::Layout(float width, float height, bool recalculate) {
-    if (recalculate) {
-        this->RefreshStyleRecursive();
-    }
-
+void SceneNode::Layout(float width, float height) {
     if (YGNodeIsDirty(this->ygNode)) {
         YGNodeCalculateLayout(this->ygNode, width, height, YGDirectionLTR);
     }

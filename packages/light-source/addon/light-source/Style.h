@@ -123,8 +123,11 @@ class Style : public Napi::ObjectWrap<Style> {
     static void Init(Napi::Env env);
     static Style* Empty();
 
-    void Apply(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight,
+    void Reset(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight,
         const int32_t rootFontSize) const;
+    void ApplyRootFontSize(const YGNodeRef ygNode, const int32_t rootFontSize) const;
+    void ApplyViewportSize(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight) const;
+
     void UpdateInternalFlags(const Napi::CallbackInfo& info);
 
  private:

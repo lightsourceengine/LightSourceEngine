@@ -143,12 +143,25 @@ Style* Style::Empty() {
     return empty;
 }
 
-void Style::Apply(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight,
+void Style::Reset(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight,
         const int32_t rootFontSize) const {
     ygNode->setStyle(sEmptyStyle);
 
     for (auto& value : yogaValues) {
         value->Apply(ygNode, viewportWidth, viewportHeight, rootFontSize);
+    }
+}
+
+void Style::ApplyRootFontSize(const YGNodeRef ygNode, const int32_t rootFontSize) const {
+    for (auto& value : yogaValues) {
+        value->ApplyRootFontSize(ygNode, rootFontSize);
+    }
+}
+
+void Style::ApplyViewportSize(const YGNodeRef ygNode,
+        const float viewportWidth, const float viewportHeight) const {
+    for (auto& value : yogaValues) {
+        value->ApplyViewportSize(ygNode, viewportWidth, viewportHeight);
     }
 }
 

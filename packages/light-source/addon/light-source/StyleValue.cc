@@ -36,6 +36,22 @@ Value StyleNumberValue::ToJS(Napi::Env env) const {
     return object;
 }
 
+bool StyleNumberValue::IsRootFontSizeDependent() const {
+    return this->number.unit == StyleNumberUnitRootEm;
+}
+
+bool StyleNumberValue::IsViewportSizeDependent() const {
+    switch (this->number.unit) {
+        case StyleNumberUnitViewportWidth:
+        case StyleNumberUnitViewportHeight:
+        case StyleNumberUnitViewportMin:
+        case StyleNumberUnitViewportMax:
+            return true;
+        default:
+            return false;
+    }
+}
+
 bool StyleNumberValue::ToValue(Napi::Value value, StyleNumber* result) {
     HandleScope scope(value.Env());
     auto holder = value.As<Napi::Array>();

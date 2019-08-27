@@ -45,25 +45,25 @@ class SceneNode {
     void Blur(const Napi::CallbackInfo& info);
 
     void Destroy();
-    void SyncStyleRecursive();
-    void Layout(float width, float height, bool recalculate);
+    void Layout(float width, float height);
     Style* GetStyleOrEmpty() const { return this->style ? this->style : Style::Empty(); }
 
     virtual void Paint(Renderer* renderer);
     virtual Napi::Reference<Napi::Object>* AsReference() = 0;
+    virtual void OnViewportSizeChange();
+    virtual void OnRootFontSizeChange();
 
  protected:
      template<typename T>
      static std::vector<Napi::ClassPropertyDescriptor<T>> Extend(Napi::Env env,
          const std::initializer_list<Napi::ClassPropertyDescriptor<T>>& subClassProperties);
     void SetParent(SceneNode* newParent);
-    virtual void ApplyStyle(Style* newStyle, Style* oldStyle);
     virtual void DestroyRecursive();
     virtual void AppendChild(SceneNode* child);
     void InsertBefore(SceneNode* child, SceneNode* before);
     void RemoveChild(SceneNode* child);
-    void RefreshStyleRecursive();
     void ValidateInsertCandidate(SceneNode* child);
+    virtual void UpdateStyle(Style* newStyle, Style* oldStyle);
 
  protected:
     static int instanceCount;

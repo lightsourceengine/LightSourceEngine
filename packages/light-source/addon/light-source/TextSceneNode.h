@@ -7,9 +7,8 @@
 #pragma once
 
 #include "SceneNode.h"
-#include "TextLine.h"
+#include "TextBlock.h"
 #include <napi.h>
-#include <vector>
 
 namespace ls {
 
@@ -30,8 +29,11 @@ class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
     Napi::Reference<Napi::Object>* AsReference() override { return this; }
     void Paint(Renderer* renderer) override;
 
+    void OnViewportSizeChange() override;
+    void OnRootFontSizeChange() override;
+
  private:
-    void ApplyStyle(Style* newStyle, Style* oldStyle) override;
+    void UpdateStyle(Style* newStyle, Style* oldStyle) override;
     bool SetFont(Style* style);
     void ClearFont();
     void DestroyRecursive() override;
@@ -45,9 +47,7 @@ class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
     std::shared_ptr<Font> font;
     uint32_t fontResourceListenerId{};
     LayerResource* layer{};
-    std::vector<TextLine> textLines;
-    float computedTextWidth{0};
-    float computedTextHeight{0};
+    TextBlock textBlock;
 };
 
 } // namespace ls

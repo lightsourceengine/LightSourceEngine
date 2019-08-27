@@ -161,6 +161,32 @@ int32_t ComputeIntegerPointValue(const StyleNumberValue* styleValue, const Scene
 }
 
 inline
+float CalculateLineHeight(const StyleNumberValue* styleValue, const Scene* scene, const float fontLineHeight) {
+    if (!styleValue) {
+        return fontLineHeight;
+    }
+
+    switch (styleValue->GetUnit()) {
+        case StyleNumberUnitPoint:
+            return styleValue->GetValue();
+        case StyleNumberUnitPercent:
+            return styleValue->GetValuePercent() * fontLineHeight;
+        case StyleNumberUnitViewportWidth:
+            return styleValue->GetValuePercent() * scene->GetWidth();
+        case StyleNumberUnitViewportHeight:
+            return styleValue->GetValuePercent() * scene->GetHeight();
+        case StyleNumberUnitViewportMin:
+            return styleValue->GetValuePercent() * scene->GetViewportMin();
+        case StyleNumberUnitViewportMax:
+            return styleValue->GetValuePercent() * scene->GetViewportMax();
+        case StyleNumberUnitRootEm:
+            return styleValue->GetValue() * scene->GetRootFontSize();
+        default:
+            return fontLineHeight;
+    }
+}
+
+inline
 std::string CreateRoundedRectangleUri(int32_t radiusTopLeft,
                                       int32_t radiusTopRight,
                                       int32_t radiusBottomRight,
