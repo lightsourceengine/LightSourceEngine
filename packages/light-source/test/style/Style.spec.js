@@ -93,4 +93,57 @@ describe('Style', () => {
       }
     })
   })
+  describe('lineHeight property', () => {
+    const property = 'lineHeight'
+    it('should set values', () => {
+      testStyleUnitValue(property, 1, Style.UnitPercent, 100)
+      testStyleUnitValue(property, '100%', Style.UnitPercent, 100)
+      testStyleUnitValue(property, '50px', Style.UnitPoint, 50)
+      testStyleUnitValue(property, '0px', Style.UnitPoint, 0)
+      testStyleUnitValue(property, '5vw', Style.UnitViewportWidth, 5)
+      testStyleUnitValue(property, '5vh', Style.UnitViewportHeight, 5)
+      testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
+      testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
+    })
+    it('should reject invalid values', () => {
+      assert.throws(() => style({ [property]: -1 }))
+    })
+  })
+  describe('maxLines property', () => {
+    const property = 'maxLines'
+    it('should set values', () => {
+      testStyleUnitValue(property, 0, Style.UnitPoint, 0)
+      testStyleUnitValue(property, 1, Style.UnitPoint, 1)
+    })
+    it('should reject invalid values', () => {
+      assert.throws(() => style({ [property]: -1 }))
+      assert.throws(() => style({ [property]: '10' }))
+    })
+  })
+  describe('backgroundClip property', () => {
+    const property = 'backgroundClip'
+    it('should set values', () => {
+      for (const value of ['border-box', 'padding-box']) {
+        testStyleValue(property, value, value)
+      }
+    })
+    it('should reject invalid values', () => {
+      for (const value of ['', 3, null, undefined, {}]) {
+        testStyleValue(property, value, undefined)
+      }
+    })
+  })
+  describe('backgroundFit property', () => {
+    const property = 'backgroundFit'
+    it('should set values', () => {
+      for (const value of ['fill', 'contain', 'cover', 'none', 'scale-down']) {
+        testStyleValue(property, value, value)
+      }
+    })
+    it('should reject invalid values', () => {
+      for (const value of ['', 3, null, undefined, {}]) {
+        testStyleValue(property, value, undefined)
+      }
+    })
+  })
 })

@@ -98,6 +98,7 @@ Function Style::Constructor(Napi::Env env) {
             StylePropertyInstanceAccessor(fontSize),
             StylePropertyInstanceAccessor(fontStyle),
             StylePropertyInstanceAccessor(fontWeight),
+            StylePropertyInstanceAccessor(lineHeight),
             StylePropertyInstanceAccessor(maxLines),
             StylePropertyInstanceAccessor(objectFit),
             StylePropertyInstanceAccessor(objectPositionX),

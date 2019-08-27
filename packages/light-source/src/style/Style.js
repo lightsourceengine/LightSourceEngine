@@ -289,10 +289,40 @@ const parsePointValue = (value, regex, lookup, floor) => {
   return parseResult
 }
 
+const parseLineHeightValue = (value) => {
+  let u
+  let v
+
+  if (typeof value === 'string') {
+    const match = POINT_PERCENT_REGEX.exec(value)
+
+    if (!match || !unitFromString.has(match[2])) {
+      return undefined
+    }
+
+    u = unitFromString.get(match[2])
+    v = parseFloat(match[1])
+  } else if (typeof value === 'number') {
+    u = StyleBase.UnitPercent
+    v = value * 100
+  } else {
+    return undefined
+  }
+
+  if (v < 0) {
+    return undefined
+  }
+
+  parseResult[0] = u
+  parseResult[1] = v
+
+  return parseResult
+}
+
 const parsePositiveInteger = value => {
   if (typeof value === 'number') {
-    value = value >>> 0
     if (value >= 0) {
+      value = value >>> 0
       parseResult[0] = StyleBase.UnitPoint
       parseResult[1] = value
 
@@ -560,7 +590,7 @@ class Style extends StyleBase {
 
   get lineHeight () { return super.lineHeight }
 
-  set lineHeight (value) { super.lineHeight = parsePointValue(value, POINT_REGEX, undefined, 0) }
+  set lineHeight (value) { super.lineHeight = parseLineHeightValue(value) }
 
   get maxLines () { return super.maxLines }
 
