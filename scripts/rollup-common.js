@@ -9,6 +9,10 @@ import babel from 'rollup-plugin-babel'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
+const preamble = '// Light Source Engine\n' +
+  '// Copyright (C) 2019 Daniel Anderson.\n' +
+  '// This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.'
+
 /**
  * Clean up rollup javascript output with terser.
  */
@@ -20,10 +24,7 @@ export const beautify = () => terser({
     quote_style: 1,
     semicolons: false,
     beautify: true,
-    preamble:
-      '// Light Source Engine\n' +
-      '// Copyright (C) 2019 Daniel Anderson.\n' +
-      '// This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.'
+    preamble
   }
 })
 
@@ -66,3 +67,45 @@ export const babelPreserveImports = ({ babelConfigPath }) => {
     exclude: ['node_modules/**']
   })
 }
+
+/**
+ * Override module resolution path for require/import statements.
+ */
+export const overrideResolve = (options = {}) => ({
+  resolveId (importee) {
+    return options[importee]
+  }
+})
+
+/**
+ * Get the list of exports for each module id. This method gets exports by requiring the
+ * module id.
+ *
+ * @param moduleIds List of module names.
+ */
+export const getNamedExports = (moduleIds) => {
+  const exports = {}
+
+  for (const id of moduleIds) {
+    exports[id] = Object.keys(require(id)).filter(x => x !== 'default' && !x.startsWith('__'))
+  }
+
+  return exports
+}
+
+/**
+ * Minify javascript with terser.
+ */
+export const minify = () => terser({
+  mangle: {
+    module: true,
+  },
+  // Disable compress, as the defaults (inlining in particular) cause performance problems in v8.
+  compress: false,
+  output: {
+    ecma: 8,
+    quote_style: 1,
+    semicolons: false,
+    preamble
+  }
+})

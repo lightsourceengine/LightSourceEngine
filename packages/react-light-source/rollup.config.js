@@ -7,20 +7,16 @@
 import autoExternal from 'rollup-plugin-auto-external'
 import commonjs from 'rollup-plugin-commonjs'
 import resolve from 'rollup-plugin-node-resolve'
-import { beautify, babelPreserveImports, onwarn } from '../../scripts/rollup-common'
+import replace from 'rollup-plugin-re'
+import { beautify, babelPreserveImports, onwarn, getNamedExports, overrideResolve, minify } from '../../scripts/rollup-common'
+import { join } from 'path'
 
 const input = 'src/exports.js'
-
-const external = [
-  'fbjs/lib/emptyObject',
-  'fbjs/lib/emptyFunction'
-]
 
 export default [
   {
     input,
     onwarn,
-    external,
     output: {
       format: 'cjs',
       file: 'dist/cjs/index.js'
@@ -40,7 +36,37 @@ export default [
   {
     input,
     onwarn,
-    external,
+    external: ['react'],
+    output: {
+      format: 'cjs',
+      file: 'dist/cjs/react-light-source.min.js'
+    },
+    plugins: [
+      autoExternal({ peerDependencies: false }),
+      overrideResolve({
+        'object-assign': join(__dirname, '..', '..', 'scripts', 'object-assign.js')
+      }),
+      replace({
+        replaces: {
+          'process.env.NODE_ENV': JSON.stringify('production')
+        }
+      }),
+      resolve(),
+      babelPreserveImports({
+        babelConfigPath: __dirname
+      }),
+      commonjs({
+        include: ['/**/node_modules/**'],
+        namedExports: {
+          ...getNamedExports(['react-reconciler', 'scheduler'])
+        }
+      }),
+      minify()
+    ]
+  },
+  {
+    input,
+    onwarn,
     output: {
       format: 'esm',
       file: 'dist/esm/index.mjs'
