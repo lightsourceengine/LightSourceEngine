@@ -47,7 +47,7 @@
     "standard": "^13.1.0"
   },
   "scripts": {
-    "bundle": "rollup -c",
+    "bundle": "del-cli dist && rollup -c",
     "coverage": "nyc --reporter=text mocha --require @babel/register --reporter spec \"test/**/*.spec.js\"",
     "lint": "standard",
     "cpplint": "tools/cpplint.py --recursive addon",

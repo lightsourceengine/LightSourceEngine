@@ -8,8 +8,14 @@ import autoExternal from 'rollup-plugin-auto-external'
 import commonjs from 'rollup-plugin-commonjs'
 import resolve from 'rollup-plugin-node-resolve'
 import replace from 'rollup-plugin-re'
-import { beautify, babelPreserveImports, onwarn, getNamedExports, overrideResolve, minify } from '../../scripts/rollup-common'
-import { join } from 'path'
+import {
+  beautify,
+  babelPreserveImports,
+  onwarn,
+  getNamedExports,
+  minify,
+  inlineModule
+} from '../../scripts/rollup-common'
 
 const input = 'src/exports.js'
 
@@ -39,12 +45,13 @@ export default [
     external: ['react'],
     output: {
       format: 'cjs',
-      file: 'dist/cjs/react-light-source.min.js'
+      file: 'dist/cjs/react-light-source.min.js',
+      preferConst: true
     },
     plugins: [
       autoExternal({ peerDependencies: false }),
-      overrideResolve({
-        'object-assign': join(__dirname, '..', '..', 'scripts', 'object-assign.js')
+      inlineModule({
+        'object-assign': 'export default Object.assign'
       }),
       replace({
         replaces: {

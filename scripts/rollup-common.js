@@ -69,13 +69,20 @@ export const babelPreserveImports = ({ babelConfigPath }) => {
 }
 
 /**
- * Override module resolution path for require/import statements.
+ * Plugin to replace a module with a javascript code string.
+ *
+ * @param options Map of module ID to javascript code string.
  */
-export const overrideResolve = (options = {}) => ({
-  resolveId (importee) {
-    return options[importee]
+export const inlineModule = (options = {}) => ({
+    name: 'inlineModule',
+    resolveId (source) {
+      return (source in options) ? source : null
+    },
+    load (id) {
+      return (id in options) ? options[id] : null
+    }
   }
-})
+)
 
 /**
  * Get the list of exports for each module id. This method gets exports by requiring the

@@ -36,7 +36,8 @@ export default [
     onwarn,
     output: {
       format: 'cjs',
-      file: 'dist/cjs/light-source.min.js'
+      file: 'dist/cjs/light-source.min.js',
+      preferConst: true
     },
     plugins: [
       autoExternal(),
