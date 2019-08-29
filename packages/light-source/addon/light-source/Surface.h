@@ -24,6 +24,7 @@ class Surface {
     bool IsEmpty() const { return this->width == 0 || this->height == 0; }
     int32_t Width() const { return this->width; }
     int32_t Height() const { return this->height; }
+    int32_t Pitch() const { return this->pitch; }
     uint8_t* Pixels() const { return this->pixels.get(); }
     PixelFormat Format() const { return this->format; }
 

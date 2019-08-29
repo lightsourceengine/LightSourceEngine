@@ -4,7 +4,8 @@
     "sdl_library_path%": "/usr/local/lib",
     "sdl_include_path%": "/usr/local/include/SDL2",
     "sdl_mixer_include_path%": "<(sdl_include_path)",
-    "sdl_mixer_library_path%": "<(sdl_library_path)"
+    "sdl_mixer_library_path%": "<(sdl_library_path)",
+    "enable_native_tests%": "false",
   },
   "target_defaults": {
     "include_dirs": [
@@ -77,7 +78,17 @@
         "light-source/TextSceneNode.cc",
         "light-source/Scene.cc",
         "light-source/Init.cc",
-      ]
+      ],
+      "conditions": [
+        ["enable_native_tests==\"true\"", {
+          "defines": ["LIGHT_SOURCE_ENABLE_NATIVE_TESTS"],
+          "sources": [
+            "light-source/test/TestGroup.cc",
+            "light-source/test/FileSystemSpec.cc",
+            "light-source/test/SurfaceSpec.cc",
+          ]
+        }]
+      ],
     },
     {
       "target_name": "light-source-sdl",
