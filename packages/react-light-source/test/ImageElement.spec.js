@@ -20,10 +20,7 @@ describe('ImageElement', () => {
   describe('prop: src', () => {
     it('should call onLoad after image loaded', async () => {
       await new Promise((resolve, reject) => {
-        container()
-          .render(<img src={testImagePath}
-            onLoad={resolve}
-            onError={reject} />)
+        container().render(<img src={testImagePath} onLoad={resolve} onError={reject} />)
       })
 
       assert.isObject(root().children[0].src)

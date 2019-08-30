@@ -175,7 +175,7 @@ export class Stage {
         }
       }
     } else {
-      throw Error(`width and height must be integer values.`)
+      throw Error('width and height must be integer values.')
     }
 
     this[$scene] = new Scene(this, this[$adapter], displayIndex, width, height, fullscreen)

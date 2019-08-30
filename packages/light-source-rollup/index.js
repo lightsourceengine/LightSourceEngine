@@ -74,14 +74,14 @@ export const babelPreserveImports = ({ babelConfigPath }) => {
  * @param options Map of module ID to javascript code string.
  */
 export const inlineModule = (options = {}) => ({
-    name: 'inlineModule',
-    resolveId (source) {
-      return (source in options) ? source : null
-    },
-    load (id) {
-      return (id in options) ? options[id] : null
-    }
+  name: 'inlineModule',
+  resolveId (source) {
+    return (source in options) ? source : null
+  },
+  load (id) {
+    return (id in options) ? options[id] : null
   }
+}
 )
 
 /**
@@ -105,7 +105,7 @@ export const getNamedExports = (moduleIds) => {
  */
 export const minify = () => terser({
   mangle: {
-    module: true,
+    module: true
   },
   // Disable compress, as the defaults (inlining in particular) cause performance problems in v8.
   compress: false,

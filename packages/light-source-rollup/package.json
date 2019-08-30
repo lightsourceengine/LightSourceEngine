@@ -1,0 +1,26 @@
+{
+  "name": "light-source-rollup",
+  "private": true,
+  "version": "1.0.0-private.0",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.mjs",
+  "scripts": {
+    "bundle": "rimraf dist build/standalone && rollup -c",
+    "coverage": "nyc --reporter=text run-s testOnly",
+    "jsdoc": "true",
+    "lint": "standard",
+    "test": "run-s lint testOnly",
+    "testOnly": "true"
+  },
+  "standard": {
+    "ignore": [
+      "dist/",
+      "node_modules/"
+    ],
+    "parser": "babel-eslint",
+    "env": {
+      "mocha": true,
+      "node": true
+    }
+  }
+}

@@ -27,7 +27,7 @@ export class EventEmitter {
     for (const event of events) {
       if (typeof event === 'symbol') {
         if (!Symbol.keyFor(event)) {
-          throw Error(`Expected a symbol created from Symbol.for()`)
+          throw Error('Expected a symbol created from Symbol.for()')
         }
         this[event] = []
       } else if (event === 'string') {

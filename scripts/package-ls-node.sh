@@ -24,13 +24,13 @@
 #
 # Usage:
 #
-# create-bundle.sh [platform-arch]
+# package-ls-node.sh [platform-arch]
 #
 # Examples:
 #
-# Compile for build machine:  create-bundle.sh
-# Cross compile for armv7:     create-bundle.sh linux-armv6l
-# Cross compile for armv7:     create-bundle.sh linux-armv7l
+# Compile for build machine:  package-ls-node.sh
+# Cross compile for armv7:     package-ls-node.sh linux-armv6l
+# Cross compile for armv7:     package-ls-node.sh linux-armv7l
 
 set -e
 
@@ -53,7 +53,7 @@ assert_node_platform_arch() {
 }
 
 get_node_version() {
-  echo $(node -e 'console.log(process.version)')
+  echo $(node --version)
 }
 
 assert_node_version() {
@@ -188,7 +188,7 @@ create_bundle() {
   clear_staging_dir
   mkdir -p "${STAGING_DIR}/bin" "${STAGING_DIR}/lib"
 
-  (cd ${STAGING_DIR}/bin && cp ${NODE_BIN} . && ln -s node lsnode)
+  (cd ${STAGING_DIR}/bin && cp ${NODE_BIN} . && ln -s node ls-node)
   mv build/node_modules ${STAGING_DIR}/lib
 
   mkdir "${LIGHT_SOURCE_BUILD_DIR}"
@@ -197,7 +197,7 @@ create_bundle() {
 
   echo "****** Creating bundle..."
 
-  (cd build && tar -cvzf lsnode-v${LIGHT_SOURCE_VERSION}-${NODE_PLATFORM_ARCH}.tar.gz ${NODE_PLATFORM_ARCH})
+  (cd build && tar -cvzf ls-node-v${LIGHT_SOURCE_VERSION}-${NODE_PLATFORM_ARCH}.tar.gz ${NODE_PLATFORM_ARCH})
 
   echo "****** Done"
 }

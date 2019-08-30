@@ -15,7 +15,7 @@ import {
   getNamedExports,
   minify,
   inlineModule
-} from '../../scripts/rollup-common'
+} from 'light-source-rollup'
 
 const input = 'src/exports.js'
 
@@ -42,10 +42,26 @@ export default [
   {
     input,
     onwarn,
+    output: {
+      format: 'esm',
+      file: 'dist/esm/index.mjs'
+    },
+    plugins: [
+      autoExternal(),
+      resolve(),
+      babelPreserveImports({
+        babelConfigPath: __dirname
+      }),
+      beautify()
+    ]
+  },
+  {
+    input,
+    onwarn,
     external: ['react'],
     output: {
       format: 'cjs',
-      file: 'dist/cjs/react-light-source.min.js',
+      file: 'build/standalone/cjs/react-light-source.min.js',
       preferConst: true
     },
     plugins: [
@@ -72,19 +88,19 @@ export default [
     ]
   },
   {
-    input,
+    input: '../../node_modules/react/cjs/react.production.min.js',
     onwarn,
     output: {
-      format: 'esm',
-      file: 'dist/esm/index.mjs'
+      format: 'cjs',
+      file: 'build/standalone/cjs/react.min.js'
     },
     plugins: [
-      autoExternal(),
-      resolve(),
-      babelPreserveImports({
-        babelConfigPath: __dirname
-      }),
-      beautify()
+      replace({
+        replaces: {
+          'require(\'object-assign\')': 'Object.assign',
+          'require("object-assign")': 'Object.assign'
+        }
+      })
     ]
   }
 ]

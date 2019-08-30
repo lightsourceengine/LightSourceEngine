@@ -27,7 +27,7 @@ export const afterSceneTest = () => {
   stage = null
   scene = null
 
-  assert.equal(getSceneNodeInstanceCount(), 0, `test has leaked SceneNode instances`)
+  assert.equal(getSceneNodeInstanceCount(), 0, 'test has leaked SceneNode instances')
 }
 
 export const createNode = (tag) => {
