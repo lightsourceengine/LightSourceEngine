@@ -67,7 +67,7 @@ assert_node_version() {
 }
 
 get_light_source_version() {
-  echo $(node -e "console.log(JSON.parse(require('fs').readFileSync('package.json')).devDependencies['light-source'])")
+  echo $(node -e "console.log(JSON.parse(require('fs').readFileSync('packages/light-source/package.json')).version)")
 }
 
 get_node_bin() {
@@ -139,7 +139,10 @@ create_bundle() {
   local NODE_PLATFORM_ARCH
   local NODE_BIN
   local LIGHT_SOURCE_VERSION
-  local LIGHT_SOURCE_BUILD_DIR
+  local GLOBAL_BINDINGS_MODULE
+  local GLOBAL_REACT_MODULE
+  local GLOBAL_LIGHT_SOURCE_MODULE
+  local GLOBAL_REACT_LIGHT_SOURCE_MODULE
 
   NODE_PLATFORM_ARCH=$1
 
@@ -148,7 +151,7 @@ create_bundle() {
   assert_python2
   export npm_config_enable_native_tests=false
 
-  echo "****** Compiling..."
+  echo "****** Compiling and minifying javscript..."
 
   case ${NODE_PLATFORM_ARCH} in
     darwin-x64|linux-x64)
@@ -174,30 +177,44 @@ create_bundle() {
     ;;
   esac
 
-  echo "****** Minifying javscript..."
-
-  yarn run bundle
-
   echo "****** Staging bundle..."
 
   LIGHT_SOURCE_VERSION=$(get_light_source_version)
-  STAGING_DIR="build/${NODE_PLATFORM_ARCH}"
-  LIGHT_SOURCE_BUILD_DIR=${STAGING_DIR}/lib/node_modules/light-source/build
+  LIGHT_SOURCE_PACKAGE_NAME=ls-node-v${LIGHT_SOURCE_VERSION}-${NODE_PLATFORM_ARCH}
+  STAGING_DIR="build/${LIGHT_SOURCE_PACKAGE_NAME}"
   NODE_BIN=$(get_node_bin "${NODE_PLATFORM_ARCH}")
 
   clear_staging_dir
   mkdir -p "${STAGING_DIR}/bin" "${STAGING_DIR}/lib"
 
+  # Copy node binary and create ls-node symlink.
   (cd ${STAGING_DIR}/bin && cp ${NODE_BIN} . && ln -s node ls-node)
-  mv build/node_modules ${STAGING_DIR}/lib
 
-  mkdir "${LIGHT_SOURCE_BUILD_DIR}"
-  cp node_modules/light-source/build/Release/*.node "${LIGHT_SOURCE_BUILD_DIR}"
-  rm "${LIGHT_SOURCE_BUILD_DIR}/light-source-ref.node"
+  # Copy standalone react, bindings, light-source and react-light-source modules into global module directory.
+  GLOBAL_BINDINGS_MODULE=${STAGING_DIR}/lib/node_modules/bindings
+  GLOBAL_REACT_MODULE=${STAGING_DIR}/lib/node_modules/react
+  GLOBAL_LIGHT_SOURCE_MODULE=${STAGING_DIR}/lib/node_modules/light-source
+  GLOBAL_REACT_LIGHT_SOURCE_MODULE=${STAGING_DIR}/lib/node_modules/react-light-source
+
+  mkdir -p "$GLOBAL_REACT_MODULE" "$GLOBAL_BINDINGS_MODULE" "$GLOBAL_REACT_LIGHT_SOURCE_MODULE" "$GLOBAL_LIGHT_SOURCE_MODULE"
+
+  cp node_modules/light-source/build/standalone/cjs/bindings.min.js "${GLOBAL_BINDINGS_MODULE}/index.js"
+  cp node_modules/light-source/build/standalone/cjs/light-source.min.js "${GLOBAL_LIGHT_SOURCE_MODULE}/index.js"
+  echo '{ "description": "the precense of an empty package.json coerces bindings to load .node files from this directory" }' > "${GLOBAL_LIGHT_SOURCE_MODULE}/package.json"
+
+  cp node_modules/react-light-source/build/standalone/cjs/react.min.js "${GLOBAL_REACT_MODULE}/index.js"
+  cp node_modules/react-light-source/build/standalone/cjs/react-light-source.min.js "${GLOBAL_REACT_LIGHT_SOURCE_MODULE}/index.js"
+
+  # Copy native light-source artifacts to the global light-source module. Note, bindings search algorithm looks
+  # at the "build" directory first.
+  mkdir "${GLOBAL_LIGHT_SOURCE_MODULE}/build"
+  cp node_modules/light-source/build/Release/*.node "${GLOBAL_LIGHT_SOURCE_MODULE}/build"
+  # Remove the test only reference renderer.
+  rm "${GLOBAL_LIGHT_SOURCE_MODULE}/build/light-source-ref.node"
 
   echo "****** Creating bundle..."
 
-  (cd build && tar -cvzf ls-node-v${LIGHT_SOURCE_VERSION}-${NODE_PLATFORM_ARCH}.tar.gz ${NODE_PLATFORM_ARCH})
+  (cd build && tar -cvzf ${LIGHT_SOURCE_PACKAGE_NAME}.tar.gz ${LIGHT_SOURCE_PACKAGE_NAME})
 
   echo "****** Done"
 }
