@@ -22,12 +22,12 @@ before_install:
   - sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
   - sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
   - export npm_config_sdl_include_path=/usr/include/SDL2
-  - export npm_config_sdl_library_path=/usr/lib/`gcc -dumpmachine`
+  - export npm_config_sdl_library_path=/usr/lib/$(gcc -dumpmachine)
   - export npm_config_with_sdl_mixer=true
   - export npm_config_with_cec=true
   - export npm_enable_native_tests=true
   - export npm_config_cec_include_path=/usr/include
-  - export npm_config_cec_library_path=/usr/lib/`gcc -dumpmachine`
+  - export npm_config_cec_library_path=/usr/lib/$(gcc -dumpmachine)
   - (cd packages/light-source && yarn link)
   - (cd packages/react-light-source && yarn link && yarn link light-source)
   - (cd packages/runtime && yarn link light-source && yarn link react-light-source)
@@ -37,7 +37,7 @@ install:
   - cd ${TRAVIS_BUILD_DIR}/packages/light-source
   - yarn
   - cd ${TRAVIS_BUILD_DIR}/packages/react-light-source
-  - yarn
+  - yarn --ignore-scripts
   - cd ${TRAVIS_BUILD_DIR}/packages/runtime
   - yarn --ignore-scripts
 
@@ -48,11 +48,18 @@ script:
   - yarn run prepublishOnly
   - cd ${TRAVIS_BUILD_DIR}/packages/runtime
   - yarn run lint
-  - nvm install v10.16.3
-  - nvm use v10.16.3
-  - ./scripts/create-bundle linux-armv6l
-  - nvm install v12.0.0
-  - nvm use v12.0.0
-  - ./scripts/create-bundle linux-armv7l
+  - export NODE_DOWNLOADS=${HOME}/node_downloads
+  - mkdir -p ${NODE_DOWNLOADS}
+  - export TARGET_NODE_VERSION=v10.16.3
+  - nvm install ${TARGET_NODE_VERSION}
+  - nvm use ${TARGET_NODE_VERSION}
+  - ./scripts/create-bundle.sh linux-armv6l
+  - export TARGET_NODE_VERSION=v12.0.0
+  - nvm install ${TARGET_NODE_VERSION}
+  - nvm use ${TARGET_NODE_VERSION}
+  - ./scripts/create-bundle.sh linux-armv7l
 
-cache: yarn
+cache:
+  directories:
+    - $HOME/.cache/yarn
+    - $HOME/node_downloads

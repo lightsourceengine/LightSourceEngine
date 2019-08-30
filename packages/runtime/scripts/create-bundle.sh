@@ -90,8 +90,7 @@ get_node_bin() {
   elif [[ ! -f "${BIN}" ]]; then
     URL=https://nodejs.org/download/release/${NODE_VERSION}/${NODE_RELEASE_ID}.tar.gz
 
-    wget -qO- "${URL}" \
-      | tar -C "${NODE_DOWNLOADS}" -xvz ${NODE_RELEASE_ID}/bin/node
+    wget -qO- "${URL}" | tar -C "${NODE_DOWNLOADS}" -xvz ${NODE_RELEASE_ID}/bin/node > /dev/null
   fi
 
   echo "$BIN"
