@@ -34,13 +34,20 @@ before_install:
   - (cd $HOME && git clone https://github.com/dananderson/crosstools.git)
 
 install:
-  - (cd packages/light-source && yarn)
-  - (cd packages/react-light-source && yarn)
-  - (cd packages/runtime && yarn)
+  - cd ${TRAVIS_BUILD_DIR}/packages/light-source
+  - yarn
+  - cd ${TRAVIS_BUILD_DIR}/packages/react-light-source
+  - yarn
+  - cd ${TRAVIS_BUILD_DIR}/packages/runtime
+  - yarn
 
 script:
-  - (cd packages/light-source && yarn run prepublishOnly)
-  - (cd packages/react-light-source && yarn run prepublishOnly)
-  - (cd packages/runtime && yarn run lint && yarn run bundle)
+  - cd ${TRAVIS_BUILD_DIR}/packages/light-source
+  - yarn run prepublishOnly
+  - cd ${TRAVIS_BUILD_DIR}/packages/react-light-source
+  - yarn run prepublishOnly
+  - cd ${TRAVIS_BUILD_DIR}/packages/runtime
+  - yarn run lint
+  - yarn run bundle
 
 cache: yarn
