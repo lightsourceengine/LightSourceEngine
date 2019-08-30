@@ -147,6 +147,7 @@ create_bundle() {
   echo "****** Start create bundle for ${NODE_PLATFORM_ARCH}"
 
   assert_python2
+  export npm_config_enable_native_tests=false
 
   echo "****** Compiling..."
 
