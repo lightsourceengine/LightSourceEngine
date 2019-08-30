@@ -11,6 +11,15 @@
 #include <unordered_set>
 #include <fmt/format.h>
 
+// Note, patch in the axis thresholds, as they were introduced after 2.0.4.
+#ifndef SDL_JOYSTICK_AXIS_MAX
+#define SDL_JOYSTICK_AXIS_MAX   32767
+#endif
+
+#ifndef SDL_JOYSTICK_AXIS_MIN
+#define SDL_JOYSTICK_AXIS_MIN   -32768
+#endif
+
 using Napi::Array;
 using Napi::Boolean;
 using Napi::CallbackInfo;

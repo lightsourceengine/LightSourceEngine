@@ -48,12 +48,12 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
     std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) override;
 
  private:
-    inline void Call(const StageCallback callbackId, const std::initializer_list<napi_value>& args);
-    inline bool IsCallbackEmpty(const StageCallback callbackId);
+    void Call(const StageCallback callbackId, const std::initializer_list<napi_value>& args);
+    bool IsCallbackEmpty(const StageCallback callbackId);
     void SyncGamepads(Napi::Env env);
     void ClearGamepads();
     SDLGamepad* AddGamepad(Napi::Env env, int32_t index);
-    inline Napi::Value GetGamepad(Napi::Env env, int32_t instanceId);
+    Napi::Value GetGamepad(Napi::Env env, int32_t instanceId);
     void HandleJoystickHatMotion(Napi::Env env, int32_t instanceId, uint8_t hatIndex, uint8_t hatValue);
     void HandleJoystickAdded(Napi::Env env, int32_t index);
     void HandleJoystickRemoved(Napi::Env env, int32_t instanceId);
