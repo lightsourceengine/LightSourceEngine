@@ -154,19 +154,19 @@ create_bundle() {
 
   case ${NODE_PLATFORM_ARCH} in
     darwin-x64|linux-x64)
-      assert_node_version ${TARGET_NODE_VERSION}
+      assert_node_version ${TARGET_NODE_VERSION:-${DEFAULT_NODE_VERSION}}
       assert_node_platform_arch "${NODE_PLATFORM_ARCH}"
 
       yarn --force
     ;;
     linux-arm7l)
-      assert_node_version ${TARGET_NODE_VERSION}
+      assert_node_version ${TARGET_NODE_VERSION:-${DEFAULT_NODE_VERSION}}
       configure_crosstools
 
       ${CROSSTOOLS_HOME}/bin/cross "rpi" yarn --force
     ;;
     linux-arm6l)
-      assert_node_version ${TARGET_NODE_VERSION_ARMV6}
+      assert_node_version ${TARGET_NODE_VERSION:-${DEFAULT_NODE_VERSION_ARMV6}}
       configure_crosstools
 
       ${CROSSTOOLS_HOME}/bin/cross "rpizero" yarn --force
@@ -210,8 +210,8 @@ trap clear_staging_dir EXIT
 STAGING_DIR=
 CROSSTOOLS_HOME="${CROSSTOOLS_HOME:-${HOME}/crosstools}"
 NODE_DOWNLOADS="${NODE_DOWNLOADS:-/tmp}"
-TARGET_NODE_VERSION=v12.0.0
-TARGET_NODE_VERSION_ARMV6=v10.16.3
+DEFAULT_NODE_VERSION=v12.0.0
+DEFAULT_NODE_VERSION_ARMV6=v10.16.3
 
 case $1 in
   linux-arm7l|linux-arm6l)

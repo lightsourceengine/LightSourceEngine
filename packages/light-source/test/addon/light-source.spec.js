@@ -8,22 +8,17 @@ import bindings from 'bindings'
 
 const lib = bindings('light-source')
 
-const emptyFunction = () => {}
-
 const renderTestGroup = (group) => {
   describe(group.description, () => {
-    before(group.before || emptyFunction)
-    after(group.after || emptyFunction)
-    beforeEach(group.beforeEach || emptyFunction)
-    afterEach(group.afterEach || emptyFunction)
+    const func = f => f || (() => {})
+    const array = arr => arr || []
 
-    for (const child of group.children || []) {
-      renderTestGroup(child)
-    }
-
-    for (const test of group.tests || []) {
-      it(test.description, test.func)
-    }
+    array(group.children).forEach(renderTestGroup);
+    before(func(group.before))
+    after(func(group.after))
+    beforeEach(func(group.beforeEach))
+    afterEach(func(group.afterEach))
+    array(group.tests).forEach(({description, func}) => it(description, func))
   })
 }
 
