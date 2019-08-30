@@ -50,9 +50,10 @@ SDLGamepad::SDLGamepad(const CallbackInfo& info) : ObjectWrap<SDLGamepad>(info) 
     this->hatCount = SDL_JoystickNumHats(this->joystick);
     this->axisCount = SDL_JoystickNumAxes(this->joystick);
     this->hatState.resize(this->hatCount);
-    this->product = SDL_JoystickGetProduct(this->joystick);
-    this->productVersion = SDL_JoystickGetProductVersion(this->joystick);
-    this->vendor = SDL_JoystickGetVendor(this->joystick);
+//    TODO: not available in 2.0.4..
+//    this->product = SDL_JoystickGetProduct(this->joystick);
+//    this->productVersion = SDL_JoystickGetProductVersion(this->joystick);
+//    this->vendor = SDL_JoystickGetVendor(this->joystick);
 
     auto value{ SDL_GameControllerMappingForGUID(joystickGUID) };
 
