@@ -18,7 +18,7 @@
 #
 # For cross compiled packages, the following is required:
 #
-# - The environment must have node version 12.0.0. For arm6 builds, node version must be 10.16.3.
+# - The environment must have node version 12.0.0. For armv6 builds, node version must be 10.16.3.
 # - crosstools installed at CROSSTOOLS_HOME environment variable.
 # - python 2.7 (for node-gyp)
 #
@@ -29,8 +29,8 @@
 # Examples:
 #
 # Compile for build machine:  create-bundle.sh
-# Cross compile for arm7:     create-bundle.sh linux-arm6l
-# Cross compile for arm7:     create-bundle.sh linux-arm7l
+# Cross compile for armv7:     create-bundle.sh linux-armv6l
+# Cross compile for armv7:     create-bundle.sh linux-armv7l
 
 set -e
 
@@ -90,10 +90,8 @@ get_node_bin() {
   elif [[ ! -f "${BIN}" ]]; then
     URL=https://nodejs.org/download/release/${NODE_VERSION}/${NODE_RELEASE_ID}.tar.gz
 
-    echo "****** Downloading node from ${URL}..."
-
     wget -qO- "${URL}" \
-      | tar -C "${NODE_DOWNLOAD}" -xvz ${NODE_RELEASE_ID}/bin/node
+      | tar -C "${NODE_DOWNLOADS}" -xvz ${NODE_RELEASE_ID}/bin/node
   fi
 
   echo "$BIN"
@@ -159,13 +157,13 @@ create_bundle() {
 
       yarn --force
     ;;
-    linux-arm7l)
+    linux-armv7l)
       assert_node_version ${TARGET_NODE_VERSION:-${DEFAULT_NODE_VERSION}}
       configure_crosstools
 
       ${CROSSTOOLS_HOME}/bin/cross "rpi" yarn --force
     ;;
-    linux-arm6l)
+    linux-armv6l)
       assert_node_version ${TARGET_NODE_VERSION:-${DEFAULT_NODE_VERSION_ARMV6}}
       configure_crosstools
 
@@ -214,7 +212,7 @@ DEFAULT_NODE_VERSION=v12.0.0
 DEFAULT_NODE_VERSION_ARMV6=v10.16.3
 
 case $1 in
-  linux-arm7l|linux-arm6l)
+  linux-armv7l|linux-armv6l)
     time create_bundle $1
   ;;
   *)

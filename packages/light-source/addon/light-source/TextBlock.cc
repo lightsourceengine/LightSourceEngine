@@ -7,6 +7,7 @@
 #include "TextBlock.h"
 #include "Font.h"
 #include "Surface.h"
+#include <cmath>
 #include <utf8.h>
 
 namespace ls {
@@ -201,7 +202,7 @@ TextLine TextLine::Break(Font* font, bool hardLineBreak) {
         return {};
     }
 
-    auto lastSpaceIndex{this->chars.size()};
+    auto lastSpaceIndex{ static_cast<int32_t>(this->chars.size()) };
 
     while (lastSpaceIndex--) {
         if (IsBreakingSpace(this->chars[lastSpaceIndex])) {

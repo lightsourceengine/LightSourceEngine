@@ -53,7 +53,6 @@ SDLGamepad::SDLGamepad(const CallbackInfo& info) : ObjectWrap<SDLGamepad>(info) 
     this->product = SDL_JoystickGetProduct(this->joystick);
     this->productVersion = SDL_JoystickGetProductVersion(this->joystick);
     this->vendor = SDL_JoystickGetVendor(this->joystick);
-    this->playerIndex = SDL_JoystickGetPlayerIndex(this->joystick);
 
     auto value{ SDL_GameControllerMappingForGUID(joystickGUID) };
 
@@ -85,7 +84,6 @@ Function SDLGamepad::Constructor(Napi::Env env) {
             InstanceAccessor("product", &SDLGamepad::GetProduct, nullptr),
             InstanceAccessor("productVersion", &SDLGamepad::GetProductVersion, nullptr),
             InstanceAccessor("vendor", &SDLGamepad::GetVendor, nullptr),
-            InstanceAccessor("playerIndex", &SDLGamepad::GetPlayerIndex, nullptr),
             InstanceAccessor("gameControllerMapping", &SDLGamepad::GetGameControllerMapping, nullptr),
             InstanceMethod("isButtonDown", &SDLGamepad::IsButtonDown),
             InstanceMethod("getAxisValue", &SDLGamepad::GetAxisValue),
@@ -143,10 +141,6 @@ Value SDLGamepad::GetVendor(const CallbackInfo& info) {
 
 Value SDLGamepad::GetProductVersion(const CallbackInfo& info) {
     return Number::New(info.Env(), this->productVersion);
-}
-
-Value SDLGamepad::GetPlayerIndex(const CallbackInfo& info) {
-    return Number::New(info.Env(), this->playerIndex);
 }
 
 Value SDLGamepad::GetGameControllerMapping(const CallbackInfo& info) {

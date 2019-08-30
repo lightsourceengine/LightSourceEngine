@@ -27,7 +27,6 @@ class SDLGamepad : public InputDevice, public Napi::ObjectWrap<SDLGamepad> {
     Napi::Value GetProduct(const Napi::CallbackInfo& info);
     Napi::Value GetVendor(const Napi::CallbackInfo& info);
     Napi::Value GetProductVersion(const Napi::CallbackInfo& info);
-    Napi::Value GetPlayerIndex(const Napi::CallbackInfo& info);
     Napi::Value GetGameControllerMapping(const Napi::CallbackInfo& info);
     void Destroy(const Napi::CallbackInfo& info);
 

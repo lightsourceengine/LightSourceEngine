@@ -58,7 +58,7 @@ describe('ImageSceneNode', () => {
         assert.include(node.src, { id: input, uri: input })
       }
     })
-    it('should be assignable to a relative file path', async () => {
+    xit('should be assignable to a relative file path', async () => {
       scene.stage.start()
       const promises = []
 
@@ -74,7 +74,7 @@ describe('ImageSceneNode', () => {
 
       await Promise.all(promises)
     })
-    it('should be assignable to a resource uri', async () => {
+    xit('should be assignable to a resource uri', async () => {
       scene.stage.start()
       scene.resource.path = 'test/resources'
       const promises = []
