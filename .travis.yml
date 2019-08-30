@@ -39,7 +39,7 @@ install:
   - cd ${TRAVIS_BUILD_DIR}/packages/react-light-source
   - yarn
   - cd ${TRAVIS_BUILD_DIR}/packages/runtime
-  - yarn
+  - yarn --ignore-scripts
 
 script:
   - cd ${TRAVIS_BUILD_DIR}/packages/light-source
@@ -48,6 +48,11 @@ script:
   - yarn run prepublishOnly
   - cd ${TRAVIS_BUILD_DIR}/packages/runtime
   - yarn run lint
-  - yarn run bundle
+  - nvm install v10.16.3
+  - nvm use v10.16.3
+  - ./scripts/create-bundle linux-armv6l
+  - nvm install v12.0.0
+  - nvm use v12.0.0
+  - ./scripts/create-bundle linux-armv7l
 
 cache: yarn
