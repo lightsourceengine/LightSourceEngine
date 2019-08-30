@@ -44,7 +44,6 @@ class SDLGamepad : public InputDevice, public Napi::ObjectWrap<SDLGamepad> {
     int32_t product{};
     int32_t productVersion{};
     int32_t vendor{};
-    int32_t playerIndex{-1};
     std::vector<uint8_t> hatState;
     std::string gameControllerMapping;
 };

@@ -31,12 +31,16 @@ before_install:
   - (cd packages/light-source && yarn link)
   - (cd packages/react-light-source && yarn link && yarn link light-source)
   - (cd packages/runtime && yarn link light-source && yarn link react-light-source)
-  - git clone https://github.com/dananderson/crosstools.git "$HOME"
+  - (cd $HOME && git clone https://github.com/dananderson/crosstools.git)
 
 install:
   - (cd packages/light-source && yarn)
   - (cd packages/react-light-source && yarn)
+  - (cd packages/runtime && yarn)
 
 script:
   - (cd packages/light-source && yarn run prepublishOnly)
   - (cd packages/react-light-source && yarn run prepublishOnly)
+  - (cd packages/runtime && yarn run lint && yarn run bundle)
+
+cache: yarn
