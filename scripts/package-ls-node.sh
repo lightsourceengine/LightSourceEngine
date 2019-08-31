@@ -118,7 +118,7 @@ install_bin_node() {
   BIN="${NODE_DOWNLOADS}/${NODE_RELEASE_ID}/bin/node"
 
   if [[ ! -f "${BIN}" ]]; then
-    if [[ $(get_node_platform_arch) == ${NODE_PLATFORM_ARCH} ]]; then
+    if [[ $(get_node_platform_arch) = ${NODE_PLATFORM_ARCH} ]]; then
       LOCAL_BIN=$(which node)
 
       if [[ -f "$LOCAL_BIN" ]]; then
@@ -126,6 +126,7 @@ install_bin_node() {
       fi
     else
         URL=https://nodejs.org/download/release/${NODE_VERSION}/${NODE_RELEASE_ID}.tar.gz
+        echo "Downloading node from ${URL}"
         wget -qO- "${URL}" | tar -C "${NODE_DOWNLOADS}" -xvz ${NODE_RELEASE_ID}/bin/node > /dev/null
     fi
   fi
@@ -148,15 +149,15 @@ install_lib_node_modules() {
 
   GLOBAL_REACT_MODULE=${STAGING_DIR}/lib/node_modules/react
   GLOBAL_LIGHT_SOURCE_MODULE=${STAGING_DIR}/lib/node_modules/light-source
-  GLOBAL_REACT_LIGHT_SOURCE_MODULE=${STAGING_DIR}/lib/node_modules/react-light-source
+  GLOBAL_REACT_LIGHT_SOURCE_MODULE=${STAGING_DIR}/lib/node_modules/light-source-react
 
-  mkdir -p "${STAGING_DIR}/lib" "$GLOBAL_REACT_MODULE" "$GLOBAL_REACT_LIGHT_SOURCE_MODULE" "$GLOBAL_LIGHT_SOURCE_MODULE"
+  mkdir -p "${STAGING_DIR}/lib" "${GLOBAL_REACT_MODULE}" "${GLOBAL_REACT_LIGHT_SOURCE_MODULE}" "${GLOBAL_LIGHT_SOURCE_MODULE}"
 
   cp node_modules/light-source/build/standalone/cjs/light-source.min.js "${GLOBAL_LIGHT_SOURCE_MODULE}/index.js"
   echo '{ "description": "the precense of an empty package.json coerces bindings to load .node files from this directory" }' > "${GLOBAL_LIGHT_SOURCE_MODULE}/package.json"
 
-  cp node_modules/react-light-source/build/standalone/cjs/react.min.js "${GLOBAL_REACT_MODULE}/index.js"
-  cp node_modules/react-light-source/build/standalone/cjs/react-light-source.min.js "${GLOBAL_REACT_LIGHT_SOURCE_MODULE}/index.js"
+  cp node_modules/light-source-react/build/standalone/cjs/react.min.js "${GLOBAL_REACT_MODULE}/index.js"
+  cp node_modules/light-source-react/build/standalone/cjs/light-source-react.min.js "${GLOBAL_REACT_LIGHT_SOURCE_MODULE}/index.js"
 
   mkdir "${GLOBAL_LIGHT_SOURCE_MODULE}/build"
   cp node_modules/light-source/build/Release/*.node "${GLOBAL_LIGHT_SOURCE_MODULE}/build"
@@ -276,7 +277,7 @@ create_package() {
   clear_staging_dir
   rm -f build/${LIGHT_SOURCE_PACKAGE_NAME}.tar.gz
 
-  install_bin_node
+  install_bin_node ${NODE_PLATFORM_ARCH}
   install_lib_node_modules
   install_platform_specific_patches ${NODE_PLATFORM_ARCH} ${PROFILE}
 
@@ -307,7 +308,7 @@ case $1 in
   *)
     if [ -z "$1" ]; then
       time create_package $(get_node_platform_arch)
-    elif [[ "$(get_node_platform_arch)" == "$1" ]]; then
+    elif [[ "$(get_node_platform_arch)" = "$1" ]]; then
       time create_package $1
     else
       bail "Unknown target: '$1'"

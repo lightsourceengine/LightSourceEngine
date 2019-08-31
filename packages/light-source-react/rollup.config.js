@@ -61,7 +61,7 @@ export default [
     external: ['react'],
     output: {
       format: 'cjs',
-      file: 'build/standalone/cjs/react-light-source.min.js',
+      file: 'build/standalone/cjs/light-source-react.min.js',
       preferConst: true
     },
     plugins: [

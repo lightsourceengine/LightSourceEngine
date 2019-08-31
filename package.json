@@ -1,7 +1,9 @@
 {
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/light-source-rollup",
+    "packages/light-source",
+    "packages/light-source-react"
   ],
   "license": "MIT",
   "repository": {
