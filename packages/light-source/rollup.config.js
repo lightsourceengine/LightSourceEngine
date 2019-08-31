@@ -7,7 +7,7 @@
 import autoExternal from 'rollup-plugin-auto-external'
 import commonjs from 'rollup-plugin-commonjs'
 import resolve from 'rollup-plugin-node-resolve'
-import { beautify, babelPreserveImports, onwarn, minify, inlineModule } from 'light-source-rollup'
+import { beautify, babelPreserveImports, onwarn, minify } from 'light-source-rollup'
 
 const input = 'src/exports.js'
 
@@ -50,39 +50,22 @@ export default [
   {
     input,
     onwarn,
+    external: ['node-addon-api'],
     output: {
       format: 'cjs',
       file: 'build/standalone/cjs/light-source.min.js',
       preferConst: true
     },
     plugins: [
-      autoExternal(),
+      autoExternal({
+        dependencies: false
+      }),
       resolve(),
       babelPreserveImports({
         babelConfigPath: __dirname
       }),
       commonjs({
-        exclude: ['/**/node_modules/**']
-      }),
-      minify()
-    ]
-  },
-  {
-    input: 'bindings-inline',
-    onwarn,
-    output: {
-      format: 'cjs',
-      file: 'build/standalone/cjs/bindings.min.js'
-    },
-    plugins: [
-      inlineModule({
-        'bindings-inline': 'import bindings from \'bindings\'; export default bindings'
-      }),
-      autoExternal({ dependencies: false }),
-      resolve(),
-      commonjs({
-        include: ['/**/node_modules/**'],
-        ignore: true
+        include: ['/**/node_modules/**']
       }),
       minify()
     ]

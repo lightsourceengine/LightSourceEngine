@@ -1,36 +1,71 @@
 #!/usr/bin/env bash
 #
-# Create a Light Source Engine runtime tar.gz package.
-#
-# The runtime is a standard node binary packaged with pre-compiled, standalone versions of light-source,
-# react-light-source, react and bindings.
-#
-# Packages are stored in the build directory.
-#
-# The pacakager requires some setup.
-#
-# For packages matching the build machine's architecture, the following is required:
-#
-# - The environment must have node version 12.0.0.
-# - The SDL npm_comfig variables must be set for the current environment.
-# - gcc or clang C++ toolchain
-# - python 2.7 (for node-gyp)
-#
-# For cross compiled packages, the following is required:
-#
-# - The environment must have node version 12.0.0. For armv6 builds, node version must be 10.16.3.
-# - crosstools installed at CROSSTOOLS_HOME environment variable.
-# - python 2.7 (for node-gyp)
+# Create a Light Source Engine runtime package.
 #
 # Usage:
 #
-# package-ls-node.sh [platform-arch]
+# package-ls-node.sh                      Build a runtime using the current node environment os + arch.
+# package-ls-node.sh <platform-arch-tag>  Build a runtime for a specific platform. The current node environment or a
+#                                         tag supported by crosstools is supported.
 #
-# Examples:
+# <platform-arch-tag> is a string generated in node by: process.platform + '-' + process.arch. The cross compilation
+# tags are:
 #
-# Compile for build machine:  package-ls-node.sh
-# Cross compile for armv7:     package-ls-node.sh linux-armv6l
-# Cross compile for armv7:     package-ls-node.sh linux-armv7l
+#   linux-armv7l - Raspberry Pi 2/3/4, PlayStation Classic and more
+#   nesc-armv7l  - S/NES Classic
+#   linux-armv6l - Raspberry Pi Zero (note this tag forces node v10.16.3!)
+#
+# Environment Variables:
+#
+# CROSSTOOLS_HOME     - Path to crosstools directory. Defaults to ${HOME}/crosstools
+# TARGET_NODE_VERSION - The node binary to place in the package. Default is v12.0.0.
+#                       Note: The default for armv6l builds is v10.16.3.
+#
+# Shell Dependencies:
+#
+# - node
+# - patchelf
+# - python 2.7 (for node-gyp)
+# - crosstools (https://github.com/dananderson/crosstools)
+# - C++ 11 toolchain (gcc or clang)
+# - SDL 2.0.4 development libraries
+# - SDL Mixer 2.0.0 development libraries
+#
+# The environment that invokes this script must have a node version matching $TARGET_NODE_VERSION. This restriction is
+# to avoid potential node ABI conflicts when building light-source native modules.
+#
+# light-source depends on seeral npm_config environment variables that describe SDL paths and other options. For
+# cross compile builds, these environment variables are managed by THIS script. For local builds, these environment
+# variables must be exported by the caller of this script.
+#
+# Pacakge Structure:
+#
+# The Light Source Engine is just a pre-compiled NodeJS distribution with light-source installed as a global
+# module. npm and extraneous files have been removed.
+#
+# root
+#   lib/
+#     node_modules/
+#       light-source/
+#         package.json
+#         index.js
+#         build
+#           <light-source .node files>
+#       light-source-react
+#         index.js
+#       react
+#         index.js
+#   bin/
+#     node
+#     ls-node -> node
+#
+# lib/node_modules/light-source/package.json - This file exists to coerce bindings into loading node module files from
+#                                              the light-source directory.
+# lib/node_modules/lib - This directory is in the runpath for node and node module files on Linux. Any platform specific
+#                        shared objects can be placed here.
+# lib/node_modules/light-source-react/index.js - Contains react-reconciler and scheduler.
+# lib/node_modules/react - Standalone version of react.
+#
 
 set -e
 
@@ -70,9 +105,10 @@ get_light_source_version() {
   echo $(node -e "console.log(JSON.parse(require('fs').readFileSync('packages/light-source/package.json')).version)")
 }
 
-get_node_bin() {
+install_bin_node() {
   local NODE_PLATFORM_ARCH
   local BIN
+  local LOCAL_BIN
   local NODE_VERSION
   local URL
 
@@ -81,19 +117,73 @@ get_node_bin() {
   NODE_RELEASE_ID=node-${NODE_VERSION}-${NODE_PLATFORM_ARCH}
   BIN="${NODE_DOWNLOADS}/${NODE_RELEASE_ID}/bin/node"
 
-  if [[ $(get_node_platform_arch) == ${NODE_PLATFORM_ARCH} ]]; then
-    BIN=$(which node)
+  if [[ ! -f "${BIN}" ]]; then
+    if [[ $(get_node_platform_arch) == ${NODE_PLATFORM_ARCH} ]]; then
+      LOCAL_BIN=$(which node)
 
-    if [[ ! -f "$BIN" ]]; then
-      bail "Cannot find local node binary."
+      if [[ -f "$LOCAL_BIN" ]]; then
+        cp ${LOCAL_BIN} ${BIN}
+      fi
+    else
+        URL=https://nodejs.org/download/release/${NODE_VERSION}/${NODE_RELEASE_ID}.tar.gz
+        wget -qO- "${URL}" | tar -C "${NODE_DOWNLOADS}" -xvz ${NODE_RELEASE_ID}/bin/node > /dev/null
     fi
-  elif [[ ! -f "${BIN}" ]]; then
-    URL=https://nodejs.org/download/release/${NODE_VERSION}/${NODE_RELEASE_ID}.tar.gz
-
-    wget -qO- "${URL}" | tar -C "${NODE_DOWNLOADS}" -xvz ${NODE_RELEASE_ID}/bin/node > /dev/null
   fi
 
-  echo "$BIN"
+  mkdir -p "${STAGING_DIR}/bin"
+
+  cp ${BIN} "${STAGING_DIR}/bin"
+  ln -s node "${STAGING_DIR}/bin/ls-node"
+
+  if [[ "${NODE_PLATFORM_ARCH}" = linux-* ]]; then
+    assert_patchelf
+    patchelf --set-rpath '$ORIGIN/../lib' "${STAGING_DIR}/bin" > /dev/null
+  fi
+}
+
+install_lib_node_modules() {
+  local GLOBAL_REACT_MODULE
+  local GLOBAL_LIGHT_SOURCE_MODULE
+  local GLOBAL_REACT_LIGHT_SOURCE_MODULE
+
+  GLOBAL_REACT_MODULE=${STAGING_DIR}/lib/node_modules/react
+  GLOBAL_LIGHT_SOURCE_MODULE=${STAGING_DIR}/lib/node_modules/light-source
+  GLOBAL_REACT_LIGHT_SOURCE_MODULE=${STAGING_DIR}/lib/node_modules/react-light-source
+
+  mkdir -p "${STAGING_DIR}/lib" "$GLOBAL_REACT_MODULE" "$GLOBAL_REACT_LIGHT_SOURCE_MODULE" "$GLOBAL_LIGHT_SOURCE_MODULE"
+
+  cp node_modules/light-source/build/standalone/cjs/light-source.min.js "${GLOBAL_LIGHT_SOURCE_MODULE}/index.js"
+  echo '{ "description": "the precense of an empty package.json coerces bindings to load .node files from this directory" }' > "${GLOBAL_LIGHT_SOURCE_MODULE}/package.json"
+
+  cp node_modules/react-light-source/build/standalone/cjs/react.min.js "${GLOBAL_REACT_MODULE}/index.js"
+  cp node_modules/react-light-source/build/standalone/cjs/react-light-source.min.js "${GLOBAL_REACT_LIGHT_SOURCE_MODULE}/index.js"
+
+  mkdir "${GLOBAL_LIGHT_SOURCE_MODULE}/build"
+  cp node_modules/light-source/build/Release/*.node "${GLOBAL_LIGHT_SOURCE_MODULE}/build"
+
+  # Do not ship the test only reference renderer.
+  rm "${GLOBAL_LIGHT_SOURCE_MODULE}/build/light-source-ref.node"
+}
+
+install_platform_specific_patches() {
+  local NODE_PLATFORM_ARCH
+  local PROFILE
+
+  NODE_PLATFORM_ARCH=$1
+  PROFILE=$2
+
+  # Some platforms are compiled with gcc 4/5 (S/NES Classic, older Raspian images, etc), which does not support
+  # C++ 11. Patch in libstdc++ to allow these older platforms to run.
+  if [[ "${NODE_PLATFORM_ARCH}" = linux-arm* ]]; then
+    cp -a "${CROSSTOOLS_SYSROOT}/lib/libstdc++.so.6" "${STAGING_DIR}/lib"
+    cp "${CROSSTOOLS_SYSROOT}/lib/libstdc++.so.6.0.22" "${STAGING_DIR}/lib"
+  fi
+
+  # On S/NES Classic, SDL2 is installed as libSDL2.so, but light-source-sdl links libSDL2-2.0.so.0. Add a symlink
+  # to resolve SDL2 properly.
+  if [[ "${PROFILE}" = nesc-* ]]; then
+    ln -s /usr/lib/libSDL2.so "${STAGING_DIR}/lib/libSDL2-2.0.so.0"
+  fi
 }
 
 assert_python2() {
@@ -110,23 +200,28 @@ assert_python2() {
   fi
 }
 
+assert_patchelf() {
+  if ! [ -x "$(command -v patchelf)" ]; then
+    bail "patchelf command not installed"
+  fi
+}
+
 configure_crosstools() {
   local TOOLCHAIN_TYPE
-  local SYSROOT
 
   if [[ ! -f "${CROSSTOOLS_HOME}/bin/cross" ]]; then
     bail "crosstools (https://github.com/dananderson/crosstools) is not found via CROSSTOOLS_HOME environment variable."
   fi
 
   TOOLCHAIN_TYPE="arm-rpi-linux-gnueabihf"
-  SYSROOT="${CROSSTOOLS_HOME}/x64-gcc-6.3.1/${TOOLCHAIN_TYPE}/${TOOLCHAIN_TYPE}/sysroot"
+  CROSSTOOLS_SYSROOT="${CROSSTOOLS_HOME}/x64-gcc-6.3.1/${TOOLCHAIN_TYPE}/${TOOLCHAIN_TYPE}/sysroot"
 
   export npm_config_with_sdl_mixer=true
-  export npm_config_sdl_include_path="${SYSROOT}/usr/include/SDL2"
-  export npm_config_sdl_library_path="${SYSROOT}/usr/lib"
+  export npm_config_sdl_include_path="${CROSSTOOLS_SYSROOT}/usr/include/SDL2"
+  export npm_config_sdl_library_path="${CROSSTOOLS_SYSROOT}/usr/lib"
   export npm_config_with_cec=false
-  export npm_config_cec_include_path="${SYSROOT}/usr/include"
-  export npm_config_cec_library_path="${SYSROOT}/usr/lib"
+  export npm_config_cec_include_path="${CROSSTOOLS_SYSROOT}/usr/include"
+  export npm_config_cec_library_path="${CROSSTOOLS_SYSROOT}/usr/lib"
 }
 
 clear_staging_dir() {
@@ -135,23 +230,19 @@ clear_staging_dir() {
   fi
 }
 
-create_bundle() {
+create_package() {
   local NODE_PLATFORM_ARCH
-  local NODE_BIN
-  local LIGHT_SOURCE_VERSION
-  local GLOBAL_BINDINGS_MODULE
-  local GLOBAL_REACT_MODULE
-  local GLOBAL_LIGHT_SOURCE_MODULE
-  local GLOBAL_REACT_LIGHT_SOURCE_MODULE
+  local PROFILE
 
   NODE_PLATFORM_ARCH=$1
+  PROFILE=$2
 
-  echo "****** Start create bundle for ${NODE_PLATFORM_ARCH}"
+  echo "****** Creating package for ${PROFILE:-${NODE_PLATFORM_ARCH}}..."
 
   assert_python2
   export npm_config_enable_native_tests=false
 
-  echo "****** Compiling and minifying javscript..."
+  echo "****** Building LightSourceEngine..."
 
   case ${NODE_PLATFORM_ARCH} in
     darwin-x64|linux-x64)
@@ -177,42 +268,19 @@ create_bundle() {
     ;;
   esac
 
-  echo "****** Staging bundle..."
-
-  LIGHT_SOURCE_VERSION=$(get_light_source_version)
-  LIGHT_SOURCE_PACKAGE_NAME=ls-node-v${LIGHT_SOURCE_VERSION}-${NODE_PLATFORM_ARCH}
+  LIGHT_SOURCE_PACKAGE_NAME=ls-node-v$(get_light_source_version)-${NODE_PLATFORM_ARCH}
   STAGING_DIR="build/${LIGHT_SOURCE_PACKAGE_NAME}"
-  NODE_BIN=$(get_node_bin "${NODE_PLATFORM_ARCH}")
+
+  echo "****** Copying build artifacts to staging directory (${STAGING_DIR})..."
 
   clear_staging_dir
-  mkdir -p "${STAGING_DIR}/bin" "${STAGING_DIR}/lib"
+  rm -f build/${LIGHT_SOURCE_PACKAGE_NAME}.tar.gz
 
-  # Copy node binary and create ls-node symlink.
-  (cd ${STAGING_DIR}/bin && cp ${NODE_BIN} . && ln -s node ls-node)
+  install_bin_node
+  install_lib_node_modules
+  install_platform_specific_patches ${NODE_PLATFORM_ARCH} ${PROFILE}
 
-  # Copy standalone react, bindings, light-source and react-light-source modules into global module directory.
-  GLOBAL_BINDINGS_MODULE=${STAGING_DIR}/lib/node_modules/bindings
-  GLOBAL_REACT_MODULE=${STAGING_DIR}/lib/node_modules/react
-  GLOBAL_LIGHT_SOURCE_MODULE=${STAGING_DIR}/lib/node_modules/light-source
-  GLOBAL_REACT_LIGHT_SOURCE_MODULE=${STAGING_DIR}/lib/node_modules/react-light-source
-
-  mkdir -p "$GLOBAL_REACT_MODULE" "$GLOBAL_BINDINGS_MODULE" "$GLOBAL_REACT_LIGHT_SOURCE_MODULE" "$GLOBAL_LIGHT_SOURCE_MODULE"
-
-  cp node_modules/light-source/build/standalone/cjs/bindings.min.js "${GLOBAL_BINDINGS_MODULE}/index.js"
-  cp node_modules/light-source/build/standalone/cjs/light-source.min.js "${GLOBAL_LIGHT_SOURCE_MODULE}/index.js"
-  echo '{ "description": "the precense of an empty package.json coerces bindings to load .node files from this directory" }' > "${GLOBAL_LIGHT_SOURCE_MODULE}/package.json"
-
-  cp node_modules/react-light-source/build/standalone/cjs/react.min.js "${GLOBAL_REACT_MODULE}/index.js"
-  cp node_modules/react-light-source/build/standalone/cjs/react-light-source.min.js "${GLOBAL_REACT_LIGHT_SOURCE_MODULE}/index.js"
-
-  # Copy native light-source artifacts to the global light-source module. Note, bindings search algorithm looks
-  # at the "build" directory first.
-  mkdir "${GLOBAL_LIGHT_SOURCE_MODULE}/build"
-  cp node_modules/light-source/build/Release/*.node "${GLOBAL_LIGHT_SOURCE_MODULE}/build"
-  # Remove the test only reference renderer.
-  rm "${GLOBAL_LIGHT_SOURCE_MODULE}/build/light-source-ref.node"
-
-  echo "****** Creating bundle..."
+  echo "****** Creating package (${LIGHT_SOURCE_PACKAGE_NAME}.tar.gz)..."
 
   (cd build && tar -cvzf ${LIGHT_SOURCE_PACKAGE_NAME}.tar.gz ${LIGHT_SOURCE_PACKAGE_NAME})
 
@@ -224,19 +292,23 @@ trap clear_staging_dir EXIT
 
 STAGING_DIR=
 CROSSTOOLS_HOME="${CROSSTOOLS_HOME:-${HOME}/crosstools}"
+CROSSTOOLS_SYSROOT=
 NODE_DOWNLOADS="${NODE_DOWNLOADS:-/tmp}"
 DEFAULT_NODE_VERSION=v12.0.0
 DEFAULT_NODE_VERSION_ARMV6=v10.16.3
 
 case $1 in
   linux-armv7l|linux-armv6l)
-    time create_bundle $1
+    time create_package $1
+  ;;
+  nesc-armv7l)
+    time create_package linux-armv7l $1
   ;;
   *)
     if [ -z "$1" ]; then
-      time create_bundle $(get_node_platform_arch)
+      time create_package $(get_node_platform_arch)
     elif [[ "$(get_node_platform_arch)" == "$1" ]]; then
-      time create_bundle $1
+      time create_package $1
     else
       bail "Unknown target: '$1'"
     fi
