@@ -122,6 +122,7 @@ install_bin_node() {
       LOCAL_BIN=$(which node)
 
       if [[ -f "$LOCAL_BIN" ]]; then
+        mkdir -p "$(dirname ${BIN})"
         cp ${LOCAL_BIN} ${BIN}
       fi
     else
@@ -138,7 +139,7 @@ install_bin_node() {
 
   if [[ "${NODE_PLATFORM_ARCH}" = linux-* ]]; then
     assert_patchelf
-    patchelf --set-rpath '$ORIGIN/../lib' "${STAGING_DIR}/bin" > /dev/null
+    patchelf --set-rpath '$ORIGIN/../lib' "${STAGING_DIR}/bin/node" > /dev/null
   fi
 }
 
