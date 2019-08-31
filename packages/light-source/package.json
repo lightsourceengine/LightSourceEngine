@@ -1,7 +1,7 @@
 {
   "name": "light-source",
   "description": "Light Source Engine",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.3",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -28,7 +28,7 @@
     "cpplint": "tools/cpplint.py --recursive addon",
     "jsdoc": "rimraf docs && jsdoc -c jsdoc.json",
     "lint": "standard",
-    "prepublishOnly": "run-s bundle test jsdoc",
+    "prepublishOnly": "run-s bundle test",
     "test": "run-s lint cpplint testOnly",
     "testOnly": "mocha --require @babel/register --reporter spec \"test/**/*.spec.js\""
   },

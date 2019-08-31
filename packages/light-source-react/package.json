@@ -1,7 +1,7 @@
 {
   "name": "light-source-react",
   "description": "Light Source Engine",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.3",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -17,7 +17,7 @@
     "dist/"
   ],
   "dependencies": {
-    "light-source": "1.0.0-alpha.2"
+    "light-source": "1.0.0-alpha.3"
   },
   "peerDependencies": {
     "react": "16.9.0",
@@ -29,7 +29,7 @@
     "coverage": "nyc --reporter=text run-s testOnly",
     "jsdoc": "rimraf docs && jsdoc -c jsdoc.json",
     "lint": "standard",
-    "prepublishOnly": "run-s bundle test jsdoc",
+    "prepublishOnly": "run-s bundle test",
     "test": "run-s lint testOnly",
     "testOnly": "mocha --require @babel/register --reporter spec \"test/**/*.spec.js\""
   },
