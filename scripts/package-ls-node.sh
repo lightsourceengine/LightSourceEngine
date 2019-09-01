@@ -13,13 +13,11 @@
 #
 #   linux-armv7l - Raspberry Pi 2/3/4, PlayStation Classic and more
 #   nesc-armv7l  - S/NES Classic
-#   linux-armv6l - Raspberry Pi Zero (note this tag forces node v10.16.3!)
+#   linux-armv6l - Raspberry Pi Zero (Note: after version 10, NodeJS no longer publishes armv6l builds!)
 #
 # Environment Variables:
 #
 # CROSSTOOLS_HOME     - Path to crosstools directory. Defaults to ${HOME}/crosstools
-# TARGET_NODE_VERSION - The node binary to place in the package. Default is v12.0.0.
-#                       Note: The default for armv6l builds is v10.16.3.
 #
 # Shell Dependencies:
 #
@@ -31,7 +29,7 @@
 # - SDL 2.0.4 development libraries
 # - SDL Mixer 2.0.0 development libraries
 #
-# The environment that invokes this script must have a node version matching $TARGET_NODE_VERSION. This restriction is
+# The environment that invokes this script will be the node version of the built package. This restriction is
 # to avoid potential node ABI conflicts when building light-source native modules.
 #
 # light-source depends on seeral npm_config environment variables that describe SDL paths and other options. For
@@ -89,16 +87,6 @@ assert_node_platform_arch() {
 
 get_node_version() {
   echo $(node --version)
-}
-
-assert_node_version() {
-  local VERSION
-
-  VERSION=$(node -e 'console.log(process.version)')
-
-  if [[ "$VERSION" != "$1" ]]; then
-    bail "Installed node version @ $VERSION but build requires $1"
-  fi  
 }
 
 get_light_source_version() {
@@ -248,19 +236,16 @@ create_package() {
 
   case ${NODE_PLATFORM_ARCH} in
     darwin-x64|linux-x64)
-      assert_node_version ${TARGET_NODE_VERSION:-${DEFAULT_NODE_VERSION}}
       assert_node_platform_arch "${NODE_PLATFORM_ARCH}"
 
       yarn --force
     ;;
     linux-armv7l)
-      assert_node_version ${TARGET_NODE_VERSION:-${DEFAULT_NODE_VERSION}}
       configure_crosstools
 
       ${CROSSTOOLS_HOME}/bin/cross "rpi" yarn --force
     ;;
     linux-armv6l)
-      assert_node_version ${TARGET_NODE_VERSION:-${DEFAULT_NODE_VERSION_ARMV6}}
       configure_crosstools
 
       ${CROSSTOOLS_HOME}/bin/cross "rpizero" yarn --force
@@ -296,8 +281,7 @@ STAGING_DIR=
 CROSSTOOLS_HOME="${CROSSTOOLS_HOME:-${HOME}/crosstools}"
 CROSSTOOLS_SYSROOT=
 NODE_DOWNLOADS="${NODE_DOWNLOADS:-/tmp}"
-DEFAULT_NODE_VERSION=v12.0.0
-DEFAULT_NODE_VERSION_ARMV6=v10.16.3
+NODE_DOWNLOADS="${NODE_DOWNLOADS:-/tmp}"
 
 case $1 in
   linux-armv7l|linux-armv6l)
