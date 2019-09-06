@@ -113,6 +113,8 @@ void Scene::Detach(const CallbackInfo& info) {
         return;
     }
 
+    // TODO: exceptions?
+
     if (this->resourceManager) {
         this->resourceManager->Detach();
     }
@@ -137,6 +139,7 @@ void Scene::Destroy(const CallbackInfo& info) {
         this->resourceManager = nullptr;
     }
 
+    this->isAttached = false;
     this->adapter.reset();
 }
 

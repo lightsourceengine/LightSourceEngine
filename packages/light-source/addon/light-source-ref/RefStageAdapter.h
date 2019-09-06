@@ -27,6 +27,7 @@ class RefStageAdapter : public StageAdapter, public Napi::ObjectWrap<RefStageAda
     void Detach(const Napi::CallbackInfo& info) override;
     void Destroy(const Napi::CallbackInfo& info) override;
     void SetCallback(const Napi::CallbackInfo& info) override;
+    void ResetCallbacks(const Napi::CallbackInfo& info) override;
 
     std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) override;
 };

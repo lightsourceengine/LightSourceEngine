@@ -15,7 +15,7 @@ let nodes
 export const beforeSceneTest = () => {
   nodes = []
   stage = new Stage()
-  stage.init({ adapter: 'light-source-ref' })
+  stage.init({ adapter: 'light-source-ref', audioAdapter: 'light-source-ref' })
   scene = stage.createScene({ width: 1280, height: 720 })
 
   return scene

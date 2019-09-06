@@ -6,13 +6,16 @@
 
 #include <napi.h>
 #include "SDLStageAdapter.h"
+#include "SDLAudioAdapter.h"
 
 using Napi::Env;
 using Napi::Object;
 using ls::SDLStageAdapter;
+using ls::SDLAudioAdapter;
 
 Object Init(Env env, Object exports) {
     exports["StageAdapter"] = SDLStageAdapter::Constructor(env);
+    exports["AudioAdapter"] = SDLAudioAdapter::Constructor(env);
 
     return exports;
 }

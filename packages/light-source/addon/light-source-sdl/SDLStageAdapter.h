@@ -7,6 +7,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <array>
 #include <napi.h>
 #include <StageAdapter.h>
 
@@ -43,6 +44,7 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
     void Detach(const Napi::CallbackInfo& info) override;
     void Destroy(const Napi::CallbackInfo& info) override;
     void SetCallback(const Napi::CallbackInfo& info) override;
+    void ResetCallbacks(const Napi::CallbackInfo& info) override;
     Napi::Value AddGameControllerMappings(const Napi::CallbackInfo& info);
 
     std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) override;
@@ -54,17 +56,22 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
     void ClearGamepads();
     SDLGamepad* AddGamepad(Napi::Env env, int32_t index);
     Napi::Value GetGamepad(Napi::Env env, int32_t instanceId);
-    void HandleJoystickHatMotion(Napi::Env env, int32_t instanceId, uint8_t hatIndex, uint8_t hatValue);
-    void HandleJoystickAdded(Napi::Env env, int32_t index);
-    void HandleJoystickRemoved(Napi::Env env, int32_t instanceId);
     void Attach(Napi::Env env);
     void Detach(Napi::Env env);
+    bool DispatchQuit(Napi::Env env);
+    void DispatchKeyboardKeyDown(Napi::Env env, int32_t scanCode, bool isRepeat);
+    void DispatchKeyboardKeyUp(Napi::Env env, int32_t scanCode);
+    void DispatchJoystickButtonUp(Napi::Env env, int32_t instanceId, int32_t buttonId);
+    void DispatchJoystickButtonDown(Napi::Env env, int32_t instanceId, int32_t buttonId);
+    void DispatchJotstickAxisMotion(Napi::Env env, int32_t instanceId, uint8_t axisIndex, float value);
+    void DispatchJoystickHatMotion(Napi::Env env, int32_t instanceId, uint8_t hatIndex, uint8_t hatValue);
+    void DispatchJoystickAdded(Napi::Env env, int32_t index);
+    void DispatchJoystickRemoved(Napi::Env env, int32_t instanceId);
 
  private:
-    static constexpr int NUM_EVENTS_PER_FRAME{20};
     static std::unordered_map<std::string, StageCallback> callbackMap;
 
-    Napi::FunctionReference callbacks[StageCallbackCount];
+    std::array<Napi::FunctionReference, StageCallbackCount> callbacks;
     SDLKeyboard* keyboard{};
     std::unordered_map<int32_t, SDLGamepad*> gamepadsByInstanceId{};
     bool isAttached{false};

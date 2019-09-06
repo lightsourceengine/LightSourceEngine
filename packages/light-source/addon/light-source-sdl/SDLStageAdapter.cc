@@ -10,15 +10,7 @@
 #include "SDLGamepad.h"
 #include <unordered_set>
 #include <fmt/format.h>
-
-// Note, patch in the axis thresholds, as they were introduced after 2.0.4.
-#ifndef SDL_JOYSTICK_AXIS_MAX
-#define SDL_JOYSTICK_AXIS_MAX   32767
-#endif
-
-#ifndef SDL_JOYSTICK_AXIS_MIN
-#define SDL_JOYSTICK_AXIS_MIN   -32768
-#endif
+#include <Timer.h>
 
 using Napi::Array;
 using Napi::Boolean;
@@ -34,7 +26,6 @@ using Napi::ObjectWrap;
 using Napi::String;
 using Napi::Value;
 
-inline
 bool operator == (SDL_DisplayMode const& lhs, SDL_DisplayMode const& rhs) {
     return (lhs.w == rhs.w) && (lhs.h == rhs.h);
 }
@@ -54,8 +45,21 @@ namespace ls {
 Object ToDisplayObject(Napi::Env env, int32_t displayIndex);
 Object ToDisplayModeObject(Napi::Env env, const SDL_DisplayMode& mode);
 
-constexpr auto SDL_JOYSTICK_AXIS_MIN_F = static_cast<float>(SDL_JOYSTICK_AXIS_MIN);
-constexpr auto SDL_JOYSTICK_AXIS_MAX_F = static_cast<float>(SDL_JOYSTICK_AXIS_MAX);
+// Note, SDL_JOYSTICK_AXIS_* defines were introduced after 2.0.4.
+
+constexpr auto SDL_JOYSTICK_AXIS_MIN_F =
+#ifndef SDL_JOYSTICK_AXIS_MIN
+     -32768.f;
+#else
+    static_cast<float>(SDL_JOYSTICK_AXIS_MIN);
+#endif
+
+constexpr auto SDL_JOYSTICK_AXIS_MAX_F =
+#ifndef SDL_JOYSTICK_AXIS_MAX
+    32767.f;
+#else
+    static_cast<float>(SDL_JOYSTICK_AXIS_MAX);
+#endif
 
 std::unordered_map<std::string, SDLStageAdapter::StageCallback> SDLStageAdapter::callbackMap{
     { "connected", StageCallbackGamepadConnected },
@@ -81,11 +85,6 @@ SDLStageAdapter::SDLStageAdapter(const CallbackInfo& info) : ObjectWrap<SDLStage
     fmt::println("SDL Version: compiled={}.{}.{} linked={}.{}.{}",
         compiled.major, compiled.minor, compiled.patch,
         linked.major, linked.minor, linked.patch);
-
-    this->Attach(env);
-
-    this->keyboard = ObjectWrap<SDLKeyboard>::Unwrap(SDLKeyboard::Constructor(env).New({}));
-    this->keyboard->Ref();
 }
 
 Function SDLStageAdapter::Constructor(Napi::Env env) {
@@ -103,6 +102,7 @@ Function SDLStageAdapter::Constructor(Napi::Env env) {
             InstanceMethod("detach", &SDLStageAdapter::Detach),
             InstanceMethod("destroy", &SDLStageAdapter::Destroy),
             InstanceMethod("setCallback", &SDLStageAdapter::SetCallback),
+            InstanceMethod("resetCallbacks", &SDLStageAdapter::ResetCallbacks),
             InstanceMethod("addGameControllerMappings", &SDLStageAdapter::AddGameControllerMappings),
         });
 
@@ -150,14 +150,13 @@ Value SDLStageAdapter::GetDisplays(const CallbackInfo& info) {
 Value SDLStageAdapter::AddGameControllerMappings(const CallbackInfo& info) {
     auto env{ info.Env() };
     auto source{ info[0].As<String>().Utf8Value() };
-
     auto rwops{ SDL_RWFromConstMem(source.c_str(), static_cast<int32_t>(source.size())) };
 
     if (rwops == nullptr) {
         throw Error::New(env, fmt::format("addGameControllerMappings(): {}", SDL_GetError()));
     }
 
-    auto result{ SDL_GameControllerAddMappingsFromRW(rwops, 1) };
+    auto result{ SDL_GameControllerAddMappingsFromRW(rwops, SDL_TRUE) };
 
     if (result == -1) {
         throw Error::New(env, fmt::format("addGameControllerMappings(): {}", SDL_GetError()));
@@ -182,6 +181,12 @@ void SDLStageAdapter::SetCallback(const CallbackInfo& info) {
     }
 }
 
+void SDLStageAdapter::ResetCallbacks(const CallbackInfo& info) {
+    for (auto& callback : this->callbacks) {
+        callback.Reset();
+    }
+}
+
 void SDLStageAdapter::Attach(const CallbackInfo& info) {
     this->Attach(info.Env());
 }
@@ -191,22 +196,36 @@ void SDLStageAdapter::Attach(Napi::Env env) {
         return;
     }
 
-    HandleScope scope(env);
+    this->isAttached = false;
+
+    Timer t("StageAdapter.attach()");
 
     if (SDL_WasInit(SDL_INIT_VIDEO) == 0 && SDL_Init(SDL_INIT_VIDEO) != 0) {
         throw Error::New(env, fmt::format("Failed to init SDL video. SDL Error: {}", SDL_GetError()));
     }
 
+    t.Log();
+
     if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0 && SDL_Init(SDL_INIT_JOYSTICK) != 0) {
         throw Error::New(env, fmt::format("Failed to init SDL joystick. SDL Error: {}", SDL_GetError()));
     }
+
+    t.Log();
 
     if (SDL_WasInit(SDL_INIT_GAMECONTROLLER) == 0 && SDL_Init(SDL_INIT_GAMECONTROLLER) != 0) {
         throw Error::New(env, fmt::format("Failed to init SDL gamecontroller. SDL Error: {}", SDL_GetError()));
     }
 
     SDL_GameControllerEventState(SDL_IGNORE);
+
+    t.Log();
+
     this->SyncGamepads(env);
+
+    if (!this->keyboard) {
+        this->keyboard = ObjectWrap<SDLKeyboard>::Unwrap(SDLKeyboard::Constructor(env).New({}));
+        this->keyboard->Ref();
+    }
 
     this->isAttached = true;
 }
@@ -216,22 +235,26 @@ void SDLStageAdapter::Detach(const CallbackInfo& info) {
 }
 
 void SDLStageAdapter::Detach(Napi::Env env) {
+    if (!this->isAttached) {
+        return;
+    }
+
     this->ClearGamepads();
+
+    SDL_Quit();
+
     this->isAttached = false;
 }
 
 void SDLStageAdapter::Destroy(const CallbackInfo& info) {
-    for (auto& ref : callbacks) {
-        ref.Reset();
-    }
+    this->ResetCallbacks(info);
 
     if (this->keyboard) {
         this->keyboard->Unref();
         this->keyboard = nullptr;
     }
 
-    this->ClearGamepads();
-    this->gamepadsByInstanceId.clear();
+    this->Detach(info.Env());
 }
 
 std::unique_ptr<SceneAdapter> SDLStageAdapter::CreateSceneAdapter(const SceneAdapterConfig& config) {
@@ -239,6 +262,7 @@ std::unique_ptr<SceneAdapter> SDLStageAdapter::CreateSceneAdapter(const SceneAda
 }
 
 Value SDLStageAdapter::ProcessEvents(const CallbackInfo& info) {
+    static constexpr auto NUM_EVENTS_PER_FRAME{ 20 };
     static SDL_Event eventBuffer[NUM_EVENTS_PER_FRAME];
 
     SDL_PumpEvents();
@@ -246,90 +270,130 @@ Value SDLStageAdapter::ProcessEvents(const CallbackInfo& info) {
     auto env{ info.Env() };
     auto eventIndex{ 0 };
     auto eventCount{ SDL_PeepEvents(eventBuffer, NUM_EVENTS_PER_FRAME, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT) };
+    auto result{ true };
 
     if (eventCount < 0) {
         fmt::println("SDL_PeepEvents(): {}", SDL_GetError());
-        return Boolean::New(env, false);
+        result = false;
     }
 
-    while (eventIndex < eventCount) {
+    while (result && eventIndex < eventCount) {
         if (!this->isAttached) {
             break;
         }
 
-        EscapableHandleScope scope(env);
-        float value;
-        const auto& event = eventBuffer[eventIndex++];
+        const auto& event{ eventBuffer[eventIndex++] };
 
         switch (event.type) {
             case SDL_QUIT:
-                if (!IsCallbackEmpty(StageCallbackQuit)) {
-                    Call(StageCallbackQuit, {});
-                }
-                // TODO: user override?
-                return scope.Escape(Boolean::New(env, false));
+                result = this->DispatchQuit(env);
+                break;
             case SDL_KEYUP:
-                if (!IsCallbackEmpty(StageCallbackKeyboardKeyUp)) {
-                    Call(StageCallbackKeyboardKeyUp, {
-                        this->keyboard->Value(),
-                        Number::New(env, event.key.keysym.scancode)
-                    });
-                }
+                this->DispatchKeyboardKeyUp(env, event.key.keysym.scancode);
                 break;
             case SDL_KEYDOWN:
-                if (!IsCallbackEmpty(StageCallbackKeyboardKeyDown)) {
-                    Call(StageCallbackKeyboardKeyDown, {
-                        this->keyboard->Value(),
-                        Number::New(env, event.key.keysym.scancode),
-                        Boolean::New(env, event.key.repeat != 0),
-                    });
-                }
+                this->DispatchKeyboardKeyDown(env, event.key.keysym.scancode, event.key.repeat != 0);
                 break;
             case SDL_JOYBUTTONUP:
-                if (!IsCallbackEmpty(StageCallbackGamepadButtonUp)) {
-                    Call(StageCallbackGamepadButtonUp, {
-                        this->GetGamepad(env, event.jbutton.which),
-                        Number::New(env, event.jbutton.button),
-                    });
-                }
+                this->DispatchJoystickButtonUp(env, event.jbutton.which, event.jbutton.button);
                 break;
             case SDL_JOYBUTTONDOWN:
-                if (!IsCallbackEmpty(StageCallbackGamepadButtonDown)) {
-                    Call(StageCallbackGamepadButtonDown, {
-                        this->GetGamepad(env, event.jbutton.which),
-                        Number::New(env, event.jbutton.button),
-                    });
-                }
+                this->DispatchJoystickButtonDown(env, event.jbutton.which, event.jbutton.button);
                 break;
             case SDL_JOYHATMOTION:
-                HandleJoystickHatMotion(env, event.jhat.which, event.jhat.hat, event.jhat.value);
+                this->DispatchJoystickHatMotion(env, event.jhat.which, event.jhat.hat, event.jhat.value);
                 break;
             case SDL_JOYAXISMOTION:
-                value = static_cast<float>(event.jaxis.value);
-
-                if (!IsCallbackEmpty(StageCallbackGamepadAxisMotion)) {
-                    Call(StageCallbackGamepadAxisMotion, {
-                        this->GetGamepad(env, event.jaxis.which),
-                        Number::New(env, event.jaxis.axis),
-                        Number::New(env, value < 0 ? -SDL_JOYSTICK_AXIS_MIN_F : SDL_JOYSTICK_AXIS_MAX_F),
-                    });
-                }
+                this->DispatchJotstickAxisMotion(
+                    env,
+                    event.jaxis.which,
+                    event.jaxis.axis,
+                    static_cast<float>(event.jaxis.value));
                 break;
             case SDL_JOYDEVICEADDED:
-                HandleJoystickAdded(env, event.jdevice.which);
+                this->DispatchJoystickAdded(env, event.jdevice.which);
                 break;
             case SDL_JOYDEVICEREMOVED:
-                HandleJoystickRemoved(env, event.jdevice.which);
+                this->DispatchJoystickRemoved(env, event.jdevice.which);
                 break;
             default:
                 break;
         }
     }
 
-    return Boolean::New(env, true);
+    return Boolean::New(env, result);
 }
 
-void SDLStageAdapter::HandleJoystickHatMotion(Napi::Env env, int32_t instanceId, uint8_t hatIndex, uint8_t hatValue) {
+bool SDLStageAdapter::DispatchQuit(Napi::Env env) {
+    if (!this->IsCallbackEmpty(StageCallbackQuit)) {
+        HandleScope scope(env);
+
+        this->Call(StageCallbackQuit, {});
+    }
+
+    // exit on quit
+    // TODO: allow user to override
+    return false;
+}
+
+void SDLStageAdapter::DispatchKeyboardKeyDown(Napi::Env env, int32_t scanCode, bool isRepeat) {
+    if (!this->IsCallbackEmpty(StageCallbackKeyboardKeyDown)) {
+        HandleScope scope(env);
+
+        this->Call(StageCallbackKeyboardKeyDown, {
+            this->keyboard->Value(),
+            Number::New(env, scanCode),
+            Boolean::New(env, isRepeat),
+        });
+    }
+}
+
+void SDLStageAdapter::DispatchKeyboardKeyUp(Napi::Env env, int32_t scanCode) {
+    if (!this->IsCallbackEmpty(StageCallbackKeyboardKeyUp)) {
+        HandleScope scope(env);
+
+        this->Call(StageCallbackKeyboardKeyUp, {
+            this->keyboard->Value(),
+            Number::New(env, scanCode)
+        });
+    }
+}
+
+void SDLStageAdapter::DispatchJoystickButtonUp(Napi::Env env, int32_t instanceId, int32_t buttonId) {
+    if (!this->IsCallbackEmpty(StageCallbackGamepadButtonUp)) {
+        HandleScope scope(env);
+
+        this->Call(StageCallbackGamepadButtonUp, {
+            this->GetGamepad(env, instanceId),
+            Number::New(env, buttonId),
+        });
+    }
+}
+
+void SDLStageAdapter::DispatchJoystickButtonDown(Napi::Env env, int32_t instanceId, int32_t buttonId) {
+    if (!this->IsCallbackEmpty(StageCallbackGamepadButtonDown)) {
+        HandleScope scope(env);
+
+        this->Call(StageCallbackGamepadButtonDown, {
+            this->GetGamepad(env, instanceId),
+            Number::New(env, buttonId),
+        });
+    }
+}
+
+void SDLStageAdapter::DispatchJotstickAxisMotion(Napi::Env env, int32_t instanceId, uint8_t axisIndex, float value) {
+    if (!this->IsCallbackEmpty(StageCallbackGamepadAxisMotion)) {
+        HandleScope scope(env);
+
+        this->Call(StageCallbackGamepadAxisMotion, {
+            this->GetGamepad(env, instanceId),
+            Number::New(env, axisIndex),
+            Number::New(env, value < 0 ? -(value / SDL_JOYSTICK_AXIS_MIN_F) : value / SDL_JOYSTICK_AXIS_MAX_F),
+        });
+    }
+}
+
+void SDLStageAdapter::DispatchJoystickHatMotion(Napi::Env env, int32_t instanceId, uint8_t hatIndex, uint8_t hatValue) {
     auto p{ this->gamepadsByInstanceId.find(instanceId) };
 
     if (p == this->gamepadsByInstanceId.end()) {
@@ -339,6 +403,7 @@ void SDLStageAdapter::HandleJoystickHatMotion(Napi::Env env, int32_t instanceId,
     auto gamepad{ p->second };
     auto state{ gamepad->GetHatState(hatIndex) };
     int32_t button;
+    HandleScope scope(env);
 
     if (state != 0) {
         button = gamepad->GetHatButtonIndex(hatIndex, state);
@@ -364,7 +429,7 @@ void SDLStageAdapter::HandleJoystickHatMotion(Napi::Env env, int32_t instanceId,
     }
 }
 
-void SDLStageAdapter::HandleJoystickAdded(Napi::Env env, int32_t index) {
+void SDLStageAdapter::DispatchJoystickAdded(Napi::Env env, int32_t index) {
     auto joystick{ SDL_JoystickOpen(index) };
 
     if (!joystick) {
@@ -383,11 +448,13 @@ void SDLStageAdapter::HandleJoystickAdded(Napi::Env env, int32_t index) {
     auto gamepad{ this->AddGamepad(env, index) };
 
     if (!IsCallbackEmpty(StageCallbackGamepadConnected)) {
+        HandleScope scope(env);
+
         Call(StageCallbackGamepadConnected, { gamepad->Value() });
     }
 }
 
-void SDLStageAdapter::HandleJoystickRemoved(Napi::Env env, int32_t instanceId) {
+void SDLStageAdapter::DispatchJoystickRemoved(Napi::Env env, int32_t instanceId) {
     auto p{ this->gamepadsByInstanceId.find(instanceId) };
 
     if (p == this->gamepadsByInstanceId.end()) {
@@ -399,6 +466,8 @@ void SDLStageAdapter::HandleJoystickRemoved(Napi::Env env, int32_t instanceId) {
     this->gamepadsByInstanceId.erase(p);
 
     if (!IsCallbackEmpty(StageCallbackGamepadDisconnected)) {
+        HandleScope scope(env);
+
         Call(StageCallbackGamepadDisconnected, { gamepad->Value() });
     }
 
@@ -406,7 +475,6 @@ void SDLStageAdapter::HandleJoystickRemoved(Napi::Env env, int32_t instanceId) {
     gamepad->Unref();
 }
 
-inline
 void SDLStageAdapter::Call(const StageCallback callbackId, const std::initializer_list<napi_value>& args) {
     try {
         this->callbacks[callbackId](args);
@@ -415,7 +483,6 @@ void SDLStageAdapter::Call(const StageCallback callbackId, const std::initialize
     }
 }
 
-inline
 bool SDLStageAdapter::IsCallbackEmpty(const StageCallback callbackId) {
     return this->callbacks[callbackId].IsEmpty();
 }
@@ -426,7 +493,7 @@ void SDLStageAdapter::SyncGamepads(Napi::Env env) {
     for (int32_t i{ 0 }; i < SDL_NumJoysticks(); i++) {
         try {
             this->AddGamepad(env, i);
-        } catch (std::exception& e) {
+        } catch (Error& e) {
             fmt::println("Error: Failed to get joystick at index {}", i);
         }
     }
@@ -453,7 +520,6 @@ SDLGamepad* SDLStageAdapter::AddGamepad(Napi::Env env, int32_t index) {
     return gamepad;
 }
 
-inline
 Value SDLStageAdapter::GetGamepad(Napi::Env env, int32_t instanceId) {
     auto p{ this->gamepadsByInstanceId.find(instanceId) };
 

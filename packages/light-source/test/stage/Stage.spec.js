@@ -12,7 +12,7 @@ let stage
 describe('Stage', () => {
   beforeEach(() => {
     stage = new Stage()
-    stage.init({ adapter: 'light-source-ref' })
+    stage.init({ adapter: 'light-source-ref', audioAdapter: 'light-source-ref' })
   })
   afterEach(() => {
     stage[Symbol.for('destroy')]()

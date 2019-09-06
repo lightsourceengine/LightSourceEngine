@@ -52,6 +52,12 @@ std::string ToLowerCase(Napi::Env env, Napi::String text);
  */
 std::string ToUpperCase(Napi::Env env, Napi::String text);
 
+/**
+ * Create a javascript Array of Strings from an iterable list of C++ strings.
+ */
+template<typename Iterable>
+Napi::Array StringArray(Napi::Env env, const Iterable& iterable);
+
 } // namespace Napi
 
 #include "napi-ext-inl.h"

@@ -24,7 +24,9 @@ import {
   $bubble,
   $events,
   $navigationManager,
-  $setActiveNode, $hasFocus
+  $setActiveNode,
+  $hasFocus,
+  $resourcePath
 } from '../util/InternalSymbols'
 import { BlurEvent } from '../event/BlurEvent'
 import { FocusEvent } from '../event/FocusEvent'
@@ -99,6 +101,7 @@ export class Scene extends SceneBase {
     ])
     this[$activeNode] = null
     this[$navigationManager] = navigationManager
+    this[$resource][$resourcePath] = stage.resourcePath
 
     this.root.style = new Style({
       position: 'absolute',

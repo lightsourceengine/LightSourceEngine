@@ -6,13 +6,19 @@
 
 #include <napi.h>
 #include "RefStageAdapter.h"
+#include "RefAudioAdapter.h"
 
 using Napi::Env;
+using Napi::HandleScope;
 using Napi::Object;
 using ls::RefStageAdapter;
+using ls::RefAudioAdapter;
 
 Object Init(Env env, Object exports) {
+    HandleScope scope(env);
+
     exports["StageAdapter"] = RefStageAdapter::Constructor(env);
+    exports["AudioAdapter"] = RefAudioAdapter::Constructor(env);
 
     return exports;
 }

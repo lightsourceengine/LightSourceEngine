@@ -40,6 +40,7 @@ Function RefStageAdapter::Constructor(Napi::Env env) {
             InstanceMethod("detach", &RefStageAdapter::Detach),
             InstanceMethod("destroy", &RefStageAdapter::Destroy),
             InstanceMethod("setCallback", &RefStageAdapter::SetCallback),
+            InstanceMethod("resetCallbacks", &RefStageAdapter::ResetCallbacks),
         });
 
         constructor.Reset(func, 1);
@@ -89,6 +90,9 @@ void RefStageAdapter::Destroy(const CallbackInfo& info) {
 }
 
 void RefStageAdapter::SetCallback(const CallbackInfo& info) {
+}
+
+void RefStageAdapter::ResetCallbacks(const CallbackInfo& info) {
 }
 
 std::unique_ptr<SceneAdapter> RefStageAdapter::CreateSceneAdapter(const SceneAdapterConfig& config) {

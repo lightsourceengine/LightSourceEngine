@@ -29,6 +29,7 @@ class StageAdapter {
     virtual void Detach(const Napi::CallbackInfo& info) = 0;
     virtual void Destroy(const Napi::CallbackInfo& info) = 0;
     virtual void SetCallback(const Napi::CallbackInfo& info) = 0;
+    virtual void ResetCallbacks(const Napi::CallbackInfo& info) = 0;
 
     // native methods
 

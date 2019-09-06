@@ -7,13 +7,12 @@
 import { Scene } from '../scene/Scene'
 import bindings from 'bindings'
 import { performance } from 'perf_hooks'
-import { addonError } from '../addon'
+import { addonError, SDLModuleId } from '../addon'
 import { InputManager } from '../input/InputManager'
 import { EventEmitter } from '../util/EventEmitter'
 import { EventType } from '../event/EventType'
 import {
   $adapter,
-  $audioAdapter,
   $mainLoopHandle,
   $fps,
   $attach,
@@ -27,10 +26,60 @@ import {
   $bind,
   $unbind,
   $events,
-  $scene
+  $scene,
+  $audio,
+  $init,
+  $resourcePath
 } from '../util/InternalSymbols'
+import { AudioManager } from '../audio/AudioManager'
+import { noexcept, logexcept } from '../util'
 
 const { now } = performance
+
+const validateAdapterConfig = (adapter) => {
+  if (typeof adapter === 'function' || typeof adapter === 'string') {
+    return adapter
+  } else if (!adapter) {
+    return SDLModuleId
+  }
+
+  throw Error('adapter must be a module name string or a StageAdapter class.')
+}
+
+const createStageAdapter = (adapter) => {
+  let StageAdapter
+
+  if (typeof adapter === 'string') {
+    try {
+      StageAdapter = bindings(adapter).StageAdapter
+    } catch (e) {
+      throw Error(`Module ${adapter} failed to load. Error: ${e.message}`)
+    }
+
+    if (typeof StageAdapter !== 'function') {
+      throw Error(`Module ${adapter} does not contain an StageAdapter class.`)
+    }
+  } else {
+    StageAdapter = adapter
+  }
+
+  let adapterInstance
+
+  try {
+    adapterInstance = new StageAdapter()
+  } catch (e) {
+    throw Error(`Failed to construct the StageAdapter instance. Error: ${e.message}`)
+  }
+
+  try {
+    adapterInstance.attach()
+  } catch (e) {
+    noexcept(() => adapterInstance.destroy())
+    throw Error(`Failed to initialize the StageAdapter instance. Error: ${e.message}`)
+  }
+
+  return adapterInstance
+}
 
 export class Stage {
   constructor () {
@@ -51,6 +100,7 @@ export class Stage {
       EventType.DeviceButtonUp,
       EventType.DeviceAxisMotion
     ])
+    this[$audio] = new AudioManager(this)
   }
 
   get fps () {
@@ -58,7 +108,7 @@ export class Stage {
   }
 
   set fps (value) {
-    // 60 or screen refresh rate
+    // TODO: 60 or screen refresh rate
     this[$fps] = value
   }
 
@@ -66,8 +116,50 @@ export class Stage {
     return this[$input]
   }
 
+  /**
+   * Access the audio API for playing sound effects and background music.
+   *
+   * The native audio support that backs the AudioManager can be initialized through Stage.init(), using the
+   * audioAdapter option.
+   *
+   * @returns {AudioManager}
+   */
+  get audio () {
+    return this[$audio]
+  }
+
   get displays () {
     return this[$displays]
+  }
+
+  /**
+   * Local file directory used when resolving the resource host name of a file URI.
+   *
+   * Resource loading, including images, audio and fonts, accepts a file URI with a resource hostname
+   * ('file://resource/image.png'). The file://resource prefix is replaced with resourcePath to load the
+   * local file.
+   *
+   * @property resourcePath
+   * @returns {string} an absolute or relative file path. If not set, an empty string is returned.
+   */
+
+  get resourcePath () {
+    return this[$resourcePath]
+  }
+
+  set resourcePath (value) {
+    if (!value) {
+      value = ''
+    } else if (typeof value !== 'string') {
+      throw Error(`resourcePath must be a string. Got: ${value}`)
+    }
+
+    this[$resourcePath] = value
+    this[$audio][$resourcePath] = value
+
+    if (this[$scene]) {
+      this[$scene].resource[$resourcePath] = value
+    }
   }
 
   on (id, listener) {
@@ -80,39 +172,23 @@ export class Stage {
 
   init ({ adapter, audioAdapter } = {}) {
     if (addonError) {
-      throw Error('Error loading light-source native addon: ' + addonError.message)
+      throw Error(`Error loading light-source native addon: ${addonError.message}`)
     }
 
     if (this[$adapter]) {
       throw Error('Stage has already been initialized.')
     }
 
-    let StageAdapterClass
-
-    adapter = adapter || 'light-source-sdl'
-
-    if (typeof adapter === 'function') {
-      StageAdapterClass = adapter
-    } else if (typeof adapter === 'string') {
-      StageAdapterClass = bindings(adapter).StageAdapter
-    } else {
-      throw Error('adapter must be a module name string or a StageAdapter class.')
-    }
-
-    this[$adapter] = new StageAdapterClass()
+    this[$adapter] = createStageAdapter(validateAdapterConfig(adapter))
 
     try {
       this[$displays] = this[$adapter].getDisplays()
     } catch (e) {
-      try {
-        adapter.destroy()
-      } catch (e) {
-        // ignore
-      }
-
-      // TODO: throw ?
-      throw e
+      console.log(`Failed to get displays. Error: ${e.message}`)
+      this[$displays] = []
     }
+
+    this[$audio][$init](audioAdapter)
 
     this[$input][$bind](this)
 
@@ -147,11 +223,7 @@ export class Stage {
       throw Error(`Invalid displayIndex ${displayIndex}.`)
     }
 
-    if (fullscreen === undefined) {
-      fullscreen = true
-    } else {
-      fullscreen = !!fullscreen
-    }
+    fullscreen = (fullscreen === undefined) || (!!fullscreen)
 
     if ((width === undefined || width === 0) && (height === undefined || height === 0)) {
       if (fullscreen) {
@@ -186,6 +258,7 @@ export class Stage {
   }
 
   start () {
+    // TODO: initialized?
     // TODO: check already started
     if (this[$mainLoopHandle]) {
       return
@@ -193,9 +266,13 @@ export class Stage {
 
     const scene = this[$scene]
     const adapter = this[$adapter]
+    const audio = this[$audio]
     let lastTick = now()
 
+    // TODO: handle exceptions
+
     adapter.attach()
+    audio[$attach]()
     scene[$attach]()
 
     const mainLoop = () => {
@@ -217,15 +294,19 @@ export class Stage {
   }
 
   stop () {
+    // TODO: stopped?
     if (this[$mainLoopHandle]) {
       // TODO: handle exceptions...
       this[$scene][$detach]()
+      this[$audio][$detach]()
       this[$adapter].detach()
 
       clearTimeout(this[$mainLoopHandle])
       this[$mainLoopHandle] = null
     }
   }
+
+  // TODO: running flag? or state?
 
   quit () {
     this[$quitRequested] = true
@@ -234,49 +315,39 @@ export class Stage {
   [$destroy] () {
     const scene = this[$scene]
     const adapter = this[$adapter]
-    const audioAdapter = this[$audioAdapter]
-
-    if (this[$exitListener]) {
-      process.off('exit', this[$exitListener])
-      this[$exitListener] = null
-    }
-
-    this[$input][$unbind]()
+    const audio = this[$audio]
+    const input = this[$input]
 
     clearTimeout(this[$mainLoopHandle])
     this[$mainLoopHandle] = null
 
+    if (input) {
+      logexcept(() => input[$unbind](), 'Failed to unbind InputManager. Error: ')
+    }
+
+    // TODO: destroy resource manager?
+
     // destroy scene
     if (scene) {
-      try {
-        scene[$destroy]()
-      } catch (e) {
-        console.log(`Error destroying scene: ${e}`)
-      }
-
+      logexcept(() => scene[$destroy](), 'Failed to destroy Scene. Error: ')
       this[$scene] = null
     }
 
     // destroy audio adapter
-    if (audioAdapter) {
-      try {
-        audioAdapter.destroy()
-      } catch (e) {
-        console.log(`Error destroying audio adapter: ${e}`)
-      }
-
-      this[$audioAdapter] = null
+    if (audio) {
+      logexcept(() => audio[$destroy](), 'Failed to destroy AudioManager. Error: ')
+      this[$audio] = null
     }
 
     // destroy stage adapter
     if (adapter) {
-      try {
-        adapter.destroy()
-      } catch (e) {
-        console.log(`Error destroying stage adapter: ${e}`)
-      }
-
+      logexcept(() => adapter.destroy(), 'Failed to destroy StageAdapter. Error: ')
       this[$adapter] = null
+    }
+
+    if (this[$exitListener]) {
+      process.off('exit', this[$exitListener])
+      this[$exitListener] = null
     }
   }
 }

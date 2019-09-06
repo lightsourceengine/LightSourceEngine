@@ -37,7 +37,7 @@ export const renderAsync = async (component) => {
 }
 
 export const beforeSceneTest = () => {
-  stage.init({ adapter: 'light-source-ref' })
+  stage.init({ adapter: 'light-source-ref', audioAdapter: 'light-source-ref' })
   state.scene = stage.createScene()
 }
 

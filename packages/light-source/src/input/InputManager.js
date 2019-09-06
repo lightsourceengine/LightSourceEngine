@@ -30,7 +30,7 @@ const keyboardUuid = 'keyboard'
 
 export class InputManager {
   constructor () {
-    this[$adapter] = unintializedStageAdapter
+    this[$adapter] = null
 
     const keyboardMapping = new KeyMapping('standard', [
       [StandardKey.UP, ScanCode.UP],
@@ -56,7 +56,7 @@ export class InputManager {
   }
 
   get gamepads () {
-    return this[$adapter].getGamepads()
+    return this[$adapter] ? this[$adapter].getGamepads() : []
   }
 
   addKeyMapping (uuid, keyMapping) {
@@ -207,24 +207,9 @@ export class InputManager {
   }
 
   [$unbind] () {
-    // TODO: clear callbacks?
-    this[$adapter] = unintializedStageAdapter
-  }
-}
-
-const throwStageAdapterNotInitialized = () => {
-  throw Error('stage.init() must be called before accessing input')
-}
-
-const unintializedStageAdapter = {
-  addGameControllerMappings (csv) {
-    throwStageAdapterNotInitialized()
-  },
-  get keyboard () {
-    throwStageAdapterNotInitialized()
-  },
-  get gamepads () {
-    throwStageAdapterNotInitialized()
+    if (this[$adapter]) {
+      this[$adapter].resetCallbacks()
+    }
   }
 }
 

@@ -47,7 +47,7 @@ Function ResourceManager::Constructor(Napi::Env env) {
             InstanceMethod("addFont", &ResourceManager::AddFont),
             InstanceAccessor("fonts", &ResourceManager::GetFonts, nullptr),
             InstanceAccessor("images", &ResourceManager::GetImages, nullptr),
-            InstanceAccessor("path", &ResourceManager::GetPath, &ResourceManager::SetPath),
+            InstanceAccessor(SymbolFor(env, "resourcePath"), &ResourceManager::GetPath, &ResourceManager::SetPath),
             InstanceAccessor("imageExtensions",
                 &ResourceManager::GetImageExtensions, &ResourceManager::SetImageExtensions),
         });

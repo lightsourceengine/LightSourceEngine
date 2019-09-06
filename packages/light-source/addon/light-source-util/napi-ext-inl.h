@@ -23,4 +23,17 @@ T ObjectGetNumberOrDefault(const Object& object, const char* key, T defaultValue
     return value.As<Number>();
 }
 
+template<typename Iterable>
+Napi::Array StringArray(Napi::Env env, const Iterable& iterable) {
+    auto result{ Array::New(env) };
+    auto p{ iterable.begin() };
+
+    while (p != iterable.end()) {
+        result[result.Length()] = String::New(env, *p);
+        p++;
+    }
+
+    return result;
+}
+
 } // namespace Napi

@@ -27,6 +27,9 @@
         "addon/deps/fmt/fmt.gyp:fmt",
       ],
       "sources": [
+        "light-source-util/BaseAudioSource.cc",
+        "light-source-util/BaseAudioDestination.cc",
+        "light-source-util/BaseAudioAdapter.cc",
         "light-source-util/PixelConversion.cc",
         "light-source-util/FileSystem.cc",
         "light-source-util/Timer.cc",
@@ -106,6 +109,7 @@
         "light-source-util",
       ],
       "sources": [
+        "light-source-sdl/SDLAudioAdapter.cc",
         "light-source-sdl/SDLRenderer.cc",
         "light-source-sdl/SDLSceneAdapter.cc",
         "light-source-sdl/SDLStageAdapter.cc",
@@ -135,6 +139,7 @@
       ],
       "sources": [
         "light-source-ref/RefRenderer.cc",
+        "light-source-ref/RefAudioAdapter.cc",
         "light-source-ref/RefSceneAdapter.cc",
         "light-source-ref/RefStageAdapter.cc",
         "light-source-ref/Init.cc",
@@ -152,18 +157,23 @@
               "common.gypi",
             ],
             "include_dirs": [
-              "<(sdl_include_path)",
               "<(sdl_mixer_include_path)",
+              "<(sdl_include_path)",
+              "include",
+              "deps/fmt/include",
+              "light-source-util",
             ],
             "dependencies": [
-
+                "addon/deps/fmt/fmt.gyp:fmt",
+                "light-source-util",
             ],
             "sources": [
+              "light-source-sdl-mixer/SDLMixerAudioAdapter.cc",
               "light-source-sdl-mixer/Init.cc",
             ],
             "libraries": [
               "-L<(sdl_mixer_library_path)",
-              "-lSDL2_mixer"
+              "-lSDL2_mixer",
             ]
           }
         ]
