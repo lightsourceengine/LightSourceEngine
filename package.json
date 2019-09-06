@@ -20,15 +20,15 @@
     "postinstall": "yarn workspaces run bundle"
   },
   "devDependencies": {
-    "@babel/core": "^7.5.5",
+    "@babel/core": "^7.6.0",
     "@babel/plugin-proposal-class-properties": "^7.5.5",
-    "@babel/preset-env": "^7.5.5",
+    "@babel/preset-env": "^7.6.0",
     "@babel/preset-react": "^7.0.0",
-    "@babel/register": "^7.5.5",
+    "@babel/register": "^7.6.0",
     "babel-eslint": "^10.0.3",
     "chai": "^4.2.0",
     "docdash": "^1.1.1",
-    "eslint": "^6.2.2",
+    "eslint": "^6.3.0",
     "jsdoc": "^3.6.3",
     "light-source-rollup": "1.0.0-private.0",
     "mocha": "^6.2.0",
@@ -38,7 +38,7 @@
     "react-reconciler": "0.21.0",
     "react-test-renderer": "^16.9.0",
     "rimraf": "^3.0.0",
-    "rollup": "^1.20.2",
+    "rollup": "^1.20.3",
     "rollup-plugin-auto-external": "^2.0.0",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-commonjs": "^10.1.0",
@@ -46,7 +46,7 @@
     "rollup-plugin-re": "^1.0.7",
     "rollup-plugin-terser": "^5.1.1",
     "scheduler": "0.15.0",
-    "sinon": "^7.4.1",
+    "sinon": "^7.4.2",
     "standard": "^14.1.0"
   }
 }
