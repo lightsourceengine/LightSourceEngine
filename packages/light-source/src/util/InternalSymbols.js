@@ -9,8 +9,6 @@
 const { for: symbolFor } = Symbol
 
 export const $adapter = symbolFor('adapter')
-export const $bind = symbolFor('bind')
-export const $unbind = symbolFor('unbind')
 export const $mappings = symbolFor('mappings')
 export const $keyToDirectionMap = symbolFor('keyToDirectionMap')
 export const $scene = symbolFor('scene')
@@ -65,3 +63,4 @@ export const $resourcePath = symbolFor('resourcePath')
 export const $stream = symbolFor('stream')
 export const $sample = symbolFor('sample')
 export const $destination = symbolFor('destination')
+export const $keyboard = symbolFor('keyboard')

@@ -8,7 +8,7 @@ import { Scene } from '../scene/Scene'
 import bindings from 'bindings'
 import { performance } from 'perf_hooks'
 import { addonError, SDLModuleId } from '../addon'
-import { InputManager } from '../input/InputManager'
+import { InputManager, InputManager$attach, InputManager$detach } from '../input/InputManager'
 import { EventEmitter } from '../util/EventEmitter'
 import { EventType } from '../event/EventType'
 import {
@@ -23,8 +23,6 @@ import {
   $exitListener,
   $quitRequested,
   $input,
-  $bind,
-  $unbind,
   $events,
   $scene,
   $audio,
@@ -190,16 +188,10 @@ export class Stage {
 
     this[$audio][$init](audioAdapter)
 
-    this[$input][$bind](this)
+    InputManager$attach(this[$input], this)
 
     process.on('exit', this[$exitListener] = () => {
-      if (this[$adapter]) {
-        try {
-          this[$destroy]()
-        } catch (e) {
-          console.log('exit: Stage destroy exception:' + e)
-        }
-      }
+      logexcept(() => this[$destroy](), 'exit: Stage destroy exception: ')
       global.gc && global.gc()
     })
   }
@@ -272,6 +264,7 @@ export class Stage {
     // TODO: handle exceptions
 
     adapter.attach()
+    InputManager$attach(this[$input], this)
     audio[$attach]()
     scene[$attach]()
 
@@ -299,6 +292,7 @@ export class Stage {
       // TODO: handle exceptions...
       this[$scene][$detach]()
       this[$audio][$detach]()
+      InputManager$detach(this[$input])
       this[$adapter].detach()
 
       clearTimeout(this[$mainLoopHandle])
@@ -318,11 +312,13 @@ export class Stage {
     const audio = this[$audio]
     const input = this[$input]
 
-    clearTimeout(this[$mainLoopHandle])
-    this[$mainLoopHandle] = null
+    if (this[$mainLoopHandle]) {
+      clearTimeout(this[$mainLoopHandle])
+      this[$mainLoopHandle] = null
+    }
 
     if (input) {
-      logexcept(() => input[$unbind](), 'Failed to unbind InputManager. Error: ')
+      logexcept(() => InputManager$detach(input), 'Failed to unbind InputManager. Error: ')
     }
 
     // TODO: destroy resource manager?

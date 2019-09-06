@@ -133,7 +133,7 @@ export class AudioManager {
    */
   get devices () {
     // Note: names are purely informational right now
-    return this[$adapter].devices
+    return this[$adapter] ? this[$adapter].devices : []
   }
 
   /**
