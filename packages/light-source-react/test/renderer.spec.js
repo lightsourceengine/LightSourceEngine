@@ -13,7 +13,7 @@ let scene
 
 describe('renderer()', () => {
   beforeEach(() => {
-    stage.init({ adapter: 'light-source-ref' })
+    stage.init({ adapter: 'light-source-ref', audioAdapter: 'light-source-ref' })
     scene = stage.createScene()
   })
   afterEach(async () => {

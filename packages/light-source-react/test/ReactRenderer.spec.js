@@ -25,7 +25,7 @@ class TestComponentClass extends React.Component {
   }
 }
 
-describe('ReactContainer', () => {
+describe('ReactRenderer', () => {
   beforeEach(beforeSceneTest)
   afterEach(async () => {
     await afterSceneTest()

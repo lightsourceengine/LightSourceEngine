@@ -284,10 +284,6 @@ export class Stage {
     this[$exitListener] = null
 
     if (scene) {
-      for (const child of scene.root.children) {
-        child.destroy()
-      }
-
       logexcept(() => scene[$destroy](), 'Failed to destroy Scene. Error: ')
       this[$displays][scene.displayIndex].scene = null
       this[$scene] = null

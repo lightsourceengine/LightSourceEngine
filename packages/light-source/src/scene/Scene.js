@@ -145,9 +145,10 @@ export class Scene extends SceneBase {
       this[$events] = null
     }
 
+    super[$destroy]()
+
     this[$stage] = null
     this[$activeNode] = null
-    super[$destroy]()
   }
 }
 
