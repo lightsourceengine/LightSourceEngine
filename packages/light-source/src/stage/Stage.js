@@ -274,38 +274,30 @@ export class Stage {
     const adapter = this[$adapter]
     const audio = this[$audio]
     const input = this[$input]
+    const mainLoopHandle = this[$mainLoopHandle]
+    const exitListener = this[$exitListener]
 
-    if (this[$mainLoopHandle]) {
-      clearTimeout(this[$mainLoopHandle])
-      this[$mainLoopHandle] = null
-    }
+    mainLoopHandle && clearTimeout(mainLoopHandle)
+    this[$mainLoopHandle] = null
 
-    if (input) {
-      logexcept(() => input[$destroy](), 'Failed to unbind InputManager. Error: ')
-    }
+    exitListener && process.off('exit', exitListener)
+    this[$exitListener] = null
 
-    // destroy scene
     if (scene) {
+      for (const child of scene.root.children) {
+        child.destroy()
+      }
+
       logexcept(() => scene[$destroy](), 'Failed to destroy Scene. Error: ')
+      this[$displays][scene.displayIndex].scene = null
       this[$scene] = null
     }
 
-    // destroy audio adapter
-    if (audio) {
-      logexcept(() => audio[$destroy](), 'Failed to destroy AudioManager. Error: ')
-      this[$audio] = null
-    }
+    logexcept(() => input[$destroy](), 'Failed to unbind InputManager. Error: ')
+    logexcept(() => audio[$destroy](), 'Failed to destroy AudioManager. Error: ')
 
-    // destroy stage adapter
-    if (adapter) {
-      logexcept(() => adapter.destroy(), 'Failed to destroy StageAdapter. Error: ')
-      this[$adapter] = null
-    }
-
-    if (this[$exitListener]) {
-      process.off('exit', this[$exitListener])
-      this[$exitListener] = null
-    }
+    logexcept(() => adapter && adapter.destroy(), 'Failed to destroy StageAdapter. Error: ')
+    this[$adapter] = null
   }
 }
 
