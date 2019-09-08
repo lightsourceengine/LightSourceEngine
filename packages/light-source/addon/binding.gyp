@@ -84,9 +84,11 @@
       ],
       "conditions": [
         ["enable_native_tests==\"true\"", {
+          "include_dirs": [
+            "<!@(node -p \"require('napi-unit').include\")"
+          ],
           "defines": ["LIGHT_SOURCE_ENABLE_NATIVE_TESTS"],
           "sources": [
-            "light-source/test/TestGroup.cc",
             "light-source/test/FileSystemSpec.cc",
             "light-source/test/SurfaceSpec.cc",
           ]

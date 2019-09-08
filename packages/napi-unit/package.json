@@ -1,0 +1,9 @@
+{
+  "name": "napi-unit",
+  "private": true,
+  "version": "1.0.0-private.0",
+  "scripts": {
+    "test": "true",
+    "bundle": "true"
+  }
+}

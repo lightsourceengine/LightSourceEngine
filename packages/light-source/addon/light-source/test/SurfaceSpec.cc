@@ -4,9 +4,11 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "LightSourceSpecList.h"
-#include "TestGroup.h"
+#include "LightSourceSpec.h"
 #include "../Surface.h"
+
+using Napi::Assert;
+using Napi::TestSuite;
 
 namespace ls {
 
@@ -28,11 +30,11 @@ bool BytesEqualTo(uint8_t* bytes, int32_t bytesLen, uint8_t value) {
     return true;
 }
 
-void SurfaceSpec(TestGroup* parent) {
-    auto suite{ parent->Describe("Surface") };
-    auto assert{ Assert(parent->Env()) };
+void SurfaceSpec(Napi::Env env, TestSuite* parent) {
+    auto spec{ parent->Describe("Surface") };
+    auto assert{ Assert(env) };
 
-    suite->Describe("constructor")->tests = {
+    spec->Describe("constructor")->tests = {
         {
             "should create a single channel surface of 10x10 pixels",
             [assert](const Napi::CallbackInfo& info) {
@@ -76,7 +78,7 @@ void SurfaceSpec(TestGroup* parent) {
         },
     };
 
-    suite->Describe("FillTransparent()")->tests = {
+    spec->Describe("FillTransparent()")->tests = {
         {
             "should clear single channel surface",
             [assert](const Napi::CallbackInfo& info) {

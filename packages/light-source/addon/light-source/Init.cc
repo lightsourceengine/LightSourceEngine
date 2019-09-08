@@ -14,8 +14,7 @@
 #include "ImageSceneNode.h"
 #include "RootSceneNode.h"
 #include "TextSceneNode.h"
-#include "napi-ext.h"
-#include <fmt/format.h>
+#include "test/LightSourceSpec.h"
 
 using Napi::Env;
 using Napi::Function;
@@ -29,8 +28,6 @@ using ls::BoxSceneNode;
 using ls::ImageSceneNode;
 using ls::RootSceneNode;
 using ls::TextSceneNode;
-
-void AddNativeTests(Env env, Object exports);
 
 void ExportClass(Object* exports, const Function& constructor) {
     exports->Set(constructor.Get("name").ToString(), constructor);
@@ -52,32 +49,11 @@ Object Init(Env env, Object exports) {
 
     exports["getSceneNodeInstanceCount"] = Function::New(env, &SceneNode::GetInstanceCount);
 
-    // Note: test are only added if LIGHT_SOURCE_ENABLE_NATIVE_TESTS is defined.
-    AddNativeTests(env, exports);
+    #ifdef LIGHT_SOURCE_ENABLE_NATIVE_TESTS
+    exports["test"] = ls::LightSourceSpec(env);
+    #endif
 
     return exports;
 }
-
-#ifdef LIGHT_SOURCE_ENABLE_NATIVE_TESTS
-
-#include "test/LightSourceSpecList.h"
-#include "test/TestGroup.h"
-
-void AddNativeTests(Env env, Object exports) {
-    auto testGroupObject{ ls::TestGroup::New(env, "light-source native tests") };
-    auto testGroup{ ls::TestGroup::Unwrap(testGroupObject) };
-
-    ls::FileSystemSpec(testGroup);
-    ls::SurfaceSpec(testGroup);
-
-    exports["test"] = testGroupObject;
-}
-
-#else
-
-void AddNativeTests(Env env, Object exports) {
-}
-
-#endif
 
 NODE_API_MODULE(LightSource, Init);

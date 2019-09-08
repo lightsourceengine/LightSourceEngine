@@ -4,13 +4,6 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#pragma once
+const { join } = require('path')
 
-namespace ls {
-
-class TestGroup;
-
-void FileSystemSpec(TestGroup* parent);
-void SurfaceSpec(TestGroup* parent);
-
-} // namespace ls
+exports.include = join(__dirname, 'include')

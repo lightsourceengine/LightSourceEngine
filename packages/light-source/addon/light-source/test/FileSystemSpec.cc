@@ -4,17 +4,19 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "LightSourceSpecList.h"
-#include "TestGroup.h"
+#include "LightSourceSpec.h"
 #include <FileSystem.h>
+
+using Napi::Assert;
+using Napi::TestSuite;
 
 namespace ls {
 
-void FileSystemSpec(TestGroup* parent) {
-    auto suite{ parent->Describe("FileSystem") };
-    auto assert{ Assert(parent->Env()) };
+void FileSystemSpec(Napi::Env env, TestSuite* parent) {
+    auto spec{ parent->Describe("FileSystem") };
+    auto assert{ Assert(env) };
 
-    suite->Describe("HasExtension()")->tests = {
+    spec->Describe("HasExtension()")->tests = {
         {
             "should return true when file has an extension",
             [assert](const Napi::CallbackInfo& info) {
@@ -35,7 +37,7 @@ void FileSystemSpec(TestGroup* parent) {
         }
     };
 
-    suite->Describe("FileExists()")->tests = {
+    spec->Describe("FileExists()")->tests = {
         {
             "should return true when the file exists",
             [assert](const Napi::CallbackInfo& info) {
