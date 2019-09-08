@@ -4,43 +4,22 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { $phase, $type, $timestamp, $cancelled } from '../util/InternalSymbols'
+import { PhaseNone } from './Phase'
+import { symbolKeyFor } from '../util'
 
 export class Event {
-  static PhaseNone = 0
-
-  static PhaseCapture = 1
-
-  static PhaseBubble = 2
-
   constructor (type, timestamp) {
-    this[$type] = type
-    this[$timestamp] = timestamp
-    this[$phase] = Event.PhaseNone
-    this[$cancelled] = false
-  }
-
-  get phase () {
-    return this[$phase]
+    this.phase = PhaseNone
+    this.type = type
+    this.timestamp = timestamp
+    this.cancelled = false
   }
 
   get name () {
-    return Symbol.keyFor(this[$type])
-  }
-
-  get type () {
-    return this[$type]
-  }
-
-  get timestamp () {
-    return this[$timestamp]
-  }
-
-  get cancelled () {
-    return this[$cancelled]
+    return symbolKeyFor(this.type)
   }
 
   stop () {
-    this[$cancelled] = true
+    this.cancelled = true
   }
 }

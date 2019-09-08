@@ -6,7 +6,6 @@
 
 import { Event } from './Event'
 import { EventType } from './EventType'
-import { $key, $pressed, $repeat, $mapping, $source, $direction } from '../util/InternalSymbols'
 
 const { KeyUp, KeyDown } = EventType
 
@@ -14,34 +13,11 @@ export class KeyEvent extends Event {
   constructor (key, pressed, repeat, mapping, direction, source, timestamp) {
     super(pressed ? KeyUp : KeyDown, timestamp)
 
-    this[$key] = key
-    this[$pressed] = pressed
-    this[$repeat] = repeat
-    this[$mapping] = mapping
-    this[$source] = source
-  }
-
-  get key () {
-    return this[$key]
-  }
-
-  get pressed () {
-    return this[$pressed]
-  }
-
-  get repeat () {
-    return this[$repeat]
-  }
-
-  get mapping () {
-    return this[$mapping]
-  }
-
-  get source () {
-    return this[$source]
-  }
-
-  get direction () {
-    return this[$direction]
+    this.key = key
+    this.pressed = pressed
+    this.repeat = repeat
+    this.mapping = mapping
+    this.source = source
+    this.direction = direction
   }
 }

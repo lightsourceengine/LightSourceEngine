@@ -4,10 +4,10 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { $setActiveNode } from '../util/InternalSymbols'
 import { Direction } from '../input/Direction'
+import { PhaseCapture } from './Phase'
 
-export const navigationManager = (scene, focus, event) => {
+const waypointCapture = (scene, event) => {
   const { direction } = event
 
   if (direction === Direction.NONE) {
@@ -63,6 +63,19 @@ export const navigationManager = (scene, focus, event) => {
       throw Error()
     }
 
-    scene[$setActiveNode](candidate)
+    scene.activeNode = candidate
   }
+}
+
+/**
+ *
+ * @ignore
+ */
+export const eventCapturePhase = (stage, scene, event) => {
+  if (event.cancelled || !scene) {
+    return
+  }
+
+  event.phase = PhaseCapture
+  waypointCapture(scene, event)
 }

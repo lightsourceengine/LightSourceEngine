@@ -4,6 +4,8 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
+import { symbolFor, symbolKeyFor } from './index'
+
 /**
  * Custom EventEmitter.
  *
@@ -26,12 +28,12 @@ export class EventEmitter {
 
     for (const event of events) {
       if (typeof event === 'symbol') {
-        if (!Symbol.keyFor(event)) {
+        if (!symbolKeyFor(event)) {
           throw Error('Expected a symbol created from Symbol.for()')
         }
         this[event] = []
       } else if (event === 'string') {
-        this[Symbol.for(event)] = []
+        this[symbolFor(event)] = []
       } else {
         throw Error(`Expected event name to be a string or symbol. Got ${event}`)
       }
@@ -77,7 +79,7 @@ export class EventEmitter {
    * @throws Error when id is invalid (not a string, Symbol or unregistered) or listener is not a function
    */
   on (id, listener) {
-    const sym = typeof id === 'string' ? Symbol.for(id) : id
+    const sym = typeof id === 'string' ? symbolFor(id) : id
 
     typeof sym === 'symbol' || throwExpectedSymbol(id)
     typeof listener === 'function' || throwExpectedFunction(id)
@@ -94,7 +96,7 @@ export class EventEmitter {
    * @throws Error when id is invalid (not a string, Symbol or unregistered) or listener is not a function
    */
   once (id, listener) {
-    const sym = typeof id === 'string' ? Symbol.for(id) : id
+    const sym = typeof id === 'string' ? symbolFor(id) : id
 
     typeof sym === 'symbol' || throwExpectedSymbol()
     typeof listener === 'function' || throwExpectedFunction()
@@ -114,7 +116,7 @@ export class EventEmitter {
    * @param {function} listener Listener to unregister
    */
   off (id, listener) {
-    const sym = typeof id === 'string' ? Symbol.for(id) : id
+    const sym = typeof id === 'string' ? symbolFor(id) : id
 
     typeof sym === 'symbol' || throwExpectedSymbol()
 

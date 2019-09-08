@@ -4,14 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-// Symbols used by internal classes for private/protected property access.
+import { symbolFor } from './index'
 
-const { for: symbolFor } = Symbol
+// Symbols used by internal classes for private/protected property access.
 
 export const $adapter = symbolFor('adapter')
 export const $scene = symbolFor('scene')
-export const $capture = symbolFor('capture')
-export const $bubble = symbolFor('bubble')
 export const $events = symbolFor('events')
 export const $emit = symbolFor('emit')
 export const $setResourcePath = symbolFor('setResourcePath')
@@ -22,7 +20,6 @@ export const $stage = symbolFor('stage')
 export const $root = symbolFor('root')
 export const $resource = symbolFor('resource')
 export const $destroy = symbolFor('destroy')
-export const $setActiveNode = symbolFor('setActiveNode')
 export const $displayIndex = symbolFor('displayIndex')
 export const $activeNode = symbolFor('activeNode')
 export const $destroying = symbolFor('destroying')
@@ -36,23 +33,7 @@ export const $exitListener = symbolFor('exitListener')
 export const $quitRequested = symbolFor('quitRequested')
 export const $input = symbolFor('input')
 export const $audio = symbolFor('audio')
-export const $phase = symbolFor('phase')
-export const $type = symbolFor('type')
-export const $timestamp = symbolFor('timestamp')
-export const $key = symbolFor('key')
-export const $pressed = symbolFor('pressed')
-export const $repeat = symbolFor('repeat')
-export const $mapping = symbolFor('mapping')
 export const $source = symbolFor('source')
-export const $direction = symbolFor('direction')
-export const $device = symbolFor('device')
-export const $connected = symbolFor('connected')
-export const $button = symbolFor('button')
-export const $hat = symbolFor('hat')
-export const $axis = symbolFor('axis')
-export const $value = symbolFor('value')
-export const $cancelled = symbolFor('cancelled')
-export const $navigationManager = symbolFor('navigationManager')
 export const $hasFocus = symbolFor('hasFocus')
 export const $audioSourceMap = symbolFor('audioSourceMap')
 export const $state = symbolFor('state')

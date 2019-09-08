@@ -13,6 +13,7 @@
 using Napi::Boolean;
 using Napi::CallbackInfo;
 using Napi::Env;
+using Napi::Error;
 using Napi::EscapableHandleScope;
 using Napi::Function;
 using Napi::FunctionReference;
@@ -197,18 +198,15 @@ void Scene::NotifyRootFontSizeChanged(int32_t rootFontSize) {
 }
 
 void Scene::SetActiveNode(Napi::Value node) {
-    static FunctionReference setActiveNode;
-
     auto env{ this->Env() };
     HandleScope scope(env);
     auto self{ this->Value() };
 
-    if (setActiveNode.IsEmpty()) {
-        setActiveNode.Reset(self.Get("__proto__").As<Object>().Get(SymbolFor(env, "setActiveNode")).As<Function>(), 1);
-        setActiveNode.SuppressDestruct();
+    try {
+        self["activeNode"] = node;
+    } catch (Error& e) {
+        fmt::println("Scene.activeNode set error: {}", e.what());
     }
-
-    setActiveNode.Call(self, { node });
 }
 
 } // namespace ls

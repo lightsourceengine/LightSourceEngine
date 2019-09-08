@@ -6,8 +6,8 @@
 
 import { assert } from 'chai'
 
-describe('navigationManager()', () => {
-  it('should...', () => {
+describe('eventBubblePhase()', () => {
+  it('should ...', () => {
     assert.isTrue(true)
   })
 })

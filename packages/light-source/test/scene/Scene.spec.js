@@ -5,11 +5,10 @@
  */
 
 import { assert } from 'chai'
+import sinon from 'sinon'
 import { BoxSceneNode, TextSceneNode, ImageSceneNode } from '../../src/addon'
 import { afterSceneTest, beforeSceneTest, createNode } from '..'
-
-const $attach = Symbol.for('attach')
-const $detach = Symbol.for('detach')
+import { $attach } from '../../src/util/InternalSymbols'
 
 describe('Scene', () => {
   let scene
@@ -18,6 +17,12 @@ describe('Scene', () => {
   })
   afterEach(() => {
     scene = afterSceneTest()
+  })
+  describe('constructor', () => {
+    it('should set root style', () => {
+      assert.equal(scene.root.style.fontSize.value, 16)
+      assert.equal(scene.root.style.backgroundColor, 0)
+    })
   })
   describe('createNode()', () => {
     it('should create a new SceneNode by tag name', () => {
@@ -90,22 +95,35 @@ describe('Scene', () => {
       assert.lengthOf(scene.resource.fonts, 0)
     })
   })
-  describe('attach()', () => {
-    it('should...', () => {
-      scene[$attach]()
+  describe('activeNode', () => {
+    it('should set active node and call onFocus on new focus', () => {
+      const node = scene.createNode('box')
+
+      node.onFocus = sinon.stub()
+      scene.root.appendChild(node)
+      scene.activeNode = node
+      assert.strictEqual(scene.activeNode, node)
+      assert.isTrue(node.onFocus.called)
+    })
+    it('should update active node and call onFocus on new focus', () => {
+      const node = scene.createNode('box')
+
+      node.onFocus = sinon.stub()
+      scene.root.appendChild(node)
+      node.focus()
+      assert.strictEqual(scene.activeNode, node)
+      assert.isTrue(node.onFocus.called)
+    })
+    it('should set to null', () => {
+      const node = scene.createNode('box')
+
+      node.onBlur = sinon.stub()
+      scene.root.appendChild(node)
+      node.focus()
+
+      scene.activeNode = null
+      assert.isNull(scene.activeNode)
+      assert.isTrue(node.onBlur.called)
     })
   })
-  describe('detach()', () => {
-    it('should...', () => {
-      scene[$attach]()
-      scene[$detach]()
-    })
-    it('should...', () => {
-      scene[$detach]()
-    })
-  })
-  // describe('frame()', () => {
-  //   it('should...', () => {
-  //   })
-  // })
 })

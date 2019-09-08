@@ -16,8 +16,6 @@ import {
   $emit,
   $init,
   $scene,
-  $bubble,
-  $capture,
   $destroy,
   $setNativeKeyboard
 } from '../util/InternalSymbols'
@@ -26,6 +24,8 @@ import { Direction } from './Direction'
 import { parseSystemMapping } from './parseSystemMapping'
 import { DeviceHatEvent } from '../event/DeviceHatEvent'
 import { Keyboard } from './Keyboard'
+import { eventBubblePhase } from '../event/eventBubblePhase'
+import { eventCapturePhase } from '../event/eventCapturePhase'
 
 const { now } = performance
 
@@ -305,13 +305,13 @@ const registerDeviceInputCallbacks = (inputManager) => {
     const deviceEvent = new DeviceButtonEvent(device, button, false, false, timestamp)
 
     inputManager.lastActivity = timestamp
-    stage[$scene][$bubble](deviceEvent)
+    eventBubblePhase(stage, stage[$scene], deviceEvent)
 
     const mapping = inputManager.resolveMapping(device.uuid) || emptyMapping
     const key = mapping.getKeyForButton(button)
 
     if (key >= 0) {
-      stage[$scene][$bubble](createKeyEvent(inputManager, key, false, false, mapping, deviceEvent))
+      eventBubblePhase(stage, stage[$scene], createKeyEvent(inputManager, key, false, false, mapping, deviceEvent))
     }
   }
   const buttonDown = (device, button, repeat) => {
@@ -323,7 +323,7 @@ const registerDeviceInputCallbacks = (inputManager) => {
     const deviceEvent = new DeviceButtonEvent(device, button, true, repeat, timestamp)
 
     inputManager.lastActivity = timestamp
-    stage[$scene][$bubble](deviceEvent)
+    eventBubblePhase(stage, stage[$scene], deviceEvent)
 
     const mapping = inputManager.resolveMapping(device.uuid) || emptyMapping
     const key = mapping.getKeyForButton(button)
@@ -331,8 +331,8 @@ const registerDeviceInputCallbacks = (inputManager) => {
     if (key >= 0) {
       const keyEvent = createKeyEvent(inputManager, key, true, repeat, mapping, deviceEvent)
 
-      stage[$scene][$capture](keyEvent)
-      stage[$scene][$bubble](keyEvent)
+      eventCapturePhase(stage, stage[$scene], keyEvent)
+      eventBubblePhase(stage, stage[$scene], keyEvent)
     }
   }
   const hatUp = (device, hat, value) => {
@@ -340,13 +340,13 @@ const registerDeviceInputCallbacks = (inputManager) => {
     const deviceEvent = new DeviceHatEvent(device, hat, value, false, false, timestamp)
 
     inputManager.lastActivity = timestamp
-    stage[$scene][$bubble](deviceEvent)
+    eventBubblePhase(stage, stage[$scene], deviceEvent)
 
     const mapping = inputManager.resolveMapping(device.uuid) || emptyMapping
     const key = mapping.getKeyForHat(hat, value)
 
     if (key >= 0) {
-      stage[$scene][$bubble](createKeyEvent(inputManager, key, false, false, mapping, deviceEvent))
+      eventBubblePhase(stage, stage[$scene], createKeyEvent(inputManager, key, false, false, mapping, deviceEvent))
     }
   }
   const hatDown = (device, hat, value, repeat) => {
@@ -354,13 +354,16 @@ const registerDeviceInputCallbacks = (inputManager) => {
     const deviceEvent = new DeviceHatEvent(device, hat, value, true, repeat, timestamp)
 
     inputManager.lastActivity = timestamp
-    stage[$scene][$bubble](deviceEvent)
+    eventBubblePhase(stage, stage[$scene], deviceEvent)
 
     const mapping = inputManager.resolveMapping(device.uuid) || emptyMapping
     const key = mapping.getKeyForHat(hat, value)
 
     if (key >= 0) {
-      stage[$scene][$bubble](createKeyEvent(inputManager, key, true, repeat, mapping, deviceEvent))
+      const keyEvent = createKeyEvent(inputManager, key, true, repeat, mapping, deviceEvent)
+
+      eventCapturePhase(stage, stage[$scene], keyEvent)
+      eventBubblePhase(stage, stage[$scene], keyEvent)
     }
   }
   const axisMotion = (device, axis, value) => {
@@ -368,7 +371,7 @@ const registerDeviceInputCallbacks = (inputManager) => {
     const hardwareEvent = new DeviceAxisEvent(device, axis, value, timestamp)
 
     inputManager.lastActivity = timestamp
-    stage[$scene][$bubble](hardwareEvent)
+    eventBubblePhase(stage, stage[$scene], hardwareEvent)
 
     // TODO: map axis to buttons
   }

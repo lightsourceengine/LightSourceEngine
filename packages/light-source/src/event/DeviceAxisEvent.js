@@ -6,7 +6,6 @@
 
 import { Event } from './Event'
 import { EventType } from './EventType'
-import { $device, $axis, $value } from '../util/InternalSymbols'
 
 const { DeviceAxisMotion } = EventType
 
@@ -14,20 +13,8 @@ export class DeviceAxisEvent extends Event {
   constructor (device, axis, value, timestamp) {
     super(DeviceAxisMotion, timestamp)
 
-    this[$device] = device
-    this[$axis] = axis
-    this[$value] = value
-  }
-
-  get device () {
-    return this[$device]
-  }
-
-  get axis () {
-    return this[$axis]
-  }
-
-  get value () {
-    return this[$value]
+    this.device = device
+    this.axis = axis
+    this.value = value
   }
 }

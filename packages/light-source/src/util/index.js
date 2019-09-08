@@ -22,3 +22,7 @@ export const resolveUri = (uri, resourcePath) => {
 
 // Math.clamp()
 export const clamp = (val, min, max) => val > max ? max : val < min ? min : val
+
+export const symbolFor = Symbol.for
+
+export const symbolKeyFor = Symbol.keyFor

@@ -4,20 +4,22 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-export const EventType = Object.freeze({
-  KeyDown: Symbol.for('KeyDown'),
-  KeyUp: Symbol.for('KeyUp'),
-  AxisMotion: Symbol.for('AxisMotion'),
+import { symbolFor } from '../util'
 
-  DeviceButtonDown: Symbol.for('DeviceButtonDown'),
-  DeviceButtonUp: Symbol.for('DeviceButtonUp'),
-  DeviceHatDown: Symbol.for('DeviceHatDown'),
-  DeviceHatUp: Symbol.for('DeviceHatUp'),
-  DeviceAxisMotion: Symbol.for('DeviceAxisMotion'),
+export const EventType = {
+  KeyDown: symbolFor('KeyDown'),
+  KeyUp: symbolFor('KeyUp'),
+  AxisMotion: symbolFor('AxisMotion'),
 
-  DeviceConnected: Symbol.for('DeviceConnected'),
-  DeviceDisconnected: Symbol.for('DeviceDisconnected'),
+  DeviceButtonDown: symbolFor('DeviceButtonDown'),
+  DeviceButtonUp: symbolFor('DeviceButtonUp'),
+  DeviceHatDown: symbolFor('DeviceHatDown'),
+  DeviceHatUp: symbolFor('DeviceHatUp'),
+  DeviceAxisMotion: symbolFor('DeviceAxisMotion'),
 
-  Focus: Symbol.for('Focus'),
-  Blur: Symbol.for('Blur')
-})
+  DeviceConnected: symbolFor('DeviceConnected'),
+  DeviceDisconnected: symbolFor('DeviceDisconnected'),
+
+  Focus: symbolFor('Focus'),
+  Blur: symbolFor('Blur')
+}
