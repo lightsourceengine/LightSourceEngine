@@ -8,6 +8,8 @@ import { Stage } from './stage/Stage'
 import { Style } from './style/Style'
 import { ScanCode } from './input/ScanCode'
 import { waypoint } from './scene/waypoint'
+import { Mapping } from './input/Mapping'
+import { Key } from './input/Key'
 
 const errorHandler = obj => {
   if (obj) {
@@ -23,8 +25,15 @@ const errorHandler = obj => {
 const stage = new Stage()
 
 export {
-  ScanCode,
+  // style
   Style,
+
+  // stage/scene
   stage,
-  waypoint
+  waypoint,
+
+  // input
+  Mapping,
+  Key,
+  ScanCode
 }

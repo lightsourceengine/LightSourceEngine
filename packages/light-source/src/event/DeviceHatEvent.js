@@ -6,16 +6,17 @@
 
 import { Event } from './Event'
 import { EventType } from './EventType'
-import { $device, $button, $pressed, $repeat } from '../util/InternalSymbols'
+import { $device, $hat, $pressed, $repeat, $value } from '../util/InternalSymbols'
 
-const { DeviceButtonDown, DeviceButtonUp } = EventType
+const { DeviceHatDown, DeviceHatUp } = EventType
 
-export class DeviceButtonEvent extends Event {
-  constructor (device, button, pressed, repeat, timestamp) {
-    super(pressed ? DeviceButtonDown : DeviceButtonUp, timestamp)
+export class DeviceHatEvent extends Event {
+  constructor (device, hatIndex, hatValue, pressed, repeat, timestamp) {
+    super(pressed ? DeviceHatDown : DeviceHatUp, timestamp)
 
     this[$device] = device
-    this[$button] = button
+    this[$hat] = hatIndex
+    this[$value] = hatIndex
     this[$pressed] = pressed
     this[$repeat] = repeat
   }
@@ -24,8 +25,12 @@ export class DeviceButtonEvent extends Event {
     return this[$device]
   }
 
-  get button () {
-    return this[$button]
+  get hat () {
+    return this[$hat]
+  }
+
+  get value () {
+    return this[$value]
   }
 
   get pressed () {

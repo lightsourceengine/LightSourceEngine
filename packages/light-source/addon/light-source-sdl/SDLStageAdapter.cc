@@ -68,6 +68,8 @@ std::unordered_map<std::string, SDLStageAdapter::StageCallback> SDLStageAdapter:
     { "keydown", StageCallbackKeyboardKeyDown },
     { "buttonup", StageCallbackGamepadButtonUp },
     { "buttondown", StageCallbackGamepadButtonDown },
+    { "hatup", StageCallbackHatUp },
+    { "hatdown", StageCallbackHatDown },
     { "axismotion", StageCallbackGamepadAxisMotion },
     { "quit", StageCallbackQuit },
 };
@@ -149,14 +151,8 @@ Value SDLStageAdapter::GetDisplays(const CallbackInfo& info) {
 
 Value SDLStageAdapter::AddGameControllerMappings(const CallbackInfo& info) {
     auto env{ info.Env() };
-    auto source{ info[0].As<String>().Utf8Value() };
-    auto rwops{ SDL_RWFromConstMem(source.c_str(), static_cast<int32_t>(source.size())) };
-
-    if (rwops == nullptr) {
-        throw Error::New(env, fmt::format("addGameControllerMappings(): {}", SDL_GetError()));
-    }
-
-    auto result{ SDL_GameControllerAddMappingsFromRW(rwops, SDL_TRUE) };
+    auto file{ info[0].As<String>().Utf8Value() };
+    auto result{ SDL_GameControllerAddMapping(file.c_str()) };
 
     if (result == -1) {
         throw Error::New(env, fmt::format("addGameControllerMappings(): {}", SDL_GetError()));
@@ -402,30 +398,35 @@ void SDLStageAdapter::DispatchJoystickHatMotion(Napi::Env env, int32_t instanceI
 
     auto gamepad{ p->second };
     auto state{ gamepad->GetHatState(hatIndex) };
-    int32_t button;
     HandleScope scope(env);
 
     if (state != 0) {
-        button = gamepad->GetHatButtonIndex(hatIndex, state);
         gamepad->SetHatState(hatIndex, 0);
-
-        if (!IsCallbackEmpty(StageCallbackGamepadButtonUp)) {
-            Call(StageCallbackGamepadButtonUp, {
+        if (!IsCallbackEmpty(StageCallbackHatUp)) {
+            Call(StageCallbackHatUp, {
                 gamepad->Value(),
-                Number::New(env, button),
+                Number::New(env, hatIndex),
+                Number::New(env, state),
             });
         }
     }
 
-    if ((button = gamepad->GetHatButtonIndex(hatIndex, hatValue)) != -1) {
-        gamepad->SetHatState(hatIndex, hatValue);
-
-        if (!IsCallbackEmpty(StageCallbackGamepadButtonDown)) {
-            Call(StageCallbackGamepadButtonDown, {
-                gamepad->Value(),
-                Number::New(env, button),
-            });
-        }
+    switch (hatValue) {
+        case SDL_HAT_UP:
+        case SDL_HAT_RIGHT:
+        case SDL_HAT_DOWN:
+        case SDL_HAT_LEFT:
+            gamepad->SetHatState(hatIndex, hatValue);
+            if (!IsCallbackEmpty(StageCallbackHatDown)) {
+                Call(StageCallbackHatDown, {
+                    gamepad->Value(),
+                    Number::New(env, hatIndex),
+                    Number::New(env, hatValue),
+                });
+            }
+            break;
+        default:
+            break;
     }
 }
 

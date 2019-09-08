@@ -8,7 +8,7 @@ import { Scene } from '../scene/Scene'
 import bindings from 'bindings'
 import { performance } from 'perf_hooks'
 import { addonError, SDLModuleId } from '../addon'
-import { InputManager, InputManager$attach, InputManager$detach } from '../input/InputManager'
+import { InputManager } from '../input/InputManager'
 import { EventEmitter } from '../util/EventEmitter'
 import { EventType } from '../event/EventType'
 import {
@@ -27,57 +27,13 @@ import {
   $scene,
   $audio,
   $init,
-  $resourcePath
+  $resourcePath,
+  $emit, $setResourcePath
 } from '../util/InternalSymbols'
 import { AudioManager } from '../audio/AudioManager'
-import { noexcept, logexcept } from '../util'
+import { logexcept } from '../util'
 
 const { now } = performance
-
-const validateAdapterConfig = (adapter) => {
-  if (typeof adapter === 'function' || typeof adapter === 'string') {
-    return adapter
-  } else if (!adapter) {
-    return SDLModuleId
-  }
-
-  throw Error('adapter must be a module name string or a StageAdapter class.')
-}
-
-const createStageAdapter = (adapter) => {
-  let StageAdapter
-
-  if (typeof adapter === 'string') {
-    try {
-      StageAdapter = bindings(adapter).StageAdapter
-    } catch (e) {
-      throw Error(`Module ${adapter} failed to load. Error: ${e.message}`)
-    }
-
-    if (typeof StageAdapter !== 'function') {
-      throw Error(`Module ${adapter} does not contain an StageAdapter class.`)
-    }
-  } else {
-    StageAdapter = adapter
-  }
-
-  let adapterInstance
-
-  try {
-    adapterInstance = new StageAdapter()
-  } catch (e) {
-    throw Error(`Failed to construct the StageAdapter instance. Error: ${e.message}`)
-  }
-
-  try {
-    adapterInstance.attach()
-  } catch (e) {
-    noexcept(() => adapterInstance.destroy())
-    throw Error(`Failed to initialize the StageAdapter instance. Error: ${e.message}`)
-  }
-
-  return adapterInstance
-}
 
 export class Stage {
   constructor () {
@@ -87,7 +43,8 @@ export class Stage {
     this[$scene] = null
     this[$displays] = []
     this[$exitListener] = null
-    this[$input] = new InputManager()
+    this[$input] = new InputManager(this)
+    this[$audio] = new AudioManager(this)
     this[$events] = new EventEmitter([
       EventType.KeyDown,
       EventType.KeyUp,
@@ -98,7 +55,6 @@ export class Stage {
       EventType.DeviceButtonUp,
       EventType.DeviceAxisMotion
     ])
-    this[$audio] = new AudioManager(this)
   }
 
   get fps () {
@@ -153,7 +109,7 @@ export class Stage {
     }
 
     this[$resourcePath] = value
-    this[$audio][$resourcePath] = value
+    this[$audio][$setResourcePath](value)
 
     if (this[$scene]) {
       this[$scene].resource[$resourcePath] = value
@@ -168,7 +124,7 @@ export class Stage {
     this[$events].off(id, listener)
   }
 
-  init ({ adapter, audioAdapter } = {}) {
+  init ({ adapter, audioAdapter, gameControllerDb } = {}) {
     if (addonError) {
       throw Error(`Error loading light-source native addon: ${addonError.message}`)
     }
@@ -177,18 +133,19 @@ export class Stage {
       throw Error('Stage has already been initialized.')
     }
 
-    this[$adapter] = createStageAdapter(validateAdapterConfig(adapter))
+    const stageAdapter = createStageAdapter(validateAdapterConfig(adapter))
+
+    this[$adapter] = stageAdapter
 
     try {
-      this[$displays] = this[$adapter].getDisplays()
+      this[$displays] = stageAdapter.getDisplays()
     } catch (e) {
       console.log(`Failed to get displays. Error: ${e.message}`)
       this[$displays] = []
     }
 
     this[$audio][$init](audioAdapter)
-
-    InputManager$attach(this[$input], this)
+    this[$input][$init](stageAdapter, gameControllerDb)
 
     process.on('exit', this[$exitListener] = () => {
       logexcept(() => this[$destroy](), 'exit: Stage destroy exception: ')
@@ -259,12 +216,14 @@ export class Stage {
     const scene = this[$scene]
     const adapter = this[$adapter]
     const audio = this[$audio]
+    const input = this[$input]
     let lastTick = now()
 
     // TODO: handle exceptions
 
     adapter.attach()
-    InputManager$attach(this[$input], this)
+
+    input[$attach]()
     audio[$attach]()
     scene[$attach]()
 
@@ -292,7 +251,7 @@ export class Stage {
       // TODO: handle exceptions...
       this[$scene][$detach]()
       this[$audio][$detach]()
-      InputManager$detach(this[$input])
+      this[$input][$detach]()
       this[$adapter].detach()
 
       clearTimeout(this[$mainLoopHandle])
@@ -304,6 +263,10 @@ export class Stage {
 
   quit () {
     this[$quitRequested] = true
+  }
+
+  [$emit] (event) {
+    this[$events].emit(event)
   }
 
   [$destroy] () {
@@ -318,10 +281,8 @@ export class Stage {
     }
 
     if (input) {
-      logexcept(() => InputManager$detach(input), 'Failed to unbind InputManager. Error: ')
+      logexcept(() => input[$destroy](), 'Failed to unbind InputManager. Error: ')
     }
-
-    // TODO: destroy resource manager?
 
     // destroy scene
     if (scene) {
@@ -346,4 +307,49 @@ export class Stage {
       this[$exitListener] = null
     }
   }
+}
+
+const validateAdapterConfig = (adapter) => {
+  if (typeof adapter === 'function' || typeof adapter === 'string') {
+    return adapter
+  } else if (!adapter) {
+    return SDLModuleId
+  }
+
+  throw Error('adapter must be a module name string or a StageAdapter class.')
+}
+
+const createStageAdapter = (adapter) => {
+  let StageAdapter
+
+  if (typeof adapter === 'string') {
+    try {
+      StageAdapter = bindings(adapter).StageAdapter
+    } catch (e) {
+      throw Error(`Module ${adapter} failed to load. Error: ${e.message}`)
+    }
+
+    if (typeof StageAdapter !== 'function') {
+      throw Error(`Module ${adapter} does not contain an StageAdapter class.`)
+    }
+  } else {
+    StageAdapter = adapter
+  }
+
+  let adapterInstance
+
+  try {
+    adapterInstance = new StageAdapter()
+  } catch (e) {
+    throw Error(`Failed to construct the StageAdapter instance. Error: ${e.message}`)
+  }
+
+  try {
+    adapterInstance.attach()
+  } catch (e) {
+    logexcept(() => adapterInstance.destroy())
+    throw Error(`Failed to initialize the StageAdapter instance. Error: ${e.message}`)
+  }
+
+  return adapterInstance
 }

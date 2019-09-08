@@ -19,10 +19,12 @@ using Napi::Value;
 
 namespace ls {
 
+constexpr auto KeyboardId = 0;
+constexpr auto KeyboardUUID = "keyboard";
+constexpr auto KeyboardName = "SystemKeyboard";
+constexpr auto KeyboardType = "keyboard";
+
 SDLKeyboard::SDLKeyboard(const CallbackInfo& info) : ObjectWrap<SDLKeyboard>(info) {
-    this->id = 0;
-    this->uuid = "keyboard";
-    this->name = "System Keyboard";
 }
 
 Function SDLKeyboard::Constructor(Napi::Env env) {
@@ -32,12 +34,12 @@ Function SDLKeyboard::Constructor(Napi::Env env) {
         HandleScope scope(env);
 
         auto func = DefineClass(env, "SDLKeyboard", {
-            InstanceValue("type", String::New(env, "keyboard"), napi_enumerable),
-            InstanceAccessor("id", &InputDevice::GetId, nullptr, napi_enumerable),
-            InstanceAccessor("uuid", &InputDevice::GetUUID, nullptr, napi_enumerable),
-            InstanceAccessor("mapping", &InputDevice::GetMapping, nullptr, napi_enumerable),
-            InstanceAccessor("name", &InputDevice::GetName, nullptr, napi_enumerable),
-            InstanceMethod("isKeyDown", &SDLKeyboard::IsKeyDown),
+            InstanceValue("type", String::New(env, KeyboardType)),
+            InstanceValue("id", Number::New(env, KeyboardId)),
+            InstanceValue("uuid", String::New(env, KeyboardUUID)),
+            InstanceValue("name", String::New(env, KeyboardName)),
+            InstanceValue("mapping", String::New(env, "")),
+            InstanceMethod("isButtonDown", &SDLKeyboard::IsButtonDown),
             InstanceMethod("destroy", &SDLKeyboard::Destroy),
         });
 
@@ -48,7 +50,7 @@ Function SDLKeyboard::Constructor(Napi::Env env) {
     return constructor.Value();
 }
 
-Value SDLKeyboard::IsKeyDown(const CallbackInfo& info) {
+Value SDLKeyboard::IsButtonDown(const CallbackInfo& info) {
     bool isDown;
 
     if (info[0].IsNumber()) {

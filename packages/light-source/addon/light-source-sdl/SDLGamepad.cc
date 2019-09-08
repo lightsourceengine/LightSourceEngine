@@ -46,7 +46,7 @@ SDLGamepad::SDLGamepad(const CallbackInfo& info) : ObjectWrap<SDLGamepad>(info) 
 
     this->id = SDL_JoystickInstanceID(this->joystick);
     this->uuid = guid;
-    this->physicalButtonCount = SDL_JoystickNumButtons(this->joystick);
+    this->buttonCount = SDL_JoystickNumButtons(this->joystick);
     this->hatCount = SDL_JoystickNumHats(this->joystick);
     this->axisCount = SDL_JoystickNumAxes(this->joystick);
     this->hatState.resize(this->hatCount);
@@ -81,12 +81,14 @@ Function SDLGamepad::Constructor(Napi::Env env) {
             InstanceAccessor("mapping", &InputDevice::GetMapping, nullptr),
             InstanceAccessor("name", &InputDevice::GetName, nullptr),
             InstanceAccessor("buttonCount", &SDLGamepad::GetButtonCount, nullptr),
+            InstanceAccessor("hatCount", &SDLGamepad::GetHatCount, nullptr),
             InstanceAccessor("axisCount", &SDLGamepad::GetAxisCount, nullptr),
-            InstanceAccessor("product", &SDLGamepad::GetProduct, nullptr),
-            InstanceAccessor("productVersion", &SDLGamepad::GetProductVersion, nullptr),
-            InstanceAccessor("vendor", &SDLGamepad::GetVendor, nullptr),
+//            InstanceAccessor("product", &SDLGamepad::GetProduct, nullptr),
+//            InstanceAccessor("productVersion", &SDLGamepad::GetProductVersion, nullptr),
+//            InstanceAccessor("vendor", &SDLGamepad::GetVendor, nullptr),
             InstanceAccessor("gameControllerMapping", &SDLGamepad::GetGameControllerMapping, nullptr),
             InstanceMethod("isButtonDown", &SDLGamepad::IsButtonDown),
+            InstanceMethod("getHatValue", &SDLGamepad::GetHatValue),
             InstanceMethod("getAxisValue", &SDLGamepad::GetAxisValue),
             InstanceMethod("destroy", &SDLGamepad::Destroy),
         });
@@ -102,17 +104,7 @@ Value SDLGamepad::IsButtonDown(const CallbackInfo& info) {
     bool state;
 
     if (this->joystick) {
-        auto buttonIndex{ info[0].As<Number>().Int32Value() };
-
-        if (buttonIndex > this->physicalButtonCount) {
-            buttonIndex -= this->physicalButtonCount;
-
-            auto hatIndex{ buttonIndex / 4 };
-
-            state = SDL_JoystickGetHat(this->joystick, hatIndex) == std::pow(2, buttonIndex + (hatIndex * 4));
-        } else {
-            state = SDL_JoystickGetButton(this->joystick, buttonIndex) != 0;
-        }
+        state = SDL_JoystickGetButton(this->joystick, info[0].As<Number>().Int32Value()) != 0;
     } else {
         state = false;
     }
@@ -120,16 +112,32 @@ Value SDLGamepad::IsButtonDown(const CallbackInfo& info) {
     return Boolean::New(info.Env(), state);
 }
 
+Value SDLGamepad::GetHatValue(const CallbackInfo& info) {
+    int32_t value;
+
+    if (this->joystick) {
+        value = this->GetHatState(info[0].As<Number>().Int32Value());
+    } else {
+        value = 0;
+    }
+
+    return Number::New(info.Env(), value);
+}
+
 Value SDLGamepad::GetAxisValue(const CallbackInfo& info) {
     return Boolean::New(info.Env(), false);
 }
 
 Value SDLGamepad::GetButtonCount(const CallbackInfo& info) {
-    return Number::New(info.Env(), this->physicalButtonCount + (this->hatCount * 4));
+    return Number::New(info.Env(), this->buttonCount);
 }
 
 Value SDLGamepad::GetAxisCount(const CallbackInfo& info) {
     return Number::New(info.Env(), this->axisCount);
+}
+
+Value SDLGamepad::GetHatCount(const CallbackInfo& info) {
+    return Number::New(info.Env(), this->hatCount);
 }
 
 Value SDLGamepad::GetProduct(const CallbackInfo& info) {
@@ -157,12 +165,6 @@ void SDLGamepad::Destroy() {
         SDL_JoystickClose(this->joystick);
         this->joystick = nullptr;
     }
-}
-
-int32_t SDLGamepad::GetHatButtonIndex(uint8_t hatIndex, uint8_t hatValue) const {
-  auto exp = log2(hatValue);
-
-  return (exp >= 0 && exp < 4) ? this->physicalButtonCount + (hatIndex * 4) + exp : -1;
 }
 
 void SDLGamepad::SetHatState(uint8_t hatIndex, uint8_t hatValue) {

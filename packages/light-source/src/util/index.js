@@ -8,14 +8,6 @@ import { join } from 'path'
 
 const resourceHost = 'file://resource/'
 
-export const noexcept = func => {
-  try {
-    func()
-  } catch (e) {
-
-  }
-}
-
 export const logexcept = (func, prefix) => {
   try {
     func()
@@ -27,3 +19,6 @@ export const logexcept = (func, prefix) => {
 export const resolveUri = (uri, resourcePath) => {
   return uri.startsWith(resourceHost) ? join(resourcePath, uri.substr(resourceHost.length)) : uri
 }
+
+// Math.clamp()
+export const clamp = (val, min, max) => val > max ? max : val < min ? min : val

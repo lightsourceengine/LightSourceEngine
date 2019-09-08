@@ -34,54 +34,6 @@ import { performance } from 'perf_hooks'
 
 const { now } = performance
 
-const nodeClass = new Map([
-  ['img', ImageSceneNode],
-  ['div', BoxSceneNode],
-  ['box', BoxSceneNode],
-  ['text', TextSceneNode]
-])
-
-const eventToCallbackProperty = new Map([
-  [EventType.KeyUp, 'onKeyUp'],
-  [EventType.KeyDown, 'onKeyDown'],
-  [EventType.AxisMotion, 'onAxisMotion'],
-  [EventType.DeviceButtonUp, 'onDeviceButtonUp'],
-  [EventType.DeviceButtonDown, 'onDeviceButtonDown'],
-  [EventType.DeviceAxisMotion, 'onDeviceAxisMotion'],
-  [EventType.Focus, 'onFocus'],
-  [EventType.Blur, 'onBlur']
-])
-
-const throwNodeClassNotFound = tag => {
-  throw new Error(`'${tag}' is not a valid scene node tag.`)
-}
-
-const ErrorUnsupportedEvent = event => Error(`Event ${event.name} unsupported by Scene.`)
-
-const setHasFocus = node => {
-  node[$hasFocus] = true
-  node.waypoint && node.waypoint.sync(node)
-
-  return true
-}
-
-const clearHasFocus = node => {
-  node[$hasFocus] = false
-  node.waypoint && node.waypoint.sync(node)
-
-  return true
-}
-
-const traverseAncestors = (node, func) => {
-  while (node) {
-    if (!func(node)) {
-      break
-    }
-
-    node = node.parent
-  }
-}
-
 export class Scene extends SceneBase {
   constructor (stage, stageAdapter, displayIndex, width, height, fullscreen) {
     super(stageAdapter, displayIndex, width, height, fullscreen)
@@ -251,5 +203,53 @@ export class Scene extends SceneBase {
       focusEvent.cancelled || this[$events].emit(focusEvent)
       focusEvent.cancelled || this.stage[$events].emit(focusEvent)
     }
+  }
+}
+
+const nodeClass = new Map([
+  ['img', ImageSceneNode],
+  ['div', BoxSceneNode],
+  ['box', BoxSceneNode],
+  ['text', TextSceneNode]
+])
+
+const eventToCallbackProperty = new Map([
+  [EventType.KeyUp, 'onKeyUp'],
+  [EventType.KeyDown, 'onKeyDown'],
+  [EventType.AxisMotion, 'onAxisMotion'],
+  [EventType.DeviceButtonUp, 'onDeviceButtonUp'],
+  [EventType.DeviceButtonDown, 'onDeviceButtonDown'],
+  [EventType.DeviceAxisMotion, 'onDeviceAxisMotion'],
+  [EventType.Focus, 'onFocus'],
+  [EventType.Blur, 'onBlur']
+])
+
+const throwNodeClassNotFound = tag => {
+  throw new Error(`'${tag}' is not a valid scene node tag.`)
+}
+
+const ErrorUnsupportedEvent = event => Error(`Event ${event.name} unsupported by Scene.`)
+
+const setHasFocus = node => {
+  node[$hasFocus] = true
+  node.waypoint && node.waypoint.sync(node)
+
+  return true
+}
+
+const clearHasFocus = node => {
+  node[$hasFocus] = false
+  node.waypoint && node.waypoint.sync(node)
+
+  return true
+}
+
+const traverseAncestors = (node, func) => {
+  while (node) {
+    if (!func(node)) {
+      break
+    }
+
+    node = node.parent
   }
 }

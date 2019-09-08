@@ -14,7 +14,7 @@ import {
   $source,
   $state
 } from '../util/InternalSymbols'
-import { resolveUri } from '../util'
+import { clamp, resolveUri } from '../util'
 import { readFileSync, promises } from 'fs'
 import {
   AudioSourceCapabilityFadeIn,
@@ -25,11 +25,128 @@ import {
   AudioSourceStateLoading,
   AudioSourceStateReady
 } from './constants'
-import { normalizeVolume } from './normalizeVolume'
 
 let nextAsyncId = 1
 
 const { readFile } = promises
+
+/**
+ * An audio resource that can be rendered to a destination output buffer.
+ */
+export class AudioSource {
+  constructor (audio, options) {
+    this[$options] = options
+    this[$state] = AudioSourceStateInit
+    this[$source] = null
+    this[$buffer] = null
+    this[$asyncId] = 0
+    this[$owner] = audio
+  }
+
+  /**
+   * @returns {string} AudioManager resource ID.
+   */
+  get id () {
+    return this[$options].id
+  }
+
+  /**
+   * The destination type.
+   *
+   * @returns {('sample'|'stream')}
+   */
+  get type () {
+    return this[$options].type
+  }
+
+  /**
+   * Is the audio resource ready to be played?
+   *
+   * @returns {boolean}
+   */
+  get ready () {
+    return this[$state] === AudioSourceStateReady
+  }
+
+  /**
+   * Is this audio resource loading?
+   *
+   * If loading, play() should not be called.
+   *
+   * @returns {boolean}
+   */
+  get loading () {
+    return this[$state] === AudioSourceStateLoading
+  }
+
+  /**
+   * Was there an error during audio resource loading?
+   *
+   * @returns {boolean}
+   */
+  get error () {
+    return this[$state] === AudioSourceStateError
+  }
+
+  /**
+   * Remove the resource from the AudioManager.
+   */
+  remove () {
+    this[$owner][$audioSourceMap].delete(this.id)
+    AudioSource$reset(this)
+    this[$buffer] = null
+  }
+
+  /**
+   * Start playback of the source from the beginning.
+   *
+   * @param {Number} [opts.loops=1] The number of times to repeat playback. If 0, playback will loop foreever.
+   * @param {Number} [opts.fadeInMs=0] The time in milliseconds to fade in (volume) playback.
+   */
+  play (opts = {}) {
+    this[$source].play(opts)
+  }
+
+  /**
+   * The volume of the source.
+   *
+   * @property volume
+   */
+  get volume () {
+    return this[$source].volume
+  }
+
+  set volume (value) {
+    this[$source].volume = typeof value === 'number' ? clamp(value, 0, 1) : 0
+  }
+
+  /**
+   * Does this source support volume control?
+   *
+   * @returns {boolean}
+   */
+  get hasVolume () {
+    return this[$source].hasCapability(AudioSourceCapabilityVolume)
+  }
+
+  /**
+   * Can playback loop?
+   *
+   * @returns {boolean}
+   */
+  get canLoop () {
+    return this[$source].hasCapability(AudioSourceCapabilityLoop)
+  }
+
+  /**
+   * Can playback fade in?
+   *
+   * @returns {boolean}
+   */
+  get canFadeIn () {
+    return this[$source].hasCapability(AudioSourceCapabilityFadeIn)
+  }
+}
 
 const AudioSource$applyBuffer = (self, buffer) => {
   const audio = self[$owner]
@@ -129,122 +246,4 @@ export const AudioSource$reset = (self) => {
   self[$asyncId] = 0
   self[$source] && self[$source].destroy()
   self[$source] = null
-}
-
-/**
- * An audio resource that can be rendered to a destination output buffer.
- */
-export class AudioSource {
-  constructor (audio, options) {
-    this[$options] = options
-    this[$state] = AudioSourceStateInit
-    this[$source] = null
-    this[$buffer] = null
-    this[$asyncId] = 0
-    this[$owner] = audio
-  }
-
-  /**
-   * @returns {string} AudioManager resource ID.
-   */
-  get id () {
-    return this[$options].id
-  }
-
-  /**
-   * The destination type.
-   *
-   * @returns {('sample'|'stream')}
-   */
-  get type () {
-    return this[$options].type
-  }
-
-  /**
-   * Is the audio resource ready to be played?
-   *
-   * @returns {boolean}
-   */
-  get ready () {
-    return this[$state] === AudioSourceStateReady
-  }
-
-  /**
-   * Is this audio resource loading?
-   *
-   * If loading, play() should not be called.
-   *
-   * @returns {boolean}
-   */
-  get loading () {
-    return this[$state] === AudioSourceStateLoading
-  }
-
-  /**
-   * Was there an error during audio resource loading?
-   *
-   * @returns {boolean}
-   */
-  get error () {
-    return this[$state] === AudioSourceStateError
-  }
-
-  /**
-   * Remove the resource from the AudioManager.
-   */
-  remove () {
-    this[$owner][$audioSourceMap].delete(this.id)
-    AudioSource$reset(this)
-    this[$buffer] = null
-  }
-
-  /**
-   * Start playback of the source from the beginning.
-   *
-   * @param {Number} [opts.loops=1] The number of times to repeat playback. If 0, playback will loop foreever.
-   * @param {Number} [opts.fadeInMs=0] The time in milliseconds to fade in (volume) playback.
-   */
-  play (opts = {}) {
-    this[$source].play(opts)
-  }
-
-  /**
-   * The volume of the source.
-   *
-   * @property volume
-   */
-  get volume () {
-    return this[$source].volume
-  }
-
-  set volume (value) {
-    this[$source].volume = normalizeVolume(value)
-  }
-
-  /**
-   * Does this source support volume control?
-   *
-   * @returns {boolean}
-   */
-  get hasVolume () {
-    return this[$source].hasCapability(AudioSourceCapabilityVolume)
-  }
-
-  /**
-   * Can playback loop?
-   *
-   * @returns {boolean}
-   */
-  get canLoop () {
-    return this[$source].hasCapability(AudioSourceCapabilityLoop)
-  }
-
-  /**
-   * Can playback fade in?
-   *
-   * @returns {boolean}
-   */
-  get canFadeIn () {
-    return this[$source].hasCapability(AudioSourceCapabilityFadeIn)
-  }
 }

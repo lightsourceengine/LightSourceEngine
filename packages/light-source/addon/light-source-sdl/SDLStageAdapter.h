@@ -25,6 +25,8 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
         StageCallbackKeyboardKeyDown,
         StageCallbackGamepadButtonUp,
         StageCallbackGamepadButtonDown,
+        StageCallbackHatUp,
+        StageCallbackHatDown,
         StageCallbackGamepadAxisMotion,
         StageCallbackQuit,
         StageCallbackCount,

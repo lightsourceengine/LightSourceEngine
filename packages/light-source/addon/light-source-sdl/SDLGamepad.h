@@ -22,7 +22,9 @@ class SDLGamepad : public InputDevice, public Napi::ObjectWrap<SDLGamepad> {
 
     Napi::Value IsButtonDown(const Napi::CallbackInfo& info);
     Napi::Value GetAxisValue(const Napi::CallbackInfo& info);
+    Napi::Value GetHatValue(const Napi::CallbackInfo& info);
     Napi::Value GetButtonCount(const Napi::CallbackInfo& info);
+    Napi::Value GetHatCount(const Napi::CallbackInfo& info);
     Napi::Value GetAxisCount(const Napi::CallbackInfo& info);
     Napi::Value GetProduct(const Napi::CallbackInfo& info);
     Napi::Value GetVendor(const Napi::CallbackInfo& info);
@@ -30,7 +32,6 @@ class SDLGamepad : public InputDevice, public Napi::ObjectWrap<SDLGamepad> {
     Napi::Value GetGameControllerMapping(const Napi::CallbackInfo& info);
     void Destroy(const Napi::CallbackInfo& info);
 
-    int32_t GetHatButtonIndex(uint8_t hatIndex, uint8_t hatValue) const;
     void SetHatState(uint8_t hatIndex, uint8_t hatValue);
     uint8_t GetHatState(uint8_t hatIndex) const;
 
@@ -38,7 +39,7 @@ class SDLGamepad : public InputDevice, public Napi::ObjectWrap<SDLGamepad> {
 
  private:
     SDL_Joystick* joystick{};
-    int32_t physicalButtonCount{0};
+    int32_t buttonCount{0};
     int32_t hatCount{0};
     int32_t axisCount{0};
     int32_t product{};

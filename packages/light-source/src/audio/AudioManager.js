@@ -5,113 +5,26 @@
  */
 
 import {
-  $adapter,
   $attach,
-  $audioSourceMap,
   $destination,
   $destroy,
   $detach,
   $init,
-  $resourcePath,
-  $sample,
-  $stage,
-  $stream
+  $setResourcePath,
+  $adapter,
+  $audioSourceMap
 } from '../util/InternalSymbols'
 import bindings from 'bindings'
 import { SDLMixerModuleId, SDLModuleId } from '../addon'
-import { logexcept, noexcept } from '../util'
+import { logexcept } from '../util'
 import { AudioSource, AudioSource$load, AudioSource$reset } from './AudioSource'
 import { AudioDestination } from './AudioDestination'
 import { AudioSourceTypeStream, AudioSourceTypeSample } from './constants'
 
-const validateAudioAdapterConfig = (audioAdapter) => {
-  if (typeof audioAdapter === 'function' || typeof audioAdapter === 'string') {
-    return [audioAdapter]
-  } else if (!audioAdapter) {
-    return [SDLMixerModuleId, SDLModuleId]
-  }
-
-  throw Error('audioAdapter must be a module name string or an AudioAdapter class.')
-}
-
-const createAudioAdapterInternal = (adapter) => {
-  let AudioAdapter = null
-
-  if (typeof adapter === 'string') {
-    try {
-      AudioAdapter = bindings(adapter).AudioAdapter
-    } catch (e) {
-      console.log(`Module ${adapter} failed to load. Error: ${e.message}`)
-      return null
-    }
-
-    if (typeof AudioAdapter !== 'function') {
-      console.log(`Module ${adapter} does not contain an AudioAdapter class.`)
-      return null
-    }
-  } else {
-    AudioAdapter = adapter
-  }
-
-  let adapterInstance
-
-  try {
-    adapterInstance = new AudioAdapter()
-  } catch (e) {
-    console.log(`Failed to construct the AudioAdapter instance. Error: ${e.message}`)
-    return null
-  }
-
-  try {
-    adapterInstance.attach()
-  } catch (e) {
-    noexcept(() => adapterInstance.destroy())
-    console.log(`Failed to initialize the AudioAdapter instance. Error: ${e.message}`)
-    return null
-  }
-
-  return adapterInstance
-}
-
-const createAudioAdapter = (adapters) => {
-  for (const adapter of adapters) {
-    const audioAdapterInstance = createAudioAdapterInternal(adapter)
-
-    if (audioAdapterInstance) {
-      return audioAdapterInstance
-    }
-  }
-}
-
-const parseAudioSourceOpts = (opts) => {
-  // Make a copy of opts and normalize to an object.
-  if (opts && typeof opts === 'string') {
-    opts = { uri: opts }
-  } else if (typeof opts === 'object') {
-    opts = { ...opts }
-  } else {
-    throw Error('AudioSource options must be a string or object.')
-  }
-
-  // uri must be a string
-  if (!opts.uri || typeof opts.uri !== 'string') {
-    throw Error(`Invalid AudioSource uri: ${opts.uri}`)
-  }
-
-  // If id is not explicitly set, use uri.
-  if (!opts.id) {
-    opts.id = opts.uri
-  }
-
-  if (!opts.type) {
-    // if type not set, default value is sample
-    opts.type = AudioSourceTypeSample
-  } else if (opts.type !== AudioSourceTypeStream && opts.type !== AudioSourceTypeSample) {
-    throw Error(`Invalid AudioSource type: ${opts.type}`)
-  }
-
-  return opts
-}
+const $stage = Symbol('stage')
+const $resourcePath = Symbol('resourcePath')
+const $sample = Symbol('sample')
+const $stream = Symbol('stream')
 
 /**
  * Audio API.
@@ -261,4 +174,100 @@ export class AudioManager {
       this[$adapter] = null
     }
   }
+
+  /**
+   * @ignore
+   */
+  [$setResourcePath] (value) {
+    this[$resourcePath] = value
+  }
+}
+
+const validateAudioAdapterConfig = (audioAdapter) => {
+  if (typeof audioAdapter === 'function' || typeof audioAdapter === 'string') {
+    return [audioAdapter]
+  } else if (!audioAdapter) {
+    return [SDLMixerModuleId, SDLModuleId]
+  }
+
+  throw Error('audioAdapter must be a module name string or an AudioAdapter class.')
+}
+
+const createAudioAdapterInternal = (adapter) => {
+  let AudioAdapter = null
+
+  if (typeof adapter === 'string') {
+    try {
+      AudioAdapter = bindings(adapter).AudioAdapter
+    } catch (e) {
+      console.log(`Module ${adapter} failed to load. Error: ${e.message}`)
+      return null
+    }
+
+    if (typeof AudioAdapter !== 'function') {
+      console.log(`Module ${adapter} does not contain an AudioAdapter class.`)
+      return null
+    }
+  } else {
+    AudioAdapter = adapter
+  }
+
+  let adapterInstance
+
+  try {
+    adapterInstance = new AudioAdapter()
+  } catch (e) {
+    console.log(`Failed to construct the AudioAdapter instance. Error: ${e.message}`)
+    return null
+  }
+
+  try {
+    adapterInstance.attach()
+  } catch (e) {
+    logexcept(() => adapterInstance.destroy())
+    console.log(`Failed to initialize the AudioAdapter instance. Error: ${e.message}`)
+    return null
+  }
+
+  return adapterInstance
+}
+
+const createAudioAdapter = (adapters) => {
+  for (const adapter of adapters) {
+    const audioAdapterInstance = createAudioAdapterInternal(adapter)
+
+    if (audioAdapterInstance) {
+      return audioAdapterInstance
+    }
+  }
+}
+
+const parseAudioSourceOpts = (opts) => {
+  // Make a copy of opts and normalize to an object.
+  if (opts && typeof opts === 'string') {
+    opts = { uri: opts }
+  } else if (typeof opts === 'object') {
+    opts = { ...opts }
+  } else {
+    throw Error('AudioSource options must be a string or object.')
+  }
+
+  // uri must be a string
+  if (!opts.uri || typeof opts.uri !== 'string') {
+    throw Error(`Invalid AudioSource uri: ${opts.uri}`)
+  }
+
+  // If id is not explicitly set, use uri.
+  if (!opts.id) {
+    opts.id = opts.uri
+  }
+
+  if (!opts.type) {
+    // if type not set, default value is sample
+    opts.type = AudioSourceTypeSample
+  } else if (opts.type !== AudioSourceTypeStream && opts.type !== AudioSourceTypeSample) {
+    throw Error(`Invalid AudioSource type: ${opts.type}`)
+  }
+
+  return opts
 }

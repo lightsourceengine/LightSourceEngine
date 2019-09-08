@@ -8,7 +8,7 @@
  * Mapped key codes for a 'standard' input device. This mapping closely matches the standard mapping of the Gamepad
  * specification (https://w3c.github.io/gamepad/#remapping).
  */
-export const StandardKey = {
+export const Key = {
   B: 0,
   A: 1,
   Y: 2,
@@ -30,15 +30,16 @@ export const StandardKey = {
   LEFT: 14,
   RIGHT: 15,
 
-  HOME: 16,
+  HOME: 16
 
-  LS_UP: 17,
-  LS_DOWN: 18,
-  LS_LEFT: 19,
-  LS_RIGHT: 20,
-
-  RS_UP: 21,
-  RS_DOWN: 22,
-  RS_LEFT: 23,
-  RS_RIGHT: 24
+  // TODO: implement axis handling
+  // LS_UP: 17,
+  // LS_DOWN: 18,
+  // LS_LEFT: 19,
+  // LS_RIGHT: 20,
+  //
+  // RS_UP: 21,
+  // RS_DOWN: 22,
+  // RS_LEFT: 23,
+  // RS_RIGHT: 24
 }

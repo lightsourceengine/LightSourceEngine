@@ -5,7 +5,6 @@
  */
 
 import { $destination } from '../util/InternalSymbols'
-import { normalizeVolume } from './normalizeVolume'
 import {
   AudioDestinationCapabilityFadeOut,
   AudioDestinationCapabilityPause,
@@ -13,6 +12,7 @@ import {
   AudioDestinationCapabilityStop,
   AudioDestinationCapabilityVolume
 } from './constants'
+import { clamp } from '../util'
 
 /**
  * An audio output buffer.
@@ -101,7 +101,7 @@ export class AudioDestination {
   }
 
   set volume (value) {
-    this[$destination].volume = normalizeVolume(value)
+    this[$destination].volume = typeof value === 'number' ? clamp(value, 0, 1) : 0
   }
 
   /**

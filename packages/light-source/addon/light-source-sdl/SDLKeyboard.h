@@ -18,7 +18,7 @@ class SDLKeyboard : public InputDevice, public Napi::ObjectWrap<SDLKeyboard> {
 
     static Napi::Function Constructor(Napi::Env env);
 
-    Napi::Value IsKeyDown(const Napi::CallbackInfo& info);
+    Napi::Value IsButtonDown(const Napi::CallbackInfo& info);
     void Destroy(const Napi::CallbackInfo& info);
 };
 

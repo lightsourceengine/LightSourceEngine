@@ -7,11 +7,10 @@
 /**
  * Hardware button (or key) ids for the keyboard input device.
  *
- * ScanCodes are used for the DeviceButtonEvent button property and in KeyMapping to map hardware keyboard keys to
- * StandardKey types.
+ * ScanCodes are used for the DeviceButtonEvent button property and in Mapping to map hardware keyboard keys to
+ * Key types.
  */
 export const ScanCode = {
-  UNKNOWN: 0,
   A: 4,
   B: 5,
   C: 6,

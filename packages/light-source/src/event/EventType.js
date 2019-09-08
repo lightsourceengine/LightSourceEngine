@@ -11,6 +11,8 @@ export const EventType = Object.freeze({
 
   DeviceButtonDown: Symbol.for('DeviceButtonDown'),
   DeviceButtonUp: Symbol.for('DeviceButtonUp'),
+  DeviceHatDown: Symbol.for('DeviceHatDown'),
+  DeviceHatUp: Symbol.for('DeviceHatUp'),
   DeviceAxisMotion: Symbol.for('DeviceAxisMotion'),
 
   DeviceConnected: Symbol.for('DeviceConnected'),
