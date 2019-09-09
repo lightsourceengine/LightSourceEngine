@@ -12,7 +12,7 @@ import {
   AudioDestinationCapabilityStop,
   AudioDestinationCapabilityVolume
 } from './constants'
-import { clamp } from '../util'
+import { clamp, isNumber } from '../util'
 
 /**
  * An audio output buffer.
@@ -101,7 +101,7 @@ export class AudioDestination {
   }
 
   set volume (value) {
-    this[$destination].volume = typeof value === 'number' ? clamp(value, 0, 1) : 0
+    this[$destination].volume = isNumber(value) ? clamp(value, 0, 1) : 0
   }
 
   /**

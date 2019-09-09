@@ -188,6 +188,13 @@ Value Style::JSGetter(const std::unique_ptr<T>& styleValue, Napi::Env env) const
 
 template<typename E, typename T>
 void Style::JSSetter(std::unique_ptr<T>& styleValue, Napi::Value jsValue, bool isYogaStyleValue) {
+    if (jsValue.IsNull() || jsValue.IsUndefined()) {
+        if (!styleValue) {
+            styleValue.reset();
+        }
+        return;
+    }
+
     E e;
 
     if (!T::ToValue(jsValue, &e)) {

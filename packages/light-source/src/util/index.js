@@ -7,6 +7,7 @@
 import { join } from 'path'
 
 const resourceHost = 'file://resource/'
+const resourceHostLength = resourceHost.length
 
 export const logexcept = (func, prefix) => {
   try {
@@ -16,12 +17,14 @@ export const logexcept = (func, prefix) => {
   }
 }
 
-export const resolveUri = (uri, resourcePath) => {
-  return uri.startsWith(resourceHost) ? join(resourcePath, uri.substr(resourceHost.length)) : uri
-}
+export const resolveUri = (uri, resourcePath) => uri.startsWith(resourceHost) ? join(resourcePath, uri.substr(resourceHostLength)) : uri
 
 // Math.clamp()
 export const clamp = (val, min, max) => val > max ? max : val < min ? min : val
+
+export const isNumber = (value) => ((typeof value === 'number') && (value - value === 0))
+
+export const isObject = (value) => (!!value) && (value.constructor === Object)
 
 export const symbolFor = Symbol.for
 

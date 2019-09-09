@@ -6,6 +6,9 @@
 
 import { Stage } from './stage/Stage'
 import { Style } from './style/Style'
+import { createStyleSheet } from './style/createStyleSheet'
+import { rgba } from './style/rgba'
+import { rgb } from './style/rgb'
 import { ScanCode } from './input/ScanCode'
 import { waypoint } from './scene/waypoint'
 import { Mapping } from './input/Mapping'
@@ -27,6 +30,9 @@ const stage = new Stage()
 export {
   // style
   Style,
+  rgb,
+  rgba,
+  createStyleSheet,
 
   // stage/scene
   stage,

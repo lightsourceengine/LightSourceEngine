@@ -4,6 +4,8 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
+import { isNumber } from '../util'
+
 const buttonRegEx = /^b(\d+)$/
 const hatRegEx = /^h(\d+)\.([1248])$/
 const axisRegEx = /^(\+|-)?a(\d+)(~)?$/
@@ -45,7 +47,7 @@ export class Mapping {
     let result
 
     for (const [hardwareKey, mappedKey] of entries) {
-      if (typeof mappedKey !== 'number') {
+      if (!isNumber(mappedKey)) {
         throw Error(`Mapping: Mapped key must be a number (${mappedKey})`)
       }
 
@@ -77,7 +79,7 @@ export class Mapping {
 
           continue
         }
-      } else if (typeof hardwareKey === 'number') {
+      } else if (isNumber(hardwareKey)) {
         this[$buttonMap].set(hardwareKey, mappedKey)
         continue
       }

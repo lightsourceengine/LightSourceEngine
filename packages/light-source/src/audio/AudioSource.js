@@ -14,7 +14,7 @@ import {
   $source,
   $state
 } from '../util/InternalSymbols'
-import { clamp, resolveUri } from '../util'
+import { clamp, isNumber, resolveUri } from '../util'
 import { readFileSync, promises } from 'fs'
 import {
   AudioSourceCapabilityFadeIn,
@@ -117,7 +117,7 @@ export class AudioSource {
   }
 
   set volume (value) {
-    this[$source].volume = typeof value === 'number' ? clamp(value, 0, 1) : 0
+    this[$source].volume = isNumber(value) ? clamp(value, 0, 1) : 0
   }
 
   /**
