@@ -5,7 +5,7 @@
  */
 
 import { $emit } from '../util/InternalSymbols'
-import { PhaseBubble } from './Phase'
+import { BUBBLE } from './EventPhase'
 
 const bubble = (stage, scene, event) => {
   const callbackProperty = 'on' + event.name
@@ -30,6 +30,6 @@ export const eventBubblePhase = (stage, scene, event) => {
     return
   }
 
-  event.phase = PhaseBubble
+  event.phase = BUBBLE
   bubble(stage, scene, event)
 }

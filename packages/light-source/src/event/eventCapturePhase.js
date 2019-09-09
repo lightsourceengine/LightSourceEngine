@@ -5,7 +5,7 @@
  */
 
 import { Direction } from '../input/Direction'
-import { PhaseCapture } from './Phase'
+import { CAPTURE } from './EventPhase'
 
 const waypointCapture = (scene, event) => {
   const { direction } = event
@@ -64,6 +64,7 @@ const waypointCapture = (scene, event) => {
     }
 
     scene.activeNode = candidate
+    event.stop()
   }
 }
 
@@ -76,6 +77,6 @@ export const eventCapturePhase = (stage, scene, event) => {
     return
   }
 
-  event.phase = PhaseCapture
+  event.phase = CAPTURE
   waypointCapture(scene, event)
 }
