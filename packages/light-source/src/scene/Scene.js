@@ -7,7 +7,6 @@
 import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode } from '../addon'
 import { Style } from '../style/Style'
 import { EventEmitter } from '../util/EventEmitter'
-import { EventType } from '../event/EventType'
 import {
   $width,
   $height,
@@ -21,7 +20,8 @@ import {
   $destroying,
   $events,
   $hasFocus,
-  $resourcePath, $emit
+  $resourcePath,
+  $emit
 } from '../util/InternalSymbols'
 import { BlurEvent } from '../event/BlurEvent'
 import { FocusEvent } from '../event/FocusEvent'
@@ -36,17 +36,7 @@ export class Scene extends SceneBase {
 
     this[$stage] = stage
     this[$displayIndex] = displayIndex
-    this[$events] = new EventEmitter([
-      $destroying,
-      EventType.KeyDown,
-      EventType.KeyUp,
-      EventType.AxisMotion,
-      EventType.DeviceConnected,
-      EventType.DeviceDisconnected,
-      EventType.DeviceButtonDown,
-      EventType.DeviceButtonUp,
-      EventType.DeviceAxisMotion
-    ])
+    this[$events] = new EventEmitter()
     this[$activeNode] = null
     this[$resource][$resourcePath] = stage.resourcePath
 

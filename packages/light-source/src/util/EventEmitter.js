@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { symbolFor, symbolKeyFor } from './index'
+import { symbolFor } from './index'
 
 /**
  * Custom EventEmitter.
@@ -18,28 +18,6 @@ import { symbolFor, symbolKeyFor } from './index'
  * @ignore
  */
 export class EventEmitter {
-  /**
-   * @param events List of event names (Symbol or string) supported by this emitter.
-   */
-  constructor (events) {
-    if (!Array.isArray(events)) {
-      throw Error('Expected an array of events')
-    }
-
-    for (const event of events) {
-      if (typeof event === 'symbol') {
-        if (!symbolKeyFor(event)) {
-          throw Error('Expected a symbol created from Symbol.for()')
-        }
-        this[event] = []
-      } else if (event === 'string') {
-        this[symbolFor(event)] = []
-      } else {
-        throw Error(`Expected event name to be a string or symbol. Got ${event}`)
-      }
-    }
-  }
-
   /**
    * Dispatch an event.
    *
@@ -83,9 +61,14 @@ export class EventEmitter {
 
     typeof sym === 'symbol' || throwExpectedSymbol(id)
     typeof listener === 'function' || throwExpectedFunction(id)
-    this[sym] || throwUnregisteredEventType(sym)
 
-    this[sym].push(listener)
+    const listeners = this[sym]
+
+    if (listeners) {
+      listeners.push(listener)
+    } else {
+      this[sym] = [listener]
+    }
   }
 
   /**
@@ -137,4 +120,3 @@ export class EventEmitter {
 const throwExpectedSymbol = arg => { throw Error(`Expected event type to be a Symbol. Got ${arg}`) }
 const throwExpectedFunction = arg => { throw Error(`Expected listener to be a Function. Got ${arg}`) }
 const throwExpectedEventObject = arg => { throw Error(`Expected event to be an Event object. Got ${arg}`) }
-const throwUnregisteredEventType = arg => { throw Error(`Event type ${typeof arg === 'symbol' ? 'symbol' : arg} has not been registered.`) }

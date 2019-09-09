@@ -14,22 +14,10 @@ const event = { type: test }
 describe('EventEmitter', () => {
   let emitter
   beforeEach(() => {
-    emitter = new EventEmitter([test])
+    emitter = new EventEmitter()
   })
   afterEach(() => {
     emitter = null
-  })
-  describe('constructor()', () => {
-    it('should throw Error if passed a non-array', () => {
-      for (const input of [null, undefined, {}, 'string', 3]) {
-        assert.throws(() => new EventEmitter(input))
-      }
-    })
-    it('should throw Error if passed invalid event names', () => {
-      for (const input of [[null], [Symbol('description')], [3], [undefined], [[]], [{}]]) {
-        assert.throws(() => new EventEmitter(input))
-      }
-    })
   })
   describe('on()', () => {
     it('should register listener by Symbol', () => {
@@ -61,12 +49,9 @@ describe('EventEmitter', () => {
       assert.isTrue(callback.calledWith(event))
     })
     it('should throw Error on bad event type', () => {
-      for (const input of [null, undefined, {}, 3, 'str']) {
+      for (const input of [null, undefined, {}, 3]) {
         assert.throws(() => emitter.on(input, () => {}))
       }
-    })
-    it('should throw Error on bad event type', () => {
-      assert.throws(() => emitter.on(Symbol.for('unregistered'), () => {}))
     })
   })
   describe('off()', () => {

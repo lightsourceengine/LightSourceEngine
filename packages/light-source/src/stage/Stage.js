@@ -10,7 +10,6 @@ import { performance } from 'perf_hooks'
 import { addonError, SDLModuleId } from '../addon'
 import { InputManager } from '../input/InputManager'
 import { EventEmitter } from '../util/EventEmitter'
-import { EventType } from '../event/EventType'
 import {
   $adapter,
   $mainLoopHandle,
@@ -28,7 +27,8 @@ import {
   $audio,
   $init,
   $resourcePath,
-  $emit, $setResourcePath
+  $emit,
+  $setResourcePath
 } from '../util/InternalSymbols'
 import { AudioManager } from '../audio/AudioManager'
 import { logexcept } from '../util'
@@ -45,16 +45,7 @@ export class Stage {
     this[$exitListener] = null
     this[$input] = new InputManager(this)
     this[$audio] = new AudioManager(this)
-    this[$events] = new EventEmitter([
-      EventType.KeyDown,
-      EventType.KeyUp,
-      EventType.AxisMotion,
-      EventType.DeviceConnected,
-      EventType.DeviceDisconnected,
-      EventType.DeviceButtonDown,
-      EventType.DeviceButtonUp,
-      EventType.DeviceAxisMotion
-    ])
+    this[$events] = new EventEmitter()
   }
 
   get fps () {
