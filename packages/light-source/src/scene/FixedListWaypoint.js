@@ -7,26 +7,24 @@
 import { Direction } from '../input/Direction'
 import { $hasFocus } from '../util/InternalSymbols'
 
-const $navigation = Symbol.for('navigation')
-const $focalPathIndex = Symbol.for('focalPathIndex')
+const { UP, DOWN, LEFT, RIGHT } = Direction
+
+const $navigation = Symbol('navigation')
+const $focalPathIndex = Symbol('focalPathIndex')
 const pass = Object.freeze([null, false])
 
 const horizontalTag = 'horizontal'
 const verticalTag = 'vertical'
 
-const { UP, DOWN, LEFT, RIGHT } = Direction
-
 const HORIZONTAL = 1
 const VERTICAL = 2
-const OFFSET = []
+const OFFSET = Array(3)
 
-OFFSET[0] = []
+OFFSET.fill(Array(5))
 
-OFFSET[HORIZONTAL] = []
 OFFSET[HORIZONTAL][LEFT] = -1
 OFFSET[HORIZONTAL][RIGHT] = 1
 
-OFFSET[VERTICAL] = []
 OFFSET[VERTICAL][UP] = -1
 OFFSET[VERTICAL][DOWN] = 1
 
@@ -39,7 +37,7 @@ export class FixedListWaypoint {
       this[$navigation] = VERTICAL
       this.tag = verticalTag
     } else {
-      throw Error(`FixedListWaypoint tag should be ${horizontalTag} or ${verticalTag}. Got ${tag}`)
+      throw Error(`FixedListWaypoint expected tag ${horizontalTag} or ${verticalTag}. Got ${tag}`)
     }
 
     this[$focalPathIndex] = -1

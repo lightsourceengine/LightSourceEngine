@@ -17,7 +17,8 @@ import {
   $init,
   $scene,
   $destroy,
-  $setNativeKeyboard
+  $setNativeKeyboard,
+  $sendKeyEvent
 } from '../util/InternalSymbols'
 import { Mapping } from './Mapping'
 import { Direction } from './Direction'
@@ -224,6 +225,17 @@ export class InputManager {
     this[$stageAdapter].resetCallbacks()
     this[$attached] = false
   }
+
+  // Test API. May need to promote this to public, as it may be useful.
+  [$sendKeyEvent] (key, pressed, repeat, mapping) {
+    if (key >= 0 && this[$keyToDirection].has(mapping)) {
+      const keyEvent = createKeyEvent(this, key, true, repeat, mapping, { timestamp: now() })
+      const stage = this[$stage]
+
+      eventCapturePhase(stage, stage[$scene], keyEvent)
+      eventBubblePhase(stage, stage[$scene], keyEvent)
+    }
+  }
 }
 
 const loadSystemMappings = (stageAdapter, gameControllerDb) => {
@@ -263,13 +275,13 @@ const updateSystemMapping = (systemMappings, { uuid, mapping }) => {
   systemMappings.delete(uuid)
 }
 
-const createKeyEvent = (inputManager, key, pressed, repeat, mapping, source) => (
+const createKeyEvent = (inputManager, key, pressed, repeat, mappingName, source) => (
   new KeyEvent(
     key,
     pressed,
     repeat,
-    mapping.name,
-    inputManager[$keyToDirection].get(mapping.name).get(key) || Direction.NONE,
+    mappingName,
+    inputManager[$keyToDirection].get(mappingName).get(key) || Direction.NONE,
     source,
     source.timestamp)
 )
@@ -311,7 +323,7 @@ const registerDeviceInputCallbacks = (inputManager) => {
     const key = mapping.getKeyForButton(button)
 
     if (key >= 0) {
-      eventBubblePhase(stage, stage[$scene], createKeyEvent(inputManager, key, false, false, mapping, deviceEvent))
+      eventBubblePhase(stage, stage[$scene], createKeyEvent(inputManager, key, false, false, mapping.name, deviceEvent))
     }
   }
   const buttonDown = (device, button, repeat) => {
@@ -329,7 +341,7 @@ const registerDeviceInputCallbacks = (inputManager) => {
     const key = mapping.getKeyForButton(button)
 
     if (key >= 0) {
-      const keyEvent = createKeyEvent(inputManager, key, true, repeat, mapping, deviceEvent)
+      const keyEvent = createKeyEvent(inputManager, key, true, repeat, mapping.name, deviceEvent)
 
       eventCapturePhase(stage, stage[$scene], keyEvent)
       eventBubblePhase(stage, stage[$scene], keyEvent)
@@ -346,7 +358,7 @@ const registerDeviceInputCallbacks = (inputManager) => {
     const key = mapping.getKeyForHat(hat, value)
 
     if (key >= 0) {
-      eventBubblePhase(stage, stage[$scene], createKeyEvent(inputManager, key, false, false, mapping, deviceEvent))
+      eventBubblePhase(stage, stage[$scene], createKeyEvent(inputManager, key, false, false, mapping.name, deviceEvent))
     }
   }
   const hatDown = (device, hat, value, repeat) => {
@@ -360,7 +372,7 @@ const registerDeviceInputCallbacks = (inputManager) => {
     const key = mapping.getKeyForHat(hat, value)
 
     if (key >= 0) {
-      const keyEvent = createKeyEvent(inputManager, key, true, repeat, mapping, deviceEvent)
+      const keyEvent = createKeyEvent(inputManager, key, true, repeat, mapping.name, deviceEvent)
 
       eventCapturePhase(stage, stage[$scene], keyEvent)
       eventBubblePhase(stage, stage[$scene], keyEvent)
