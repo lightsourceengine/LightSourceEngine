@@ -31,7 +31,7 @@ import {
   $setResourcePath
 } from '../util/InternalSymbols'
 import { AudioManager } from '../audio/AudioManager'
-import { logexcept } from '../util'
+import { isNumber, logexcept } from '../util'
 
 const { now } = performance
 
@@ -46,6 +46,7 @@ export class Stage {
     this[$input] = new InputManager(this)
     this[$audio] = new AudioManager(this)
     this[$events] = new EventEmitter()
+    this[$resourcePath] = ''
   }
 
   get fps () {
@@ -53,8 +54,11 @@ export class Stage {
   }
 
   set fps (value) {
-    // TODO: 60 or screen refresh rate
-    this[$fps] = value
+    if (!isNumber(value) || value < 0 || value > 60) {
+      throw Error()
+    }
+
+    this[$fps] = value || 60
   }
 
   get input () {

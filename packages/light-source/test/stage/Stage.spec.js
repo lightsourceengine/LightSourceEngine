@@ -18,9 +18,31 @@ describe('Stage', () => {
     stage[Symbol.for('destroy')]()
     stage = null
   })
+  describe('constructor', () => {
+    it('should create a Stage object', () => {
+      const testStage = new Stage()
+
+      assert.isOk(testStage.input)
+      assert.isOk(testStage.audio)
+      assert.lengthOf(testStage.displays, 0)
+      assert.equal(testStage.resourcePath, '')
+      assert.equal(stage.fps, 60)
+    })
+  })
   describe('fps', () => {
-    it('should...', () => {
-      assert.isTrue(true)
+    it('should set fps', () => {
+      stage.fps = 30
+      assert.equal(stage.fps, 30)
+    })
+    it('should reset to default 60 when set to 0', () => {
+      stage.fps = 30
+      stage.fps = 0
+      assert.equal(stage.fps, 60)
+    })
+    it('should throw error for invalid fps value', () => {
+      for (const input of [-1, NaN, '', {}, [], 100]) {
+        assert.throws(() => { stage.fps = input })
+      }
     })
   })
 })
