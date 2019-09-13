@@ -6,4 +6,5 @@
 
 const { join } = require('path')
 
-exports.include = join(__dirname, 'include')
+// Use stringify to return the string wrapped in " quotes. Required to get windows filenames working with gyp
+exports.include = JSON.stringify(join(__dirname, 'include'))

@@ -1,11 +1,33 @@
 {
   "variables": {
     "with_sdl_mixer%": "false",
-    "sdl_library_path%": "/usr/local/lib",
-    "sdl_include_path%": "/usr/local/include/SDL2",
-    "sdl_mixer_include_path%": "<(sdl_include_path)",
-    "sdl_mixer_library_path%": "<(sdl_library_path)",
-    "enable_native_tests%": "false",
+    "with_native_tests%": "false",
+    "conditions": [
+      [
+        "OS==\"mac\"", {
+          "sdl_include_path%": "/usr/local/include/SDL2",
+          "sdl_library_path%": "/usr/local/lib",
+          "sdl_mixer_include_path%": "/usr/local/include/SDL2",
+          "sdl_mixer_library_path%": "/usr/local/lib",
+        }
+      ],
+      [
+        "OS==\"linux\"", {
+          "sdl_include_path%": "/usr/include/SDL2",
+          "sdl_library_path%": "/usr/lib/<!@(gcc -dumpmachine)",
+          "sdl_mixer_include_path%": "/usr/include/SDL2",
+          "sdl_mixer_library_path%": "/usr/lib/<!@(gcc -dumpmachine)",
+        }
+      ],
+      [
+        "OS==\"win\"", {
+          "sdl_include_path%": "<!@(echo %USERPROFILE%)\\SDL2\\include",
+          "sdl_library_path%": "<!@(echo %USERPROFILE%)\\SDL2\\lib\\x64",
+          "sdl_mixer_include_path%": "<!@(echo %USERPROFILE%)\\SDL2_mixer\\include",
+          "sdl_mixer_library_path%": "<!@(echo %USERPROFILE%)\\SDL2_mixer\\lib\\x64",
+        }
+      ]
+    ]
   },
   "target_defaults": {
     "include_dirs": [
@@ -24,7 +46,7 @@
         "deps/fmt/include",
       ],
       "dependencies": [
-        "addon/deps/fmt/fmt.gyp:fmt",
+        "addon/deps/fmt/fmt.gyp:*",
       ],
       "sources": [
         "light-source-util/BaseAudioSource.cc",
@@ -53,11 +75,11 @@
         "deps/concurrentqueue/include",
       ],
       "dependencies": [
-        "addon/deps/yoga/yoga.gyp:yoga",
-        "addon/deps/fmt/fmt.gyp:fmt",
-        "addon/deps/stb_image/stb_image.gyp:stb_image",
-        "addon/deps/nanosvg/nanosvg.gyp:nanosvg",
-        "addon/deps/stb_truetype/stb_truetype.gyp:stb_truetype",
+        "addon/deps/yoga/yoga.gyp:*",
+        "addon/deps/fmt/fmt.gyp:*",
+        "addon/deps/stb_image/stb_image.gyp:*",
+        "addon/deps/nanosvg/nanosvg.gyp:*",
+        "addon/deps/stb_truetype/stb_truetype.gyp:*",
         "light-source-util",
       ],
       "sources": [
@@ -83,16 +105,20 @@
         "light-source/Init.cc",
       ],
       "conditions": [
-        ["enable_native_tests==\"true\"", {
-          "include_dirs": [
-            "<!@(node -p \"require('napi-unit').include\")"
-          ],
-          "defines": ["LIGHT_SOURCE_ENABLE_NATIVE_TESTS"],
-          "sources": [
-            "light-source/test/FileSystemSpec.cc",
-            "light-source/test/SurfaceSpec.cc",
-          ]
-        }]
+        [
+          "with_native_tests==\"true\"", {
+            "include_dirs": [
+              "<!@(node -p \"require('napi-unit').include\")"
+            ],
+            "defines": [
+              "LIGHT_SOURCE_NATIVE_TESTS"
+            ],
+            "sources": [
+              "light-source/test/FileSystemSpec.cc",
+              "light-source/test/SurfaceSpec.cc",
+            ]
+          }
+        ]
       ],
     },
     {
@@ -107,7 +133,7 @@
         "light-source-util",
       ],
       "dependencies": [
-        "addon/deps/fmt/fmt.gyp:fmt",
+        "addon/deps/fmt/fmt.gyp:*",
         "light-source-util",
       ],
       "sources": [
@@ -121,11 +147,13 @@
         "light-source-sdl/Init.cc",
       ],
       "conditions": [
-        ["OS==\"mac\" or OS==\"linux\"", {
-          "libraries": [
-            "-L<(sdl_library_path)"
-          ]
-        }],
+        [
+          "OS==\"mac\" or OS==\"linux\"", {
+            "libraries": [
+              "-L<(sdl_library_path)"
+            ]
+          }
+        ]
       ],
       "msvs_settings": {
         "VCLinkerTool": {
@@ -149,7 +177,7 @@
         "light-source-util",
       ],
       "dependencies": [
-        "addon/deps/fmt/fmt.gyp:fmt",
+        "addon/deps/fmt/fmt.gyp:*",
         "light-source-util",
       ],
       "sources": [
@@ -179,7 +207,7 @@
               "light-source-util",
             ],
             "dependencies": [
-                "addon/deps/fmt/fmt.gyp:fmt",
+                "addon/deps/fmt/fmt.gyp:*",
                 "light-source-util",
             ],
             "sources": [
@@ -187,20 +215,25 @@
               "light-source-sdl-mixer/Init.cc",
             ],
             "conditions": [
-              ["OS==\"mac\" or OS==\"linux\"", {
-                "libraries": [
-                  "-L<(sdl_mixer_library_path)"
-                ]
-              }],
+              [
+                "OS==\"mac\" or OS==\"linux\"", {
+                  "libraries": [
+                    "-L<(sdl_library_path)",
+                    "-L<(sdl_mixer_library_path)",
+                  ]
+                }
+              ]
             ],
             "msvs_settings": {
               "VCLinkerTool": {
                 "AdditionalLibraryDirectories": [
-                  "<(sdl_mixer_library_path)"
+                  "<(sdl_mixer_library_path)",
+                  "<(sdl_library_path)",
               ]
             }
           },
             "libraries": [
+              "-lSDL2",
               "-lSDL2_mixer",
             ]
           }

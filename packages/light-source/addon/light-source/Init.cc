@@ -49,7 +49,7 @@ Object Init(Env env, Object exports) {
 
     exports["getSceneNodeInstanceCount"] = Function::New(env, &SceneNode::GetInstanceCount);
 
-    #ifdef LIGHT_SOURCE_ENABLE_NATIVE_TESTS
+    #ifdef LIGHT_SOURCE_NATIVE_TESTS
     exports["test"] = ls::LightSourceSpec(env);
     #endif
 

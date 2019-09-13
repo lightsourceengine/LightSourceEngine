@@ -6,7 +6,7 @@
 
 #pragma once
 
-#ifdef LIGHT_SOURCE_ENABLE_NATIVE_TESTS
+#ifdef LIGHT_SOURCE_NATIVE_TESTS
 
 #include <napi-unit.h>
 

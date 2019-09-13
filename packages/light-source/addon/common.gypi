@@ -14,8 +14,7 @@
   },
   "conditions": [
     [
-      "OS==\"win\"",
-      {
+      "OS==\"win\"", {
         "defines": [
           "_WIN32",
           "_HAS_EXCEPTIONS=1"
@@ -23,8 +22,7 @@
       }
     ],
     [
-      "OS==\"linux\"",
-      {
+      "OS==\"linux\"", {
         "libraries": [
           "-Wl,--enable-new-dtags,-rpath,'$$ORIGIN/../lib'"
         ]
