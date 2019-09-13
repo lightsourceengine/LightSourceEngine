@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0-private.0",
   "scripts": {
-    "test": "true",
-    "bundle": "true"
+    "test": "echo 'No tests.'",
+    "bundle": "echo 'Nothing to bundle.'"
   }
 }

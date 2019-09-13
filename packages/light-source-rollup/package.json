@@ -7,10 +7,10 @@
   "scripts": {
     "bundle": "rimraf dist build/standalone && rollup -c",
     "coverage": "nyc --reporter=text run-s testOnly",
-    "jsdoc": "true",
+    "jsdoc": "echo 'No jsdoc.'",
     "lint": "standard",
     "test": "run-s lint testOnly",
-    "testOnly": "true"
+    "testOnly": "echo 'No tests.'"
   },
   "standard": {
     "ignore": [

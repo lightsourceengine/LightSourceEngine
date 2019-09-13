@@ -8,6 +8,7 @@
 #include "Font.h"
 #include "Surface.h"
 #include <cmath>
+#include <algorithm>
 #include <utf8.h>
 
 namespace ls {

@@ -120,8 +120,21 @@
         "light-source-sdl/SDLGamepad.cc",
         "light-source-sdl/Init.cc",
       ],
+      "conditions": [
+        ["OS==\"mac\" or OS==\"linux\"", {
+          "libraries": [
+            "-L<(sdl_library_path)"
+          ]
+        }],
+      ],
+      "msvs_settings": {
+        "VCLinkerTool": {
+          "AdditionalLibraryDirectories": [
+            "<(sdl_library_path)"
+          ]
+        }
+      },
       "libraries": [
-        "-L<(sdl_library_path)",
         "-lSDL2"
       ]
     },
@@ -173,8 +186,21 @@
               "light-source-sdl-mixer/SDLMixerAudioAdapter.cc",
               "light-source-sdl-mixer/Init.cc",
             ],
+            "conditions": [
+              ["OS==\"mac\" or OS==\"linux\"", {
+                "libraries": [
+                  "-L<(sdl_mixer_library_path)"
+                ]
+              }],
+            ],
+            "msvs_settings": {
+              "VCLinkerTool": {
+                "AdditionalLibraryDirectories": [
+                  "<(sdl_mixer_library_path)"
+              ]
+            }
+          },
             "libraries": [
-              "-L<(sdl_mixer_library_path)",
               "-lSDL2_mixer",
             ]
           }
