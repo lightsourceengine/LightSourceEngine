@@ -25,4 +25,4 @@ Napi::Value LightSourceSpec(Napi::Env env) {
 
 } // namespace ls
 
-#endif // LIGHT_SOURCE_ENABLE_NATIVE_TESTS
+#endif // LIGHT_SOURCE_NATIVE_TESTS

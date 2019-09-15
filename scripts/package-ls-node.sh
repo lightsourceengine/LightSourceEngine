@@ -76,7 +76,7 @@ bail() {
 }
 
 get_node_platform_arch() {
-  echo $(node -e 'console.log(`${process.platform}-${process.arch}`)')
+  node -p '`${process.platform}-${process.arch}`'
 }
 
 assert_node_platform_arch() {
@@ -86,11 +86,11 @@ assert_node_platform_arch() {
 }
 
 get_node_version() {
-  echo $(node --version)
+  node --version
 }
 
 get_light_source_version() {
-  echo $(node -e "console.log(JSON.parse(require('fs').readFileSync('packages/light-source/package.json')).version)")
+  node -p "JSON.parse(require('fs').readFileSync('packages/light-source/package.json')).version"
 }
 
 install_bin_node() {
