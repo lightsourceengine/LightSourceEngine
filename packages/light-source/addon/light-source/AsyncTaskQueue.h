@@ -37,18 +37,24 @@ class Task {
     }
 
     std::shared_ptr<TaskResult> GetResult() const noexcept {
-        return this->resultAvailable ? this->result : nullptr;
+        return this->hasResult ? this->result : nullptr;
     }
+
+    bool IsDone() const { return this->isDone; }
+    bool HasResult() const { return this->hasResult; }
+    bool HasError() const { return this->hasError; }
 
  private:
     ExecuteFunction execute;
     CompleteFunction complete;
     ErrorFunction error;
     std::atomic<bool> cancelled{false};
-    bool resultAvailable{false};
     std::shared_ptr<TaskResult> result;
-    bool hasError{false};
+    bool asyncHasError{false};
     std::string errorMessage;
+    bool isDone{false};
+    bool hasResult{false};
+    bool hasError{false};
 
     friend AsyncTaskQueue;
 };

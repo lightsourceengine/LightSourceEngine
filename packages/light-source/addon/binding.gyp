@@ -64,6 +64,7 @@
         "common.gypi",
       ],
       "include_dirs": [
+        "light-source",
         "deps/yoga/lib",
         "include",
         "deps/fmt/include",
@@ -116,6 +117,7 @@
             "sources": [
               "light-source/test/FileSystemSpec.cc",
               "light-source/test/SurfaceSpec.cc",
+              "light-source/test/AsyncTaskQueueSpec.cc",
             ]
           }
         ]

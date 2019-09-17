@@ -38,7 +38,7 @@ void AsyncTaskQueue::Init() noexcept {
                 try {
                     task->result = task->execute();
                 } catch (std::exception& e) {
-                    task->hasError = true;
+                    task->asyncHasError = true;
                     task->errorMessage = e.what();
                 }
 
@@ -62,15 +62,18 @@ void AsyncTaskQueue::ProcessCompleteTasks() noexcept {
     std::shared_ptr<Task> task;
 
     while (this->completeQueue.try_dequeue(task)) {
+        task->isDone = true;
+
         if (task->cancelled) {
             continue;
         }
 
         try {
-            if (task->hasError && task->error) {
+            if (task->asyncHasError && task->error) {
+                task->hasError = true;
                 task->error(task->errorMessage);
             } else {
-                task->resultAvailable = true;
+                task->hasResult = true;
 
                 if (task->complete) {
                     task->complete(task->result);
