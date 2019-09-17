@@ -14,12 +14,14 @@ namespace ls {
 
 void FileSystemSpec(Napi::Env env, Napi::TestSuite* parent);
 void SurfaceSpec(Napi::Env env, Napi::TestSuite* parent);
+void AsyncTaskQueueSpec(Napi::Env env, Napi::TestSuite* parent);
 
 inline
 Napi::Value LightSourceSpec(Napi::Env env) {
     return Napi::TestSuite::Build(env, "light-source native tests", {
         &FileSystemSpec,
-        &SurfaceSpec
+        &SurfaceSpec,
+        &AsyncTaskQueueSpec,
     });
 }
 

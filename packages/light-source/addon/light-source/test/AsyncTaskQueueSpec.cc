@@ -47,7 +47,6 @@ void AsyncTaskQueueSpec(Napi::Env env, TestSuite* parent) {
 
     spec->afterEach = [](const Napi::CallbackInfo& info) mutable {
         if (asyncTaskQueue) {
-            asyncTaskQueue->Shutdown();
             asyncTaskQueue.reset();
         }
     };
@@ -104,7 +103,7 @@ void AsyncTaskQueueSpec(Napi::Env env, TestSuite* parent) {
 
     spec->Describe("Cancel()")->tests = {
         {
-            "should ...",
+            "should cancel task",
             [assert](const Napi::CallbackInfo& info) mutable {
                 auto task = std::make_shared<Task>(
                     []() -> std::shared_ptr<TaskResult> {
@@ -122,6 +121,16 @@ void AsyncTaskQueueSpec(Napi::Env env, TestSuite* parent) {
                 assert.IsFalse(task->HasResult());
                 assert.IsFalse(errorCalled);
                 assert.IsFalse(task->HasError());
+            }
+        },
+    };
+
+    spec->Describe("Shutdown()")->tests = {
+        {
+            "should be idempotent",
+            [](const Napi::CallbackInfo& info) mutable {
+                asyncTaskQueue->Shutdown();
+                asyncTaskQueue->Shutdown();
             }
         },
     };

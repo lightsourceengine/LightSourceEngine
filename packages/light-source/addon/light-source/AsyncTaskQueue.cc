@@ -31,20 +31,16 @@ void AsyncTaskQueue::Init() noexcept {
                     break;
                 }
 
-                if (task->cancelled) {
-                    continue;
-                }
-
-                try {
-                    task->result = task->execute();
-                } catch (std::exception& e) {
-                    task->asyncHasError = true;
-                    task->errorMessage = e.what();
-                }
-
                 if (!task->cancelled) {
-                    completeQueue.enqueue(task);
+                    try {
+                        task->result = task->execute();
+                    } catch (std::exception& e) {
+                        task->asyncHasError = true;
+                        task->errorMessage = e.what();
+                    }
                 }
+
+                completeQueue.enqueue(task);
             }
         }));
     }
@@ -96,7 +92,9 @@ void AsyncTaskQueue::Shutdown() noexcept {
     });
 
     // join all the threads
-    std::for_each(this->threadPool.begin(), this->threadPool.end(), [](std::thread& t){ t.join(); });
+    std::for_each(this->threadPool.begin(), this->threadPool.end(), [](std::thread& t){
+        t.join();
+    });
 
     this->threadPool.clear();
 
