@@ -6,8 +6,10 @@
 
 import { Scene } from '../scene/Scene'
 import bindings from 'bindings'
+import { StageBase, addonError, SDLModuleId, FontStoreView } from '../addon'
 import { performance } from 'perf_hooks'
-import { addonError, SDLModuleId } from '../addon'
+import { join } from 'path'
+
 import { InputManager } from '../input/InputManager'
 import { EventEmitter } from '../util/EventEmitter'
 import {
@@ -28,16 +30,17 @@ import {
   $init,
   $resourcePath,
   $emit,
-  $setResourcePath
+  $setResourcePath,
+  $font
 } from '../util/InternalSymbols'
 import { AudioManager } from '../audio/AudioManager'
 import { isNumber, logexcept } from '../util'
 
 const { now } = performance
 
-export class Stage {
+export class Stage extends StageBase {
   constructor () {
-    this[$adapter] = null
+    super()
     this[$mainLoopHandle] = null
     this[$fps] = 60
     this[$scene] = null
@@ -46,7 +49,7 @@ export class Stage {
     this[$input] = new InputManager(this)
     this[$audio] = new AudioManager(this)
     this[$events] = new EventEmitter()
-    this[$resourcePath] = ''
+    this[$font] = new FontStoreView(this)
   }
 
   get fps () {
@@ -59,6 +62,10 @@ export class Stage {
     }
 
     this[$fps] = value || 60
+  }
+
+  get font () {
+    return this[$font]
   }
 
   get input () {
@@ -103,7 +110,10 @@ export class Stage {
       throw Error(`resourcePath must be a string. Got: ${value}`)
     }
 
-    this[$resourcePath] = value
+    if (value) {
+      value = join(value)
+    }
+
     this[$audio][$setResourcePath](value)
 
     if (this[$scene]) {
@@ -194,7 +204,7 @@ export class Stage {
       throw Error('width and height must be integer values.')
     }
 
-    this[$scene] = new Scene(this, this[$adapter], displayIndex, width, height, fullscreen)
+    this[$scene] = new Scene(this, displayIndex, width, height, fullscreen)
 
     this[$displays][displayIndex].scene = this[$scene]
 

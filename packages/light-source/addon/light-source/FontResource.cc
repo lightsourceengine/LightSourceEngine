@@ -8,15 +8,10 @@
 #include "FileSystem.h"
 #include "AsyncTaskQueue.h"
 #include "Font.h"
+#include "Stage.h"
 #include <stb_truetype.h>
 #include <fmt/format.h>
 #include <cstring>
-
-using Napi::EscapableHandleScope;
-using Napi::Number;
-using Napi::Object;
-using Napi::String;
-using Napi::Value;
 
 namespace ls {
 
@@ -25,28 +20,64 @@ std::shared_ptr<TaskResult> LoadFont(
 
 struct FontTaskResult : public TaskResult {
     FontTaskResult()
-    : fontInfo(new stbtt_fontinfo(), &FontTaskResult::FontInfoDeleter) {
+    : fontInfo(new stbtt_fontinfo(), [](stbtt_fontinfo* p) { if (p->data) { delete [] p->data; } delete p; }) {
         this->fontInfo->data = nullptr;
-    }
-
-    static void FontInfoDeleter(stbtt_fontinfo* p) {
-        if (p->data) {
-            delete [] p->data;
-        }
-
-        delete p;
     }
 
     std::shared_ptr<stbtt_fontinfo> fontInfo;
 };
 
-FontResource::FontResource(const std::string& id, const std::string& uri, const int32_t index,
-        const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight)
-    : Resource(id), uri(uri), index(index), family(family), fontStyle(fontStyle), fontWeight(fontWeight) {
+FontResource::FontResource(const FontId& fontId, const std::string& uri, const int32_t index)
+        : BaseResource(fontId), uri(uri), index(index) {
 }
 
-std::string FontResource::MakeId(const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight) {
-    return fmt::format("{}:{}:{}", family, fontStyle, fontWeight);
+void FontResource::Load(Stage* stage) {
+    auto initialState{ ResourceStateLoading };
+    auto uri{ this->uri };
+    auto index{ this-> index };
+    auto path{ stage->GetResourcePath() };
+
+    assert(!this->task);
+
+    try {
+        this->task = std::make_shared<Task>(
+            [path, uri, index]() -> std::shared_ptr<TaskResult> {
+                return LoadFont({ path }, uri, index);
+            },
+            [this](std::shared_ptr<TaskResult> taskResult) {
+                assert(taskResult != nullptr);
+
+                // TODO: assert(this->resourceState != ResourceStateLoading)
+                // TODO: assert(this->GetRefCount() > 0)
+
+                auto fontTaskResult{ std::static_pointer_cast<FontTaskResult>(taskResult) };
+
+                this->fontInfo = fontTaskResult->fontInfo;
+                this->task = nullptr;
+
+                this->SetState(ResourceStateReady, true);
+            },
+            [this](const std::string& errorMessage) {
+                fmt::println("FontResource.Load(): Error: {}", errorMessage);
+                this->SetState(ResourceStateError, true);
+            });
+    } catch (std::exception& e) {
+        initialState = ResourceStateError;
+    }
+
+    try {
+        if (this->task) {
+            stage->GetAsyncTaskQueue()->Submit(this->task);
+        }
+    } catch (std::exception& e) {
+        initialState = ResourceStateError;
+    }
+
+    this->SetState(initialState, true);
+}
+
+void FontResource::Attach(Stage* stage, Scene* scene) {
+    this->Load(stage);
 }
 
 std::shared_ptr<Font> FontResource::GetFont(int32_t fontSize) const {
@@ -62,7 +93,7 @@ std::shared_ptr<Font> FontResource::GetFont(int32_t fontSize) const {
             font = std::make_shared<Font>(this->fontInfo, fontSize);
             this->fontsBySize.insert(std::make_pair(fontSize, font));
         } catch (std::exception& e) {
-            fmt::println("Failed to create font {} @ {}px. Error: {}", this->family, fontSize, e.what());
+            fmt::println("Failed to create font {} @ {}px. Error: {}", this->id.family, fontSize, e.what());
             font.reset();
         }
 
@@ -70,51 +101,6 @@ std::shared_ptr<Font> FontResource::GetFont(int32_t fontSize) const {
     }
 
     return it->second;
-}
-
-void FontResource::Load(AsyncTaskQueue* taskQueue, const std::vector<std::string>& resourcePath) {
-    auto initialState{ ResourceStateLoading };
-    auto uri{ this->uri };
-    auto index{ this-> index };
-    auto path{ resourcePath };
-
-    assert(!this->task);
-
-    try {
-        this->task = std::make_shared<Task>(
-            [path, uri, index]() -> std::shared_ptr<TaskResult> {
-                return LoadFont(path, uri, index);
-            },
-            [this](std::shared_ptr<TaskResult> taskResult) {
-                assert(taskResult != nullptr);
-
-                // TODO: assert(this->resourceState != ResourceStateLoading)
-                // TODO: assert(this->GetRefCount() > 0)
-
-                auto fontTaskResult{ std::static_pointer_cast<FontTaskResult>(taskResult) };
-
-                this->fontInfo = fontTaskResult->fontInfo;
-                this->task = nullptr;
-
-                this->SetStateAndNotifyListeners(ResourceStateReady);
-            },
-            [this](const std::string& errorMessage) {
-                fmt::println("FontResource.Load(): Error: {}", errorMessage);
-                this->SetStateAndNotifyListeners(ResourceStateError);
-            });
-    } catch (std::exception& e) {
-        initialState = ResourceStateError;
-    }
-
-    try {
-        if (this->task) {
-            taskQueue->Submit(this->task);
-        }
-    } catch (std::exception& e) {
-        initialState = ResourceStateError;
-    }
-
-    this->SetStateAndNotifyListeners(initialState);
 }
 
 std::shared_ptr<TaskResult> LoadFont(const std::vector<std::string>& path, const std::string& filename,
@@ -157,21 +143,6 @@ std::shared_ptr<TaskResult> LoadFont(const std::vector<std::string>& path, const
     ttf.release();
 
     return result;
-}
-
-Value FontResource::ToObject(Napi::Env env) const {
-    EscapableHandleScope scope(env);
-    auto font{ Object::New(env) };
-
-    font["family"] = String::New(env, this->family);
-    font["style"] = String::New(env, StyleFontStyleToString(this->fontStyle));
-    font["weight"] = String::New(env, StyleFontWeightToString(this->fontWeight));
-    font["index"] = Number::New(env, this->index);
-    font["resourceId"] = String::New(env, this->GetId());
-    font["refs"] = Number::New(env, this->GetRefCount());
-    font["state"] = String::New(env, ResourceStateToString(this->resourceState));
-
-    return scope.Escape(font);
 }
 
 } // namespace ls

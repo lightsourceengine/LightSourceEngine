@@ -12,7 +12,6 @@
 #include <vector>
 #include <memory>
 #include "AsyncTaskQueue.h"
-#include "FontResource.h"
 #include "ImageResource.h"
 
 namespace ls {
@@ -28,7 +27,6 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     static Napi::Function Constructor(Napi::Env env);
 
     void RegisterImage(const Napi::CallbackInfo& info);
-    void AddFont(const Napi::CallbackInfo& info);
 
     Napi::Value GetImageExtensions(const Napi::CallbackInfo& info);
     void SetImageExtensions(const Napi::CallbackInfo& info, const Napi::Value& value);
@@ -36,7 +34,6 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     Napi::Value GetPath(const Napi::CallbackInfo& info);
     void SetPath(const Napi::CallbackInfo& info, const Napi::Value& value);
 
-    Napi::Value GetFonts(const Napi::CallbackInfo& info);
     Napi::Value GetImages(const Napi::CallbackInfo& info);
 
     void PostConstruct(Renderer* renderer);
@@ -49,20 +46,12 @@ class ResourceManager : public Napi::ObjectWrap<ResourceManager> {
     ImageResource* GetImage(const std::string& id);
     ImageResource* LoadImage(const ImageUri& uri);
 
-    FontResource* FindFont(const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight);
-
     LayerResource* CreateLayerResource();
     void RemoveLayerResource(LayerResource* layerResource);
 
  private:
-    FontResource* FindFontInternal(const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight);
-    void LoadFont(const std::string& id, const std::string& uri, const int32_t index,
-        const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight);
-
- private:
     Renderer* renderer{};
     std::unordered_map<std::string, std::shared_ptr<ImageResource>> images;
-    std::unordered_map<std::string, std::shared_ptr<FontResource>> fonts;
     std::unordered_set<LayerResource*> layers;
     std::unordered_map<std::string, ImageUri> registeredImageUris;
     std::vector<std::string> imageExtensions{ ".jpg", ".jpeg", ".png", ".gif", ".svg" };

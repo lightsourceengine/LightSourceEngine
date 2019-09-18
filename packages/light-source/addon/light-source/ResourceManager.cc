@@ -27,8 +27,6 @@ using Napi::ObjectGetNumberOrDefault;
 
 namespace ls {
 
-StyleFontStyle GetFontStyle(Object options, const char* name);
-StyleFontWeight GetFontWeight(Object options, const char* name);
 void CopyStringArrayToVector(const Array& array, std::vector<std::string>* vector);
 Array VectorToArray(Napi::Env env, const std::vector<std::string>& vector);
 void ValidateStringArray(Napi::Env env, const Array& array);
@@ -44,8 +42,6 @@ Function ResourceManager::Constructor(Napi::Env env) {
 
         auto func = DefineClass(env, "ResourceManager", {
             InstanceMethod("registerImage", &ResourceManager::RegisterImage),
-            InstanceMethod("addFont", &ResourceManager::AddFont),
-            InstanceAccessor("fonts", &ResourceManager::GetFonts, nullptr),
             InstanceAccessor("images", &ResourceManager::GetImages, nullptr),
             InstanceAccessor(SymbolFor(env, "resourcePath"), &ResourceManager::GetPath, &ResourceManager::SetPath),
             InstanceAccessor("imageExtensions",
@@ -57,18 +53,6 @@ Function ResourceManager::Constructor(Napi::Env env) {
     }
 
     return constructor.Value();
-}
-
-Value ResourceManager::GetFonts(const CallbackInfo& info) {
-    auto env{ info.Env() };
-    auto fontArray{ Array::New(env, this->fonts.size()) };
-    auto i{ 0u };
-
-    for (auto& p : this->fonts) {
-        fontArray.Set(i++, p.second->ToObject(env));
-    }
-
-    return fontArray;
 }
 
 Value ResourceManager::GetImages(const CallbackInfo& info) {
@@ -105,49 +89,6 @@ void ResourceManager::RegisterImage(const Napi::CallbackInfo& info) {
         imageUri.GetCapInsets().left);
 
     registeredImageUris.emplace(id, imageUri);
-}
-
-void ResourceManager::AddFont(const Napi::CallbackInfo& info) {
-    auto env{ info.Env() };
-    HandleScope scope(env);
-
-    if (!info[0].IsObject()) {
-        throw Error::New(env, "addFont() expects a font into Object.");
-    }
-
-    auto options{ info[0].As<Object>() };
-    auto family{ ObjectGetString(options, "family") };
-    auto uri{ ObjectGetString(options, "uri") };
-    auto fontStyle{ GetFontStyle(options, "style") };
-    auto fontWeight{ GetFontWeight(options, "weight") };
-    auto index{ ObjectGetNumberOrDefault(options, "index", 0) };
-    auto fontId{ FontResource::MakeId(family, fontStyle, fontWeight) };
-
-    if (this->fonts.find(fontId) != this->fonts.end()) {
-        throw Error::New(env, fmt::format("Font '{}' already registered.", fontId));
-    }
-
-    try {
-        this->LoadFont(fontId, uri, index, family, fontStyle, fontWeight);
-    } catch (std::exception& e) {
-        throw Error::New(env, e.what());
-    }
-}
-
-void ResourceManager::LoadFont(const std::string& id, const std::string& uri, const int32_t index,
-        const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight) {
-    auto fontResource{ std::make_shared<FontResource>(id, uri, index, family, fontStyle, fontWeight) };
-
-    this->fonts[id] = fontResource;
-
-    fontResource->Load(&this->asyncTaskQueue, this->path);
-
-    if (fontResource->HasError()) {
-        this->fonts.erase(id);
-        throw std::runtime_error(fmt::format("Failed to create font resource: {}", uri));
-    }
-
-    fontResource->AddRef();
 }
 
 Value ResourceManager::GetImageExtensions(const CallbackInfo& info) {
@@ -235,28 +176,6 @@ ImageResource* ResourceManager::LoadImage(const ImageUri& uri) {
     return nullptr;
 }
 
-FontResource* ResourceManager::FindFontInternal(const std::string& family, StyleFontStyle fontStyle,
-        StyleFontWeight fontWeight) {
-    auto iter{ this->fonts.find(FontResource::MakeId(family, fontStyle, fontWeight)) };
-
-    if (iter != this->fonts.end()) {
-        return iter->second.get();
-    }
-
-    return nullptr;
-}
-
-FontResource* ResourceManager::FindFont(const std::string& family, StyleFontStyle fontStyle,
-        StyleFontWeight fontWeight) {
-    auto font{ this->FindFontInternal(family, fontStyle, fontWeight) };
-
-    if (font) {
-        font->AddRef();
-    }
-
-    return font;
-}
-
 void ResourceManager::Attach() {
     for (auto& entry : this->images) {
         auto imageResource{ entry.second };
@@ -289,7 +208,6 @@ void ResourceManager::Destroy() {
     this->renderer = nullptr;
 
     this->images.clear();
-    this->fonts.clear();
     // TODO: clean up layers
     this->registeredImageUris.clear();
 
@@ -311,46 +229,6 @@ void ResourceManager::RemoveLayerResource(LayerResource* layerResource) {
         delete *it; // NOLINT(readability/pointer_notation)
         this->layers.erase(it);
     }
-}
-
-StyleFontStyle GetFontStyle(Object options, const char* name) {
-    if (options.Has(name)) {
-        auto prop{ options.Get(name) };
-
-        if (prop.IsString()) {
-            auto value{ prop.As<String>().Utf8Value() };
-
-            std::transform(value.begin(), value.end(), value.begin(), ::tolower);
-
-            if (value == StyleFontStyleToString(StyleFontStyleNormal)) {
-                return StyleFontStyleNormal;
-            } else if (value == StyleFontStyleToString(StyleFontStyleNormal)) {
-                return StyleFontStyleItalic;
-            }
-        }
-    }
-
-    return StyleFontStyleNormal;
-}
-
-StyleFontWeight GetFontWeight(Object options, const char* name) {
-    if (options.Has(name)) {
-        auto prop{ options.Get(name) };
-
-        if (prop.IsString()) {
-            auto value{ prop.As<String>().Utf8Value() };
-
-            std::transform(value.begin(), value.end(), value.begin(), ::tolower);
-
-            if (value == StyleFontWeightToString(StyleFontWeightNormal)) {
-                return StyleFontWeightNormal;
-            } else if (value == StyleFontWeightToString(StyleFontWeightBold)) {
-                return StyleFontWeightBold;
-            }
-        }
-    }
-
-    return StyleFontWeightNormal;
 }
 
 void ValidateStringArray(Napi::Env env, const Array& array) {

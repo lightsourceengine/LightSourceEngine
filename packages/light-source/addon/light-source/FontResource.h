@@ -8,7 +8,6 @@
 
 #include "StyleEnums.h"
 #include "Resource.h"
-#include <napi.h>
 #include <memory>
 #include <unordered_map>
 
@@ -21,35 +20,44 @@ class AsyncTaskQueue;
 class Task;
 class Font;
 
-class FontResource : public Resource {
+struct FontId {
+    std::string family;
+    StyleFontStyle style{};
+    StyleFontWeight weight{};
+
+    bool operator==(const FontId &other) const {
+        return this->family == other.family && this->style == other.style && this->weight == other.weight;
+    }
+
+    struct Hash {
+        std::size_t operator() (const FontId& id) const {
+            return std::hash<std::string>()(id.family) ^ static_cast<std::size_t>(id.style)
+                ^ static_cast<std::size_t>(id.weight);
+        }
+    };
+};
+
+class FontResource : public BaseResource<FontId> {
  public:
-    explicit FontResource(const std::string& id, const std::string& uri, const int32_t index,
-        const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight);
+    FontResource(const FontId& fontId, const std::string& uri, const int32_t index);
     virtual ~FontResource() = default;
 
-    static std::string MakeId(const std::string& family, StyleFontStyle fontStyle, StyleFontWeight fontWeight);
-    const std::string& GetFontFamily() const { return this->family; }
-    StyleFontStyle GetFontStyle() const { return this->fontStyle; }
-    StyleFontWeight GetFontWeight() const { return this->fontWeight; }
-
+    const std::string& GetFontFamily() const { return this->id.family; }
+    StyleFontStyle GetFontStyle() const { return this->id.style; }
+    StyleFontWeight GetFontWeight() const { return this->id.weight; }
+    int32_t GetIndex() const { return this->index; }
+    const std::string GetUri() const { return this->uri; }
     std::shared_ptr<Font> GetFont(int32_t fontSize) const;
 
-    Napi::Value ToObject(Napi::Env env) const;
+    void Load(Stage* stage);
+    void Attach(Stage* stage, Scene* scene) override;
 
  private:
     std::string uri;
-    int32_t index;
-    std::string family;
-    StyleFontStyle fontStyle{};
-    StyleFontWeight fontWeight{};
+    int32_t index{0};
     mutable std::shared_ptr<stbtt_fontinfo> fontInfo;
     mutable std::unordered_map<int32_t, std::shared_ptr<Font>> fontsBySize;
     std::shared_ptr<Task> task;
-
- private:
-    void Load(AsyncTaskQueue* taskQueue, const std::vector<std::string>& path);
-
-    friend ResourceManager;
 };
 
 } // namespace ls

@@ -91,6 +91,8 @@
         "light-source/StyleValue.cc",
         "light-source/Surface.cc",
         "light-source/Font.cc",
+        "light-source/FontStore.cc",
+        "light-source/FontStoreView.cc",
         "light-source/Resource.cc",
         "light-source/FontResource.cc",
         "light-source/ImageResource.cc",
@@ -103,6 +105,7 @@
         "light-source/ImageSceneNode.cc",
         "light-source/TextSceneNode.cc",
         "light-source/Scene.cc",
+        "light-source/Stage.cc",
         "light-source/Init.cc",
       ],
       "conditions": [

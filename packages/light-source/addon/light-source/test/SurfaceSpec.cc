@@ -5,7 +5,7 @@
  */
 
 #include "LightSourceSpec.h"
-#include "../Surface.h"
+#include <Surface.h>
 
 using Napi::Assert;
 using Napi::TestSuite;

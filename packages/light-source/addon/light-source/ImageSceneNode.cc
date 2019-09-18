@@ -5,6 +5,7 @@
  */
 
 #include "ImageSceneNode.h"
+#include "ResourceManager.h"
 #include "YGNode.h"
 #include "Scene.h"
 #include "Style.h"

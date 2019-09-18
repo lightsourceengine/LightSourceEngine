@@ -6,6 +6,7 @@
 
 #include "BoxSceneNode.h"
 #include "ImageResource.h"
+#include "ResourceManager.h"
 #include "Scene.h"
 #include "StyleUtils.h"
 #include <fmt/format.h>

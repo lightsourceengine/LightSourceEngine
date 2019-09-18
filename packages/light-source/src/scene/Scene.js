@@ -31,10 +31,9 @@ import { eventBubblePhase } from '../event/eventBubblePhase'
 const { now } = performance
 
 export class Scene extends SceneBase {
-  constructor (stage, stageAdapter, displayIndex, width, height, fullscreen) {
-    super(stageAdapter, displayIndex, width, height, fullscreen)
+  constructor (stage, displayIndex, width, height, fullscreen) {
+    super(stage, displayIndex, width, height, fullscreen)
 
-    this[$stage] = stage
     this[$displayIndex] = displayIndex
     this[$events] = new EventEmitter()
     this[$activeNode] = null
@@ -49,10 +48,6 @@ export class Scene extends SceneBase {
       fontSize: 16,
       backgroundColor: 'black'
     })
-  }
-
-  get stage () {
-    return this[$stage]
   }
 
   get root () {
@@ -99,17 +94,18 @@ export class Scene extends SceneBase {
     }
 
     const timestamp = now()
+    const { stage } = this
 
     if (activeNode) {
       setHasFocus(activeNode, false)
-      eventBubblePhase(this[$stage], this, new BlurEvent(timestamp))
+      eventBubblePhase(stage, this, new BlurEvent(timestamp))
     }
 
     this[$activeNode] = activeNode = value || null
 
     if (activeNode) {
       setHasFocus(activeNode, true)
-      eventBubblePhase(this[$stage], this, new FocusEvent(timestamp))
+      eventBubblePhase(stage, this, new FocusEvent(timestamp))
     }
   }
 

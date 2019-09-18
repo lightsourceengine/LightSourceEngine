@@ -10,8 +10,6 @@
 namespace ls {
 
 uint32_t Resource::nextListenerId{1};
-constexpr uint8_t DispatchStateDispatching = 1 << 0;
-constexpr uint8_t DispatchStateHasRemovals = 1 << 1;
 
 Resource::Resource(const std::string& id) : id(id) {
 }

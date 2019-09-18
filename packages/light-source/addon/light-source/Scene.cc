@@ -6,6 +6,8 @@
 
 #include "Scene.h"
 #include "RootSceneNode.h"
+#include "Stage.h"
+#include "ResourceManager.h"
 #include <napi-ext.h>
 #include <StageAdapter.h>
 #include <fmt/format.h>
@@ -32,9 +34,10 @@ Scene::Scene(const CallbackInfo& info) : ObjectWrap<Scene>(info) {
     auto env{ info.Env() };
     HandleScope scope(env);
 
-    auto stageAdapter{ ObjectWrap<StageAdapter>::Unwrap(info[0].As<Object>()) };
+    this->stage = Stage::Unwrap(info[0].As<Object>());
+    this->stage->Ref();
 
-    this->adapter = stageAdapter->CreateSceneAdapter({
+    this->adapter = stage->GetStageAdapter()->CreateSceneAdapter({
         info[1].As<Number>().Int32Value(),
         info[2].As<Number>().Int32Value(),
         info[3].As<Number>().Int32Value(),
@@ -70,6 +73,7 @@ Function Scene::Constructor(Napi::Env env) {
             InstanceValue(SymbolFor(env, "fullscreen"), Boolean::New(env, true), napi_writable),
             InstanceValue(SymbolFor(env, "root"), env.Null(), napi_writable),
             InstanceValue(SymbolFor(env, "resource"), env.Null(), napi_writable),
+            InstanceAccessor("stage", &Scene::GetStage, nullptr),
             InstanceAccessor("title", &Scene::GetTitle, &Scene::SetTitle),
             InstanceMethod("resize", &Scene::Resize),
             InstanceMethod(SymbolFor(env, "attach"), &Scene::Attach),
@@ -140,8 +144,14 @@ void Scene::Destroy(const CallbackInfo& info) {
         this->resourceManager = nullptr;
     }
 
-    this->isAttached = false;
     this->adapter.reset();
+
+    if (this->stage) {
+        this->stage->Unref();
+        this->stage = nullptr;
+    }
+
+    this->isAttached = false;
 }
 
 void Scene::Resize(const CallbackInfo& info) {
@@ -180,6 +190,10 @@ void Scene::Frame(const CallbackInfo& info) {
 
 Value Scene::GetTitle(const CallbackInfo& info) {
     return String::New(info.Env(), this->adapter->GetTitle());
+}
+
+Value Scene::GetStage(const CallbackInfo& info) {
+    return this->stage ? this->stage->Value() : info.Env().Null();
 }
 
 void Scene::SetTitle(const CallbackInfo& info, const Napi::Value& value) {

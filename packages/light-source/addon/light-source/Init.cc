@@ -8,7 +8,9 @@
 #include "Style.h"
 #include "StyleEnumMappings.h"
 #include "ResourceManager.h"
+#include "FontStoreView.h"
 #include "Scene.h"
+#include "Stage.h"
 #include "Style.h"
 #include "BoxSceneNode.h"
 #include "ImageSceneNode.h"
@@ -21,7 +23,9 @@ using Napi::Function;
 using Napi::HandleScope;
 using Napi::Object;
 using ls::ResourceManager;
+using ls::FontStoreView;
 using ls::Scene;
+using ls::Stage;
 using ls::Style;
 using ls::SceneNode;
 using ls::BoxSceneNode;
@@ -39,6 +43,8 @@ Object Init(Env env, Object exports) {
     ExportClass(&exports, Style::Constructor(env));
     ExportClass(&exports, ResourceManager::Constructor(env));
     ExportClass(&exports, Scene::Constructor(env));
+    ExportClass(&exports, Stage::Constructor(env));
+    ExportClass(&exports, FontStoreView::Constructor(env));
     ExportClass(&exports, BoxSceneNode::Constructor(env));
     ExportClass(&exports, ImageSceneNode::Constructor(env));
     ExportClass(&exports, TextSceneNode::Constructor(env));

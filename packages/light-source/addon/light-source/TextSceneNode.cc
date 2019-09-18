@@ -5,8 +5,11 @@
  */
 
 #include "TextSceneNode.h"
+#include "ResourceManager.h"
+#include "Stage.h"
 #include "Scene.h"
 #include "Font.h"
+#include "FontStore.h"
 #include "Surface.h"
 #include "StyleUtils.h"
 #include "LayerResource.h"
@@ -160,7 +163,7 @@ bool TextSceneNode::SetFont(Style* style) {
 
     auto fontSize{ ComputeIntegerPointValue(style->fontSize(), this->scene, defaultFontSize) };
 
-    auto fontResourceListener = [this, fontSize]() {
+    auto fontResourceListener = [this, fontSize](BaseResource<FontId>* resource) {
         this->fontResource->RemoveListener(this->fontResourceListenerId);
         this->fontResourceListenerId = 0;
 
@@ -191,7 +194,7 @@ bool TextSceneNode::SetFont(Style* style) {
 
     this->ClearFont();
 
-    auto newFontResource{ this->scene->GetResourceManager()->FindFont(
+    auto newFontResource{ this->scene->GetStage()->GetFontStore()->Find(
         style->fontFamily(),
         style->fontStyle(),
         style->fontWeight()) };

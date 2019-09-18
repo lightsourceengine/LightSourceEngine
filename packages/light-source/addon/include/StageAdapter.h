@@ -37,6 +37,11 @@ class StageAdapter {
      * Factory method for creating a SceneAdapter.
      */
     virtual std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) = 0;
+
+    /**
+     * Cast to a Napi reference object.
+     */
+    virtual Napi::Reference<Napi::Object>* AsReference() = 0;
 };
 
 } // namespace ls

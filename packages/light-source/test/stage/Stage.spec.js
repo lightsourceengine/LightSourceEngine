@@ -24,6 +24,7 @@ describe('Stage', () => {
 
       assert.isOk(testStage.input)
       assert.isOk(testStage.audio)
+      assert.isOk(testStage.font)
       assert.lengthOf(testStage.displays, 0)
       assert.equal(testStage.resourcePath, '')
       assert.equal(stage.fps, 60)
