@@ -78,7 +78,7 @@ void TextSceneNode::Paint(Renderer* renderer) {
     auto width{ std::min(YGNodeLayoutGetWidth(this->ygNode), static_cast<float>(this->scene->GetWidth())) };
     auto height{ std::min(YGNodeLayoutGetHeight(this->ygNode), static_cast<float>(this->scene->GetHeight())) };
 
-    if (width <= 0 || height <= 0 || this->textBlock.IsEmpty() || !myStyle->color()) {
+    if (!this->font || width <= 0 || height <= 0 || this->textBlock.IsEmpty() || !myStyle->color()) {
         return;
     }
 
@@ -114,7 +114,7 @@ void TextSceneNode::Paint(Renderer* renderer) {
 
         this->textBlock.Paint(
             surface,
-            CalculateLineHeight(this->style->lineHeight(), this->scene, font->GetLineHeight()),
+            CalculateLineHeight(this->style->lineHeight(), this->scene, this->font->GetLineHeight()),
             this->style->textAlign(),
             width);
     }
@@ -164,15 +164,16 @@ bool TextSceneNode::SetFont(Style* style) {
     auto fontSize{ ComputeIntegerPointValue(style->fontSize(), this->scene, defaultFontSize) };
 
     auto fontResourceListener = [this, fontSize](BaseResource<FontId>* resource) {
-        this->fontResource->RemoveListener(this->fontResourceListenerId);
-        this->fontResourceListenerId = 0;
-
         if (this->fontResource->IsReady()) {
             this->font = this->fontResource->GetFont(fontSize);
         } else if (this->fontResource->HasError()) {
             this->font = nullptr;
+        } else {
+            return;
         }
 
+        this->fontResource->RemoveListener(this->fontResourceListenerId);
+        this->fontResourceListenerId = 0;
         YGNodeMarkDirty(this->ygNode);
     };
 
@@ -300,18 +301,18 @@ YGSize TextSceneNode::Measure(float width, YGMeasureMode widthMode, float height
     this->textBlock.Clear();
     this->textBlock.SetFont(this->font);
 
-    if (this->layer) {
-        this->layer->MarkDirty();
-    }
-
-    if (this->style) {
+    if (this->style && this->font) {
         this->textBlock.Layout(
             TextTransform(this->Env(), this->style->textTransform(), this->text),
             width,
             height,
             this->style->textOverflow() == StyleTextOverflowEllipsis,
-            CalculateLineHeight(this->style->lineHeight(), this->scene, font->GetLineHeight()),
+            CalculateLineHeight(this->style->lineHeight(), this->scene, this->font->GetLineHeight()),
             GetMaxLines(this->style));
+    }
+
+    if (this->layer) {
+        this->layer->MarkDirty();
     }
 
     return { this->textBlock.GetComputedWidth(), this->textBlock.GetComputedHeight() };

@@ -31,7 +31,8 @@ struct FontId {
 
     struct Hash {
         std::size_t operator() (const FontId& id) const {
-            return std::hash<std::string>()(id.family) ^ static_cast<std::size_t>(id.style)
+            return std::hash<std::string>()(id.family)
+                ^ static_cast<std::size_t>(id.style)
                 ^ static_cast<std::size_t>(id.weight);
         }
     };

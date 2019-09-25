@@ -50,6 +50,7 @@ Function Stage::Constructor(Napi::Env env) {
         auto func = DefineClass(env, "StageBase", {
             InstanceAccessor(SymbolFor(env, "adapter"), &Stage::GetStageAdapter, &Stage::SetStageAdapter),
             InstanceAccessor(SymbolFor(env, "resourcePath"), &Stage::GetResourcePath, &Stage::SetResourcePath),
+            InstanceMethod(SymbolFor(env, "processEvents"), &Stage::ProcessEvents),
         });
 
         constructor.Reset(func, 1);
@@ -57,6 +58,12 @@ Function Stage::Constructor(Napi::Env env) {
     }
 
     return constructor.Value();
+}
+
+void Stage::ProcessEvents(const CallbackInfo& info) {
+    if (this->asyncTaskQueue) {
+        this->asyncTaskQueue->ProcessCompleteTasks();
+    }
 }
 
 Value Stage::GetStageAdapter(const CallbackInfo& info) {

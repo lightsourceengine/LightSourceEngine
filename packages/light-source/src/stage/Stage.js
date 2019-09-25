@@ -31,7 +31,7 @@ import {
   $resourcePath,
   $emit,
   $setResourcePath,
-  $font
+  $font, $processEvents
 } from '../util/InternalSymbols'
 import { AudioManager } from '../audio/AudioManager'
 import { isNumber, logexcept } from '../util'
@@ -235,6 +235,9 @@ export class Stage extends StageBase {
     const mainLoop = () => {
       const tick = now()
       const delta = tick - lastTick
+
+      // TODO: clean up adapter interface
+      this[$processEvents]()
 
       if (!adapter.processEvents() || this[$quitRequested]) {
         return

@@ -27,6 +27,7 @@ class Stage : public Napi::ObjectWrap<Stage> {
     void SetStageAdapter(const Napi::CallbackInfo& info, const Napi::Value& value);
     Napi::Value GetResourcePath(const Napi::CallbackInfo& info);
     void SetResourcePath(const Napi::CallbackInfo& info, const Napi::Value& value);
+    void ProcessEvents(const Napi::CallbackInfo& info);
 
     // native methods
 

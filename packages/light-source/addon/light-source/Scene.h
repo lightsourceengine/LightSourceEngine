@@ -8,6 +8,7 @@
 
 #include <napi.h>
 #include <memory>
+#include <algorithm>
 #include "SceneAdapter.h"
 
 namespace ls {
