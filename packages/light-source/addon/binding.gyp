@@ -72,7 +72,7 @@
         "deps/stb_image/include",
         "deps/nanosvg/include",
         "deps/stb_truetype/include",
-        "deps/utf8_v2_3_4/",
+        "deps/utfcpp/repo/source",
         "light-source-util",
         "deps/concurrentqueue/repo",
         "deps/filesystem/include",
