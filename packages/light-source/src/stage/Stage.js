@@ -119,6 +119,8 @@ export class Stage extends StageBase {
     if (this[$scene]) {
       this[$scene].resource[$resourcePath] = value
     }
+
+    this[$resourcePath] = value
   }
 
   on (id, listener) {
