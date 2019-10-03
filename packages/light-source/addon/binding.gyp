@@ -74,7 +74,7 @@
         "deps/stb_truetype/include",
         "deps/utf8_v2_3_4/",
         "light-source-util",
-        "deps/concurrentqueue/include",
+        "deps/concurrentqueue/repo",
         "deps/filesystem/include",
       ],
       "dependencies": [

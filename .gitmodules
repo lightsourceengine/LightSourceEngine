@@ -1,3 +1,6 @@
 [submodule "packages/light-source/addon/deps/filesystem/repo"]
 	path = packages/light-source/addon/deps/filesystem/repo
 	url = https://github.com/gulrak/filesystem.git
+[submodule "packages/light-source/addon/deps/concurrentqueue/repo"]
+	path = packages/light-source/addon/deps/concurrentqueue/repo
+	url = https://github.com/cameron314/concurrentqueue.git
