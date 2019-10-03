@@ -33,9 +33,9 @@ FontResource::FontResource(const FontId& fontId, const std::string& uri, const i
 
 void FontResource::Load(Stage* stage) {
     auto initialState{ ResourceStateLoading };
-    auto uri{ this->uri };
-    auto index{ this-> index };
-    auto path{ stage->GetResourcePath() };
+    const auto uri{ this->uri };
+    const auto index{ this-> index };
+    const auto path{ stage->GetResourcePath() };
 
     assert(!this->task);
 
@@ -50,7 +50,7 @@ void FontResource::Load(Stage* stage) {
                 // TODO: assert(this->resourceState != ResourceStateLoading)
                 // TODO: assert(this->GetRefCount() > 0)
 
-                auto fontTaskResult{ std::static_pointer_cast<FontTaskResult>(taskResult) };
+                const auto fontTaskResult{ std::static_pointer_cast<FontTaskResult>(taskResult) };
 
                 this->fontInfo = fontTaskResult->fontInfo;
                 this->task = nullptr;
@@ -61,7 +61,7 @@ void FontResource::Load(Stage* stage) {
                 fmt::println("FontResource.Load(): Error: {}", errorMessage);
                 this->SetState(ResourceStateError, true);
             });
-    } catch (std::exception& e) {
+    } catch (const std::exception&) {
         initialState = ResourceStateError;
     }
 
@@ -84,20 +84,20 @@ std::shared_ptr<Font> FontResource::GetFont(int32_t fontSize) const {
     // TODO: assert font size
     // TODO: assert fontInfo / ready
 
-    auto it{ this->fontsBySize.find(fontSize) };
+    const auto it{ this->fontsBySize.find(fontSize) };
 
     if (it == this->fontsBySize.end()) {
-        std::shared_ptr<Font> font;
-
         try {
-            font = std::make_shared<Font>(this->fontInfo, fontSize);
+            const auto font{ std::make_shared<Font>(this->fontInfo, fontSize) };
+
             this->fontsBySize.insert(std::make_pair(fontSize, font));
+
+            return font;
         } catch (std::exception& e) {
             fmt::println("Failed to create font {} @ {}px. Error: {}", this->id.family, fontSize, e.what());
-            font.reset();
-        }
 
-        return font;
+            return {};
+        }
     }
 
     return it->second;
@@ -105,23 +105,18 @@ std::shared_ptr<Font> FontResource::GetFont(int32_t fontSize) const {
 
 std::shared_ptr<TaskResult> LoadFont(const std::vector<std::string>& path, const std::string& filename,
         const int32_t index) {
-    auto result{ std::make_shared<FontTaskResult>() };
-    std::string resolvedFilename;
-
-    if (IsResourceUri(filename)) {
-        resolvedFilename = FindFile(GetResourceUriPath(filename), {}, path);
-    } else {
-        resolvedFilename = filename;
-    }
-
-    FileHandle file(fopen(resolvedFilename.c_str(), "rb"), fclose);
+    const auto result{ std::make_shared<FontTaskResult>() };
+    const auto resolvedFilename{
+        IsResourceUri(filename) ? FindFile(GetResourceUriPath(filename), {}, path) : fs::path(filename)
+    };
+    const FileHandle file(fopen(resolvedFilename.c_str(), "rb"), fclose);
 
     if (!file) {
         throw std::runtime_error(fmt::format("Failed to open ttf file: {}", filename));
     }
 
     fseek(file.get(), 0, SEEK_END);
-    auto size{ static_cast<size_t>(ftell(file.get())) };
+    const auto size{ static_cast<size_t>(ftell(file.get())) };
     fseek(file.get(), 0, SEEK_SET);
 
     std::unique_ptr<uint8_t[]> ttf(new uint8_t[size]);
@@ -130,7 +125,7 @@ std::shared_ptr<TaskResult> LoadFont(const std::vector<std::string>& path, const
         throw std::runtime_error(fmt::format("Failed to read file: {}", filename));
     }
 
-    auto offset{ stbtt_GetFontOffsetForIndex(ttf.get(), index) };
+    const auto offset{ stbtt_GetFontOffsetForIndex(ttf.get(), index) };
 
     if (offset == -1) {
         throw std::runtime_error("Cannot find font at index.");

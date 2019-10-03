@@ -43,6 +43,7 @@
       ],
       "include_dirs": [
         "include",
+        "deps/filesystem/include",
         "deps/fmt/include",
       ],
       "dependencies": [
@@ -74,6 +75,7 @@
         "deps/utf8_v2_3_4/",
         "light-source-util",
         "deps/concurrentqueue/include",
+        "deps/filesystem/include",
       ],
       "dependencies": [
         "addon/deps/yoga/yoga.gyp:*",

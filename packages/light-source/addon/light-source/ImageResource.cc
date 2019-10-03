@@ -66,7 +66,7 @@ void ImageResource::Load(AsyncTaskQueue* taskQueue, Renderer* renderer,
         const std::vector<std::string>& extensions, const std::vector<std::string>& resourcePath) {
     auto initialState{ ResourceStateLoading };
     const auto textureFormat{ renderer->GetTextureFormat() };
-    auto uri{ this->uri };
+    const auto uri{ this->uri };
 
     try {
         this->task = std::make_shared<Task>(
@@ -102,7 +102,7 @@ void ImageResource::Load(AsyncTaskQueue* taskQueue, Renderer* renderer,
         if (this->task) {
             taskQueue->Submit(this->task);
         }
-    } catch (std::exception& e) {
+    } catch (const std::exception&) {
         initialState = ResourceStateError;
     }
 
@@ -135,7 +135,7 @@ void ImageResource::Detach(Renderer* renderer) {
 std::shared_ptr<ImageInfo> DecodeImage(const ImageUri& uri, const std::vector<std::string>& extensions,
              const std::vector<std::string>& resourcePath, PixelFormat textureFormat) {
     std::shared_ptr<ImageInfo> result;
-    auto uriOrFilename{ uri.GetUri() };
+    const auto& uriOrFilename{ uri.GetUri() };
 
     // TODO: support base64 encoded svgs
     // TODO: support url encoding
@@ -153,15 +153,12 @@ std::shared_ptr<ImageInfo> DecodeImage(const ImageUri& uri, const std::vector<st
             uri.GetWidth(),
             uri.GetHeight());
     } else {
-        std::string filename;
-
-        if (IsResourceUri(uriOrFilename)) {
-            filename = FindFile(GetResourceUriPath(uriOrFilename), extensions, resourcePath);
-        } else {
-            filename = FindFile(uriOrFilename, extensions);
-        }
-
-        FileHandle file(fopen(filename.c_str(), "rb"), fclose);
+        const fs::path filename {
+            IsResourceUri(uriOrFilename) ?
+                FindFile(GetResourceUriPath(uriOrFilename), extensions, resourcePath)
+                    : FindFile(uriOrFilename, extensions)
+        };
+        const FileHandle file(fopen(filename.c_str(), "rb"), fclose);
 
         if (!file) {
             throw std::runtime_error(fmt::format("Could not open image file: {}", uriOrFilename));
@@ -171,7 +168,7 @@ std::shared_ptr<ImageInfo> DecodeImage(const ImageUri& uri, const std::vector<st
         int32_t width{};
         int32_t height{};
 
-        auto data{ stbi_load_from_file(file.get(), &width, &height, &components, 4) };
+        const auto data{ stbi_load_from_file(file.get(), &width, &height, &components, 4) };
 
         if (data) {
             result = std::make_shared<ImageInfo>();
@@ -200,7 +197,7 @@ std::shared_ptr<ImageInfo> DecodeImage(const ImageUri& uri, const std::vector<st
 
 std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage* svgImage, const std::string& uri, const int32_t scaleWidth,
         const int32_t scaleHeight) {
-    NSVGimageHandle svg(svgImage, nsvgDelete);
+    const NSVGimageHandle svg(svgImage, nsvgDelete);
 
     // XXX: nsvgParse* methods do not check if parsing failed. NSVGImage can be left in a partially filled out state,
     // resulting in a bad render. Negative width and height are an indication that parsing failed, but that does not
@@ -210,8 +207,8 @@ std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage* svgImage, const std::string
         throw std::runtime_error(fmt::format("Failed to parse svg image: {}", uri));
     }
 
-    auto svgWidth{ static_cast<int32_t>(svg->width) };
-    auto svgHeight{ static_cast<int32_t>(svg->height) };
+    const auto svgWidth{ static_cast<int32_t>(svg->width) };
+    const auto svgHeight{ static_cast<int32_t>(svg->height) };
 
     if (svgWidth < 0 || svgHeight < 0) {
         throw std::runtime_error(fmt::format("Failed to parse svg image: {}", uri));
@@ -238,13 +235,13 @@ std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage* svgImage, const std::string
         scaleY = 1.0f;
     }
 
-    NSVGrasterizerHandle rasterizer(nsvgCreateRasterizer(), nsvgDeleteRasterizer);
+    const NSVGrasterizerHandle rasterizer(nsvgCreateRasterizer(), nsvgDeleteRasterizer);
 
     if (rasterizer == nullptr) {
         throw std::runtime_error(fmt::format("Failed to create rasterizer for svg image: {}", uri));
     }
 
-    std::shared_ptr<uint8_t> data(new uint8_t [width * height * 4], [](uint8_t* p){ delete [] p; });
+    const std::shared_ptr<uint8_t> data(new uint8_t [width * height * 4], [](uint8_t* p){ delete [] p; });
 
     nsvgRasterizeFull(rasterizer.get(),
                       svg.get(),
@@ -257,7 +254,7 @@ std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage* svgImage, const std::string
                       height,
                       width * 4);
 
-    auto image{ std::make_shared<ImageInfo>() };
+    const auto image{ std::make_shared<ImageInfo>() };
 
     image->width = width,
     image->height = height,
@@ -277,10 +274,10 @@ EdgeRect ToCapInsets(const Object& spec) {
 }
 
 ImageUri ImageUri::FromObject(const Object& spec) {
-    auto uri{ ObjectGetString(spec, "uri") };
+    const auto uri{ ObjectGetString(spec, "uri") };
+    const auto id{ ObjectGetStringOrEmpty(spec, "id") };
     auto width{ ObjectGetNumberOrDefault(spec, "width", 0) };
     auto height{ ObjectGetNumberOrDefault(spec, "height", 0) };
-    auto id{ ObjectGetStringOrEmpty(spec, "id") };
 
     if (width < 0) {
         width = 0;

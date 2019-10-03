@@ -24,8 +24,8 @@ class ImageUri {
         : uri(uri), id(id), width(width), height(height), capInsets(capInsets),
           hasCapInsets(capInsets.top || capInsets.right || capInsets.bottom || capInsets.left) {}
 
-    const std::string GetId() const { return this->id.empty() ? this->uri : this->id; }
-    const std::string GetUri() const { return this->uri; }
+    const std::string& GetId() const { return this->id.empty() ? this->uri : this->id; }
+    const std::string& GetUri() const { return this->uri; }
     int32_t GetWidth() const { return this->width; }
     int32_t GetHeight() const { return this->height; }
     const EdgeRect& GetCapInsets() const { return this->capInsets; }

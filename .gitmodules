@@ -1,0 +1,3 @@
+[submodule "packages/light-source/addon/deps/filesystem/repo"]
+	path = packages/light-source/addon/deps/filesystem/repo
+	url = https://github.com/gulrak/filesystem.git

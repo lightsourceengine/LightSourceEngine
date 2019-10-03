@@ -142,6 +142,19 @@ class Assert {
         }
     }
 
+    /**
+     * Checks that calling the passed in lambda function will throw an std::exception.
+     */
+    void Throws(std::function<void()> func) const {
+        try {
+            func();
+        } catch (const std::exception&) {
+            return;
+        }
+
+        NAPI_THROW_VOID(Napi::Error::New(this->env, "Expected function to throw an std::exception."));
+    }
+
  private:
     Napi::Env env;
 };
