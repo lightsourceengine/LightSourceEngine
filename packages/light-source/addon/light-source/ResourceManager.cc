@@ -10,7 +10,7 @@
 #include "LayerResource.h"
 #include <algorithm>
 #include <algorithm>
-#include <fmt/format.h>
+#include <fmt/println.h>
 
 using Napi::Array;
 using Napi::CallbackInfo;

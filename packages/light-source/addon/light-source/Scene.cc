@@ -10,7 +10,7 @@
 #include "ResourceManager.h"
 #include <napi-ext.h>
 #include <StageAdapter.h>
-#include <fmt/format.h>
+#include <fmt/println.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;

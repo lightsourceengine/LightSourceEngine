@@ -5,7 +5,7 @@
  */
 
 #include "SDLSceneAdapter.h"
-#include <fmt/format.h>
+#include <fmt/println.h>
 
 namespace ls {
 

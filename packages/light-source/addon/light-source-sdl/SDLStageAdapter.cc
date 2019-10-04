@@ -9,7 +9,7 @@
 #include "SDLKeyboard.h"
 #include "SDLGamepad.h"
 #include <unordered_set>
-#include <fmt/format.h>
+#include <fmt/println.h>
 #include <Timer.h>
 
 using Napi::Array;

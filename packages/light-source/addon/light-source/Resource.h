@@ -11,7 +11,7 @@
 #include <vector>
 #include <utility>
 #include <string>
-#include <fmt/format.h>
+#include <fmt/println.h>
 
 namespace ls {
 

@@ -10,7 +10,7 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
 #include <Timer.h>
-#include <fmt/format.h>
+#include <fmt/println.h>
 
 using Napi::Boolean;
 using Napi::Buffer;

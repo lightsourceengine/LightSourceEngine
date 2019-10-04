@@ -10,7 +10,7 @@
 #include "Font.h"
 #include "Stage.h"
 #include <stb_truetype.h>
-#include <fmt/format.h>
+#include <fmt/println.h>
 #include <cstring>
 
 namespace ls {

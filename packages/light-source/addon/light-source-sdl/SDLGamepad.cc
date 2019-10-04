@@ -5,7 +5,7 @@
  */
 
 #include "SDLGamepad.h"
-#include <fmt/format.h>
+#include <fmt/println.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;

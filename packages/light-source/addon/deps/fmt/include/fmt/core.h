@@ -1386,13 +1386,6 @@ inline void print(const S& format_str, const Args&... args) {
          internal::make_args_checked(format_str, args...));
 }
 
-template <typename S, typename... Args,
-          FMT_ENABLE_IF(internal::is_string<S>::value)>
-inline void println(const S& format_str, const Args&... args) {
-  vprint(to_string_view(format_str),
-         internal::make_args_checked(format_str, args...));
-  std::fputc('\n', stdout);
-}
 FMT_END_NAMESPACE
 
 #endif  // FMT_CORE_H_

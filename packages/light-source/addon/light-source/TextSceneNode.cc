@@ -16,7 +16,7 @@
 #include "Timer.h"
 #include <Utils.h>
 #include <napi-ext.h>
-#include <fmt/format.h>
+#include <fmt/println.h>
 
 using Napi::Array;
 using Napi::CallbackInfo;
