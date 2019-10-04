@@ -9,7 +9,7 @@
 
 namespace Napi {
 
-Symbol SymbolFor(Napi::Env env, const char* key) {
+Symbol SymbolFor(const Napi::Env& env, const char* key) {
     static FunctionReference symbolFor;
 
     if (symbolFor.IsEmpty()) {
@@ -48,7 +48,7 @@ std::string ObjectGetStringOrEmpty(const Object& object, const char* key) {
     return value.As<Napi::String>();
 }
 
-std::string ToLowerCase(Napi::Env env, Napi::String text) {
+std::string ToLowerCase(const Napi::Env& env, const Napi::String& text) {
     HandleScope scope(env);
     static FunctionReference toLowerCase;
 
@@ -64,7 +64,7 @@ std::string ToLowerCase(Napi::Env env, Napi::String text) {
     return toLowerCase.Call(text, {}).As<String>();
 }
 
-std::string ToUpperCase(Napi::Env env, Napi::String text) {
+std::string ToUpperCase(const Napi::Env& env, const Napi::String& text) {
     HandleScope scope(env);
     static FunctionReference toUpperCase;
 

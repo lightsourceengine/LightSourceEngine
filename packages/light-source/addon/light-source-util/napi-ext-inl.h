@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <algorithm>
+
 namespace Napi {
 
 template<typename T>
@@ -24,14 +26,13 @@ T ObjectGetNumberOrDefault(const Object& object, const char* key, T defaultValue
 }
 
 template<typename Iterable>
-Napi::Array StringArray(Napi::Env env, const Iterable& iterable) {
+Napi::Array StringArray(const Napi::Env& env, const Iterable& iterable) {
     auto result{ Array::New(env) };
-    auto p{ iterable.begin() };
+    const auto appendString = [&env, &result](const std::string& value) {
+        result[result.Length()] = String::New(env, value);
+    };
 
-    while (p != iterable.end()) {
-        result[result.Length()] = String::New(env, *p);
-        p++;
-    }
+    std::for_each(std::begin(iterable), std::end(iterable), appendString);
 
     return result;
 }

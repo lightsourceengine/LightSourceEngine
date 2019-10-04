@@ -22,7 +22,7 @@ using Napi::Value;
 
 namespace ls {
 
-int SceneNode::instanceCount{0};
+int32_t SceneNode::instanceCount{0};
 
 SceneNode::SceneNode(const CallbackInfo& info) {
     auto env{ info.Env() };

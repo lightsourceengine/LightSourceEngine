@@ -16,7 +16,7 @@ PixelFormat ToPixelFormat(Uint32 pixelFormat);
 void SetTextureTintColor(SDL_Texture* texture, const int64_t color);
 
 uint32_t SDLRenderer::nextTextureId{ 1 };
-const int64_t COLOR32{ 0xFFFFFFFF };
+constexpr int64_t COLOR32{ 0xFFFFFFFF };
 
 SDLRenderer::SDLRenderer() {
     SDL_RendererInfo info;
@@ -448,7 +448,7 @@ void SDLRenderer::DestroyTexture(const uint32_t textureId) {
 void SDLRenderer::SetRenderDrawColor(const int64_t color) {
     if (this->drawColor != color) {
         // TODO: consider opacity
-        if (isBigEndian) {
+        if (IsBigEndian()) {
             SDL_SetRenderDrawColor(
                 this->renderer,
                 (color & 0xFF00) >> 8,
@@ -546,7 +546,7 @@ PixelFormat ToPixelFormat(Uint32 pixelFormat) {
 inline
 void SetTextureTintColor(SDL_Texture* texture, const int64_t color) {
     // TODO: consider opacity
-    if (isBigEndian) {
+    if (IsBigEndian()) {
         SDL_SetTextureColorMod(texture, (color & 0xFF00) >> 8, (color & 0xFF0000) >> 16, (color & 0xFF000000) >> 24);
         SDL_SetTextureAlphaMod(texture, color > COLOR32 ? static_cast<uint8_t>(color & 0xFF) : 255);
     } else {

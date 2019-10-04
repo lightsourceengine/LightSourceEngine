@@ -10,10 +10,25 @@
 
 namespace ls {
 
+// Implementation from C++20 endian proposal: http://howardhinnant.github.io/endian.html
+enum class endian {
+#ifdef _WIN32
+    little = 0,
+    big    = 1,
+    native = little
+#else
+    little = __ORDER_LITTLE_ENDIAN__,
+    big    = __ORDER_BIG_ENDIAN__,
+    native = __BYTE_ORDER__
+#endif
+};
+
 /**
- * Endianness of the runtime.
+ * Check if ths CPU is big endian.
  */
-extern const bool isBigEndian;
+constexpr bool IsBigEndian() {
+    return endian::native == endian::big;
+}
 
 /**
  * In place conversion of a buffer of RGBA color values to the specified pixel format.

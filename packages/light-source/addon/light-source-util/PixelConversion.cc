@@ -7,21 +7,13 @@
 #include "PixelConversion.h"
 #include <utility>
 
-const auto R{ 0 };
-const auto G{ 1 };
-const auto B{ 2 };
-const auto A{ 3 };
-const auto NUM_IMAGE_COMPONENTS{ 4 };
-
-union {
-    uint32_t i;
-    char c[4];
-} bint = {0x01020304};
+constexpr auto R{ 0 };
+constexpr auto G{ 1 };
+constexpr auto B{ 2 };
+constexpr auto A{ 3 };
+constexpr auto NUM_IMAGE_COMPONENTS{ 4 };
 
 namespace ls {
-
-// TODO: use std::endian
-const bool isBigEndian{ (bint.c[0] == 1) };
 
 inline
 void ToFormatLE(uint8_t* bytes, int32_t len, PixelFormat format) {
@@ -106,7 +98,7 @@ void ToFormatBE(uint8_t* bytes, int32_t len, PixelFormat format) {
 }
 
 void ConvertToFormat(uint8_t* bytes, int32_t len, PixelFormat format) {
-    if (isBigEndian) {
+    if (IsBigEndian()) {
        ToFormatBE(bytes, len, format);
     } else {
        ToFormatLE(bytes, len, format);
