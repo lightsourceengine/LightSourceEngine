@@ -20,7 +20,7 @@ using Napi::ObjectWrap;
 namespace ls {
 
 void AssignImage(ImageResource** targetImage, ImageResource* newImage);
-const int64_t white{ 0xFFFFFFFF };
+constexpr int64_t white{ 0xFFFFFFFF };
 
 BoxSceneNode::BoxSceneNode(const CallbackInfo& info) : ObjectWrap<BoxSceneNode>(info), SceneNode(info) {
 }
@@ -43,17 +43,17 @@ Function BoxSceneNode::Constructor(Napi::Env env) {
 }
 
 void BoxSceneNode::Paint(Renderer* renderer) {
-    auto boxStyle{ this->GetStyleOrEmpty() };
+    const auto boxStyle{ this->GetStyleOrEmpty() };
 
     if (boxStyle->IsLayoutOnly()) {
         SceneNode::Paint(renderer);
         return;
     }
 
-    auto x{ YGNodeLayoutGetLeft(this->ygNode) };
-    auto y{ YGNodeLayoutGetTop(this->ygNode) };
-    auto width{ YGNodeLayoutGetWidth(this->ygNode) };
-    auto height{ YGNodeLayoutGetHeight(this->ygNode) };
+    const auto x{ YGNodeLayoutGetLeft(this->ygNode) };
+    const auto y{ YGNodeLayoutGetTop(this->ygNode) };
+    const auto width{ YGNodeLayoutGetWidth(this->ygNode) };
+    const auto height{ YGNodeLayoutGetHeight(this->ygNode) };
 
     auto dx{ 0.f };
     auto dy{ 0.f };
@@ -61,8 +61,8 @@ void BoxSceneNode::Paint(Renderer* renderer) {
     auto dh{ 0.f };
 
     if (boxStyle->backgroundClip() == StyleBackgroundClipPaddingBox && boxStyle->HasBorder()) {
-        auto borderLeft{ YGNodeLayoutGetBorder(this->ygNode, YGEdgeLeft) };
-        auto borderTop { YGNodeLayoutGetBorder(this->ygNode, YGEdgeTop) };
+        const auto borderLeft{ YGNodeLayoutGetBorder(this->ygNode, YGEdgeLeft) };
+        const auto borderTop { YGNodeLayoutGetBorder(this->ygNode, YGEdgeTop) };
 
         dx = borderLeft;
         dy = borderTop;
@@ -78,32 +78,33 @@ void BoxSceneNode::Paint(Renderer* renderer) {
                                 style->backgroundColor()->Get());
         }
     } else if (this->backgroundImage && this->backgroundImage->Sync(renderer)) {
-        float fitWidth;
-        float fitHeight;
+        YGSize fitDimensions;
 
         if (boxStyle->backgroundWidth() || boxStyle->backgroundHeight()) {
-            fitWidth = CalculateBackgroundDimension(
-                boxStyle->backgroundWidth(), backgroundImage->GetWidth(), width, this->scene);
-            fitHeight = CalculateBackgroundDimension(
-                boxStyle->backgroundHeight(), backgroundImage->GetHeight(), height, this->scene);
+            fitDimensions = {
+                CalculateBackgroundDimension(
+                    boxStyle->backgroundWidth(), backgroundImage->GetWidth(), width, this->scene),
+                CalculateBackgroundDimension(
+                    boxStyle->backgroundHeight(), backgroundImage->GetHeight(), height, this->scene)
+            };
         } else {
-            CalculateObjectFitDimensions(
-                boxStyle->backgroundFit(), this->backgroundImage, width, height, &fitWidth, &fitHeight);
+            fitDimensions = CalculateObjectFitDimensions(
+                boxStyle->backgroundFit(), this->backgroundImage, width, height);
         }
 
-        auto positionX{ x + dx
-            + CalculateObjectPosition(boxStyle->backgroundPositionX(), true, width, fitWidth, 0, this->scene) };
-        auto positionY{ y + dy
-            + CalculateObjectPosition(boxStyle->backgroundPositionY(), false, height, fitHeight, 0, this->scene) };
+        const auto positionX{ x + dx + CalculateObjectPosition(
+            boxStyle->backgroundPositionX(), true, width, fitDimensions.width, 0, this->scene) };
+        const auto positionY{ y + dy + CalculateObjectPosition(
+            boxStyle->backgroundPositionY(), false, height, fitDimensions.height, 0, this->scene) };
 
         renderer->PushClipRect({ x + dx, y + dy, width + dw, height + dh });
 
-        auto textureId{ this->backgroundImage->GetTextureId() };
-        Rect destRect{
+        const auto textureId{ this->backgroundImage->GetTextureId() };
+        const Rect destRect{
             YGRoundValueToPixelGrid(positionX, 1.f, false, false),
             YGRoundValueToPixelGrid(positionY, 1.f, false, false),
-            YGRoundValueToPixelGrid(fitWidth, 1.f, false, false),
-            YGRoundValueToPixelGrid(fitHeight, 1.f, false, false),
+            YGRoundValueToPixelGrid(fitDimensions.width, 1.f, false, false),
+            YGRoundValueToPixelGrid(fitDimensions.height, 1.f, false, false),
         };
 
         // TODO: mix opacity
@@ -160,15 +161,15 @@ void BoxSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
     }
 
     if (newStyle->HasBorderRadius() && (newStyle->backgroundColor() || newStyle->borderColor())) {
-        auto borderRadius{ ComputeIntegerPointValue(
+        const auto borderRadius{ ComputeIntegerPointValue(
             newStyle->borderRadius(), this->scene, 0) };
-        auto borderRadiusTopLeft{ ComputeIntegerPointValue(
+        const auto borderRadiusTopLeft{ ComputeIntegerPointValue(
             newStyle->borderRadiusTopLeft(), this->scene, borderRadius) };
-        auto borderRadiusTopRight{ ComputeIntegerPointValue(
+        const auto borderRadiusTopRight{ ComputeIntegerPointValue(
             newStyle->borderRadiusTopRight(), this->scene, borderRadius) };
-        auto borderRadiusBottomLeft{ ComputeIntegerPointValue(
+        const auto borderRadiusBottomLeft{ ComputeIntegerPointValue(
             newStyle->borderRadiusBottomLeft(), this->scene, borderRadius) };
-        auto borderRadiusBottomRight{ ComputeIntegerPointValue(
+        const auto borderRadiusBottomRight{ ComputeIntegerPointValue(
             newStyle->borderRadiusBottomRight(), this->scene, borderRadius) };
 
         ImageResource* newRoundedRectImage;
@@ -180,7 +181,7 @@ void BoxSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
         };
 
         if (newStyle->backgroundColor()) {
-            auto borderRadiusImageId{
+            const auto borderRadiusImageId{
                 fmt::format("@border-radius:{},{},{},{}",
                     borderRadiusTopLeft,
                     borderRadiusTopRight,
@@ -206,9 +207,9 @@ void BoxSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
         ImageResource* newRoundedRectStrokeImage;
 
         if (newStyle->borderColor() && newStyle->border()) {
-            auto stroke{ ComputeIntegerPointValue(newStyle->border(), this->scene, 0) };
+            const auto stroke{ ComputeIntegerPointValue(newStyle->border(), this->scene, 0) };
 
-            auto borderRadiusStrokeImageId{
+            const auto borderRadiusStrokeImageId{
                 fmt::format("@border-radius-stroke:{},{},{},{},{}",
                     borderRadiusTopLeft,
                     borderRadiusTopRight,
@@ -220,7 +221,7 @@ void BoxSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
             newRoundedRectStrokeImage = this->scene->GetResourceManager()->GetImage(borderRadiusStrokeImageId);
 
             if (!newRoundedRectStrokeImage) {
-                auto uri{ CreateRoundedRectangleUri(borderRadiusTopLeft, borderRadiusTopRight,
+                const auto uri{ CreateRoundedRectangleUri(borderRadiusTopLeft, borderRadiusTopRight,
                     borderRadiusBottomRight, borderRadiusBottomLeft, stroke) };
 
                 newRoundedRectStrokeImage = this->scene->GetResourceManager()->LoadImage(

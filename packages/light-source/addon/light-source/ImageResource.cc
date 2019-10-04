@@ -29,7 +29,7 @@ using NSVGrasterizerHandle = std::unique_ptr<NSVGrasterizer, decltype(&nsvgDelet
 
 float ScaleFactor(const int, const int);
 std::shared_ptr<ImageInfo> DecodeImage(const ImageUri&, const std::vector<std::string>&,
-    const std::vector<std::string>&, PixelFormat);
+    const std::vector<std::string>&, const PixelFormat);
 std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage* svgImage, const std::string& uri, const int32_t scaleWidth,
         const int32_t scaleHeight);
 
@@ -109,7 +109,7 @@ void ImageResource::Load(AsyncTaskQueue* taskQueue, Renderer* renderer,
     this->SetStateAndNotifyListeners(initialState);
 }
 
-Value ImageResource::ToObject(Napi::Env env) const {
+Value ImageResource::ToObject(const Napi::Env& env) const {
     EscapableHandleScope scope(env);
     auto font{ Object::New(env) };
 
@@ -133,7 +133,7 @@ void ImageResource::Detach(Renderer* renderer) {
 }
 
 std::shared_ptr<ImageInfo> DecodeImage(const ImageUri& uri, const std::vector<std::string>& extensions,
-             const std::vector<std::string>& resourcePath, PixelFormat textureFormat) {
+             const std::vector<std::string>& resourcePath, const PixelFormat textureFormat) {
     std::shared_ptr<ImageInfo> result;
     const auto& uriOrFilename{ uri.GetUri() };
 
@@ -254,14 +254,7 @@ std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage* svgImage, const std::string
                       height,
                       width * 4);
 
-    const auto image{ std::make_shared<ImageInfo>() };
-
-    image->width = width,
-    image->height = height,
-    image->data = data;
-    image->format = PixelFormatRGBA;
-
-    return image;
+    return std::make_shared<ImageInfo>(width, height, PixelFormatRGBA, data);
 }
 
 EdgeRect ToCapInsets(const Object& spec) {
@@ -276,16 +269,8 @@ EdgeRect ToCapInsets(const Object& spec) {
 ImageUri ImageUri::FromObject(const Object& spec) {
     const auto uri{ ObjectGetString(spec, "uri") };
     const auto id{ ObjectGetStringOrEmpty(spec, "id") };
-    auto width{ ObjectGetNumberOrDefault(spec, "width", 0) };
-    auto height{ ObjectGetNumberOrDefault(spec, "height", 0) };
-
-    if (width < 0) {
-        width = 0;
-    }
-
-    if (height < 0) {
-        height = 0;
-    }
+    const auto width{ std::max(ObjectGetNumberOrDefault(spec, "width", 0), 0) };
+    const auto height{ std::max(ObjectGetNumberOrDefault(spec, "height", 0), 0) };
 
     if (spec.Has("capInsets") && spec.Get("capInsets").IsObject()) {
         return ImageUri(uri, id, width, height, ToCapInsets(spec.Get("capInsets").As<Object>()));
@@ -294,7 +279,7 @@ ImageUri ImageUri::FromObject(const Object& spec) {
     return ImageUri(uri, id, width, height);
 }
 
-Value ImageUri::ToObject(Napi::Env env) const {
+Value ImageUri::ToObject(const Napi::Env& env) const {
     EscapableHandleScope scope(env);
     auto imageUri{ Object::New(env) };
 

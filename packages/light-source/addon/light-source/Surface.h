@@ -19,7 +19,7 @@ class Surface {
     explicit Surface(Surface&& other);
 
     void Blit(const int32_t x, const int32_t y, const Surface& surface) const;
-    void FillTransparent();
+    void FillTransparent() const;
 
     bool IsEmpty() const { return this->width == 0 || this->height == 0; }
     int32_t Width() const { return this->width; }

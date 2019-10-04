@@ -32,19 +32,19 @@ template<typename E>
 void AddMapping(Object target, const std::string& basePropertyName, const char* (*toString)(E)) {
     auto env{target.Env()};
     HandleScope scope{env};
-    auto enumCount{static_cast<uint32_t>(Count<E>())};
+    const auto enumCount{static_cast<uint32_t>(Count<E>())};
     auto fromStringPairs{Array::New(env, enumCount)};
     auto toStringPairs{Array::New(env, enumCount)};
 
     for (uint32_t i = 0; i < enumCount; i++) {
-        auto enumNumberValue = Number::New(env, i);
-        auto enumStringValue = String::New(env, toString(static_cast<E>(i)));
+        const auto enumNumberValue{ Number::New(env, i) };
+        const auto enumStringValue{ String::New(env, toString(static_cast<E>(i))) };
 
         fromStringPairs[i] = KeyValuePair(env, enumStringValue, enumNumberValue);
         toStringPairs[i] = KeyValuePair(env, enumNumberValue, enumStringValue);
     }
 
-    auto map = env.Global().Get("Map").As<Function>();
+    const auto map{ env.Global().Get("Map").As<Function>() };
 
     target[basePropertyName + "ToString"] = map.New({toStringPairs});
     target[basePropertyName + "FromString"] = map.New({fromStringPairs});

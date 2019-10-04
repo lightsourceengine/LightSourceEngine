@@ -32,6 +32,7 @@ class TextLine {
     void Finalize(Font* font);
     void Ellipsize(Font* font, float maxWidth);
     bool IsEmpty() const { return this->chars.empty(); }
+
  private:
     float CalculateWidth(Font* font) const;
 

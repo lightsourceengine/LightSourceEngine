@@ -16,24 +16,24 @@ class ResourceManager;
 
 class ImageUri {
  public:
-    ImageUri() = default;
-    explicit ImageUri(const std::string& uri) : uri(uri) {}
-    ImageUri(const std::string& uri, const std::string& id, int32_t width, int32_t height)
+    ImageUri() noexcept = default;
+    explicit ImageUri(const std::string& uri) noexcept : uri(uri) {}
+    ImageUri(const std::string& uri, const std::string& id, int32_t width, int32_t height) noexcept
             : uri(uri), id(id), width(width), height(height) {}
     ImageUri(const std::string& uri, const std::string& id, int32_t width, int32_t height, const EdgeRect& capInsets)
-        : uri(uri), id(id), width(width), height(height), capInsets(capInsets),
+        noexcept : uri(uri), id(id), width(width), height(height), capInsets(capInsets),
           hasCapInsets(capInsets.top || capInsets.right || capInsets.bottom || capInsets.left) {}
 
-    const std::string& GetId() const { return this->id.empty() ? this->uri : this->id; }
-    const std::string& GetUri() const { return this->uri; }
-    int32_t GetWidth() const { return this->width; }
-    int32_t GetHeight() const { return this->height; }
-    const EdgeRect& GetCapInsets() const { return this->capInsets; }
-    bool HasCapInsets() const { return this->hasCapInsets; }
+    const std::string& GetId() const noexcept { return this->id.empty() ? this->uri : this->id; }
+    const std::string& GetUri() const noexcept { return this->uri; }
+    int32_t GetWidth() const noexcept { return this->width; }
+    int32_t GetHeight() const noexcept { return this->height; }
+    const EdgeRect& GetCapInsets() const noexcept { return this->capInsets; }
+    bool HasCapInsets() const noexcept { return this->hasCapInsets; }
 
-    bool operator==(const ImageUri& rhs) { return this->GetId() == rhs.GetId(); }
+    bool operator==(const ImageUri& rhs) const noexcept { return this->GetId() == rhs.GetId(); }
 
-    Napi::Value ToObject(Napi::Env env) const;
+    Napi::Value ToObject(const Napi::Env& env) const;
     static ImageUri FromObject(const Napi::Object& spec);
 
  private:
@@ -50,6 +50,11 @@ struct ImageInfo : public TaskResult {
     int32_t height;
     PixelFormat format;
     std::shared_ptr<uint8_t> data;
+
+    ImageInfo() noexcept = default;
+    ImageInfo(const int32_t width, const int32_t height, const PixelFormat format,
+        const std::shared_ptr<uint8_t>& data) noexcept : width(width), height(height), format(format), data(data) {
+    }
 };
 
 class ImageResource : public Resource {
@@ -57,16 +62,16 @@ class ImageResource : public Resource {
     explicit ImageResource(const ImageUri& uri);
     virtual ~ImageResource();
 
-    uint32_t GetTextureId() const { return this->textureId; }
-    int32_t GetWidth() const { return this->width; }
-    int32_t GetHeight() const { return this->height; }
-    bool HasCapInsets() const { return this->uri.HasCapInsets(); }
-    const EdgeRect& GetCapInsets() const { return this->uri.GetCapInsets(); }
-    const ImageUri& GetUri() const { return this->uri; }
+    uint32_t GetTextureId() const noexcept { return this->textureId; }
+    int32_t GetWidth() const noexcept { return this->width; }
+    int32_t GetHeight() const noexcept { return this->height; }
+    bool HasCapInsets() const noexcept { return this->uri.HasCapInsets(); }
+    const EdgeRect& GetCapInsets() const noexcept { return this->uri.GetCapInsets(); }
+    const ImageUri& GetUri() const noexcept { return this->uri; }
 
     bool Sync(Renderer* renderer);
 
-    Napi::Value ToObject(Napi::Env env) const;
+    Napi::Value ToObject(const Napi::Env& env) const;
 
  private:
     void Load(AsyncTaskQueue* taskQueue, Renderer* renderer, const std::vector<std::string>& extensions,

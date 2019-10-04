@@ -16,8 +16,8 @@ namespace ls {
 
 inline
 float CalculateBackgroundDimension(const StyleNumberValue* styleDimension,
-                                   float imageDimension,
-                                   float boxDimension,
+                                   const float imageDimension,
+                                   const float boxDimension,
                                    const Scene* scene) {
     switch (styleDimension ? styleDimension->GetUnit() : StyleNumberUnitAuto) {
         case StyleNumberUnitPercent:
@@ -40,60 +40,70 @@ float CalculateBackgroundDimension(const StyleNumberValue* styleDimension,
 }
 
 inline
-void CalculateObjectFitDimensions(StyleObjectFit objectFit,
-                                  ImageResource* image,
-                                  float boxWidth,
-                                  float boxHeight,
-                                  float* fitWidth,
-                                  float* fitHeight) {
-    *fitWidth = boxWidth;
-    *fitHeight = boxHeight;
+YGSize CalculateObjectFitDimensions(const StyleObjectFit objectFit,
+                                  const ImageResource* image,
+                                  const float boxWidth,
+                                  const float boxHeight) {
+    const auto imageWidth{ static_cast<float>(image->GetWidth()) };
+    const auto imageHeight{ static_cast<float>(image->GetHeight()) };
+    const auto imageAspectRatio{ imageWidth / imageHeight };
 
-    if (image->HasCapInsets()) {
-        return;
-    }
-
-    auto imageWidth{ static_cast<float>(image->GetWidth()) };
-    auto imageHeight{ static_cast<float>(image->GetHeight()) };
-    auto imageAspectRatio{ imageWidth / imageHeight };
-
-    switch (objectFit) {
+    switch (image->HasCapInsets() ? StyleObjectFitFill : objectFit) {
         case StyleObjectFitContain:
             if (imageAspectRatio > (boxWidth / boxHeight)) {
-                *fitHeight = boxWidth / imageAspectRatio;
+                return {
+                    boxWidth,
+                    boxWidth / imageAspectRatio
+                };
             } else {
-                *fitWidth = boxHeight * imageAspectRatio;
+                return {
+                    boxHeight * imageAspectRatio,
+                    boxHeight
+                };
             }
-            break;
         case StyleObjectFitCover:
             if (imageAspectRatio > (boxWidth / boxHeight)) {
-                *fitWidth = boxHeight * imageAspectRatio;
+                return {
+                    boxHeight * imageAspectRatio,
+                    boxHeight
+                };
             } else {
-                *fitHeight = boxWidth / imageAspectRatio;
+                return {
+                    boxWidth,
+                    boxWidth / imageAspectRatio
+                };
             }
-            break;
         case StyleObjectFitScaleDown:
             if (imageWidth > boxWidth || imageHeight > boxHeight) {
                 // contain
                 if (imageAspectRatio > (boxWidth / boxHeight)) {
-                    *fitHeight = boxWidth / imageAspectRatio;
+                    return {
+                        boxWidth,
+                        boxWidth / imageAspectRatio
+                    };
                 } else {
-                    *fitWidth = boxHeight * imageAspectRatio;
+                    return {
+                        boxHeight * imageAspectRatio,
+                        boxHeight
+                    };
                 }
             } else {
                 // none
-                *fitWidth = imageWidth;
-                *fitHeight = imageHeight;
+                return {
+                    imageWidth,
+                    imageHeight
+                };
             }
-            break;
         case StyleObjectFitNone:
-            *fitWidth = imageWidth;
-            *fitHeight = imageHeight;
-            break;
-        case StyleObjectFitFill:
-//            fitWidth = boxWidth;
-//            fitHeight = boxHeight;
-            break;
+            return {
+                imageWidth,
+                imageHeight
+            };
+        default:
+            return {
+                boxWidth,
+                boxHeight
+            };
     }
 }
 
@@ -162,11 +172,7 @@ int32_t ComputeIntegerPointValue(const StyleNumberValue* styleValue, const Scene
 
 inline
 float CalculateLineHeight(const StyleNumberValue* styleValue, const Scene* scene, const float fontLineHeight) {
-    if (!styleValue) {
-        return fontLineHeight;
-    }
-
-    switch (styleValue->GetUnit()) {
+    switch (styleValue ? styleValue->GetUnit() : StyleNumberUnitAuto) {
         case StyleNumberUnitPoint:
             return styleValue->GetValue();
         case StyleNumberUnitPercent:
@@ -187,26 +193,28 @@ float CalculateLineHeight(const StyleNumberValue* styleValue, const Scene* scene
 }
 
 inline
-std::string CreateRoundedRectangleUri(int32_t radiusTopLeft,
-                                      int32_t radiusTopRight,
-                                      int32_t radiusBottomRight,
-                                      int32_t radiusBottomLeft,
-                                      int32_t stroke) {
-    static std::string empty{};
-    static const auto uriTemplate = "data:image/svg+xml,<svg viewBox=\"0 0 {0} {1}\">"
-                               "<path d=\"M {2},0 h{3} {4} v{5} {6} h-{7} {8} v-{9} {10} z\" "
-                                   "fill=\"{11}\" "
-                                   "stroke=\"{12}\" "
-                                   "stroke-width=\"{13}\"/>"
-                               "</svg>";
+std::string CreateRoundedRectangleUri(const int32_t radiusTopLeft,
+                                      const int32_t radiusTopRight,
+                                      const int32_t radiusBottomRight,
+                                      const int32_t radiusBottomLeft,
+                                      const int32_t stroke) {
+    static const std::string empty{};
+    static const std::string uriTemplate{
+        "data:image/svg+xml,<svg viewBox=\"0 0 {0} {1}\">"
+            "<path d=\"M {2},0 h{3} {4} v{5} {6} h-{7} {8} v-{9} {10} z\" "
+                "fill=\"{11}\" "
+                "stroke=\"{12}\" "
+                "stroke-width=\"{13}\"/>"
+        "</svg>"
+    };
 
-    auto leftWidth = std::max(radiusTopLeft, radiusBottomLeft);
-    auto rightWidth = std::max(radiusTopRight, radiusBottomRight);
-    auto width = leftWidth + rightWidth + 1;
+    const auto leftWidth{ std::max(radiusTopLeft, radiusBottomLeft) };
+    const auto rightWidth{ std::max(radiusTopRight, radiusBottomRight) };
+    const auto width{ leftWidth + rightWidth + 1 };
 
-    auto topHeight = std::max(radiusTopLeft, radiusTopRight);
-    auto bottomHeight = std::max(radiusBottomLeft, radiusBottomRight);
-    auto height = topHeight + bottomHeight + 1;
+    const auto topHeight{ std::max(radiusTopLeft, radiusTopRight) };
+    const auto bottomHeight{ std::max(radiusBottomLeft, radiusBottomRight) };
+    const auto height{ topHeight + bottomHeight + 1 };
 
     return fmt::format(uriTemplate,
     /* 0: viewbox       */ width,

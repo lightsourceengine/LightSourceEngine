@@ -23,8 +23,6 @@ constexpr int GetComponentCount(PixelFormat format) {
         case PixelFormatUnknown:
             return 0;
     }
-
-    return 0;
 }
 
 Surface::Surface(int32_t width, int32_t height) : format(PixelFormatAlpha) {
@@ -73,11 +71,11 @@ void Surface::Blit(const int32_t x, const int32_t y, const Surface& surface) con
     assert(surface.format == PixelFormatAlpha);
 
     // intersect this with surface arg
-    auto x1{ std::max(x, 0) };
-    auto x2{ std::min(x + surface.width, this->width) };
-    auto y1{ std::max(y, 0) };
-    auto y2{ std::min(y + surface.height, this->height) };
-    auto spitch{ x2 - x1 };
+    const auto x1{ std::max(x, 0) };
+    const auto x2{ std::min(x + surface.width, this->width) };
+    const auto y1{ std::max(y, 0) };
+    const auto y2{ std::min(y + surface.height, this->height) };
+    const auto spitch{ x2 - x1 };
 
     // bail if no intersection
     if (y2 - y1 <= 0 || spitch <= 0) {
@@ -91,9 +89,9 @@ void Surface::Blit(const int32_t x, const int32_t y, const Surface& surface) con
     // sanity check that source x & y are within source dimensions
     assert(sx < surface.width && sy < surface.height);
 
-    auto dest{ this->pixels.get() };
-    auto source{ surface.Pixels() };
-    auto componentCount{ GetComponentCount(this->format) };
+    const auto dest{ this->pixels.get() };
+    const auto source{ surface.Pixels() };
+    const auto componentCount{ GetComponentCount(this->format) };
 
     // copy pixels from source to dest
     if (componentCount == 1) {
@@ -108,7 +106,7 @@ void Surface::Blit(const int32_t x, const int32_t y, const Surface& surface) con
             auto sourceRow{ &source[(sy * surface.pitch) + sx] };
 
             for (int32_t dx{ 0 }; dx < spitch; dx++) {
-                auto component{ *sourceRow++ }; // NOLINT(readability/pointer_notation)
+                const auto component{ *sourceRow++ }; // NOLINT(readability/pointer_notation)
 
                 for (int32_t i{0}; i < componentCount; i++) {
                     *destRow++ = component;
@@ -118,17 +116,15 @@ void Surface::Blit(const int32_t x, const int32_t y, const Surface& surface) con
     }
 }
 
-void Surface::FillTransparent() {
+void Surface::FillTransparent() const {
     if (this->IsEmpty()) {
         return;
     }
 
-    auto componentCount{ GetComponentCount(this->format) };
-
-    if (componentCount * this->width == this->pitch) {
+    if (GetComponentCount(this->format) * this->width == this->pitch) {
         std::memset(this->pixels.get(), 0, this->pitch*this->height);
     } else {
-        auto source{ this->pixels.get() };
+        const auto source{ this->pixels.get() };
 
         for (int32_t y{0}; y < this->height; y++) {
             std::memset(&source[y*this->pitch], 0, this->pitch);

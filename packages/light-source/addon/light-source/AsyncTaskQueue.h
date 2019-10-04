@@ -40,9 +40,9 @@ class Task {
         return this->hasResult ? this->result : nullptr;
     }
 
-    bool IsDone() const { return this->isDone; }
-    bool HasResult() const { return this->hasResult; }
-    bool HasError() const { return this->hasError; }
+    bool IsDone() const noexcept { return this->isDone; }
+    bool HasResult() const noexcept { return this->hasResult; }
+    bool HasError() const noexcept { return this->hasError; }
 
  private:
     ExecuteFunction execute;
