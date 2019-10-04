@@ -44,7 +44,7 @@
       "include_dirs": [
         "include",
         "deps/filesystem/include",
-        "deps/fmt/include",
+        "deps/fmt/repo/include",
       ],
       "dependencies": [
         "addon/deps/fmt/fmt.gyp:*",
@@ -68,7 +68,7 @@
         "light-source",
         "deps/yoga/lib",
         "include",
-        "deps/fmt/include",
+        "deps/fmt/repo/include",
         "deps/stb/repo",
         "deps/nanosvg/include",
         "deps/utfcpp/repo/source",
@@ -134,7 +134,7 @@
       "include_dirs": [
         "<(sdl_include_path)",
         "include",
-        "deps/fmt/include",
+        "deps/fmt/repo/include",
         "light-source-util",
       ],
       "dependencies": [
@@ -178,7 +178,7 @@
       ],
       "include_dirs": [
         "include",
-        "deps/fmt/include",
+        "deps/fmt/repo/include",
         "light-source-util",
       ],
       "dependencies": [
@@ -208,7 +208,7 @@
               "<(sdl_mixer_include_path)",
               "<(sdl_include_path)",
               "include",
-              "deps/fmt/include",
+              "deps/fmt/repo/include",
               "light-source-util",
             ],
             "dependencies": [

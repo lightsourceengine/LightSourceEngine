@@ -7,10 +7,10 @@
         "../../common.gypi",
       ],
       "include_dirs": [
-        "include"
+        "repo/include"
       ],
       "sources": [
-        "src/format.cc",
+        "repo/src/format.cc",
       ]
     },
   ]

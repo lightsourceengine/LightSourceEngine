@@ -12,7 +12,7 @@ namespace fmt {
 
 template <typename S, typename... Args, typename std::enable_if<(internal::is_string<S>::value), int>::type = 0>
 inline void println(const S& format_str, const Args&... args) {
-    fmt::vprint(fmt::to_string_view(format_str), fmt::internal::make_args_checked(format_str, args...));
+    fmt::vprint(fmt::to_string_view(format_str), fmt::internal::make_args_checked<Args...>(format_str, args...));
     std::fputc('\n', stdout);
 }
 
