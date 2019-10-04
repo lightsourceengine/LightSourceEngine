@@ -10,6 +10,7 @@
 #include "Scene.h"
 #include "Style.h"
 #include "StyleUtils.h"
+#include "yoga-ext.h"
 
 using Napi::Array;
 using Napi::CallbackInfo;
@@ -175,11 +176,11 @@ void ImageSceneNode::Paint(Renderer* renderer) {
     const auto textureId{ this->image->GetTextureId() };
     const Rect destRect{
         YGRoundValueToPixelGrid(x + CalculateObjectPosition(
-            boxStyle->objectPositionX(), true, width, fitDimensions.width, 0.5f, this->scene), 1.f, false, false),
+            boxStyle->objectPositionX(), true, width, fitDimensions.width, 0.5f, this->scene)),
         YGRoundValueToPixelGrid(y + CalculateObjectPosition(
-            boxStyle->objectPositionY(), false, height, fitDimensions.height, 0.5f, this->scene), 1.f, false, false),
-        YGRoundValueToPixelGrid(fitDimensions.width, 1.f, false, false),
-        YGRoundValueToPixelGrid(fitDimensions.height, 1.f, false, false),
+            boxStyle->objectPositionY(), false, height, fitDimensions.height, 0.5f, this->scene)),
+        YGRoundValueToPixelGrid(fitDimensions.width),
+        YGRoundValueToPixelGrid(fitDimensions.height),
     };
     const auto tintColor{ boxStyle->tintColor() ? *boxStyle->tintColor() : 0xFFFFFFFF };
 

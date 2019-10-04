@@ -9,6 +9,7 @@
 #include "ResourceManager.h"
 #include "Scene.h"
 #include "StyleUtils.h"
+#include "yoga-ext.h"
 #include <fmt/format.h>
 
 using Napi::CallbackInfo;
@@ -101,10 +102,10 @@ void BoxSceneNode::Paint(Renderer* renderer) {
 
         const auto textureId{ this->backgroundImage->GetTextureId() };
         const Rect destRect{
-            YGRoundValueToPixelGrid(positionX, 1.f, false, false),
-            YGRoundValueToPixelGrid(positionY, 1.f, false, false),
-            YGRoundValueToPixelGrid(fitDimensions.width, 1.f, false, false),
-            YGRoundValueToPixelGrid(fitDimensions.height, 1.f, false, false),
+            YGRoundValueToPixelGrid(positionX),
+            YGRoundValueToPixelGrid(positionY),
+            YGRoundValueToPixelGrid(fitDimensions.width),
+            YGRoundValueToPixelGrid(fitDimensions.height),
         };
 
         // TODO: mix opacity
@@ -173,7 +174,7 @@ void BoxSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
             newStyle->borderRadiusBottomRight(), this->scene, borderRadius) };
 
         ImageResource* newRoundedRectImage;
-        EdgeRect capInsets{
+        const EdgeRect capInsets{
             std::max(borderRadiusTopLeft, borderRadiusTopRight),
             std::max(borderRadiusTopRight, borderRadiusBottomRight),
             std::max(borderRadiusBottomLeft, borderRadiusBottomRight),
@@ -192,7 +193,7 @@ void BoxSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
             newRoundedRectImage = this->scene->GetResourceManager()->GetImage(borderRadiusImageId);
 
             if (!newRoundedRectImage) {
-                auto uri{ CreateRoundedRectangleUri(borderRadiusTopLeft, borderRadiusTopRight,
+                const auto uri{ CreateRoundedRectangleUri(borderRadiusTopLeft, borderRadiusTopRight,
                     borderRadiusBottomRight, borderRadiusBottomLeft, 0) };
 
                 newRoundedRectImage = this->scene->GetResourceManager()->LoadImage(
@@ -247,7 +248,7 @@ void BoxSceneNode::DestroyRecursive() {
 }
 
 void AssignImage(ImageResource** targetImage, ImageResource* newImage) {
-    auto image = *targetImage;
+    const auto image = *targetImage;
 
     if (image != newImage) {
         if (image) {

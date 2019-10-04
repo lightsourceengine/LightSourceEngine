@@ -84,6 +84,7 @@
         "light-source-util",
       ],
       "sources": [
+        "light-source/yoga-ext.cc",
         "light-source/AsyncTaskQueue.cc",
         "light-source/Style.cc",
         "light-source/StyleEnumMappings.cc",

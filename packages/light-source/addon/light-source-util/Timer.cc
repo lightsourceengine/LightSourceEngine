@@ -5,7 +5,7 @@
  */
 
 #include "Timer.h"
-#include <fmt/printf.h>
+#include "fmt/println.h"
 
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
@@ -19,9 +19,11 @@ Timer::Timer(const std::string& label) : start(high_resolution_clock::now()), la
 }
 
 void Timer::Log() const {
-    auto elapsed{ duration_cast<std::chrono::microseconds>(high_resolution_clock::now() - this->start).count() };
+    const auto elapsed{
+        duration_cast<std::chrono::microseconds>(high_resolution_clock::now() - this->start).count() / 1000.f
+    };
 
-    fmt::printf("%s: %.2fms\n", this->label.empty() ? "elapsed" : this->label, elapsed / 1000.f);
+    fmt::println("{}: {:.2f}ms", this->label.empty() ? "elapsed" : this->label, elapsed);
 }
 
 Timer::~Timer() {
