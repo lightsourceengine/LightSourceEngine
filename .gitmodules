@@ -7,3 +7,6 @@
 [submodule "packages/light-source/addon/deps/utfcpp/repo"]
 	path = packages/light-source/addon/deps/utfcpp/repo
 	url = https://github.com/nemtrif/utfcpp.git
+[submodule "packages/light-source/addon/deps/stb/repo"]
+	path = packages/light-source/addon/deps/stb/repo
+	url = https://github.com/nothings/stb.git

@@ -69,9 +69,8 @@
         "deps/yoga/lib",
         "include",
         "deps/fmt/include",
-        "deps/stb_image/include",
+        "deps/stb/repo",
         "deps/nanosvg/include",
-        "deps/stb_truetype/include",
         "deps/utfcpp/repo/source",
         "light-source-util",
         "deps/concurrentqueue/repo",
@@ -80,9 +79,8 @@
       "dependencies": [
         "addon/deps/yoga/yoga.gyp:*",
         "addon/deps/fmt/fmt.gyp:*",
-        "addon/deps/stb_image/stb_image.gyp:*",
+        "addon/deps/stb/stb.gyp:*",
         "addon/deps/nanosvg/nanosvg.gyp:*",
-        "addon/deps/stb_truetype/stb_truetype.gyp:*",
         "light-source-util",
       ],
       "sources": [
