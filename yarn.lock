@@ -2803,7 +2803,7 @@ react-reconciler@0.22.2:
     prop-types "^15.6.2"
     scheduler "^0.16.2"
 
-react-test-renderer@^16.10.2:
+react-test-renderer@16.10.2:
   version "16.10.2"
   resolved "https://registry.npmjs.org/react-test-renderer/-/react-test-renderer-16.10.2.tgz#4d8492f8678c9b43b721a7d79ed0840fdae7c518"
   integrity sha512-k9Qzyev6cTIcIfrhgrFlYQAFxh5EEDO6ALNqYqmKsWVA7Q/rUMTay5nD3nthi6COmYsd4ghVYyi8U86aoeMqYQ==
