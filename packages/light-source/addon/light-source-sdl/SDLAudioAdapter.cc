@@ -5,8 +5,8 @@
  */
 
 #include "SDLAudioAdapter.h"
-#include <BaseAudioSource.h>
-#include <BaseAudioDestination.h>
+#include <ls/BaseAudioSource.h>
+#include <ls/BaseAudioDestination.h>
 #include <napi-ext.h>
 #include <fmt/format.h>
 

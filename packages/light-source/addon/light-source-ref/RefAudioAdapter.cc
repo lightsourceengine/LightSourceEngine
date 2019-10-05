@@ -5,8 +5,8 @@
  */
 
 #include "RefAudioAdapter.h"
-#include <BaseAudioSource.h>
-#include <BaseAudioDestination.h>
+#include <ls/BaseAudioSource.h>
+#include <ls/BaseAudioDestination.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;

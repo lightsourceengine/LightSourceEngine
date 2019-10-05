@@ -6,9 +6,8 @@
 
 #include "ResourceManager.h"
 #include "napi-ext.h"
-#include "Renderer.h"
+#include <ls/Renderer.h>
 #include "LayerResource.h"
-#include <algorithm>
 #include <algorithm>
 #include <fmt/println.h>
 

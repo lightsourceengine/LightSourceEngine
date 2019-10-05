@@ -11,6 +11,7 @@
 #include "Style.h"
 #include "StyleUtils.h"
 #include "yoga-ext.h"
+#include <ls/Renderer.h>
 
 using Napi::Array;
 using Napi::CallbackInfo;

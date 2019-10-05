@@ -6,12 +6,14 @@
 
 #pragma once
 
-#include <Renderer.h>
+#include <ls/PixelFormat.h>
+#include <ls/Rect.h>
 #include "Resource.h"
 #include "AsyncTaskQueue.h"
 
 namespace ls {
 
+class Renderer;
 class ResourceManager;
 
 class ImageUri {

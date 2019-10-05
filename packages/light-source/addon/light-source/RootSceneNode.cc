@@ -7,6 +7,7 @@
 #include "RootSceneNode.h"
 #include "Scene.h"
 #include "StyleUtils.h"
+#include <ls/Renderer.h>
 #include <fmt/format.h>
 
 using Napi::CallbackInfo;

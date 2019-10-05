@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <array>
 #include <napi.h>
-#include <StageAdapter.h>
+#include <ls/StageAdapter.h>
 
 namespace ls {
 

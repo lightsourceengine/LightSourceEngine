@@ -8,7 +8,7 @@
 
 #include <unordered_map>
 #include <napi.h>
-#include <StageAdapter.h>
+#include <ls/StageAdapter.h>
 
 namespace ls {
 

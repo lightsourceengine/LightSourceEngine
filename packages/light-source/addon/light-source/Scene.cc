@@ -8,8 +8,10 @@
 #include "RootSceneNode.h"
 #include "Stage.h"
 #include "ResourceManager.h"
+#include <ls/Renderer.h>
 #include <napi-ext.h>
-#include <StageAdapter.h>
+#include <ls/StageAdapter.h>
+#include <ls/SceneAdapter.h>
 #include <fmt/println.h>
 
 using Napi::Boolean;

@@ -7,23 +7,27 @@
 #pragma once
 
 #include <napi.h>
-#include <Audio.h>
+#include <ls/Audio.h>
 
 namespace ls {
 
-enum AudioSourceCapability {
-    AudioSourceCapabilityVolume,
-    AudioSourceCapabilityLoop,
-    AudioSourceCapabilityFadeIn
+enum AudioDestinationCapability {
+    AudioDestinationCapabilityStop,
+    AudioDestinationCapabilityResume,
+    AudioDestinationCapabilityPause,
+    AudioDestinationCapabilityVolume,
+    AudioDestinationCapabilityFadeOut
 };
 
-class BaseAudioSource {
+class BaseAudioDestination {
  public:
-    virtual ~BaseAudioSource() = default;
+    virtual ~BaseAudioDestination() = default;
 
-    virtual void Load(const Napi::CallbackInfo& info) = 0;
-    virtual void Destroy(const Napi::CallbackInfo& info) = 0;
-    virtual void Play(const Napi::CallbackInfo& info);
+    virtual Napi::Value GetDecoders(const Napi::CallbackInfo& info);
+    virtual Napi::Value CreateAudioSource(const Napi::CallbackInfo& info) = 0;
+    virtual void Resume(const Napi::CallbackInfo& info);
+    virtual void Pause(const Napi::CallbackInfo& info);
+    virtual void Stop(const Napi::CallbackInfo& info);
     virtual Napi::Value GetVolume(const Napi::CallbackInfo& info);
     virtual void SetVolume(const Napi::CallbackInfo& info, const Napi::Value& value);
     virtual Napi::Value HasCapability(const Napi::CallbackInfo& info);
@@ -31,21 +35,24 @@ class BaseAudioSource {
  protected:
     template<typename T, typename ClassName>
     static Napi::Function ConstructorInternal(Napi::Env env);
+    std::vector<std::string> decoders;
 };
 
 template<typename T, typename ClassName>
-Napi::Function BaseAudioSource::ConstructorInternal(Napi::Env env) {
+Napi::Function BaseAudioDestination::ConstructorInternal(Napi::Env env) {
     static Napi::FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         Napi::HandleScope scope(env);
 
         auto func = T::DefineClass(env, ClassName::Get(), {
-            T::InstanceMethod("load", &T::Load),
-            T::InstanceMethod("destroy", &T::Destroy),
-            T::InstanceMethod("play", &T::Play),
+            T::InstanceMethod("createAudioSource", &T::CreateAudioSource),
+            T::InstanceMethod("resume", &T::Resume),
+            T::InstanceMethod("pause", &T::Pause),
+            T::InstanceMethod("stop", &T::Stop),
             T::InstanceMethod("hasCapability", &T::HasCapability),
             T::InstanceAccessor("volume", &T::GetVolume, &T::SetVolume),
+            T::InstanceAccessor("decoders", &T::GetDecoders, nullptr),
         });
 
         constructor.Reset(func, 1);

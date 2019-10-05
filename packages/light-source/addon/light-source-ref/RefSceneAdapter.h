@@ -7,7 +7,7 @@
 #pragma once
 
 #include "RefRenderer.h"
-#include <SceneAdapter.h>
+#include <ls/SceneAdapter.h>
 #include <memory>
 
 namespace ls {

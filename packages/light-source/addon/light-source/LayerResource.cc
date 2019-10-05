@@ -5,7 +5,7 @@
  */
 
 #include "LayerResource.h"
-#include "Renderer.h"
+#include <ls/Renderer.h>
 
 namespace ls {
 

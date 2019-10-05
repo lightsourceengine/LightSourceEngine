@@ -6,7 +6,7 @@
 
 #include "Stage.h"
 #include "FontStore.h"
-#include <StageAdapter.h>
+#include <ls/StageAdapter.h>
 #include <napi-ext.h>
 
 using Napi::CallbackInfo;

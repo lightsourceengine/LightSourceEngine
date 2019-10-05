@@ -7,7 +7,7 @@
 #pragma once
 
 #include "SDLRenderer.h"
-#include <SceneAdapter.h>
+#include <ls/SceneAdapter.h>
 #include <SDL.h>
 #include <memory>
 

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <Renderer.h>
+#include <ls/PixelFormat.h>
 #include <memory>
 
 namespace ls {

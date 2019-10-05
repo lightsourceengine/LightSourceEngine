@@ -5,9 +5,10 @@
  */
 
 #include "ImageResource.h"
-#include "FileSystem.h"
 #include <napi-ext.h>
-#include <PixelConversion.h>
+#include <ls/FileSystem.h>
+#include <ls/Renderer.h>
+#include <ls/PixelConversion.h>
 #include <nanosvg.h>
 #include <nanosvgrast.h>
 #include <stb_image.h>

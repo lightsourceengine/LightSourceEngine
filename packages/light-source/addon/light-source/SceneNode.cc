@@ -7,6 +7,7 @@
 #include "SceneNode.h"
 #include "Style.h"
 #include "Scene.h"
+#include <ls/Renderer.h>
 #include <fmt/format.h>
 #include <algorithm>
 

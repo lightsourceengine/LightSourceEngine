@@ -9,13 +9,13 @@
 #include <napi.h>
 #include <memory>
 #include <algorithm>
-#include "SceneAdapter.h"
 
 namespace ls {
 
 class SceneNode;
 class Stage;
 class ResourceManager;
+class SceneAdapter;
 
 class Scene : public Napi::ObjectWrap<Scene> {
  public:

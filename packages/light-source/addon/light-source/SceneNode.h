@@ -9,7 +9,6 @@
 #include <Yoga.h>
 #include <vector>
 #include <map>
-#include <Renderer.h>
 #include <napi-ext.h>
 #include "Style.h"
 
@@ -18,6 +17,7 @@ namespace ls {
 class Scene;
 class SceneNode;
 class Style;
+class Renderer;
 
 class SceneNode {
  public:

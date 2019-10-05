@@ -7,7 +7,7 @@
 #pragma once
 
 #include <napi.h>
-#include <BaseAudioAdapter.h>
+#include <ls/BaseAudioAdapter.h>
 
 namespace ls {
 

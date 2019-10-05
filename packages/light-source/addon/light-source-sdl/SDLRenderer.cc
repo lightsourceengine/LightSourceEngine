@@ -6,7 +6,7 @@
 
 #include "SDLRenderer.h"
 #include <array>
-#include <PixelConversion.h>
+#include <ls/PixelConversion.h>
 #include <fmt/println.h>
 
 namespace ls {

@@ -10,7 +10,7 @@
 #include "SDLGamepad.h"
 #include <unordered_set>
 #include <fmt/println.h>
-#include <Timer.h>
+#include <ls/Timer.h>
 
 using Napi::Array;
 using Napi::Boolean;

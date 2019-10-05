@@ -5,7 +5,7 @@
  */
 
 #include "Font.h"
-#include "Timer.h"
+#include <ls/Timer.h>
 #include <fmt/println.h>
 
 namespace ls {

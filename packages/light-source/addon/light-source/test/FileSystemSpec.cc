@@ -5,7 +5,7 @@
  */
 
 #include "LightSourceSpec.h"
-#include <FileSystem.h>
+#include <ls/FileSystem.h>
 
 using Napi::Assert;
 using Napi::TestSuite;

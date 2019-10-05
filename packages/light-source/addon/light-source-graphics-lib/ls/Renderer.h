@@ -6,48 +6,12 @@
 
 #pragma once
 
+#include <ls/Rect.h>
+#include <ls/PixelFormat.h>
 #include <cstdint>
 #include <memory>
 
 namespace ls {
-
-/**
- * Pixel formats used for texture creation.
- */
-enum PixelFormat {
-    /* 4 channel, 32 bit, RGBA */
-    PixelFormatRGBA,
-    /* 4 channel, 32 bit, ARGB */
-    PixelFormatARGB,
-    /* 4 channel, 32 bit, ABGR */
-    PixelFormatABGR,
-    /* 4 channel, 32 bit, BGRA */
-    PixelFormatBGRA,
-    /* 1 channel, 8 bit, alpha */
-    PixelFormatAlpha,
-    /* unknown pixel format */
-    PixelFormatUnknown
-};
-
-/**
- * Rectangle in TRBL positional value format.
- */
-struct EdgeRect {
-    int32_t top;
-    int32_t right;
-    int32_t bottom;
-    int32_t left;
-};
-
-/**
- * Rectangle in position (x, y) and size (width, height) format.
- */
-struct Rect {
-    float x;
-    float y;
-    float width;
-    float height;
-};
 
 /**
  * Return type for Renderer.LockTexture().

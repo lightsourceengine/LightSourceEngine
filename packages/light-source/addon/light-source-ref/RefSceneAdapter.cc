@@ -5,7 +5,6 @@
  */
 
 #include "RefSceneAdapter.h"
-#include <fmt/format.h>
 
 namespace ls {
 

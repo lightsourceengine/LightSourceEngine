@@ -5,11 +5,11 @@
  */
 
 #include "SDLMixerAudioAdapter.h"
-#include <BaseAudioSource.h>
-#include <BaseAudioDestination.h>
+#include <ls/BaseAudioSource.h>
+#include <ls/BaseAudioDestination.h>
 #include <SDL.h>
 #include <SDL_mixer.h>
-#include <Timer.h>
+#include <ls/Timer.h>
 #include <fmt/println.h>
 
 using Napi::Boolean;

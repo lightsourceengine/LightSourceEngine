@@ -5,7 +5,7 @@
  */
 
 #include "BaseAudioAdapter.h"
-#include "napi-ext.h"
+#include <napi-ext.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;

@@ -6,7 +6,6 @@
 
 #include "RefStageAdapter.h"
 #include "RefSceneAdapter.h"
-#include <fmt/format.h>
 
 using Napi::Array;
 using Napi::Boolean;

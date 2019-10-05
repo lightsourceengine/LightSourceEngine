@@ -13,7 +13,8 @@
 #include "Surface.h"
 #include "StyleUtils.h"
 #include "LayerResource.h"
-#include "Timer.h"
+#include <ls/Timer.h>
+#include <ls/Renderer.h>
 #include <Utils.h>
 #include <napi-ext.h>
 #include <fmt/println.h>
