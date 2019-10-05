@@ -12,7 +12,7 @@ static bool FloatsEqual(const float a, const float b) noexcept {
 }
 
 float YGRoundValueToPixelGrid(const float value) noexcept {
-    const float fractial{ ::fmodf(value, 1.0f) };
+    const float fractial{ std::fmod(value, 1.0f) };
 
     if (std::isnan(fractial)) {
         return value;
