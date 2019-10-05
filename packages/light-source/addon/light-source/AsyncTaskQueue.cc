@@ -9,86 +9,130 @@
 
 namespace ls {
 
-void AsyncTaskQueue::Init() noexcept {
-    assert(threadPool.empty());
+Task::Task(TaskExecuteFunction&& execute, TaskCompleteFunction&& complete) noexcept
+    : execute(std::move(execute)), complete(std::move(complete)) {
+}
 
+void Task::Cancel() noexcept {
+    this->wasCancelled = true;
+    this->result.reset();
+}
+
+std::shared_ptr<void> Task::GetResult() const noexcept {
+    return this->IsSuccess() ? this->result : nullptr;
+}
+
+bool Task::IsSuccess() const noexcept {
+    return !this->wasCancelled && !this->isError && this->isComplete;
+}
+
+bool Task::IsError() const noexcept {
+    return !this->wasCancelled && this->isError;
+}
+
+const std::string& Task::GetErrorMessage() const noexcept {
+    static const std::string empty;
+
+    return this->IsError() ? this->errorMessage : empty;
+}
+
+bool Task::WasCancelled() const noexcept {
+    return this->wasCancelled;
+}
+
+AsyncTaskQueue::AsyncTaskQueue() {
+    this->Init();
+}
+
+AsyncTaskQueue::~AsyncTaskQueue() noexcept {
+    this->Shutdown();
+}
+
+void AsyncTaskQueue::Init() {
     auto concurrency{ std::thread::hardware_concurrency() };
 
-    if (concurrency == 0) {
+    if (concurrency <= 0) {
         concurrency = 1u;
     } else {
         concurrency = std::min(concurrency, 4u);
     }
 
+    this->threadPool.reserve(concurrency);
+
     for (auto i{ 0u }; i < concurrency; i++) {
-        this->threadPool.push_back(std::thread([this]() {
+        auto worker = std::thread([this]() {
             std::shared_ptr<Task> task;
 
             while (this->running) {
-                executeQueue.wait_dequeue(task);
+                this->pendingExecuteQueue.wait_dequeue(task);
 
                 if (!task) {
                     break;
                 }
 
-                if (!task->cancelled) {
+                if (!task->WasCancelled()) {
                     try {
                         task->result = task->execute();
-                    } catch (std::exception& e) {
-                        task->asyncHasError = true;
+                    } catch (const std::exception& e) {
                         task->errorMessage = e.what();
+                        task->isError = true;
                     }
-                }
 
-                completeQueue.enqueue(task);
+                    this->postExecuteQueue.enqueue(task);
+                }
             }
-        }));
+        });
+
+        this->threadPool.emplace_back(std::move(worker));
     }
 }
 
-void AsyncTaskQueue::Submit(std::shared_ptr<Task> task) {
-    assert(task);
+std::shared_ptr<Task> AsyncTaskQueue::Submit(TaskExecuteFunction&& execute, TaskCompleteFunction&& complete) {
     assert(this->running);
+    auto task{ std::make_shared<Task>(std::move(execute), std::move(complete)) };
 
-    this->executeQueue.enqueue(task);
+    this->pendingExecuteQueue.enqueue(task);
+
+    return task;
 }
 
-void AsyncTaskQueue::ProcessCompleteTasks() noexcept {
+bool AsyncTaskQueue::IsRunning() const noexcept {
+    return this->running;
+}
+
+void AsyncTaskQueue::ProcessTasks() noexcept {
     assert(this->running);
     std::shared_ptr<Task> task;
 
-    while (this->completeQueue.try_dequeue(task)) {
-        task->isDone = true;
-
-        if (task->cancelled) {
+    while (this->postExecuteQueue.try_dequeue(task)) {
+        if (task->WasCancelled()) {
             continue;
         }
 
-        try {
-            if (task->asyncHasError && task->error) {
-                task->hasError = true;
-                task->error(task->errorMessage);
-            } else {
-                task->hasResult = true;
+        task->isComplete = true;
 
-                if (task->complete) {
-                    task->complete(task->result);
-                }
+        try {
+            if (task->complete) {
+                task->complete(task);
             }
-        } catch (std::exception& e) {
+        } catch (const std::exception& e) {
             task->Cancel();
-            fmt::println("ResourceManager.ProcessCompleteTasks(): Error: {}", e.what());
+            fmt::println("ResourceManager.ProcessTasks(): Error: {}", e.what());
         }
     }
 }
 
 void AsyncTaskQueue::Shutdown() noexcept {
+    if (!this->running) {
+        return;
+    }
+
     // this may trigger some threads to terminate
     this->running = false;
 
     // when a thread sees a null task, it will return
     std::for_each(this->threadPool.begin(), this->threadPool.end(), [this](std::thread&){
-        this->executeQueue.enqueue(std::shared_ptr<Task>());
+        this->pendingExecuteQueue.enqueue(std::shared_ptr<Task>());
     });
 
     // join all the threads
@@ -101,11 +145,11 @@ void AsyncTaskQueue::Shutdown() noexcept {
     std::shared_ptr<Task> task;
 
     // drain the execute queue
-    while (executeQueue.try_dequeue(task)) {
+    while (pendingExecuteQueue.try_dequeue(task)) {
     }
 
     // drain the complete queue
-    while (completeQueue.try_dequeue(task)) {
+    while (postExecuteQueue.try_dequeue(task)) {
     }
 }
 

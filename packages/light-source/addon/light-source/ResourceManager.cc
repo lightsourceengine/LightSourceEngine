@@ -134,7 +134,6 @@ void ResourceManager::SetPath(const Napi::CallbackInfo& info, const Napi::Value&
 }
 
 void ResourceManager::PostConstruct(Renderer* renderer) {
-    this->asyncTaskQueue.Init();
     this->renderer = renderer;
 }
 
@@ -195,7 +194,7 @@ void ResourceManager::Detach() {
 }
 
 void ResourceManager::ProcessEvents() {
-    this->asyncTaskQueue.ProcessCompleteTasks();
+    this->asyncTaskQueue.ProcessTasks();
 }
 
 void ResourceManager::Destroy() {

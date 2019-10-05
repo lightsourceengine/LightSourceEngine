@@ -26,8 +26,7 @@ struct FontId {
     StyleFontWeight weight{};
 
     FontId() noexcept = default;
-    FontId(const std::string& family, const StyleFontStyle style, const StyleFontWeight weight)
-        : family(family), style(style), weight(weight) {}
+    FontId(const std::string& family, const StyleFontStyle style, const StyleFontWeight weight) noexcept;
 
     bool operator==(const FontId &other) const noexcept {
         return this->family == other.family && this->style == other.style && this->weight == other.weight;

@@ -6,7 +6,6 @@
 
 #include "Stage.h"
 #include "FontStore.h"
-#include "AsyncTaskQueue.h"
 #include <StageAdapter.h>
 #include <napi-ext.h>
 
@@ -24,12 +23,6 @@ using Napi::Value;
 namespace ls {
 
 Stage::Stage(const CallbackInfo& info) : ObjectWrap<Stage>(info) {
-    auto env{ info.Env() };
-    HandleScope scope(env);
-
-    this->asyncTaskQueue = std::unique_ptr<AsyncTaskQueue>(new AsyncTaskQueue());
-    this->asyncTaskQueue->Init();
-
     this->fontStore = std::unique_ptr<FontStore>(new FontStore(this));
 }
 
@@ -37,8 +30,6 @@ Stage::~Stage() {
     if (this->stageAdapter) {
         this->stageAdapter->AsReference()->Unref();
     }
-
-    this->asyncTaskQueue->Shutdown();
 }
 
 Function Stage::Constructor(Napi::Env env) {
@@ -61,9 +52,7 @@ Function Stage::Constructor(Napi::Env env) {
 }
 
 void Stage::ProcessEvents(const CallbackInfo& info) {
-    if (this->asyncTaskQueue) {
-        this->asyncTaskQueue->ProcessCompleteTasks();
-    }
+    this->asyncTaskQueue.ProcessTasks();
 }
 
 Value Stage::GetStageAdapter(const CallbackInfo& info) {

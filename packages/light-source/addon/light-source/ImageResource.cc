@@ -29,15 +29,15 @@ using NSVGimageHandle = std::unique_ptr<NSVGimage, decltype(&nsvgDelete)>;
 using NSVGrasterizerHandle = std::unique_ptr<NSVGrasterizer, decltype(&nsvgDeleteRasterizer)>;
 
 float ScaleFactor(const int, const int);
-std::shared_ptr<ImageInfo> DecodeImage(const ImageUri&, const std::vector<std::string>&,
+std::shared_ptr<void> DecodeImage(const ImageUri&, const std::vector<std::string>&,
     const std::vector<std::string>&, const PixelFormat);
 std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage* svgImage, const std::string& uri, const int32_t scaleWidth,
         const int32_t scaleHeight);
 
-ImageResource::ImageResource(const ImageUri& uri) : Resource(uri.GetId()), uri(uri) {
+ImageResource::ImageResource(const ImageUri& uri) noexcept : Resource(uri.GetId()), uri(uri) {
 }
 
-ImageResource::~ImageResource() {
+ImageResource::~ImageResource() noexcept {
     if (this->task) {
         this->task->Cancel();
     }
@@ -65,44 +65,44 @@ bool ImageResource::Sync(Renderer* renderer) {
 
 void ImageResource::Load(AsyncTaskQueue* taskQueue, Renderer* renderer,
         const std::vector<std::string>& extensions, const std::vector<std::string>& resourcePath) {
+    assert(!this->task);
+
     auto initialState{ ResourceStateLoading };
     const auto textureFormat{ renderer->GetTextureFormat() };
     const auto uri{ this->uri };
 
-    try {
-        this->task = std::make_shared<Task>(
-            [uri, extensions, resourcePath, textureFormat]() -> std::shared_ptr<ImageInfo> {
-                return DecodeImage(uri, extensions, resourcePath, textureFormat);
-            },
-            [this](std::shared_ptr<TaskResult> taskResult) {
-                assert(taskResult != nullptr);
+    auto execute = [uri, extensions, resourcePath, textureFormat]() -> std::shared_ptr<void> {
+        return DecodeImage(uri, extensions, resourcePath, textureFormat);
+    };
 
-                // TODO: assert(this->resourceState != ResourceStateLoading)
-                // TODO: assert(this->GetRefCount() > 0)
-
-                this->image = std::static_pointer_cast<ImageInfo>(taskResult);
-                this->width = this->image->width;
-                this->height = this->image->height;
-
-                this->task.reset();
-
-                fmt::println("image load: {}x{}", width, height);
-
-                this->SetStateAndNotifyListeners(ResourceStateReady);
-            },
-            [this](const std::string& message) {
-                fmt::println("image load: Error: {}", message);
-                this->width = this->height = 0;
-                this->SetStateAndNotifyListeners(ResourceStateError);
-            });
-    } catch (std::exception& e) {
-        initialState = ResourceStateError;
-    }
-
-    try {
-        if (this->task) {
-            taskQueue->Submit(this->task);
+    auto complete = [this](std::shared_ptr<Task> task) {
+        if (this->resourceState != ResourceStateLoading || task != this->task) {
+            return;
         }
+
+        ResourceState nextState;
+
+        if (task->IsError()) {
+            this->image.reset();
+            this->width = this->height = 0;
+            nextState = ResourceStateError;
+
+            fmt::println("image load: Error: {}", task->GetErrorMessage());
+        } else {
+            this->image = task->GetResultAs<ImageInfo>();
+            this->width = this->image->width;
+            this->height = this->image->height;
+            nextState = ResourceStateReady;
+
+            fmt::println("image load: {}x{}", width, height);
+        }
+
+        this->task.reset();
+        this->SetStateAndNotifyListeners(nextState);
+    };
+
+    try {
+        this->task = taskQueue->Submit(std::move(execute), std::move(complete));
     } catch (const std::exception&) {
         initialState = ResourceStateError;
     }
@@ -133,7 +133,7 @@ void ImageResource::Detach(Renderer* renderer) {
     }
 }
 
-std::shared_ptr<ImageInfo> DecodeImage(const ImageUri& uri, const std::vector<std::string>& extensions,
+std::shared_ptr<void> DecodeImage(const ImageUri& uri, const std::vector<std::string>& extensions,
              const std::vector<std::string>& resourcePath, const PixelFormat textureFormat) {
     std::shared_ptr<ImageInfo> result;
     const auto& uriOrFilename{ uri.GetUri() };
@@ -172,11 +172,11 @@ std::shared_ptr<ImageInfo> DecodeImage(const ImageUri& uri, const std::vector<st
         const auto data{ stbi_load_from_file(file.get(), &width, &height, &components, 4) };
 
         if (data) {
-            result = std::make_shared<ImageInfo>();
-            result->width = width,
-            result->height = height,
-            result->data = std::shared_ptr<uint8_t>(data, [] (uint8_t* p) { stbi_image_free(p); });
-            result->format = PixelFormatRGBA;
+            result = std::make_shared<ImageInfo>(
+                width,
+                height,
+                PixelFormatRGBA,
+                std::shared_ptr<uint8_t>(data, [] (uint8_t* p) { stbi_image_free(p); }));
         } else {
             fseek(file.get(), 0, SEEK_SET);
 
@@ -193,7 +193,7 @@ std::shared_ptr<ImageInfo> DecodeImage(const ImageUri& uri, const std::vector<st
         result->format = textureFormat;
     }
 
-    return result;
+    return std::static_pointer_cast<void>(result);
 }
 
 std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage* svgImage, const std::string& uri, const int32_t scaleWidth,
@@ -267,6 +267,23 @@ EdgeRect ToCapInsets(const Object& spec) {
     };
 }
 
+ImageUri::ImageUri(const std::string& uri) noexcept : uri(uri) {
+}
+
+ImageUri::ImageUri(const std::string& uri, const std::string& id, const int32_t width, const int32_t height) noexcept
+: uri(uri), id(id), width(width), height(height) {
+}
+
+ImageUri::ImageUri(
+    const std::string& uri,
+    const std::string& id,
+    const int32_t width,
+    const int32_t height,
+    const EdgeRect& capInsets) noexcept
+: uri(uri), id(id), width(width), height(height), capInsets(capInsets),
+      hasCapInsets(capInsets.top || capInsets.right || capInsets.bottom || capInsets.left) {
+}
+
 ImageUri ImageUri::FromObject(const Object& spec) {
     const auto uri{ ObjectGetString(spec, "uri") };
     const auto id{ ObjectGetStringOrEmpty(spec, "id") };
@@ -307,6 +324,11 @@ Value ImageUri::ToObject(const Napi::Env& env) const {
     }
 
     return scope.Escape(imageUri);
+}
+
+ImageInfo::ImageInfo(const int32_t width, const int32_t height, const PixelFormat format,
+        const std::shared_ptr<uint8_t>& data) noexcept
+    : width(width), height(height), format(format), data(data) {
 }
 
 inline

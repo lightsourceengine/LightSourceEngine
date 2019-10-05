@@ -82,7 +82,7 @@ class TestSuite : public Napi::ObjectWrap<TestSuite> {
     TestFunction beforeEach;
     // Function executed after each test case is run. Optional.
     TestFunction afterEach;
-    // Test specific data attached this group. Optional.
+    // Test specific data attached this test suite. Optional.
     std::shared_ptr<TestContext> context;
 
  private:
@@ -114,48 +114,101 @@ class Assert {
      * Checks that two values are equal using the == operator.
      */
     template<typename T>
-    void Equal(const T& value, const T& expected) const {
+    void Equal(const T& value, const T& expected, const std::string& message = "") const {
         if (!(value == expected)) {
             std::stringstream ss;
             
             ss << "Expected " << value << " to be equal to " << expected;
 
-            NAPI_THROW_VOID(Napi::Error::New(this->env, ss.str()));
+            NAPI_THROW_VOID(Napi::Error::New(this->env, this->FormatAssertionError(ss.str(), message)));
+        }
+    }
+
+    /**
+     * Checks that the value is equal to nullptr.
+     */
+    template<typename T>
+    void IsNull(const T& value, const std::string& message = "") const {
+        if (!(value == nullptr)) {
+            std::stringstream ss;
+
+            ss << "Expected " << value << " to be nullptr";
+
+            NAPI_THROW_VOID(Napi::Error::New(this->env, this->FormatAssertionError(ss.str(), message)));
+        }
+    }
+
+    /**
+     * Checks that the value is not equal to nullptr.
+     */
+    template<typename T>
+    void IsNotNull(const T& value, const std::string& message = "") const {
+        if (value == nullptr) {
+            std::stringstream ss;
+
+            ss << "Expected " << value << " to not be nullptr";
+
+            NAPI_THROW_VOID(Napi::Error::New(this->env, this->FormatAssertionError(ss.str(), message)));
         }
     }
 
     /**
      * Checks that the value is true.
      */
-    void IsTrue(bool value) const {
+    void IsTrue(const bool value, const std::string& message = "") const {
         if (!value) {
-            NAPI_THROW_VOID(Napi::Error::New(this->env, "Expected true"));
+            NAPI_THROW_VOID(Napi::Error::New(this->env, this->FormatAssertionError("Expected true", message)));
         }
     }
 
     /**
      * Checks that the value is false.
      */
-    void IsFalse(bool value) const {
+    void IsFalse(const bool value, const std::string& message = "") const {
         if (value) {
-            NAPI_THROW_VOID(Napi::Error::New(this->env, "Expected false"));
+            NAPI_THROW_VOID(Napi::Error::New(this->env, this->FormatAssertionError("Expected false", message)));
         }
     }
 
     /**
      * Checks that calling the passed in lambda function will throw an std::exception.
      */
-    void Throws(std::function<void()> func) const {
+    void Throws(std::function<void()> func, const std::string& message = "") const {
         try {
             func();
         } catch (const std::exception&) {
             return;
         }
 
-        NAPI_THROW_VOID(Napi::Error::New(this->env, "Expected function to throw an std::exception."));
+        NAPI_THROW_VOID(Napi::Error::New(this->env,
+            this->FormatAssertionError("Expected function to throw an std::exception.", message)));
     }
 
- private:
+    /**
+     * Fail the test immediately by throwing an exception.
+     */
+    void Fail(const std::string& message = "Fail") const {
+        NAPI_THROW_VOID(Napi::Error::New(this->env, this->FormatAssertionError("", message)));
+    }
+
+ protected:
+    std::string FormatAssertionError(const std::string& failure, const std::string& message) const noexcept {
+        std::stringstream ss;
+
+        ss << "AssertionError";
+
+        if (!failure.empty()) {
+            ss << ": " << failure;
+        }
+
+        if (!message.empty()) {
+            ss << ": " << message;
+        }
+
+        return ss.str();
+    }
+
+ protected:
     Napi::Env env;
 };
 

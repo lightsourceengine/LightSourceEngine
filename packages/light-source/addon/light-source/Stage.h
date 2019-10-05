@@ -7,10 +7,10 @@
 #pragma once
 
 #include <napi.h>
+#include "AsyncTaskQueue.h"
 
 namespace ls {
 
-class AsyncTaskQueue;
 class FontStore;
 class StageAdapter;
 
@@ -33,13 +33,13 @@ class Stage : public Napi::ObjectWrap<Stage> {
 
     FontStore* GetFontStore() const { return this->fontStore.get(); }
     StageAdapter* GetStageAdapter() const { return this->stageAdapter; }
-    AsyncTaskQueue* GetAsyncTaskQueue() const { return this->asyncTaskQueue.get(); }
+    AsyncTaskQueue* GetAsyncTaskQueue() const { return &this->asyncTaskQueue; }
     const std::string& GetResourcePath() const { return this->resourcePath; }
 
  private:
     StageAdapter* stageAdapter{};
     std::unique_ptr<FontStore> fontStore;
-    std::unique_ptr<AsyncTaskQueue> asyncTaskQueue;
+    mutable AsyncTaskQueue asyncTaskQueue;
     std::string resourcePath;
 };
 

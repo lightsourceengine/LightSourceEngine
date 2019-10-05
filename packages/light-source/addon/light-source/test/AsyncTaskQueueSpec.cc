@@ -10,27 +10,18 @@
 #include <thread>
 #include <chrono>
 #include <string>
-#include <fmt/format.h>
 
 using Napi::Assert;
 using Napi::TestSuite;
 
 namespace ls {
 
-struct TestTaskResult : public TaskResult {
-    explicit TestTaskResult(int value) : value(value) {
-    }
-
-    int value{};
-};
-
-void WaitForTaskDone(std::shared_ptr<AsyncTaskQueue> queue, std::shared_ptr<Task> task);
-void CompleteCallback(std::shared_ptr<TaskResult> result);
-void ErrorCallback(const std::string& message);
+void WaitForTaskDone(const Assert& assert, const std::shared_ptr<AsyncTaskQueue>& queue,
+        const std::shared_ptr<Task>& task);
+void CompleteCallback(std::shared_ptr<Task> task);
 
 static std::shared_ptr<AsyncTaskQueue> asyncTaskQueue;
 static bool completeCalled{false};
-static bool errorCalled{false};
 static std::string errorMessage; // NOLINT(runtime/string)
 
 void AsyncTaskQueueSpec(Napi::Env env, TestSuite* parent) {
@@ -39,9 +30,7 @@ void AsyncTaskQueueSpec(Napi::Env env, TestSuite* parent) {
 
     spec->beforeEach = [](const Napi::CallbackInfo& info) mutable {
         asyncTaskQueue.reset(new AsyncTaskQueue());
-        asyncTaskQueue->Init();
         completeCalled = false;
-        errorCalled = false;
         errorMessage.clear();
     };
 
@@ -55,48 +44,44 @@ void AsyncTaskQueueSpec(Napi::Env env, TestSuite* parent) {
         {
             "should execute submitted task",
             [assert](const Napi::CallbackInfo& info) mutable {
-                auto task = std::make_shared<Task>(
-                    []() -> std::shared_ptr<TaskResult> {
-                        return std::make_shared<TestTaskResult>(5);
+                auto task = asyncTaskQueue->Submit(
+                    []() -> std::shared_ptr<void> {
+                        return std::make_shared<int>(5);
                     },
-                    CompleteCallback,
-                    ErrorCallback);
+                    CompleteCallback);
 
-                asyncTaskQueue->Submit(task);
+                assert.IsNotNull(task);
 
-                WaitForTaskDone(asyncTaskQueue, task);
+                WaitForTaskDone(assert, asyncTaskQueue, task);
 
-                assert.IsTrue(task->IsDone());
-                assert.IsTrue(task->GetResult() != nullptr);
+                assert.IsNotNull(task->GetResult());
                 assert.IsTrue(completeCalled);
-                assert.IsTrue(task->HasResult());
-                assert.IsFalse(errorCalled);
-                assert.IsFalse(task->HasError());
-                assert.Equal(std::static_pointer_cast<TestTaskResult>(task->GetResult())->value, 5);
+                assert.IsTrue(task->IsSuccess());
+                assert.IsFalse(task->IsError());
+                assert.IsFalse(task->WasCancelled());
+                assert.Equal(*task->GetResultAs<int>(), 5);
             }
         },
         {
             "should handle exception in execute method as an error",
             [assert](const Napi::CallbackInfo& info) mutable {
-                static std::string errorText{"test error message"};
+                static const std::string errorText{"test error message"};
 
-                auto task = std::make_shared<Task>(
-                    []() -> std::shared_ptr<TaskResult> {
+                auto task = asyncTaskQueue->Submit(
+                    []() -> std::shared_ptr<void> {
                         throw std::runtime_error(errorText);
                     },
-                    CompleteCallback,
-                    ErrorCallback);
+                    CompleteCallback);
 
-                asyncTaskQueue->Submit(task);
+                assert.IsNotNull(task);
 
-                WaitForTaskDone(asyncTaskQueue, task);
+                WaitForTaskDone(assert, asyncTaskQueue, task);
 
-                assert.IsTrue(task->IsDone());
-                assert.IsFalse(completeCalled);
-                assert.IsFalse(task->HasResult());
-                assert.IsTrue(errorCalled);
-                assert.IsTrue(task->HasError());
-                assert.Equal(errorMessage, errorText);
+                assert.IsTrue(completeCalled);
+                assert.IsFalse(task->IsSuccess());
+                assert.IsTrue(task->IsError());
+                assert.IsFalse(task->WasCancelled());
+                assert.Equal(task->GetErrorMessage(), errorText);
             }
         }
     };
@@ -105,22 +90,19 @@ void AsyncTaskQueueSpec(Napi::Env env, TestSuite* parent) {
         {
             "should cancel task",
             [assert](const Napi::CallbackInfo& info) mutable {
-                auto task = std::make_shared<Task>(
-                    []() -> std::shared_ptr<TaskResult> {
+                auto task = asyncTaskQueue->Submit(
+                    []() -> std::shared_ptr<void> {
                         return {};
                     },
-                    CompleteCallback,
-                    ErrorCallback);
+                    CompleteCallback);
 
-                asyncTaskQueue->Submit(task);
                 task->Cancel();
 
-                WaitForTaskDone(asyncTaskQueue, task);
+                WaitForTaskDone(assert, asyncTaskQueue, task);
 
-                assert.IsTrue(task->IsDone());
-                assert.IsFalse(task->HasResult());
-                assert.IsFalse(errorCalled);
-                assert.IsFalse(task->HasError());
+                assert.IsFalse(task->IsSuccess());
+                assert.IsFalse(task->IsError());
+                assert.IsTrue(task->WasCancelled());
             }
         },
     };
@@ -128,30 +110,38 @@ void AsyncTaskQueueSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("Shutdown()")->tests = {
         {
             "should be idempotent",
-            [](const Napi::CallbackInfo& info) mutable {
+            [assert](const Napi::CallbackInfo& info) mutable {
+                assert.IsTrue(asyncTaskQueue->IsRunning());
                 asyncTaskQueue->Shutdown();
+                assert.IsFalse(asyncTaskQueue->IsRunning());
                 asyncTaskQueue->Shutdown();
+                assert.IsFalse(asyncTaskQueue->IsRunning());
             }
         },
     };
 }
 
-void CompleteCallback(std::shared_ptr<TaskResult> result) {
+void CompleteCallback(std::shared_ptr<Task> task) {
     completeCalled = true;
 }
 
-void ErrorCallback(const std::string& message) {
-    errorCalled = true;
-    errorMessage = message;
-}
-
-void WaitForTaskDone(std::shared_ptr<AsyncTaskQueue> queue, std::shared_ptr<Task> task) {
+void WaitForTaskDone(const Assert& assert, const std::shared_ptr<AsyncTaskQueue>& queue,
+        const std::shared_ptr<Task>& task) {
     auto loops{100};
 
-    while (loops-- && !task->IsDone()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        queue->ProcessCompleteTasks();
+    while (loops--) {
+        queue->ProcessTasks();
+
+        if (task->IsError() || task->IsSuccess() || task->WasCancelled()) {
+            return;
+        }
+
+        if (loops >= 0) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
     }
+
+    assert.Fail("Timeout waiting for async queue to complete task.");
 }
 
 } // namespace ls

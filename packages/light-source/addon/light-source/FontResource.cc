@@ -15,61 +15,46 @@
 
 namespace ls {
 
-std::shared_ptr<TaskResult> LoadFont(
+std::shared_ptr<void> LoadFont(
     const std::vector<std::string>& path, const std::string& filename, const int32_t index);
-
-struct FontTaskResult : public TaskResult {
-    FontTaskResult()
-    : fontInfo(new stbtt_fontinfo(), [](stbtt_fontinfo* p) { if (p->data) { delete [] p->data; } delete p; }) {
-        this->fontInfo->data = nullptr;
-    }
-
-    std::shared_ptr<stbtt_fontinfo> fontInfo;
-};
 
 FontResource::FontResource(const FontId& fontId, const std::string& uri, const int32_t index)
         : BaseResource(fontId), uri(uri), index(index) {
 }
 
 void FontResource::Load(Stage* stage) {
+    assert(!this->task);
+
     auto initialState{ ResourceStateLoading };
     const auto uri{ this->uri };
     const auto index{ this-> index };
     const auto path{ stage->GetResourcePath() };
 
-    assert(!this->task);
+    auto execute = [path, uri, index]() -> std::shared_ptr<void> {
+        return LoadFont({ path }, uri, index);
+    };
 
-    try {
-        this->task = std::make_shared<Task>(
-            [path, uri, index]() -> std::shared_ptr<TaskResult> {
-                return LoadFont({ path }, uri, index);
-            },
-            [this](std::shared_ptr<TaskResult> taskResult) {
-                assert(taskResult != nullptr);
-
-                // TODO: assert(this->resourceState != ResourceStateLoading)
-                // TODO: assert(this->GetRefCount() > 0)
-
-                const auto fontTaskResult{ std::static_pointer_cast<FontTaskResult>(taskResult) };
-
-                this->fontInfo = fontTaskResult->fontInfo;
-                this->task = nullptr;
-
-                this->SetState(ResourceStateReady, true);
-            },
-            [this](const std::string& errorMessage) {
-                fmt::println("FontResource.Load(): Error: {}", errorMessage);
-                this->SetState(ResourceStateError, true);
-            });
-    } catch (const std::exception&) {
-        initialState = ResourceStateError;
-    }
-
-    try {
-        if (this->task) {
-            stage->GetAsyncTaskQueue()->Submit(this->task);
+    auto complete = [this](std::shared_ptr<Task> task) {
+        if (this->resourceState != ResourceStateLoading || task != this->task) {
+            return;
         }
-    } catch (std::exception& e) {
+
+        ResourceState nextState;
+
+        if (task->IsError()) {
+            nextState = ResourceStateError;
+        } else {
+            this->fontInfo = task->GetResultAs<stbtt_fontinfo>();
+            nextState = ResourceStateReady;
+        }
+
+        this->task.reset();
+        this->SetState(nextState, true);
+    };
+
+    try {
+        this->task = stage->GetAsyncTaskQueue()->Submit(std::move(execute), std::move(complete));
+    } catch (const std::exception&) {
         initialState = ResourceStateError;
     }
 
@@ -103,9 +88,14 @@ std::shared_ptr<Font> FontResource::GetFont(int32_t fontSize) const {
     return it->second;
 }
 
-std::shared_ptr<TaskResult> LoadFont(const std::vector<std::string>& path, const std::string& filename,
+FontId::FontId(const std::string& family, const StyleFontStyle style, const StyleFontWeight weight) noexcept
+: family(family), style(style), weight(weight) {
+}
+
+std::shared_ptr<void> LoadFont(const std::vector<std::string>& path, const std::string& filename,
         const int32_t index) {
-    const auto result{ std::make_shared<FontTaskResult>() };
+    const std::shared_ptr<stbtt_fontinfo> result(
+        new stbtt_fontinfo(), [](stbtt_fontinfo* p) { if (p->data) { delete [] p->data; } delete p; });
     const auto resolvedFilename{
         IsResourceUri(filename) ? FindFile(GetResourceUriPath(filename), {}, path) : fs::path(filename)
     };
@@ -131,13 +121,13 @@ std::shared_ptr<TaskResult> LoadFont(const std::vector<std::string>& path, const
         throw std::runtime_error("Cannot find font at index.");
     }
 
-    if (stbtt_InitFont(result->fontInfo.get(), ttf.get(), offset) == 0) {
+    if (stbtt_InitFont(result.get(), ttf.get(), offset) == 0) {
         throw std::runtime_error("Failed to init font.");
     }
 
     ttf.release();
 
-    return result;
+    return std::static_pointer_cast<void>(result);
 }
 
 } // namespace ls

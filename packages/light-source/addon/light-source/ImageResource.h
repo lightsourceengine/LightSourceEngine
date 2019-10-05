@@ -17,12 +17,14 @@ class ResourceManager;
 class ImageUri {
  public:
     ImageUri() noexcept = default;
-    explicit ImageUri(const std::string& uri) noexcept : uri(uri) {}
-    ImageUri(const std::string& uri, const std::string& id, int32_t width, int32_t height) noexcept
-            : uri(uri), id(id), width(width), height(height) {}
-    ImageUri(const std::string& uri, const std::string& id, int32_t width, int32_t height, const EdgeRect& capInsets)
-        noexcept : uri(uri), id(id), width(width), height(height), capInsets(capInsets),
-          hasCapInsets(capInsets.top || capInsets.right || capInsets.bottom || capInsets.left) {}
+    explicit ImageUri(const std::string& uri) noexcept;
+    ImageUri(const std::string& uri, const std::string& id, const int32_t width, const int32_t height) noexcept;
+    ImageUri(
+        const std::string& uri,
+        const std::string& id,
+        const int32_t width,
+        const int32_t height,
+        const EdgeRect& capInsets) noexcept;
 
     const std::string& GetId() const noexcept { return this->id.empty() ? this->uri : this->id; }
     const std::string& GetUri() const noexcept { return this->uri; }
@@ -45,22 +47,24 @@ class ImageUri {
     bool hasCapInsets{false};
 };
 
-struct ImageInfo : public TaskResult {
+struct ImageInfo {
     int32_t width;
     int32_t height;
     PixelFormat format;
     std::shared_ptr<uint8_t> data;
 
     ImageInfo() noexcept = default;
-    ImageInfo(const int32_t width, const int32_t height, const PixelFormat format,
-        const std::shared_ptr<uint8_t>& data) noexcept : width(width), height(height), format(format), data(data) {
-    }
+    ImageInfo(
+        const int32_t width,
+        const int32_t height,
+        const PixelFormat format,
+        const std::shared_ptr<uint8_t>& data) noexcept;
 };
 
 class ImageResource : public Resource {
  public:
-    explicit ImageResource(const ImageUri& uri);
-    virtual ~ImageResource();
+    explicit ImageResource(const ImageUri& uri) noexcept;
+    virtual ~ImageResource() noexcept;
 
     uint32_t GetTextureId() const noexcept { return this->textureId; }
     int32_t GetWidth() const noexcept { return this->width; }
