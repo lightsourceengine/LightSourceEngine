@@ -254,7 +254,7 @@ void SDLStageAdapter::Destroy(const CallbackInfo& info) {
 }
 
 std::unique_ptr<SceneAdapter> SDLStageAdapter::CreateSceneAdapter(const SceneAdapterConfig& config) {
-    return std::make_unique<SDLSceneAdapter>(config);
+    return std::unique_ptr<SceneAdapter>(new SDLSceneAdapter(config));
 }
 
 Value SDLStageAdapter::ProcessEvents(const CallbackInfo& info) {

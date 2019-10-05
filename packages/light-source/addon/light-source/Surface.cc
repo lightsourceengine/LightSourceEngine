@@ -11,7 +11,7 @@
 
 namespace ls {
 
-constexpr int GetComponentCount(PixelFormat format) {
+static int32_t GetComponentCount(PixelFormat format) {
     switch (format) {
         case PixelFormatRGBA:
         case PixelFormatARGB:

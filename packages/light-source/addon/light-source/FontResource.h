@@ -25,12 +25,16 @@ struct FontId {
     StyleFontStyle style{};
     StyleFontWeight weight{};
 
-    bool operator==(const FontId &other) const {
+    FontId() noexcept = default;
+    FontId(const std::string& family, const StyleFontStyle style, const StyleFontWeight weight)
+        : family(family), style(style), weight(weight) {}
+
+    bool operator==(const FontId &other) const noexcept {
         return this->family == other.family && this->style == other.style && this->weight == other.weight;
     }
 
     struct Hash {
-        std::size_t operator() (const FontId& id) const {
+        std::size_t operator() (const FontId& id) const noexcept {
             return std::hash<std::string>()(id.family)
                 ^ static_cast<std::size_t>(id.style)
                 ^ static_cast<std::size_t>(id.weight);

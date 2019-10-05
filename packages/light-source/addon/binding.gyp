@@ -47,7 +47,6 @@
         "deps/fmt/repo/include",
       ],
       "dependencies": [
-        "addon/deps/fmt/fmt.gyp:*",
       ],
       "sources": [
         "light-source-util/BaseAudioSource.cc",
@@ -78,7 +77,6 @@
       ],
       "dependencies": [
         "addon/deps/yoga/yoga.gyp:*",
-        "addon/deps/fmt/fmt.gyp:*",
         "addon/deps/stb/stb.gyp:*",
         "addon/deps/nanosvg/nanosvg.gyp:*",
         "light-source-util",
@@ -139,7 +137,6 @@
         "light-source-util",
       ],
       "dependencies": [
-        "addon/deps/fmt/fmt.gyp:*",
         "light-source-util",
       ],
       "sources": [
@@ -183,7 +180,6 @@
         "light-source-util",
       ],
       "dependencies": [
-        "addon/deps/fmt/fmt.gyp:*",
         "light-source-util",
       ],
       "sources": [
@@ -213,7 +209,6 @@
               "light-source-util",
             ],
             "dependencies": [
-                "addon/deps/fmt/fmt.gyp:*",
                 "light-source-util",
             ],
             "sources": [

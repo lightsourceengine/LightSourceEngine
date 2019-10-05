@@ -96,7 +96,7 @@ void RefStageAdapter::ResetCallbacks(const CallbackInfo& info) {
 }
 
 std::unique_ptr<SceneAdapter> RefStageAdapter::CreateSceneAdapter(const SceneAdapterConfig& config) {
-    return std::make_unique<RefSceneAdapter>(config);
+    return std::unique_ptr<SceneAdapter>(new RefSceneAdapter(config));
 }
 
 Value RefStageAdapter::ProcessEvents(const CallbackInfo& info) {

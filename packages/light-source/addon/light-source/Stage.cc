@@ -27,10 +27,10 @@ Stage::Stage(const CallbackInfo& info) : ObjectWrap<Stage>(info) {
     auto env{ info.Env() };
     HandleScope scope(env);
 
-    this->asyncTaskQueue = std::make_unique<AsyncTaskQueue>();
+    this->asyncTaskQueue = std::unique_ptr<AsyncTaskQueue>(new AsyncTaskQueue());
     this->asyncTaskQueue->Init();
 
-    this->fontStore = std::make_unique<FontStore>(this);
+    this->fontStore = std::unique_ptr<FontStore>(new FontStore(this));
 }
 
 Stage::~Stage() {

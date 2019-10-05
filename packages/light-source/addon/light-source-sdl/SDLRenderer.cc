@@ -395,8 +395,6 @@ uint32_t SDLRenderer::CreateTexture(const int32_t width, const int32_t height,
 }
 
 LockTextureInfo SDLRenderer::LockTexture(const uint32_t textureId) {
-    LockTextureInfo result;
-
     void* pixels{nullptr};
     int32_t textureWidth{0};
     int32_t textureHeight{0};
@@ -424,13 +422,15 @@ LockTextureInfo SDLRenderer::LockTexture(const uint32_t textureId) {
         }
     };
 
-    return {
-        std::shared_ptr<uint8_t>(reinterpret_cast<uint8_t*>(pixels), deleter),
-        textureWidth,
-        textureHeight,
-        texturePitch,
-        this->GetTextureFormat()
-    };
+    LockTextureInfo result;
+
+    result.pixels = std::shared_ptr<uint8_t>(reinterpret_cast<uint8_t*>(pixels), deleter);
+    result.width = textureWidth;
+    result.height = textureHeight;
+    result.pitch = texturePitch;
+    result.format = this->GetTextureFormat();
+
+    return result;
 }
 
 void SDLRenderer::DestroyTexture(const uint32_t textureId) {
