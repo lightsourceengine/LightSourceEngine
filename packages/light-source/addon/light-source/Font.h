@@ -21,7 +21,8 @@ class Font {
         int32_t numVertices{};
 
         Shape() noexcept = default;
-        Shape(stbtt_vertex* vertices, const int32_t numVertices) noexcept : vertices(vertices), numVertices(numVertices) {}
+        Shape(stbtt_vertex* vertices, const int32_t numVertices) noexcept
+            : vertices(vertices), numVertices(numVertices) {}
 
         bool IsEmpty() const noexcept { return vertices == nullptr || numVertices <= 0; }
     };

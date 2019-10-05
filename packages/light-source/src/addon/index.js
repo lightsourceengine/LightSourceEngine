@@ -11,6 +11,7 @@ let lib
 try {
   lib = bindings('light-source')
 } catch (e) {
+  console.log('Error loading light-source.node: ' + e.message)
   lib = {
     StyleBase: () => {},
     StyleEnumMappings: () => {},
