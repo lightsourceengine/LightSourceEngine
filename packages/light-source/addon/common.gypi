@@ -23,7 +23,8 @@
       "OS==\"win\"", {
         "defines": [
           "_WIN32",
-          "_HAS_EXCEPTIONS=1"
+          "_HAS_EXCEPTIONS=1",
+          "NOMINMAX",
         ]
       }
     ],

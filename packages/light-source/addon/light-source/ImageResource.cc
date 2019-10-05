@@ -11,6 +11,7 @@
 #include <nanosvg.h>
 #include <nanosvgrast.h>
 #include <stb_image.h>
+#include <algorithm>
 #include <fmt/println.h>
 
 using Napi::EscapableHandleScope;
