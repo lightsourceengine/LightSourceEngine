@@ -5,11 +5,10 @@
  */
 
 #include "napi-ext.h"
-#include <fmt/format.h>
 
 namespace Napi {
 
-Symbol SymbolFor(const Napi::Env& env, const char* key) {
+Symbol SymbolFor(const Napi::Env& env, const std::string& key) {
     static FunctionReference symbolFor;
 
     if (symbolFor.IsEmpty()) {
@@ -20,21 +19,21 @@ Symbol SymbolFor(const Napi::Env& env, const char* key) {
     return symbolFor({ String::New(env, key) }).As<Symbol>();
 }
 
-std::string ObjectGetString(const Object& object, const char* key) {
+std::string ObjectGetString(const Object& object, const std::string& key) {
     if (!object.Has(key)) {
-        throw Error::New(object.Env(), fmt::format("Expected '{}' property in Object.", key));
+        throw Error::New(object.Env(), "Expected property value to be Object: " + key);
     }
 
     auto value{ object.Get(key) };
 
     if (!value.IsString()) {
-        throw Error::New(object.Env(), fmt::format("Expected '{}' property in Object to be a String.", key));
+        throw Error::New(object.Env(), "Expected property value to be String: " + key);
     }
 
     return value.As<String>();
 }
 
-std::string ObjectGetStringOrEmpty(const Object& object, const char* key) {
+std::string ObjectGetStringOrEmpty(const Object& object, const std::string& key) {
     if (!object.Has(key)) {
         return "";
     }
@@ -48,7 +47,8 @@ std::string ObjectGetStringOrEmpty(const Object& object, const char* key) {
     return value.As<Napi::String>();
 }
 
-std::string ToLowerCase(const Napi::Env& env, const Napi::String& text) {
+std::string ToLowerCase(const Napi::String& text) {
+    auto env{ text.Env() };
     HandleScope scope(env);
     static FunctionReference toLowerCase;
 
@@ -64,7 +64,8 @@ std::string ToLowerCase(const Napi::Env& env, const Napi::String& text) {
     return toLowerCase.Call(text, {}).As<String>();
 }
 
-std::string ToUpperCase(const Napi::Env& env, const Napi::String& text) {
+std::string ToUpperCase(const Napi::String& text) {
+    auto env{ text.Env() };
     HandleScope scope(env);
     static FunctionReference toUpperCase;
 

@@ -349,9 +349,9 @@ std::string TextTransform(Napi::Env env, StyleTextTransform transform, const std
 
     switch (transform) {
         case StyleTextTransformUppercase:
-            return ToUpperCase(env, String::New(env, text));
+            return ToUpperCase(String::New(env, text));
         case StyleTextTransformLowercase:
-            return ToLowerCase(env, String::New(env, text));
+            return ToLowerCase(String::New(env, text));
         case StyleTextTransformNone:
         default:
             return text;

@@ -9,7 +9,7 @@
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
-using Napi::StringArray;
+using Napi::NewStringArray;
 using Napi::Value;
 
 namespace ls {
@@ -19,7 +19,7 @@ Value BaseAudioAdapter::IsAttached(const CallbackInfo& info) {
 }
 
 Value BaseAudioAdapter::GetAudioDevices(const CallbackInfo& info) {
-    return StringArray(info.Env(), this->audioDevices);
+    return NewStringArray(info.Env(), this->audioDevices);
 }
 
 Value BaseAudioAdapter::CreateSampleAudioDestination(const CallbackInfo& info) {

@@ -11,7 +11,7 @@
 namespace Napi {
 
 template<typename T>
-T ObjectGetNumberOrDefault(const Object& object, const char* key, T defaultValue) {
+T ObjectGetNumberOrDefault(const Object& object, const std::string& key, T defaultValue) {
     if (!object.Has(key)) {
         return defaultValue;
     }
@@ -26,7 +26,7 @@ T ObjectGetNumberOrDefault(const Object& object, const char* key, T defaultValue
 }
 
 template<typename Iterable>
-Napi::Array StringArray(const Napi::Env& env, const Iterable& iterable) {
+Napi::Array NewStringArray(const Napi::Env& env, const Iterable& iterable) {
     auto result{ Array::New(env) };
     const auto appendString = [&env, &result](const std::string& value) {
         result[result.Length()] = String::New(env, value);

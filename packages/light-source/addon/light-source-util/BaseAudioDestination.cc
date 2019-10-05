@@ -10,13 +10,13 @@
 using Napi::Boolean;
 using Napi::CallbackInfo;
 using Napi::Number;
-using Napi::StringArray;
+using Napi::NewStringArray;
 using Napi::Value;
 
 namespace ls {
 
 Value BaseAudioDestination::GetDecoders(const CallbackInfo& info) {
-    return StringArray(info.Env(), this->decoders);
+    return NewStringArray(info.Env(), this->decoders);
 }
 
 void BaseAudioDestination::Resume(const CallbackInfo& info) {
