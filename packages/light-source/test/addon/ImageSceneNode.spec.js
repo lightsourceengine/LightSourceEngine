@@ -76,7 +76,7 @@ describe('ImageSceneNode', () => {
     })
     xit('should be assignable to a resource uri', async () => {
       scene.stage.start()
-      scene.resource.path = 'test/resources'
+      scene.stage.resourcePath = 'test/resources'
       const promises = []
 
       for (const input of images) {
@@ -128,16 +128,9 @@ describe('ImageSceneNode', () => {
     it('should be null when assigned a non-string value', () => {
       const node = createNode('img')
 
-      for (const input of ['', null, undefined, 3]) {
+      for (const input of ['', null, undefined, 3, {}, { id: 'image.jpg' }]) {
         node.src = input
         assert.isNull(node.src)
-      }
-    })
-    xit('should be throw Error when assigned an invalid Object', () => {
-      const node = createNode('img')
-
-      for (const input of [{}, { id: 'image.jpg' }]) {
-        assert.throws(() => { node.src = input })
       }
     })
   })
