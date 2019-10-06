@@ -12,6 +12,6 @@
       "sources": [
         "repo/src/format.cc",
       ]
-    },
+    }
   ]
 }

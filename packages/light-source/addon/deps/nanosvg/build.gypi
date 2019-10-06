@@ -12,6 +12,6 @@
       "sources": [
         "src/nanosvg.cc",
       ]
-    },
+    }
   ]
 }

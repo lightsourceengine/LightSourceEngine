@@ -23,6 +23,6 @@
         "lib/YGValue.cpp",
         "lib/Yoga.cpp",
       ]
-    },
+    }
   ]
 }
