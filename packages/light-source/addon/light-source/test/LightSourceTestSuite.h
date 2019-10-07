@@ -6,25 +6,17 @@
 
 #pragma once
 
-#ifdef LIGHT_SOURCE_NATIVE_TESTS
-
 #include <napi-unit.h>
 
 namespace ls {
 
-void FileSystemSpec(Napi::Env env, Napi::TestSuite* parent);
-void SurfaceSpec(Napi::Env env, Napi::TestSuite* parent);
 void AsyncTaskQueueSpec(Napi::Env env, Napi::TestSuite* parent);
 
 inline
-Napi::Value LightSourceSpec(Napi::Env env) {
+Napi::Value LightSourceTestSuite(Napi::Env env) {
     return Napi::TestSuite::Build(env, "light-source native tests", {
-        &FileSystemSpec,
-        &SurfaceSpec,
         &AsyncTaskQueueSpec,
     });
 }
 
 } // namespace ls
-
-#endif // LIGHT_SOURCE_NATIVE_TESTS

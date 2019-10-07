@@ -16,7 +16,9 @@
 #include "ImageSceneNode.h"
 #include "RootSceneNode.h"
 #include "TextSceneNode.h"
-#include "test/LightSourceSpec.h"
+#ifdef LIGHT_SOURCE_NATIVE_TESTS
+#include "test/LightSourceTestSuite.h"
+#endif
 
 using Napi::Env;
 using Napi::Function;
@@ -56,7 +58,7 @@ Object Init(Env env, Object exports) {
     exports["getSceneNodeInstanceCount"] = Function::New(env, &SceneNode::GetInstanceCount);
 
     #ifdef LIGHT_SOURCE_NATIVE_TESTS
-    exports["test"] = ls::LightSourceSpec(env);
+    exports["test"] = ls::LightSourceTestSuite(env);
     #endif
 
     return exports;

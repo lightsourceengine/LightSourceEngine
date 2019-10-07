@@ -10,7 +10,7 @@
 #include <vector>
 #include <tuple>
 #include <stb_truetype.h>
-#include "Surface.h"
+#include <ls/Surface.h>
 
 namespace ls {
 

@@ -38,7 +38,6 @@
         "StyleEnumMappings.cc",
         "StyleEnums.cc",
         "StyleValue.cc",
-        "Surface.cc",
         "Font.cc",
         "FontStore.cc",
         "FontStoreView.cc",
@@ -67,8 +66,6 @@
               "LIGHT_SOURCE_NATIVE_TESTS"
             ],
             "sources": [
-              "test/FileSystemSpec.cc",
-              "test/SurfaceSpec.cc",
               "test/AsyncTaskQueueSpec.cc",
             ]
           }

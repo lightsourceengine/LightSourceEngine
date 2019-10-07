@@ -6,7 +6,7 @@
 
 #include "TextBlock.h"
 #include "Font.h"
-#include "Surface.h"
+#include <ls/Surface.h>
 #include <cmath>
 #include <algorithm>
 #include <utf8.h>

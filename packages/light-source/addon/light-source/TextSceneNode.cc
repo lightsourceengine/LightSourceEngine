@@ -10,10 +10,10 @@
 #include "Scene.h"
 #include "Font.h"
 #include "FontStore.h"
-#include "Surface.h"
 #include "StyleUtils.h"
 #include "LayerResource.h"
 #include <ls/Timer.h>
+#include <ls/Surface.h>
 #include <ls/Renderer.h>
 #include <Utils.h>
 #include <napi-ext.h>
