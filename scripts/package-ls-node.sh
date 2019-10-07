@@ -207,11 +207,11 @@ configure_crosstools() {
   CROSSTOOLS_SYSROOT="${CROSSTOOLS_HOME}/x64-gcc-6.3.1/${TOOLCHAIN_TYPE}/${TOOLCHAIN_TYPE}/sysroot"
 
   export npm_config_with_sdl_mixer=true
+  export npm_config_with_native_tests=false
   export npm_config_sdl_include_path="${CROSSTOOLS_SYSROOT}/usr/include/SDL2"
   export npm_config_sdl_library_path="${CROSSTOOLS_SYSROOT}/usr/lib"
-  export npm_config_with_cec=false
-  export npm_config_cec_include_path="${CROSSTOOLS_SYSROOT}/usr/include"
-  export npm_config_cec_library_path="${CROSSTOOLS_SYSROOT}/usr/lib"
+  export npm_config_sdl_mixer_include_path="${CROSSTOOLS_SYSROOT}/usr/include/SDL2"
+  export npm_config_sdl_mixer_library_path="${CROSSTOOLS_SYSROOT}/usr/lib"
 }
 
 clear_staging_dir() {

@@ -363,8 +363,9 @@ void SDLMixerAudioAdapter::Attach(const CallbackInfo& info) {
 
     t.Log();
 
-    // TODO: MIX_INIT_OPUS not available in 2.0.0 headers.. ok to patch it in
-    Mix_Init(MIX_INIT_FLAC | MIX_INIT_MOD | MIX_INIT_MP3 | MIX_INIT_OGG | MIX_INIT_MID | /*MIX_INIT_OPUS*/ 0x00000040);
+    Mix_Init(MIX_INIT_FLAC | MIX_INIT_MOD | MIX_INIT_MP3 | MIX_INIT_OGG
+        // TODO: MIX_INIT_OPUS and MIX_INIT_MID not available in 2.0.0 headers.. ok to patch it in
+        | /*MIX_INIT_MID*/ 0x00000020 | /*MIX_INIT_OPUS*/ 0x00000040);
 
     FillVector(
         &this->audioDevices,
