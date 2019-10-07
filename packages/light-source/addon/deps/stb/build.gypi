@@ -13,13 +13,18 @@
         "src/stb_image.cc",
       ],
       "cflags_cc+": [
-        "-Wno-unused-function",
+        "-w",
       ],
       "xcode_settings": {
-        "OTHER_CPLUSPLUSFLAGS": [
-            "-Wno-unused-function"
+        'WARNING_CFLAGS': [
+            "-w"
         ],
       },
+      "msvs_settings": {
+        "VCCLCompilerTool": {
+            "WarningLevel": "0",
+        },
+      }
     },
     {
       "target_name": "stb_truetype",

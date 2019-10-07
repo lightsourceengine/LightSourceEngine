@@ -23,6 +23,8 @@ static int32_t GetComponentCount(PixelFormat format) {
         case PixelFormatUnknown:
             return 0;
     }
+
+    return 0;
 }
 
 Surface::Surface(int32_t width, int32_t height) : format(PixelFormatAlpha) {

@@ -51,7 +51,7 @@ fs::path FindFile(const fs::path& filename, const std::vector<std::string>& exte
     for (const auto& resourcePath : resourcePaths) {
         try {
             return FindFile(fs::path(resourcePath) / filename, extensions);
-        } catch (std::exception& e) {
+        } catch (const std::exception&) {
             // continue
         }
     }

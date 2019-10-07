@@ -494,7 +494,7 @@ void SDLStageAdapter::SyncGamepads(Napi::Env env) {
     for (int32_t i{ 0 }; i < SDL_NumJoysticks(); i++) {
         try {
             this->AddGamepad(env, i);
-        } catch (Error& e) {
+        } catch (const Error&) {
             fmt::println("Error: Failed to get joystick at index {}", i);
         }
     }
