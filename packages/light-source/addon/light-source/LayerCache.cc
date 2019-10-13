@@ -7,6 +7,7 @@
 #include "LayerCache.h"
 #include "Layer.h"
 #include <algorithm>
+#include <cassert>
 
 namespace ls {
 

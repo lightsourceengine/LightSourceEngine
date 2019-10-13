@@ -26,7 +26,10 @@
           "sources": [
             "test/NapiExtSpec.cc",
             "test/NapiExtTestSuite.cc",
-          ]
+          ],
+          "dependencies": [
+            "napi-ext-lib",
+          ],
         }]
       }
     ]
