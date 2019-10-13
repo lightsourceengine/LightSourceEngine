@@ -4,18 +4,21 @@
     "-std=gnu++1y",
   ],
   "cflags_cc+": [
-    "-std=gnu++11",
+    "-std=gnu++14",
   ],
   "xcode_settings": {
     "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
     "CLANG_CXX_LIBRARY": "libc++",
-    "MACOSX_DEPLOYMENT_TARGET": "10.7",
-    "CLANG_CXX_LANGUAGE_STANDARD": "gnu++11",
+    "MACOSX_DEPLOYMENT_TARGET": "10.10",
+    "CLANG_CXX_LANGUAGE_STANDARD": "gnu++14",
     "DEAD_CODE_STRIPPING": "YES",
   },
   "msvs_settings": {
     "VCCLCompilerTool": {
-      "ExceptionHandling": 1
+      "ExceptionHandling": "1",
+      "AdditionalOptions": [
+        "/std:c++14"
+      ]
     }
   },
   "conditions": [
