@@ -8,6 +8,8 @@
 
 #include "StyleEnums.h"
 #include "Resource.h"
+#include "Task.h"
+#include "FontId.h"
 #include <memory>
 #include <unordered_map>
 
@@ -15,53 +17,34 @@ struct stbtt_fontinfo;
 
 namespace ls {
 
-class ResourceManager;
-class AsyncTaskQueue;
-class Task;
 class Font;
+class FontStore;
+class Stage;
 
-struct FontId {
-    std::string family;
-    StyleFontStyle style{};
-    StyleFontWeight weight{};
-
-    FontId() noexcept = default;
-    FontId(const std::string& family, const StyleFontStyle style, const StyleFontWeight weight) noexcept;
-
-    bool operator==(const FontId &other) const noexcept {
-        return this->family == other.family && this->style == other.style && this->weight == other.weight;
-    }
-
-    struct Hash {
-        std::size_t operator() (const FontId& id) const noexcept {
-            return std::hash<std::string>()(id.family)
-                ^ static_cast<std::size_t>(id.style)
-                ^ static_cast<std::size_t>(id.weight);
-        }
-    };
-};
-
-class FontResource : public BaseResource<FontId> {
+class FontResource : public Resource<FontId> {
  public:
-    FontResource(const FontId& fontId, const std::string& uri, const int32_t index);
-    virtual ~FontResource() = default;
+    FontResource(const FontId& fontId, const std::string& uri, const int32_t index) noexcept;
+    virtual ~FontResource() noexcept;
 
-    const std::string& GetFontFamily() const { return this->id.family; }
-    StyleFontStyle GetFontStyle() const { return this->id.style; }
-    StyleFontWeight GetFontWeight() const { return this->id.weight; }
-    int32_t GetIndex() const { return this->index; }
-    const std::string GetUri() const { return this->uri; }
+    const std::string& GetFontFamily() const noexcept { return this->id.family; }
+    StyleFontStyle GetFontStyle() const noexcept { return this->id.style; }
+    StyleFontWeight GetFontWeight() const noexcept { return this->id.weight; }
+    int32_t GetIndex() const noexcept { return this->index; }
+    const std::string& GetUri() const noexcept { return this->uri; }
     std::shared_ptr<Font> GetFont(int32_t fontSize) const;
 
+ private:
     void Load(Stage* stage);
-    void Attach(Stage* stage, Scene* scene) override;
+    void Reset();
 
  private:
     std::string uri;
     int32_t index{0};
     mutable std::shared_ptr<stbtt_fontinfo> fontInfo;
     mutable std::unordered_map<int32_t, std::shared_ptr<Font>> fontsBySize;
-    std::shared_ptr<Task> task;
+    Task fontLoadingTask;
+
+    friend FontStore;
 };
 
 } // namespace ls

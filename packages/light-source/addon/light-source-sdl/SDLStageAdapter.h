@@ -50,7 +50,7 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
     Napi::Value AddGameControllerMappings(const Napi::CallbackInfo& info);
 
     std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) override;
-    Napi::Reference<Napi::Object>* AsReference() override { return this; };
+    Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; };
 
  private:
     void Call(const StageCallback callbackId, const std::initializer_list<napi_value>& args);

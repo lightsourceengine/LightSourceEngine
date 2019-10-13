@@ -48,6 +48,10 @@ std::string ObjectGetStringOrEmpty(const Object& object, const std::string& key)
 }
 
 std::string ToLowerCase(const Napi::String& text) {
+    if (text.IsEmpty()) {
+        return "";
+    }
+
     auto env{ text.Env() };
     HandleScope scope(env);
     static FunctionReference toLowerCase;
@@ -65,6 +69,10 @@ std::string ToLowerCase(const Napi::String& text) {
 }
 
 std::string ToUpperCase(const Napi::String& text) {
+    if (text.IsEmpty()) {
+        return "";
+    }
+
     auto env{ text.Env() };
     HandleScope scope(env);
     static FunctionReference toUpperCase;
@@ -79,6 +87,16 @@ std::string ToUpperCase(const Napi::String& text) {
     }
 
     return toUpperCase.Call(text, {}).As<String>();
+}
+
+void Call(const FunctionReference& func, const std::initializer_list<napi_value>& args) {
+    if (!func.IsEmpty()) {
+        func.Call(args);
+    }
+}
+
+Value Call(const Napi::Env& env, const FunctionReference& func, const std::initializer_list<napi_value>& args) {
+    return func.IsEmpty() ? env.Undefined() : func.Call(args);
 }
 
 } // namespace Napi

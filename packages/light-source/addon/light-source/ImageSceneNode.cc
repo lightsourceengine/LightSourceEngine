@@ -5,7 +5,7 @@
  */
 
 #include "ImageSceneNode.h"
-#include "ResourceManager.h"
+#include "ImageStore.h"
 #include "YGNode.h"
 #include "Scene.h"
 #include "Style.h"
@@ -14,6 +14,7 @@
 #include <ls/Renderer.h>
 
 using Napi::Array;
+using Napi::Call;
 using Napi::CallbackInfo;
 using Napi::Error;
 using Napi::Function;
@@ -26,8 +27,6 @@ using Napi::Value;
 namespace ls {
 
 ImageSceneNode::ImageSceneNode(const CallbackInfo& info) : ObjectWrap<ImageSceneNode>(info), SceneNode(info) {
-    YGNodeSetContext(this->ygNode, this);
-
     YGNodeSetMeasureFunc(
         this->ygNode,
         [](YGNodeRef nodeRef, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) -> YGSize {
@@ -78,7 +77,7 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
     const std::string src{ value.IsString() ? value.As<String>().Utf8Value() : "" };
 
     if (src.empty()) {
-        this->ClearImage();
+        this->image = nullptr;
         YGNodeMarkDirty(this->ygNode);
 
         return;
@@ -90,42 +89,29 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
         return;
     }
 
-    this->ClearImage();
     this->uri = newUri;
-    this->image = this->scene->GetResourceManager()->LoadImage(newUri);
 
-    if (!this->image) {
-        YGNodeMarkDirty(this->ygNode);
-    } else if (this->image->IsReady()) {
-        YGNodeMarkDirty(this->ygNode);
+    // TODO: LoadImage exception?
+    this->image = this->scene->GetImageStore()->GetOrLoadImage(this->uri);
 
-        if (!this->onLoadCallback.IsEmpty()) {
-             this->onLoadCallback.Call({});
-        }
-    } else if (this->image->HasError()) {
+    if (!this->image || this->image->IsReady() || this->image->HasError()) {
         YGNodeMarkDirty(this->ygNode);
-
-        if (!this->onErrorCallback.IsEmpty()) {
-             this->onErrorCallback.Call({});
-        }
+        DoCallbacks();
     } else {
-        this->imageListenerId = this->image->AddListener([this]() {
-            if (this->image->IsReady()) {
-                YGNodeMarkDirty(this->ygNode);
-                this->image->RemoveListener(this->imageListenerId);
-                this->imageListenerId = 0;
+        this->image.Listen([this, ptr = this->image.Get()]() {
+            if (this->image != ptr) {
+                return;
+            }
 
-                if (!this->onLoadCallback.IsEmpty()) {
-                     this->onLoadCallback.Call({});
-                }
-            } else if (this->image->HasError()) {
-                YGNodeMarkDirty(this->ygNode);
-                this->image->RemoveListener(this->imageListenerId);
-                this->imageListenerId = 0;
-
-                if (!this->onErrorCallback.IsEmpty()) {
-                     this->onErrorCallback.Call({});
-                }
+            switch (this->image->GetState()) {
+                case ResourceStateReady:
+                case ResourceStateError:
+                    YGNodeMarkDirty(this->ygNode);
+                    this->image.Unlisten();
+                    this->DoCallbacks();
+                    break;
+                default:
+                    break;
             }
         });
     }
@@ -172,7 +158,7 @@ void ImageSceneNode::Paint(Renderer* renderer) {
     const auto height{ YGNodeLayoutGetHeight(this->ygNode)
         - (top + YGNodeLayoutGetBorder(this->ygNode, YGEdgeBottom)
         + YGNodeLayoutGetPadding(this->ygNode, YGEdgeBottom)) };
-    const auto fitDimensions{ CalculateObjectFitDimensions(boxStyle->objectFit(), this->image, width, height) };
+    const auto fitDimensions{ CalculateObjectFitDimensions(boxStyle->objectFit(), this->image.Get(), width, height) };
     const auto clip{ fitDimensions.width > width || fitDimensions.height > height };
     const auto textureId{ this->image->GetTextureId() };
     const Rect destRect{
@@ -201,43 +187,24 @@ void ImageSceneNode::Paint(Renderer* renderer) {
 }
 
 void ImageSceneNode::DestroyRecursive() {
-    this->ClearImage();
+    this->image = nullptr;
     this->onLoadCallback.Reset();
     this->onErrorCallback.Reset();
 
     SceneNode::DestroyRecursive();
 }
 
-void ImageSceneNode::ClearImage() {
-    if (this->image) {
-        this->image->RemoveListener(this->imageListenerId);
-        this->imageListenerId = 0;
-        this->image->RemoveRef();
-        this->image = nullptr;
-        this->uri = {};
+void ImageSceneNode::DoCallbacks() {
+    switch (this->image ? this->image->GetState() : ResourceStateInit) {
+        case ResourceStateReady:
+            Call(this->onLoadCallback);
+            break;
+        case ResourceStateError:
+            Call(this->onErrorCallback);
+            break;
+        default:
+            break;
     }
-}
-
-bool ImageSceneNode::DoCallbacks() {
-    if (this->image) {
-        if (this->image->HasError()) {
-            if (!this->onErrorCallback.IsEmpty()) {
-                 this->onErrorCallback.Call({});
-            }
-
-            return true;
-        }
-
-        if (this->image->IsReady()) {
-            if (!this->onLoadCallback.IsEmpty()) {
-                 this->onLoadCallback.Call({});
-            }
-
-            return true;
-        }
-    }
-
-    return false;
 }
 
 void ImageSceneNode::AppendChild(SceneNode* child) {

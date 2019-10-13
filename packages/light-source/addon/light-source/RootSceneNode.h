@@ -18,7 +18,7 @@ class RootSceneNode : public Napi::ObjectWrap<RootSceneNode>, public SceneNode {
 
     static Napi::Function Constructor(Napi::Env env);
 
-    Napi::Reference<Napi::Object>* AsReference() override { return this; }
+    Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; }
     void Paint(Renderer* renderer) override;
 
  private:

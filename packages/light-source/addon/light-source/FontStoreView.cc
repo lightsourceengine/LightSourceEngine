@@ -25,8 +25,9 @@ using Napi::Value;
 
 namespace ls {
 
-StyleFontStyle StringToFontStyle(Napi::Env env, const std::string& value, bool isRequired);
-StyleFontWeight StringToFontWeight(Napi::Env env, const std::string& value, bool isRequired);
+static void EnsureFontStoreAttached(Stage* stage);
+static StyleFontStyle StringToFontStyle(const Napi::Env& env, const std::string& value, const bool isRequired);
+static StyleFontWeight StringToFontWeight(const Napi::Env& env, const std::string& value, const bool isRequired);
 
 FontStoreView::FontStoreView(const CallbackInfo& info) : ObjectWrap<FontStoreView>(info) {
     auto env{ info.Env() };
@@ -55,7 +56,7 @@ Function FontStoreView::Constructor(Napi::Env env) {
         auto func = DefineClass(env, "FontStoreView", {
             InstanceMethod("add", &FontStoreView::Add),
             InstanceMethod("remove", &FontStoreView::Remove),
-            InstanceMethod("all", &FontStoreView::All),
+            InstanceMethod("list", &FontStoreView::List),
         });
 
         constructor.Reset(func, 1);
@@ -66,6 +67,8 @@ Function FontStoreView::Constructor(Napi::Env env) {
 }
 
 void FontStoreView::Add(const CallbackInfo& info) {
+    EnsureFontStoreAttached(this->stage);
+
     auto env{ info.Env() };
     HandleScope scope(env);
 
@@ -73,9 +76,9 @@ void FontStoreView::Add(const CallbackInfo& info) {
         throw Error::New(env, "add() expects an Object with font creation options");
     }
 
-    auto options{ info[0].As<Object>() };
+    const auto options{ info[0].As<Object>() };
 
-    FontId fontId {
+    const FontId fontId {
         ObjectGetString(options, "family"),
         StringToFontStyle(env, ObjectGetStringOrEmpty(options, "style"), false),
         StringToFontWeight(env, ObjectGetStringOrEmpty(options, "weight"), false)
@@ -86,17 +89,19 @@ void FontStoreView::Add(const CallbackInfo& info) {
             fontId.family, StyleFontStyleToString(fontId.style), StyleFontWeightToString(fontId.weight)));
     }
 
-    auto font = std::make_shared<FontResource>(
-        fontId,
-        ObjectGetString(options, "uri"),
-        ObjectGetNumberOrDefault(options, "index", 0));
-
-    font->Load(this->stage);
-
-    this->stage->GetFontStore()->Add(font);
+    try {
+        this->stage->GetFontStore()->AddFont(
+            fontId,
+            ObjectGetString(options, "uri"),
+            ObjectGetNumberOrDefault(options, "index", 0));
+    } catch (const std::exception& e) {
+        throw Error::New(env, fmt::format("Error adding font: {}", e.what()));
+    }
 }
 
 void FontStoreView::Remove(const CallbackInfo& info) {
+    EnsureFontStoreAttached(this->stage);
+
     auto env{ info.Env() };
     HandleScope scope(env);
 
@@ -106,14 +111,16 @@ void FontStoreView::Remove(const CallbackInfo& info) {
 
     auto options{ info[0].As<Object>() };
 
-    this->stage->GetFontStore()->Remove({
+    this->stage->GetFontStore()->RemoveFont({
         ObjectGetString(options, "family"),
         StringToFontStyle(env, ObjectGetString(options, "style"), true),
         StringToFontWeight(env, ObjectGetString(options, "weight"), true)
     });
 }
 
-Value FontStoreView::All(const CallbackInfo& info) {
+Value FontStoreView::List(const CallbackInfo& info) {
+    EnsureFontStoreAttached(this->stage);
+
     auto env{ info.Env() };
     auto fontList{ Array::New(env) };
     auto fontStore{ this->stage->GetFontStore() };
@@ -136,7 +143,13 @@ Value FontStoreView::All(const CallbackInfo& info) {
     return fontList;
 }
 
-StyleFontStyle StringToFontStyle(Napi::Env env, const std::string& value, bool isRequired) {
+static void EnsureFontStoreAttached(Stage* stage) {
+    if (!stage->GetFontStore()->IsAttached()) {
+        throw Napi::Error::New(stage->Env(), "Cannot use FontStoreView after Stage has been destroyed.");
+    }
+}
+
+static StyleFontStyle StringToFontStyle(const Napi::Env& env, const std::string& value, const bool isRequired) {
     if (value == StyleFontStyleToString(StyleFontStyleNormal)) {
         return StyleFontStyleNormal;
     } else if (value == StyleFontStyleToString(StyleFontStyleNormal)) {
@@ -148,7 +161,7 @@ StyleFontStyle StringToFontStyle(Napi::Env env, const std::string& value, bool i
     return StyleFontStyleNormal;
 }
 
-StyleFontWeight StringToFontWeight(Napi::Env env, const std::string& value, bool isRequired) {
+static StyleFontWeight StringToFontWeight(const Napi::Env& env, const std::string& value, const bool isRequired) {
     if (value == StyleFontWeightToString(StyleFontWeightNormal)) {
         return StyleFontWeightNormal;
     } else if (value == StyleFontWeightToString(StyleFontWeightBold)) {

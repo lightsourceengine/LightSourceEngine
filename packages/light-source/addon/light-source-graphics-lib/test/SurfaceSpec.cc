@@ -36,19 +36,6 @@ void SurfaceSpec(Napi::Env env, TestSuite* parent) {
 
     spec->Describe("constructor")->tests = {
         {
-            "should create a single channel surface of 10x10 pixels",
-            [assert](const Napi::CallbackInfo& info) {
-                auto surface{ Surface(10, 10) };
-
-                assert.Equal(surface.Width(), 10);
-                assert.Equal(surface.Height(), 10);
-                assert.Equal(surface.Pitch(), 10);
-                assert.Equal(surface.Format(), PixelFormatAlpha);
-                assert.IsTrue(surface.Pixels() != nullptr);
-                assert.IsFalse(surface.IsEmpty());
-            }
-        },
-        {
             "should create a surface from a single channel buffer",
             [assert](const Napi::CallbackInfo& info) {
                 auto buffer{ NewBytes(10 * 10) };

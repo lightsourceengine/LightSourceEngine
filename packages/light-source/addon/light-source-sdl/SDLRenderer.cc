@@ -331,47 +331,51 @@ uint32_t SDLRenderer::CreateTexture(const int32_t width, const int32_t height) {
     return textureId;
 }
 
-uint32_t SDLRenderer::CreateTexture(const int32_t width, const int32_t height,
-        const uint8_t* source, PixelFormat sourceFormat) {
-    assert(sourceFormat == this->textureFormat || sourceFormat == PixelFormatAlpha);
-
-    void* pixels;
-    int pitch;
-    auto texture{
-        SDL_CreateTexture(this->renderer, this->sdlTextureFormat, SDL_TEXTUREACCESS_STREAMING, width, height)
-    };
-
-    if (!texture) {
-        fmt::println("Failed to create texture. SDL Error: {}", SDL_GetError());
+uint32_t SDLRenderer::CreateTexture(const Surface& source) {
+    if (source.IsEmpty()) {
         return 0;
     }
 
-    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    const auto format{ source.Format() };
+    const auto width{ source.Width() };
+    const auto height{ source.Height() };
+
+    assert(format == this->textureFormat || format == PixelFormatAlpha);
+
+    const auto textureId{ this->CreateTexture(width, height) };
+
+    if (!textureId) {
+        return 0;
+    }
+
+    auto texture{ this->textures[textureId] };
+
+    void* pixels{};
+    int pitch{};
 
     if (SDL_LockTexture(texture, nullptr, &pixels, &pitch) == 0) {
+        const auto stride{ width * 4 };
+        auto sourcePixels{ source.Pixels() };
+
         auto dest{ reinterpret_cast<uint8_t*>(pixels) };
-        auto stride{ width * 4 };
         auto copied{ true };
 
-        if (sourceFormat == this->textureFormat) {
+        if (format == this->textureFormat) {
             if (pitch == stride) {
-                memcpy(dest, source, stride * height);
+                memcpy(dest, sourcePixels, stride * height);
             } else {
                 for (auto h{ 0 }; h < height; h++) {
-                    memcpy(&dest[h*pitch], source, stride);
-                    source += stride;
+                    memcpy(&dest[h*pitch], sourcePixels, stride);
+                    sourcePixels += stride;
                 }
             }
-        } else if (sourceFormat == PixelFormatAlpha) {
+        } else if (format == PixelFormatAlpha) {
             for (int32_t h{ 0 }; h < height; h++) {
+                const auto destRow{ reinterpret_cast<int32_t*>(&dest[h*pitch]) };
                 for (int32_t w{ 0 }; w < width; w++) {
-                    auto destPixel{ &dest[h*pitch + w*4] };
-                    auto component{ *source++ }; // NOLINT(readability/pointer_notation)
+                    const auto component{ *sourcePixels++ }; // NOLINT(readability/pointer_notation)
 
-                    destPixel[0] = component;
-                    destPixel[1] = component;
-                    destPixel[2] = component;
-                    destPixel[3] = component;
+                    destRow[w] = (component << 24) | (component << 16) | (component << 8) | component;
                 }
             }
         } else {
@@ -381,10 +385,6 @@ uint32_t SDLRenderer::CreateTexture(const int32_t width, const int32_t height,
         SDL_UnlockTexture(texture);
 
         if (copied) {
-            auto textureId{ nextTextureId++ };
-
-            this->textures[textureId] = texture;
-
             return textureId;
         }
     }
@@ -394,7 +394,7 @@ uint32_t SDLRenderer::CreateTexture(const int32_t width, const int32_t height,
     return 0;
 }
 
-LockTextureInfo SDLRenderer::LockTexture(const uint32_t textureId) {
+Surface SDLRenderer::LockTexture(const uint32_t textureId) {
     void* pixels{nullptr};
     int32_t textureWidth{0};
     int32_t textureHeight{0};
@@ -422,15 +422,13 @@ LockTextureInfo SDLRenderer::LockTexture(const uint32_t textureId) {
         }
     };
 
-    LockTextureInfo result;
-
-    result.pixels = std::shared_ptr<uint8_t>(reinterpret_cast<uint8_t*>(pixels), deleter);
-    result.width = textureWidth;
-    result.height = textureHeight;
-    result.pitch = texturePitch;
-    result.format = this->GetTextureFormat();
-
-    return result;
+    return {
+        std::shared_ptr<uint8_t>(reinterpret_cast<uint8_t*>(pixels), deleter),
+        textureWidth,
+        textureHeight,
+        texturePitch,
+        this->GetTextureFormat()
+    };
 }
 
 void SDLRenderer::DestroyTexture(const uint32_t textureId) {

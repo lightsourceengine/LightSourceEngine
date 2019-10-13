@@ -30,20 +30,17 @@ class ImageSceneNode : public Napi::ObjectWrap<ImageSceneNode>, public SceneNode
 
     void Paint(Renderer* renderer) override;
 
-    Napi::Reference<Napi::Object>* AsReference() override { return this; }
+    Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; }
 
  private:
     ImageUri uri{};
-    ImageResource* image{};
-    uint32_t imageListenerId{};
+    ResourceLink<ImageResource> image;
     Napi::FunctionReference onLoadCallback;
     Napi::FunctionReference onErrorCallback;
 
  private:
     void DestroyRecursive() override;
-    void ClearImage();
-    void SetImage(ImageResource* newImage);
-    bool DoCallbacks();
+    void DoCallbacks();
     void AppendChild(SceneNode* child) override;
 };
 

@@ -46,16 +46,16 @@ class SceneNode {
 
     void Destroy();
     void Layout(float width, float height);
-    Style* GetStyleOrEmpty() const { return this->style ? this->style : Style::Empty(); }
+    Style* GetStyleOrEmpty() const noexcept { return this->style ? this->style : Style::Empty(); }
 
     virtual void Paint(Renderer* renderer);
-    virtual Napi::Reference<Napi::Object>* AsReference() = 0;
+    virtual Napi::Reference<Napi::Object>* AsReference() noexcept = 0;
     virtual void OnViewportSizeChange();
     virtual void OnRootFontSizeChange();
 
  protected:
      template<typename T>
-     static std::vector<Napi::ClassPropertyDescriptor<T>> Extend(Napi::Env env,
+     static std::vector<Napi::ClassPropertyDescriptor<T>> Extend(const Napi::Env& env,
          const std::initializer_list<Napi::ClassPropertyDescriptor<T>>& subClassProperties);
     void SetParent(SceneNode* newParent);
     virtual void DestroyRecursive();
@@ -67,7 +67,7 @@ class SceneNode {
 
  protected:
     static int instanceCount;
-    std::vector<SceneNode*> children{};
+    std::vector<SceneNode*> children;
     YGNodeRef ygNode{};
     Scene* scene{};
     SceneNode* parent{};
@@ -75,7 +75,7 @@ class SceneNode {
 };
 
 template<typename T>
-std::vector<Napi::ClassPropertyDescriptor<T>> SceneNode::Extend(Napi::Env env,
+std::vector<Napi::ClassPropertyDescriptor<T>> SceneNode::Extend(const Napi::Env& env,
         const std::initializer_list<Napi::ClassPropertyDescriptor<T>>& subClassProperties) {
     std::vector<Napi::ClassPropertyDescriptor<T>> result = {
         Napi::ObjectWrap<T>::InstanceValue("focusable", Napi::Boolean::New(env, false), napi_writable),

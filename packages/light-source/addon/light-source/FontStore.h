@@ -6,17 +6,28 @@
 
 #pragma once
 
-#include <napi.h>
 #include "FontResource.h"
 #include "ResourceStore.h"
 
 namespace ls {
 
+class Stage;
+
 class FontStore : public ResourceStore<FontResource, FontId, FontId::Hash> {
  public:
-    explicit FontStore(Stage* stage);
+    FontStore() noexcept;
 
-    std::shared_ptr<FontResource> Find(const std::string& family, StyleFontStyle style, StyleFontWeight weight) const;
+    void Attach(Stage* stage) noexcept;
+    void Detach() noexcept;
+    bool IsAttached() const noexcept { return this->stage != nullptr; }
+
+    void AddFont(const FontId& fontId, const std::string& uri, const int32_t index);
+    void RemoveFont(const FontId& fontId);
+    std::shared_ptr<FontResource> FindFont(const std::string& family, const StyleFontStyle style,
+        const StyleFontWeight weight) const;
+
+ private:
+    Stage* stage{nullptr};
 };
 
 } // namespace ls

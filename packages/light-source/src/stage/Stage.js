@@ -116,10 +116,6 @@ export class Stage extends StageBase {
 
     this[$audio][$setResourcePath](value)
 
-    if (this[$scene]) {
-      this[$scene].resource[$resourcePath] = value
-    }
-
     this[$resourcePath] = value
   }
 
@@ -304,6 +300,8 @@ export class Stage extends StageBase {
 
     logexcept(() => adapter && adapter.destroy(), 'Failed to destroy StageAdapter. Error: ')
     this[$adapter] = null
+
+    this[$font] = null
   }
 }
 

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <napi.h>
+#include "Resource.h"
 #include "SceneNode.h"
 
 namespace ls {
@@ -22,20 +23,19 @@ class BoxSceneNode : public Napi::ObjectWrap<BoxSceneNode>, public SceneNode {
 
     void Paint(Renderer* renderer) override;
 
-    Napi::Reference<Napi::Object>* AsReference() override { return this; }
+    Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; }
 
  private:
     void DestroyRecursive() override;
     void UpdateStyle(Style* newStyle, Style* oldStyle) override;
-    void ClearBackgroundImage();
-    void SetRoundedRectImage(ImageResource* image);
-    void SetRoundedRectStrokeImage(ImageResource* image);
+    void SetBackgroundImage(const Style* style);
+    void SetBorderRadiusImages(const Style* style);
 
  private:
     std::string backgroundImageUri{};
-    ImageResource* backgroundImage{};
-    ImageResource* roundedRectImage{};
-    ImageResource* roundedRectStrokeImage{};
+    std::shared_ptr<ImageResource> backgroundImage{};
+    std::shared_ptr<ImageResource> roundedRectImage{};
+    std::shared_ptr<ImageResource> roundedRectStrokeImage{};
 };
 
 } // namespace ls

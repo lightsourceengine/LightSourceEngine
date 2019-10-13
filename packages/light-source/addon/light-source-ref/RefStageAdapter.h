@@ -30,7 +30,7 @@ class RefStageAdapter : public StageAdapter, public Napi::ObjectWrap<RefStageAda
     void ResetCallbacks(const Napi::CallbackInfo& info) override;
 
     std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) override;
-    Napi::Reference<Napi::Object>* AsReference() override { return this; };
+    Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; };
 };
 
 } // namespace ls

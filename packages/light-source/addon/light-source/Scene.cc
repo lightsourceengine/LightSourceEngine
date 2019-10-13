@@ -7,7 +7,6 @@
 #include "Scene.h"
 #include "RootSceneNode.h"
 #include "Stage.h"
-#include "ResourceManager.h"
 #include <ls/Renderer.h>
 #include <napi-ext.h>
 #include <ls/StageAdapter.h>
@@ -46,12 +45,6 @@ Scene::Scene(const CallbackInfo& info) : ObjectWrap<Scene>(info) {
         info[4].As<Boolean>().Value(),
     });
 
-    auto resourceManagerValue{ ResourceManager::Constructor(env).New({}) };
-
-    this->resourceManager = ResourceManager::Unwrap(resourceManagerValue);
-    this->resourceManager->PostConstruct(this->adapter->GetRenderer());
-    this->resourceManager->Ref();
-
     auto rootValue{ RootSceneNode::Constructor(env).New({ this->Value() }) };
 
     this->root = ObjectWrap<SceneNode>::Unwrap(rootValue);
@@ -60,7 +53,6 @@ Scene::Scene(const CallbackInfo& info) : ObjectWrap<Scene>(info) {
     auto self{ info.This().As<Object>() };
 
     self.Set(SymbolFor(env, "root"), rootValue);
-    self.Set(SymbolFor(env, "resource"), resourceManagerValue);
 }
 
 Function Scene::Constructor(Napi::Env env) {
@@ -74,7 +66,6 @@ Function Scene::Constructor(Napi::Env env) {
             InstanceValue(SymbolFor(env, "height"), Number::New(env, 0), napi_writable),
             InstanceValue(SymbolFor(env, "fullscreen"), Boolean::New(env, true), napi_writable),
             InstanceValue(SymbolFor(env, "root"), env.Null(), napi_writable),
-            InstanceValue(SymbolFor(env, "resource"), env.Null(), napi_writable),
             InstanceAccessor("stage", &Scene::GetStage, nullptr),
             InstanceAccessor("title", &Scene::GetTitle, &Scene::SetTitle),
             InstanceMethod("resize", &Scene::Resize),
@@ -101,7 +92,8 @@ void Scene::Attach(const CallbackInfo& info) {
 
     // TODO: exceptions?
     this->adapter->Attach();
-    this->resourceManager->Attach();
+    this->imageStore.Attach(this);
+    this->layerCache.Attach(this);
 
     auto self{ info.This().As<Object>() };
 
@@ -122,9 +114,8 @@ void Scene::Detach(const CallbackInfo& info) {
 
     // TODO: exceptions?
 
-    if (this->resourceManager) {
-        this->resourceManager->Detach();
-    }
+    this->imageStore.Detach();
+    this->layerCache.Detach();
 
     if (this->adapter) {
         this->adapter->Detach();
@@ -140,11 +131,7 @@ void Scene::Destroy(const CallbackInfo& info) {
         this->root = nullptr;
     }
 
-    if (this->resourceManager) {
-        this->resourceManager->Destroy();
-        this->resourceManager->Unref();
-        this->resourceManager = nullptr;
-    }
+    // TODO: image store destroy?
 
     this->adapter.reset();
 
@@ -167,7 +154,7 @@ void Scene::Resize(const CallbackInfo& info) {
 void Scene::Frame(const CallbackInfo& info) {
     auto renderer{ this->adapter->GetRenderer() };
 
-    this->resourceManager->ProcessEvents();
+    this->imageStore.ProcessEvents();
 
     if (this->isSizeDirty) {
         this->root->OnViewportSizeChange();
@@ -223,6 +210,10 @@ void Scene::SetActiveNode(Napi::Value node) {
     } catch (Error& e) {
         fmt::println("Scene.activeNode set error: {}", e.what());
     }
+}
+
+Renderer* Scene::GetRenderer() const noexcept {
+    return this->adapter->GetRenderer();
 }
 
 } // namespace ls

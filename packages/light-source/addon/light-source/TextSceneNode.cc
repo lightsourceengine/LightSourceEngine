@@ -5,13 +5,13 @@
  */
 
 #include "TextSceneNode.h"
-#include "ResourceManager.h"
 #include "Stage.h"
 #include "Scene.h"
 #include "Font.h"
 #include "FontStore.h"
 #include "StyleUtils.h"
-#include "LayerResource.h"
+#include "Layer.h"
+#include "LayerCache.h"
 #include <ls/Timer.h>
 #include <ls/Surface.h>
 #include <ls/Renderer.h>
@@ -32,15 +32,15 @@ using Napi::Value;
 
 namespace ls {
 
-int32_t GetMaxLines(Style* style);
-bool LineHeightsEqual(Style* a, Style* b);
-std::string TextTransform(Napi::Env env, StyleTextTransform transform, const std::string& text);
+static int32_t GetMaxLines(Style* style) noexcept;
+static bool LineHeightsEqual(Style* a, Style* b) noexcept;
+static void MarkDirtyIfViewportSizeDependent(YGNode* ygNode, const StyleNumberValue* value) noexcept;
+static void MarkDirtyIfRootFontSizeDependent(YGNode* ygNode, const StyleNumberValue* value) noexcept;
+static std::string TextTransform(const Napi::Env& env, const StyleTextTransform transform, const std::string& text);
 
 constexpr int32_t defaultFontSize{ 16 };
 
 TextSceneNode::TextSceneNode(const CallbackInfo& info) : ObjectWrap<TextSceneNode>(info), SceneNode(info) {
-    YGNodeSetContext(this->ygNode, this);
-
     YGNodeSetMeasureFunc(
         this->ygNode,
         [](YGNodeRef nodeRef, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) -> YGSize {
@@ -84,11 +84,8 @@ void TextSceneNode::Paint(Renderer* renderer) {
     }
 
     if (!this->layer) {
-        this->layer = this->scene->GetResourceManager()->CreateLayerResource();
-    }
-
-    if (this->layer->HasError()) {
-        return;
+        // TODO: bad alloc?
+        this->layer = std::make_shared<Layer>(this->scene->GetLayerCache());
     }
 
     if (this->layer->IsDirty()) {
@@ -96,18 +93,21 @@ void TextSceneNode::Paint(Renderer* renderer) {
 
         Timer t{ "text paint" };
 
-        this->layer->Sync(static_cast<int32_t>(width), static_cast<int32_t>(height));
+        const auto textureId{ this->layer->Sync(static_cast<int32_t>(width), static_cast<int32_t>(height)) };
+
+        if (!textureId) {
+            return;
+        }
 
         t.Log();
 
-        auto lockTextureInfo{ renderer->LockTexture(this->layer->TextureId()) };
+        auto surface{ renderer->LockTexture(textureId) };
 
-        Surface surface(
-            lockTextureInfo.pixels,
-            lockTextureInfo.width,
-            lockTextureInfo.height,
-            lockTextureInfo.pitch,
-            lockTextureInfo.format);
+        t.Log();
+
+        if (surface.IsEmpty()) {
+            return;
+        }
 
         surface.FillTransparent();
 
@@ -120,9 +120,9 @@ void TextSceneNode::Paint(Renderer* renderer) {
             width);
     }
 
-    if (this->layer->IsReady()) {
+    if (this->layer->HasTexture()) {
         renderer->DrawImage(
-            this->layer->TextureId(),
+            this->layer->GetTexture(),
             { YGNodeLayoutGetLeft(this->ygNode), YGNodeLayoutGetTop(this->ygNode), width, height },
             myStyle->color()->Get());
     }
@@ -153,84 +153,85 @@ bool TextSceneNode::SetFont(Style* style) {
     auto dirty{ false };
 
     if (!style || !style->HasFont()) {
-        if (this->font) {
-            dirty = true;
-        }
-
+        dirty = !!this->fontResource;
         this->ClearFont();
 
         return dirty;
     }
 
-    auto fontSize{ ComputeIntegerPointValue(style->fontSize(), this->scene, defaultFontSize) };
+    const FontId fontId{ style->fontFamily(), style->fontStyle(), style->fontWeight() };
 
-    auto fontResourceListener = [this, fontSize](BaseResource<FontId>* resource) {
-        if (this->fontResource->IsReady()) {
-            this->font = this->fontResource->GetFont(fontSize);
-        } else if (this->fontResource->HasError()) {
-            this->font = nullptr;
-        } else {
-            return;
-        }
-
-        this->fontResource->RemoveListener(this->fontResourceListenerId);
-        this->fontResourceListenerId = 0;
-        YGNodeMarkDirty(this->ygNode);
-    };
-
-    if (this->fontResource && this->fontResource->GetFontFamily() == style->fontFamily()
-            && this->fontResource->GetFontStyle() == style->fontStyle()
-            && this->fontResource->GetFontWeight() == style->fontWeight()) {
-        if (this->fontResourceListenerId) {
-            this->fontResource->RemoveListener(this->fontResourceListenerId);
-            this->fontResourceListenerId = this->fontResource->AddListener(fontResourceListener);
-        } else if (this->fontResource->IsReady()) {
-            if (this->font->GetSize() != fontSize) {
-                this->font = this->fontResource->GetFont(fontSize);
-                dirty = true;
-            }
-        }
-
-        return dirty;
+    if (this->fontResource && this->fontResource->GetId() == fontId) {
+        return false;
     }
 
     this->ClearFont();
 
-    auto newFontResource{ this->scene->GetStage()->GetFontStore()->Find(
-        style->fontFamily(),
-        style->fontStyle(),
-        style->fontWeight()) };
+    this->fontResource = this->scene->GetStage()->GetFontStore()->Get(fontId);
 
-    if (newFontResource) {
-        this->fontResource = newFontResource;
+    if (!this->fontResource) {
+        return true;
+    }
 
-        if (newFontResource->IsReady()) {
-            this->font = newFontResource->GetFont(fontSize);
+    const auto fontSize{ ComputeIntegerPointValue(style->fontSize(), this->scene, defaultFontSize) };
+
+    switch (this->fontResource->GetState()) {
+        case ResourceStateReady:
+            this->font = this->fontResource->GetFont(fontSize);
             dirty = true;
-        } else if (newFontResource->HasError()) {
-            this->ClearFont();
+            break;
+        case ResourceStateError:
+            this->fontResource = nullptr;
             dirty = true;
-        } else {
-            this->fontResourceListenerId = this->fontResource->AddListener(fontResourceListener);
-        }
-    } else {
-        this->font = nullptr;
-        dirty = true;
+            break;
+        default:
+            this->fontResource->AddListener([this, ptr = this->fontResource.Get(), fontSize]() {
+                if (this->fontResource != ptr) {
+                    return;
+                }
+
+                switch (this->fontResource->GetState()) {
+                    case ResourceStateReady:
+                        this->font = this->fontResource->GetFont(fontSize);
+                        break;
+                    case ResourceStateError:
+                        this->fontResource = nullptr;
+                        break;
+                    default:
+                        return;
+                }
+
+                YGNodeMarkDirty(this->ygNode);
+            });
+            break;
     }
 
     return dirty;
 }
 
-void MarkDirtyIfViewportSizeDependent(YGNode* ygNode, const StyleNumberValue* value) {
-    if (value && value->IsViewportSizeDependent()) {
-        YGNodeMarkDirty(ygNode);
+bool TextSceneNode::SetFontSize(Style* style) {
+    if (!style) {
+        if (this->font) {
+            this->font = nullptr;
+            return true;
+        } else {
+            return false;
+        }
     }
-}
 
-void MarkDirtyIfRootFontSizeDependent(YGNode* ygNode, const StyleNumberValue* value) {
-    if (value && value->IsRootFontSizeDependent()) {
-        YGNodeMarkDirty(ygNode);
+    if (!this->fontResource || !this->fontResource->IsReady()) {
+        return false;
     }
+
+    const auto fontSize{ ComputeIntegerPointValue(style->fontSize(), this->scene, defaultFontSize) };
+
+    if (this->font && this->font->GetSize() == fontSize) {
+        return false;
+    }
+
+    this->font = this->fontResource->GetFont(fontSize);
+
+    return true;
 }
 
 void TextSceneNode::OnViewportSizeChange() {
@@ -259,10 +260,12 @@ void TextSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
     }
 
     auto fontChanged{ SetFont(newStyle) };
+    auto fontSizeChanged { SetFontSize(newStyle) };
     auto current{ oldStyle ? oldStyle : Style::Empty() };
     auto style{ newStyle ? newStyle : Style::Empty() };
 
     if (fontChanged
+            || fontSizeChanged
             || current->textOverflow() != style->textOverflow()
             || current->textTransform() != style->textTransform()
             || GetMaxLines(current) != GetMaxLines(style)
@@ -275,21 +278,14 @@ void TextSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
     }
 }
 
-void TextSceneNode::ClearFont() {
-    if (this->fontResource) {
-        if (this->fontResourceListenerId) {
-            this->fontResource->RemoveListener(this->fontResourceListenerId);
-            this->fontResourceListenerId = 0;
-        }
-
-        this->fontResource = nullptr;
-        this->font = nullptr;
-    }
+void TextSceneNode::ClearFont() noexcept {
+    this->fontResource = nullptr;
+    this->font = nullptr;
 }
 
 void TextSceneNode::DestroyRecursive() {
     this->ClearFont();
-    this->scene->GetResourceManager()->RemoveLayerResource(this->layer);
+    this->layer = nullptr;
 
     SceneNode::DestroyRecursive();
 }
@@ -319,7 +315,19 @@ YGSize TextSceneNode::Measure(float width, YGMeasureMode widthMode, float height
     return { this->textBlock.GetComputedWidth(), this->textBlock.GetComputedHeight() };
 }
 
-int32_t GetMaxLines(Style* style) {
+static void MarkDirtyIfViewportSizeDependent(YGNode* ygNode, const StyleNumberValue* value) noexcept {
+    if (value && value->IsViewportSizeDependent()) {
+        YGNodeMarkDirty(ygNode);
+    }
+}
+
+static void MarkDirtyIfRootFontSizeDependent(YGNode* ygNode, const StyleNumberValue* value) noexcept {
+    if (value && value->IsRootFontSizeDependent()) {
+        YGNodeMarkDirty(ygNode);
+    }
+}
+
+static int32_t GetMaxLines(Style* style) noexcept {
     auto maxLines{ style->maxLines() };
 
     if (maxLines && maxLines->GetUnit() == StyleNumberUnitPoint) {
@@ -329,7 +337,7 @@ int32_t GetMaxLines(Style* style) {
     return 0;
 }
 
-bool LineHeightsEqual(Style* a, Style* b) {
+static bool LineHeightsEqual(Style* a, Style* b) noexcept {
     auto lineHeightA{ a->lineHeight() };
     auto lineHeightB{ b->lineHeight() };
 
@@ -345,7 +353,7 @@ bool LineHeightsEqual(Style* a, Style* b) {
         && YGFloatsEqual(lineHeightA->GetValue(), lineHeightB->GetValue());
 }
 
-std::string TextTransform(Napi::Env env, StyleTextTransform transform, const std::string& text) {
+static std::string TextTransform(const Napi::Env& env, const StyleTextTransform transform, const std::string& text) {
     HandleScope scope(env);
 
     switch (transform) {

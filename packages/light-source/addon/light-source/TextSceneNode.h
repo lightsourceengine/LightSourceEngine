@@ -8,13 +8,12 @@
 
 #include "SceneNode.h"
 #include "TextBlock.h"
+#include "FontResource.h"
 #include <napi.h>
 
 namespace ls {
 
-class FontResource;
-class LayerResource;
-class Font;
+class Layer;
 
 class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
  public:
@@ -26,7 +25,7 @@ class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
     Napi::Value GetText(const Napi::CallbackInfo& info);
     void SetText(const Napi::CallbackInfo& info, const Napi::Value& value);
 
-    Napi::Reference<Napi::Object>* AsReference() override { return this; }
+    Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; }
     void Paint(Renderer* renderer) override;
 
     void OnViewportSizeChange() override;
@@ -35,18 +34,17 @@ class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
  private:
     void UpdateStyle(Style* newStyle, Style* oldStyle) override;
     bool SetFont(Style* style);
-    void ClearFont();
+    bool SetFontSize(Style* style);
+    void ClearFont() noexcept;
     void DestroyRecursive() override;
     void AppendChild(SceneNode* child) override;
     YGSize Measure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode);
 
  private:
     std::string text;
-
-    std::shared_ptr<FontResource> fontResource{};
+    ResourceLink<FontResource> fontResource;
     std::shared_ptr<Font> font;
-    uint32_t fontResourceListenerId{};
-    LayerResource* layer{};
+    std::shared_ptr<Layer> layer;
     TextBlock textBlock;
 };
 

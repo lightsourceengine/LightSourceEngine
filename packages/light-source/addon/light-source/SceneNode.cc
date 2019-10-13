@@ -38,6 +38,7 @@ SceneNode::SceneNode(const CallbackInfo& info) {
 
     this->scene->Ref();
     this->ygNode = YGNodeNew();
+    YGNodeSetContext(this->ygNode, this);
 
     instanceCount++;
 }

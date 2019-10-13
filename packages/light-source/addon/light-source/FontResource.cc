@@ -5,7 +5,6 @@
  */
 
 #include "FontResource.h"
-#include "AsyncTaskQueue.h"
 #include "Font.h"
 #include "Stage.h"
 #include <ls/FileSystem.h>
@@ -15,45 +14,48 @@
 
 namespace ls {
 
-std::shared_ptr<void> LoadFont(
-    const std::vector<std::string>& path, const std::string& filename, const int32_t index);
+std::shared_ptr<stbtt_fontinfo> LoadFont(const std::vector<std::string>&, const std::string&, const int32_t);
 
-FontResource::FontResource(const FontId& fontId, const std::string& uri, const int32_t index)
-        : BaseResource(fontId), uri(uri), index(index) {
+FontResource::FontResource(const FontId& fontId, const std::string& uri, const int32_t index) noexcept
+: Resource(fontId), uri(uri), index(index) {
+}
+
+FontResource::~FontResource() noexcept {
+    this->fontLoadingTask.Cancel();
 }
 
 void FontResource::Load(Stage* stage) {
-    assert(!this->task);
+    this->fontLoadingTask.Cancel();
 
     auto initialState{ ResourceStateLoading };
     const auto uri{ this->uri };
     const auto index{ this-> index };
     const auto path{ stage->GetResourcePath() };
 
-    auto execute = [path, uri, index]() -> std::shared_ptr<void> {
+    auto execute = [path, uri, index]() -> std::shared_ptr<stbtt_fontinfo> {
         return LoadFont({ path }, uri, index);
     };
 
-    auto complete = [this](std::shared_ptr<Task> task) {
-        if (this->resourceState != ResourceStateLoading || task != this->task) {
+    auto callback = [this](std::shared_ptr<stbtt_fontinfo>&& fontInfo, const std::exception_ptr& eptr) {
+        if (this->resourceState != ResourceStateLoading) {
             return;
         }
 
         ResourceState nextState;
 
-        if (task->IsError()) {
+        if (eptr) {
             nextState = ResourceStateError;
         } else {
-            this->fontInfo = task->GetResultAs<stbtt_fontinfo>();
+            this->fontInfo = fontInfo;
             nextState = ResourceStateReady;
         }
 
-        this->task.reset();
         this->SetState(nextState, true);
     };
 
     try {
-        this->task = stage->GetAsyncTaskQueue()->Submit(std::move(execute), std::move(complete));
+        this->fontLoadingTask = stage->GetTaskQueue()->Async<std::shared_ptr<stbtt_fontinfo>>(
+            std::move(execute), std::move(callback));
     } catch (const std::exception&) {
         initialState = ResourceStateError;
     }
@@ -61,8 +63,13 @@ void FontResource::Load(Stage* stage) {
     this->SetState(initialState, true);
 }
 
-void FontResource::Attach(Stage* stage, Scene* scene) {
-    this->Load(stage);
+void FontResource::Reset() {
+    this->fontLoadingTask.Cancel();
+
+    this->fontInfo.reset();
+    this->fontsBySize.clear();
+
+    this->SetState(ResourceStateInit, false);
 }
 
 std::shared_ptr<Font> FontResource::GetFont(int32_t fontSize) const {
@@ -73,6 +80,7 @@ std::shared_ptr<Font> FontResource::GetFont(int32_t fontSize) const {
 
     if (it == this->fontsBySize.end()) {
         try {
+            // TODO: font info might be null...
             const auto font{ std::make_shared<Font>(this->fontInfo, fontSize) };
 
             this->fontsBySize.insert(std::make_pair(fontSize, font));
@@ -88,11 +96,7 @@ std::shared_ptr<Font> FontResource::GetFont(int32_t fontSize) const {
     return it->second;
 }
 
-FontId::FontId(const std::string& family, const StyleFontStyle style, const StyleFontWeight weight) noexcept
-: family(family), style(style), weight(weight) {
-}
-
-std::shared_ptr<void> LoadFont(const std::vector<std::string>& path, const std::string& filename,
+std::shared_ptr<stbtt_fontinfo> LoadFont(const std::vector<std::string>& path, const std::string& filename,
         const int32_t index) {
     const std::shared_ptr<stbtt_fontinfo> result(
         new stbtt_fontinfo(), [](stbtt_fontinfo* p) { if (p->data) { delete [] p->data; } delete p; });
@@ -127,7 +131,7 @@ std::shared_ptr<void> LoadFont(const std::vector<std::string>& path, const std::
 
     ttf.release();
 
-    return std::static_pointer_cast<void>(result);
+    return result;
 }
 
 } // namespace ls

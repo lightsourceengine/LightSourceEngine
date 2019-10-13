@@ -15,9 +15,6 @@
 
 namespace ls {
 
-class Stage;
-class Scene;
-
 enum ResourceState : uint8_t {
     ResourceStateInit,
     ResourceStateReady,
@@ -25,126 +22,67 @@ enum ResourceState : uint8_t {
     ResourceStateLoading,
 };
 
-enum DispatchState : uint8_t {
-    DispatchStateIdle = 0,
-    DispatchStateDispatching = 1 << 0,
-    DispatchStateHasRemovals = 1 << 1,
-};
-
 std::string ResourceStateToString(ResourceState state);
 
-class ResourceManager;
-
-class Resource {
- public:
-    explicit Resource(const std::string& id);
-    virtual ~Resource() = default;
-
-    uint32_t AddListener(std::function<void()> listener);
-    void RemoveListener(const uint32_t listenerId);
-
-    int32_t AddRef() { return ++this->refCount; }
-    int32_t RemoveRef() { return --this->refCount; }
-    int32_t GetRefCount() const { return this->refCount; }
-
-    const std::string& GetId() const { return this->id; }
-
-    bool IsReady() const { return this->resourceState == ResourceStateReady; }
-    bool HasError() const { return this->resourceState == ResourceStateError; }
-
- protected:
-    void SetState(ResourceState newState);
-    void SetStateAndNotifyListeners(ResourceState newState);
-
- private:
-    void RemoveListenerById(const uint32_t listenerId);
-
- protected:
-    std::string id;
-    ResourceState resourceState{ ResourceStateInit };
-
- private:
-    static uint32_t nextListenerId;
-    int32_t refCount{ 1 };
-    std::vector<std::pair<uint32_t, std::function<void()>>> listeners{};
-    uint8_t dispatchState{ 0 };
-
-    friend ResourceManager;
-};
+using ResourceStateChangeFunction = std::function<void()>;
 
 /**
  *
  */
 template<typename IdType>
-class BaseResource {
+class Resource {
  public:
-    typedef std::function<void(BaseResource*)> ResourceListener;
+    using idType = IdType;
 
- public:
-    explicit BaseResource(const IdType& id) : id(id) {}
-    virtual ~BaseResource() = default;
+    explicit Resource(const IdType& id) : id(id) {}
+    virtual ~Resource() = default;
 
-    /**
-     *
-     */
-    uint32_t AddListener(ResourceListener listener);
-
-    /**
-     *
-     */
+    uint32_t AddListener(ResourceStateChangeFunction&& listener);
     void RemoveListener(const uint32_t listenerId);
-
-    /**
-     *
-     */
-    const IdType GetId() const { return this->id; }
-
-    /**
-     *
-     */
-    bool IsReady() const { return this->resourceState == ResourceStateReady; }
-
-    /**
-     *
-     */
-    bool HasError() const { return this->resourceState == ResourceStateError; }
-
-    /**
-     *
-     */
+    const IdType& GetId() const noexcept { return this->id; }
+    bool IsReady() const noexcept { return this->resourceState == ResourceStateReady; }
+    bool HasError() const noexcept { return this->resourceState == ResourceStateError; }
     void SetState(ResourceState newState, bool notifyListeners = false);
-
-    /**
-     *
-     */
-    virtual void Attach(Stage* stage, Scene* scene) {}
-
-    /**
-     *
-     */
-    virtual void Detach(Stage* stage, Scene* scene) {}
-
-    /**
-     *
-     */
-    virtual void Reset(Stage* stage, Scene* scene) {}
-
-    /**
-     *
-     */
-    ResourceState GetState() const { return this->resourceState; }
+    void DispatchState();
+    ResourceState GetState() const noexcept { return this->resourceState; }
 
  protected:
+    enum DispatchState : uint8_t {
+        DispatchStateIdle = 0,
+        DispatchStateDispatching = 1 << 0,
+        DispatchStateHasRemovals = 1 << 1,
+    };
+
     IdType id;
-    std::vector<std::pair<uint32_t, ResourceListener>> listeners;
-    uint32_t nextListenerId{ 1 };
+    std::vector<std::pair<uint32_t, ResourceStateChangeFunction>> listeners;
+    static uint32_t nextListenerId;
     ResourceState resourceState{ ResourceStateInit };
     uint8_t dispatchState{ DispatchStateIdle };
 };
 
+template<typename R>
+class ResourceLink {
+ public:
+    R* Get() const noexcept;
+    void Listen(ResourceStateChangeFunction&& listener);
+    void Unlisten();
+
+    ResourceLink<R>& operator=(const std::shared_ptr<R>& p) noexcept;
+    ResourceLink<R>& operator=(nullptr_t) noexcept;
+    R* operator->() const noexcept;
+    explicit operator bool() const noexcept;
+
+ private:
+    std::shared_ptr<R> resource;
+    uint32_t listenerId{0};
+};
+
 template<typename IdType>
-uint32_t BaseResource<IdType>::AddListener(ResourceListener listener) {
-    auto listenerId{ nextListenerId++ };
+uint32_t Resource<IdType>::nextListenerId{1};
+
+template<typename IdType>
+uint32_t Resource<IdType>::AddListener(ResourceStateChangeFunction&& listener) {
+    const auto listenerId{ nextListenerId++ };
 
     this->listeners.push_back(std::make_pair(listenerId, listener));
 
@@ -152,7 +90,7 @@ uint32_t BaseResource<IdType>::AddListener(ResourceListener listener) {
 }
 
 template<typename IdType>
-void BaseResource<IdType>::RemoveListener(const uint32_t listenerId) {
+void Resource<IdType>::RemoveListener(const uint32_t listenerId) {
     if (this->dispatchState & DispatchStateDispatching) {
         for (auto& it : this->listeners) {
             if (it.first == listenerId) {
@@ -166,7 +104,7 @@ void BaseResource<IdType>::RemoveListener(const uint32_t listenerId) {
             std::remove_if(
                 this->listeners.begin(),
                 this->listeners.end(),
-                [listenerId](std::pair<uint32_t, ResourceListener> const & p) {
+                [listenerId](const std::pair<uint32_t, ResourceStateChangeFunction>& p) {
                     return p.first == listenerId;
                 })
         };
@@ -176,13 +114,16 @@ void BaseResource<IdType>::RemoveListener(const uint32_t listenerId) {
 }
 
 template<typename IdType>
-void BaseResource<IdType>::SetState(ResourceState newState, bool notifyListeners) {
+void Resource<IdType>::SetState(ResourceState newState, bool notifyListeners) {
     this->resourceState = newState;
 
-    if (!notifyListeners || this->listeners.empty()) {
-        return;
+    if (notifyListeners && !this->listeners.empty()) {
+        this->DispatchState();
     }
+}
 
+template<typename IdType>
+void Resource<IdType>::DispatchState() {
     this->dispatchState = DispatchStateDispatching;
 
     auto listenerCount{ this->listeners.size() };
@@ -192,9 +133,10 @@ void BaseResource<IdType>::SetState(ResourceState newState, bool notifyListeners
 
         if (p.first != 0) {
             try {
-                this->listeners[i].second(this);
+                this->listeners[i].second();
             } catch (std::exception& e) {
-                 fmt::println("Error: [resourceId={}] Resource listener exception {}", this->id.family, e.what());
+                 fmt::println("Error: [resourceId={}] Resource listener exception {}",
+                    static_cast<std::string>(this->id), e.what());
             }
         }
     }
@@ -203,12 +145,72 @@ void BaseResource<IdType>::SetState(ResourceState newState, bool notifyListeners
         auto removals{ std::remove_if(
             this->listeners.begin(),
             this->listeners.end(),
-            [](std::pair<uint32_t, ResourceListener> const & p) { return p.first == 0; }) };
+            [](const std::pair<uint32_t, ResourceStateChangeFunction>& p) {
+                return p.first == 0;
+            })
+        };
 
         this->listeners.erase(removals, this->listeners.end());
     }
 
     this->dispatchState = DispatchStateIdle;
+}
+
+template<typename R>
+R* ResourceLink<R>::Get() const noexcept {
+    return this->resource.get();
+}
+
+template<typename R>
+void ResourceLink<R>::Listen(ResourceStateChangeFunction&& listener) {
+    if (this->resource) {
+        this->Unlisten();
+        this->listenerId = this->resource->AddListener(std::move(listener));
+    }
+}
+
+template<typename R>
+void ResourceLink<R>::Unlisten() {
+    if (this->resource && this->listenerId) {
+        this->resource->RemoveListener(this->listenerId);
+        this->listenerId = 0;
+    }
+}
+
+template<typename R>
+ResourceLink<R>& ResourceLink<R>::operator=(const std::shared_ptr<R>& p) noexcept {
+    this->Unlisten();
+    this->resource = p;
+
+    return *this;
+}
+
+template<typename R>
+ResourceLink<R>& ResourceLink<R>::operator=(nullptr_t) noexcept {
+    this->Unlisten();
+    this->resource.reset();
+
+    return *this;
+}
+
+template<typename R>
+R* ResourceLink<R>::operator->() const noexcept {
+    return this->resource.get();
+}
+
+template<typename R>
+ResourceLink<R>::operator bool() const noexcept {
+    return !!this->resource;
+}
+
+template<typename R>
+inline bool operator==(const ResourceLink<R>& link, R* p) noexcept {
+    return link ? link.Get() == p : nullptr == p;
+}
+
+template<typename R>
+inline bool operator!=(const ResourceLink<R>& link, R* p) noexcept {
+    return link ? link.Get() != p : nullptr != p;
 }
 
 } // namespace ls

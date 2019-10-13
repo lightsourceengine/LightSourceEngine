@@ -14,34 +14,30 @@
 #include <stb_image.h>
 #include <algorithm>
 #include <fmt/println.h>
+#include "Scene.h"
+#include "Stage.h"
 
+using Napi::Boolean;
 using Napi::EscapableHandleScope;
-using Napi::Number;
 using Napi::Object;
 using Napi::String;
 using Napi::Value;
-using Napi::ObjectGetString;
-using Napi::ObjectGetStringOrEmpty;
-using Napi::ObjectGetNumberOrDefault;
 
 namespace ls {
 
 using NSVGimageHandle = std::unique_ptr<NSVGimage, decltype(&nsvgDelete)>;
 using NSVGrasterizerHandle = std::unique_ptr<NSVGrasterizer, decltype(&nsvgDeleteRasterizer)>;
 
-float ScaleFactor(const int, const int);
-std::shared_ptr<void> DecodeImage(const ImageUri&, const std::vector<std::string>&,
-    const std::vector<std::string>&, const PixelFormat);
-std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage* svgImage, const std::string& uri, const int32_t scaleWidth,
-        const int32_t scaleHeight);
+static inline float ScaleFactor(const int, const int) noexcept;
+static Surface DecodeImage(const ImageUri&, const std::vector<std::string>&, const std::vector<std::string>&,
+    const PixelFormat);
+static Surface DecodeImageSvg(NSVGimage*, const std::string&, const int32_t, const int32_t);
 
 ImageResource::ImageResource(const ImageUri& uri) noexcept : Resource(uri.GetId()), uri(uri) {
 }
 
 ImageResource::~ImageResource() noexcept {
-    if (this->task) {
-        this->task->Cancel();
-    }
+    this->loadImageTask.Cancel();
 }
 
 bool ImageResource::Sync(Renderer* renderer) {
@@ -49,94 +45,101 @@ bool ImageResource::Sync(Renderer* renderer) {
         return true;
     }
 
-    if (!this->IsReady() || !this->image) {
+    if (!this->IsReady() && !this->image.IsEmpty()) {
         return false;
     }
 
-    this->textureId = renderer->CreateTexture(
-        this->image->width,
-        this->image->height,
-        this->image->data.get(),
-        this->image->format);
+    if (this->image.Format() != renderer->GetTextureFormat()) {
+        this->image.Convert(renderer->GetTextureFormat());
+    }
 
-    this->image.reset();
+    this->textureId = renderer->CreateTexture(image);
+    this->image = Surface();
 
     return (this->textureId != 0);
 }
 
-void ImageResource::Load(AsyncTaskQueue* taskQueue, Renderer* renderer,
-        const std::vector<std::string>& extensions, const std::vector<std::string>& resourcePath) {
-    assert(!this->task);
+void ImageResource::Attach(Scene* scene) {
+    this->scene = scene;
+
+    if (this->GetState() == ResourceStateInit) {
+        this->Load();
+    }
+}
+
+void ImageResource::Detach() {
+    this->loadImageTask.Cancel();
+
+    if (this->GetState() != ResourceStateError) {
+        this->SetState(ResourceStateInit, false);
+    }
+
+    this->scene->GetRenderer()->DestroyTexture(this->textureId);
+
+    this->scene = nullptr;
+}
+
+void ImageResource::Load() {
+    assert(this->GetState() == ResourceStateInit);
+
+    const auto stage{ this->scene->GetStage() };
+
+    this->loadImageTask.Cancel();
+
+    auto execute = [
+            uri = this->uri,
+            extensions = this->scene->GetImageStore()->GetSearchExtensions(),
+            resourcePath = stage->GetResourcePath(),
+            textureFormat = this->scene->GetRenderer()->GetTextureFormat()]() -> Surface {
+        return DecodeImage(uri, extensions, { resourcePath }, textureFormat);
+    };
+
+    auto callback = [this](Surface&& surface, const std::exception_ptr& eptr) {
+        if (eptr) {
+            this->width = this->height = 0;
+
+            try {
+                std::rethrow_exception(eptr);
+            } catch (const std::exception& e) {
+                fmt::println("image load: Error: {} {}", this->uri.GetId(), e.what());
+            }
+
+            this->SetState(ResourceStateError, true);
+        } else {
+            this->width = surface.Width();
+            this->height = surface.Height();
+            this->image = std::move(surface);
+
+            fmt::println("image load: {} {}x{}", this->uri.GetId(), this->width, this->height);
+
+            this->SetState(ResourceStateReady, true);
+        }
+    };
 
     auto initialState{ ResourceStateLoading };
-    const auto textureFormat{ renderer->GetTextureFormat() };
-    const auto uri{ this->uri };
-
-    auto execute = [uri, extensions, resourcePath, textureFormat]() -> std::shared_ptr<void> {
-        return DecodeImage(uri, extensions, resourcePath, textureFormat);
-    };
-
-    auto complete = [this](std::shared_ptr<Task> task) {
-        if (this->resourceState != ResourceStateLoading || task != this->task) {
-            return;
-        }
-
-        ResourceState nextState;
-
-        if (task->IsError()) {
-            this->image.reset();
-            this->width = this->height = 0;
-            nextState = ResourceStateError;
-
-            fmt::println("image load: Error: {}", task->GetErrorMessage());
-        } else {
-            this->image = task->GetResultAs<ImageInfo>();
-            this->width = this->image->width;
-            this->height = this->image->height;
-            nextState = ResourceStateReady;
-
-            fmt::println("image load: {}x{}", width, height);
-        }
-
-        this->task.reset();
-        this->SetStateAndNotifyListeners(nextState);
-    };
 
     try {
-        this->task = taskQueue->Submit(std::move(execute), std::move(complete));
+        this->loadImageTask = stage->GetTaskQueue()->Async<Surface>(std::move(execute), std::move(callback));
     } catch (const std::exception&) {
         initialState = ResourceStateError;
     }
 
-    this->SetStateAndNotifyListeners(initialState);
+    this->SetState(initialState, true);
 }
 
 Value ImageResource::ToObject(const Napi::Env& env) const {
     EscapableHandleScope scope(env);
-    auto font{ Object::New(env) };
+    auto image{ this->GetUri().ToObject(env).As<Object>() };
 
-    font["uri"] = this->GetUri().ToObject(env);
-    font["resourceId"] = String::New(env, this->GetId());
-    font["refs"] = Number::New(env, this->GetRefCount());
-    font["state"] = String::New(env, ResourceStateToString(this->resourceState));
+    image["state"] = String::New(env, ResourceStateToString(this->resourceState));
+    image["hasTexture"] = Boolean::New(env, this->textureId > 0);
 
-    return scope.Escape(font);
+    return scope.Escape(image);
 }
 
-void ImageResource::Detach(Renderer* renderer) {
-    if (resourceState == ResourceStateReady) {
-        if (this->textureId) {
-            renderer->DestroyTexture(this->textureId);
-            this->textureId = 0;
-        }
-
-        resourceState = ResourceStateInit;
-    }
-}
-
-std::shared_ptr<void> DecodeImage(const ImageUri& uri, const std::vector<std::string>& extensions,
+static Surface DecodeImage(const ImageUri& uri, const std::vector<std::string>& extensions,
              const std::vector<std::string>& resourcePath, const PixelFormat textureFormat) {
-    std::shared_ptr<ImageInfo> result;
+    Surface image;
     const auto& uriOrFilename{ uri.GetUri() };
 
     // TODO: support base64 encoded svgs
@@ -147,13 +150,10 @@ std::shared_ptr<void> DecodeImage(const ImageUri& uri, const std::vector<std::st
             throw std::runtime_error(fmt::format("Invalid image data uri: {}", uriOrFilename));
         }
 
-        auto dataString{ GetSvgUriData(uriOrFilename) };
+        const auto dataString{ GetSvgUriData(uriOrFilename) };
+        const auto svg{ nsvgParse(const_cast<char *>(dataString.data()), "px", 96) };
 
-        result = DecodeImageSvg(
-            nsvgParse(const_cast<char *>(dataString.data()), "px", 96),
-            uriOrFilename,
-            uri.GetWidth(),
-            uri.GetHeight());
+        image = DecodeImageSvg(svg, uriOrFilename, uri.GetWidth(), uri.GetHeight());
     } else {
         const fs::path filename {
             IsResourceUri(uriOrFilename) ?
@@ -173,31 +173,30 @@ std::shared_ptr<void> DecodeImage(const ImageUri& uri, const std::vector<std::st
         const auto data{ stbi_load_from_file(file.get(), &width, &height, &components, 4) };
 
         if (data) {
-            result = std::make_shared<ImageInfo>(
+            image = {
+                std::shared_ptr<uint8_t>(data, [] (uint8_t* p) { stbi_image_free(p); }),
                 width,
                 height,
-                PixelFormatRGBA,
-                std::shared_ptr<uint8_t>(data, [] (uint8_t* p) { stbi_image_free(p); }));
+                width * 4,
+                PixelFormatRGBA
+            };
         } else {
             fseek(file.get(), 0, SEEK_SET);
 
-            result = DecodeImageSvg(
-                nsvgParseFromFilePtr(file.get(), "px", 96),
-                uriOrFilename,
-                uri.GetWidth(),
-                uri.GetHeight());
+            const auto svg{ nsvgParseFromFilePtr(file.get(), "px", 96) };
+
+            image = DecodeImageSvg(svg, uriOrFilename, uri.GetWidth(), uri.GetHeight());
         }
     }
 
-    if (result) {
-        ConvertToFormat(result->data.get(), result->width * result->height * 4, textureFormat);
-        result->format = textureFormat;
+    if (textureFormat != PixelFormatUnknown) {
+        image.Convert(textureFormat);
     }
 
-    return std::static_pointer_cast<void>(result);
+    return image;
 }
 
-std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage* svgImage, const std::string& uri, const int32_t scaleWidth,
+static Surface DecodeImageSvg(NSVGimage* svgImage, const std::string& uri, const int32_t scaleWidth,
         const int32_t scaleHeight) {
     const NSVGimageHandle svg(svgImage, nsvgDelete);
 
@@ -243,7 +242,8 @@ std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage* svgImage, const std::string
         throw std::runtime_error(fmt::format("Failed to create rasterizer for svg image: {}", uri));
     }
 
-    const std::shared_ptr<uint8_t> data(new uint8_t [width * height * 4], [](uint8_t* p){ delete [] p; });
+    const auto pitch{ width * 4 };
+    const std::shared_ptr<uint8_t> data(new uint8_t [pitch * height], [](uint8_t* p){ delete [] p; });
 
     nsvgRasterizeFull(rasterizer.get(),
                       svg.get(),
@@ -254,86 +254,13 @@ std::shared_ptr<ImageInfo> DecodeImageSvg(NSVGimage* svgImage, const std::string
                       data.get(),
                       width,
                       height,
-                      width * 4);
+                      pitch);
 
-    return std::make_shared<ImageInfo>(width, height, PixelFormatRGBA, data);
+    return { data, width, height, pitch, PixelFormatRGBA };
 }
 
-EdgeRect ToCapInsets(const Object& spec) {
-    return {
-        ObjectGetNumberOrDefault(spec, "top", 0),
-        ObjectGetNumberOrDefault(spec, "right", 0),
-        ObjectGetNumberOrDefault(spec, "bottom", 0),
-        ObjectGetNumberOrDefault(spec, "left", 0),
-    };
-}
-
-ImageUri::ImageUri(const std::string& uri) noexcept : uri(uri) {
-}
-
-ImageUri::ImageUri(const std::string& uri, const std::string& id, const int32_t width, const int32_t height) noexcept
-: uri(uri), id(id), width(width), height(height) {
-}
-
-ImageUri::ImageUri(
-    const std::string& uri,
-    const std::string& id,
-    const int32_t width,
-    const int32_t height,
-    const EdgeRect& capInsets) noexcept
-: uri(uri), id(id), width(width), height(height), capInsets(capInsets),
-      hasCapInsets(capInsets.top || capInsets.right || capInsets.bottom || capInsets.left) {
-}
-
-ImageUri ImageUri::FromObject(const Object& spec) {
-    const auto uri{ ObjectGetString(spec, "uri") };
-    const auto id{ ObjectGetStringOrEmpty(spec, "id") };
-    const auto width{ std::max(ObjectGetNumberOrDefault(spec, "width", 0), 0) };
-    const auto height{ std::max(ObjectGetNumberOrDefault(spec, "height", 0), 0) };
-
-    if (spec.Has("capInsets") && spec.Get("capInsets").IsObject()) {
-        return ImageUri(uri, id, width, height, ToCapInsets(spec.Get("capInsets").As<Object>()));
-    }
-
-    return ImageUri(uri, id, width, height);
-}
-
-Value ImageUri::ToObject(const Napi::Env& env) const {
-    EscapableHandleScope scope(env);
-    auto imageUri{ Object::New(env) };
-
-    imageUri["id"] = String::New(env, this->GetId());
-    imageUri["uri"] = String::New(env, this->GetUri());
-
-    if (this->width > 0) {
-        imageUri["width"] = Number::New(env, this->width);
-    }
-
-    if (this->height > 0) {
-        imageUri["height"] = Number::New(env, this->height);
-    }
-
-    if (this->HasCapInsets()) {
-        auto capInsets{ Object::New(env) };
-
-        capInsets["top"] = Number::New(env, this->capInsets.top);
-        capInsets["right"] = Number::New(env, this->capInsets.right);
-        capInsets["bottom"] = Number::New(env, this->capInsets.bottom);
-        capInsets["left"] = Number::New(env, this->capInsets.left);
-
-        imageUri["capInsets"] = capInsets;
-    }
-
-    return scope.Escape(imageUri);
-}
-
-ImageInfo::ImageInfo(const int32_t width, const int32_t height, const PixelFormat format,
-        const std::shared_ptr<uint8_t>& data) noexcept
-    : width(width), height(height), format(format), data(data) {
-}
-
-inline
-float ScaleFactor(const int source, const int dest) {
+static inline
+float ScaleFactor(const int source, const int dest) noexcept {
     return 1.f + ((dest - source) / static_cast<float>(source));
 }
 

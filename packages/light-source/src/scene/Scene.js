@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode } from '../addon'
+import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode, ImageStoreView } from '../addon'
 import { Style } from '../style/Style'
 import { EventEmitter } from '../util/EventEmitter'
 import {
@@ -13,15 +13,13 @@ import {
   $fullscreen,
   $stage,
   $root,
-  $resource,
   $destroy,
   $displayIndex,
   $activeNode,
   $destroying,
   $events,
   $hasFocus,
-  $resourcePath,
-  $emit
+  $emit, $image
 } from '../util/InternalSymbols'
 import { BlurEvent } from '../event/BlurEvent'
 import { FocusEvent } from '../event/FocusEvent'
@@ -37,7 +35,7 @@ export class Scene extends SceneBase {
     this[$displayIndex] = displayIndex
     this[$events] = new EventEmitter()
     this[$activeNode] = null
-    this[$resource][$resourcePath] = stage.resourcePath
+    this[$image] = new ImageStoreView(this)
 
     this.root.style = new Style({
       position: 'absolute',
@@ -54,10 +52,6 @@ export class Scene extends SceneBase {
     return this[$root]
   }
 
-  get resource () {
-    return this[$resource]
-  }
-
   get fullscreen () {
     return this[$fullscreen]
   }
@@ -72,6 +66,10 @@ export class Scene extends SceneBase {
 
   get displayIndex () {
     return this[$displayIndex]
+  }
+
+  get image () {
+    return this[$image]
   }
 
   on (id, listener) {
@@ -135,6 +133,7 @@ export class Scene extends SceneBase {
 
     this[$stage] = null
     this[$activeNode] = null
+    this[$image] = null
   }
 }
 

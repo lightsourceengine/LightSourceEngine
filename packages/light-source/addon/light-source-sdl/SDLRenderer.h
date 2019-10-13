@@ -50,10 +50,9 @@ class SDLRenderer : public Renderer {
 
     uint32_t CreateTexture(const int32_t width, const int32_t height) override;
 
-    uint32_t CreateTexture(const int32_t width, const int32_t height,
-        const uint8_t* source, PixelFormat sourceFormat) override;
+    uint32_t CreateTexture(const Surface& surface) override;
 
-    LockTextureInfo LockTexture(const uint32_t textureId) override;
+    Surface LockTexture(const uint32_t textureId) override;
 
     void DestroyTexture(const uint32_t textureId) override;
 

@@ -18,6 +18,7 @@ try {
     SceneBase: () => {},
     StageBase: () => {},
     FontStoreView: () => {},
+    ImageStoreView: () => {},
     BoxSceneNode: () => {},
     ImageSceneNode: () => {},
     RootSceneNode: () => {},
@@ -33,6 +34,7 @@ export const {
   SceneBase,
   StageBase,
   FontStoreView,
+  ImageStoreView,
   BoxSceneNode,
   ImageSceneNode,
   RootSceneNode,
@@ -43,10 +45,6 @@ export const {
 
 export const SDLModuleId = 'light-source-sdl'
 export const SDLMixerModuleId = 'light-source-sdl-mixer'
-
-/**
- * @class ResourceManager
- */
 
 /**
  * @class SceneNode

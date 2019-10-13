@@ -58,6 +58,21 @@ std::string ToUpperCase(const Napi::String& text);
 template<typename Iterable>
 Napi::Array NewStringArray(const Napi::Env& env, const Iterable& iterable);
 
+/**
+ * Safely call a javascript void function.
+ *
+ * If the javascript function is not set, the call will be a no-op.
+ */
+void Call(const Napi::FunctionReference& func, const std::initializer_list<napi_value>& args = {});
+
+/**
+ * Safely call a javascript function with a return value.
+ *
+ * If the javascript function is not set, undefined will be returned.
+ */
+Napi::Value Call(const Napi::Env& env, const Napi::FunctionReference& func,
+    const std::initializer_list<napi_value>& args = {});
+
 } // namespace Napi
 
 #include "napi-ext-inl.h"

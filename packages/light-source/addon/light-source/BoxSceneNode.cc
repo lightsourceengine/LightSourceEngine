@@ -6,7 +6,7 @@
 
 #include "BoxSceneNode.h"
 #include "ImageResource.h"
-#include "ResourceManager.h"
+#include "ImageStore.h"
 #include "Scene.h"
 #include "StyleUtils.h"
 #include "yoga-ext.h"
@@ -21,8 +21,9 @@ using Napi::ObjectWrap;
 
 namespace ls {
 
-void AssignImage(ImageResource** targetImage, ImageResource* newImage);
 constexpr int64_t white{ 0xFFFFFFFF };
+
+static bool GetBorderRadiusState(const Style* style) noexcept;
 
 BoxSceneNode::BoxSceneNode(const CallbackInfo& info) : ObjectWrap<BoxSceneNode>(info), SceneNode(info) {
 }
@@ -91,7 +92,7 @@ void BoxSceneNode::Paint(Renderer* renderer) {
             };
         } else {
             fitDimensions = CalculateObjectFitDimensions(
-                boxStyle->backgroundFit(), this->backgroundImage, width, height);
+                boxStyle->backgroundFit(), this->backgroundImage.get(), width, height);
         }
 
         const auto positionX{ x + dx + CalculateObjectPosition(
@@ -148,117 +149,108 @@ void BoxSceneNode::Paint(Renderer* renderer) {
 void BoxSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
     SceneNode::UpdateStyle(newStyle, oldStyle);
 
-    if (newStyle->backgroundImage() != this->backgroundImageUri) {
-        ImageResource* newBackgroundImage;
+    this->SetBackgroundImage(newStyle);
+    this->SetBorderRadiusImages(newStyle);
+}
 
-        if (!newStyle->backgroundImage().empty()) {
-            this->backgroundImageUri = newStyle->backgroundImage();
-            // TODO: support full uri objects
-            newBackgroundImage = this->scene->GetResourceManager()->LoadImage(ImageUri(this->backgroundImageUri));
-        } else {
-            newBackgroundImage = nullptr;
-        }
-
-        AssignImage(&this->backgroundImage, newBackgroundImage);
+void BoxSceneNode::SetBackgroundImage(const Style* style) {
+    if (!style || style->backgroundImage().empty()) {
+        this->backgroundImage = nullptr;
+        return;
     }
 
-    if (newStyle->HasBorderRadius() && (newStyle->backgroundColor() || newStyle->borderColor())) {
-        const auto borderRadius{ ComputeIntegerPointValue(
-            newStyle->borderRadius(), this->scene, 0) };
-        const auto borderRadiusTopLeft{ ComputeIntegerPointValue(
-            newStyle->borderRadiusTopLeft(), this->scene, borderRadius) };
-        const auto borderRadiusTopRight{ ComputeIntegerPointValue(
-            newStyle->borderRadiusTopRight(), this->scene, borderRadius) };
-        const auto borderRadiusBottomLeft{ ComputeIntegerPointValue(
-            newStyle->borderRadiusBottomLeft(), this->scene, borderRadius) };
-        const auto borderRadiusBottomRight{ ComputeIntegerPointValue(
-            newStyle->borderRadiusBottomRight(), this->scene, borderRadius) };
+    if (this->backgroundImage && this->backgroundImage->GetUri().GetId() == style->backgroundImage()) {
+        return;
+    }
 
-        ImageResource* newRoundedRectImage;
-        const EdgeRect capInsets{
-            std::max(borderRadiusTopLeft, borderRadiusTopRight),
-            std::max(borderRadiusTopRight, borderRadiusBottomRight),
-            std::max(borderRadiusBottomLeft, borderRadiusBottomRight),
-            std::max(borderRadiusTopLeft, borderRadiusBottomLeft)
+    this->backgroundImage = this->scene->GetImageStore()->GetOrLoadImage({ style->backgroundImage() });
+}
+
+void BoxSceneNode::SetBorderRadiusImages(const Style* style) {
+    if (!GetBorderRadiusState(style)) {
+        this->roundedRectImage = this->roundedRectStrokeImage = nullptr;
+        return;
+    }
+
+    const auto imageStore{ this->scene->GetImageStore() };
+    const auto borderRadius{ ComputeIntegerPointValue(
+        style->borderRadius(), this->scene, 0) };
+    const auto borderRadiusTopLeft{ ComputeIntegerPointValue(
+        style->borderRadiusTopLeft(), this->scene, borderRadius) };
+    const auto borderRadiusTopRight{ ComputeIntegerPointValue(
+        style->borderRadiusTopRight(), this->scene, borderRadius) };
+    const auto borderRadiusBottomLeft{ ComputeIntegerPointValue(
+        style->borderRadiusBottomLeft(), this->scene, borderRadius) };
+    const auto borderRadiusBottomRight{ ComputeIntegerPointValue(
+        style->borderRadiusBottomRight(), this->scene, borderRadius) };
+
+    if (style->backgroundColor()) {
+        const auto borderRadiusImageId{
+            fmt::format("@border-radius:{},{},{},{}",
+                borderRadiusTopLeft,
+                borderRadiusTopRight,
+                borderRadiusBottomRight,
+                borderRadiusBottomLeft)
         };
 
-        if (newStyle->backgroundColor()) {
-            const auto borderRadiusImageId{
-                fmt::format("@border-radius:{},{},{},{}",
-                    borderRadiusTopLeft,
-                    borderRadiusTopRight,
-                    borderRadiusBottomRight,
-                    borderRadiusBottomLeft)
+        if (imageStore->HasImage(borderRadiusImageId)) {
+            this->roundedRectImage = imageStore->GetImage(borderRadiusImageId);
+        } else {
+            const auto uri{ CreateRoundedRectangleUri(borderRadiusTopLeft, borderRadiusTopRight,
+                borderRadiusBottomRight, borderRadiusBottomLeft, 0) };
+            const EdgeRect capInsets{
+                std::max(borderRadiusTopLeft, borderRadiusTopRight),
+                std::max(borderRadiusTopRight, borderRadiusBottomRight),
+                std::max(borderRadiusBottomLeft, borderRadiusBottomRight),
+                std::max(borderRadiusTopLeft, borderRadiusBottomLeft)
             };
 
-            newRoundedRectImage = this->scene->GetResourceManager()->GetImage(borderRadiusImageId);
-
-            if (!newRoundedRectImage) {
-                const auto uri{ CreateRoundedRectangleUri(borderRadiusTopLeft, borderRadiusTopRight,
-                    borderRadiusBottomRight, borderRadiusBottomLeft, 0) };
-
-                newRoundedRectImage = this->scene->GetResourceManager()->LoadImage(
-                    { uri, borderRadiusImageId, 0, 0, capInsets });
-            }
-        } else {
-            newRoundedRectImage = nullptr;
+            this->roundedRectImage = imageStore->LoadImage({ uri, borderRadiusImageId, 0, 0, capInsets });
         }
-
-        AssignImage(&this->roundedRectImage, newRoundedRectImage);
-
-        ImageResource* newRoundedRectStrokeImage;
-
-        if (newStyle->borderColor() && newStyle->border()) {
-            const auto stroke{ ComputeIntegerPointValue(newStyle->border(), this->scene, 0) };
-
-            const auto borderRadiusStrokeImageId{
-                fmt::format("@border-radius-stroke:{},{},{},{},{}",
-                    borderRadiusTopLeft,
-                    borderRadiusTopRight,
-                    borderRadiusBottomRight,
-                    borderRadiusBottomLeft,
-                    stroke)
-            };
-
-            newRoundedRectStrokeImage = this->scene->GetResourceManager()->GetImage(borderRadiusStrokeImageId);
-
-            if (!newRoundedRectStrokeImage) {
-                const auto uri{ CreateRoundedRectangleUri(borderRadiusTopLeft, borderRadiusTopRight,
-                    borderRadiusBottomRight, borderRadiusBottomLeft, stroke) };
-
-                newRoundedRectStrokeImage = this->scene->GetResourceManager()->LoadImage(
-                    { uri, borderRadiusStrokeImageId, 0, 0, capInsets });
-            }
-        } else {
-            newRoundedRectStrokeImage = nullptr;
-        }
-
-        AssignImage(&this->roundedRectStrokeImage, newRoundedRectStrokeImage);
     } else {
-        AssignImage(&this->roundedRectImage, nullptr);
-        AssignImage(&this->roundedRectStrokeImage, nullptr);
+        this->roundedRectImage = nullptr;
+    }
+
+    if (style->borderColor() && style->border()) {
+        const auto stroke{ ComputeIntegerPointValue(style->border(), this->scene, 0) };
+        const auto borderRadiusStrokeImageId{
+            fmt::format("@border-radius-stroke:{},{},{},{},{}",
+                borderRadiusTopLeft,
+                borderRadiusTopRight,
+                borderRadiusBottomRight,
+                borderRadiusBottomLeft,
+                stroke)
+        };
+
+        if (imageStore->Has(borderRadiusStrokeImageId)) {
+            this->roundedRectStrokeImage = imageStore->GetImage(borderRadiusStrokeImageId);
+        } else {
+            const auto uri{ CreateRoundedRectangleUri(borderRadiusTopLeft, borderRadiusTopRight,
+                borderRadiusBottomRight, borderRadiusBottomLeft, stroke) };
+            const EdgeRect capInsets{
+                std::max(borderRadiusTopLeft, borderRadiusTopRight),
+                std::max(borderRadiusTopRight, borderRadiusBottomRight),
+                std::max(borderRadiusBottomLeft, borderRadiusBottomRight),
+                std::max(borderRadiusTopLeft, borderRadiusBottomLeft)
+            };
+
+            this->roundedRectStrokeImage = imageStore->LoadImage({ uri, borderRadiusStrokeImageId, 0, 0, capInsets });
+        }
+    } else {
+        this->roundedRectStrokeImage = nullptr;
     }
 }
 
 void BoxSceneNode::DestroyRecursive() {
-    AssignImage(&this->backgroundImage, nullptr);
-    AssignImage(&this->roundedRectImage, nullptr);
-    AssignImage(&this->roundedRectStrokeImage, nullptr);
+    this->backgroundImage = nullptr;
+    this->roundedRectImage = nullptr;
+    this->roundedRectStrokeImage = nullptr;
 
     SceneNode::DestroyRecursive();
 }
 
-void AssignImage(ImageResource** targetImage, ImageResource* newImage) {
-    const auto image = *targetImage;
-
-    if (image != newImage) {
-        if (image) {
-            image->RemoveRef();
-            *targetImage = nullptr;
-        }
-
-        *targetImage = newImage;
-    }
+static bool GetBorderRadiusState(const Style* style) noexcept {
+    return style && style->HasBorderRadius() && (style->backgroundColor() || style->borderColor());
 }
 
 } // namespace ls

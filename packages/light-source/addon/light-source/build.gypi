@@ -33,19 +33,26 @@
       ],
       "sources": [
         "yoga-ext.cc",
-        "AsyncTaskQueue.cc",
+        "Executor.cc",
+        "Task.cc",
+        "TaskQueue.cc",
         "Style.cc",
         "StyleEnumMappings.cc",
         "StyleEnums.cc",
         "StyleValue.cc",
         "Font.cc",
+        "FontId.cc",
         "FontStore.cc",
         "FontStoreView.cc",
+        "ImageUri.cc",
+        "ImageStore.cc",
+        "ImageStoreView.cc",
         "Resource.cc",
-        "FontResource.cc",
         "ImageResource.cc",
+        "FontResource.cc",
+        "Layer.cc",
+        "LayerCache.cc",
         "LayerResource.cc",
-        "ResourceManager.cc",
         "TextBlock.cc",
         "SceneNode.cc",
         "RootSceneNode.cc",
@@ -66,7 +73,8 @@
               "LIGHT_SOURCE_NATIVE_TESTS"
             ],
             "sources": [
-              "test/AsyncTaskQueueSpec.cc",
+              "test/ExecutorSpec.cc",
+              "test/TaskQueueSpec.cc",
             ]
           }
         ]

@@ -7,25 +7,26 @@
 #pragma once
 
 #include <napi.h>
+#include "ResourceStore.h"
 
 namespace ls {
 
-class Stage;
+class Scene;
 
-class FontStoreView : public Napi::ObjectWrap<FontStoreView> {
+class ImageStoreView : public Napi::ObjectWrap<ImageStoreView> {
  public:
-    explicit FontStoreView(const Napi::CallbackInfo& info);
-    virtual ~FontStoreView();
+    explicit ImageStoreView(const Napi::CallbackInfo& info);
+    virtual ~ImageStoreView();
 
     static Napi::Function Constructor(Napi::Env env);
 
  private: // javascript bindings
-    void Add(const Napi::CallbackInfo& info);
-    void Remove(const Napi::CallbackInfo& info);
     Napi::Value List(const Napi::CallbackInfo& info);
+    Napi::Value GetExtensions(const Napi::CallbackInfo& info);
+    void SetExtensions(const Napi::CallbackInfo& info, const Napi::Value& value);
 
  private:
-    Stage* stage{};
+    Scene* scene{};
 };
 
 } // namespace ls

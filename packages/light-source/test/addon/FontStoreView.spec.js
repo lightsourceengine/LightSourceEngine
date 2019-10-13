@@ -34,7 +34,7 @@ describe('FontStoreView', () => {
     it('should add new font resource', () => {
       fontStore.add({ family: 'test', uri: 'test/resources/arrow.ttf' })
 
-      const fonts = fontStore.all()
+      const fonts = fontStore.list()
 
       assert.lengthOf(fonts, 1)
       assert.equal(fonts[0].family, 'test')
@@ -52,9 +52,9 @@ describe('FontStoreView', () => {
   describe('remove()', () => {
     it('should remove font resource', () => {
       fontStore.add({ family: 'test', uri: 'test/resources/arrow.ttf' })
-      assert.lengthOf(fontStore.all(), 1)
+      assert.lengthOf(fontStore.list(), 1)
       fontStore.remove({ family: 'test', style: 'normal', weight: 'normal' })
-      assert.lengthOf(fontStore.all(), 0)
+      assert.lengthOf(fontStore.list(), 0)
     })
     it('should throw Error for invalid font id type', () => {
       for (const input of [null, undefined, {}, 'test']) {
@@ -74,9 +74,9 @@ describe('FontStoreView', () => {
       }
     })
   })
-  describe('all()', () => {
+  describe('list()', () => {
     it('should return empty array when no fonts present', () => {
-      assert.lengthOf(fontStore.all(), 0)
+      assert.lengthOf(fontStore.list(), 0)
     })
   })
 })

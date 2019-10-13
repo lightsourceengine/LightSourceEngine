@@ -10,12 +10,14 @@
 
 namespace ls {
 
-void AsyncTaskQueueSpec(Napi::Env env, Napi::TestSuite* parent);
+void TaskQueueSpec(Napi::Env env, Napi::TestSuite* parent);
+void ExecutorSpec(Napi::Env env, Napi::TestSuite* parent);
 
 inline
 Napi::Value LightSourceTestSuite(Napi::Env env) {
     return Napi::TestSuite::Build(env, "light-source native tests", {
-        &AsyncTaskQueueSpec,
+        &TaskQueueSpec,
+        &ExecutorSpec,
     });
 }
 

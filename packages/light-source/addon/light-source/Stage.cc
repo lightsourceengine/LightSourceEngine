@@ -23,13 +23,9 @@ using Napi::Value;
 namespace ls {
 
 Stage::Stage(const CallbackInfo& info) : ObjectWrap<Stage>(info) {
-    this->fontStore = std::unique_ptr<FontStore>(new FontStore(this));
-}
-
-Stage::~Stage() {
-    if (this->stageAdapter) {
-        this->stageAdapter->AsReference()->Unref();
-    }
+    this->fontStore.Attach(this);
+    // TODO: need to detach somewhere
+    this->taskQueue.Init(this->GetExecutor());
 }
 
 Function Stage::Constructor(Napi::Env env) {
@@ -51,8 +47,24 @@ Function Stage::Constructor(Napi::Env env) {
     return constructor.Value();
 }
 
+void Stage::Destroy() noexcept {
+    if (this->stageAdapter) {
+        try {
+            this->stageAdapter->AsReference()->Unref();
+        } catch (const Error& e) {
+            fmt::println("Error unref'ing stage adapter: {}", e.what());
+        }
+
+        this->stageAdapter = nullptr;
+    }
+
+    this->fontStore.Detach();
+    this->executor.ShutdownNow();
+    this->taskQueue.ShutdownNow();
+}
+
 void Stage::ProcessEvents(const CallbackInfo& info) {
-    this->asyncTaskQueue.ProcessTasks();
+    this->taskQueue.ProcessTasks();
 }
 
 Value Stage::GetStageAdapter(const CallbackInfo& info) {

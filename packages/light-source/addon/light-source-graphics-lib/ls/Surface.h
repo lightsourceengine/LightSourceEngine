@@ -13,27 +13,31 @@ namespace ls {
 
 class Surface {
  public:
-    Surface(int32_t width, int32_t height);
-    Surface(std::shared_ptr<uint8_t> pixels, int32_t width, int32_t height);
-    Surface(std::shared_ptr<uint8_t> pixels, int32_t width, int32_t height, int32_t pitch, PixelFormat format);
-    explicit Surface(Surface&& other);
+    Surface() noexcept = default;
+    Surface(const std::shared_ptr<uint8_t>& pixels, const int32_t width, const int32_t height) noexcept;
+    Surface(const std::shared_ptr<uint8_t>& pixels, const int32_t width, const int32_t height, const int32_t pitch,
+        const PixelFormat format) noexcept;
+    Surface(Surface&& other) noexcept;
 
-    void Blit(const int32_t x, const int32_t y, const Surface& surface) const;
-    void FillTransparent() const;
+    void Blit(const int32_t x, const int32_t y, const Surface& surface) const noexcept;
+    void FillTransparent() const noexcept;
+    void Convert(const PixelFormat format) noexcept;
 
-    bool IsEmpty() const { return this->width == 0 || this->height == 0; }
-    int32_t Width() const { return this->width; }
-    int32_t Height() const { return this->height; }
-    int32_t Pitch() const { return this->pitch; }
-    uint8_t* Pixels() const { return this->pixels.get(); }
-    PixelFormat Format() const { return this->format; }
+    bool IsEmpty() const noexcept { return !this->pixels; }
+    int32_t Width() const noexcept { return this->width; }
+    int32_t Height() const noexcept { return this->height; }
+    int32_t Pitch() const noexcept { return this->pitch; }
+    uint8_t* Pixels() const noexcept { return this->pixels.get(); }
+    PixelFormat Format() const noexcept { return this->format; }
+
+    Surface& operator=(Surface&& other) noexcept;
 
  private:
-    int32_t width;
-    int32_t height;
-    int32_t pitch;
-    mutable std::shared_ptr<uint8_t> pixels;
-    PixelFormat format;
+    int32_t width{};
+    int32_t height{};
+    int32_t pitch{};
+    std::shared_ptr<uint8_t> pixels;
+    PixelFormat format{};
 };
 
 } // namespace ls

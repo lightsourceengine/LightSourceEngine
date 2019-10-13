@@ -66,12 +66,11 @@ uint32_t RefRenderer::CreateTexture(const int32_t width, const int32_t height) {
     return nextTextureId++;
 }
 
-uint32_t RefRenderer::CreateTexture(const int32_t width, const int32_t height,
-        const uint8_t* source, PixelFormat sourceFormat) {
-    return this->CreateTexture(width, height);
+uint32_t RefRenderer::CreateTexture(const Surface& source) {
+    return this->CreateTexture(source.Width(), source.Height());
 }
 
-LockTextureInfo RefRenderer::LockTexture(const uint32_t textureId) {
+Surface RefRenderer::LockTexture(const uint32_t textureId) {
     return {};
 }
 

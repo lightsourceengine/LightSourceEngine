@@ -9,8 +9,6 @@
 #include <cassert>
 #include <memory>
 #include <unordered_map>
-#include "Stage.h"
-#include "Scene.h"
 
 namespace ls {
 
@@ -20,9 +18,29 @@ namespace ls {
 template<typename ResourceType, typename IdType, typename IdHash = std::hash<IdType>>
 class ResourceStore {
  public:
-    explicit ResourceStore(Stage* stage, Scene* scene = nullptr);
-    virtual ~ResourceStore();
+    virtual ~ResourceStore() noexcept = default;
 
+    /**
+     *
+     */
+    bool Has(const IdType& id) const noexcept;
+
+    /**
+     *
+     */
+    std::shared_ptr<ResourceType> Get(const IdType& id) const noexcept;
+
+    /**
+     *
+     */
+    template<typename Callback>
+    void ForEach(Callback callback) {
+        for (auto& p : this->resources) {
+            callback(p.second);
+        }
+    }
+
+ protected:
     /**
      *
      */
@@ -33,69 +51,24 @@ class ResourceStore {
      */
     void Remove(const IdType& id);
 
-    /**
-     *
-     */
-    bool Has(const IdType& id) const;
-
-    /**
-     *
-     */
-    std::shared_ptr<ResourceType> Get(const IdType& id) const;
-
-    /**
-     *
-     */
-    void Attach();
-
-    /**
-     *
-     */
-    void Detach();
-
-    /**
-     *
-     */
-    void ForEach(std::function<void(std::shared_ptr<ResourceType>)> func);
-
  protected:
-    Stage* stage;
-    Scene* scene;
     std::unordered_map<IdType, std::shared_ptr<ResourceType>, IdHash> resources;
 };
 
 template<typename ResourceType, typename IdType, typename IdHash>
-ResourceStore<ResourceType, IdType, IdHash>::ResourceStore(Stage* stage, Scene* scene) : stage(stage), scene(scene) {
-    this->stage->Ref();
-
-    if (this->scene) {
-        this->scene->Ref();
-    }
-}
-
-template<typename ResourceType, typename IdType, typename IdHash>
-ResourceStore<ResourceType, IdType, IdHash>::~ResourceStore() {
-    if (this->scene) {
-        this->scene->Unref();
-    }
-
-    this->stage->Unref();
-}
-
-template<typename ResourceType, typename IdType, typename IdHash>
-bool ResourceStore<ResourceType, IdType, IdHash>::Has(const IdType& id) const {
+bool ResourceStore<ResourceType, IdType, IdHash>::Has(const IdType& id) const noexcept {
     return this->resources.find(id) != this->resources.end();
 }
 
 template<typename ResourceType, typename IdType, typename IdHash>
-std::shared_ptr<ResourceType> ResourceStore<ResourceType, IdType, IdHash>::Get(const IdType& id) const {
+std::shared_ptr<ResourceType> ResourceStore<ResourceType, IdType, IdHash>::Get(const IdType& id) const noexcept {
     auto it{ this->resources.find(id) };
 
     if (it != this->resources.end()) {
         return it->second;
     }
 
-    return {};
+    return nullptr;
 }
 
 template<typename ResourceType, typename IdType, typename IdHash>
@@ -103,7 +76,8 @@ void ResourceStore<ResourceType, IdType, IdHash>::Remove(const IdType& id) {
     auto it{ this->resources.find(id) };
 
     if (it != this->resources.end()) {
-        it->second->Reset(this->stage, this->scene);
+        // TODO: notify resource
+        // it->second->Reset(this->stage, this->scene);
         this->resources.erase(it);
     }
 }
@@ -113,28 +87,6 @@ void ResourceStore<ResourceType, IdType, IdHash>::Add(std::shared_ptr<ResourceTy
     assert(!this->Has(resource->GetId()));
 
     this->resources.insert(std::make_pair(resource->GetId(), resource));
-}
-
-template<typename ResourceType, typename IdType, typename IdHash>
-void ResourceStore<ResourceType, IdType, IdHash>::Attach() {
-    for (auto& p : this->resources) {
-        p.second->Attach(this->stage, this->scene);
-    }
-}
-
-template<typename ResourceType, typename IdType, typename IdHash>
-void ResourceStore<ResourceType, IdType, IdHash>::Detach() {
-    for (auto& p : this->resources) {
-        p.second->Detach(this->stage, this->scene);
-    }
-}
-
-template<typename ResourceType, typename IdType, typename IdHash>
-void ResourceStore<ResourceType, IdType, IdHash>::ForEach(
-        std::function<void(std::shared_ptr<ResourceType>)> func) {
-    for (auto& p : this->resources) {
-        func(p.second);
-    }
 }
 
 } // namespace ls

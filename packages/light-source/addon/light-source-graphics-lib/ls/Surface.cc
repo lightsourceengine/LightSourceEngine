@@ -8,10 +8,11 @@
 #include <cassert>
 #include <cstring>
 #include <algorithm>
+#include "PixelConversion.h"
 
 namespace ls {
 
-static int32_t GetComponentCount(PixelFormat format) {
+static int32_t GetComponentCount(const PixelFormat format) noexcept {
     switch (format) {
         case PixelFormatRGBA:
         case PixelFormatARGB:
@@ -27,36 +28,28 @@ static int32_t GetComponentCount(PixelFormat format) {
     return 0;
 }
 
-Surface::Surface(int32_t width, int32_t height) : format(PixelFormatAlpha) {
-    if (width <= 0 || height <= 0) {
+Surface::Surface(const std::shared_ptr<uint8_t>& pixels, const int32_t width, const int32_t height) noexcept
+: width(std::max(width, 0)), height(std::max(height, 0)), pixels(pixels), format(PixelFormatAlpha)  {
+    if (this->width == 0 || this->height == 0 || !this->pixels) {
         this->width = this->height = this->pitch = 0;
+        this->pixels = nullptr;
     } else {
-        this->width = width;
-        this->height = height;
-        this->pitch = width;
-        this->pixels = std::shared_ptr<uint8_t>(new uint8_t[width * height]{0}, [](uint8_t* data){ delete [] data; });
+        this->pitch = this->width;
     }
 }
 
-Surface::Surface(std::shared_ptr<uint8_t> pixels, int32_t width, int32_t height)
-: width(width), height(height), pixels(pixels), format(PixelFormatAlpha)  {
-    if (width <= 0 || height <= 0 || !this->pixels) {
+Surface::Surface(const std::shared_ptr<uint8_t>& pixels, const int32_t width, const int32_t height,
+    const int32_t pitch, const PixelFormat format) noexcept
+: width(std::max(width, 0)), height(std::max(height, 0)), pitch(std::max(pitch, 0)), pixels(pixels), format(format)  {
+    if (this->width == 0 || this->height == 0 || !this->pixels || format == PixelFormatUnknown) {
         this->width = this->height = this->pitch = 0;
         this->pixels = nullptr;
-    }
-
-    this->pitch = this->width * GetComponentCount(format);
-}
-
-Surface::Surface(std::shared_ptr<uint8_t> pixels, int32_t width, int32_t height, int32_t pitch, PixelFormat format)
-: width(width), height(height), pitch(pitch), pixels(pixels), format(format)  {
-    if (width <= 0 || height <= 0 || !this->pixels) {
-        this->width = this->height = 0;
-        this->pixels = nullptr;
+    } else if (this->pitch == 0) {
+        this->pitch = GetComponentCount(this->format) * width;
     }
 }
 
-Surface::Surface(Surface&& other) {
+Surface::Surface(Surface&& other) noexcept {
     this->pixels = std::move(other.pixels);
     this->width = other.width;
     this->height = other.height;
@@ -64,7 +57,7 @@ Surface::Surface(Surface&& other) {
     this->format = other.format;
 }
 
-void Surface::Blit(const int32_t x, const int32_t y, const Surface& surface) const {
+void Surface::Blit(const int32_t x, const int32_t y, const Surface& surface) const noexcept {
     if (this->IsEmpty()) {
         return;
     }
@@ -110,7 +103,7 @@ void Surface::Blit(const int32_t x, const int32_t y, const Surface& surface) con
             for (int32_t dx{ 0 }; dx < spitch; dx++) {
                 const auto component{ *sourceRow++ }; // NOLINT(readability/pointer_notation)
 
-                for (int32_t i{0}; i < componentCount; i++) {
+                for (int32_t i{ 0 }; i < componentCount; i++) {
                     *destRow++ = component;
                 }
             }
@@ -118,20 +111,35 @@ void Surface::Blit(const int32_t x, const int32_t y, const Surface& surface) con
     }
 }
 
-void Surface::FillTransparent() const {
+void Surface::FillTransparent() const noexcept {
     if (this->IsEmpty()) {
         return;
     }
 
-    if (GetComponentCount(this->format) * this->width == this->pitch) {
-        std::memset(this->pixels.get(), 0, this->pitch*this->height);
-    } else {
-        const auto source{ this->pixels.get() };
+    std::memset(this->pixels.get(), 0, this->pitch * this->height);
+}
 
-        for (int32_t y{0}; y < this->height; y++) {
-            std::memset(&source[y*this->pitch], 0, this->pitch);
-        }
+void Surface::Convert(const PixelFormat format) noexcept {
+    if (this->IsEmpty()) {
+        return;
     }
+
+    assert(this->format == PixelFormatRGBA);
+    assert(GetComponentCount(format) == 4);
+
+    ConvertToFormat(this->Pixels(), this->pitch * this->height, format);
+
+    this->format = format;
+}
+
+Surface& Surface::operator=(Surface&& other) noexcept {
+    this->pixels = std::move(other.pixels);
+    this->width = other.width;
+    this->height = other.height;
+    this->pitch = other.pitch;
+    this->format = other.format;
+
+    return *this;
 }
 
 } // namespace ls

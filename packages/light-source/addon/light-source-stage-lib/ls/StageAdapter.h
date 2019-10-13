@@ -41,7 +41,7 @@ class StageAdapter {
     /**
      * Cast to a Napi reference object.
      */
-    virtual Napi::Reference<Napi::Object>* AsReference() = 0;
+    virtual Napi::Reference<Napi::Object>* AsReference() noexcept = 0;
 };
 
 } // namespace ls
