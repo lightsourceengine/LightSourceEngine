@@ -8,6 +8,7 @@
       ],
       "include_dirs": [
         "../napi-ext-lib",
+        "../light-source-util-lib",
         "../logger",
         ".",
       ],
@@ -32,7 +33,8 @@
             "<!@(node -p \"require('napi-unit').include\")"
           ],
           "dependencies": [
-            "light-source-graphics-lib"
+            "light-source-graphics-lib",
+            "light-source-util-lib"
           ],
           "sources": [
             "test/SurfaceSpec.cc",

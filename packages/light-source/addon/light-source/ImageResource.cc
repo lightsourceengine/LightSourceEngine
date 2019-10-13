@@ -16,6 +16,7 @@
 #include <fmt/println.h>
 #include "Scene.h"
 #include "Stage.h"
+#include <ls/Endian.h>
 
 using Napi::Boolean;
 using Napi::EscapableHandleScope;
@@ -178,7 +179,7 @@ static Surface DecodeImage(const ImageUri& uri, const std::vector<std::string>& 
                 width,
                 height,
                 width * 4,
-                PixelFormatRGBA
+                IsBigEndian() ? PixelFormatRGBA : PixelFormatABGR
             };
         } else {
             fseek(file.get(), 0, SEEK_SET);

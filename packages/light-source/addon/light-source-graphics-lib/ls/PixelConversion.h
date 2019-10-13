@@ -11,33 +11,23 @@
 
 namespace ls {
 
-// Implementation from C++20 endian proposal: http://howardhinnant.github.io/endian.html
-enum class endian {
-#ifdef _WIN32
-    little = 0,
-    big    = 1,
-    native = little
-#else
-    little = __ORDER_LITTLE_ENDIAN__,
-    big    = __ORDER_BIG_ENDIAN__,
-    native = __BYTE_ORDER__
-#endif
+union Color {
+    uint32_t value;
+    uint8_t channels[4];
 };
 
-/**
- * Check if ths CPU is big endian.
- */
-constexpr bool IsBigEndian() {
-    return endian::native == endian::big;
-}
+static_assert(sizeof(Color) == 4, "Color union must be 4 bytes!");
 
 /**
  * In place conversion of a buffer of RGBA color values to the specified pixel format.
  *
- * @param bytes Byte buffer containing RGBA formatted color values
- * @param len Size of bytes in bytes
+ * The format of the pixel buffer must be PixelFormatRGBA (BE) or PixelFormatABGR (LE). If another format, the
+ * behavior is undefined.
+ *
+ * @param pixels Buffer containing a list of 4 bytes pixels.
+ * @param len Number of pixels in the buffer.
  * @param format Pixel format to convert to
  */
-void ConvertToFormat(uint8_t* bytes, int32_t len, PixelFormat format);
+void ConvertToFormat(Color* pixels, const int32_t len, const PixelFormat format) noexcept;
 
 } // namespace ls

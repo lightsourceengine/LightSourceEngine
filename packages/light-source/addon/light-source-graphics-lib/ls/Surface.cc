@@ -8,6 +8,7 @@
 #include <cassert>
 #include <cstring>
 #include <algorithm>
+#include <ls/Endian.h>
 #include "PixelConversion.h"
 
 namespace ls {
@@ -120,14 +121,20 @@ void Surface::FillTransparent() const noexcept {
 }
 
 void Surface::Convert(const PixelFormat format) noexcept {
+    assert(GetComponentCount(format) == 4);
+
     if (this->IsEmpty()) {
         return;
     }
 
-    assert(this->format == PixelFormatRGBA);
-    assert(GetComponentCount(format) == 4);
+    if (this->format != (IsBigEndian() ? PixelFormatRGBA : PixelFormatABGR)) {
+        return;
+    }
 
-    ConvertToFormat(this->Pixels(), this->pitch * this->height, format);
+    auto buffer{ reinterpret_cast<Color*>(this->Pixels()) };
+    const auto len{ (this->height * this->pitch) / sizeof(Color) };
+
+    ConvertToFormat(buffer, len, format);
 
     this->format = format;
 }

@@ -5,103 +5,73 @@
  */
 
 #include "PixelConversion.h"
-#include <utility>
-
-constexpr auto R{ 0 };
-constexpr auto G{ 1 };
-constexpr auto B{ 2 };
-constexpr auto A{ 3 };
-constexpr auto NUM_IMAGE_COMPONENTS{ 4 };
+#include <ls/Endian.h>
 
 namespace ls {
 
-inline
-void ToFormatLE(uint8_t* bytes, int32_t len, PixelFormat format) {
-    auto i{ 0 };
-    uint8_t r, g, b, a;
+template<int32_t C1, int32_t C2, int32_t C3, int32_t C4>
+void Convert(Color* pixels, const uint32_t len) noexcept {
+    for (uint32_t i = 0; i < len; i++) {
+        const Color color{ pixels[i] };
+
+        pixels[i].value = (color.channels[C1] << 24)
+            | (color.channels[C2] << 16)
+            | (color.channels[C3] << 8)
+            | color.channels[C4];
+    }
+}
+
+void ToFormatLE(Color* pixels, const int32_t len, const PixelFormat format) noexcept {
+    // Mapping for PixelFormatABGR
+    constexpr auto R = 0;
+    constexpr auto G = 1;
+    constexpr auto B = 2;
+    constexpr auto A = 3;
 
     switch (format) {
         case PixelFormatARGB:
-            while (i < len) {
-                std::swap(bytes[i + R], bytes[i + B]);
-                i += NUM_IMAGE_COMPONENTS;
-            }
+            Convert<A, R, G, B>(pixels, len);
             break;
         case PixelFormatBGRA:
-            while (i < len) {
-                r = bytes[i + R];
-                g = bytes[i + G];
-                b = bytes[i + B];
-                a = bytes[i + A];
-
-                bytes[i    ] = a;
-                bytes[i + 1] = r;
-                bytes[i + 2] = g;
-                bytes[i + 3] = b;
-
-                i += NUM_IMAGE_COMPONENTS;
-            }
+            Convert<B, G, R, A>(pixels, len);
             break;
         case PixelFormatRGBA:
-            while (i < len) {
-                std::swap(bytes[i + R], bytes[i + A]);
-                std::swap(bytes[i + G], bytes[i + B]);
-
-                i += NUM_IMAGE_COMPONENTS;
-            }
+            Convert<R, G, B, A>(pixels, len);
             break;
         default:
-            // TEXTURE_FORMAT_ABGR - no op in LE
+            // PixelFormatABGR - no op in LE
             break;
     }
 }
 
-inline
-void ToFormatBE(uint8_t* bytes, int32_t len, PixelFormat format) {
-    auto i{ 0 };
-    uint8_t r, g, b, a;
+void ToFormatBE(Color* pixels, const int32_t len, const PixelFormat format) noexcept {
+    // Mapping for PixelFormatRGBA
+    constexpr auto R = 3;
+    constexpr auto G = 2;
+    constexpr auto B = 1;
+    constexpr auto A = 0;
 
     switch (format) {
+        case PixelFormatARGB:
+            Convert<A, R, G, B>(pixels, len);
+            break;
+        case PixelFormatBGRA:
+            Convert<B, G, R, A>(pixels, len);
+            break;
         case PixelFormatABGR:
-            while (i < len) {
-                std::swap(bytes[i + A], bytes[i + R]);
-                std::swap(bytes[i + G], bytes[i + B]);
-                i += NUM_IMAGE_COMPONENTS;
-            }
+            Convert<A, B, G, R>(pixels, len);
             break;
-        case PixelFormatARGB:
-            while (i < len) {
-                r = bytes[i + R];
-                g = bytes[i + G];
-                b = bytes[i + B];
-                a = bytes[i + A];
-
-                bytes[i    ] = a;
-                bytes[i + 1] = r;
-                bytes[i + 2] = g;
-                bytes[i + 3] = b;
-
-                i += NUM_IMAGE_COMPONENTS;
-            }
-            break;
-        case PixelFormatBGRA:
-            while (i < len) {
-                std::swap(bytes[i + R], bytes[i + B]);
-                i += NUM_IMAGE_COMPONENTS;
-            }
-            break;
-        case PixelFormatRGBA:
         default:
-            // TEXTURE_FORMAT_RGBA - noop in BE
+            // PixelFormatRGBA - no op in BE
             break;
     }
 }
 
-void ConvertToFormat(uint8_t* bytes, int32_t len, PixelFormat format) {
+void ConvertToFormat(Color* pixels, const int32_t len, const PixelFormat format) noexcept {
     if (IsBigEndian()) {
-       ToFormatBE(bytes, len, format);
+       ToFormatBE(pixels, len, format);
     } else {
-       ToFormatLE(bytes, len, format);
+       ToFormatLE(pixels, len, format);
     }
 }
 

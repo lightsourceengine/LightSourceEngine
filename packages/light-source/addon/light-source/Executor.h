@@ -64,14 +64,17 @@ class Executor {
 };
 
 namespace internal {
+// Hack for lambda capture of objects with no copy constructors. The copy constructor is implemented as a move,
+// which is destructive to the object being copied from. This should only be used in specific capture cases and not
+// for general use.
 template<typename T>
 struct Movable {
     Movable() = default;
     Movable(T&& value) : value(std::move(value)) {} // NOLINT
-    Movable(Movable<T>&& other) : value(std::move(other.value)) {}
+    Movable(Movable<T>&& other) = default;
     Movable(const Movable<T>& other) : value(std::move(other.value)) {}
 
-    mutable T value;
+    mutable T value{};
 };
 } // namespace internal
 

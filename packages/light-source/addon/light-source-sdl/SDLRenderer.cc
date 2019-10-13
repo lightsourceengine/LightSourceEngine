@@ -7,13 +7,27 @@
 #include "SDLRenderer.h"
 #include <array>
 #include <ls/PixelConversion.h>
+#include <ls/Endian.h>
 #include <fmt/println.h>
 
 namespace ls {
 
 SDL_Rect GetRendererSize(SDL_Renderer* renderer);
-PixelFormat ToPixelFormat(Uint32 pixelFormat);
 void SetTextureTintColor(SDL_Texture* texture, const int64_t color);
+constexpr PixelFormat ToPixelFormat(Uint32 pixelFormat) {
+    switch (pixelFormat) {
+        case SDL_PIXELFORMAT_ARGB8888:
+            return PixelFormatARGB;
+        case SDL_PIXELFORMAT_RGBA8888:
+            return PixelFormatRGBA;
+        case SDL_PIXELFORMAT_ABGR8888:
+            return PixelFormatABGR;
+        case SDL_PIXELFORMAT_BGRA8888:
+            return PixelFormatBGRA;
+        default:
+            return PixelFormatUnknown;
+    }
+}
 
 uint32_t SDLRenderer::nextTextureId{ 1 };
 constexpr int64_t COLOR32{ 0xFFFFFFFF };
@@ -514,7 +528,6 @@ void SDLRenderer::Destroy() {
     this->Detach();
 }
 
-inline
 SDL_Rect GetRendererSize(SDL_Renderer* renderer) {
     SDL_Rect rect{};
 
@@ -525,23 +538,6 @@ SDL_Rect GetRendererSize(SDL_Renderer* renderer) {
     return rect;
 }
 
-inline
-PixelFormat ToPixelFormat(Uint32 pixelFormat) {
-    switch (pixelFormat) {
-        case SDL_PIXELFORMAT_ARGB8888:
-            return PixelFormatARGB;
-        case SDL_PIXELFORMAT_RGBA8888:
-            return PixelFormatRGBA;
-        case SDL_PIXELFORMAT_ABGR8888:
-            return PixelFormatABGR;
-        case SDL_PIXELFORMAT_BGRA8888:
-            return PixelFormatBGRA;
-        default:
-            return PixelFormatUnknown;
-    }
-}
-
-inline
 void SetTextureTintColor(SDL_Texture* texture, const int64_t color) {
     // TODO: consider opacity
     if (IsBigEndian()) {
