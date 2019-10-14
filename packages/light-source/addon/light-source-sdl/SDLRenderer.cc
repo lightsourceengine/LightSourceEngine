@@ -8,7 +8,8 @@
 #include <array>
 #include <ls/PixelConversion.h>
 #include <ls/Endian.h>
-#include <fmt/println.h>
+#include <ls/Logger.h>
+#include <fmt/format.h>
 
 namespace ls {
 
@@ -332,7 +333,8 @@ uint32_t SDLRenderer::CreateTexture(const int32_t width, const int32_t height) {
     };
 
     if (!texture) {
-        fmt::println("Failed to create texture. SDL Error: {}", SDL_GetError());
+        LOG_ERROR("Failed to create texture: %s", SDL_GetError());
+
         return 0;
     }
 
@@ -495,8 +497,8 @@ void SDLRenderer::Attach(SDL_Window* window) {
         this->UpdateTextureFormats(info);
     }
 
-    fmt::println("Renderer Info: size={},{} driver={} textureFormat={} maxTextureSize={},{} "
-            "software={} accelerated={} vsync={} renderTarget={}",
+    LOG_INFO("Renderer Info: size=%i,%i driver=%s textureFormat=%s maxTextureSize=%i,%i "
+            "software=%s accelerated=%s vsync=%s renderTarget=%s",
         this->GetWidth(),
         this->GetHeight(),
         SDL_GetVideoDriver(driverIndex),

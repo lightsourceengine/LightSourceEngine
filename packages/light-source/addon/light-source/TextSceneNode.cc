@@ -17,7 +17,6 @@
 #include <ls/Renderer.h>
 #include <Utils.h>
 #include <napi-ext.h>
-#include <fmt/println.h>
 
 using Napi::Array;
 using Napi::CallbackInfo;
@@ -89,8 +88,6 @@ void TextSceneNode::Paint(Renderer* renderer) {
     }
 
     if (this->layer->IsDirty()) {
-        fmt::println("layer size {}x{}", width, height);
-
         Timer t{ "text paint" };
 
         const auto textureId{ this->layer->Sync(static_cast<int32_t>(width), static_cast<int32_t>(height)) };

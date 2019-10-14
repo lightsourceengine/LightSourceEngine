@@ -5,7 +5,8 @@
  */
 
 #include "SDLGamepad.h"
-#include <fmt/println.h>
+#include <ls/Logger.h>
+#include <fmt/format.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -64,7 +65,7 @@ SDLGamepad::SDLGamepad(const CallbackInfo& info) : ObjectWrap<SDLGamepad>(info) 
 
 SDLGamepad::~SDLGamepad() {
     if (this->joystick) {
-        fmt::println("Warning: SDLGamepad was not destroyed.");
+        LOG_WARN("SDLGamepad was not destroyed.");
     }
 }
 

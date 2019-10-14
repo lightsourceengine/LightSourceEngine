@@ -10,7 +10,8 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
 #include <ls/Timer.h>
-#include <fmt/println.h>
+#include <ls/Logger.h>
+#include <fmt/format.h>
 
 using Napi::Boolean;
 using Napi::Buffer;
@@ -111,7 +112,7 @@ class SDLMixerSampleAudioSource : public ObjectWrap<SDLMixerSampleAudioSource>, 
             }
 
             if (result < 0) {
-                fmt::println("Mix_PlayChannel - Error: {}", Mix_GetError());
+                LOG_ERROR(Mix_GetError());
             }
         }
     }
@@ -249,7 +250,7 @@ class SDLMixerStreamAudioSource : public ObjectWrap<SDLMixerStreamAudioSource>, 
             }
 
             if (result < 0) {
-                fmt::println("Mix_PlayChannel - Error: {}", Mix_GetError());
+                LOG_ERROR(Mix_GetError());
             }
         }
     }

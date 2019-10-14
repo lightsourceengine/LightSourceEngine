@@ -6,7 +6,7 @@
 
 #include "Font.h"
 #include <ls/Timer.h>
-#include <fmt/println.h>
+#include <ls/Logger.h>
 
 namespace ls {
 
@@ -203,7 +203,8 @@ stbtt__bitmap Font::ConstructBitmap(int32_t width, int32_t height) const {
         try {
             this->bitmapBuffer.reserve(width * height);
         } catch (std::exception& e) {
-            fmt::println("bitmapBuffer allocation error: {}", e.what());
+            LOG_ERROR(e);
+
             return { 0, 0, 0, nullptr };
         }
     }

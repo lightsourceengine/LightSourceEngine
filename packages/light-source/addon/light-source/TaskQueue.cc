@@ -5,7 +5,7 @@
  */
 
 #include "TaskQueue.h"
-#include <fmt/println.h>
+#include <ls/Logger.h>
 
 namespace ls {
 
@@ -34,7 +34,7 @@ void TaskQueue::ProcessTasks() {
         try {
             callback();
         } catch (const std::exception& e) {
-            fmt::println("ProcessTasks(): Error: {}", e.what());
+            LOG_ERROR(e);
         }
     }
 }

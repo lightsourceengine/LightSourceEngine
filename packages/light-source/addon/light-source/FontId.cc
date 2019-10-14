@@ -5,7 +5,7 @@
  */
 
 #include "FontResource.h"
-#include <fmt/println.h>
+#include <fmt/format.h>
 #include <functional>
 
 namespace ls {

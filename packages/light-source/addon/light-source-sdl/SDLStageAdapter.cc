@@ -9,7 +9,8 @@
 #include "SDLKeyboard.h"
 #include "SDLGamepad.h"
 #include <unordered_set>
-#include <fmt/println.h>
+#include <fmt/format.h>
+#include <ls/Logger.h>
 #include <ls/Timer.h>
 
 using Napi::Array;
@@ -84,7 +85,7 @@ SDLStageAdapter::SDLStageAdapter(const CallbackInfo& info) : ObjectWrap<SDLStage
     SDL_VERSION(&compiled);
     SDL_GetVersion(&linked);
 
-    fmt::println("SDL Version: compiled={}.{}.{} linked={}.{}.{}",
+    LOG_INFO("SDL Version: compiled=%i.%i.%i linked=%i.%i.%i",
         compiled.major, compiled.minor, compiled.patch,
         linked.major, linked.minor, linked.patch);
 }
@@ -269,7 +270,7 @@ Value SDLStageAdapter::ProcessEvents(const CallbackInfo& info) {
     auto result{ true };
 
     if (eventCount < 0) {
-        fmt::println("SDL_PeepEvents(): {}", SDL_GetError());
+        LOG_ERROR(SDL_GetError());
         result = false;
     }
 
@@ -479,8 +480,8 @@ void SDLStageAdapter::DispatchJoystickRemoved(Napi::Env env, int32_t instanceId)
 void SDLStageAdapter::Call(const StageCallback callbackId, const std::initializer_list<napi_value>& args) {
     try {
         this->callbacks[callbackId](args);
-    } catch (Napi::Error& error) {
-         fmt::println("SDLStageAdapter: Uncaught exception calling JS event handler: {}", error.what());
+    } catch (const std::exception& e) {
+        LOG_ERROR("Callback (%i) uncaught JS exception: %s", e);
     }
 }
 
@@ -494,8 +495,8 @@ void SDLStageAdapter::SyncGamepads(Napi::Env env) {
     for (int32_t i{ 0 }; i < SDL_NumJoysticks(); i++) {
         try {
             this->AddGamepad(env, i);
-        } catch (const Error&) {
-            fmt::println("Error: Failed to get joystick at index {}", i);
+        } catch (const std::exception& e) {
+            LOG_ERROR("Joystick #%i: %s", i, e);
         }
     }
 }

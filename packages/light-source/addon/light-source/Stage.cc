@@ -8,6 +8,7 @@
 #include "FontStore.h"
 #include <ls/StageAdapter.h>
 #include <napi-ext.h>
+#include <ls/Logger.h>
 
 using Napi::CallbackInfo;
 using Napi::Error;
@@ -52,7 +53,7 @@ void Stage::Destroy() noexcept {
         try {
             this->stageAdapter->AsReference()->Unref();
         } catch (const Error& e) {
-            fmt::println("Error unref'ing stage adapter: {}", e.what());
+            LOG_ERROR(e);
         }
 
         this->stageAdapter = nullptr;

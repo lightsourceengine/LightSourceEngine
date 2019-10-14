@@ -13,10 +13,11 @@
 #include <nanosvgrast.h>
 #include <stb_image.h>
 #include <algorithm>
-#include <fmt/println.h>
 #include "Scene.h"
 #include "Stage.h"
 #include <ls/Endian.h>
+#include <ls/Logger.h>
+#include <fmt/format.h>
 
 using Napi::Boolean;
 using Napi::EscapableHandleScope;
@@ -95,14 +96,14 @@ void ImageResource::Load() {
         return DecodeImage(uri, extensions, { resourcePath }, textureFormat);
     };
 
-    auto callback = [this](Surface&& surface, const std::exception_ptr& eptr) {
+    auto callback = [this, LAMBDA_FUNCTION = __FUNCTION__](Surface&& surface, const std::exception_ptr& eptr) {
         if (eptr) {
             this->width = this->height = 0;
 
             try {
                 std::rethrow_exception(eptr);
             } catch (const std::exception& e) {
-                fmt::println("image load: Error: {} {}", this->uri.GetId(), e.what());
+                LOG_ERROR_LAMBDA(e);
             }
 
             this->SetState(ResourceStateError, true);
@@ -111,21 +112,23 @@ void ImageResource::Load() {
             this->height = surface.Height();
             this->image = std::move(surface);
 
-            fmt::println("image load: {} {}x{}", this->uri.GetId(), this->width, this->height);
+            LOG_INFO_LAMBDA("%s: %s", ResourceStateToString(ResourceStateReady), this->GetId());
 
             this->SetState(ResourceStateReady, true);
         }
     };
 
-    auto initialState{ ResourceStateLoading };
-
     try {
         this->loadImageTask = stage->GetTaskQueue()->Async<Surface>(std::move(execute), std::move(callback));
-    } catch (const std::exception&) {
-        initialState = ResourceStateError;
+    } catch (const std::exception& e) {
+        LOG_ERROR(e);
+        this->SetState(ResourceStateError, true);
+
+        return;
     }
 
-    this->SetState(initialState, true);
+    LOG_INFO("%s: %s", ResourceStateToString(ResourceStateLoading), this->GetId());
+    this->SetState(ResourceStateLoading, true);
 }
 
 Value ImageResource::ToObject(const Napi::Env& env) const {

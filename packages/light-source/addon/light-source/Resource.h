@@ -11,7 +11,7 @@
 #include <vector>
 #include <utility>
 #include <string>
-#include <fmt/println.h>
+#include <ls/Logger.h>
 
 namespace ls {
 
@@ -135,8 +135,7 @@ void Resource<IdType>::DispatchState() {
             try {
                 this->listeners[i].second();
             } catch (std::exception& e) {
-                 fmt::println("Error: [resourceId={}] Resource listener exception {}",
-                    static_cast<std::string>(this->id), e.what());
+                LOG_ERROR("%s: %s", static_cast<std::string>(this->id), e);
             }
         }
     }

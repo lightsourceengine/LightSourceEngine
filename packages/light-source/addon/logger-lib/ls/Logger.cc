@@ -43,7 +43,7 @@ LogLevel GetLogLevel() noexcept {
 namespace internal {
 
 static
-const char* GetFileBasename(const LogSite& site) {
+const char* GetFileBasename(const LogSite& site) noexcept {
     const char* str{ site.file };
     const char* basename{ nullptr };
 
@@ -56,15 +56,15 @@ const char* GetFileBasename(const LogSite& site) {
     return basename ? basename + 1 : site.file;
 }
 
-void Log(const LogSite& site, const LogLevel logLevel, const std::exception& e) {
-    Log(site, logLevel, e.what());
+void Log(const LogSite& site, const LogLevel logLevel, const std::exception& e) noexcept {
+    LogV(site, logLevel, e.what());
 }
 
-void Log(const LogSite& site, const LogLevel logLevel, const std::string& e) {
-    Log(site, logLevel, e.c_str());
+void Log(const LogSite& site, const LogLevel logLevel, const std::string& str) noexcept {
+    LogV(site, logLevel, str.c_str());
 }
 
-void Log(const LogSite& site, const LogLevel logLevel, const char* format, ...) {
+void LogV(const LogSite& site, const LogLevel logLevel, const char* format, ...) noexcept {
     char timestamp[31];
     const auto now{ std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
     const auto sep{ format && *format != '\0' ? " - " : " "};
@@ -85,6 +85,18 @@ void Log(const LogSite& site, const LogLevel logLevel, const char* format, ...) 
     va_end(argptr);
 
     std::puts("");
+}
+
+const char* LogProcessArg(const std::string& value) noexcept {
+    return value.c_str();
+}
+
+const char* LogProcessArg(const std::exception& value) noexcept {
+    return value.what();
+}
+
+const char* LogProcessArg(const bool& value) noexcept {
+    return value ? "true" : "false";
 }
 
 } // namespace internal

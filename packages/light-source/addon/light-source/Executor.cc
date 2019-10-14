@@ -5,7 +5,6 @@
  */
 
 #include "Executor.h"
-#include <fmt/println.h>
 
 namespace ls {
 

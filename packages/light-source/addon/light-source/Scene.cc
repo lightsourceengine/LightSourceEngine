@@ -11,7 +11,7 @@
 #include <napi-ext.h>
 #include <ls/StageAdapter.h>
 #include <ls/SceneAdapter.h>
-#include <fmt/println.h>
+#include <ls/Logger.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -207,8 +207,8 @@ void Scene::SetActiveNode(Napi::Value node) {
 
     try {
         self["activeNode"] = node;
-    } catch (Error& e) {
-        fmt::println("Scene.activeNode set error: {}", e.what());
+    } catch (const Error& e) {
+        LOG_ERROR(e);
     }
 }
 

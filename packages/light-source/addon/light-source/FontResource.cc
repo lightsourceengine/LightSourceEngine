@@ -9,7 +9,7 @@
 #include "Stage.h"
 #include <ls/FileSystem.h>
 #include <stb_truetype.h>
-#include <fmt/println.h>
+#include <ls/Logger.h>
 #include <cstring>
 
 namespace ls {
@@ -27,7 +27,6 @@ FontResource::~FontResource() noexcept {
 void FontResource::Load(Stage* stage) {
     this->fontLoadingTask.Cancel();
 
-    auto initialState{ ResourceStateLoading };
     const auto uri{ this->uri };
     const auto index{ this-> index };
     const auto path{ stage->GetResourcePath() };
@@ -36,17 +35,28 @@ void FontResource::Load(Stage* stage) {
         return LoadFont({ path }, uri, index);
     };
 
-    auto callback = [this](std::shared_ptr<stbtt_fontinfo>&& fontInfo, const std::exception_ptr& eptr) {
+    auto callback = [this, LAMBDA_FUNCTION = __FUNCTION__](std::shared_ptr<stbtt_fontinfo>&& fontInfo,
+            const std::exception_ptr& eptr) {
         if (this->resourceState != ResourceStateLoading) {
             return;
         }
 
         ResourceState nextState;
+        std::string fontId{ this->GetId() };
 
         if (eptr) {
+            try {
+                std::rethrow_exception(eptr);
+            } catch (const std::exception& e) {
+                LOG_ERROR_LAMBDA(e);
+            }
+
             nextState = ResourceStateError;
         } else {
             this->fontInfo = fontInfo;
+
+            LOG_INFO_LAMBDA("%s: %s", ResourceStateToString(ResourceStateReady), fontId);
+
             nextState = ResourceStateReady;
         }
 
@@ -56,11 +66,15 @@ void FontResource::Load(Stage* stage) {
     try {
         this->fontLoadingTask = stage->GetTaskQueue()->Async<std::shared_ptr<stbtt_fontinfo>>(
             std::move(execute), std::move(callback));
-    } catch (const std::exception&) {
-        initialState = ResourceStateError;
+    } catch (const std::exception& e) {
+        LOG_ERROR(e);
+        this->SetState(ResourceStateError, true);
+
+        return;
     }
 
-    this->SetState(initialState, true);
+    LOG_INFO("%s: %s", ResourceStateToString(ResourceStateLoading), std::string(this->GetId()));
+    this->SetState(ResourceStateLoading, true);
 }
 
 void FontResource::Reset() {
@@ -86,8 +100,8 @@ std::shared_ptr<Font> FontResource::GetFont(int32_t fontSize) const {
             this->fontsBySize.insert(std::make_pair(fontSize, font));
 
             return font;
-        } catch (std::exception& e) {
-            fmt::println("Failed to create font {} @ {}px. Error: {}", this->id.family, fontSize, e.what());
+        } catch (const std::exception& e) {
+            LOG_ERROR("%s@%i: %s", std::string(this->id), fontSize, e);
 
             return {};
         }
@@ -106,7 +120,7 @@ std::shared_ptr<stbtt_fontinfo> LoadFont(const std::vector<std::string>& path, c
     const FileHandle file(fopen(resolvedFilename.c_str(), "rb"), fclose);
 
     if (!file) {
-        throw std::runtime_error(fmt::format("Failed to open ttf file: {}", filename));
+        throw std::runtime_error(("Failed to open ttf file: " + filename).c_str());
     }
 
     fseek(file.get(), 0, SEEK_END);
@@ -116,7 +130,7 @@ std::shared_ptr<stbtt_fontinfo> LoadFont(const std::vector<std::string>& path, c
     std::unique_ptr<uint8_t[]> ttf(new uint8_t[size]);
 
     if (fread(ttf.get(), 1, size, file.get()) != size) {
-        throw std::runtime_error(fmt::format("Failed to read file: {}", filename));
+        throw std::runtime_error(("Failed to read file: " + filename).c_str());
     }
 
     const auto offset{ stbtt_GetFontOffsetForIndex(ttf.get(), index) };
