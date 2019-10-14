@@ -11,7 +11,7 @@
         "../light-source-graphics-lib",
         "../light-source-stage-lib",
         "../napi-ext-lib",
-        "../logger",
+        "../logger-lib",
       ],
       "sources": [
         "ls/BaseSceneAdapter.cc",

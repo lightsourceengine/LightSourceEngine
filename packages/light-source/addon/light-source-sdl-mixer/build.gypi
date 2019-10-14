@@ -14,7 +14,7 @@
               "<(sdl_include_path)",
               ".",
               "../napi-ext-lib",
-              "../logger",
+              "../logger-lib",
               "../light-source-audio-lib",
               "../light-source-util-lib",
               "../deps/fmt/repo/include",

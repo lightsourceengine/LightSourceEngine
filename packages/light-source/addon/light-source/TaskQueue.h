@@ -88,7 +88,7 @@ Task TaskQueue::Async(std::function<T()>&& async, std::function<void(T&&, const 
 
         try {
             result.value = async();
-        } catch (const std::exception& e) {
+        } catch (...) {
             exceptionPtr = std::current_exception();
         }
 

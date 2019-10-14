@@ -34,7 +34,7 @@ Executor::Executor() {
 
                 try {
                      work();
-                } catch (const std::exception& e) {
+                } catch (const std::exception&) {
                     // TODO: ???
                 }
             }

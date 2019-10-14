@@ -47,6 +47,7 @@
     "addon/light-source-audio-lib/build.gypi",
     "addon/light-source-stage-lib/build.gypi",
     "addon/light-source-util-lib/build.gypi",
+    "addon/logger-lib/build.gypi",
 
     # node modules
     "addon/light-source/build.gypi",

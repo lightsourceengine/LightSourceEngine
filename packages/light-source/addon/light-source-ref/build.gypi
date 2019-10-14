@@ -8,7 +8,7 @@
       "include_dirs": [
         ".",
         "../napi-ext-lib",
-        "../logger",
+        "../logger-lib",
         "../light-source-audio-lib",
         "../light-source-graphics-lib",
         "../light-source-stage-lib",

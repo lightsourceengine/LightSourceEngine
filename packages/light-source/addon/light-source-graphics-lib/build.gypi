@@ -7,10 +7,10 @@
         "../common.gypi",
       ],
       "include_dirs": [
+        ".",
         "../napi-ext-lib",
         "../light-source-util-lib",
-        "../logger",
-        ".",
+        "../logger-lib",
       ],
       "sources": [
         "ls/PixelConversion.cc",
@@ -29,7 +29,7 @@
           "include_dirs": [
             ".",
             "../napi-ext-lib",
-            "../logger",
+            "../logger-lib",
             "<!@(node -p \"require('napi-unit').include\")"
           ],
           "dependencies": [

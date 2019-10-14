@@ -8,7 +8,7 @@
       "include_dirs": [
         ".",
         "../napi-ext-lib",
-        "../logger",
+        "../logger-lib",
         "../light-source-graphics-lib",
         "../light-source-util-lib",
         "../light-source-audio-lib",
@@ -30,6 +30,7 @@
         "napi-ext-lib",
         "light-source-util-lib",
         "light-source-graphics-lib",
+        "logger-lib"
       ],
       "sources": [
         "yoga-ext.cc",

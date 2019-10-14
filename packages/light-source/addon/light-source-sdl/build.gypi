@@ -8,7 +8,7 @@
       "include_dirs": [
         "<(sdl_include_path)",
         "../napi-ext-lib",
-        "../logger",
+        "../logger-lib",
         "../light-source-audio-lib",
         "../light-source-graphics-lib",
         "../light-source-stage-lib",
@@ -22,6 +22,7 @@
         "light-source-audio-lib",
         "light-source-stage-lib",
         "light-source-util-lib",
+        "logger-lib",
       ],
       "sources": [
         "SDLAudioAdapter.cc",

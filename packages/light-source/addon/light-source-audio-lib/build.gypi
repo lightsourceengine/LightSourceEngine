@@ -7,9 +7,9 @@
         "../common.gypi",
       ],
       "include_dirs": [
-        "../light-source-audio-lib",
+        ".",
         "../napi-ext-lib",
-        "../logger",
+        "../logger-lib",
       ],
       "sources": [
         "ls/BaseAudioSource.cc",

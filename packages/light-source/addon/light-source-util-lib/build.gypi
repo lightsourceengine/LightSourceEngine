@@ -9,7 +9,7 @@
       "include_dirs": [
         ".",
         "../napi-ext-lib",
-        "../logger",
+        "../logger-lib",
         "../deps/filesystem/include",
         "../deps/fmt/repo/include",
       ],
@@ -30,7 +30,7 @@
           "include_dirs": [
             ".",
             "../napi-ext-lib",
-            "../logger",
+            "../logger-lib",
             "../deps/filesystem/include",
             "../deps/fmt/repo/include",
             "<!@(node -p \"require('napi-unit').include\")"

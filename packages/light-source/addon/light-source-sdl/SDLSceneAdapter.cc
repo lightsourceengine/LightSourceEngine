@@ -5,7 +5,7 @@
  */
 
 #include "SDLSceneAdapter.h"
-#include <fmt/println.h>
+#include <ls/Logger.h>
 
 namespace ls {
 
@@ -33,7 +33,8 @@ void SDLSceneAdapter::Attach() {
             this->config.fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
 
         if (!this->window) {
-            throw std::runtime_error(fmt::format("Failed to create an SDL window. SDL Error: {}", SDL_GetError()));
+            LOG_ERROR("SDL_CreateWindow(): %s", SDL_GetError());
+            throw std::runtime_error("Failed to create window");
         }
 
         if (this->config.fullscreen) {
@@ -44,7 +45,7 @@ void SDLSceneAdapter::Attach() {
 
         SDL_GetWindowDisplayMode(window, &displayMode);
 
-        fmt::println("Window: size={},{} format={} refreshRate={} displayIndex={}",
+        LOG_INFO("size=%i,%i format=%s refreshRate=%i displayIndex=%i",
             displayMode.w,
             displayMode.h,
             SDL_GetPixelFormatName(displayMode.format),
