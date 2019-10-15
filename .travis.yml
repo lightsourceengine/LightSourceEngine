@@ -18,11 +18,14 @@ addons:
       - libsdl2-mixer-dev
       - patchelf
 
+env:
+  global:
+    - NODE_DOWNLOADS=${HOME}/node_downloads
+    - npm_config_with_native_tests=true
+    - npm_config_with_sdl_mixer=true
+
 before_install:
   - set -e
-  - export NODE_DOWNLOADS=${HOME}/node_downloads
-  - export npm_config_with_native_tests=true
-  - export npm_config_with_sdl_mixer=true
   - . ${HOME}/.nvm/nvm.sh
   - mkdir -p ${NODE_DOWNLOADS}
   - sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
@@ -33,9 +36,9 @@ install:
   - yarn
 
 script:
-  - yarn test
-  - nvm install v10.16.3
-  - ./scripts/package-ls-node.sh linux-armv6l
+  # - yarn test
+  - yarn run lint
+  - yarn run cpplint
   - nvm install v12.0.0
   - ./scripts/package-ls-node.sh linux-armv7l
 
