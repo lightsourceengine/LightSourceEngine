@@ -1,5 +1,8 @@
-dist: xenial
-sudo: required
+matrix:
+  include:
+    - os: linux
+      dist: xenial
+    - os: osx
 
 language: node_js
 node_js: 10
@@ -28,19 +31,26 @@ before_install:
   - set -e
   - . ${HOME}/.nvm/nvm.sh
   - mkdir -p ${NODE_DOWNLOADS}
-  - sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
-  - sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
-  - git clone --depth 1 https://github.com/dananderson/crosstools.git ${HOME}/crosstools
+  - |
+    if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+      sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
+      sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
+      git clone --depth 1 https://github.com/dananderson/crosstools.git ${HOME}/crosstools
+    elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
+      brew update
+      brew install sdl2 sdl2_mixer patchelf
+    fi
 
 install:
   - yarn
 
 script:
   # - yarn test
-  - yarn run lint
-  - yarn run cpplint
-  - nvm install v12.0.0
-  - ./scripts/package-ls-node.sh linux-armv7l
+  - |
+    if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+      nvm install v12.0.0
+      ./scripts/package-ls-node.sh linux-armv7l
+    fi
 
 cache:
   yarn: true
