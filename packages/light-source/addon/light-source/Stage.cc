@@ -8,7 +8,7 @@
 #include "FontStore.h"
 #include <ls/StageAdapter.h>
 #include <napi-ext.h>
- #include<ls/Log.h>
+#include <ls/Log.h>
 
 using Napi::CallbackInfo;
 using Napi::Error;

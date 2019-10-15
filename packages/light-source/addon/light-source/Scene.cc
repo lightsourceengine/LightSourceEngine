@@ -11,7 +11,7 @@
 #include <napi-ext.h>
 #include <ls/StageAdapter.h>
 #include <ls/SceneAdapter.h>
- #include<ls/Log.h>
+#include <ls/Log.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;

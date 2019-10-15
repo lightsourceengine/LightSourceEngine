@@ -6,9 +6,10 @@
 
 #include "SDLRenderer.h"
 #include <array>
+#include <cassert>
 #include <ls/PixelConversion.h>
 #include <ls/Endian.h>
- #include<ls/Log.h>
+#include <ls/Log.h>
 #include <ls/Format.h>
 
 namespace ls {

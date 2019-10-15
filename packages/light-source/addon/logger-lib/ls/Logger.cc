@@ -5,7 +5,7 @@
  */
 
 #include "Logger.h"
- #include<ls/Log.h>
+#include <ls/Log.h>
 
 using Napi::CallbackInfo;
 using Napi::Error;

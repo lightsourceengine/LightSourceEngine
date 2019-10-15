@@ -8,6 +8,7 @@
 #include <iostream>
 #include <chrono>
 #include <ctime>
+#include <cassert>
 
 namespace ls {
 
