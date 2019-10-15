@@ -5,7 +5,7 @@
  */
 
 #include "FontResource.h"
-#include <fmt/format.h>
+#include <ls/Format.h>
 #include <functional>
 
 namespace ls {
@@ -19,7 +19,7 @@ bool FontId::operator==(const FontId &other) const noexcept {
 }
 
 FontId::operator std::string() const {
-    return fmt::format("{}-{}-{}",
+    return Format("%s-%s-%s",
         this->family, StyleFontStyleToString(this->style), StyleFontWeightToString(this->weight));
 }
 

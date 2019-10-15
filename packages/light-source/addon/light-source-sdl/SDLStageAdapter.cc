@@ -9,8 +9,8 @@
 #include "SDLKeyboard.h"
 #include "SDLGamepad.h"
 #include <unordered_set>
-#include <fmt/format.h>
 #include <ls/Logger.h>
+#include <ls/Format.h>
 #include <ls/Timer.h>
 
 using Napi::Array;
@@ -138,7 +138,7 @@ Value SDLStageAdapter::GetDisplays(const CallbackInfo& info) {
     auto displayCount{ SDL_GetNumVideoDisplays() };
 
     if (displayCount < 0) {
-        throw Error::New(env, fmt::format("Failed to get display count. SDL Error: {}", SDL_GetError()));
+        throw Error::New(env, Format("Failed to get display count. SDL Error: %s", SDL_GetError()));
     }
 
     auto displayArray{ Array::New(env, displayCount) };
@@ -156,7 +156,7 @@ Value SDLStageAdapter::AddGameControllerMappings(const CallbackInfo& info) {
     auto result{ SDL_GameControllerAddMapping(file.c_str()) };
 
     if (result == -1) {
-        throw Error::New(env, fmt::format("addGameControllerMappings(): {}", SDL_GetError()));
+        throw Error::New(env, Format("addGameControllerMappings(): %s", SDL_GetError()));
     }
 
     return Number::New(env, result);
@@ -168,7 +168,7 @@ void SDLStageAdapter::SetCallback(const CallbackInfo& info) {
     auto it{ callbackMap.find(info[0].As<String>().Utf8Value()) };
 
     if (it == callbackMap.end()) {
-        throw Error::New(env, fmt::format("Unknown callback id: {}", id));
+        throw Error::New(env, Format("Unknown callback id: %s", id));
     }
 
     if (info[1].IsFunction()) {
@@ -198,19 +198,19 @@ void SDLStageAdapter::Attach(Napi::Env env) {
     Timer t("StageAdapter.attach()");
 
     if (SDL_WasInit(SDL_INIT_VIDEO) == 0 && SDL_Init(SDL_INIT_VIDEO) != 0) {
-        throw Error::New(env, fmt::format("Failed to init SDL video. SDL Error: {}", SDL_GetError()));
+        throw Error::New(env, Format("Failed to init SDL video. SDL Error: %s", SDL_GetError()));
     }
 
     t.Log();
 
     if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0 && SDL_Init(SDL_INIT_JOYSTICK) != 0) {
-        throw Error::New(env, fmt::format("Failed to init SDL joystick. SDL Error: {}", SDL_GetError()));
+        throw Error::New(env, Format("Failed to init SDL joystick. SDL Error: %s", SDL_GetError()));
     }
 
     t.Log();
 
     if (SDL_WasInit(SDL_INIT_GAMECONTROLLER) == 0 && SDL_Init(SDL_INIT_GAMECONTROLLER) != 0) {
-        throw Error::New(env, fmt::format("Failed to init SDL gamecontroller. SDL Error: {}", SDL_GetError()));
+        throw Error::New(env, Format("Failed to init SDL gamecontroller. SDL Error: %s", SDL_GetError()));
     }
 
     SDL_GameControllerEventState(SDL_IGNORE);
@@ -537,13 +537,13 @@ Object ToDisplayObject(Napi::Env env, int32_t displayIndex) {
     auto displayModeCount{ SDL_GetNumDisplayModes(displayIndex) };
 
     if (displayModeCount < 0) {
-        throw Error::New(env, fmt::format("Failed to get display count. SDL Error: {}", SDL_GetError()));
+        throw Error::New(env, Format("Failed to get display count. SDL Error: %s", SDL_GetError()));
     }
 
     SDL_DisplayMode current;
 
     if (SDL_GetDesktopDisplayMode(displayIndex, &current) != 0) {
-        throw Error::New(env, fmt::format("Failed to get default display mode. SDL Error: {}", SDL_GetError()));
+        throw Error::New(env, Format("Failed to get default display mode. SDL Error: %s", SDL_GetError()));
     }
 
     displayObject["defaultMode"] = ToDisplayModeObject(env, current);
@@ -555,7 +555,7 @@ Object ToDisplayObject(Napi::Env env, int32_t displayIndex) {
 
         if (SDL_GetDisplayMode(displayIndex, j, &displayMode) != 0) {
             throw Error::New(env,
-                fmt::format("Failed to get display mode. SDL Error: {}", SDL_GetError()));
+                Format("Failed to get display mode. SDL Error: %s", SDL_GetError()));
         }
 
         uniqueDisplayModes.insert(displayMode);

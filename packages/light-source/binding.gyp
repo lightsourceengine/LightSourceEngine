@@ -36,7 +36,6 @@
   },
   "includes": [
     # third party static libraries
-    "addon/deps/fmt/build.gypi",
     "addon/deps/nanosvg/build.gypi",
     "addon/deps/stb/build.gypi",
     "addon/deps/yoga/build.gypi",

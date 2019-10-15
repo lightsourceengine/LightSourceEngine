@@ -13,10 +13,8 @@
         "../light-source-graphics-lib",
         "../light-source-stage-lib",
         "../light-source-util-lib",
-        "../deps/fmt/repo/include",
       ],
       "dependencies": [
-        "fmt",
         "napi-ext-lib",
         "light-source-graphics-lib",
         "light-source-audio-lib",

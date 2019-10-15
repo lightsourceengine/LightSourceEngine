@@ -7,7 +7,7 @@
 #include "FontStoreView.h"
 #include "FontStore.h"
 #include "Stage.h"
-#include <fmt/format.h>
+#include <ls/Format.h>
 #include <napi-ext.h>
 
 using Napi::Array;
@@ -85,8 +85,7 @@ void FontStoreView::Add(const CallbackInfo& info) {
     };
 
     if (this->stage->GetFontStore()->Has(fontId)) {
-        throw Error::New(env, fmt::format("font (family='{}' style='{}' weight='{}') already exists",
-            fontId.family, StyleFontStyleToString(fontId.style), StyleFontWeightToString(fontId.weight)));
+        throw Error::New(env, Format("%s already exists", static_cast<std::string>(fontId)));
     }
 
     try {
@@ -95,7 +94,7 @@ void FontStoreView::Add(const CallbackInfo& info) {
             ObjectGetString(options, "uri"),
             ObjectGetNumberOrDefault(options, "index", 0));
     } catch (const std::exception& e) {
-        throw Error::New(env, fmt::format("Error adding font: {}", e.what()));
+        throw Error::New(env, Format("Error adding font: %s", e.what()));
     }
 }
 
@@ -155,7 +154,7 @@ static StyleFontStyle StringToFontStyle(const Napi::Env& env, const std::string&
     } else if (value == StyleFontStyleToString(StyleFontStyleNormal)) {
         return StyleFontStyleItalic;
     } else if (isRequired) {
-        throw Error::New(env, fmt::format("Invalid font style string: {}", value));
+        throw Error::New(env, Format("Invalid font style string: %s", value));
     }
 
     return StyleFontStyleNormal;
@@ -167,7 +166,7 @@ static StyleFontWeight StringToFontWeight(const Napi::Env& env, const std::strin
     } else if (value == StyleFontWeightToString(StyleFontWeightBold)) {
         return StyleFontWeightBold;
     } else if (isRequired) {
-        throw Error::New(env, fmt::format("Invalid font weight string: {}", value));
+        throw Error::New(env, Format("Invalid font weight string: %s", value));
     }
 
     return StyleFontWeightNormal;

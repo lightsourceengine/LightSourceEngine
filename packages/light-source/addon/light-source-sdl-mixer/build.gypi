@@ -17,10 +17,8 @@
               "../logger-lib",
               "../light-source-audio-lib",
               "../light-source-util-lib",
-              "../deps/fmt/repo/include",
             ],
             "dependencies": [
-                "fmt",
                 "napi-ext-lib",
                 "light-source-audio-lib",
                 "light-source-util-lib",

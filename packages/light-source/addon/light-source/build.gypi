@@ -14,7 +14,6 @@
         "../light-source-audio-lib",
         "../light-source-stage-lib",
         "../deps/yoga/lib",
-        "../deps/fmt/repo/include",
         "../deps/stb/repo",
         "../deps/nanosvg/include",
         "../deps/utfcpp/repo/source",
@@ -23,7 +22,6 @@
       ],
       "dependencies": [
         "yoga",
-        "fmt",
         "stb_image",
         "stb_truetype",
         "nanosvg",

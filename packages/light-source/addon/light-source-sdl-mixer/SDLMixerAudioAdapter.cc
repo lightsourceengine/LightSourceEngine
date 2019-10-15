@@ -11,7 +11,7 @@
 #include <SDL_mixer.h>
 #include <ls/Timer.h>
 #include <ls/Logger.h>
-#include <fmt/format.h>
+#include <ls/Format.h>
 
 using Napi::Boolean;
 using Napi::Buffer;
@@ -353,13 +353,13 @@ void SDLMixerAudioAdapter::Attach(const CallbackInfo& info) {
     Timer t("mixer init");
 
     if (SDL_WasInit(SDL_INIT_AUDIO) == 0 && SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
-        throw Error::New(env, fmt::format("Failed to init SDL audio. SDL Error: {}", SDL_GetError()));
+        throw Error::New(env, Format("Failed to init SDL audio. SDL Error: %s", SDL_GetError()));
     }
 
     t.Log();
 
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 512) < 0) {
-        throw Error::New(env, fmt::format("Cannot open mixer. Error: {}", Mix_GetError()));
+        throw Error::New(env, Format("Cannot open mixer. Error: %s", Mix_GetError()));
     }
 
     t.Log();

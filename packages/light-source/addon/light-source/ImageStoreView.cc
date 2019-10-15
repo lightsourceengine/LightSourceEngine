@@ -9,7 +9,6 @@
 #include "ImageResource.h"
 #include "Stage.h"
 #include "Scene.h"
-#include <fmt/format.h>
 
 using Napi::Array;
 using Napi::CallbackInfo;

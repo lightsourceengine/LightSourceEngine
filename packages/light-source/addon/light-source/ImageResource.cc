@@ -17,7 +17,7 @@
 #include "Stage.h"
 #include <ls/Endian.h>
 #include <ls/Logger.h>
-#include <fmt/format.h>
+#include <ls/Format.h>
 
 using Napi::Boolean;
 using Napi::EscapableHandleScope;
@@ -151,7 +151,7 @@ static Surface DecodeImage(const ImageUri& uri, const std::vector<std::string>& 
 
     if (IsDataUri(uriOrFilename)) {
         if (!IsSvgDataUri(uriOrFilename)) {
-            throw std::runtime_error(fmt::format("Invalid image data uri: {}", uriOrFilename));
+            throw std::runtime_error(Format("Invalid image data uri: %s", uriOrFilename));
         }
 
         const auto dataString{ GetSvgUriData(uriOrFilename) };
@@ -167,7 +167,7 @@ static Surface DecodeImage(const ImageUri& uri, const std::vector<std::string>& 
         const FileHandle file(fopen(filename.c_str(), "rb"), fclose);
 
         if (!file) {
-            throw std::runtime_error(fmt::format("Could not open image file: {}", uriOrFilename));
+            throw std::runtime_error(Format("Could not open image file: %s", uriOrFilename));
         }
 
         int32_t components{};
@@ -209,18 +209,18 @@ static Surface DecodeImageSvg(NSVGimage* svgImage, const std::string& uri, const
     // cover all invalid XML use cases.
 
     if (svg == nullptr) {
-        throw std::runtime_error(fmt::format("Failed to parse svg image: {}", uri));
+        throw std::runtime_error(Format("Failed to parse svg image: %s", uri));
     }
 
     const auto svgWidth{ static_cast<int32_t>(svg->width) };
     const auto svgHeight{ static_cast<int32_t>(svg->height) };
 
     if (svgWidth < 0 || svgHeight < 0) {
-        throw std::runtime_error(fmt::format("Failed to parse svg image: {}", uri));
+        throw std::runtime_error(Format("Failed to parse svg image: %s", uri));
     }
 
     if ((svgWidth == 0 || svgHeight == 0) && (scaleWidth == 0 && scaleHeight == 0)) {
-        throw std::runtime_error(fmt::format("No dimensions available for svg image: {}", uri));
+        throw std::runtime_error(Format("No dimensions available for svg image: %s", uri));
     }
 
     auto scaleX{ 1.f };
@@ -243,7 +243,7 @@ static Surface DecodeImageSvg(NSVGimage* svgImage, const std::string& uri, const
     const NSVGrasterizerHandle rasterizer(nsvgCreateRasterizer(), nsvgDeleteRasterizer);
 
     if (rasterizer == nullptr) {
-        throw std::runtime_error(fmt::format("Failed to create rasterizer for svg image: {}", uri));
+        throw std::runtime_error(Format("Failed to create rasterizer for svg image: %s", uri));
     }
 
     const auto pitch{ width * 4 };

@@ -10,7 +10,7 @@
 #include "Scene.h"
 #include "ImageResource.h"
 #include <algorithm>
-#include <fmt/format.h>
+#include <ls/Format.h>
 
 namespace ls {
 
@@ -199,12 +199,12 @@ std::string CreateRoundedRectangleUri(const int32_t radiusTopLeft,
                                       const int32_t radiusBottomLeft,
                                       const int32_t stroke) {
     static const std::string empty{};
-    static const std::string uriTemplate{
-        "data:image/svg+xml,<svg viewBox=\"0 0 {0} {1}\">"
-            "<path d=\"M {2},0 h{3} {4} v{5} {6} h-{7} {8} v-{9} {10} z\" "
-                "fill=\"{11}\" "
-                "stroke=\"{12}\" "
-                "stroke-width=\"{13}\"/>"
+    static const char* uriTemplate{
+        "data:image/svg+xml,<svg viewBox=\"0 0 %i %i\">"
+            "<path d=\"M %i,0 h%i %i v%i %i h-%i %i v-%i %i z\" "
+                "fill=\"%s\" "
+                "stroke=\"%s\" "
+                "stroke-width=\"%i\"/>"
         "</svg>"
     };
 
@@ -216,18 +216,23 @@ std::string CreateRoundedRectangleUri(const int32_t radiusTopLeft,
     const auto bottomHeight{ std::max(radiusBottomLeft, radiusBottomRight) };
     const auto height{ topHeight + bottomHeight + 1 };
 
-    return fmt::format(uriTemplate,
+    return Format(uriTemplate,
     /* 0: viewbox       */ width,
     /* 1: viewbox       */ height,
     /* 2: M {},0        */ radiusTopLeft,
     /* 3: h             */ (radiusTopLeft == 0 ? leftWidth : 0) + 1 + (radiusTopRight == 0 ? rightWidth : 0),
-    /* 4: a             */ radiusTopRight > 0 ? fmt::format("a{0},{0} 0 0 1 {0},{0}", radiusTopRight) : empty,
+    /* 4: a             */ radiusTopRight > 0 ?
+        Format("a%i,%i 0 0 1 %i,%i", radiusTopRight, radiusTopRight, radiusTopRight, radiusTopRight) : empty,
     /* 5: v             */ (radiusTopRight == 0 ? topHeight : 0) + 1 + (radiusBottomRight == 0 ? bottomHeight : 0),
-    /* 6: a             */ radiusBottomRight > 0 ? fmt::format(" a{0},{0} 0 0 1 -{0},{0}", radiusBottomRight) : empty,
+    /* 6: a             */ radiusBottomRight > 0 ?
+        Format(" a%i,%i 0 0 1 -%i,%i", radiusBottomRight, radiusBottomRight, radiusBottomRight, radiusBottomRight)
+        : empty,
     /* 7: h-            */ (radiusBottomLeft == 0 ? leftWidth : 0) + 1 + (radiusBottomRight == 0 ? rightWidth : 0),
-    /* 8: a             */ radiusBottomLeft > 0 ? fmt::format("a{0},{0} 0 0 1 -{0},-{0}", radiusBottomLeft) : empty,
+    /* 8: a             */ radiusBottomLeft > 0 ?
+        Format("a%i,%i 0 0 1 -%i,-%i", radiusBottomLeft, radiusBottomLeft, radiusBottomLeft, radiusBottomLeft) : empty,
     /* 9: v-            */ (radiusTopLeft == 0 ? topHeight : 0) + 1 + (radiusBottomLeft == 0 ? bottomHeight : 0),
-    /* 10: a            */ radiusTopLeft > 0 ? fmt::format("a{0},{0} 0 0 1 {0},-{0}", radiusTopLeft) : empty,
+    /* 10: a            */ radiusTopLeft > 0 ?
+        Format("a%i,%i 0 0 1 %i,-%i", radiusTopLeft, radiusTopLeft, radiusTopLeft, radiusTopLeft) : empty,
     /* 11: fill         */ stroke > 0 ? "none" : "white",
     /* 12: stroke       */ stroke > 0 ? "white" : "none",
     /* 13: stroke-width */ stroke);

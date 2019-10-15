@@ -10,6 +10,3 @@
 [submodule "packages/light-source/addon/deps/stb/repo"]
 	path = packages/light-source/addon/deps/stb/repo
 	url = https://github.com/nothings/stb.git
-[submodule "packages/light-source/addon/deps/fmt/repo"]
-	path = packages/light-source/addon/deps/fmt/repo
-	url = https://github.com/fmtlib/fmt.git

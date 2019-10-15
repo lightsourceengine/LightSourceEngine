@@ -11,7 +11,7 @@
 #include "StyleUtils.h"
 #include "yoga-ext.h"
 #include <ls/Renderer.h>
-#include <fmt/format.h>
+#include <ls/Format.h>
 
 using Napi::CallbackInfo;
 using Napi::Function;
@@ -186,7 +186,7 @@ void BoxSceneNode::SetBorderRadiusImages(const Style* style) {
 
     if (style->backgroundColor()) {
         const auto borderRadiusImageId{
-            fmt::format("@border-radius:{},{},{},{}",
+            Format("@border-radius:%i,%i,%i,%i",
                 borderRadiusTopLeft,
                 borderRadiusTopRight,
                 borderRadiusBottomRight,
@@ -214,7 +214,7 @@ void BoxSceneNode::SetBorderRadiusImages(const Style* style) {
     if (style->borderColor() && style->border()) {
         const auto stroke{ ComputeIntegerPointValue(style->border(), this->scene, 0) };
         const auto borderRadiusStrokeImageId{
-            fmt::format("@border-radius-stroke:{},{},{},{},{}",
+            Format("@border-radius-stroke:%i,%i,%i,%i,%i",
                 borderRadiusTopLeft,
                 borderRadiusTopRight,
                 borderRadiusBottomRight,

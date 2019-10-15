@@ -6,7 +6,7 @@
 
 #include "SDLGamepad.h"
 #include <ls/Logger.h>
-#include <fmt/format.h>
+#include <ls/Format.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -32,7 +32,7 @@ SDLGamepad::SDLGamepad(const CallbackInfo& info) : ObjectWrap<SDLGamepad>(info) 
     this->joystick = SDL_JoystickOpen(index);
 
     if (!this->joystick) {
-        throw Error::New(env, fmt::format("Could not open SDL Joystick at index {}", index));
+        throw Error::New(env, Format("Could not open SDL Joystick at index %i", index));
     }
 
     auto joystickName = SDL_JoystickName(this->joystick);

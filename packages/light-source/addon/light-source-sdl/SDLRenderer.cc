@@ -9,7 +9,7 @@
 #include <ls/PixelConversion.h>
 #include <ls/Endian.h>
 #include <ls/Logger.h>
-#include <fmt/format.h>
+#include <ls/Format.h>
 
 namespace ls {
 
@@ -488,7 +488,7 @@ void SDLRenderer::Attach(SDL_Window* window) {
     this->renderer = SDL_CreateRenderer(window, driverIndex, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     if (!this->renderer) {
-        throw std::runtime_error(fmt::format("Failed to create an SDL renderer. SDL Error: {}", SDL_GetError()));
+        throw std::runtime_error(Format("Failed to create an SDL renderer. SDL Error: %s", SDL_GetError()));
     }
 
     SDL_RendererInfo info{};

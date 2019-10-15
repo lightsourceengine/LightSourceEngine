@@ -8,7 +8,7 @@
 #include <ls/BaseAudioSource.h>
 #include <ls/BaseAudioDestination.h>
 #include <napi-ext.h>
-#include <fmt/format.h>
+#include <ls/Format.h>
 
 using Napi::Boolean;
 using Napi::Buffer;
@@ -177,7 +177,7 @@ void SDLAudioAdapter::Attach(const CallbackInfo& info) {
 
     // Initialize SDL Audio.
     if (SDL_WasInit(SDL_INIT_AUDIO) == 0 && SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
-        throw Error::New(env, fmt::format("Failed to init SDL audio. SDL Error: {}", SDL_GetError()));
+        throw Error::New(env, Format("Failed to init SDL audio. SDL Error: %s", SDL_GetError()));
     }
 
     // Open an audio device.
@@ -189,7 +189,7 @@ void SDLAudioAdapter::Attach(const CallbackInfo& info) {
     desired.samples = 512;
 
     if (SDL_OpenAudio(&desired, nullptr) != 0) {
-        throw Error::New(env, fmt::format("Cannot open audio. SDL_OpenAudio: {}", SDL_GetError()));
+        throw Error::New(env, Format("Cannot open audio. SDL_OpenAudio: %s", SDL_GetError()));
     }
 
     // Reserved device id for SDL_OpenAudio is 1.
