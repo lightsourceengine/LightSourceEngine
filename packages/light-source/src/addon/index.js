@@ -23,6 +23,7 @@ try {
     ImageSceneNode: () => {},
     RootSceneNode: () => {},
     TextSceneNode: () => {},
+    Logger: {},
     getSceneNodeInstanceCount: () => 0,
     addonError: e,
   }
@@ -39,6 +40,7 @@ export const {
   ImageSceneNode,
   RootSceneNode,
   TextSceneNode,
+  Logger,
   getSceneNodeInstanceCount,
   addonError
 } = lib

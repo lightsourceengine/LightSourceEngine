@@ -5,7 +5,7 @@
  */
 
 #include "Timer.h"
-#include <ls/Logger.h>
+ #include<ls/Log.h>
 
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;

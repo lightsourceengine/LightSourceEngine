@@ -9,6 +9,7 @@
 #include "StyleEnumMappings.h"
 #include "FontStoreView.h"
 #include "ImageStoreView.h"
+#include <ls/Logger.h>
 #include "Scene.h"
 #include "Stage.h"
 #include "Style.h"
@@ -41,6 +42,7 @@ Object Init(Env env, Object exports) {
     ExportClass(&exports, ls::ImageSceneNode::Constructor(env));
     ExportClass(&exports, ls::TextSceneNode::Constructor(env));
     ExportClass(&exports, ls::RootSceneNode::Constructor(env));
+    ExportClass(&exports, ls::Logger::Constructor(env));
 
     ls::Style::Init(env);
     ls::StyleEnumMappings::Init(env, exports);

@@ -5,99 +5,130 @@
  */
 
 #include "Logger.h"
-#include <iostream>
-#include <chrono>
-#include <ctime>
+ #include<ls/Log.h>
+
+using Napi::CallbackInfo;
+using Napi::Error;
+using Napi::Function;
+using Napi::FunctionReference;
+using Napi::HandleScope;
+using Napi::Number;
+using Napi::ObjectWrap;
+using Napi::String;
+using Napi::Value;
 
 namespace ls {
 
-static auto sLogLevel{ LogLevelInfo };
+Logger::Logger(const CallbackInfo& info) : ObjectWrap<Logger>(info) {
+}
 
-static
-const char* LogLevelToString(const LogLevel logLevel) {
-    switch (logLevel) {
-        case LogLevelDebug:
-            return "DEBUG";
-        case LogLevelInfo:
-            return "INFO";
-        case LogLevelWarn:
-            return "WARN";
-        case LogLevelError:
-            return "ERROR";
-        case LogLevelOff:
-            return "OFF";
+Function Logger::Constructor(Napi::Env env) {
+    static FunctionReference constructor;
+
+    if (constructor.IsEmpty()) {
+        HandleScope scope(env);
+
+        auto func = DefineClass(env, "Logger", {
+            StaticMethod("log", &Logger::Log),
+            StaticMethod("getLogLevel", &Logger::GetLogLevel),
+            StaticMethod("setLogLevel", &Logger::SetLogLevel),
+            StaticValue("LogLevelError", Number::New(env, LogLevelError)),
+            StaticValue("LogLevelWarn", Number::New(env, LogLevelWarn)),
+            StaticValue("LogLevelInfo", Number::New(env, LogLevelInfo)),
+            StaticValue("LogLevelDebug", Number::New(env, LogLevelDebug)),
+            StaticValue("LogLevelAll", Number::New(env, LogLevelAll)),
+            StaticValue("LogLevelOff", Number::New(env, LogLevelOff)),
+// TODO: Expose when sink is fully implemented
+//            StaticMethod("close", &Logger::Close),
+//            StaticMethod("getSink", &Logger::GetSink),
+//            StaticMethod("setSink", &Logger::SetSink),
+        });
+
+        constructor.Reset(func, 1);
+        constructor.SuppressDestruct();
     }
 
-    return "UNKNOWN";
+    return constructor.Value();
 }
 
-void SetLogLevel(const LogLevel logLevel) noexcept {
-    sLogLevel = logLevel;
+void Logger::Log(const CallbackInfo& info) {
+    auto env{ info.Env() };
+    HandleScope scope(env);
+
+    std::string site;
+    std::string message;
+
+    switch (info.Length()) {
+        case 2:
+            site = info[1].As<String>();
+            break;
+        case 3:
+            site = info[1].As<String>();
+            message = info[2].ToString();
+            break;
+        default:
+            throw Error::New(env, "Expected 2 [level, message] or 3 [site, level, message] args.");
+    }
+
+    LogLevel logLevel;
+    auto value{ info[0].As<Number>().Int32Value() };
+
+    if (IsLogLevel(value)) {
+        logLevel = static_cast<LogLevel>(value);
+    } else {
+        logLevel = LogLevelInfo;
+    }
+
+    internal::LogCustomSite(logLevel, site.empty() ? "js" : site.c_str(), message.c_str());
 }
 
-LogLevel GetLogLevel() noexcept {
-    return sLogLevel;
+void Logger::Close(const CallbackInfo& info) {
 }
 
-namespace internal {
+Value Logger::GetLogLevel(const CallbackInfo& info) {
+    return Number::New(info.Env(), ls::GetLogLevel());
+}
 
-static
-const char* GetFileBasename(const LogSite& site) noexcept {
-    const char* str{ site.file };
-    const char* basename{ nullptr };
+void Logger::SetLogLevel(const CallbackInfo& info) {
+    if (info[0].IsNumber()) {
+        auto logLevel{ info[0].As<Number>().Int32Value() };
 
-    do {
-        if (*str == '/' || *str == '\\') {
-            basename = str;
+        if (IsLogLevel(logLevel)) {
+            ls::SetLogLevel(static_cast<LogLevel>(logLevel));
         }
-    } while (*str++);
-
-    return basename ? basename + 1 : site.file;
+    }
 }
 
-void Log(const LogSite& site, const LogLevel logLevel, const std::exception& e) noexcept {
-    LogPrintHeader(site, logLevel, true);
-    std::puts(e.what());
+Value Logger::GetSink(const CallbackInfo& info) {
+    auto sink{ GetLogSink() };
+
+    if (sink == stdout) {
+        return String::New(info.Env(), "stdout");
+    } else {
+        return info.Env().Null();
+    }
 }
 
-void Log(const LogSite& site, const LogLevel logLevel, const std::string& str) noexcept {
-    LogPrintHeader(site, logLevel, !str.empty());
-    std::puts(str.c_str());
+void Logger::SetSink(const CallbackInfo& info) {
+    auto env{ info.Env() };
+    // TODO: use optional
+    FILE* sink{ stderr };
+
+    if (info[0].IsString()) {
+        auto path{ info[0].As<String>().Utf8Value() };
+
+        if (path == "stdout") {
+            sink = stdout;
+        }
+    } else if (info[0].IsNull()) {
+        sink = nullptr;
+    }
+
+    if (sink == stderr) {
+        throw Error::New(env, "stdout or null is the only supported log sink");
+    }
+
+    ls::SetLogSink(nullptr);
 }
-
-void Log(const LogSite& site, const LogLevel logLevel, const char* str) noexcept {
-    LogPrintHeader(site, logLevel, *str != '\0');
-    std::puts(str);
-}
-
-void LogPrintHeader(const LogSite& site, const LogLevel logLevel, const bool hasFormat) {
-    char timestamp[31];
-    const auto now{ std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
-    const auto sep{ hasFormat ? " - " : " "};
-
-    std::strftime(&timestamp[0], sizeof(timestamp), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
-
-    std::printf("%s [%-5s] %s:%u %s()%s",
-        timestamp,
-        LogLevelToString(logLevel),
-        GetFileBasename(site),
-        site.line,
-        site.function,
-        sep);
-}
-
-const char* LogProcessArg(const std::string& value) noexcept {
-    return value.c_str();
-}
-
-const char* LogProcessArg(const std::exception& value) noexcept {
-    return value.what();
-}
-
-const char* LogProcessArg(const bool& value) noexcept {
-    return value ? "true" : "false";
-}
-
-} // namespace internal
 
 } // namespace ls

@@ -9,7 +9,7 @@
 #include "Stage.h"
 #include <ls/FileSystem.h>
 #include <stb_truetype.h>
-#include <ls/Logger.h>
+ #include<ls/Log.h>
 #include <cstring>
 
 namespace ls {

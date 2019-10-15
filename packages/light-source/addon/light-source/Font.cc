@@ -6,7 +6,7 @@
 
 #include "Font.h"
 #include <ls/Timer.h>
-#include <ls/Logger.h>
+ #include<ls/Log.h>
 
 namespace ls {
 

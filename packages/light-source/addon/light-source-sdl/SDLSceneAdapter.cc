@@ -5,7 +5,7 @@
  */
 
 #include "SDLSceneAdapter.h"
-#include <ls/Logger.h>
+ #include<ls/Log.h>
 
 namespace ls {
 

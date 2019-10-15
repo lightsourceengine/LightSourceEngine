@@ -28,7 +28,8 @@
         "napi-ext-lib",
         "light-source-util-lib",
         "light-source-graphics-lib",
-        "logger-lib"
+        "logger-lib",
+        "logger-bindings-lib",
       ],
       "sources": [
         "yoga-ext.cc",

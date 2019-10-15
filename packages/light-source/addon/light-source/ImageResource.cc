@@ -16,7 +16,7 @@
 #include "Scene.h"
 #include "Stage.h"
 #include <ls/Endian.h>
-#include <ls/Logger.h>
+ #include<ls/Log.h>
 #include <ls/Format.h>
 
 using Napi::Boolean;

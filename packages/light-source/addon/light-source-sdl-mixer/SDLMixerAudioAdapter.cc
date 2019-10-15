@@ -10,7 +10,7 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
 #include <ls/Timer.h>
-#include <ls/Logger.h>
+ #include<ls/Log.h>
 #include <ls/Format.h>
 
 using Napi::Boolean;

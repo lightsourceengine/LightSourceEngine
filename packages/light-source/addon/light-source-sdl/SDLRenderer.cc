@@ -8,7 +8,7 @@
 #include <array>
 #include <ls/PixelConversion.h>
 #include <ls/Endian.h>
-#include <ls/Logger.h>
+ #include<ls/Log.h>
 #include <ls/Format.h>
 
 namespace ls {

@@ -9,7 +9,7 @@
 #include "SDLKeyboard.h"
 #include "SDLGamepad.h"
 #include <unordered_set>
-#include <ls/Logger.h>
+ #include<ls/Log.h>
 #include <ls/Format.h>
 #include <ls/Timer.h>
 

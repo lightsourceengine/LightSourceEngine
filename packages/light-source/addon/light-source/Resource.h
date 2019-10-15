@@ -11,7 +11,7 @@
 #include <vector>
 #include <utility>
 #include <string>
-#include <ls/Logger.h>
+ #include<ls/Log.h>
 
 namespace ls {
 
