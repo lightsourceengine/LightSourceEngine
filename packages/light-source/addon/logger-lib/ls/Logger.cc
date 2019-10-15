@@ -5,7 +5,6 @@
  */
 
 #include "Logger.h"
-#include <cstdio>
 #include <iostream>
 #include <chrono>
 #include <ctime>
@@ -57,17 +56,24 @@ const char* GetFileBasename(const LogSite& site) noexcept {
 }
 
 void Log(const LogSite& site, const LogLevel logLevel, const std::exception& e) noexcept {
-    LogV(site, logLevel, e.what());
+    LogPrintHeader(site, logLevel, true);
+    std::puts(e.what());
 }
 
 void Log(const LogSite& site, const LogLevel logLevel, const std::string& str) noexcept {
-    LogV(site, logLevel, str.c_str());
+    LogPrintHeader(site, logLevel, !str.empty());
+    std::puts(str.c_str());
 }
 
-void LogV(const LogSite& site, const LogLevel logLevel, const char* format, ...) noexcept {
+void Log(const LogSite& site, const LogLevel logLevel, const char* str) noexcept {
+    LogPrintHeader(site, logLevel, *str != '\0');
+    std::puts(str);
+}
+
+void LogPrintHeader(const LogSite& site, const LogLevel logLevel, const bool hasFormat) {
     char timestamp[31];
     const auto now{ std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
-    const auto sep{ format && *format != '\0' ? " - " : " "};
+    const auto sep{ hasFormat ? " - " : " "};
 
     std::strftime(&timestamp[0], sizeof(timestamp), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
 
@@ -78,13 +84,6 @@ void LogV(const LogSite& site, const LogLevel logLevel, const char* format, ...)
         site.line,
         site.function,
         sep);
-
-    va_list argptr;
-    va_start(argptr, format);
-    std::vprintf(format, argptr);
-    va_end(argptr);
-
-    std::puts("");
 }
 
 const char* LogProcessArg(const std::string& value) noexcept {

@@ -8,7 +8,7 @@
 
 #include <string>
 #include <exception>
-#include <initializer_list>
+#include <cstdio>
 
 namespace ls {
 
@@ -55,8 +55,8 @@ struct LogSite {
     const char* function;
 };
 
-// Internal C variadic argument signature.
-void LogV(const LogSite& site, const LogLevel logLevel, const char* format, ...) noexcept;
+// Helper method to print the timestamp, log site info and logLevel.
+void LogPrintHeader(const LogSite& site, const LogLevel logLevel, const bool hasFormat);
 
 // Internal processing variadic template arguments. For special C++ types (string, exception and bool), the values
 // are forwarded to printf as C strings. All other values are forwarded to printf.
@@ -71,10 +71,19 @@ const char* LogProcessArg(const std::exception& value) noexcept;
 // Log methods called by LOG_* macros.
 template<typename... Args>
 void Log(const LogSite& site, const LogLevel logLevel, const char* format, const Args&... args) noexcept {
-    LogV(site, logLevel, format, LogProcessArg(args)...);
+    const auto hasFormat{ format[0] != '\0' };
+
+    LogPrintHeader(site, logLevel, hasFormat);
+
+    if (hasFormat) {
+        std::printf(format, LogProcessArg(args)...);
+    }
+
+    std::putc('\n', stdout);
 }
 void Log(const LogSite& site, const LogLevel logLevel, const std::exception& e) noexcept;
 void Log(const LogSite& site, const LogLevel logLevel, const std::string& str) noexcept;
+void Log(const LogSite& site, const LogLevel logLevel, const char* str) noexcept;
 
 } // namespace internal
 

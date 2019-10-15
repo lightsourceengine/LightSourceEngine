@@ -15,6 +15,7 @@
       ],
       "sources": [
         "ls/FileSystem.cc",
+        "ls/Format.cc",
         "ls/Timer.cc",
       ]
     }
@@ -39,6 +40,7 @@
             "light-source-util-lib"
           ],
           "sources": [
+            "test/FormatSpec.cc",
             "test/FileSystemSpec.cc",
             "test/LightSourceUtilTestSuite.cc",
           ]
