@@ -20,6 +20,7 @@
             ],
             "dependencies": [
                 "napi-ext-lib",
+                "logger-lib",
                 "light-source-audio-lib",
                 "light-source-util-lib",
             ],
