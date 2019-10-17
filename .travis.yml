@@ -37,8 +37,7 @@ before_install:
       sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
       git clone --depth 1 https://github.com/dananderson/crosstools.git ${HOME}/crosstools
     elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      brew update
-      brew install sdl2 sdl2_mixer patchelf
+      HOMEBREW_NO_AUTO_UPDATE=1 brew install sdl2 sdl2_mixer
     fi
 
 install:

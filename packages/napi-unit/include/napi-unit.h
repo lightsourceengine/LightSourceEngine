@@ -113,8 +113,8 @@ class Assert {
     /**
      * Checks that two values are equal using the == operator.
      */
-    template<typename T>
-    void Equal(const T& value, const T& expected, const std::string& message = "") const {
+    template<typename S, typename T>
+    void Equal(const S& value, const T& expected, const std::string& message = "") const {
         if (!(value == expected)) {
             std::stringstream ss;
             

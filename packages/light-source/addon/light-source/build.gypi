@@ -18,7 +18,6 @@
         "../deps/nanosvg/include",
         "../deps/utfcpp/repo/source",
         "../deps/concurrentqueue/repo",
-        "../deps/filesystem/include",
       ],
       "dependencies": [
         "yoga",

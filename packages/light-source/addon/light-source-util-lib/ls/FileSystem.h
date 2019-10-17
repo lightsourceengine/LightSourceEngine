@@ -9,23 +9,26 @@
 #include <vector>
 #include <string>
 #include <cstdio>
-#include <memory>
-#include <fs.h>
 
 namespace ls {
 
-/**
- * FILE handle that closes it's file pointer when the handle's destructor is run. Handy for controlling and
- * scoping file access.
- */
-typedef std::unique_ptr<FILE, decltype(&fclose)> FileHandle;
+// Manages a FILE* based file.
+class CFile {
+ private:
+    CFile(FILE* file) noexcept; // NOLINT
 
-/**
- * Checks if the basename of filename has a file extension.
- *
- * @returns "image.jpg", "path/image.jpg", "p.x" => true, "image" => false
- */
-bool HasExtension(const fs::path& filename) noexcept;
+ public:
+    ~CFile() noexcept;
+
+    static CFile Open(const std::string& filename, const char* access = "rb");
+    std::size_t GetSize() const noexcept;
+    std::size_t Read(uint8_t* buffer, const std::size_t byteCount) const;
+    void Reset() const noexcept;
+    operator FILE*() const { return this->file; }
+
+ private:
+    FILE* file;
+};
 
 /**
  * Searches for a file on disk. If filename does not exist, each file extension in extensions is appended to filename
@@ -34,7 +37,7 @@ bool HasExtension(const fs::path& filename) noexcept;
  * @param filename The filename or basename to search on.
  * @param extensions List of extension strings in '.ext' format.
  */
-fs::path FindFile(const fs::path& filename, const std::vector<std::string>& extensions);
+std::string FindFile(const std::string& filename, const std::vector<std::string>& extensions);
 
 /**
  * Searches for a file on disk.
@@ -47,7 +50,7 @@ fs::path FindFile(const fs::path& filename, const std::vector<std::string>& exte
  * @param extensions List of extension strings in '.ext' format.
  * @param resourcePaths List of resource directories to search in.
  */
-fs::path FindFile(const fs::path& filename, const std::vector<std::string>& extensions,
+std::string FindFile(const std::string& filename, const std::vector<std::string>& extensions,
         const std::vector<std::string>& resourcePaths);
 
 /**
@@ -71,7 +74,7 @@ bool IsSvgDataUri(const std::string& uri) noexcept;
  *
  * @param uri Resource file uri that has been verified with IsResourceUri().
  */
-fs::path GetResourceUriPath(const std::string& uri);
+std::string GetResourceUriPath(const std::string& uri);
 
 /**
  * Gets the data portion of a SVG uri.
@@ -79,5 +82,12 @@ fs::path GetResourceUriPath(const std::string& uri);
  * @param uri SVG uri that has been verified with IsSvgDataUri().
  */
 std::string GetSvgUriData(const std::string& uri);
+
+// Expose to the test environment
+namespace internal {
+
+bool HasExtension(const std::string& filename) noexcept;
+
+} // namespace internal
 
 } // namespace ls

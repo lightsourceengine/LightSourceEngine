@@ -34,6 +34,7 @@ static inline float ScaleFactor(const int, const int) noexcept;
 static Surface DecodeImage(const ImageUri&, const std::vector<std::string>&, const std::vector<std::string>&,
     const PixelFormat);
 static Surface DecodeImageSvg(NSVGimage*, const std::string&, const int32_t, const int32_t);
+static bool HasSvgHeader(const CFile&);
 
 ImageResource::ImageResource(const ImageUri& uri) noexcept : Resource(uri.GetId()), uri(uri) {
 }
@@ -141,6 +142,24 @@ Value ImageResource::ToObject(const Napi::Env& env) const {
     return scope.Escape(image);
 }
 
+static bool HasSvgHeader(const CFile& file) {
+    uint8_t header[32];
+
+    auto count{ file.Read(header, sizeof(header)) };
+
+    file.Reset();
+
+    for (std::size_t i = 0; i < count; i++) {
+        if (header[i] == '<') {
+            return true;
+        } else if (!std::isspace(header[i])) {
+            break;
+        }
+    }
+
+    return false;
+}
+
 static Surface DecodeImage(const ImageUri& uri, const std::vector<std::string>& extensions,
              const std::vector<std::string>& resourcePath, const PixelFormat textureFormat) {
     Surface image;
@@ -159,37 +178,38 @@ static Surface DecodeImage(const ImageUri& uri, const std::vector<std::string>& 
 
         image = DecodeImageSvg(svg, uriOrFilename, uri.GetWidth(), uri.GetHeight());
     } else {
-        const fs::path filename {
+        const std::string filename {
             IsResourceUri(uriOrFilename) ?
                 FindFile(GetResourceUriPath(uriOrFilename), extensions, resourcePath)
                     : FindFile(uriOrFilename, extensions)
         };
-        const FileHandle file(fopen(filename.c_str(), "rb"), fclose);
+        const auto file{ CFile::Open(filename) };
 
-        if (!file) {
-            throw std::runtime_error(Format("Could not open image file: %s", uriOrFilename));
-        }
+        if (HasSvgHeader(file)) {
+            file.Reset();
 
-        int32_t components{};
-        int32_t width{};
-        int32_t height{};
-
-        const auto data{ stbi_load_from_file(file.get(), &width, &height, &components, 4) };
-
-        if (data) {
-            image = {
-                std::shared_ptr<uint8_t>(data, [] (uint8_t* p) { stbi_image_free(p); }),
-                width,
-                height,
-                width * 4,
-                IsBigEndian() ? PixelFormatRGBA : PixelFormatABGR
-            };
+            image = DecodeImageSvg(
+                nsvgParseFromFilePtr(file, "px", 96),
+                uriOrFilename,
+                uri.GetWidth(),
+                uri.GetHeight());
         } else {
-            fseek(file.get(), 0, SEEK_SET);
+            int32_t components{};
+            int32_t width{};
+            int32_t height{};
+            const auto data{ stbi_load_from_file(file, &width, &height, &components, 4) };
 
-            const auto svg{ nsvgParseFromFilePtr(file.get(), "px", 96) };
-
-            image = DecodeImageSvg(svg, uriOrFilename, uri.GetWidth(), uri.GetHeight());
+            if (data) {
+                image = {
+                    std::shared_ptr<uint8_t>(data, [] (uint8_t* p) { stbi_image_free(p); }),
+                    width,
+                    height,
+                    width * 4,
+                    IsBigEndian() ? PixelFormatRGBA : PixelFormatABGR
+                };
+            } else {
+                throw std::runtime_error(Format("Failed to decode image: %s", filename));
+            }
         }
     }
 

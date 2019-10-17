@@ -5,7 +5,10 @@
  */
 
 #include "FileSystem.h"
+#include "Format.h"
 #include <cstring>
+#include <sys/stat.h>
+#include <fs.h>
 
 constexpr auto DATA_URI_PREFIX = "data:";
 const auto DATA_URI_PREFIX_LEN = std::strlen(DATA_URI_PREFIX);
@@ -16,47 +19,95 @@ const auto SVG_DATA_URI_PREFIX_LEN = std::strlen(SVG_DATA_URI_PREFIX);
 
 namespace ls {
 
-bool HasExtension(const fs::path& filename) noexcept {
-    auto sepIndex{ filename.native().find_last_of(fs::path::preferred_separator) };
+static std::string FindFile(const fs::path& path, const std::vector<std::string>& extensions);
 
-    if (sepIndex == std::string::npos) {
-        sepIndex = 0;
-    }
-
-    return filename.native().find('.', sepIndex + 1) != std::string::npos;
+CFile::CFile(FILE* file) noexcept : file(file) {
 }
 
-fs::path FindFile(const fs::path& filename, const std::vector<std::string>& extensions) {
-    if (fs::exists(filename)) {
-        return filename;
+CFile::~CFile() noexcept {
+    fclose(this->file);
+}
+
+CFile CFile::Open(const std::string& filename, const char* access) {
+    auto file{ fopen(filename.c_str(), access) };
+
+    if (!file) {
+        throw std::runtime_error(Format("Cannot open file %s", filename));
     }
 
-    if (!HasExtension(filename)) {
+    return { file };
+}
+
+std::size_t CFile::GetSize() const noexcept {
+    const auto position{ ftell(this->file) };
+
+    fseek(this->file, 0, SEEK_END);
+
+    const auto size{ ftell(this->file) };
+
+    fseek(this->file, position, SEEK_SET);
+
+    return static_cast<std::size_t>(size);
+}
+
+std::size_t CFile::Read(uint8_t* buffer, const std::size_t byteCount) const {
+    auto bytesRead{ fread(buffer, 1, byteCount, this->file) };
+    auto result{ ferror(this->file) };
+
+    if (result) {
+        clearerr(this->file);
+        throw std::runtime_error(Format("File read error: %i", result));
+    }
+
+    return bytesRead;
+}
+
+void CFile::Reset() const noexcept {
+    fseek(this->file, 0, SEEK_SET);
+}
+
+static std::string FindFile(const fs::path& path, const std::vector<std::string>& extensions) {
+    if (fs::exists(path)) {
+        return path;
+    }
+
+    fs::path pathWithExtension;
+
+    if (!internal::HasExtension(path.native())) {
         for (const auto& ext : extensions) {
-            fs::path filenameWithExtension{ filename };
+            pathWithExtension = path;
+            pathWithExtension += ext;
 
-            filenameWithExtension += ext;
-
-            if (fs::exists(filenameWithExtension)) {
-                return filenameWithExtension;
+            if (exists(pathWithExtension)) {
+                return pathWithExtension;
             }
         }
     }
 
-    throw std::runtime_error("File not found: " + filename.native());
+    throw std::runtime_error(Format("File not found: %s", path.c_str()));
 }
 
-fs::path FindFile(const fs::path& filename, const std::vector<std::string>& extensions,
+std::string FindFile(const std::string& filename, const std::vector<std::string>& extensions) {
+    return FindFile(fs::path(filename), extensions);
+}
+
+std::string FindFile(const std::string& filename, const std::vector<std::string>& extensions,
         const std::vector<std::string>& resourcePaths) {
+    fs::path path;
+
     for (const auto& resourcePath : resourcePaths) {
         try {
-            return FindFile(fs::path(resourcePath) / filename, extensions);
+            path = resourcePath;
+            path.append(filename);
+            path.lexically_normal();
+
+            return FindFile(path, extensions);
         } catch (const std::exception&) {
             // continue
         }
     }
 
-    throw std::runtime_error("File not found: " + filename.native());
+    throw std::runtime_error("File not found: " + filename);
 }
 
 bool IsDataUri(const std::string& uri) noexcept {
@@ -72,12 +123,31 @@ bool IsSvgDataUri(const std::string& uri) noexcept {
         && uri.size() > SVG_DATA_URI_PREFIX_LEN;
 }
 
-fs::path GetResourceUriPath(const std::string& resourceUri) {
-    return { resourceUri.substr(RESOURCE_URI_PREFIX_LEN) };
+std::string GetResourceUriPath(const std::string& resourceUri) {
+    fs::path path{resourceUri.substr(RESOURCE_URI_PREFIX_LEN)};
+
+    path.lexically_normal();
+
+    return path;
 }
 
 std::string GetSvgUriData(const std::string& svgUri) {
     return svgUri.substr(SVG_DATA_URI_PREFIX_LEN);
 }
+
+namespace internal {
+
+bool HasExtension(const std::string& filename) noexcept {
+    // Assumes filename is lexically_normal.
+    auto sepIndex{ filename.find_last_of(fs::path::preferred_separator) };
+
+    if (sepIndex == std::string::npos) {
+        sepIndex = 0;
+    }
+
+    return filename.find('.', sepIndex + 1) != std::string::npos;
+}
+
+} // namespace internal
 
 } // namespace ls

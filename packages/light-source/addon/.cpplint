@@ -1,5 +1,5 @@
 set noparent
-filter=-build/include,-readability/todo,-whitespace/comments,-build/c++11
+filter=-build/include,-readability/todo,-whitespace/comments,-build/c++11,-runtime/references
 linelength=120 
 extensions=cc
 headers=h

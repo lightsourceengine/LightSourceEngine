@@ -115,23 +115,13 @@ std::shared_ptr<stbtt_fontinfo> LoadFont(const std::vector<std::string>& path, c
     const std::shared_ptr<stbtt_fontinfo> result(
         new stbtt_fontinfo(), [](stbtt_fontinfo* p) { if (p->data) { delete [] p->data; } delete p; });
     const auto resolvedFilename{
-        IsResourceUri(filename) ? FindFile(GetResourceUriPath(filename), {}, path) : fs::path(filename)
+        IsResourceUri(filename) ? FindFile(GetResourceUriPath(filename), {}, path) : filename
     };
-    const FileHandle file(fopen(resolvedFilename.c_str(), "rb"), fclose);
+    const auto file{ CFile::Open(resolvedFilename) };
+    const auto size{ file.GetSize() };
+    auto ttf{ std::make_unique<uint8_t[]>(size) };
 
-    if (!file) {
-        throw std::runtime_error(("Failed to open ttf file: " + filename).c_str());
-    }
-
-    fseek(file.get(), 0, SEEK_END);
-    const auto size{ static_cast<size_t>(ftell(file.get())) };
-    fseek(file.get(), 0, SEEK_SET);
-
-    std::unique_ptr<uint8_t[]> ttf(new uint8_t[size]);
-
-    if (fread(ttf.get(), 1, size, file.get()) != size) {
-        throw std::runtime_error(("Failed to read file: " + filename).c_str());
-    }
+    file.Read(ttf.get(), size);
 
     const auto offset{ stbtt_GetFontOffsetForIndex(ttf.get(), index) };
 
