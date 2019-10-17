@@ -6,6 +6,8 @@
 
 #pragma once
 
-#include "../repo/include/ghc/filesystem.hpp"
+#include "../../repo/include/ghc/filesystem.hpp"
 
-namespace fs = ghc::filesystem;
+namespace std {
+    namespace filesystem = ghc::filesystem;
+} // namespace std

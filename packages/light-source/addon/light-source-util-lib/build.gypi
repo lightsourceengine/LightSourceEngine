@@ -11,7 +11,6 @@
         "../napi-ext-lib",
         "../logger-lib",
         "../deps/filesystem/include",
-        "../deps/fmt/repo/include",
       ],
       "sources": [
         "ls/FileSystem.cc",
@@ -32,8 +31,8 @@
             ".",
             "../napi-ext-lib",
             "../logger-lib",
+            "../cpp-compat",
             "../deps/filesystem/include",
-            "../deps/fmt/repo/include",
             "<!@(node -p \"require('napi-unit').include\")"
           ],
           "dependencies": [

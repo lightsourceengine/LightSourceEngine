@@ -6,11 +6,12 @@
 
 #include <napi-unit.h>
 #include <ls/FileSystem.h>
-#include <fs.h>
+#include <compat/filesystem>
 
 using Napi::Assert;
 using Napi::TestSuite;
 using ls::internal::HasExtension;
+namespace fs = std::filesystem;
 
 namespace ls {
 
