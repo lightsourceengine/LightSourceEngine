@@ -7,7 +7,6 @@
 #include "FileSystem.h"
 #include "Format.h"
 #include <cstring>
-#include <sys/stat.h>
 #include <compat/filesystem>
 
 constexpr auto DATA_URI_PREFIX = "data:";

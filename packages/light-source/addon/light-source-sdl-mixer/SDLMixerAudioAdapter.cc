@@ -28,9 +28,8 @@ using Napi::Value;
 namespace ls {
 
 SDL_RWops* LoadRW(Napi::Env env, const Napi::Value& value);
-void FillVector(std::vector<std::string>* destination,
-        std::function<const char*(int32_t)> get, std::function<int32_t()> len);
-float ConstrainVolume(float volume);
+void FillVector(std::vector<std::string>* destination, std::function<const char*(int32_t)> get, int32_t len) noexcept;
+float ConstrainVolume(float volume) noexcept;
 int32_t GetFadeOutMs(const CallbackInfo& info);
 int32_t GetFadeInMs(const CallbackInfo& info);
 int32_t GetLoops(const CallbackInfo& info);
@@ -83,7 +82,7 @@ class SDLMixerSampleAudioSource : public ObjectWrap<SDLMixerSampleAudioSource>, 
 
     void SetVolume(const Napi::CallbackInfo& info, const Napi::Value& value) override {
         if (this->chunk) {
-            auto volume{ ConstrainVolume(info[0].As<Number>().FloatValue()) };
+            const auto volume{ ConstrainVolume(info[0].As<Number>().FloatValue()) };
 
             Mix_VolumeChunk(this->chunk, static_cast<int32_t>(volume * MIX_MAX_VOLUME_F));
         }
@@ -133,10 +132,7 @@ class SDLMixerSampleAudioDestination : public ObjectWrap<SDLMixerSampleAudioDest
  public:
     explicit SDLMixerSampleAudioDestination(const CallbackInfo& info)
             : ObjectWrap<SDLMixerSampleAudioDestination>(info) {
-        FillVector(
-            &this->decoders,
-            &Mix_GetChunkDecoder,
-            &Mix_GetNumChunkDecoders);
+        FillVector(&this->decoders, &Mix_GetChunkDecoder, Mix_GetNumChunkDecoders());
     }
 
     virtual ~SDLMixerSampleAudioDestination() = default;
@@ -240,8 +236,8 @@ class SDLMixerStreamAudioSource : public ObjectWrap<SDLMixerStreamAudioSource>, 
 
     void Play(const CallbackInfo& info) override {
         if (this->music) {
+            const auto fadeInMs{ GetFadeInMs(info) };
             int32_t result;
-            auto fadeInMs{ GetFadeInMs(info) };
 
             if (fadeInMs > 0) {
                 result = Mix_FadeInMusic(this->music, GetLoops(info) - 1, fadeInMs);
@@ -271,10 +267,7 @@ class SDLMixerStreamAudioDestination : public ObjectWrap<SDLMixerStreamAudioDest
  public:
     explicit SDLMixerStreamAudioDestination(const CallbackInfo& info)
             : ObjectWrap<SDLMixerStreamAudioDestination>(info) {
-        FillVector(
-            &this->decoders,
-            &Mix_GetMusicDecoder,
-            &Mix_GetNumMusicDecoders);
+        FillVector(&this->decoders, &Mix_GetMusicDecoder, Mix_GetNumMusicDecoders());
     }
 
     virtual ~SDLMixerStreamAudioDestination() = default;
@@ -373,9 +366,7 @@ void SDLMixerAudioAdapter::Attach(const CallbackInfo& info) {
         [](int32_t i) -> const char* {
             return SDL_GetAudioDeviceName(i, 0);
         },
-        []() -> int32_t {
-            return SDL_GetNumAudioDevices(0);
-        });
+        SDL_GetNumAudioDevices(0));
 
     this->isAttached = true;
 }
@@ -442,30 +433,23 @@ SDL_RWops* LoadRW(Napi::Env env, const Napi::Value& value) {
     return src;
 }
 
-void FillVector(std::vector<std::string>* destination,
-        std::function<const char*(int32_t)> get, std::function<int32_t()> len) {
-    auto count{ len() };
-
+void FillVector(std::vector<std::string>* destination, const std::function<const char*(int32_t)>& get,
+        const int32_t len) noexcept {
     destination->clear();
-    destination->reserve(count);
+    destination->reserve(len);
 
-    for (auto i{0}; i < count; i++) {
-        auto str{ get(i) };
+    for (int32_t i{0}; i < len; i++) {
+        const auto str{ get(i) };
+
         destination->emplace_back(str ? str : "");
     }
 }
 
-float ConstrainVolume(float volume) {
-    if (volume < 0) {
-        return 0.f;
-    } else if (volume > 1.f) {
-        return 1.f;
-    }
-
-    return volume;
+float ConstrainVolume(const float volume) noexcept {
+    return std::max(0.f, std::min(volume, 1.f));
 }
 
-int32_t GetPropertyAsInt(const CallbackInfo& info, const char* property, int32_t defaultValue) {
+int32_t GetPropertyAsInt(const CallbackInfo& info, const char* property, const int32_t defaultValue) {
     if (info.Length() > 0 && info[0].IsObject()) {
         HandleScope scope(info.Env());
         auto opts{ info[0].As<Object>() };

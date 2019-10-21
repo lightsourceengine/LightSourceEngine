@@ -182,7 +182,7 @@ bool TextSceneNode::SetFont(Style* style) {
             dirty = true;
             break;
         default:
-            this->fontResource->AddListener([this, ptr = this->fontResource.Get(), fontSize]() {
+            this->fontResource.Listen([this, ptr = this->fontResource.Get(), fontSize]() {
                 if (this->fontResource != ptr) {
                     return;
                 }
@@ -198,6 +198,7 @@ bool TextSceneNode::SetFont(Style* style) {
                         return;
                 }
 
+                this->fontResource.Unlisten();
                 YGNodeMarkDirty(this->ygNode);
             });
             break;

@@ -20,7 +20,7 @@ void ImageStore::Attach(Scene* scene) noexcept {
     this->scene = scene;
 
     for (const auto& entry : this->resources) {
-        entry.second->Attach(this->scene);
+        entry.second->Attach(scene);
     }
 }
 

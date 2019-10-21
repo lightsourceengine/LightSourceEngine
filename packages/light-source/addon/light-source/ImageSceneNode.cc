@@ -7,7 +7,6 @@
 #include "ImageSceneNode.h"
 #include "ImageStore.h"
 #include "YGNode.h"
-#include "Scene.h"
 #include "Style.h"
 #include "StyleUtils.h"
 #include "yoga-ext.h"

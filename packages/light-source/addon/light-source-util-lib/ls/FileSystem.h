@@ -24,7 +24,7 @@ class CFile {
     std::size_t GetSize() const noexcept;
     std::size_t Read(uint8_t* buffer, const std::size_t byteCount) const;
     void Reset() const noexcept;
-    operator FILE*() const { return this->file; }
+    explicit operator FILE*() const { return this->file; }
 
  private:
     FILE* file;

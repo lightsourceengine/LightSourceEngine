@@ -66,10 +66,10 @@ Value ImageStoreView::List(const CallbackInfo& info) {
     EscapableHandleScope scope{env};
     auto imageList{ Array::New(env) };
 
-    this->scene->GetImageStore()->ForEach([&](std::shared_ptr<ImageResource> resource) {
+    this->scene->GetImageStore()->ForEach([&](const std::shared_ptr<ImageResource>& resource) {
         auto info{ resource->ToObject(env).As<Object>() };
 
-        info["refs"] = Number::New(env, resource.use_count() - 2);
+        info["refs"] = Number::New(env, static_cast<int32_t >(resource.use_count() - 2));
 
         imageList[imageList.Length()] = info;
     });
@@ -99,7 +99,8 @@ void ImageStoreView::SetExtensions(const CallbackInfo& info, const Napi::Value& 
     } else if (value.IsArray()) {
         auto array{ value.As<Array>() };
         auto size{ array.Length() };
-        std::vector<std::string> extensions(size);
+
+        extensions.reserve(size);
 
         for (decltype(size) i = 0; i < size; i++) {
             extensions.push_back(array.Get(i).As<String>().Utf8Value());

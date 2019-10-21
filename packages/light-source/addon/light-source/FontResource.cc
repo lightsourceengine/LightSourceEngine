@@ -28,7 +28,7 @@ void FontResource::Load(Stage* stage) {
     this->fontLoadingTask.Cancel();
 
     const auto uri{ this->uri };
-    const auto index{ this-> index };
+    const auto index{ this->index };
     const auto path{ stage->GetResourcePath() };
 
     auto execute = [path, uri, index]() -> std::shared_ptr<stbtt_fontinfo> {
@@ -113,7 +113,7 @@ std::shared_ptr<Font> FontResource::GetFont(int32_t fontSize) const {
 std::shared_ptr<stbtt_fontinfo> LoadFont(const std::vector<std::string>& path, const std::string& filename,
         const int32_t index) {
     const std::shared_ptr<stbtt_fontinfo> result(
-        new stbtt_fontinfo(), [](stbtt_fontinfo* p) { if (p->data) { delete [] p->data; } delete p; });
+        new stbtt_fontinfo(), [](stbtt_fontinfo* p) { delete [] p->data; delete p; });
     const auto resolvedFilename{
         IsResourceUri(filename) ? FindFile(GetResourceUriPath(filename), {}, path) : filename
     };

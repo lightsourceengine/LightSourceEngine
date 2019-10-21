@@ -124,7 +124,7 @@ Value FontStoreView::List(const CallbackInfo& info) {
     auto fontList{ Array::New(env) };
     auto fontStore{ this->stage->GetFontStore() };
 
-    fontStore->ForEach([&](std::shared_ptr<FontResource> resource) {
+    fontStore->ForEach([&](const std::shared_ptr<FontResource>& resource) {
         HandleScope scope(env);
         auto font{ Object::New(env) };
 
@@ -134,7 +134,7 @@ Value FontStoreView::List(const CallbackInfo& info) {
         font["uri"] = String::New(env, resource->GetUri());
         font["index"] = Number::New(env, resource->GetIndex());
         font["state"] = String::New(env, ResourceStateToString(resource->GetState()));
-        font["refs"] = Number::New(env, resource.use_count() - 1);
+        font["refs"] = Number::New(env, static_cast<int32_t>(resource.use_count() - 1));
 
         fontList[fontList.Length()] = font;
     });

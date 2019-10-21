@@ -7,7 +7,6 @@
 #include "SDLAudioAdapter.h"
 #include <ls/BaseAudioSource.h>
 #include <ls/BaseAudioDestination.h>
-#include <napi-ext.h>
 #include <ls/Format.h>
 
 using Napi::Boolean;

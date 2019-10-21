@@ -50,8 +50,8 @@ class Resource {
  protected:
     enum DispatchState : uint8_t {
         DispatchStateIdle = 0,
-        DispatchStateDispatching = 1 << 0,
-        DispatchStateHasRemovals = 1 << 1,
+        DispatchStateDispatching = 1u << 0u,
+        DispatchStateHasRemovals = 1u << 1u,
     };
 
     IdType id;
@@ -64,6 +64,7 @@ class Resource {
 template<typename R>
 class ResourceLink {
  public:
+    ~ResourceLink() noexcept;
     R* Get() const noexcept;
     void Listen(ResourceStateChangeFunction&& listener);
     void Unlisten();
@@ -201,6 +202,11 @@ R* ResourceLink<R>::operator->() const noexcept {
 template<typename R>
 ResourceLink<R>::operator bool() const noexcept {
     return !!this->resource;
+}
+
+template<typename R>
+ResourceLink<R>::~ResourceLink() noexcept {
+    this->Unlisten();
 }
 
 template<typename R>
