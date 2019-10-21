@@ -194,7 +194,7 @@ static Surface DecodeImage(const ImageUri& uri, const std::vector<std::string>& 
             file.Reset();
 
             image = DecodeImageSvg(
-                nsvgParseFromFilePtr(file, "px", 96),
+                nsvgParseFromFilePtr(static_cast<FILE*>(file), "px", 96),
                 uriOrFilename,
                 uri.GetWidth(),
                 uri.GetHeight());
@@ -202,7 +202,7 @@ static Surface DecodeImage(const ImageUri& uri, const std::vector<std::string>& 
             int32_t components{};
             int32_t width{};
             int32_t height{};
-            const auto data{ stbi_load_from_file(file, &width, &height, &components, 4) };
+            const auto data{ stbi_load_from_file(static_cast<FILE*>(file), &width, &height, &components, 4) };
 
             if (data) {
                 image = {
