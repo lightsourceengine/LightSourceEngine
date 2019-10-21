@@ -160,7 +160,6 @@ void ImageSceneNode::Paint(Renderer* renderer) {
         + YGNodeLayoutGetPadding(this->ygNode, YGEdgeBottom)) };
     const auto fitDimensions{ CalculateObjectFitDimensions(boxStyle->objectFit(), this->image.Get(), width, height) };
     const auto clip{ fitDimensions.width > width || fitDimensions.height > height };
-    const auto textureId{ this->image->GetTextureId() };
     const Rect destRect{
         YGRoundValueToPixelGrid(x + CalculateObjectPosition(
             boxStyle->objectPositionX(), true, width, fitDimensions.width, 0.5f, this->scene)),
@@ -176,9 +175,9 @@ void ImageSceneNode::Paint(Renderer* renderer) {
     }
 
     if (this->image->HasCapInsets()) {
-        renderer->DrawImage(textureId, destRect, this->image->GetCapInsets(), tintColor);
+        renderer->DrawImage(this->image->GetTexture(), destRect, this->image->GetCapInsets(), tintColor);
     } else {
-        renderer->DrawImage(textureId, destRect, tintColor);
+        renderer->DrawImage(this->image->GetTexture(), destRect, tintColor);
     }
 
     if (clip) {

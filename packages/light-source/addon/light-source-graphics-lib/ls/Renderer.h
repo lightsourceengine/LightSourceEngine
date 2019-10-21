@@ -8,6 +8,7 @@
 
 #include <ls/Rect.h>
 #include <ls/Surface.h>
+#include <ls/Texture.h>
 #include <ls/PixelFormat.h>
 #include <cstdint>
 #include <memory>
@@ -22,6 +23,13 @@ class Renderer {
     virtual ~Renderer() = default;
 
     /**
+     * Sets the target texture of the renderer.
+     *
+     * If nullptr, the renderer is resets the render target to the screen.
+     */
+    virtual bool SetRenderTarget(std::shared_ptr<Texture> renderTarget) = 0;
+
+    /**
      * Width of renderable area in pixels.
      */
     virtual int32_t GetWidth() const = 0;
@@ -32,11 +40,9 @@ class Renderer {
     virtual int32_t GetHeight() const = 0;
 
     /**
-     * Prepares this Renderer for rendering.
-     *
-     * The registration point is set to 0,0 and the clip rect is cleared.
+     * Get the pixel format for all new textures.
      */
-    virtual void Reset() = 0;
+    virtual PixelFormat GetTextureFormat() const = 0;
 
     /**
      * Finish rendering and copy the result to the screen.
@@ -87,7 +93,7 @@ class Renderer {
     /**
      * Draw an image.
      */
-    virtual void DrawImage(const uint32_t textureId, const Rect& rect, const int64_t tintColor) = 0;
+    virtual void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const int64_t tintColor) = 0;
 
     /**
      * Draw an image with end-cap insets.
@@ -96,14 +102,14 @@ class Renderer {
      * are rendered 1:1. The areas between the end-caps and the middle are stretched to fill in the remainder of the
      * destination rect area.
      */
-    virtual void DrawImage(
-        const uint32_t textureId, const Rect& rect, const EdgeRect& capInsets, const uint32_t tintColor) = 0;
+    virtual void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const EdgeRect& capInsets,
+        const uint32_t tintColor) = 0;
 
     /**
      * Draw a portion of an image.
      */
-    virtual void DrawQuad(
-        const uint32_t textureId, const Rect& srcRect, const Rect& destRect, const int64_t tintColor) = 0;
+    virtual void DrawQuad(const std::shared_ptr<Texture>& texture, const Rect& srcRect, const Rect& destRect,
+        const int64_t tintColor) = 0;
 
     /**
      * Clear the entire renderable area with the specified color.
@@ -111,46 +117,33 @@ class Renderer {
     virtual void ClearScreen(const int64_t color) = 0;
 
     /**
-     * Create a new texture.
+     * Create a texture that can be used as a render target.
+     *
+     * Render targets cannot be updated or locked.
      *
      * @param width Width, in pixels, of new texture.
      * @param height Height, in pixels, of new texture.
-     * @return 0 - Failed to create a texture; > 0 - Texture created successfully
+     * @return texture on success; nullptr if texture could not be created
      */
-    virtual uint32_t CreateTexture(const int32_t width, const int32_t height) = 0;
+    virtual std::shared_ptr<Texture> CreateRenderTarget(const int32_t width, const int32_t height) = 0;
 
     /**
      * Create a new texture from a surface.
      *
      * The surface format must be PixelFormatAlpha or GetTextureFormat().
      *
-     * @return 0 - Failed to create a texture; > 0 - Texture created successfully
+     * @return texture on success; nullptr if texture could not be created
      */
-    virtual uint32_t CreateTexture(const Surface& surface) = 0;
+    virtual std::shared_ptr<Texture> CreateTextureFromSurface(const Surface& surface) = 0;
 
     /**
-     * Destroy a texture.
-     */
-    virtual void DestroyTexture(const uint32_t textureId) = 0;
-
-    /**
-     * Get write only access to a texture's pixels.
+     * Create a new texture.
      *
-     * Do not use this method to read texture pixel data. The pixel data buffer may or may not contain the latest
-     * state of the texture (for performance reasons). This method is only for writing data into a texture.
-     *
-     * To release access to this texture's pixels, call Surface destructor by letting the return value
-     * fall out of scope. Note, the pixels must be unlocked before rendering this texture.
-     *
-     * @param textureId Texture to lock.
-     * @return Writable surface. If texture does not exist, surface will be empty.
+     * @param width Width, in pixels, of new texture.
+     * @param height Height, in pixels, of new texture.
+     * @return texture on success; nullptr if texture could not be created
      */
-    virtual Surface LockTexture(const uint32_t textureId) = 0;
-
-    /**
-     * Get the pixel format for all new textures.
-     */
-    virtual PixelFormat GetTextureFormat() const = 0;
+    virtual std::shared_ptr<Texture> CreateTexture(const int32_t width, const int32_t height) = 0;
 };
 
 } // namespace ls

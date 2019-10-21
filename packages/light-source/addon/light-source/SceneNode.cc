@@ -149,7 +149,7 @@ void SceneNode::OnViewportSizeChange() {
     }
 
     for (auto child : this->children) {
-        child->OnRootFontSizeChange();
+        child->OnViewportSizeChange();
     }
 }
 

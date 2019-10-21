@@ -172,7 +172,7 @@ void Scene::Frame(const CallbackInfo& info) {
         return;
     }
 
-    renderer->Reset();
+    renderer->SetRenderTarget(nullptr);
     this->root->Paint(renderer);
     renderer->Present();
 }

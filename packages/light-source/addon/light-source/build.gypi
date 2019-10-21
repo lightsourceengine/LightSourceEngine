@@ -51,7 +51,6 @@
         "FontResource.cc",
         "Layer.cc",
         "LayerCache.cc",
-        "LayerResource.cc",
         "TextBlock.cc",
         "SceneNode.cc",
         "RootSceneNode.cc",

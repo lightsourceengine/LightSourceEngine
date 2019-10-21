@@ -5,33 +5,21 @@
  */
 
 #include "SDLRenderer.h"
+#include "SDLTexture.h"
+#include "SDLUtil.h"
 #include <array>
 #include <cassert>
 #include <ls/PixelConversion.h>
 #include <ls/Endian.h>
 #include <ls/Log.h>
 #include <ls/Format.h>
+#include <ls/Log.h>
 
 namespace ls {
 
-SDL_Rect GetRendererSize(SDL_Renderer* renderer);
-void SetTextureTintColor(SDL_Texture* texture, const int64_t color);
-constexpr PixelFormat ToPixelFormat(Uint32 pixelFormat) {
-    switch (pixelFormat) {
-        case SDL_PIXELFORMAT_ARGB8888:
-            return PixelFormatARGB;
-        case SDL_PIXELFORMAT_RGBA8888:
-            return PixelFormatRGBA;
-        case SDL_PIXELFORMAT_ABGR8888:
-            return PixelFormatABGR;
-        case SDL_PIXELFORMAT_BGRA8888:
-            return PixelFormatBGRA;
-        default:
-            return PixelFormatUnknown;
-    }
-}
+static void SetTextureTintColor(SDL_Texture* texture, const int64_t color) noexcept;
+static SDL_Texture* ToRawTexture(const std::shared_ptr<Texture>& texture) noexcept;
 
-uint32_t SDLRenderer::nextTextureId{ 1 };
 constexpr int64_t COLOR32{ 0xFFFFFFFF };
 
 SDLRenderer::SDLRenderer() {
@@ -66,24 +54,6 @@ void SDLRenderer::UpdateTextureFormats(const SDL_RendererInfo& info) {
     }
 
     this->textureFormat = ToPixelFormat(this->sdlTextureFormat);
-}
-
-int32_t SDLRenderer::GetWidth() const {
-    return GetRendererSize(this->renderer).w;
-}
-
-int32_t SDLRenderer::GetHeight() const {
-    return GetRendererSize(this->renderer).h;
-}
-
-void SDLRenderer::Reset() {
-    this->xOffset = this->yOffset = 0;
-    this->clipRectStack.clear();
-    this->offsetStack.clear();
-    SDL_RenderSetClipRect(this->renderer, nullptr);
-    SDL_SetRenderDrawBlendMode(this->renderer, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(this->renderer, 255, 255, 255, 255);
-    this->drawColor = 0xFFFFFFFF;
 }
 
 void SDLRenderer::Present() {
@@ -173,10 +143,10 @@ void SDLRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const int
     SDL_RenderFillRects(this->renderer, &tempRect[0], 4);
 }
 
-void SDLRenderer::DrawImage(const uint32_t textureId, const Rect& rect, const int64_t tintColor) {
-    auto it{ this->textures.find(textureId) };
+void SDLRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const int64_t tintColor) {
+    auto texturePtr{ ToRawTexture(texture) };
 
-    if (it == this->textures.end()) {
+    if (!texturePtr) {
         return;
     }
 
@@ -187,16 +157,16 @@ void SDLRenderer::DrawImage(const uint32_t textureId, const Rect& rect, const in
         static_cast<int32_t>(rect.height),
     };
 
-    SetTextureTintColor(it->second, tintColor);
+    SetTextureTintColor(texturePtr, tintColor);
 
-    SDL_RenderCopy(this->renderer, it->second, nullptr, &tempRect);
+    SDL_RenderCopy(this->renderer, texturePtr, nullptr, &tempRect);
 }
 
-void SDLRenderer::DrawImage(const uint32_t textureId, const Rect& rect, const EdgeRect& capInsets,
+void SDLRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const EdgeRect& capInsets,
         const uint32_t tintColor) {
-    auto it{ this->textures.find(textureId) };
+    auto texturePtr{ ToRawTexture(texture) };
 
-    if (it == this->textures.end()) {
+    if (!texturePtr) {
         return;
     }
 
@@ -209,34 +179,33 @@ void SDLRenderer::DrawImage(const uint32_t textureId, const Rect& rect, const Ed
     int32_t textureHeight;
     SDL_Rect srcRect;
     SDL_Rect destRect;
-    auto texture{ it->second };
 
-    SetTextureTintColor(texture, tintColor);
-    SDL_QueryTexture(texture, nullptr, nullptr, &textureWidth, &textureHeight);
+    SetTextureTintColor(texturePtr, tintColor);
+    SDL_QueryTexture(texturePtr, nullptr, nullptr, &textureWidth, &textureHeight);
 
     // Top row
 
     srcRect = { 0, 0, capInsets.left, capInsets.top };
     destRect = { x, y, capInsets.left, capInsets.top };
 
-    SDL_RenderCopy(this->renderer, texture, &srcRect, &destRect);
+    SDL_RenderCopy(this->renderer, texturePtr, &srcRect, &destRect);
 
     srcRect = { capInsets.left, 0, textureWidth - capInsets.left - capInsets.right, capInsets.top };
     destRect = { x + capInsets.left, y, width - capInsets.left - capInsets.right, capInsets.top };
 
-    SDL_RenderCopy(this->renderer, texture, &srcRect, &destRect);
+    SDL_RenderCopy(this->renderer, texturePtr, &srcRect, &destRect);
 
     srcRect = { textureWidth - capInsets.right, 0, capInsets.right, capInsets.top };
     destRect = { x + width - capInsets.right, y, capInsets.right, capInsets.top };
 
-    SDL_RenderCopy(this->renderer, texture, &srcRect, &destRect);
+    SDL_RenderCopy(this->renderer, texturePtr, &srcRect, &destRect);
 
     // Middle row
 
     srcRect = { 0, capInsets.top, capInsets.left, textureHeight - capInsets.top - capInsets.bottom };
     destRect = { x, y + capInsets.top, capInsets.left, height - capInsets.top - capInsets.bottom };
 
-    SDL_RenderCopy(this->renderer, texture, &srcRect, &destRect);
+    SDL_RenderCopy(this->renderer, texturePtr, &srcRect, &destRect);
 
     srcRect = {
         capInsets.left,
@@ -251,7 +220,7 @@ void SDLRenderer::DrawImage(const uint32_t textureId, const Rect& rect, const Ed
         height - capInsets.top - capInsets.bottom
     };
 
-    SDL_RenderCopy(this->renderer, texture, &srcRect, &destRect);
+    SDL_RenderCopy(this->renderer, texturePtr, &srcRect, &destRect);
 
     srcRect = {
         textureWidth - capInsets.right,
@@ -266,14 +235,14 @@ void SDLRenderer::DrawImage(const uint32_t textureId, const Rect& rect, const Ed
         height - capInsets.top - capInsets.bottom
     };
 
-    SDL_RenderCopy(this->renderer, texture, &srcRect, &destRect);
+    SDL_RenderCopy(this->renderer, texturePtr, &srcRect, &destRect);
 
     // Bottom row
 
     srcRect = { 0, textureHeight - capInsets.bottom, capInsets.left, capInsets.bottom };
     destRect = { x, y + height - capInsets.bottom, capInsets.left, capInsets.bottom };
 
-    SDL_RenderCopy(this->renderer, texture, &srcRect, &destRect);
+    SDL_RenderCopy(this->renderer, texturePtr, &srcRect, &destRect);
 
     srcRect = {
         capInsets.left,
@@ -288,19 +257,19 @@ void SDLRenderer::DrawImage(const uint32_t textureId, const Rect& rect, const Ed
         capInsets.bottom
     };
 
-    SDL_RenderCopy(this->renderer, texture, &srcRect, &destRect);
+    SDL_RenderCopy(this->renderer, texturePtr, &srcRect, &destRect);
 
     srcRect = { textureWidth - capInsets.right, textureHeight - capInsets.bottom, capInsets.right, capInsets.bottom };
     destRect = { x + width - capInsets.right, y + height - capInsets.bottom, capInsets.right, capInsets.bottom };
 
-    SDL_RenderCopy(this->renderer, texture, &srcRect, &destRect);
+    SDL_RenderCopy(this->renderer, texturePtr, &srcRect, &destRect);
 }
 
-void SDLRenderer::DrawQuad(const uint32_t textureId, const Rect& srcRect, const Rect& destRect,
+void SDLRenderer::DrawQuad(const std::shared_ptr<Texture>& texture, const Rect& srcRect, const Rect& destRect,
         const int64_t tintColor) {
-    auto it{ this->textures.find(textureId) };
+    SDL_Texture* texturePtr{ ToRawTexture(texture) };
 
-    if (it == this->textures.end()) {
+    if (!texturePtr) {
         return;
     }
 
@@ -318,9 +287,9 @@ void SDLRenderer::DrawQuad(const uint32_t textureId, const Rect& srcRect, const 
         static_cast<int32_t>(destRect.height),
     };
 
-    SetTextureTintColor(it->second, tintColor);
+    SetTextureTintColor(texturePtr, tintColor);
 
-    SDL_RenderCopy(this->renderer, it->second, &src, &dest);
+    SDL_RenderCopy(this->renderer, texturePtr, &src, &dest);
 }
 
 void SDLRenderer::ClearScreen(const int64_t color) {
@@ -328,136 +297,36 @@ void SDLRenderer::ClearScreen(const int64_t color) {
     SDL_RenderClear(this->renderer);
 }
 
-uint32_t SDLRenderer::CreateTexture(const int32_t width, const int32_t height) {
-    auto texture{
-        SDL_CreateTexture(this->renderer, this->sdlTextureFormat, SDL_TEXTUREACCESS_STREAMING, width, height)
-    };
-
-    if (!texture) {
-        LOG_ERROR("Failed to create texture: %s", SDL_GetError());
-
-        return 0;
+bool SDLRenderer::SetRenderTarget(std::shared_ptr<Texture> renderTarget) {
+    if (SDL_SetRenderTarget(this->renderer, ToRawTexture(this->renderTarget)) != 0) {
+        LOG_ERROR(SDL_GetError());
+        return false;
     }
 
-    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    this->renderTarget = renderTarget;
+    this->xOffset = this->yOffset = 0;
+    this->clipRectStack.clear();
+    this->offsetStack.clear();
+    SDL_RenderSetClipRect(this->renderer, nullptr);
+    SDL_SetRenderDrawBlendMode(this->renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(this->renderer, 255, 255, 255, 255);
+    this->drawColor = 0xFFFFFFFF;
 
-    auto textureId{ nextTextureId++ };
-
-    this->textures[textureId] = texture;
-
-    return textureId;
+    return true;
 }
 
-uint32_t SDLRenderer::CreateTexture(const Surface& source) {
-    if (source.IsEmpty()) {
-        return 0;
-    }
-
-    const auto format{ source.Format() };
-    const auto width{ source.Width() };
-    const auto height{ source.Height() };
-
-    assert(format == this->textureFormat || format == PixelFormatAlpha);
-
-    const auto textureId{ this->CreateTexture(width, height) };
-
-    if (!textureId) {
-        return 0;
-    }
-
-    auto texture{ this->textures[textureId] };
-
-    void* pixels{};
-    int pitch{};
-
-    if (SDL_LockTexture(texture, nullptr, &pixels, &pitch) == 0) {
-        const auto stride{ width * 4 };
-        auto sourcePixels{ source.Pixels() };
-
-        auto dest{ reinterpret_cast<uint8_t*>(pixels) };
-        auto copied{ true };
-
-        if (format == this->textureFormat) {
-            if (pitch == stride) {
-                memcpy(dest, sourcePixels, stride * height);
-            } else {
-                for (auto h{ 0 }; h < height; h++) {
-                    memcpy(&dest[h*pitch], sourcePixels, stride);
-                    sourcePixels += stride;
-                }
-            }
-        } else if (format == PixelFormatAlpha) {
-            for (int32_t h{ 0 }; h < height; h++) {
-                const auto destRow{ reinterpret_cast<int32_t*>(&dest[h*pitch]) };
-                for (int32_t w{ 0 }; w < width; w++) {
-                    const auto component{ *sourcePixels++ }; // NOLINT(readability/pointer_notation)
-
-                    destRow[w] = (component << 24) | (component << 16) | (component << 8) | component;
-                }
-            }
-        } else {
-            copied = false;
-        }
-
-        SDL_UnlockTexture(texture);
-
-        if (copied) {
-            return textureId;
-        }
-    }
-
-    SDL_DestroyTexture(texture);
-
-    return 0;
+std::shared_ptr<Texture> SDLRenderer::CreateRenderTarget(const int32_t width, const int32_t height) {
+    return std::static_pointer_cast<Texture>(std::make_shared<SDLTexture>(
+        this, width, height, SDL_TEXTUREACCESS_TARGET));
 }
 
-Surface SDLRenderer::LockTexture(const uint32_t textureId) {
-    void* pixels{nullptr};
-    int32_t textureWidth{0};
-    int32_t textureHeight{0};
-    int32_t texturePitch{0};
-
-    auto it{ this->textures.find(textureId) };
-
-    if (it == this->textures.end()) {
-        return {};
-    }
-
-    if (SDL_QueryTexture(it->second, nullptr, nullptr, &textureWidth, &textureHeight) != 0) {
-        return {};
-    }
-
-    if (SDL_LockTexture(it->second, nullptr, &pixels, &texturePitch) != 0) {
-        return {};
-    }
-
-    auto deleter = [this, textureId](uint8_t* data) {
-        auto it{ this->textures.find(textureId) };
-
-        if (it != this->textures.end()) {
-            SDL_UnlockTexture(it->second);
-        }
-    };
-
-    return {
-        std::shared_ptr<uint8_t>(reinterpret_cast<uint8_t*>(pixels), deleter),
-        textureWidth,
-        textureHeight,
-        texturePitch,
-        this->GetTextureFormat()
-    };
+std::shared_ptr<Texture> SDLRenderer::CreateTextureFromSurface(const Surface& surface) {
+    return std::static_pointer_cast<Texture>(std::make_shared<SDLTexture>(this, surface, SDL_TEXTUREACCESS_STATIC));
 }
 
-void SDLRenderer::DestroyTexture(const uint32_t textureId) {
-    auto it{ this->textures.find(textureId) };
-
-    if (it == this->textures.end()) {
-        return;
-    }
-
-    SDL_DestroyTexture(it->second);
-
-    this->textures.erase(textureId);
+std::shared_ptr<Texture> SDLRenderer::CreateTexture(const int32_t width, const int32_t height) {
+    return std::static_pointer_cast<Texture>(std::make_shared<SDLTexture>(
+        this, width, height, SDL_TEXTUREACCESS_STREAMING));
 }
 
 void SDLRenderer::SetRenderDrawColor(const int64_t color) {
@@ -492,6 +361,8 @@ void SDLRenderer::Attach(SDL_Window* window) {
         throw std::runtime_error(Format("Failed to create an SDL renderer. SDL Error: %s", SDL_GetError()));
     }
 
+    SDL_GetRendererOutputSize(renderer, &this->width, &this->height);
+
     SDL_RendererInfo info{};
 
     if (SDL_GetRenderDriverInfo(driverIndex, &info) == 0) {
@@ -517,31 +388,20 @@ void SDLRenderer::Detach() {
         return;
     }
 
-    for (auto& p : this->textures) {
-        SDL_DestroyTexture(p.second);
-    }
-
-    this->textures.clear();
+    this->renderTarget = nullptr;
 
     SDL_DestroyRenderer(this->renderer);
+
     this->renderer = nullptr;
+    this->width = 0;
+    this->height = 0;
 }
 
 void SDLRenderer::Destroy() {
     this->Detach();
 }
 
-SDL_Rect GetRendererSize(SDL_Renderer* renderer) {
-    SDL_Rect rect{};
-
-    if (renderer) {
-        SDL_GetRendererOutputSize(renderer, &rect.w, &rect.h);
-    }
-
-    return rect;
-}
-
-void SetTextureTintColor(SDL_Texture* texture, const int64_t color) {
+static void SetTextureTintColor(SDL_Texture* texture, const int64_t color) noexcept {
     // TODO: consider opacity
     if (IsBigEndian()) {
         SDL_SetTextureColorMod(texture, (color & 0xFF00) >> 8, (color & 0xFF0000) >> 16, (color & 0xFF000000) >> 24);
@@ -549,6 +409,14 @@ void SetTextureTintColor(SDL_Texture* texture, const int64_t color) {
     } else {
         SDL_SetTextureColorMod(texture, (color & 0xFF0000) >> 16, (color & 0xFF00) >> 8, color & 0xFF);
         SDL_SetTextureAlphaMod(texture, color > COLOR32 ? static_cast<uint8_t>((color & 0xFF000000) >> 24) : 255);
+    }
+}
+
+static SDL_Texture* ToRawTexture(const std::shared_ptr<Texture>& texture) noexcept {
+    if (texture) {
+        return static_cast<SDLTexture*>(texture.get())->ToRawTexture();
+    } else {
+        return nullptr;
     }
 }
 

@@ -90,15 +90,15 @@ void TextSceneNode::Paint(Renderer* renderer) {
     if (this->layer->IsDirty()) {
         Timer t{ "text paint" };
 
-        const auto textureId{ this->layer->Sync(static_cast<int32_t>(width), static_cast<int32_t>(height)) };
+        const auto texture{ this->layer->Sync(static_cast<int32_t>(width), static_cast<int32_t>(height)) };
 
-        if (!textureId) {
+        if (!texture) {
             return;
         }
 
         t.Log();
 
-        auto surface{ renderer->LockTexture(textureId) };
+        auto surface{ texture->Lock() };
 
         t.Log();
 

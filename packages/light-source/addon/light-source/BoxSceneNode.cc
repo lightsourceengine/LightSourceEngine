@@ -75,7 +75,7 @@ void BoxSceneNode::Paint(Renderer* renderer) {
 
     if (this->roundedRectImage) {
         if (style->backgroundColor() && this->roundedRectImage->Sync(renderer)) {
-            renderer->DrawImage(this->roundedRectImage->GetTextureId(),
+            renderer->DrawImage(this->roundedRectImage->GetTexture(),
                                 { x + dx + 1, y + dy + 1, width + dw - 2, height + dh - 2 },
                                 this->roundedRectImage->GetCapInsets(),
                                 style->backgroundColor()->Get());
@@ -102,7 +102,7 @@ void BoxSceneNode::Paint(Renderer* renderer) {
 
         renderer->PushClipRect({ x + dx, y + dy, width + dw, height + dh });
 
-        const auto textureId{ this->backgroundImage->GetTextureId() };
+        const auto texture{ this->backgroundImage->GetTexture() };
         const Rect destRect{
             YGRoundValueToPixelGrid(positionX),
             YGRoundValueToPixelGrid(positionY),
@@ -113,9 +113,9 @@ void BoxSceneNode::Paint(Renderer* renderer) {
         // TODO: mix opacity
 
         if (this->backgroundImage->HasCapInsets()) {
-            renderer->DrawImage(textureId, destRect, this->backgroundImage->GetCapInsets(), white);
+            renderer->DrawImage(texture, destRect, this->backgroundImage->GetCapInsets(), white);
         } else {
-            renderer->DrawImage(textureId, destRect, white);
+            renderer->DrawImage(texture, destRect, white);
         }
 
         renderer->PopClipRect();
@@ -126,7 +126,7 @@ void BoxSceneNode::Paint(Renderer* renderer) {
     if (this->roundedRectStrokeImage) {
         if (style->borderColor() && this->roundedRectStrokeImage->Sync(renderer)) {
             renderer->DrawImage(
-                this->roundedRectStrokeImage->GetTextureId(),
+                this->roundedRectStrokeImage->GetTexture(),
                 { x + dx, y + dy, width + dw, height + dh },
                 this->roundedRectStrokeImage->GetCapInsets(),
                 *style->borderColor());

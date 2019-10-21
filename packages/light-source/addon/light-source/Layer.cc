@@ -23,16 +23,16 @@ Layer::~Layer() {
     this->layerCache->Remove(this);
 }
 
-uint32_t Layer::Sync(const int32_t width, const int32_t height) noexcept {
+std::shared_ptr<Texture> Layer::Sync(const int32_t width, const int32_t height) noexcept {
     // TODO: limit size to screen
     if (!this->isDirty && this->HasTexture() && this->width == width && this->height == height) {
         return this->GetTexture();
     }
 
     this->isDirty = false;
-    this->textureId = this->scene->GetRenderer()->CreateTexture(width, height);
+    this->texture = this->scene->GetRenderer()->CreateTexture(width, height);
 
-    if (!this->textureId) {
+    if (!this->texture) {
         this->width = this->height = 0;
 
         return 0;
@@ -41,7 +41,7 @@ uint32_t Layer::Sync(const int32_t width, const int32_t height) noexcept {
     this->width = width;
     this->height = height;
 
-    return this->textureId;
+    return this->texture;
 }
 
 void Layer::Attach(Scene* scene) noexcept {
@@ -53,9 +53,8 @@ void Layer::Detach() noexcept {
         return;
     }
 
-    if (this->textureId) {
-        this->scene->GetRenderer()->DestroyTexture(this->textureId);
-        this->textureId = 0;
+    if (this->texture) {
+        this->texture = nullptr;
         this->isDirty = true;
     }
 

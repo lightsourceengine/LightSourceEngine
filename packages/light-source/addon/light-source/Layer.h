@@ -7,11 +7,13 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 namespace ls {
 
 class LayerCache;
 class Scene;
+class Texture;
 
 class Layer {
  public:
@@ -19,9 +21,9 @@ class Layer {
     Layer(LayerCache* layerCache, const int32_t width, const int32_t height);
     virtual ~Layer();
 
-    uint32_t Sync(const int32_t width, const int32_t height) noexcept;
-    uint32_t GetTexture() const noexcept { return this->textureId; }
-    bool HasTexture() const noexcept { return this->textureId > 0; }
+    std::shared_ptr<Texture> Sync(const int32_t width, const int32_t height) noexcept;
+    std::shared_ptr<Texture> GetTexture() const noexcept { return this->texture; }
+    bool HasTexture() const noexcept { return !!this->texture; }
     bool IsDirty() const noexcept { return this->isDirty; }
     void MarkDirty() noexcept { this->isDirty = true; }
 
@@ -33,7 +35,7 @@ class Layer {
     LayerCache* layerCache{};
     int32_t width{};
     int32_t height{};
-    uint32_t textureId{};
+    std::shared_ptr<Texture> texture{};
     Scene* scene{};
     bool isDirty{true};
 

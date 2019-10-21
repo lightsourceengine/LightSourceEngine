@@ -25,6 +25,7 @@
       "sources": [
         "SDLAudioAdapter.cc",
         "SDLRenderer.cc",
+        "SDLTexture.cc",
         "SDLSceneAdapter.cc",
         "SDLStageAdapter.cc",
         "InputDevice.cc",

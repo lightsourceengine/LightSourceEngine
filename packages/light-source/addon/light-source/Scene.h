@@ -59,8 +59,8 @@ class Scene : public Napi::ObjectWrap<Scene> {
     int32_t rootFontSize{0};
     int32_t width{};
     int32_t height{};
-    bool isSizeDirty{false};
-    bool isRootFontSizeDirty{false};
+    bool isSizeDirty{true};
+    bool isRootFontSizeDirty{true};
     bool isAttached{false};
 };
 

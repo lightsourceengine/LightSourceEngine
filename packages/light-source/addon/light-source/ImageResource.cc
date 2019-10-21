@@ -44,11 +44,11 @@ ImageResource::~ImageResource() noexcept {
 }
 
 bool ImageResource::Sync(Renderer* renderer) {
-    if (this->textureId) {
+    if (this->texture) {
         return true;
     }
 
-    if (!this->IsReady() && !this->image.IsEmpty()) {
+    if (!this->IsReady() && this->image.IsEmpty()) {
         return false;
     }
 
@@ -56,10 +56,16 @@ bool ImageResource::Sync(Renderer* renderer) {
         this->image.Convert(renderer->GetTextureFormat());
     }
 
-    this->textureId = renderer->CreateTexture(image);
-    this->image = Surface();
+    this->texture = renderer->CreateTextureFromSurface(image);
+    this->image = {};
 
-    return (this->textureId != 0);
+    auto result{ this->texture != nullptr && this->texture->IsAttached() };
+
+    if (!result) {
+        LOG_WARN("Failed to creat texture from image resource %s", this->GetId());
+    }
+
+    return result;
 }
 
 void ImageResource::Attach(Scene* scene) {
@@ -77,8 +83,7 @@ void ImageResource::Detach() {
         this->SetState(ResourceStateInit, false);
     }
 
-    this->scene->GetRenderer()->DestroyTexture(this->textureId);
-
+    this->texture = nullptr;
     this->scene = nullptr;
 }
 
@@ -137,7 +142,7 @@ Value ImageResource::ToObject(const Napi::Env& env) const {
     auto image{ this->GetUri().ToObject(env).As<Object>() };
 
     image["state"] = String::New(env, ResourceStateToString(this->resourceState));
-    image["hasTexture"] = Boolean::New(env, this->textureId > 0);
+    image["hasTexture"] = Boolean::New(env, !!this->texture);
 
     return scope.Escape(image);
 }
