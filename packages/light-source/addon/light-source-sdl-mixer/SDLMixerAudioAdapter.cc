@@ -28,7 +28,8 @@ using Napi::Value;
 namespace ls {
 
 SDL_RWops* LoadRW(Napi::Env env, const Napi::Value& value);
-void FillVector(std::vector<std::string>* destination, std::function<const char*(int32_t)> get, int32_t len) noexcept;
+void FillVector(std::vector<std::string>* destination, const std::function<const char*(int32_t)>& get,
+    const int32_t len) noexcept;
 float ConstrainVolume(float volume) noexcept;
 int32_t GetFadeOutMs(const CallbackInfo& info);
 int32_t GetFadeInMs(const CallbackInfo& info);

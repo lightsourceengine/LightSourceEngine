@@ -81,7 +81,7 @@ void BoxSceneNode::Paint(Renderer* renderer) {
                                 style->backgroundColor()->Get());
         }
     } else if (this->backgroundImage && this->backgroundImage->Sync(renderer)) {
-        YGSize fitDimensions;
+        Size fitDimensions;
 
         if (boxStyle->backgroundWidth() || boxStyle->backgroundHeight()) {
             fitDimensions = {

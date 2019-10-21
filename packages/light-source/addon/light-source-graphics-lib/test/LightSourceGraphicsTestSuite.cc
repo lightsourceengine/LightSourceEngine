@@ -12,6 +12,7 @@ using Napi::Object;
 
 namespace ls {
     void SurfaceSpec(Napi::Env env, Napi::TestSuite* parent);
+    void MatrixSpec(Napi::Env env, Napi::TestSuite* parent);
 }
 
 Object Init(Env env, Object exports) {
@@ -19,6 +20,7 @@ Object Init(Env env, Object exports) {
 
     exports["test"] = Napi::TestSuite::Build(env, "light-source-graphics-lib native tests", {
         &ls::SurfaceSpec,
+        &ls::MatrixSpec,
     });
 
     return exports;

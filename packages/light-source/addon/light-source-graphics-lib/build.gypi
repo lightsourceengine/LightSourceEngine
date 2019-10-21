@@ -38,6 +38,7 @@
           ],
           "sources": [
             "test/SurfaceSpec.cc",
+            "test/MatrixSpec.cc",
             "test/LightSourceGraphicsTestSuite.cc",
           ]
         }]

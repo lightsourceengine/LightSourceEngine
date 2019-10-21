@@ -8,6 +8,7 @@
 #include "ImageStore.h"
 #include "YGNode.h"
 #include "Style.h"
+#include "Scene.h"
 #include "StyleUtils.h"
 #include "yoga-ext.h"
 #include <ls/Renderer.h>

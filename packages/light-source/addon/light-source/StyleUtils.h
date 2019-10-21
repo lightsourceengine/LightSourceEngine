@@ -6,20 +6,25 @@
 
 #pragma once
 
+#include <cstdint>
+#include <string>
+#include <ls/Size.h>
 #include "StyleEnums.h"
-#include "Scene.h"
-#include "ImageResource.h"
-#include <algorithm>
-#include <ls/Format.h>
+#include "StyleValue.h"
 
 namespace ls {
 
-inline
-float CalculateBackgroundDimension(const StyleNumberValue* styleDimension,
-                                   const float imageDimension,
-                                   const float boxDimension,
-                                   const Scene* scene) {
-    switch (styleDimension ? styleDimension->GetUnit() : StyleNumberUnitAuto) {
+std::string CreateRoundedRectangleUri(const int32_t radiusTopLeft, const int32_t radiusTopRight,
+    const int32_t radiusBottomRight, const int32_t radiusBottomLeft, const int32_t stroke);
+
+template<typename S /* Scene */>
+float CalculateBackgroundDimension(const StyleNumberValue* styleDimension, const float imageDimension,
+                                   const float boxDimension, const S* scene) {
+    if (!styleDimension) {
+        return imageDimension;
+    }
+
+    switch (styleDimension->GetUnit()) {
         case StyleNumberUnitPercent:
             return styleDimension->GetValuePercent() * boxDimension;
         case StyleNumberUnitPoint:
@@ -39,16 +44,21 @@ float CalculateBackgroundDimension(const StyleNumberValue* styleDimension,
     }
 }
 
-inline
-YGSize CalculateObjectFitDimensions(const StyleObjectFit objectFit,
-                                  const ImageResource* image,
-                                  const float boxWidth,
+template<typename I /* ImageResource */>
+Size CalculateObjectFitDimensions(const StyleObjectFit objectFit, const I* image, const float boxWidth,
                                   const float boxHeight) {
+    if (image->HasCapInsets()) {
+        return {
+            boxWidth,
+            boxHeight
+        };
+    }
+
     const auto imageWidth{ static_cast<float>(image->GetWidth()) };
     const auto imageHeight{ static_cast<float>(image->GetHeight()) };
     const auto imageAspectRatio{ imageWidth / imageHeight };
 
-    switch (image->HasCapInsets() ? StyleObjectFitFill : objectFit) {
+    switch (objectFit) {
         case StyleObjectFitContain:
             if (imageAspectRatio > (boxWidth / boxHeight)) {
                 return {
@@ -107,13 +117,9 @@ YGSize CalculateObjectFitDimensions(const StyleObjectFit objectFit,
     }
 }
 
-inline
-float CalculateObjectPosition(const StyleNumberValue* objectPosition,
-                              const bool isX,
-                              const float boxDimension,
-                              const float fitDimension,
-                              const float defaultPercent,
-                              const Scene* scene) {
+template<typename S /* Scene */>
+float CalculateObjectPosition(const StyleNumberValue* objectPosition, const bool isX, const float boxDimension,
+                              const float fitDimension, const float defaultPercent, const S* scene) {
     if (objectPosition) {
         switch (objectPosition->GetUnit()) {
             case StyleNumberUnitPoint:
@@ -150,9 +156,13 @@ float CalculateObjectPosition(const StyleNumberValue* objectPosition,
     return boxDimension * defaultPercent - fitDimension * defaultPercent;
 }
 
-inline
-int32_t ComputeIntegerPointValue(const StyleNumberValue* styleValue, const Scene* scene, const int32_t defaultValue) {
-    switch (styleValue ? styleValue->GetUnit() : StyleNumberUnitAuto) {
+template<typename S /* Scene */>
+int32_t ComputeIntegerPointValue(const StyleNumberValue* styleValue, const S* scene, const int32_t defaultValue) {
+    if (!styleValue) {
+        return defaultValue;
+    }
+
+    switch (styleValue->GetUnit()) {
         case StyleNumberUnitPoint:
             return styleValue->GetValue();
         case StyleNumberUnitViewportWidth:
@@ -170,9 +180,13 @@ int32_t ComputeIntegerPointValue(const StyleNumberValue* styleValue, const Scene
     }
 }
 
-inline
-float CalculateLineHeight(const StyleNumberValue* styleValue, const Scene* scene, const float fontLineHeight) {
-    switch (styleValue ? styleValue->GetUnit() : StyleNumberUnitAuto) {
+template<typename S /* Scene */>
+float CalculateLineHeight(const StyleNumberValue* styleValue, const S* scene, const float fontLineHeight) {
+    if (!styleValue) {
+        return fontLineHeight;
+    }
+
+    switch (styleValue->GetUnit()) {
         case StyleNumberUnitPoint:
             return styleValue->GetValue();
         case StyleNumberUnitPercent:
@@ -190,52 +204,6 @@ float CalculateLineHeight(const StyleNumberValue* styleValue, const Scene* scene
         default:
             return fontLineHeight;
     }
-}
-
-inline
-std::string CreateRoundedRectangleUri(const int32_t radiusTopLeft,
-                                      const int32_t radiusTopRight,
-                                      const int32_t radiusBottomRight,
-                                      const int32_t radiusBottomLeft,
-                                      const int32_t stroke) {
-    static const std::string empty{};
-    static const char* uriTemplate{
-        "data:image/svg+xml,<svg viewBox=\"0 0 %i %i\">"
-            "<path d=\"M %i,0 h%i %i v%i %i h-%i %i v-%i %i z\" "
-                "fill=\"%s\" "
-                "stroke=\"%s\" "
-                "stroke-width=\"%i\"/>"
-        "</svg>"
-    };
-
-    const auto leftWidth{ std::max(radiusTopLeft, radiusBottomLeft) };
-    const auto rightWidth{ std::max(radiusTopRight, radiusBottomRight) };
-    const auto width{ leftWidth + rightWidth + 1 };
-
-    const auto topHeight{ std::max(radiusTopLeft, radiusTopRight) };
-    const auto bottomHeight{ std::max(radiusBottomLeft, radiusBottomRight) };
-    const auto height{ topHeight + bottomHeight + 1 };
-
-    return Format(uriTemplate,
-    /* 0: viewbox       */ width,
-    /* 1: viewbox       */ height,
-    /* 2: M {},0        */ radiusTopLeft,
-    /* 3: h             */ (radiusTopLeft == 0 ? leftWidth : 0) + 1 + (radiusTopRight == 0 ? rightWidth : 0),
-    /* 4: a             */ radiusTopRight > 0 ?
-        Format("a%i,%i 0 0 1 %i,%i", radiusTopRight, radiusTopRight, radiusTopRight, radiusTopRight) : empty,
-    /* 5: v             */ (radiusTopRight == 0 ? topHeight : 0) + 1 + (radiusBottomRight == 0 ? bottomHeight : 0),
-    /* 6: a             */ radiusBottomRight > 0 ?
-        Format(" a%i,%i 0 0 1 -%i,%i", radiusBottomRight, radiusBottomRight, radiusBottomRight, radiusBottomRight)
-        : empty,
-    /* 7: h-            */ (radiusBottomLeft == 0 ? leftWidth : 0) + 1 + (radiusBottomRight == 0 ? rightWidth : 0),
-    /* 8: a             */ radiusBottomLeft > 0 ?
-        Format("a%i,%i 0 0 1 -%i,-%i", radiusBottomLeft, radiusBottomLeft, radiusBottomLeft, radiusBottomLeft) : empty,
-    /* 9: v-            */ (radiusTopLeft == 0 ? topHeight : 0) + 1 + (radiusBottomLeft == 0 ? bottomHeight : 0),
-    /* 10: a            */ radiusTopLeft > 0 ?
-        Format("a%i,%i 0 0 1 %i,-%i", radiusTopLeft, radiusTopLeft, radiusTopLeft, radiusTopLeft) : empty,
-    /* 11: fill         */ stroke > 0 ? "none" : "white",
-    /* 12: stroke       */ stroke > 0 ? "white" : "none",
-    /* 13: stroke-width */ stroke);
 }
 
 } // namespace ls

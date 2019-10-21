@@ -38,6 +38,7 @@
         "Style.cc",
         "StyleEnumMappings.cc",
         "StyleEnums.cc",
+        "StyleUtils.cc",
         "StyleValue.cc",
         "Font.cc",
         "FontId.cc",
@@ -73,6 +74,7 @@
             "sources": [
               "test/ExecutorSpec.cc",
               "test/TaskQueueSpec.cc",
+              "test/StyleUtilsSpec.cc",
             ]
           }
         ]
