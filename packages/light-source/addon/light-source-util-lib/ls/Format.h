@@ -31,27 +31,19 @@ const char* FormatArg(std::nullptr_t) noexcept;
  */
 template<typename... Args>
 std::string Format(const char* format, const Args&... args) {
-    char t[33];
-
-    // Try writing to the stack.
-    auto size{ snprintf(&t[0], sizeof(t), format, internal::FormatArg(args)... ) };
-
-    if (size <= 0) {
-        return "";
-    } else if (size < static_cast<int32_t>(sizeof(t)) - 1) {
-        return std::string(t);
-    }
-
-    // If stack allocation is insufficient, create enough room on the heap for the resulting string.
-    auto buffer{ std::make_unique<char[]>(size + 1) };
-
-    size = snprintf(buffer.get(), size + 1, format, internal::FormatArg(args)...);
+    // Measure the string. size does not include the null-terminated character.
+    const auto size{ snprintf(nullptr, 0, format, internal::FormatArg(args)...) };
 
     if (size <= 0) {
         return "";
     }
 
-    return std::string(buffer.get(), size);
+    std::string formattedString(size, '-');
+
+    // sprintf always writes a null terminator. std::string internal buffer is size + 1 to account for the terminator.
+    snprintf(&formattedString[0], size + 1, format, internal::FormatArg(args)...);
+
+    return formattedString;
 }
 
 } // namespace ls

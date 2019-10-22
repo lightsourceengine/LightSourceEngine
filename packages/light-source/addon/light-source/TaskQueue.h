@@ -74,14 +74,12 @@ class TaskQueue {
         std::function<void()> func{};
         Task state{};
 
-        DeferredCallback() noexcept = default;
-        DeferredCallback(DeferredCallback&& other) noexcept = default;
-        DeferredCallback(const DeferredCallback&) noexcept = delete;
+        DeferredCallback() = default;
+        DeferredCallback(DeferredCallback&& other) = default;
         DeferredCallback(std::function<void()>&& func, Task& state) noexcept : func(std::move(func)), state(state) {
         }
 
-        DeferredCallback& operator=(DeferredCallback&& other) noexcept = default;
-        DeferredCallback& operator=(const DeferredCallback& other) noexcept = delete;
+        DeferredCallback& operator=(DeferredCallback&& other) = default;
     };
 
     Executor* executor{};
