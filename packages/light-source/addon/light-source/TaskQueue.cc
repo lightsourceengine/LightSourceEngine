@@ -16,23 +16,21 @@ TaskQueue::~TaskQueue() {
 Task TaskQueue::Queue(std::function<void()>&& callback) {
     auto task{ Task::Create() };
 
-    this->queue.enqueue([task, callback = std::move(callback)]() mutable {
-        if (task.WasCancelled()) {
-            return;
-        }
-
-        callback();
-    });
+    this->queue.enqueue({ std::move(callback), task });
 
     return task;
 }
 
 void TaskQueue::ProcessTasks() {
-    std::function<void()> callback;
+    DeferredCallback callback;
 
     while (this->queue.try_dequeue(callback)) {
+        if (callback.state.WasCancelled()) {
+            continue;
+        }
+
         try {
-            callback();
+            callback.func();
         } catch (const std::exception& e) {
             LOG_ERROR(e);
         }
@@ -40,7 +38,7 @@ void TaskQueue::ProcessTasks() {
 }
 
 void TaskQueue::ShutdownNow() {
-    std::function<void()> callback;
+    DeferredCallback callback;
 
     while (this->queue.try_dequeue(callback)) {
     }

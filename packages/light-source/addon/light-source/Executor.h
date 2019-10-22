@@ -68,11 +68,11 @@ namespace internal {
 // which is destructive to the object being copied from. This should only be used in specific capture cases and not
 // for general use.
 template<typename T>
-struct Movable {
-    Movable() = default;
-    Movable(T&& value) : value(std::move(value)) {} // NOLINT
-    Movable(Movable<T>&& other) = default;
-    Movable(const Movable<T>& other) : value(std::move(other.value)) {}
+struct MoveOnCopy {
+    MoveOnCopy() noexcept = default;
+    MoveOnCopy(MoveOnCopy<T>&& other) noexcept = default;
+    MoveOnCopy(T&& value) noexcept : value(std::move(value)) {} // NOLINT
+    MoveOnCopy(const MoveOnCopy<T>& other) noexcept : value(std::move(other.value)) {}
 
     mutable T value{};
 };
@@ -83,12 +83,13 @@ std::future<T> Executor::Submit(std::function<T()>&& work) {
     assert(!!work);
     assert(this->running);
 
-    std::packaged_task<T()> task(std::move(work));
-    internal::Movable<std::packaged_task<T()>> p(std::move(task));
-    auto future{ p.value.get_future() };
+    using internal::MoveOnCopy;
 
-    this->workQueue.enqueue([p = std::move(p)]() {
-        p.value();
+    MoveOnCopy<std::packaged_task<T()>> packagedTask{ std::packaged_task<T()>(std::move(work)) };
+    auto future{ packagedTask.value.get_future() };
+
+    this->workQueue.enqueue([packagedTask]() mutable {
+        packagedTask.value();
     });
 
     return future;

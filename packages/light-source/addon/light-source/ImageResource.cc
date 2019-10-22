@@ -103,7 +103,7 @@ void ImageResource::Load() {
         return DecodeImage(uri, extensions, { resourcePath }, textureFormat);
     };
 
-    auto callback = [this, LAMBDA_FUNCTION = __FUNCTION__](Surface&& surface, const std::exception_ptr& eptr) {
+    auto callback = [this, LAMBDA_FUNCTION = __FUNCTION__](Surface& surface, const std::exception_ptr& eptr) {
         if (eptr) {
             this->width = this->height = 0;
 

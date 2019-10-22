@@ -27,15 +27,14 @@ FontResource::~FontResource() noexcept {
 void FontResource::Load(Stage* stage) {
     this->fontLoadingTask.Cancel();
 
-    const auto uri{ this->uri };
-    const auto index{ this->index };
-    const auto path{ stage->GetResourcePath() };
-
-    auto execute = [path, uri, index]() -> std::shared_ptr<stbtt_fontinfo> {
+    auto execute = [
+        path = stage->GetResourcePath(),
+        uri = this->uri,
+        index = this->index]() -> std::shared_ptr<stbtt_fontinfo> {
         return LoadFont({ path }, uri, index);
     };
 
-    auto callback = [this, LAMBDA_FUNCTION = __FUNCTION__](std::shared_ptr<stbtt_fontinfo>&& fontInfo,
+    auto callback = [this, LAMBDA_FUNCTION = __FUNCTION__](std::shared_ptr<stbtt_fontinfo>& fontInfo,
             const std::exception_ptr& eptr) {
         if (this->resourceState != ResourceStateLoading) {
             return;

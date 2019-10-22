@@ -65,7 +65,7 @@ void TaskQueueSpec(Napi::Env env, TestSuite* parent) {
                     []() -> int32_t {
                         return 5;
                     },
-                    [&](int32_t&& value, const std::exception_ptr& e) {
+                    [&](int32_t& value, const std::exception_ptr& e) {
                         completeCalled = true;
                         resultValue = value;
                         resultException = e;
@@ -88,7 +88,7 @@ void TaskQueueSpec(Napi::Env env, TestSuite* parent) {
                     []() -> int32_t {
                         throw std::runtime_error("error");
                     },
-                    [&](int32_t&& value, const std::exception_ptr& e) {
+                    [&](int32_t& value, const std::exception_ptr& e) {
                         completeCalled = true;
                         resultException = e;
                     });

@@ -48,7 +48,7 @@ class TaskQueue {
      * may not cancel the async work (if it's in progress).
      */
     template<typename T>
-    Task Async(std::function<T()>&& async, std::function<void(T&&, const std::exception_ptr&)>&& callback);
+    Task Async(std::function<T()>&& async, std::function<void(T&, const std::exception_ptr&)>&& callback);
 
     /**
      * Run all queued tasks.
@@ -70,12 +70,26 @@ class TaskQueue {
     void ShutdownNow();
 
  private:
+    struct DeferredCallback {
+        std::function<void()> func{};
+        Task state{};
+
+        DeferredCallback() noexcept = default;
+        DeferredCallback(DeferredCallback&& other) noexcept = default;
+        DeferredCallback(const DeferredCallback&) noexcept = delete;
+        DeferredCallback(std::function<void()>&& func, Task& state) noexcept : func(std::move(func)), state(state) {
+        }
+
+        DeferredCallback& operator=(DeferredCallback&& other) noexcept = default;
+        DeferredCallback& operator=(const DeferredCallback& other) noexcept = delete;
+    };
+
     Executor* executor{};
-    moodycamel::ConcurrentQueue<std::function<void()>> queue;
+    moodycamel::ConcurrentQueue<DeferredCallback> queue;
 };
 
 template<typename T>
-Task TaskQueue::Async(std::function<T()>&& async, std::function<void(T&&, const std::exception_ptr&)>&& callback) {
+Task TaskQueue::Async(std::function<T()>&& async, std::function<void(T&, const std::exception_ptr&)>&& callback) {
     auto task{ Task::Create() };
 
     this->executor->Execute([this, task, async = std::move(async), callback = std::move(callback)]() mutable {
@@ -83,7 +97,7 @@ Task TaskQueue::Async(std::function<T()>&& async, std::function<void(T&&, const 
             return;
         }
 
-        internal::Movable<T> result;
+        internal::MoveOnCopy<T> result;
         std::exception_ptr exceptionPtr;
 
         try {
@@ -96,12 +110,11 @@ Task TaskQueue::Async(std::function<T()>&& async, std::function<void(T&&, const 
             return;
         }
 
-        this->queue.enqueue([task, result = std::move(result), exceptionPtr, callback = std::move(callback)]() mutable {
-            if (task.WasCancelled()) {
-                return;
-            }
-
-            callback(std::move(result.value), exceptionPtr);
+        this->queue.enqueue({
+            [result = std::move(result), exceptionPtr, callback = std::move(callback)]() mutable {
+                callback(result.value, exceptionPtr);
+            },
+            task
         });
     });
 
