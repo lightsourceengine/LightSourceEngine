@@ -14,16 +14,15 @@ namespace ls {
 
 void StyleUtilsSpec(Napi::Env env, TestSuite* parent) {
     auto spec{ parent->Describe("StyleUtils") };
-    auto assert{ Assert(env) };
 
     spec->Describe("CreateRoundedRectangleUri()")->tests = {
         {
             "should create rounded rectangle svg xml",
-            [=](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 auto svg{ CreateRoundedRectangleUri(10, 10, 10, 10, 4) };
 
                 // TODO: validate svg string
-                assert.IsFalse(svg.empty());
+                Assert::IsFalse(svg.empty());
             }
         },
     };

@@ -34,7 +34,7 @@ SDLRenderer::~SDLRenderer() {
     this->Destroy();
 }
 
-void SDLRenderer::UpdateTextureFormats(const SDL_RendererInfo& info) {
+void SDLRenderer::UpdateTextureFormats(const SDL_RendererInfo& info) noexcept {
     static const std::array<Uint32, 4> supportedPixelFormats{
         SDL_PIXELFORMAT_ARGB8888,
         SDL_PIXELFORMAT_RGBA8888,
@@ -329,7 +329,7 @@ std::shared_ptr<Texture> SDLRenderer::CreateTexture(const int32_t width, const i
         this, width, height, SDL_TEXTUREACCESS_STREAMING));
 }
 
-void SDLRenderer::SetRenderDrawColor(const int64_t color) {
+void SDLRenderer::SetRenderDrawColor(const int64_t color) noexcept {
     if (this->drawColor != color) {
         // TODO: consider opacity
         if (IsBigEndian()) {

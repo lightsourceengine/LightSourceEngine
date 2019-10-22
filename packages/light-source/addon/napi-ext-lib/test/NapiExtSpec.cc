@@ -21,18 +21,17 @@ namespace ls {
 
 void NapiExtSpec(Napi::Env env, TestSuite* parent) {
     auto spec{ parent->Describe("napi-ext") };
-    auto assert{ Assert(env) };
 
     spec->Describe("NewStringArray()")->tests = {
         {
             "should create an Array from a list of strings",
-            [env, assert](const CallbackInfo& info) {
+            [](const CallbackInfo& info) {
                 std::vector<std::string> strings{ "test1", "test2" };
-                auto array{ NewStringArray(env, strings) };
+                auto array{ NewStringArray(info.Env(), strings) };
 
-                assert.Equal(array.Length(), static_cast<uint32_t>(strings.size()));
-                assert.Equal(array.Get(0u).As<String>().Utf8Value(), strings[0]);
-                assert.Equal(array.Get(1u).As<String>().Utf8Value(), strings[1]);
+                Assert::Equal(array.Length(), static_cast<uint32_t>(strings.size()));
+                Assert::Equal(array.Get(0u).As<String>().Utf8Value(), strings[0]);
+                Assert::Equal(array.Get(1u).As<String>().Utf8Value(), strings[1]);
             }
         }
     };
@@ -40,18 +39,18 @@ void NapiExtSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("ToUpperCase()")->tests = {
         {
             "should convert string to uppercase",
-            [env, assert](const CallbackInfo& info) {
-                auto result{ ToUpperCase(String::New(env, "test")) };
+            [](const CallbackInfo& info) {
+                auto result{ ToUpperCase(String::New(info.Env(), "test")) };
 
-                assert.Equal(result, std::string("TEST"));
+                Assert::Equal(result, std::string("TEST"));
             }
         },
         {
             "should handle empty string",
-            [assert](const CallbackInfo& info) {
+            [](const CallbackInfo& info) {
                 auto result{ ToUpperCase(String()) };
 
-                assert.Equal(result, std::string(""));
+                Assert::Equal(result, std::string(""));
             }
         }
     };
@@ -59,18 +58,18 @@ void NapiExtSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("ToLowerCase()")->tests = {
         {
             "should convert string to uppercase",
-            [env, assert](const CallbackInfo& info) {
-                auto result{ ToLowerCase(String::New(env, "TEST")) };
+            [](const CallbackInfo& info) {
+                auto result{ ToLowerCase(String::New(info.Env(), "TEST")) };
 
-                assert.Equal(result, std::string("test"));
+                Assert::Equal(result, std::string("test"));
             }
         },
         {
             "should handle empty string",
-            [assert](const CallbackInfo& info) {
+            [](const CallbackInfo& info) {
                 auto result{ ToLowerCase(String()) };
 
-                assert.Equal(result, std::string(""));
+                Assert::Equal(result, std::string(""));
             }
         }
     };
@@ -87,33 +86,34 @@ void NapiExtSpec(Napi::Env env, TestSuite* parent) {
         },
         {
             "should call function",
-            [env, assert](const CallbackInfo& info) {
+            [](const CallbackInfo& info) {
                 FunctionReference func;
                 bool called{ false };
                 uint32_t argCount{ 0 };
 
-                func.Reset(Function::New(env, [&called, &argCount](const CallbackInfo& info){
+                func.Reset(Function::New(info.Env(), [&called, &argCount](const CallbackInfo& info){
                     argCount = info.Length();
                     called = true;
                 }), 1);
 
                 Call(func);
 
-                assert.IsTrue(called);
-                assert.Equal(argCount, 0u);
+                Assert::IsTrue(called);
+                Assert::Equal(argCount, 0u);
 
                 called = false;
                 argCount = 0;
 
-                Call(func, { String::New(env, "arg") });
+                Call(func, { String::New(info.Env(), "arg") });
 
-                assert.IsTrue(called);
-                assert.Equal(argCount, 1u);
+                Assert::IsTrue(called);
+                Assert::Equal(argCount, 1u);
             }
         },
         {
             "should call function and return value",
-            [env, assert](const CallbackInfo& info) {
+            [](const CallbackInfo& info) {
+                auto env{ info.Env() };
                 FunctionReference func;
                 bool called{ false };
                 uint32_t argCount{ 0 };
@@ -127,18 +127,18 @@ void NapiExtSpec(Napi::Env env, TestSuite* parent) {
 
                 auto ret{ Call(env, func) };
 
-                assert.IsTrue(called);
-                assert.Equal(argCount, 0u);
-                assert.Equal(ret.As<String>().Utf8Value(), std::string("return-value"));
+                Assert::IsTrue(called);
+                Assert::Equal(argCount, 0u);
+                Assert::Equal(ret.As<String>().Utf8Value(), std::string("return-value"));
 
                 called = false;
                 argCount = 0;
 
                 ret = Call(env, func, { String::New(env, "arg") });
 
-                assert.IsTrue(called);
-                assert.Equal(argCount, 1u);
-                assert.Equal(ret.As<String>().Utf8Value(), std::string("return-value"));
+                Assert::IsTrue(called);
+                Assert::Equal(argCount, 1u);
+                Assert::Equal(ret.As<String>().Utf8Value(), std::string("return-value"));
             }
         }
     };

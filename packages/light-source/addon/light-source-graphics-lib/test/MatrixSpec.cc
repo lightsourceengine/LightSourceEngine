@@ -20,20 +20,19 @@ static bool eq(float a, float b) noexcept {
 
 void MatrixSpec(Napi::Env env, TestSuite* parent) {
     auto spec{ parent->Describe("Matrix") };
-    auto assert{ Assert(env) };
 
     spec->Describe("Identity()")->tests = {
         {
             "should create an identity matrix",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 auto m{ Matrix::Identity() };
 
-                assert.Equal(m.a, 1);
-                assert.Equal(m.b, 0);
-                assert.Equal(m.x, 0);
-                assert.Equal(m.c, 0);
-                assert.Equal(m.d, 1);
-                assert.Equal(m.y, 0);
+                Assert::Equal(m.a, 1);
+                Assert::Equal(m.b, 0);
+                Assert::Equal(m.x, 0);
+                Assert::Equal(m.c, 0);
+                Assert::Equal(m.d, 1);
+                Assert::Equal(m.y, 0);
             }
         },
     };
@@ -41,15 +40,15 @@ void MatrixSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("Rotate()")->tests = {
         {
             "should create a rotation matrix",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 auto m{ Matrix::Rotate(PI / 4) };
 
-                assert.IsTrue(m.a != 0.f);
-                assert.IsTrue(m.b != 0.f);
-                assert.Equal(m.x, 0);
-                assert.IsTrue(m.c != 0.f);
-                assert.IsTrue(m.d != 0.f);
-                assert.Equal(m.y, 0);
+                Assert::IsTrue(m.a != 0.f);
+                Assert::IsTrue(m.b != 0.f);
+                Assert::Equal(m.x, 0);
+                Assert::IsTrue(m.c != 0.f);
+                Assert::IsTrue(m.d != 0.f);
+                Assert::Equal(m.y, 0);
             }
         },
     };
@@ -57,15 +56,15 @@ void MatrixSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("Scale()")->tests = {
         {
             "should create a scale matrix",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 auto m{ Matrix::Scale(3, 3) };
 
-                assert.Equal(m.a, 3);
-                assert.Equal(m.b, 0);
-                assert.Equal(m.x, 0);
-                assert.Equal(m.c, 0);
-                assert.Equal(m.d, 3);
-                assert.Equal(m.y, 0);
+                Assert::Equal(m.a, 3);
+                Assert::Equal(m.b, 0);
+                Assert::Equal(m.x, 0);
+                Assert::Equal(m.c, 0);
+                Assert::Equal(m.d, 3);
+                Assert::Equal(m.y, 0);
             }
         },
     };
@@ -73,15 +72,15 @@ void MatrixSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("Translate()")->tests = {
         {
             "should create a translation",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 auto m{ Matrix::Translate(50, 50) };
 
-                assert.Equal(m.a, 1);
-                assert.Equal(m.b, 0);
-                assert.Equal(m.x, 50);
-                assert.Equal(m.c, 0);
-                assert.Equal(m.d, 1);
-                assert.Equal(m.y, 50);
+                Assert::Equal(m.a, 1);
+                Assert::Equal(m.b, 0);
+                Assert::Equal(m.x, 50);
+                Assert::Equal(m.c, 0);
+                Assert::Equal(m.d, 1);
+                Assert::Equal(m.y, 50);
             }
         },
     };
@@ -89,17 +88,17 @@ void MatrixSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("GetAxisAngle()")->tests = {
         {
             "should get axis angle (in radians) of rotation matrix",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 auto radians{ PI / 4 };
                 auto m{ Matrix::Rotate(radians) };
 
-                assert.IsTrue(eq(m.GetAxisAngle(), radians));
+                Assert::IsTrue(eq(m.GetAxisAngle(), radians));
             }
         },
         {
             "should return zero for non-rotation matrix",
-            [assert](const Napi::CallbackInfo& info) {
-                assert.IsTrue(eq(Matrix::Identity().GetAxisAngle(), 0));
+            [](const Napi::CallbackInfo& info) {
+                Assert::IsTrue(eq(Matrix::Identity().GetAxisAngle(), 0));
             }
         },
     };
@@ -107,17 +106,17 @@ void MatrixSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("GetAxisAngleDeg()")->tests = {
         {
             "should get axis angle (in degrees) of rotation matrix",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 auto radians{ PI / 4 };
                 auto m{ Matrix::Rotate(radians) };
 
-                assert.IsTrue(eq(m.GetAxisAngleDeg(), 45.f));
+                Assert::IsTrue(eq(m.GetAxisAngleDeg(), 45.f));
             }
         },
         {
             "should return zero for non-rotation matrix",
-            [assert](const Napi::CallbackInfo& info) {
-                assert.IsTrue(eq(Matrix::Identity().GetAxisAngleDeg(), 0));
+            [](const Napi::CallbackInfo& info) {
+                Assert::IsTrue(eq(Matrix::Identity().GetAxisAngleDeg(), 0));
             }
         },
     };
@@ -125,19 +124,19 @@ void MatrixSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("GetScale()")->tests = {
         {
             "should get scale x and y",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 auto m{ Matrix::Scale(10, 100) };
 
-                assert.IsTrue(eq(m.GetScaleX(), 10.f));
-                assert.IsTrue(eq(m.GetScaleY(), 100.f));
+                Assert::IsTrue(eq(m.GetScaleX(), 10.f));
+                Assert::IsTrue(eq(m.GetScaleY(), 100.f));
             }
         },
         {
             "should return 1 for identity matrix",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 auto m{ Matrix::Identity() };
-                assert.IsTrue(eq(m.GetScaleX(), 1.f));
-                assert.IsTrue(eq(m.GetScaleY(), 1.f));
+                Assert::IsTrue(eq(m.GetScaleX(), 1.f));
+                Assert::IsTrue(eq(m.GetScaleY(), 1.f));
             }
         },
     };
@@ -145,19 +144,19 @@ void MatrixSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("GetTranslate()")->tests = {
         {
             "should get translate x and y",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 auto m{ Matrix::Translate(10, 100) };
 
-                assert.IsTrue(eq(m.GetTranslateX(), 10.f));
-                assert.IsTrue(eq(m.GetTranslateY(), 100.f));
+                Assert::IsTrue(eq(m.GetTranslateX(), 10.f));
+                Assert::IsTrue(eq(m.GetTranslateY(), 100.f));
             }
         },
         {
             "should return 0 for identity matrix",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 auto m{ Matrix::Identity() };
-                assert.IsTrue(eq(m.GetTranslateX(), 0.f));
-                assert.IsTrue(eq(m.GetTranslateY(), 0.f));
+                Assert::IsTrue(eq(m.GetTranslateX(), 0.f));
+                Assert::IsTrue(eq(m.GetTranslateY(), 0.f));
             }
         },
     };
@@ -165,24 +164,24 @@ void MatrixSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("multiplication")->tests = {
         {
             "should multiply identity x translate(10, 100) = translate(10, 100)",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 auto a{ Matrix::Identity() };
                 auto b{ Matrix::Translate(10, 100) };
                 auto m{ a * b };
 
-                assert.IsTrue(eq(m.GetTranslateX(), 10.f));
-                assert.IsTrue(eq(m.GetTranslateY(), 100.f));
+                Assert::IsTrue(eq(m.GetTranslateX(), 10.f));
+                Assert::IsTrue(eq(m.GetTranslateY(), 100.f));
             }
         },
         {
             "should multiply translate(10, 10)  x translate(10, 10) = translate(20, 20)",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 auto a{ Matrix::Translate(10, 10) };
                 auto b{ Matrix::Translate(10, 10) };
                 auto m{ a * b };
 
-                assert.IsTrue(eq(m.GetTranslateX(), 20.f));
-                assert.IsTrue(eq(m.GetTranslateY(), 20.f));
+                Assert::IsTrue(eq(m.GetTranslateX(), 20.f));
+                Assert::IsTrue(eq(m.GetTranslateY(), 20.f));
             }
         },
     };

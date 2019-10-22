@@ -16,7 +16,7 @@ using Napi::TestSuite;
 
 namespace ls {
 
-void WaitForCompleteCalled(const Assert& assert);
+void WaitForCompleteCalled();
 void CompleteCallback();
 
 static bool completeCalled{false};
@@ -25,7 +25,6 @@ static std::unique_ptr<TaskQueue> taskQueue;
 
 void TaskQueueSpec(Napi::Env env, TestSuite* parent) {
     auto spec{ parent->Describe("TaskQueue") };
-    auto assert{ Assert(env) };
 
     spec->beforeEach = [](const Napi::CallbackInfo& info) {
         completeCalled = false;
@@ -43,14 +42,14 @@ void TaskQueueSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("Queue()")->tests = {
         {
             "should queue and execute task queue callback",
-            [assert](const Napi::CallbackInfo& info) {
-                taskQueue->Queue(CompleteCallback);
+            [](const Napi::CallbackInfo& info) {
+                taskQueue->Queue(&CompleteCallback);
 
-                assert.IsFalse(completeCalled);
+                Assert::IsFalse(completeCalled);
 
                 taskQueue->ProcessTasks();
 
-                assert.IsTrue(completeCalled);
+                Assert::IsTrue(completeCalled);
             }
         },
     };
@@ -58,7 +57,7 @@ void TaskQueueSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("Async()")->tests = {
         {
             "should call async function, then queue and execute task queue callback",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 int32_t resultValue{};
                 std::exception_ptr resultException;
 
@@ -72,18 +71,17 @@ void TaskQueueSpec(Napi::Env env, TestSuite* parent) {
                         resultException = e;
                     });
 
-                assert.IsFalse(task.WasCancelled());
+                Assert::IsFalse(task.WasCancelled());
 
-                WaitForCompleteCalled(assert);
+                WaitForCompleteCalled();
 
-                assert.Equal(resultValue, 5);
-                assert.IsTrue(!resultException);
+                Assert::Equal(resultValue, 5);
+                Assert::IsTrue(!resultException);
             }
         },
         {
             "should handle exception from async function",
-            [assert](const Napi::CallbackInfo& info) {
-                int32_t resultValue{};
+            [](const Napi::CallbackInfo& info) {
                 std::exception_ptr resultException;
 
                 auto task = taskQueue->Async<int32_t>(
@@ -92,24 +90,20 @@ void TaskQueueSpec(Napi::Env env, TestSuite* parent) {
                     },
                     [&](int32_t&& value, const std::exception_ptr& e) {
                         completeCalled = true;
-                        resultValue = value;
                         resultException = e;
                     });
 
-                assert.IsFalse(task.WasCancelled());
+                Assert::IsFalse(task.WasCancelled());
 
-                WaitForCompleteCalled(assert);
+                WaitForCompleteCalled();
 
-                assert.IsTrue(!!resultException);
+                Assert::IsTrue(!!resultException);
 
                 try {
                     std::rethrow_exception(resultException);
                 } catch (const std::exception& e) {
-                    assert.Equal(std::string(e.what()), std::string("error"));
-                    return;
+                    Assert::Equal(std::string(e.what()), std::string("error"));
                 }
-
-                assert.Fail("Expected exception with 'error' message.");
             }
         },
     };
@@ -119,7 +113,7 @@ void CompleteCallback() {
     completeCalled = true;
 }
 
-void WaitForCompleteCalled(const Assert& assert) {
+void WaitForCompleteCalled() {
     auto loops{100};
 
     while (loops--) {
@@ -134,7 +128,7 @@ void WaitForCompleteCalled(const Assert& assert) {
         }
     }
 
-    assert.Fail("Timeout waiting for task queue to complete a task.");
+    Assert::Fail("Timeout waiting for task queue to complete a task.");
 }
 
 } // namespace ls

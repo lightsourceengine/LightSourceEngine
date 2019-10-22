@@ -14,37 +14,36 @@ namespace ls {
 
 void FormatSpec(Napi::Env env, TestSuite* parent) {
     const auto spec{ parent->Describe("Format") };
-    const auto assert{ Assert(env) };
 
     spec->Describe("Format()")->tests = {
         {
             "should print empty char arrays",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 const char* nullCharArray = nullptr;
-                const char* emptyCharArray = nullptr;
+                const char* emptyCharArray = "";
 
-                assert.Equal(Format("x = %s", nullCharArray), std::string("x = null"));
-                assert.Equal(Format("x = %s", emptyCharArray), std::string("x = "));
+                Assert::Equal(Format("x = %s", nullCharArray), std::string("x = null"));
+                Assert::Equal(Format("x = %s", emptyCharArray), std::string("x = "));
             }
         },
         {
             "should print std::string objects",
-            [assert](const Napi::CallbackInfo& info) {
-                assert.Equal(Format("x = %s", std::string("value")), std::string("x = value"));
+            [](const Napi::CallbackInfo& info) {
+                Assert::Equal(Format("x = %s", std::string("value")), std::string("x = value"));
             }
         },
         {
             "should print nullptr as null",
-            [assert](const Napi::CallbackInfo& info) {
-                assert.Equal(Format("x = %s", nullptr), std::string("x = null"));
+            [](const Napi::CallbackInfo& info) {
+                Assert::Equal(Format("x = %s", nullptr), std::string("x = null"));
             }
         },
         {
             "should print large string",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 std::string str(255, 'x');
 
-                assert.Equal(Format("%s", str), str);
+                Assert::Equal(Format("%s", str), str);
             }
         }
     };

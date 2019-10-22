@@ -32,35 +32,34 @@ bool BytesEqualTo(uint8_t* bytes, int32_t bytesLen, uint8_t value) {
 
 void SurfaceSpec(Napi::Env env, TestSuite* parent) {
     auto spec{ parent->Describe("Surface") };
-    auto assert{ Assert(env) };
 
     spec->Describe("constructor")->tests = {
         {
             "should create a surface from a single channel buffer",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 auto buffer{ NewBytes(10 * 10) };
                 auto surface{ Surface(buffer, 10, 10) };
 
-                assert.Equal(surface.Width(), 10);
-                assert.Equal(surface.Height(), 10);
-                assert.Equal(surface.Pitch(), 10);
-                assert.Equal(surface.Format(), PixelFormatAlpha);
-                assert.Equal(surface.Pixels(), buffer.get());
-                assert.IsFalse(surface.IsEmpty());
+                Assert::Equal(surface.Width(), 10);
+                Assert::Equal(surface.Height(), 10);
+                Assert::Equal(surface.Pitch(), 10);
+                Assert::Equal(surface.Format(), PixelFormatAlpha);
+                Assert::Equal(surface.Pixels(), buffer.get());
+                Assert::IsFalse(surface.IsEmpty());
             }
         },
         {
             "should create a surface from a 4 channel buffer",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 auto buffer{ NewBytes(10 * 10 * 4) };
                 auto surface{ Surface(buffer, 10, 10, 10 * 4, PixelFormatRGBA) };
 
-                assert.Equal(surface.Width(), 10);
-                assert.Equal(surface.Height(), 10);
-                assert.Equal(surface.Pitch(), 10 * 4);
-                assert.Equal(surface.Format(), PixelFormatRGBA);
-                assert.Equal(surface.Pixels(), buffer.get());
-                assert.IsFalse(surface.IsEmpty());
+                Assert::Equal(surface.Width(), 10);
+                Assert::Equal(surface.Height(), 10);
+                Assert::Equal(surface.Pitch(), 10 * 4);
+                Assert::Equal(surface.Format(), PixelFormatRGBA);
+                Assert::Equal(surface.Pixels(), buffer.get());
+                Assert::IsFalse(surface.IsEmpty());
             }
         },
     };
@@ -68,32 +67,32 @@ void SurfaceSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("FillTransparent()")->tests = {
         {
             "should clear single channel surface",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 uint8_t full{255};
                 uint8_t zero{0};
                 int32_t len{10 * 10};
                 auto surface{ Surface(NewBytes(len, full), 10, 10) };
 
-                assert.IsTrue(BytesEqualTo(surface.Pixels(), len, full));
+                Assert::IsTrue(BytesEqualTo(surface.Pixels(), len, full));
 
                 surface.FillTransparent();
 
-                assert.IsTrue(BytesEqualTo(surface.Pixels(), len, zero));
+                Assert::IsTrue(BytesEqualTo(surface.Pixels(), len, zero));
             }
         },
         {
             "should clear 4 channel surface",
-            [assert](const Napi::CallbackInfo& info) {
+            [](const Napi::CallbackInfo& info) {
                 uint8_t full{255};
                 uint8_t zero{0};
                 int32_t len{10 * 10 * 4};
                 auto surface{ Surface(NewBytes(len, full), 10, 10, 10 * 4, PixelFormatRGBA) };
 
-                assert.IsTrue(BytesEqualTo(surface.Pixels(), len, full));
+                Assert::IsTrue(BytesEqualTo(surface.Pixels(), len, full));
 
                 surface.FillTransparent();
 
-                assert.IsTrue(BytesEqualTo(surface.Pixels(), len, zero));
+                Assert::IsTrue(BytesEqualTo(surface.Pixels(), len, zero));
             }
         },
     };

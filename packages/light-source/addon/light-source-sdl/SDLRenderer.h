@@ -48,12 +48,12 @@ class SDLRenderer : public Renderer {
     void Detach();
     void Destroy();
 
-    Uint32 GetRawTextureFormat() const { return this->sdlTextureFormat; }
+    Uint32 GetRawTextureFormat() const noexcept { return this->sdlTextureFormat; }
     SDL_Renderer* ToRawRenderer() noexcept { return this->renderer; }
 
  private:
-    void SetRenderDrawColor(const int64_t color);
-    void UpdateTextureFormats(const SDL_RendererInfo& info);
+    void SetRenderDrawColor(const int64_t color) noexcept;
+    void UpdateTextureFormats(const SDL_RendererInfo& info) noexcept;
 
  private:
     SDL_Renderer* renderer{};

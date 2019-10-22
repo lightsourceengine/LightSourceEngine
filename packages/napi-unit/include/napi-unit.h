@@ -101,26 +101,43 @@ class TestSuite : public Napi::ObjectWrap<TestSuite> {
 };
 
 /**
+ * Denotes a test failure. This exception type will be converted to Napi::Error and reported as a test failure to
+ * the javascript test runner.
+ */
+class AssertionError : public std::exception {
+ public:
+    AssertionError(const std::string& failure, const std::string& message) noexcept;
+    virtual ~AssertionError() noexcept = default;
+
+    const char* what() const noexcept override {
+        return this->error.c_str();
+    }
+
+    const std::string& GetError() const noexcept {
+        return this->error;
+    }
+
+ private:
+    std::string error;
+};
+
+/**
  * Test assertion methods.
  *
  * To be compatible with the javascript test environment, assertion errors are thrown using napi exceptions.
  */
-class Assert {
- public:
-    explicit Assert(Napi::Env env) : env(env) {
-    }
-
+struct Assert {
     /**
      * Checks that two values are equal using the == operator.
      */
     template<typename S, typename T>
-    void Equal(const S& value, const T& expected, const std::string& message = "") const {
+    static void Equal(const S& value, const T& expected, const std::string& message = "") {
         if (!(value == expected)) {
             std::stringstream ss;
-            
+
             ss << "Expected " << value << " to be equal to " << expected;
 
-            NAPI_THROW_VOID(Napi::Error::New(this->env, this->FormatAssertionError(ss.str(), message)));
+            throw AssertionError(ss.str(), message);
         }
     }
 
@@ -128,13 +145,13 @@ class Assert {
      * Checks that the value is equal to nullptr.
      */
     template<typename T>
-    void IsNull(const T& value, const std::string& message = "") const {
+    static void IsNull(const T& value, const std::string& message = "") {
         if (!(value == nullptr)) {
             std::stringstream ss;
 
             ss << "Expected " << value << " to be nullptr";
 
-            NAPI_THROW_VOID(Napi::Error::New(this->env, this->FormatAssertionError(ss.str(), message)));
+            throw AssertionError(ss.str(), message);
         }
     }
 
@@ -142,75 +159,71 @@ class Assert {
      * Checks that the value is not equal to nullptr.
      */
     template<typename T>
-    void IsNotNull(const T& value, const std::string& message = "") const {
+    static void IsNotNull(const T& value, const std::string& message = "") {
         if (value == nullptr) {
             std::stringstream ss;
 
             ss << "Expected " << value << " to not be nullptr";
 
-            NAPI_THROW_VOID(Napi::Error::New(this->env, this->FormatAssertionError(ss.str(), message)));
+            throw AssertionError(ss.str(), message);
         }
     }
 
     /**
      * Checks that the value is true.
      */
-    void IsTrue(const bool value, const std::string& message = "") const {
+    static void IsTrue(const bool value, const std::string& message = "") {
         if (!value) {
-            NAPI_THROW_VOID(Napi::Error::New(this->env, this->FormatAssertionError("Expected true", message)));
+            throw AssertionError("Expected true", message);
         }
     }
 
     /**
      * Checks that the value is false.
      */
-    void IsFalse(const bool value, const std::string& message = "") const {
+    static void IsFalse(const bool value, const std::string& message = "") {
         if (value) {
-            NAPI_THROW_VOID(Napi::Error::New(this->env, this->FormatAssertionError("Expected false", message)));
+            throw AssertionError("Expected false", message);
         }
     }
 
     /**
      * Checks that calling the passed in lambda function will throw an std::exception.
      */
-    void Throws(std::function<void()> func, const std::string& message = "") const {
+    static void Throws(std::function<void()> func, const std::string& message = "") {
         try {
             func();
         } catch (const std::exception&) {
             return;
         }
 
-        NAPI_THROW_VOID(Napi::Error::New(this->env,
-            this->FormatAssertionError("Expected function to throw an std::exception.", message)));
+        throw AssertionError("Expected function to throw an std::exception.", message);
     }
 
     /**
      * Fail the test immediately by throwing an exception.
      */
-    void Fail(const std::string& message = "Fail") const {
-        NAPI_THROW_VOID(Napi::Error::New(this->env, this->FormatAssertionError("", message)));
+    static void Fail(const std::string& message = "Fail") {
+        throw AssertionError("", message);
     }
-
- protected:
-    std::string FormatAssertionError(const std::string& failure, const std::string& message) const noexcept {
-        std::stringstream ss;
-
-        ss << "AssertionError";
-
-        if (!failure.empty()) {
-            ss << ": " << failure;
-        }
-
-        if (!message.empty()) {
-            ss << ": " << message;
-        }
-
-        return ss.str();
-    }
-
- protected:
-    Napi::Env env;
 };
+
+inline
+AssertionError::AssertionError(const std::string& failure, const std::string& message) noexcept {
+    std::stringstream ss;
+
+    ss << "AssertionError";
+
+    if (!failure.empty()) {
+        ss << ": " << failure;
+    }
+
+    if (!message.empty()) {
+        ss << ": " << message;
+    }
+
+    this->error = ss.str();
+}
 
 inline
 TestSuite::TestSuite(const CallbackInfo& info) : ObjectWrap<TestSuite>(info) {
@@ -277,9 +290,22 @@ Napi::Value TestSuite::GetTests(const CallbackInfo& info) {
 
     for (auto& test : this->tests) {
         auto object{ Object::New(env) };
+        auto jsSafeTestFunc = [f = test.func](const Napi::CallbackInfo& info) {
+            try {
+                f(info);
+            } catch (const AssertionError& e) {
+                throw Error::New(info.Env(), e.what());
+            } catch (const Error& e) {
+                throw;
+            } catch (const std::exception& e) {
+                throw Error::New(info.Env(), std::string("Unknown std::exception: ") + e.what());
+            } catch (...) {
+                throw Error::New(info.Env(), "Unknown native exception!");
+            }
+        };
 
         object["description"] = String::New(env, test.description);
-        object["func"] = Function::New(env, test.func);
+        object["func"] = Function::New(env, jsSafeTestFunc);
 
         result[i++] = object;
     }
