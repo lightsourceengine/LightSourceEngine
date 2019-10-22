@@ -33,17 +33,15 @@ void ExecutorSpec(Napi::Env env, TestSuite* parent) {
         {
             "should execute a function in the thread pool",
             [](const Napi::CallbackInfo& info) {
-                std::mutex mutex;
-                std::condition_variable cv;
+                std::promise<void> p;
 
-                executor->Execute([&]() {
-                    cv.notify_one();
+                executor->Execute([&p]() {
+                    p.set_value();
                 });
 
-                std::unique_lock<std::mutex> lock(mutex);
-                auto result{ cv.wait_for(lock, TIMEOUT) };
+                auto result { p.get_future().wait_for(TIMEOUT) };
 
-                Assert::IsTrue(result != std::cv_status::timeout);
+                Assert::IsTrue(result == std::future_status::ready, "thread timeout");
             }
         },
     };
@@ -67,7 +65,7 @@ void ExecutorSpec(Napi::Env env, TestSuite* parent) {
 
                 auto result{ future.wait_for(TIMEOUT) };
 
-                Assert::IsTrue(result == std::future_status::ready);
+                Assert::IsTrue(result == std::future_status::ready, "thread timeout");
             }
         },
         {
