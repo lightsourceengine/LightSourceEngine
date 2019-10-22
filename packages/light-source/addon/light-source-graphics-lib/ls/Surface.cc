@@ -13,23 +13,7 @@
 
 namespace ls {
 
-static int32_t GetComponentCount(const PixelFormat format) noexcept {
-    switch (format) {
-        case PixelFormatRGBA:
-        case PixelFormatARGB:
-        case PixelFormatABGR:
-        case PixelFormatBGRA:
-            return 4;
-        case PixelFormatAlpha:
-            return 1;
-        case PixelFormatUnknown:
-            return 0;
-    }
-
-    return 0;
-}
-
-Surface::Surface(const std::shared_ptr<uint8_t>& pixels, const int32_t width, const int32_t height) noexcept
+Surface::Surface(std::shared_ptr<uint8_t> pixels, const int32_t width, const int32_t height) noexcept
 : width(std::max(width, 0)), height(std::max(height, 0)), pixels(pixels), format(PixelFormatAlpha)  {
     if (this->width == 0 || this->height == 0 || !this->pixels) {
         this->width = this->height = this->pitch = 0;
@@ -39,7 +23,7 @@ Surface::Surface(const std::shared_ptr<uint8_t>& pixels, const int32_t width, co
     }
 }
 
-Surface::Surface(const std::shared_ptr<uint8_t>& pixels, const int32_t width, const int32_t height,
+Surface::Surface(std::shared_ptr<uint8_t> pixels, const int32_t width, const int32_t height,
     const int32_t pitch, const PixelFormat format) noexcept
 : width(std::max(width, 0)), height(std::max(height, 0)), pitch(std::max(pitch, 0)), pixels(pixels), format(format)  {
     if (this->width == 0 || this->height == 0 || !this->pixels || format == PixelFormatUnknown) {

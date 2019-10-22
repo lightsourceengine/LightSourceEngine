@@ -5,19 +5,20 @@
  */
 
 #include "ImageResource.h"
+#include "Scene.h"
+#include "Stage.h"
 #include <napi-ext.h>
 #include <ls/FileSystem.h>
 #include <ls/Renderer.h>
 #include <ls/PixelConversion.h>
+#include <ls/Endian.h>
+#include <ls/Log.h>
+#include <ls/Format.h>
 #include <nanosvg.h>
 #include <nanosvgrast.h>
 #include <stb_image.h>
 #include <algorithm>
-#include "Scene.h"
-#include "Stage.h"
-#include <ls/Endian.h>
-#include <ls/Log.h>
-#include <ls/Format.h>
+
 
 using Napi::Boolean;
 using Napi::EscapableHandleScope;
@@ -30,7 +31,7 @@ namespace ls {
 using NSVGimageHandle = std::unique_ptr<NSVGimage, decltype(&nsvgDelete)>;
 using NSVGrasterizerHandle = std::unique_ptr<NSVGrasterizer, decltype(&nsvgDeleteRasterizer)>;
 
-static inline float ScaleFactor(const int, const int) noexcept;
+static float ScaleFactor(const int, const int) noexcept;
 static Surface DecodeImage(const ImageUri&, const std::vector<std::string>&, const std::vector<std::string>&,
     const PixelFormat);
 static Surface DecodeImageSvg(NSVGimage*, const std::string&, const int32_t, const int32_t);
@@ -288,7 +289,7 @@ static Surface DecodeImageSvg(NSVGimage* svgImage, const std::string& uri, const
     return { data, width, height, pitch, PixelFormatRGBA };
 }
 
-static inline
+static
 float ScaleFactor(const int source, const int dest) noexcept {
     return 1.f + ((dest - source) / static_cast<float>(source));
 }

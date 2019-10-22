@@ -5,7 +5,6 @@
  */
 
 #include "Font.h"
-#include <ls/Timer.h>
 #include <ls/Log.h>
 
 namespace ls {
@@ -15,7 +14,7 @@ constexpr int32_t UnicodeQuestionMark{ 0x3F };
 constexpr int32_t UnicodeDot{ 0x2E };
 constexpr int32_t UnicodeEllipsis{ 0x2026 };
 
-Font::Font(std::shared_ptr<stbtt_fontinfo> info, int32_t fontSize)
+Font::Font(std::shared_ptr<stbtt_fontinfo>& info, const int32_t fontSize)
 : info(info), bitmapBuffer(fontSize*fontSize), fontSize(fontSize) {
     auto fontInfo{ info.get() };
     int32_t ascent{0};
@@ -26,7 +25,7 @@ Font::Font(std::shared_ptr<stbtt_fontinfo> info, int32_t fontSize)
 
     this->scale = stbtt_ScaleForPixelHeight(fontInfo, static_cast<float>(fontSize));
     this->ascent = ascent * scale;
-    this->lineHeight = (ascent - descent + lineGap) * this->scale;
+    this->lineHeight = static_cast<float>(ascent - descent + lineGap) * this->scale;
 
     if (this->CodepointToGlyphIndex(UnicodeFallback) > 0) {
         this->fallbackCodepoint = UnicodeFallback;
@@ -94,7 +93,7 @@ float Font::GetGlyphAdvance() const {
 }
 
 float Font::GetGlyphKerning(int32_t nextCodepoint) const {
-    auto key{ (static_cast<uint64_t>(codepoint) << 32) | (static_cast<uint64_t>(nextCodepoint) & 0xFFFFFFFF) };
+    auto key{ (static_cast<uint64_t>(codepoint) << 32u) | (static_cast<uint64_t>(nextCodepoint) & 0xFFFFFFFF) };
     auto it{ this->kerningTable.find(key) };
 
     if (it != this->kerningTable.end()) {
@@ -113,7 +112,7 @@ float Font::GetGlyphKerning(int32_t nextCodepoint) const {
 }
 
 float Font::GetKerning(int32_t codepoint, int32_t nextCodepoint) const {
-    auto key{ (static_cast<uint64_t>(codepoint) << 32) | (static_cast<uint64_t>(nextCodepoint) & 0xFFFFFFFF) };
+    auto key{ (static_cast<uint64_t>(codepoint) << 32u) | (static_cast<uint64_t>(nextCodepoint) & 0xFFFFFFFF) };
     auto it{ this->kerningTable.find(key) };
 
     if (it != this->kerningTable.end()) {

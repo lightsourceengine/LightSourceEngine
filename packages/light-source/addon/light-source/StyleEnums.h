@@ -6,38 +6,38 @@
 
 #pragma once
 
-#include "Macros.h"
+#include <ls/EnumSequence.h>
 #include <YGEnums.h>
 
 namespace ls {
 
-SS_ENUM_SEQ_DECL(
+LS_ENUM_SEQ_DECL(
     StyleFontWeight,
     StyleFontWeightNormal,
     StyleFontWeightBold
 )
 
-SS_ENUM_SEQ_DECL(
+LS_ENUM_SEQ_DECL(
     StyleFontStyle,
     StyleFontStyleNormal,
     StyleFontStyleItalic
 )
 
-SS_ENUM_SEQ_DECL(
+LS_ENUM_SEQ_DECL(
     StyleTextOverflow,
     StyleTextOverflowNone,
     StyleTextOverflowClip,
     StyleTextOverflowEllipsis
 )
 
-SS_ENUM_SEQ_DECL(
+LS_ENUM_SEQ_DECL(
     StyleTextAlign,
     StyleTextAlignLeft,
     StyleTextAlignCenter,
     StyleTextAlignRight
 )
 
-SS_ENUM_SEQ_DECL(
+LS_ENUM_SEQ_DECL(
     StyleObjectFit,
     StyleObjectFitFill,
     StyleObjectFitContain,
@@ -46,20 +46,20 @@ SS_ENUM_SEQ_DECL(
     StyleObjectFitScaleDown
 )
 
-SS_ENUM_SEQ_DECL(
+LS_ENUM_SEQ_DECL(
     StyleBackgroundClip,
     StyleBackgroundClipBorderBox,
     StyleBackgroundClipPaddingBox
 )
 
-SS_ENUM_SEQ_DECL(
+LS_ENUM_SEQ_DECL(
     StyleTextTransform,
     StyleTextTransformNone,
     StyleTextTransformUppercase,
     StyleTextTransformLowercase
 )
 
-SS_ENUM_SEQ_DECL(
+LS_ENUM_SEQ_DECL(
     StyleAnchor,
     StyleAnchorTop,
     StyleAnchorRight,
@@ -67,7 +67,7 @@ SS_ENUM_SEQ_DECL(
     StyleAnchorLeft
 )
 
-SS_ENUM_SEQ_DECL(
+LS_ENUM_SEQ_DECL(
     StyleNumberUnit,
     StyleNumberUnitPoint,
     StyleNumberUnitPercent,
@@ -80,7 +80,7 @@ SS_ENUM_SEQ_DECL(
     StyleNumberUnitRootEm
 )
 
-SS_ENUM_SEQ_DECL(
+LS_ENUM_SEQ_DECL(
     StyleProperty,
     // (Yoga) Layout Style Properties
     alignItems,
@@ -153,39 +153,10 @@ SS_ENUM_SEQ_DECL(
     tintColor
 )
 
-template <>
-constexpr int32_t Count<YGPositionType>() {
-    return facebook::yoga::enums::count<YGPositionType>();
-}
-
-template <>
-constexpr int32_t Count<YGDisplay>() {
-    return facebook::yoga::enums::count<YGDisplay>();
-}
-
-template <>
-constexpr int32_t Count<YGFlexDirection>() {
-    return facebook::yoga::enums::count<YGFlexDirection>();
-}
-
-template <>
-constexpr int32_t Count<YGJustify>() {
-    return facebook::yoga::enums::count<YGJustify>();
-}
-
-template <>
-constexpr int32_t Count<YGOverflow>() {
-    return facebook::yoga::enums::count<YGOverflow>();
-}
-
-template <>
-constexpr int32_t Count<YGAlign>() {
-    return facebook::yoga::enums::count<YGAlign>();
-}
-
-template <>
-constexpr int32_t Count<YGWrap>() {
-    return facebook::yoga::enums::count<YGWrap>();
+// maps yoga style enums to the Count() function, so all style enums look the same
+template <typename E>
+constexpr int32_t Count() {
+    return facebook::yoga::enums::count<E>();
 }
 
 } // namespace ls

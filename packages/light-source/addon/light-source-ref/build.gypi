@@ -12,6 +12,7 @@
         "../light-source-audio-lib",
         "../light-source-graphics-lib",
         "../light-source-stage-lib",
+        "../light-source-util-lib",
       ],
       "dependencies": [
         "napi-ext-lib",

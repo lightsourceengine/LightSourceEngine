@@ -5,7 +5,6 @@
  */
 
 #include "Log.h"
-#include <iostream>
 #include <chrono>
 #include <ctime>
 #include <cassert>
@@ -13,7 +12,7 @@
 namespace ls {
 
 static auto sLogLevel{ LogLevelInfo };
-static FILE* sSink{ stdout };
+static auto sSink{ stdout };
 
 static
 const char* LogLevelToString(const LogLevel logLevel) noexcept {

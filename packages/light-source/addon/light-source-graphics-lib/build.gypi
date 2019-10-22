@@ -29,6 +29,7 @@
           "include_dirs": [
             ".",
             "../napi-ext-lib",
+            "../light-source-util-lib",
             "../logger-lib",
             "<!@(node -p \"require('napi-unit').include\")"
           ],

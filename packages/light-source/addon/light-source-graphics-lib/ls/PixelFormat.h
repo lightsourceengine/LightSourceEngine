@@ -6,12 +6,16 @@
 
 #pragma once
 
+#include <cstdint>
+#include <ls/EnumSequence.h>
+
 namespace ls {
 
 /**
  * Pixel formats used for texture creation.
  */
-enum PixelFormat {
+LS_ENUM_SEQ_DECL(
+    PixelFormat,
     /* 4 channel, 32 bit, RGBA */
     PixelFormatRGBA,
     /* 4 channel, 32 bit, ARGB */
@@ -24,6 +28,21 @@ enum PixelFormat {
     PixelFormatAlpha,
     /* unknown pixel format */
     PixelFormatUnknown
-};
+)
+
+constexpr int32_t GetComponentCount(const PixelFormat format) noexcept {
+    switch (format) {
+        case PixelFormatRGBA:
+        case PixelFormatARGB:
+        case PixelFormatABGR:
+        case PixelFormatBGRA:
+            return 4;
+        case PixelFormatAlpha:
+            return 1;
+        // case PixelFormatUnknown:
+        default:
+            return 0;
+    }
+}
 
 } // namespace ls

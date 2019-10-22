@@ -8,7 +8,7 @@
 
 #include <cstdint>
 
-#define SS_ENUM_SEQ_DECL(NAME, ...)  \
+#define LS_ENUM_SEQ_DECL(NAME, ...)  \
     enum NAME {__VA_ARGS__}; \
     const char* NAME##ToString(NAME); \
     template <> \
@@ -28,8 +28,8 @@ constexpr bool IsEnum(const int32_t value) {
 
 namespace internal {
 
-template <int... xs>
-constexpr int CountMacroVariadicArgs() {
+template <int32_t... xs>
+constexpr int32_t CountMacroVariadicArgs() {
     return sizeof...(xs);
 }
 

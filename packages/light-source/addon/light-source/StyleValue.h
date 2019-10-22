@@ -23,7 +23,7 @@ class StyleValue {
 
     virtual Napi::Value ToJS(Napi::Env env) const = 0;
     virtual void Apply(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight,
-        const int32_t rootFontSize) const { }
+        const int32_t rootFontSize) const {}
     virtual void ApplyRootFontSize(const YGNodeRef ygNode, const int32_t rootFontSize) const {}
     virtual void ApplyViewportSize(const YGNodeRef ygNode,
         const float viewportWidth, const float viewportHeight) const {}

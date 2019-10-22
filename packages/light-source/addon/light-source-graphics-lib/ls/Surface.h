@@ -14,8 +14,8 @@ namespace ls {
 class Surface {
  public:
     Surface() noexcept = default;
-    Surface(const std::shared_ptr<uint8_t>& pixels, const int32_t width, const int32_t height) noexcept;
-    Surface(const std::shared_ptr<uint8_t>& pixels, const int32_t width, const int32_t height, const int32_t pitch,
+    Surface(std::shared_ptr<uint8_t> pixels, const int32_t width, const int32_t height) noexcept;
+    Surface(std::shared_ptr<uint8_t> pixels, const int32_t width, const int32_t height, const int32_t pitch,
         const PixelFormat format) noexcept;
     Surface(Surface&& other) noexcept;
 

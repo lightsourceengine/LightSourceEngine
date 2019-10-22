@@ -28,7 +28,7 @@ class Font {
     };
 
  public:
-    Font(std::shared_ptr<stbtt_fontinfo> fontInfo, int32_t fontSize);
+    Font(std::shared_ptr<stbtt_fontinfo>& fontInfo, const int32_t fontSize);
     ~Font();
 
     float GetAscent() const { return this->ascent; }
