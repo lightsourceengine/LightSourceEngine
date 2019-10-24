@@ -41,7 +41,7 @@ void MatrixSpec(Napi::Env env, TestSuite* parent) {
         {
             "should create a rotation matrix",
             [](const Napi::CallbackInfo& info) {
-                auto m{ Matrix::Rotate(PI / 4) };
+                auto m{ Matrix::Rotate(PI / 4.f) };
 
                 Assert::IsTrue(m.a != 0.f);
                 Assert::IsTrue(m.b != 0.f);
@@ -89,7 +89,7 @@ void MatrixSpec(Napi::Env env, TestSuite* parent) {
         {
             "should get axis angle (in radians) of rotation matrix",
             [](const Napi::CallbackInfo& info) {
-                auto radians{ PI / 4 };
+                auto radians{ PI / 4.f };
                 auto m{ Matrix::Rotate(radians) };
 
                 Assert::IsTrue(eq(m.GetAxisAngle(), radians));
@@ -107,7 +107,7 @@ void MatrixSpec(Napi::Env env, TestSuite* parent) {
         {
             "should get axis angle (in degrees) of rotation matrix",
             [](const Napi::CallbackInfo& info) {
-                auto radians{ PI / 4 };
+                auto radians{ PI / 4.f };
                 auto m{ Matrix::Rotate(radians) };
 
                 Assert::IsTrue(eq(m.GetAxisAngleDeg(), 45.f));

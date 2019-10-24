@@ -28,6 +28,7 @@
           "_WIN32",
           "_HAS_EXCEPTIONS=1",
           "NOMINMAX",
+          "_USE_MATH_DEFINES"
         ]
       }
     ]

@@ -5,6 +5,7 @@
  */
 
 #include "SDLMixerAudioAdapter.h"
+#include <algorithm>
 #include <ls/BaseAudioSource.h>
 #include <ls/BaseAudioDestination.h>
 #include <SDL.h>

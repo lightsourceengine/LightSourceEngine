@@ -295,7 +295,7 @@ Napi::Value TestSuite::GetTests(const CallbackInfo& info) {
                 f(info);
             } catch (const AssertionError& e) {
                 throw Error::New(info.Env(), e.what());
-            } catch (const Error& e) {
+            } catch (const Error&) {
                 throw;
             } catch (const std::exception& e) {
                 throw Error::New(info.Env(), std::string("Unknown std::exception: ") + e.what());

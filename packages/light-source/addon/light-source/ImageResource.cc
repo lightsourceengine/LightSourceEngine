@@ -18,6 +18,7 @@
 #include <nanosvgrast.h>
 #include <stb_image.h>
 #include <algorithm>
+#include <cctype>
 
 
 using Napi::Boolean;
