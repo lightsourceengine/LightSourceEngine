@@ -16,6 +16,7 @@
         "../deps/yoga/lib",
         "../deps/stb/repo",
         "../deps/nanosvg/include",
+        "../deps/cpp17_headers/include",
         "../deps/utfcpp/repo/source",
         "../deps/concurrentqueue/repo",
       ],

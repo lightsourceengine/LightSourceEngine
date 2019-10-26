@@ -12,4 +12,4 @@
 	url = https://github.com/nothings/stb.git
 [submodule "packages/light-source/addon/deps/cpp17_headers/repo"]
 	path = packages/light-source/addon/deps/cpp17_headers/repo
-	url = https://github.com/tcbrindle/cpp17_headers.git
+	url = https://github.com/lightsourceengine/cpp17_headers.git

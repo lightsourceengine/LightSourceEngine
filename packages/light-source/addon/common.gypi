@@ -6,6 +6,9 @@
   "cflags_cc+": [
     "-std=gnu++14",
   ],
+  "defines": [
+    "STX_NAMESPACE_NAME=std17",
+  ],
   "xcode_settings": {
     "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
     "CLANG_CXX_LIBRARY": "libc++",

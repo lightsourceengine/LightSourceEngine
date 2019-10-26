@@ -6,8 +6,5 @@
 
 #pragma once
 
-#include "../../repo/include/ghc/filesystem.hpp"
-
-namespace std {
-    namespace filesystem = ghc::filesystem;
-} // namespace std
+#define STX_NO_STD_STRING_VIEW 1
+#include "../../repo/include/stx/string_view.hpp"

@@ -64,6 +64,7 @@ class Executor {
 };
 
 namespace internal {
+
 // Hack for lambda capture of objects with no copy constructors. The copy constructor is implemented as a move,
 // which is destructive to the object being copied from. This should only be used in specific capture cases and not
 // for general use.
@@ -76,6 +77,7 @@ struct MoveOnCopy {
 
     mutable T value{};
 };
+
 } // namespace internal
 
 template<typename T>
@@ -83,13 +85,12 @@ std::future<T> Executor::Submit(std::function<T()>&& work) {
     assert(!!work);
     assert(this->running);
 
-    using internal::MoveOnCopy;
+    auto packagedTask{ std::packaged_task<T()>(std::move(work)) };
+    auto future{ packagedTask.get_future() };
+    using MoveOnCopy = internal::MoveOnCopy<std::packaged_task<T()>>;
 
-    MoveOnCopy<std::packaged_task<T()>> packagedTask{ std::packaged_task<T()>(std::move(work)) };
-    auto future{ packagedTask.value.get_future() };
-
-    this->workQueue.enqueue([packagedTask]() mutable {
-        packagedTask.value();
+    this->workQueue.enqueue([p = MoveOnCopy(std::move(packagedTask))]() mutable {
+        p.value();
     });
 
     return future;

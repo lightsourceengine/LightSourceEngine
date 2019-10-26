@@ -7,7 +7,7 @@
 #include "FileSystem.h"
 #include "Format.h"
 #include <cstring>
-#include <compat/filesystem>
+#include <std17/filesystem>
 
 constexpr auto DATA_URI_PREFIX = "data:";
 const auto DATA_URI_PREFIX_LEN = std::strlen(DATA_URI_PREFIX);
@@ -16,7 +16,7 @@ const auto RESOURCE_URI_PREFIX_LEN = std::strlen(RESOURCE_URI_PREFIX);
 constexpr auto SVG_DATA_URI_PREFIX = "data:image/svg+xml,";
 const auto SVG_DATA_URI_PREFIX_LEN = std::strlen(SVG_DATA_URI_PREFIX);
 
-namespace fs = std::filesystem;
+namespace fs = std17::filesystem;
 
 namespace ls {
 
