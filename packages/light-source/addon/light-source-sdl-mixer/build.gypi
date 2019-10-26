@@ -17,6 +17,7 @@
               "../logger-lib",
               "../light-source-audio-lib",
               "../light-source-util-lib",
+              "../deps/cpp17_headers/include",
             ],
             "dependencies": [
                 "napi-ext-lib",

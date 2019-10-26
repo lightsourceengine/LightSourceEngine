@@ -6,6 +6,7 @@
 
 #include "SDLMixerAudioAdapter.h"
 #include <algorithm>
+#include <std17/algorithm>
 #include <ls/BaseAudioSource.h>
 #include <ls/BaseAudioDestination.h>
 #include <SDL.h>
@@ -448,7 +449,7 @@ void FillVector(std::vector<std::string>* destination, const std::function<const
 }
 
 float ConstrainVolume(const float volume) noexcept {
-    return std::max(0.f, std::min(volume, 1.f));
+    return std17::clamp(0.f, 1.f, volume);
 }
 
 int32_t GetPropertyAsInt(const CallbackInfo& info, const char* property, const int32_t defaultValue) {

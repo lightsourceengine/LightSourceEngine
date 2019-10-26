@@ -1,0 +1,26 @@
+/*
+ * Copyright (C) 2019 Daniel Anderson
+ *
+ * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
+ */
+
+#pragma once
+#include <cassert>
+
+namespace std17 {
+
+// from: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0025r1.html
+template<class T>
+constexpr const T &clamp(const T &v, const T &lo, const T &hi) {
+    assert(!(hi < lo));
+    return (v < lo) ? lo : (hi < v) ? hi : v;
+}
+
+// from: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0025r1.html
+template<class T, class Compare>
+constexpr const T &clamp(const T &v, const T &lo, const T &hi, Compare comp) {
+    assert(!comp(hi, lo));
+    return comp(v, lo) ? lo : comp(hi, v) ? hi : v;
+}
+
+} // namespace std17
