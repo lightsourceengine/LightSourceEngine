@@ -47,13 +47,7 @@ class SDLMixerSampleAudioSource : public ObjectWrap<SDLMixerSampleAudioSource>, 
     virtual ~SDLMixerSampleAudioSource() = default;
 
     static Function Constructor(Napi::Env env) {
-        struct SDLMixerSampleAudioSourceClassName {
-            static const char* Get() {
-                return "SDLMixerSampleAudioSource";
-            }
-        };
-
-        return ConstructorInternal<SDLMixerSampleAudioSource, SDLMixerSampleAudioSourceClassName>(env);
+        return ConstructorInternal<SDLMixerSampleAudioSource>(env, "SDLMixerSampleAudioSource");
     }
 
     void Load(const Napi::CallbackInfo& info) override {
@@ -141,13 +135,7 @@ class SDLMixerSampleAudioDestination : public ObjectWrap<SDLMixerSampleAudioDest
     virtual ~SDLMixerSampleAudioDestination() = default;
 
     static Function Constructor(Napi::Env env) {
-        struct SDLMixerSampleAudioDestinationClassName {
-            static const char* Get() {
-                return "SDLMixerSampleAudioDestination";
-            }
-        };
-
-        return ConstructorInternal<SDLMixerSampleAudioDestination, SDLMixerSampleAudioDestinationClassName>(env);
+        return ConstructorInternal<SDLMixerSampleAudioDestination>(env, "SDLMixerSampleAudioDestination");
     }
 
     Napi::Value CreateAudioSource(const CallbackInfo& info) override {
@@ -200,13 +188,7 @@ class SDLMixerStreamAudioSource : public ObjectWrap<SDLMixerStreamAudioSource>, 
     virtual ~SDLMixerStreamAudioSource() = default;
 
     static Function Constructor(Napi::Env env) {
-        struct SDLMixerStreamAudioSourceClassName {
-            static const char* Get() {
-                return "SDLMixerStreamAudioSource";
-            }
-        };
-
-        return ConstructorInternal<SDLMixerStreamAudioSource, SDLMixerStreamAudioSourceClassName>(env);
+        return ConstructorInternal<SDLMixerStreamAudioSource>(env, "SDLMixerStreamAudioSource");
     }
 
     void Load(const CallbackInfo& info) override {
@@ -276,13 +258,7 @@ class SDLMixerStreamAudioDestination : public ObjectWrap<SDLMixerStreamAudioDest
     virtual ~SDLMixerStreamAudioDestination() = default;
 
     static Function Constructor(Napi::Env env) {
-        struct SDLMixerStreamAudioDestinationClassName {
-            static const char* Get() {
-                return "SDLMixerStreamAudioDestination";
-            }
-        };
-
-        return ConstructorInternal<SDLMixerStreamAudioDestination, SDLMixerStreamAudioDestinationClassName>(env);
+        return ConstructorInternal<SDLMixerStreamAudioDestination>(env, "SDLMixerStreamAudioDestination");
     }
 
     Napi::Value CreateAudioSource(const CallbackInfo& info) override {
@@ -331,13 +307,7 @@ SDLMixerAudioAdapter::SDLMixerAudioAdapter(const CallbackInfo& info) : ObjectWra
 }
 
 Function SDLMixerAudioAdapter::Constructor(Napi::Env env) {
-    struct SDLMixerAudioAdapterClassName {
-        static const char* Get() {
-            return "SDLMixerAudioAdapter";
-        }
-    };
-
-    return ConstructorInternal<SDLMixerAudioAdapter, SDLMixerAudioAdapterClassName>(env);
+    return ConstructorInternal<SDLMixerAudioAdapter>(env, "SDLMixerAudioAdapter");
 }
 
 void SDLMixerAudioAdapter::Attach(const CallbackInfo& info) {

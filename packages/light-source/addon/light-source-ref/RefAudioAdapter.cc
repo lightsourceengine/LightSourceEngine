@@ -27,13 +27,7 @@ class RefAudioSource : public ObjectWrap<RefAudioSource>, public BaseAudioSource
     virtual ~RefAudioSource() = default;
 
     static Function Constructor(Napi::Env env) {
-        struct RefAudioSourceClassName {
-            static const char* Get() {
-                return "RefAudioSource";
-            }
-        };
-
-        return ConstructorInternal<RefAudioSource, RefAudioSourceClassName>(env);
+        return ConstructorInternal<RefAudioSource>(env, "RefAudioSource");
     }
 
     void Load(const CallbackInfo& info) override {
@@ -56,13 +50,7 @@ class RefAudioDestination : public ObjectWrap<RefAudioDestination>, public BaseA
     virtual ~RefAudioDestination() = default;
 
     static Function Constructor(Napi::Env env) {
-        struct RefAudioDestinationClassName {
-            static const char* Get() {
-                return "RefAudioDestination";
-            }
-        };
-
-        return ConstructorInternal<RefAudioDestination, RefAudioDestinationClassName>(env);
+        return ConstructorInternal<RefAudioDestination>(env, "RefAudioDestination");
     }
 
     Napi::Value CreateAudioSource(const CallbackInfo& info) override {
@@ -82,13 +70,7 @@ RefAudioAdapter::RefAudioAdapter(const CallbackInfo& info) : ObjectWrap(info) {
 }
 
 Function RefAudioAdapter::Constructor(Napi::Env env) {
-    struct RefAudioAdapterClassName {
-        static const char* Get() {
-            return "RefAudioAdapter";
-        }
-    };
-
-    return ConstructorInternal<RefAudioAdapter, RefAudioAdapterClassName>(env);
+    return ConstructorInternal<RefAudioAdapter>(env, "RefAudioAdapter");
 }
 
 void RefAudioAdapter::Attach(const Napi::CallbackInfo& info) {

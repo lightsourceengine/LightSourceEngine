@@ -29,18 +29,18 @@ class BaseAudioSource {
     virtual Napi::Value HasCapability(const Napi::CallbackInfo& info);
 
  protected:
-    template<typename T, typename ClassName>
-    static Napi::Function ConstructorInternal(Napi::Env env);
+    template<typename T>
+    static Napi::Function ConstructorInternal(Napi::Env env, const char* className);
 };
 
-template<typename T, typename ClassName>
-Napi::Function BaseAudioSource::ConstructorInternal(Napi::Env env) {
+template<typename T>
+Napi::Function BaseAudioSource::ConstructorInternal(Napi::Env env, const char* className) {
     static Napi::FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         Napi::HandleScope scope(env);
 
-        auto func = T::DefineClass(env, ClassName::Get(), {
+        auto func = T::DefineClass(env, className, {
             T::InstanceMethod("load", &T::Load),
             T::InstanceMethod("destroy", &T::Destroy),
             T::InstanceMethod("play", &T::Play),

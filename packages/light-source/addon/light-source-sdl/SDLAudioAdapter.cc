@@ -31,13 +31,7 @@ class SDLAudioSource : public ObjectWrap<SDLAudioSource>, public BaseAudioSource
     virtual ~SDLAudioSource() = default;
 
     static Function Constructor(Napi::Env env) {
-        struct SDLAudioSourceClassName {
-            static const char* Get() {
-                return "SDLAudioSource";
-            }
-        };
-
-        return ConstructorInternal<SDLAudioSource, SDLAudioSourceClassName>(env);
+        return ConstructorInternal<SDLAudioSource>(env, "SDLAudioSource");
     }
 
     void Load(const CallbackInfo& info) override {
@@ -109,13 +103,7 @@ class SDLAudioSampleAudioDestination : public ObjectWrap<SDLAudioSampleAudioDest
     virtual ~SDLAudioSampleAudioDestination() = default;
 
     static Function Constructor(Napi::Env env) {
-        struct SDLAudioSampleAudioDestinationClassName {
-            static const char* Get() {
-                return "SDLAudioSampleAudioDestination";
-            }
-        };
-
-        return ConstructorInternal<SDLAudioSampleAudioDestination, SDLAudioSampleAudioDestinationClassName>(env);
+        return ConstructorInternal<SDLAudioSampleAudioDestination>(env, "SDLAudioSampleAudioDestination");
     }
 
     Napi::Value CreateAudioSource(const CallbackInfo& info) override {
@@ -158,13 +146,7 @@ SDLAudioAdapter::SDLAudioAdapter(const CallbackInfo& info) : ObjectWrap(info) {
 }
 
 Function SDLAudioAdapter::Constructor(Napi::Env env) {
-    struct SDLAudioAdapterClassName {
-        static const char* Get() {
-            return "SDLAudioAdapter";
-        }
-    };
-
-    return ConstructorInternal<SDLAudioAdapter, SDLAudioAdapterClassName>(env);
+    return ConstructorInternal<SDLAudioAdapter>(env, "SDLAudioAdapter");
 }
 
 void SDLAudioAdapter::Attach(const CallbackInfo& info) {

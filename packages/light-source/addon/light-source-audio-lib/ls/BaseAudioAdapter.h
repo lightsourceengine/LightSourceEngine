@@ -22,22 +22,22 @@ class BaseAudioAdapter : public AudioAdapter {
     Napi::Value CreateStreamAudioDestination(const Napi::CallbackInfo& info) override;
 
  protected:
-    template<typename T, typename ClassName>
-    static Napi::Function ConstructorInternal(Napi::Env env);
+    template<typename T>
+    static Napi::Function ConstructorInternal(Napi::Env env, const char* className);
 
  protected:
     bool isAttached{false};
     std::vector<std::string> audioDevices;
 };
 
-template<typename T, typename ClassName>
-Napi::Function BaseAudioAdapter::ConstructorInternal(Napi::Env env) {
+template<typename T>
+Napi::Function BaseAudioAdapter::ConstructorInternal(Napi::Env env, const char* className) {
     static Napi::FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         Napi::HandleScope scope(env);
 
-        auto func = T::DefineClass(env, ClassName::Get(), {
+        auto func = T::DefineClass(env, className, {
             T::InstanceMethod("attach", &T::Attach),
             T::InstanceMethod("detach", &T::Detach),
             T::InstanceMethod("createStreamAudioDestination", &T::CreateStreamAudioDestination),
