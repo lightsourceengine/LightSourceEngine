@@ -32,7 +32,6 @@
         "logger-bindings-lib",
       ],
       "sources": [
-        "yoga-ext.cc",
         "Executor.cc",
         "Task.cc",
         "TaskQueue.cc",

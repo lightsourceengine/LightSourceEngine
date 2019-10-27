@@ -11,6 +11,7 @@
         "../napi-ext-lib",
         "../light-source-util-lib",
         "../logger-lib",
+        "../deps/cpp17_headers/include",
       ],
       "sources": [
         "ls/PixelConversion.cc",
@@ -31,6 +32,7 @@
             "../napi-ext-lib",
             "../light-source-util-lib",
             "../logger-lib",
+            "../deps/cpp17_headers/include",
             "<!@(node -p \"require('napi-unit').include\")"
           ],
           "dependencies": [

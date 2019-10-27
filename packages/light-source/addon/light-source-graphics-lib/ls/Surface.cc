@@ -8,8 +8,10 @@
 #include <cassert>
 #include <cstring>
 #include <algorithm>
-#include <ls/Endian.h>
+#include <std20/bit>
 #include "PixelConversion.h"
+
+using std20::endian;
 
 namespace ls {
 
@@ -111,7 +113,7 @@ void Surface::Convert(const PixelFormat format) noexcept {
         return;
     }
 
-    if (this->format != (IsBigEndian() ? PixelFormatRGBA : PixelFormatABGR)) {
+    if (this->format != (endian::native == endian::big ? PixelFormatRGBA : PixelFormatABGR)) {
         return;
     }
 

@@ -1,0 +1,22 @@
+/*
+ * Copyright (C) 2019 Daniel Anderson
+ *
+ * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
+ */
+
+#pragma once
+
+#include <type_traits>
+
+namespace std20 {
+
+template<typename T>
+using _Enable_if_floating = typename std::enable_if<std::is_floating_point<T>::value, T>::type;
+
+template<typename T>
+constexpr T pi_v
+    = _Enable_if_floating<T>(3.141592653589793238462643383279502884L);
+
+constexpr double pi = pi_v<double>;
+
+}

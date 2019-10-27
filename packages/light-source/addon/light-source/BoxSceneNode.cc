@@ -9,7 +9,7 @@
 #include "ImageStore.h"
 #include "Scene.h"
 #include "StyleUtils.h"
-#include "yoga-ext.h"
+#include <ls/Math.h>
 #include <ls/Renderer.h>
 #include <ls/Format.h>
 
@@ -104,10 +104,10 @@ void BoxSceneNode::Paint(Renderer* renderer) {
 
         const auto texture{ this->backgroundImage->GetTexture() };
         const Rect destRect{
-            YGRoundValueToPixelGrid(positionX),
-            YGRoundValueToPixelGrid(positionY),
-            YGRoundValueToPixelGrid(fitDimensions.width),
-            YGRoundValueToPixelGrid(fitDimensions.height),
+            SnapToPixelGrid(positionX),
+            SnapToPixelGrid(positionY),
+            SnapToPixelGrid(fitDimensions.width),
+            SnapToPixelGrid(fitDimensions.height),
         };
 
         // TODO: mix opacity

@@ -10,7 +10,7 @@
 #include "Style.h"
 #include "Scene.h"
 #include "StyleUtils.h"
-#include "yoga-ext.h"
+#include <ls/Math.h>
 #include <ls/Renderer.h>
 
 using Napi::Array;
@@ -161,12 +161,12 @@ void ImageSceneNode::Paint(Renderer* renderer) {
     const auto fitDimensions{ CalculateObjectFitDimensions(boxStyle->objectFit(), this->image.Get(), width, height) };
     const auto clip{ fitDimensions.width > width || fitDimensions.height > height };
     const Rect destRect{
-        YGRoundValueToPixelGrid(x + CalculateObjectPosition(
+        SnapToPixelGrid(x + CalculateObjectPosition(
             boxStyle->objectPositionX(), true, width, fitDimensions.width, 0.5f, this->scene)),
-        YGRoundValueToPixelGrid(y + CalculateObjectPosition(
+        SnapToPixelGrid(y + CalculateObjectPosition(
             boxStyle->objectPositionY(), false, height, fitDimensions.height, 0.5f, this->scene)),
-        YGRoundValueToPixelGrid(fitDimensions.width),
-        YGRoundValueToPixelGrid(fitDimensions.height),
+        SnapToPixelGrid(fitDimensions.width),
+        SnapToPixelGrid(fitDimensions.height),
     };
     const auto tintColor{ boxStyle->tintColor() ? *boxStyle->tintColor() : 0xFFFFFFFF };
 

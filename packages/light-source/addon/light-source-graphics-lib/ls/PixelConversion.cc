@@ -5,7 +5,9 @@
  */
 
 #include "PixelConversion.h"
-#include <ls/Endian.h>
+#include <std20/bit>
+
+using std20::endian;
 
 namespace ls {
 
@@ -68,7 +70,7 @@ void ToFormatBE(Color* pixels, const int32_t len, const PixelFormat format) noex
 }
 
 void ConvertToFormat(Color* pixels, const int32_t len, const PixelFormat format) noexcept {
-    if (IsBigEndian()) {
+    if (endian::native == endian::big) {
        ToFormatBE(pixels, len, format);
     } else {
        ToFormatLE(pixels, len, format);

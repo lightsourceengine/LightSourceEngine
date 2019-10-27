@@ -10,10 +10,12 @@
 #include <array>
 #include <cassert>
 #include <ls/PixelConversion.h>
-#include <ls/Endian.h>
 #include <ls/Log.h>
 #include <ls/Format.h>
 #include <ls/Log.h>
+#include <std20/bit>
+
+using std20::endian;
 
 namespace ls {
 
@@ -332,7 +334,7 @@ std::shared_ptr<Texture> SDLRenderer::CreateTexture(const int32_t width, const i
 void SDLRenderer::SetRenderDrawColor(const int64_t color) noexcept {
     if (this->drawColor != color) {
         // TODO: consider opacity
-        if (IsBigEndian()) {
+        if (endian::native == endian::big) {
             SDL_SetRenderDrawColor(
                 this->renderer,
                 (color & 0xFF00) >> 8,
@@ -403,7 +405,7 @@ void SDLRenderer::Destroy() {
 
 static void SetTextureTintColor(SDL_Texture* texture, const int64_t color) noexcept {
     // TODO: consider opacity
-    if (IsBigEndian()) {
+    if (endian::native == endian::big) {
         SDL_SetTextureColorMod(texture, (color & 0xFF00) >> 8, (color & 0xFF0000) >> 16, (color & 0xFF000000) >> 24);
         SDL_SetTextureAlphaMod(texture, color > COLOR32 ? static_cast<uint8_t>(color & 0xFF) : 255);
     } else {

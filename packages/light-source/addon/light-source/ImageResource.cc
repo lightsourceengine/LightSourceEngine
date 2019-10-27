@@ -11,7 +11,6 @@
 #include <ls/FileSystem.h>
 #include <ls/Renderer.h>
 #include <ls/PixelConversion.h>
-#include <ls/Endian.h>
 #include <ls/Log.h>
 #include <ls/Format.h>
 #include <nanosvg.h>
@@ -19,13 +18,14 @@
 #include <stb_image.h>
 #include <algorithm>
 #include <cctype>
-
+#include <std20/bit>
 
 using Napi::Boolean;
 using Napi::EscapableHandleScope;
 using Napi::Object;
 using Napi::String;
 using Napi::Value;
+using std20::endian;
 
 namespace ls {
 
@@ -212,7 +212,7 @@ static Surface DecodeImage(const ImageUri& uri, const std::vector<std::string>& 
                     width,
                     height,
                     width * 4,
-                    IsBigEndian() ? PixelFormatRGBA : PixelFormatABGR
+                    endian::native == endian::big ? PixelFormatRGBA : PixelFormatABGR
                 };
             } else {
                 throw std::runtime_error(Format("Failed to decode image: %s", filename));

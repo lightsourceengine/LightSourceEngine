@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cmath>
+#include <std20/numbers>
 
 namespace ls {
 
@@ -63,11 +64,9 @@ struct Matrix {
      * Decompose axis angle value in degrees ([0,360).
      */
     float GetAxisAngleDeg() noexcept {
-        constexpr auto PI = static_cast<float>(M_PI);
-
         // + 180 => (-360, 0]
         // negating atan2 params flips the range [0, 360)
-        return std::atan2(-c, -d) / PI * 180.f + 180.f;
+        return std::atan2(-c, -d) / std20::pi_v<float> * 180.f + 180.f;
     }
 
     /**

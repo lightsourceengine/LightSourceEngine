@@ -6,17 +6,15 @@
 
 #include <napi-unit.h>
 #include <ls/Matrix.h>
+#include <ls/Math.h>
+#include <std20/numbers>
 
 using Napi::Assert;
 using Napi::TestSuite;
 
-constexpr auto PI = static_cast<float>(M_PI);
+constexpr auto PI = std20::pi_v<float>;
 
 namespace ls {
-
-static bool eq(float a, float b) noexcept {
-    return fabs(a - b) < 0.001f;
-}
 
 void MatrixSpec(Napi::Env env, TestSuite* parent) {
     auto spec{ parent->Describe("Matrix") };
@@ -92,13 +90,13 @@ void MatrixSpec(Napi::Env env, TestSuite* parent) {
                 auto radians{ PI / 4.f };
                 auto m{ Matrix::Rotate(radians) };
 
-                Assert::IsTrue(eq(m.GetAxisAngle(), radians));
+                Assert::IsTrue(Equals(m.GetAxisAngle(), radians));
             }
         },
         {
             "should return zero for non-rotation matrix",
             [](const Napi::CallbackInfo& info) {
-                Assert::IsTrue(eq(Matrix::Identity().GetAxisAngle(), 0));
+                Assert::IsTrue(Equals(Matrix::Identity().GetAxisAngle(), 0));
             }
         },
     };
@@ -110,13 +108,13 @@ void MatrixSpec(Napi::Env env, TestSuite* parent) {
                 auto radians{ PI / 4.f };
                 auto m{ Matrix::Rotate(radians) };
 
-                Assert::IsTrue(eq(m.GetAxisAngleDeg(), 45.f));
+                Assert::IsTrue(Equals(m.GetAxisAngleDeg(), 45.f));
             }
         },
         {
             "should return zero for non-rotation matrix",
             [](const Napi::CallbackInfo& info) {
-                Assert::IsTrue(eq(Matrix::Identity().GetAxisAngleDeg(), 0));
+                Assert::IsTrue(Equals(Matrix::Identity().GetAxisAngleDeg(), 0));
             }
         },
     };
@@ -127,16 +125,16 @@ void MatrixSpec(Napi::Env env, TestSuite* parent) {
             [](const Napi::CallbackInfo& info) {
                 auto m{ Matrix::Scale(10, 100) };
 
-                Assert::IsTrue(eq(m.GetScaleX(), 10.f));
-                Assert::IsTrue(eq(m.GetScaleY(), 100.f));
+                Assert::IsTrue(Equals(m.GetScaleX(), 10.f));
+                Assert::IsTrue(Equals(m.GetScaleY(), 100.f));
             }
         },
         {
             "should return 1 for identity matrix",
             [](const Napi::CallbackInfo& info) {
                 auto m{ Matrix::Identity() };
-                Assert::IsTrue(eq(m.GetScaleX(), 1.f));
-                Assert::IsTrue(eq(m.GetScaleY(), 1.f));
+                Assert::IsTrue(Equals(m.GetScaleX(), 1.f));
+                Assert::IsTrue(Equals(m.GetScaleY(), 1.f));
             }
         },
     };
@@ -147,16 +145,16 @@ void MatrixSpec(Napi::Env env, TestSuite* parent) {
             [](const Napi::CallbackInfo& info) {
                 auto m{ Matrix::Translate(10, 100) };
 
-                Assert::IsTrue(eq(m.GetTranslateX(), 10.f));
-                Assert::IsTrue(eq(m.GetTranslateY(), 100.f));
+                Assert::IsTrue(Equals(m.GetTranslateX(), 10.f));
+                Assert::IsTrue(Equals(m.GetTranslateY(), 100.f));
             }
         },
         {
             "should return 0 for identity matrix",
             [](const Napi::CallbackInfo& info) {
                 auto m{ Matrix::Identity() };
-                Assert::IsTrue(eq(m.GetTranslateX(), 0.f));
-                Assert::IsTrue(eq(m.GetTranslateY(), 0.f));
+                Assert::IsTrue(Equals(m.GetTranslateX(), 0.f));
+                Assert::IsTrue(Equals(m.GetTranslateY(), 0.f));
             }
         },
     };
@@ -169,8 +167,8 @@ void MatrixSpec(Napi::Env env, TestSuite* parent) {
                 auto b{ Matrix::Translate(10, 100) };
                 auto m{ a * b };
 
-                Assert::IsTrue(eq(m.GetTranslateX(), 10.f));
-                Assert::IsTrue(eq(m.GetTranslateY(), 100.f));
+                Assert::IsTrue(Equals(m.GetTranslateX(), 10.f));
+                Assert::IsTrue(Equals(m.GetTranslateY(), 100.f));
             }
         },
         {
@@ -180,8 +178,8 @@ void MatrixSpec(Napi::Env env, TestSuite* parent) {
                 auto b{ Matrix::Translate(10, 10) };
                 auto m{ a * b };
 
-                Assert::IsTrue(eq(m.GetTranslateX(), 20.f));
-                Assert::IsTrue(eq(m.GetTranslateY(), 20.f));
+                Assert::IsTrue(Equals(m.GetTranslateX(), 20.f));
+                Assert::IsTrue(Equals(m.GetTranslateY(), 20.f));
             }
         },
     };

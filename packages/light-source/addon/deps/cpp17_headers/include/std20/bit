@@ -6,9 +6,9 @@
 
 #pragma once
 
-namespace ls {
+namespace std20 {
 
-// Implementation from C++20 endian proposal: http://howardhinnant.github.io/endian.html
+// from: http://howardhinnant.github.io/endian.html
 enum class endian {
 #ifdef _WIN32
     little = 0,
@@ -16,16 +16,9 @@ enum class endian {
     native = little
 #else
     little = __ORDER_LITTLE_ENDIAN__,
-    big    = __ORDER_BIG_ENDIAN__,
+    big = __ORDER_BIG_ENDIAN__,
     native = __BYTE_ORDER__
 #endif
 };
 
-/**
- * Check if ths CPU is big endian.
- */
-constexpr bool IsBigEndian() {
-    return endian::native == endian::big;
 }
-
-} // namespace ls
