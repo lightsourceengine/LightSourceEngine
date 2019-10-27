@@ -21,4 +21,4 @@ enum class endian {
 #endif
 };
 
-}
+} // namespace std20
