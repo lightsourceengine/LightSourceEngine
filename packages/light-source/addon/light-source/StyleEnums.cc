@@ -8,7 +8,7 @@
 
 namespace ls {
 
-const char* StyleFontWeightToString(const StyleFontWeight value) {
+const char* StyleFontWeightToString(const StyleFontWeight value) noexcept {
     switch (value) {
         case StyleFontWeightNormal:
             return "normal";
@@ -18,7 +18,7 @@ const char* StyleFontWeightToString(const StyleFontWeight value) {
     return "unknown";
 }
 
-const char* StyleFontStyleToString(const StyleFontStyle value) {
+const char* StyleFontStyleToString(const StyleFontStyle value) noexcept {
     switch (value) {
         case StyleFontStyleNormal:
             return "normal";
@@ -28,7 +28,7 @@ const char* StyleFontStyleToString(const StyleFontStyle value) {
     return "unknown";
 }
 
-const char* StyleTextOverflowToString(const StyleTextOverflow value) {
+const char* StyleTextOverflowToString(const StyleTextOverflow value) noexcept {
   switch (value) {
     case StyleTextOverflowNone:
         return "none";
@@ -40,7 +40,7 @@ const char* StyleTextOverflowToString(const StyleTextOverflow value) {
   return "unknown";
 }
 
-const char* StyleTextAlignToString(const StyleTextAlign value) {
+const char* StyleTextAlignToString(const StyleTextAlign value) noexcept {
   switch (value) {
     case StyleTextAlignLeft:
         return "left";
@@ -52,7 +52,7 @@ const char* StyleTextAlignToString(const StyleTextAlign value) {
   return "unknown";
 }
 
-const char* StyleObjectFitToString(const StyleObjectFit value) {
+const char* StyleObjectFitToString(const StyleObjectFit value) noexcept {
   switch (value) {
     case StyleObjectFitFill:
         return "fill";
@@ -68,7 +68,7 @@ const char* StyleObjectFitToString(const StyleObjectFit value) {
   return "unknown";
 }
 
-const char* StyleBackgroundClipToString(const StyleBackgroundClip value) {
+const char* StyleBackgroundClipToString(const StyleBackgroundClip value) noexcept {
   switch (value) {
     case StyleBackgroundClipBorderBox:
         return "border-box";
@@ -78,7 +78,7 @@ const char* StyleBackgroundClipToString(const StyleBackgroundClip value) {
   return "unknown";
 }
 
-const char* StyleTextTransformToString(const StyleTextTransform value) {
+const char* StyleTextTransformToString(const StyleTextTransform value) noexcept {
   switch (value) {
     case StyleTextTransformNone:
         return "none";
@@ -90,7 +90,7 @@ const char* StyleTextTransformToString(const StyleTextTransform value) {
   return "unknown";
 }
 
-const char* StyleAnchorToString(const StyleAnchor value) {
+const char* StyleAnchorToString(const StyleAnchor value) noexcept {
   switch (value) {
     case StyleAnchorTop:
         return "top";

@@ -44,7 +44,7 @@ class ResourceStore {
     /**
      *
      */
-    void Add(const std::shared_ptr<ResourceType> resource);
+    void Add(std::shared_ptr<ResourceType>& resource);
 
     /**
      *
@@ -83,7 +83,7 @@ void ResourceStore<ResourceType, IdType, IdHash>::Remove(const IdType& id) {
 }
 
 template<typename ResourceType, typename IdType, typename IdHash>
-void ResourceStore<ResourceType, IdType, IdHash>::Add(std::shared_ptr<ResourceType> resource) {
+void ResourceStore<ResourceType, IdType, IdHash>::Add(std::shared_ptr<ResourceType>& resource) {
     assert(!this->Has(resource->GetId()));
 
     this->resources.insert(std::make_pair(resource->GetId(), resource));

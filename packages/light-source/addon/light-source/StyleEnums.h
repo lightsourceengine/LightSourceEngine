@@ -155,7 +155,7 @@ LS_ENUM_SEQ_DECL(
 
 // maps yoga style enums to the Count() function, so all style enums look the same
 template <typename E>
-constexpr int32_t Count() {
+constexpr int32_t Count() noexcept {
     return facebook::yoga::enums::count<E>();
 }
 

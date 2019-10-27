@@ -8,7 +8,7 @@
 
 namespace ls {
 
-std::string ResourceStateToString(ResourceState state) {
+const char* ResourceStateToString(ResourceState state) {
     switch (state) {
         case ResourceStateInit:
             return "init";
@@ -19,7 +19,6 @@ std::string ResourceStateToString(ResourceState state) {
         case ResourceStateLoading:
             return "loading";
     }
-
     return "unknown";
 }
 

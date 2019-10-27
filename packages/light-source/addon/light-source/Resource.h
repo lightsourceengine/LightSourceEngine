@@ -23,7 +23,7 @@ enum ResourceState : uint8_t {
     ResourceStateLoading,
 };
 
-std::string ResourceStateToString(ResourceState state);
+const char* ResourceStateToString(ResourceState state);
 
 using ResourceStateChangeFunction = std::function<void()>;
 
