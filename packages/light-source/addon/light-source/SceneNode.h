@@ -18,6 +18,7 @@ class Scene;
 class SceneNode;
 class Style;
 class Renderer;
+class CompositeContext;
 
 class SceneNode {
  public:
@@ -48,7 +49,10 @@ class SceneNode {
     void Layout(float width, float height);
     Style* GetStyleOrEmpty() const noexcept { return this->style ? this->style : Style::Empty(); }
 
+    virtual void ComputeStyle();
     virtual void Paint(Renderer* renderer);
+    virtual void Composite(CompositeContext* context, Renderer* renderer);
+
     virtual Napi::Reference<Napi::Object>* AsReference() noexcept = 0;
     virtual void OnViewportSizeChange();
     virtual void OnRootFontSizeChange();

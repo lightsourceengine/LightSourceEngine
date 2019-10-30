@@ -5,6 +5,7 @@
  */
 
 #include "ImageStoreView.h"
+#include <napi-ext.h>
 #include "ImageStore.h"
 #include "ImageResource.h"
 #include "Stage.h"
@@ -20,6 +21,9 @@ using Napi::HandleScope;
 using Napi::Number;
 using Napi::Object;
 using Napi::ObjectWrap;
+using Napi::ObjectGetString;
+using Napi::ObjectGetStringOrEmpty;
+using Napi::ObjectGetNumberOrDefault;
 using Napi::String;
 using Napi::Value;
 
@@ -50,6 +54,7 @@ Function ImageStoreView::Constructor(Napi::Env env) {
         HandleScope scope(env);
 
         auto func = DefineClass(env, "ImageStoreView", {
+            InstanceMethod("add", &ImageStoreView::Add),
             InstanceMethod("list", &ImageStoreView::List),
             InstanceAccessor("extensions", &ImageStoreView::GetExtensions, &ImageStoreView::SetExtensions),
         });
@@ -59,6 +64,51 @@ Function ImageStoreView::Constructor(Napi::Env env) {
     }
 
     return constructor.Value();
+}
+
+void ImageStoreView::Add(const CallbackInfo& info) {
+    auto env{ info.Env() };
+    HandleScope scope(env);
+    ImageUri imageUri;
+
+    if (info[0].IsString()) {
+        imageUri = { info[0].As<String>().Utf8Value() };
+    } else if (info[0].IsObject()) {
+        auto options{ info[0].As<Object>() };
+        auto uri{ ObjectGetString(options, "uri") };
+        auto id{ ObjectGetStringOrEmpty(options, "id") };
+        auto capInsetsValue{ options.Get("capInsets") };
+        EdgeRect capInsets;
+
+        if (capInsetsValue.IsObject()) {
+            auto capInsetsObject{ capInsetsValue.As<Object>() };
+
+            capInsets = {
+                ObjectGetNumberOrDefault(capInsetsObject, "top", 0),
+                ObjectGetNumberOrDefault(capInsetsObject, "right", 0),
+                ObjectGetNumberOrDefault(capInsetsObject, "bottom", 0),
+                ObjectGetNumberOrDefault(capInsetsObject, "left", 0),
+            };
+        } else if (capInsetsValue.IsNumber()) {
+            const int32_t value{ capInsetsValue.As<Number>() };
+
+            capInsets = { value, value, value, value };
+        } else {
+            capInsets = {};
+        }
+
+        imageUri = {
+            uri,
+            id.empty() ? uri : id,
+            ObjectGetNumberOrDefault(options, "width", 0),
+            ObjectGetNumberOrDefault(options, "height", 0),
+            capInsets
+        };
+    } else {
+        throw Error::New(env, "Expected an image uri specified string or object.");
+    }
+
+    this->scene->GetImageStore()->LoadImage(imageUri);
 }
 
 Value ImageStoreView::List(const CallbackInfo& info) {

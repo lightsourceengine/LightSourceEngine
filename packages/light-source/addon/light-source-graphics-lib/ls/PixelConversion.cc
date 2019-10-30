@@ -5,7 +5,6 @@
  */
 
 #include "PixelConversion.h"
-#include <std20/bit>
 
 using std20::endian;
 

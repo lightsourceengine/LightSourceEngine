@@ -13,6 +13,7 @@
 namespace ls {
 
 class ImageResource;
+class Texture;
 
 class BoxSceneNode : public Napi::ObjectWrap<BoxSceneNode>, public SceneNode {
  public:
@@ -21,7 +22,9 @@ class BoxSceneNode : public Napi::ObjectWrap<BoxSceneNode>, public SceneNode {
 
     static Napi::Function Constructor(Napi::Env env);
 
+    void ComputeStyle() override;
     void Paint(Renderer* renderer) override;
+    void Composite(CompositeContext* context, Renderer* renderer) override;
 
     Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; }
 
@@ -29,13 +32,11 @@ class BoxSceneNode : public Napi::ObjectWrap<BoxSceneNode>, public SceneNode {
     void DestroyRecursive() override;
     void UpdateStyle(Style* newStyle, Style* oldStyle) override;
     void SetBackgroundImage(const Style* style);
-    void SetBorderRadiusImages(const Style* style);
 
  private:
-    std::string backgroundImageUri{};
-    std::shared_ptr<ImageResource> backgroundImage{};
-    std::shared_ptr<ImageResource> roundedRectImage{};
-    std::shared_ptr<ImageResource> roundedRectStrokeImage{};
+    std::string backgroundImageUri;
+    std::shared_ptr<ImageResource> backgroundImage;
+    std::shared_ptr<Texture> layer;
 };
 
 } // namespace ls

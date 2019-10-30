@@ -12,11 +12,13 @@
 #include "StyleUtils.h"
 #include "Layer.h"
 #include "LayerCache.h"
+#include "yoga-ext.h"
+#include "CompositeContext.h"
 #include <ls/Timer.h>
 #include <ls/Surface.h>
 #include <ls/Renderer.h>
-#include <Utils.h>
 #include <napi-ext.h>
+#include <ls/PixelConversion.h>
 
 using Napi::Array;
 using Napi::CallbackInfo;
@@ -73,56 +75,58 @@ Function TextSceneNode::Constructor(Napi::Env env) {
     return constructor.Value();
 }
 
-void TextSceneNode::Paint(Renderer* renderer) {
-    auto myStyle{ this->GetStyleOrEmpty() };
-    auto width{ std::min(YGNodeLayoutGetWidth(this->ygNode), static_cast<float>(this->scene->GetWidth())) };
-    auto height{ std::min(YGNodeLayoutGetHeight(this->ygNode), static_cast<float>(this->scene->GetHeight())) };
+void TextSceneNode::ComputeStyle() {
+}
 
-    if (!this->font || width <= 0 || height <= 0 || this->textBlock.IsEmpty() || !myStyle->color()) {
+void TextSceneNode::Paint(Renderer* renderer) {
+    auto boxStyle{ this->GetStyleOrEmpty() };
+
+    if (this->layer || !this->font || this->textBlock.IsEmpty() || !boxStyle->color()) {
         return;
     }
 
+    auto dest{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
+
     if (!this->layer) {
-        // TODO: bad alloc?
-        this->layer = std::make_shared<Layer>(this->scene->GetLayerCache());
+        this->layer = renderer->CreateTexture(
+            static_cast<int32_t>(dest.width), static_cast<int32_t>(dest.height));
     }
 
-    if (this->layer->IsDirty()) {
-        Timer t{ "text paint" };
+    Timer t{ "text paint" };
 
-        const auto texture{ this->layer->Sync(static_cast<int32_t>(width), static_cast<int32_t>(height)) };
+    auto surface{ this->layer->Lock() };
 
-        if (!texture) {
-            return;
-        }
+    t.Log();
 
-        t.Log();
-
-        auto surface{ texture->Lock() };
-
-        t.Log();
-
-        if (surface.IsEmpty()) {
-            return;
-        }
-
-        surface.FillTransparent();
-
-        t.Log();
-
-        this->textBlock.Paint(
-            surface,
-            CalculateLineHeight(this->style->lineHeight(), this->scene, this->font->GetLineHeight()),
-            this->style->textAlign(),
-            width);
+    if (surface.IsEmpty()) {
+        return;
     }
 
-    if (this->layer->HasTexture()) {
-        renderer->DrawImage(
-            this->layer->GetTexture(),
-            { YGNodeLayoutGetLeft(this->ygNode), YGNodeLayoutGetTop(this->ygNode), width, height },
-            myStyle->color()->Get());
+    surface.FillTransparent();
+
+    t.Log();
+
+    this->textBlock.Paint(
+        surface,
+        CalculateLineHeight(this->style->lineHeight(), this->scene, this->font->GetLineHeight()),
+        this->style->textAlign(),
+        width);
+}
+
+void TextSceneNode::Composite(CompositeContext* context, Renderer* renderer) {
+    if (!this->layer) {
+        return;
     }
+
+    const auto& transform{ context->CurrentMatrix() };
+    auto rect{ YGNodeLayoutGetRect(this->ygNode) };
+
+    rect.x += transform.GetTranslateX();
+    rect.y += transform.GetTranslateY();
+
+    renderer->DrawImage(this->layer, rect, RGB(255, 255, 255));
+
+    SceneNode::Composite(context, renderer);
 }
 
 Value TextSceneNode::GetText(const CallbackInfo& info) {
@@ -271,9 +275,9 @@ void TextSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
         YGNodeMarkDirty(this->ygNode);
     }
 
-    if (current->textAlign() != style->textAlign() && this->layer) {
-        this->layer->MarkDirty();
-    }
+//    if (current->textAlign() != style->textAlign() && this->layer) {
+//        this->layer->MarkDirty();
+//    }
 }
 
 void TextSceneNode::ClearFont() noexcept {
@@ -306,9 +310,9 @@ YGSize TextSceneNode::Measure(float width, YGMeasureMode widthMode, float height
             GetMaxLines(this->style));
     }
 
-    if (this->layer) {
-        this->layer->MarkDirty();
-    }
+//    if (this->layer) {
+//        this->layer->MarkDirty();
+//    }
 
     return { this->textBlock.GetComputedWidth(), this->textBlock.GetComputedHeight() };
 }

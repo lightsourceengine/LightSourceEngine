@@ -12,6 +12,8 @@
 #include <ls/StageAdapter.h>
 #include <ls/SceneAdapter.h>
 #include <ls/Log.h>
+#include "CompositeContext.h"
+#include <ls/Timer.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -168,12 +170,20 @@ void Scene::Frame(const CallbackInfo& info) {
 
     this->root->Layout(this->width, this->height);
 
+    this->root->ComputeStyle();
+
     if (!this->isAttached) {
         return;
     }
 
-    renderer->SetRenderTarget(nullptr);
     this->root->Paint(renderer);
+
+    renderer->SetRenderTarget(nullptr);
+
+    CompositeContext context;
+
+    this->root->Composite(&context, renderer);
+
     renderer->Present();
 }
 

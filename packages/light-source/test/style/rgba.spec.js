@@ -7,10 +7,8 @@
 import { assert } from 'chai'
 import { rgba } from '../../src/style/rgba'
 
-const alphaBit = 0xFFFFFFFF + 1
-
 describe('rgba()', () => {
-  it('should return integer in 0x1AARRGGBB color format', () => {
+  it('should return integer in 0xAARRGGBB color format', () => {
     const values = [
       rgba(0x66, 0x33, 0x99, 0.5),
       rgba('#663399', 0.5),
@@ -23,7 +21,7 @@ describe('rgba()', () => {
     ]
 
     for (const value of values) {
-      assert.equal(value, 0x7F663399 + alphaBit)
+      assert.equal(value, 0x7F663399)
     }
   })
   it('should return 0 when argument count does not equal 2 or 4', () => {
@@ -35,7 +33,7 @@ describe('rgba()', () => {
     ]
 
     for (const value of values) {
-      assert.equal(value, 0xFF000000 + alphaBit)
+      assert.equal(value, 0xFF000000)
     }
   })
   it('should return 0 when arguments are invalid color components', () => {
@@ -53,7 +51,7 @@ describe('rgba()', () => {
     ]
 
     for (const value of values) {
-      assert.equal(value, 0xFF000000 + alphaBit)
+      assert.equal(value, 0xFF000000)
     }
   })
 })

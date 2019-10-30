@@ -6,12 +6,15 @@
 
 #include "ImageSceneNode.h"
 #include "ImageStore.h"
-#include "YGNode.h"
 #include "Style.h"
 #include "Scene.h"
 #include "StyleUtils.h"
+#include "CompositeContext.h"
 #include <ls/Math.h>
 #include <ls/Renderer.h>
+#include "yoga-ext.h"
+#include <ls/Log.h>
+#include <ls/PixelConversion.h>
 
 using Napi::Array;
 using Napi::Call;
@@ -141,52 +144,114 @@ void ImageSceneNode::SetOnErrorCallback(const CallbackInfo& info, const Napi::Va
     }
 }
 
+void ImageSceneNode::ComputeStyle() {
+    const auto boxStyle{ this->GetStyleOrEmpty() };
+
+    auto bounds{ YGNodeLayoutGetInnerRect(this->ygNode) };
+    auto fit{ CalculateObjectFitDimensions(
+        boxStyle->objectFit(),
+        this->image.Get(),
+        bounds.width,
+        bounds.height)
+    };
+    auto offsetX{ CalculateObjectPosition(
+        boxStyle->objectPositionX(),
+        true,
+        bounds.width,
+        fit.width,
+        0.5f,
+        this->scene)
+    };
+    auto offsetY{ CalculateObjectPosition(
+        boxStyle->objectPositionY(),
+        false,
+        bounds.height,
+        fit.height,
+        0.5f,
+        this->scene)
+    };
+
+//    this->srcRect = {
+//        0.f,
+//        0.f,
+//        static_cast<float>(this->image->GetWidth()),
+//        static_cast<float>(this->image->GetHeight()),
+//    };
+
+    this->destRect = {
+        SnapToPixelGrid(bounds.x + offsetX),
+        SnapToPixelGrid(bounds.y + offsetY),
+        SnapToPixelGrid(fit.width),
+        SnapToPixelGrid(fit.height),
+    };
+
+    // TODO: clip dest against bounds
+}
+
 void ImageSceneNode::Paint(Renderer* renderer) {
-    if (!this->image || !this->image->Sync(renderer)) {
+    if (!this->image) {
+        return;
+    }
+
+    this->image->Sync(renderer);
+
+    const auto boxStyle{ this->GetStyleOrEmpty() };
+    auto rect{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
+
+    if (this->image->HasCapInsets() || boxStyle->HasBorder()) {
+        if (!this->layer) {
+            this->layer = renderer->CreateRenderTarget(
+                static_cast<int32_t>(rect.width), static_cast<int32_t>(rect.height));
+        }
+
+        renderer->SetRenderTarget(this->layer);
+        renderer->FillRenderTarget(0);
+
+        if (this->image->GetTexture()) {
+            const auto tintColor{ boxStyle->tintColor() ? boxStyle->tintColor()->Get() : RGB(255, 255, 255) };
+
+            if (this->image->HasCapInsets()) {
+                renderer->DrawImage(
+                    this->image->GetTexture(),
+                    this->destRect,
+                    this->image->GetCapInsets(),
+                    tintColor);
+            } else {
+                renderer->DrawImage(
+                    this->image->GetTexture(),
+                    this->destRect,
+                    tintColor);
+            }
+        }
+
+        if (boxStyle->HasBorder() && boxStyle->borderColor()) {
+            renderer->DrawBorder(
+                rect,
+                YGNodeLayoutGetBorderRect(this->ygNode),
+                boxStyle->borderColor()->Get());
+        }
+    }
+}
+
+void ImageSceneNode::Composite(CompositeContext* context, Renderer* renderer) {
+    if (!this->image || !this->image->GetTexture() || !this->layer) {
         return;
     }
 
     const auto boxStyle{ this->GetStyleOrEmpty() };
-    const auto left{
-        YGNodeLayoutGetBorder(this->ygNode, YGEdgeLeft) + YGNodeLayoutGetPadding(this->ygNode, YGEdgeLeft) };
-    const auto top{ YGNodeLayoutGetBorder(this->ygNode, YGEdgeTop) + YGNodeLayoutGetPadding(this->ygNode, YGEdgeTop) };
-    const auto x{ YGNodeLayoutGetLeft(this->ygNode) + left };
-    const auto y{ YGNodeLayoutGetTop(this->ygNode) + top };
-    const auto width{ YGNodeLayoutGetWidth(this->ygNode)
-        - (left + YGNodeLayoutGetBorder(this->ygNode, YGEdgeRight)
-        + YGNodeLayoutGetPadding(this->ygNode, YGEdgeRight)) };
-    const auto height{ YGNodeLayoutGetHeight(this->ygNode)
-        - (top + YGNodeLayoutGetBorder(this->ygNode, YGEdgeBottom)
-        + YGNodeLayoutGetPadding(this->ygNode, YGEdgeBottom)) };
-    const auto fitDimensions{ CalculateObjectFitDimensions(boxStyle->objectFit(), this->image.Get(), width, height) };
-    const auto clip{ fitDimensions.width > width || fitDimensions.height > height };
-    const Rect destRect{
-        SnapToPixelGrid(x + CalculateObjectPosition(
-            boxStyle->objectPositionX(), true, width, fitDimensions.width, 0.5f, this->scene)),
-        SnapToPixelGrid(y + CalculateObjectPosition(
-            boxStyle->objectPositionY(), false, height, fitDimensions.height, 0.5f, this->scene)),
-        SnapToPixelGrid(fitDimensions.width),
-        SnapToPixelGrid(fitDimensions.height),
-    };
-    const auto tintColor{ boxStyle->tintColor() ? *boxStyle->tintColor() : 0xFFFFFFFF };
+    const auto tintColor{ boxStyle->tintColor() ? boxStyle->tintColor()->Get() : RGB(255, 255, 255) };
+    auto transform{ context->CurrentMatrix() };
+    auto dest{ YGNodeLayoutGetRect(this->ygNode) };
 
-    if (clip) {
-        renderer->PushClipRect({ x, y, width, height });
-    }
+    dest.x += (transform.GetTranslateX());
+    dest.y += (transform.GetTranslateY());
 
-    if (this->image->HasCapInsets()) {
-        renderer->DrawImage(this->image->GetTexture(), destRect, this->image->GetCapInsets(), tintColor);
-    } else {
-        renderer->DrawImage(this->image->GetTexture(), destRect, tintColor);
-    }
-
-    if (clip) {
-        renderer->PopClipRect();
-    }
+    renderer->DrawImage(this->layer ? this->layer : this->image->GetTexture(), dest, tintColor);
 }
 
 void ImageSceneNode::DestroyRecursive() {
     this->image = nullptr;
+    this->layer = nullptr;
     this->onLoadCallback.Reset();
     this->onErrorCallback.Reset();
 

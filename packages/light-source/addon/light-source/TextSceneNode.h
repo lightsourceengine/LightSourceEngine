@@ -13,7 +13,7 @@
 
 namespace ls {
 
-class Layer;
+class Texture;
 
 class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
  public:
@@ -26,7 +26,10 @@ class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
     void SetText(const Napi::CallbackInfo& info, const Napi::Value& value);
 
     Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; }
+
+    void ComputeStyle() override;
     void Paint(Renderer* renderer) override;
+    void Composite(CompositeContext* context, Renderer* renderer) override;
 
     void OnViewportSizeChange() override;
     void OnRootFontSizeChange() override;
@@ -44,7 +47,7 @@ class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
     std::string text;
     ResourceLink<FontResource> fontResource;
     std::shared_ptr<Font> font;
-    std::shared_ptr<Layer> layer;
+    std::shared_ptr<Texture> layer;
     TextBlock textBlock;
 };
 

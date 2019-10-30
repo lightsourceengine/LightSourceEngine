@@ -7,8 +7,6 @@
 import { assert } from 'chai'
 import { Style } from '../../src/style/Style'
 
-const alphaBit = 4294967296
-
 const style = (obj) => new Style(obj)
 
 const testStyleValue = (name, value, expectedValue) => {
@@ -51,16 +49,16 @@ describe('Style', () => {
   describe('color properties', () => {
     it('should set color values', () => {
       for (const property of colorProperties) {
-        testStyleValue(property, 'blanchedalmond', 0xFFEBCD)
-        testStyleValue(property, 'BLANCHEDALMOND', 0xFFEBCD)
+        testStyleValue(property, 'blanchedalmond', 0xFFFFEBCD)
+        testStyleValue(property, 'BLANCHEDALMOND', 0xFFFFEBCD)
         testStyleValue(property, 0xFFEBCD, 0xFFEBCD)
-        testStyleValue(property, 0xFFFFEBCD, 0xFFEBCD)
-        testStyleValue(property, '#FFEBCD', 0xFFEBCD)
-        testStyleValue(property, '#ffebcd', 0xFFEBCD)
-        testStyleValue(property, '#FFF', 0xFFFFFF)
-        testStyleValue(property, '#fff', 0xFFFFFF)
-        testStyleValue(property, '#ffffebcd', 0xFFFFEBCD + alphaBit)
-        testStyleValue(property, '#ffff', 0xFFFFFFFF + alphaBit)
+        testStyleValue(property, 0xFFFFEBCD, 0xFFFFEBCD)
+        testStyleValue(property, '#FFEBCD', 0xFFFFEBCD)
+        testStyleValue(property, '#ffebcd', 0xFFFFEBCD)
+        testStyleValue(property, '#FFF', 0xFFFFFFFF)
+        testStyleValue(property, '#fff', 0xFFFFFFFF)
+        testStyleValue(property, '#ffffebcd', 0xFFFFEBCD)
+        testStyleValue(property, '#ffff', 0xFFFFFFFF)
       }
     })
     it('should return 0 for invalid color values', () => {

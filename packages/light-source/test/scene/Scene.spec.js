@@ -21,7 +21,7 @@ describe('Scene', () => {
   describe('constructor', () => {
     it('should set root style', () => {
       assert.equal(scene.root.style.fontSize.value, 16)
-      assert.equal(scene.root.style.backgroundColor, 0)
+      assert.equal(scene.root.style.backgroundColor, 0xFF000000)
     })
   })
   describe('createNode()', () => {

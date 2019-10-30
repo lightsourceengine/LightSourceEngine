@@ -7,6 +7,8 @@
 #include "SceneNode.h"
 #include "Style.h"
 #include "Scene.h"
+#include "yoga-ext.h"
+#include "CompositeContext.h"
 #include <ls/Renderer.h>
 #include <algorithm>
 
@@ -303,28 +305,38 @@ void SceneNode::DestroyRecursive() {
     }
 }
 
-void SceneNode::Paint(Renderer* renderer) {
-    if (!this->children.empty()) {
-        auto x{ YGNodeLayoutGetLeft(this->ygNode) };
-        auto y{ YGNodeLayoutGetTop(this->ygNode) };
-        auto clip{ this->GetStyleOrEmpty()->overflow() == YGOverflowHidden };
-
-        if (clip) {
-            renderer->PushClipRect({ x, y, YGNodeLayoutGetWidth(this->ygNode), YGNodeLayoutGetHeight(this->ygNode) });
-        }
-
-        renderer->Shift(x, y);
-
-        for (auto& node : this->children) {
-            node->Paint(renderer);
-        }
-
-        renderer->Unshift();
-
-        if (clip) {
-            renderer->PopClipRect();
-        }
+void SceneNode::ComputeStyle() {
+    for (auto& child : this->children) {
+        child->ComputeStyle();
     }
+}
+
+void SceneNode::Paint(Renderer* renderer) {
+    for (auto& child : this->children) {
+        child->Paint(renderer);
+    }
+}
+
+void SceneNode::Composite(CompositeContext* context, Renderer* renderer) {
+    const auto bounds{ YGNodeLayoutGetRect(this->ygNode) };
+    const auto clip{ this->GetStyleOrEmpty()->overflow() == YGOverflowHidden };
+
+    context->PushMatrix(Matrix::Translate(bounds.x, bounds.y));
+
+    if (clip) {
+        context->PushClipRect(bounds);
+        renderer->SetClipRect(context->CurrentClipRect());
+    }
+
+    for (auto& child : this->children) {
+        child->Composite(context, renderer);
+    }
+
+    if (clip) {
+        context->PopClipRect();
+    }
+
+    context->PopMatrix();
 }
 
 void SceneNode::Layout(float width, float height) {

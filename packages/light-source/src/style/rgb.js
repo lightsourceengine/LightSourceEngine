@@ -17,4 +17,4 @@ import { clamp } from '../util'
  * @param {number} b Blue color component [0-255]
  * @returns {number} Style color value in 32-bit RRGGBB format
  */
-export const rgb = (r, g, b) => ((clamp(r, 0, 255) << 16) | (clamp(g, 0, 255) << 8) | clamp(b, 0, 255)) >>> 0
+export const rgb = (r, g, b) => (0xFF000000 | (clamp(r, 0, 255) << 16) | (clamp(g, 0, 255) << 8) | clamp(b, 0, 255)) >>> 0

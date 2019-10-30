@@ -34,12 +34,6 @@ class RefTexture : public Texture {
     bool canLock;
 };
 
-RefRenderer::RefRenderer() {
-}
-
-RefRenderer::~RefRenderer() {
-}
-
 int32_t RefRenderer::GetWidth() const {
     return 0;
 }
@@ -51,25 +45,19 @@ int32_t RefRenderer::GetHeight() const {
 void RefRenderer::Present() {
 }
 
-void RefRenderer::Shift(float x, float y) {
+void RefRenderer::SetClipRect(const Rect& rect) {
 }
 
-void RefRenderer::Unshift() {
+void RefRenderer::ClearClipRect() {
 }
 
-void RefRenderer::PushClipRect(const Rect& rect) {
+void RefRenderer::DrawFillRect(const Rect& rect, const uint32_t fillColor) {
 }
 
-void RefRenderer::PopClipRect() {
+void RefRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const uint32_t borderColor) {
 }
 
-void RefRenderer::DrawFillRect(const Rect& rect, const int64_t fillColor) {
-}
-
-void RefRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const int64_t borderColor) {
-}
-
-void RefRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const int64_t tintColor) {
+void RefRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const uint32_t tintColor) {
 }
 
 void RefRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const EdgeRect& capInsets,
@@ -77,10 +65,10 @@ void RefRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect&
 }
 
 void RefRenderer::DrawQuad(const std::shared_ptr<Texture>& texture, const Rect& srcRect, const Rect& destRect,
-        const int64_t tintColor) {
+        const uint32_t tintColor) {
 }
 
-void RefRenderer::ClearScreen(const int64_t color) {
+void RefRenderer::FillRenderTarget(const uint32_t color) {
 }
 
 bool RefRenderer::SetRenderTarget(std::shared_ptr<Texture> renderTarget) {

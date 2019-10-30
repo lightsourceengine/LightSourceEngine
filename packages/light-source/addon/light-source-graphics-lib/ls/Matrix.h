@@ -56,14 +56,14 @@ struct Matrix {
     /**
      * Decompose axis angle value in radians.
      */
-    float GetAxisAngle() noexcept {
+    float GetAxisAngle() const noexcept {
         return std::atan2(c, d);
     }
 
     /**
      * Decompose axis angle value in degrees ([0,360).
      */
-    float GetAxisAngleDeg() noexcept {
+    float GetAxisAngleDeg() const noexcept {
         // + 180 => (-360, 0]
         // negating atan2 params flips the range [0, 360)
         return std::atan2(-c, -d) / std20::pi_v<float> * 180.f + 180.f;
@@ -73,7 +73,7 @@ struct Matrix {
      * Decompose x-axis scale factor. This will always be a positive value, even if the matrix was created with a
      * negative scale.
      */
-    float GetScaleX() noexcept {
+    float GetScaleX() const noexcept {
         return std::sqrt(a * a + c * c);
     }
 
@@ -81,27 +81,27 @@ struct Matrix {
      * Decompose y-axis scale factor. This will always be a positive value, even if the matrix was created with a
      * negative scale.
      */
-    float GetScaleY() noexcept {
+    float GetScaleY() const noexcept {
         return std::sqrt(b * b + d * d);
     }
 
     /**
      * Decompose x-axis translation.
      */
-    float GetTranslateX() noexcept {
+    float GetTranslateX() const noexcept {
         return x;
     }
 
     /**
      * Decompose y-axis translation.
      */
-    float GetTranslateY() noexcept {
+    float GetTranslateY() const noexcept {
         return y;
     }
 
     // Operators
 
-    Matrix operator*(const Matrix &other) noexcept {
+    Matrix operator*(const Matrix &other) const noexcept {
         // 3x3 multiplication reduced because row 3 is always 0, 0, 1
         return {
             a * other.a + b * other.c, a * other.b + b * other.d, a * other.x + b * other.y + x,

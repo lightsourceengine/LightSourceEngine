@@ -74,14 +74,22 @@ void RootSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
     this->scene->NotifyRootFontSizeChanged(computedFontSize);
 }
 
+void RootSceneNode::ComputeStyle() {
+    SceneNode::ComputeStyle();
+}
+
 void RootSceneNode::Paint(Renderer* renderer) {
+    SceneNode::Paint(renderer);
+}
+
+void RootSceneNode::Composite(CompositeContext* context, Renderer* renderer) {
     auto backgroundColor{ this->GetStyleOrEmpty()->backgroundColor() };
 
     if (backgroundColor) {
-        renderer->ClearScreen(backgroundColor->Get());
+        renderer->FillRenderTarget(backgroundColor->Get());
     }
 
-    SceneNode::Paint(renderer);
+    SceneNode::Composite(context, renderer);
 }
 
 } // namespace ls

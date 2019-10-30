@@ -42,6 +42,7 @@
           "sources": [
             "test/SurfaceSpec.cc",
             "test/MatrixSpec.cc",
+            "test/RectSpec.cc",
             "test/LightSourceGraphicsTestSuite.cc",
           ]
         }]

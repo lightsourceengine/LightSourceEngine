@@ -66,27 +66,27 @@ class StyleEnumValue : public StyleValue {
 
 class StyleColorValue : public StyleValue {
  public:
-    explicit StyleColorValue(const int64_t value) : value(value) {}
+    explicit StyleColorValue(const uint32_t value) : value(value) {}
     virtual ~StyleColorValue() = default;
 
-    void Set(const int64_t val) {
+    void Set(const uint32_t val) {
         this->value = val;
     }
 
-    int64_t Get() const {
+    uint32_t Get() const {
         return this->value;
     }
 
-    operator int64_t() const { return this->value; }
+    operator uint32_t() const { return this->value; }
 
     virtual Napi::Value ToJS(Napi::Env env) const {
         return Napi::Number::New(env, this->value);
     }
 
-    static bool ToValue(Napi::Value value, int64_t* result);
+    static bool ToValue(Napi::Value value, uint32_t* result);
 
  private:
-    int64_t value{};
+    uint32_t value;
 };
 
 struct StyleNumber {

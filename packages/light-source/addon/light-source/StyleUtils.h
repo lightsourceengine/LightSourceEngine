@@ -45,8 +45,8 @@ float CalculateBackgroundDimension(const StyleNumberValue* styleDimension, const
 }
 
 template<typename I /* ImageResource */>
-Size CalculateObjectFitDimensions(const StyleObjectFit objectFit, const I* image, const float boxWidth,
-                                  const float boxHeight) {
+Size CalculateObjectFitDimensions(const StyleObjectFit objectFit, const I* image,
+        const float boxWidth, const float boxHeight) {
     if (image->HasCapInsets()) {
         return {
             boxWidth,

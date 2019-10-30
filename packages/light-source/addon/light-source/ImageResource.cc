@@ -38,6 +38,9 @@ static Surface DecodeImage(const ImageUri&, const std::vector<std::string>&, con
 static Surface DecodeImageSvg(NSVGimage*, const std::string&, const int32_t, const int32_t);
 static bool HasSvgHeader(const CFile&);
 
+// nanosvg and stb_image both output to this format
+constexpr auto rawImagePixelFormat{ endian::native == endian::big ? PixelFormatRGBA : PixelFormatABGR };
+
 ImageResource::ImageResource(const ImageUri& uri) noexcept : Resource(uri.GetId()), uri(uri) {
 }
 
@@ -212,7 +215,7 @@ static Surface DecodeImage(const ImageUri& uri, const std::vector<std::string>& 
                     width,
                     height,
                     width * 4,
-                    endian::native == endian::big ? PixelFormatRGBA : PixelFormatABGR
+                    rawImagePixelFormat
                 };
             } else {
                 throw std::runtime_error(Format("Failed to decode image: %s", filename));
@@ -287,7 +290,7 @@ static Surface DecodeImageSvg(NSVGimage* svgImage, const std::string& uri, const
                       height,
                       pitch);
 
-    return { data, width, height, pitch, PixelFormatRGBA };
+    return { data, width, height, pitch, rawImagePixelFormat };
 }
 
 static

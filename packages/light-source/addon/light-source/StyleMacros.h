@@ -24,7 +24,7 @@
         return this->JSGetter(this->m_##NAME, info.Env()); \
     } \
     void set_##NAME(const Napi::CallbackInfo& info, const Napi::Value& value) { \
-        JSSetter<int64_t>(this->m_##NAME, value, false); \
+        JSSetter<uint32_t>(this->m_##NAME, value, false); \
     } \
     const StyleColorValue* NAME() const { return this->m_##NAME.get(); }
 

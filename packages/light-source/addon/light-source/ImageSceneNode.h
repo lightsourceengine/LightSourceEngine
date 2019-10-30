@@ -28,15 +28,19 @@ class ImageSceneNode : public Napi::ObjectWrap<ImageSceneNode>, public SceneNode
     Napi::Value GetOnErrorCallback(const Napi::CallbackInfo& info);
     void SetOnErrorCallback(const Napi::CallbackInfo& info, const Napi::Value& value);
 
+    void ComputeStyle() override;
     void Paint(Renderer* renderer) override;
+    void Composite(CompositeContext* context, Renderer* renderer) override;
 
     Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; }
 
  private:
     ImageUri uri{};
     ResourceLink<ImageResource> image;
+    std::shared_ptr<Texture> layer;
     Napi::FunctionReference onLoadCallback;
     Napi::FunctionReference onErrorCallback;
+    Rect destRect{};
 
  private:
     void DestroyRecursive() override;

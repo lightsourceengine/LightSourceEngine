@@ -23,13 +23,6 @@ class Renderer {
     virtual ~Renderer() = default;
 
     /**
-     * Sets the target texture of the renderer.
-     *
-     * If nullptr, the renderer is resets the render target to the screen.
-     */
-    virtual bool SetRenderTarget(std::shared_ptr<Texture> renderTarget) = 0;
-
-    /**
      * Width of renderable area in pixels.
      */
     virtual int32_t GetWidth() const = 0;
@@ -45,6 +38,13 @@ class Renderer {
     virtual PixelFormat GetTextureFormat() const = 0;
 
     /**
+     * Sets the target texture of the renderer.
+     *
+     * If renderTarget = nullptr, the renderer is reset and the screen is restored as the render target.
+     */
+    virtual bool SetRenderTarget(std::shared_ptr<Texture> renderTarget) = 0;
+
+    /**
      * Finish rendering and copy the result to the screen.
      *
      * If vsync is enabled, this method will block waiting for the next vertical blank.
@@ -52,48 +52,29 @@ class Renderer {
     virtual void Present() = 0;
 
     /**
-     * Move the registration point by dx and dy.
-     *
-     * The current state of the registration point is pushed onto an internal stack. Then, dx and dy are added to
-     * the registration point.
+     * Set the clip rect.
      */
-    virtual void Shift(float dx, float dy) = 0;
+    virtual void SetClipRect(const Rect& rect) = 0;
 
     /**
-     * Restores the registration point to it's previous state.
-     *
-     * Internally, the renderer keeps a stack of registration points, pushed by Shift(). This method pops a registration
-     * point from the stack and sets it as the current registration point.
+     * Turn off clipping.
      */
-    virtual void Unshift() = 0;
-
-    /**
-     * Set the clipping rectangle for draw calls.
-     *
-     * The current clip rectangle is pushed onto the stack. The current clip rect is intersected with the new clip
-     * rectangle. The intersection is set as the current clip rect.
-     */
-    virtual void PushClipRect(const Rect& rect) = 0;
-
-    /**
-     * Resets the clipping rectangle to it's previous state.
-     */
-    virtual void PopClipRect() = 0;
+    virtual void ClearClipRect() = 0;
 
     /**
      * Draw a solid color rectangle.
      */
-    virtual void DrawFillRect(const Rect& rect, const int64_t fillColor) = 0;
+    virtual void DrawFillRect(const Rect& rect, const uint32_t fillColor) = 0;
 
     /**
      * Draw a rectangle's outline.
      */
-    virtual void DrawBorder(const Rect& rect, const EdgeRect& border, const int64_t borderColor) = 0;
+    virtual void DrawBorder(const Rect& rect, const EdgeRect& border, const uint32_t borderColor) = 0;
 
     /**
      * Draw an image.
      */
-    virtual void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const int64_t tintColor) = 0;
+    virtual void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const uint32_t tintColor) = 0;
 
     /**
      * Draw an image with end-cap insets.
@@ -109,12 +90,12 @@ class Renderer {
      * Draw a portion of an image.
      */
     virtual void DrawQuad(const std::shared_ptr<Texture>& texture, const Rect& srcRect, const Rect& destRect,
-        const int64_t tintColor) = 0;
+        const uint32_t tintColor) = 0;
 
     /**
      * Clear the entire renderable area with the specified color.
      */
-    virtual void ClearScreen(const int64_t color) = 0;
+    virtual void FillRenderTarget(const uint32_t color) = 0;
 
     /**
      * Create a texture that can be used as a render target.

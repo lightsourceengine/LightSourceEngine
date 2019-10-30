@@ -18,7 +18,7 @@ void YGStyleNullSetAuto(const YGNodeRef node, const YGEdge) {}
 void YGStyleNullSetValue(const YGNodeRef node, const float) {}
 void YGStyleNullSetValue(const YGNodeRef node, const YGEdge, const float) {}
 
-bool StyleColorValue::ToValue(Napi::Value value, int64_t* result) {
+bool StyleColorValue::ToValue(Napi::Value value, uint32_t* result) {
     if (value.IsNumber()) {
         *result = value.As<Number>();
         return true;

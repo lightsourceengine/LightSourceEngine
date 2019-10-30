@@ -27,7 +27,7 @@ export const rgba = (...args) => {
     color = parseColorValue(args[0]) & 0xFFFFFF
   } else if (args.length === 4) {
     a = args[3]
-    color = rgb(args[0], args[1], args[2])
+    color = rgb(args[0], args[1], args[2]) & 0xFFFFFF
   } else {
     a = 1
     color = 0
@@ -35,5 +35,5 @@ export const rgba = (...args) => {
 
   a = isNumber(a) ? clamp(a, 0, 1) * 255 : 255
 
-  return (((a << 24) | color) >>> 0) + 4294967296 /* 0xFFFFFFFF + 1 */
+  return (((a << 24) | color) >>> 0)
 }
