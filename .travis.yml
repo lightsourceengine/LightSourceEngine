@@ -44,11 +44,11 @@ install:
   - yarn
 
 script:
-  - (cd packages/light-source && yarn run lint)
-  - (cd packages/react-light-source && yarn run lint)
-  - (cd packages/light-source && yarn run cpplint)
   - |
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+      (cd packages/light-source && yarn run lint)
+      (cd packages/light-source-react && yarn run lint)
+      (cd packages/light-source && yarn run cpplint)
       nvm install v12.0.0
       ./scripts/package-ls-node.sh linux-armv7l
     fi
