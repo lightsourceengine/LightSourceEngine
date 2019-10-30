@@ -44,10 +44,9 @@ install:
   - yarn
 
 script:
-  - |
-    if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      yarn test
-    fi
+  - (cd packages/light-source && yarn run lint)
+  - (cd packages/react-light-source && yarn run lint)
+  - (cd packages/light-source && yarn run cpplint)
   - |
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then
       nvm install v12.0.0
@@ -55,6 +54,5 @@ script:
     fi
 
 cache:
-  yarn: true
   directories:
     - ${HOME}/node_downloads
