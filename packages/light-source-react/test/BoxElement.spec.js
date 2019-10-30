@@ -16,12 +16,12 @@ describe('BoxElement', () => {
     it('should set style with Style object', async () => {
       await renderAsync(<box style={new Style({ backgroundColor: 'red' })} />)
 
-      assert.equal(root().children[0].style.backgroundColor, 0xFF0000)
+      assert.equal(root().children[0].style.backgroundColor, 0xFFFF0000)
     })
     it('should set style with Object', async () => {
       await renderAsync(<box style={{ backgroundColor: 'red' }} />)
 
-      assert.equal(root().children[0].style.backgroundColor, 0xFF0000)
+      assert.equal(root().children[0].style.backgroundColor, 0xFFFF0000)
     })
   })
   describe('prop: waypoint', () => {
