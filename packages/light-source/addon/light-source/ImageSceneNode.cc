@@ -147,6 +147,10 @@ void ImageSceneNode::SetOnErrorCallback(const CallbackInfo& info, const Napi::Va
 void ImageSceneNode::ComputeStyle() {
     const auto boxStyle{ this->GetStyleOrEmpty() };
 
+    if (!this->image) {
+        return;
+    }
+
     auto bounds{ YGNodeLayoutGetInnerRect(this->ygNode) };
     auto fit{ CalculateObjectFitDimensions(
         boxStyle->objectFit(),

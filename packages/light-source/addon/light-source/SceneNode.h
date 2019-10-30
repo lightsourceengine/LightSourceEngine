@@ -58,8 +58,8 @@ class SceneNode {
     virtual void OnRootFontSizeChange();
 
  protected:
-     template<typename T>
-     static std::vector<Napi::ClassPropertyDescriptor<T>> Extend(const Napi::Env& env,
+    template<typename T>
+    static std::vector<Napi::ClassPropertyDescriptor<T>> Extend(const Napi::Env& env,
          const std::initializer_list<Napi::ClassPropertyDescriptor<T>>& subClassProperties);
     void SetParent(SceneNode* newParent);
     virtual void DestroyRecursive();
