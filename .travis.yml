@@ -44,7 +44,10 @@ install:
   - yarn
 
 script:
-  # - yarn test
+  - |
+    if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+      yarn test
+    fi
   - |
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then
       nvm install v12.0.0
