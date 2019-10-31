@@ -10,22 +10,22 @@
 
 using Napi::Assert;
 using Napi::Call;
-using Napi::CallbackInfo;
 using Napi::Function;
 using Napi::FunctionReference;
 using Napi::NewStringArray;
 using Napi::String;
+using Napi::TestInfo;
 using Napi::TestSuite;
 
 namespace ls {
 
-void NapiExtSpec(Napi::Env env, TestSuite* parent) {
+void NapiExtSpec(TestSuite* parent) {
     auto spec{ parent->Describe("napi-ext") };
 
     spec->Describe("NewStringArray()")->tests = {
         {
             "should create an Array from a list of strings",
-            [](const CallbackInfo& info) {
+            [](const TestInfo& info) {
                 std::vector<std::string> strings{ "test1", "test2" };
                 auto array{ NewStringArray(info.Env(), strings) };
 
@@ -39,7 +39,7 @@ void NapiExtSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("ToUpperCase()")->tests = {
         {
             "should convert string to uppercase",
-            [](const CallbackInfo& info) {
+            [](const TestInfo& info) {
                 auto result{ ToUpperCase(String::New(info.Env(), "test")) };
 
                 Assert::Equal(result, std::string("TEST"));
@@ -47,7 +47,7 @@ void NapiExtSpec(Napi::Env env, TestSuite* parent) {
         },
         {
             "should handle empty string",
-            [](const CallbackInfo& info) {
+            [](const TestInfo&) {
                 auto result{ ToUpperCase(String()) };
 
                 Assert::Equal(result, std::string(""));
@@ -58,7 +58,7 @@ void NapiExtSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("ToLowerCase()")->tests = {
         {
             "should convert string to uppercase",
-            [](const CallbackInfo& info) {
+            [](const TestInfo& info) {
                 auto result{ ToLowerCase(String::New(info.Env(), "TEST")) };
 
                 Assert::Equal(result, std::string("test"));
@@ -66,7 +66,7 @@ void NapiExtSpec(Napi::Env env, TestSuite* parent) {
         },
         {
             "should handle empty string",
-            [](const CallbackInfo& info) {
+            [](const TestInfo&) {
                 auto result{ ToLowerCase(String()) };
 
                 Assert::Equal(result, std::string(""));
@@ -77,21 +77,21 @@ void NapiExtSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("Call()")->tests = {
         {
             "should be a no-op when function reference is not set",
-            [env](const CallbackInfo& info) {
+            [](const TestInfo& info) {
                 FunctionReference func;
 
                 Call(func);
-                Call(env, func);
+                Call(info.Env(), func);
             }
         },
         {
             "should call function",
-            [](const CallbackInfo& info) {
+            [](const TestInfo& info) {
                 FunctionReference func;
                 bool called{ false };
                 uint32_t argCount{ 0 };
 
-                func.Reset(Function::New(info.Env(), [&called, &argCount](const CallbackInfo& info){
+                func.Reset(Function::New(info.Env(), [&called, &argCount](const Napi::CallbackInfo& info){
                     argCount = info.Length();
                     called = true;
                 }), 1);
@@ -112,13 +112,13 @@ void NapiExtSpec(Napi::Env env, TestSuite* parent) {
         },
         {
             "should call function and return value",
-            [](const CallbackInfo& info) {
+            [](const TestInfo& info) {
                 auto env{ info.Env() };
                 FunctionReference func;
                 bool called{ false };
                 uint32_t argCount{ 0 };
 
-                func.Reset(Function::New(env, [&called, &argCount](const CallbackInfo& info) -> Napi::Value {
+                func.Reset(Function::New(env, [&called, &argCount](const Napi::CallbackInfo& info) -> Napi::Value {
                     argCount = info.Length();
                     called = true;
 

@@ -12,6 +12,7 @@
 #include <string>
 
 using Napi::Assert;
+using Napi::TestInfo;
 using Napi::TestSuite;
 
 namespace ls {
@@ -23,10 +24,10 @@ static bool completeCalled{false};
 static std::unique_ptr<Executor> executor;
 static std::unique_ptr<TaskQueue> taskQueue;
 
-void TaskQueueSpec(Napi::Env env, TestSuite* parent) {
+void TaskQueueSpec(TestSuite* parent) {
     auto spec{ parent->Describe("TaskQueue") };
 
-    spec->beforeEach = [](const Napi::CallbackInfo& info) {
+    spec->beforeEach = [](Napi::Env env) {
         completeCalled = false;
         executor = std::make_unique<Executor>();
         taskQueue = std::make_unique<TaskQueue>();
@@ -34,7 +35,7 @@ void TaskQueueSpec(Napi::Env env, TestSuite* parent) {
         taskQueue->Init(executor.get());
     };
 
-    spec->afterEach = [](const Napi::CallbackInfo& info) {
+    spec->afterEach = [](Napi::Env env) {
         taskQueue.reset();
         executor.reset();
     };
@@ -42,7 +43,7 @@ void TaskQueueSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("Queue()")->tests = {
         {
             "should queue and execute task queue callback",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 taskQueue->Queue(&CompleteCallback);
 
                 Assert::IsFalse(completeCalled);
@@ -57,7 +58,7 @@ void TaskQueueSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("Async()")->tests = {
         {
             "should call async function, then queue and execute task queue callback",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 int32_t resultValue{};
                 std::exception_ptr resultException;
 
@@ -81,7 +82,7 @@ void TaskQueueSpec(Napi::Env env, TestSuite* parent) {
         },
         {
             "should handle exception from async function",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 std::exception_ptr resultException;
 
                 auto task = taskQueue->Async<int32_t>(

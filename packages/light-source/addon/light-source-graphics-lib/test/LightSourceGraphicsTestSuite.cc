@@ -11,9 +11,9 @@ using Napi::HandleScope;
 using Napi::Object;
 
 namespace ls {
-    void SurfaceSpec(Napi::Env env, Napi::TestSuite* parent);
-    void MatrixSpec(Napi::Env env, Napi::TestSuite* parent);
-    void RectSpec(Napi::Env env, Napi::TestSuite* parent);
+    void SurfaceSpec(Napi::TestSuite* parent);
+    void MatrixSpec(Napi::TestSuite* parent);
+    void RectSpec(Napi::TestSuite* parent);
 }
 
 Object Init(Env env, Object exports) {

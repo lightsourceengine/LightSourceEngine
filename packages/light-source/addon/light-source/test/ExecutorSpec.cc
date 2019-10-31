@@ -11,6 +11,7 @@
 #include <mutex>
 
 using Napi::Assert;
+using Napi::TestInfo;
 using Napi::TestSuite;
 
 namespace ls {
@@ -18,21 +19,21 @@ namespace ls {
 const auto TIMEOUT = std::chrono::milliseconds(100);
 static std::unique_ptr<Executor> executor;
 
-void ExecutorSpec(Napi::Env env, TestSuite* parent) {
+void ExecutorSpec(TestSuite* parent) {
     auto spec{ parent->Describe("Executor") };
 
-    spec->beforeEach = [](const Napi::CallbackInfo& info) {
+    spec->beforeEach = [](Napi::Env env) {
         executor = std::make_unique<Executor>();
     };
 
-    spec->afterEach = [](const Napi::CallbackInfo& info) {
+    spec->afterEach = [](Napi::Env env) {
         executor.reset();
     };
 
     spec->Describe("Execute()")->tests = {
         {
             "should execute a function in the thread pool",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 std::promise<void> p;
 
                 executor->Execute([&p]() {
@@ -49,7 +50,7 @@ void ExecutorSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("Submit()")->tests = {
         {
             "should call function with int return",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 auto future = executor->Submit<int32_t>([&]() -> int32_t {
                     return 5;
                 });
@@ -59,7 +60,7 @@ void ExecutorSpec(Napi::Env env, TestSuite* parent) {
         },
         {
             "should call function with void return",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 auto future = executor->Submit<void>([&]() {
                 });
 
@@ -70,7 +71,7 @@ void ExecutorSpec(Napi::Env env, TestSuite* parent) {
         },
         {
             "should catch async exceptions",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 auto future = executor->Submit<void>([&]() {
                     throw std::runtime_error("error");
                 });
@@ -90,7 +91,7 @@ void ExecutorSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("ShutdownNow()")->tests = {
         {
             "should be idempotent",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::IsTrue(executor->IsRunning());
                 executor->ShutdownNow();
                 Assert::IsFalse(executor->IsRunning());
@@ -103,7 +104,7 @@ void ExecutorSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("IsRunning()")->tests = {
         {
             "should be running",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::IsTrue(executor->IsRunning());
             }
         },

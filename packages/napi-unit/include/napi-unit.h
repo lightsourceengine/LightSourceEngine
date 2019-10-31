@@ -16,9 +16,11 @@
 namespace Napi {
 
 class TestSuite;
+class TestInfo;
 
-typedef std::function<void(const Napi::CallbackInfo&)> TestFunction;
-typedef std::function<void(Napi::Env, TestSuite*)> TestBuilderFunction;
+using TestFunction = std::function<void(const TestInfo&)>;
+using TestSuiteFunction = std::function<void(Env)>;
+using TestBuilderFunction = std::function<void(TestSuite*)>;
 
 /**
  * Test case function and description.
@@ -28,6 +30,19 @@ typedef std::function<void(Napi::Env, TestSuite*)> TestBuilderFunction;
 struct Test {
     std::string description;
     TestFunction func;
+};
+
+/**
+ * Test case environment info.
+ */
+class TestInfo {
+ public:
+    TestInfo(napi_env env) : env(env) {}
+
+    Napi::Env Env() const noexcept { return env; }
+
+ private:
+    napi_env env;
 };
 
 /**
@@ -75,13 +90,13 @@ class TestSuite : public Napi::ObjectWrap<TestSuite> {
     // List of test cases. Optional.
     std::vector<Test> tests;
     // Function executed before tests are run. Optional.
-    TestFunction before;
+    TestSuiteFunction before;
     // Function executed after all tests are run. Optional.
-    TestFunction after;
+    TestSuiteFunction after;
     // Function executed before each test case is run. Optional.
-    TestFunction beforeEach;
+    TestSuiteFunction beforeEach;
     // Function executed after each test case is run. Optional.
-    TestFunction afterEach;
+    TestSuiteFunction afterEach;
     // Test specific data attached this test suite. Optional.
     std::shared_ptr<TestContext> context;
 
@@ -93,8 +108,8 @@ class TestSuite : public Napi::ObjectWrap<TestSuite> {
     Napi::Value GetAfter(const Napi::CallbackInfo& info);
     Napi::Value GetBeforeEach(const Napi::CallbackInfo& info);
     Napi::Value GetAfterEach(const Napi::CallbackInfo& info);
-    Napi::Value FunctionOrUndefined(Napi::Env env, TestFunction func);
-    
+    Napi::Value TestSuiteFunctionOrUndefined(const Napi::Env& env, TestSuiteFunction func);
+
  private:
     std::string description;
     std::vector<TestSuite*> children;
@@ -270,7 +285,7 @@ Object TestSuite::Build(Napi::Env env, const std::string& description,
     auto parent{ TestSuite::Unwrap(TestSuite) };
 
     for (auto& testBuilder : testBuilders) {
-        testBuilder(env, parent);
+        testBuilder(parent);
     }
 
     return TestSuite;
@@ -290,9 +305,12 @@ Napi::Value TestSuite::GetTests(const CallbackInfo& info) {
 
     for (auto& test : this->tests) {
         auto object{ Object::New(env) };
+
         auto jsSafeTestFunc = [f = test.func](const Napi::CallbackInfo& info) {
+            const TestInfo testInfo(info.Env());
+
             try {
-                f(info);
+                f(testInfo);
             } catch (const AssertionError& e) {
                 throw Error::New(info.Env(), e.what());
             } catch (const Error&) {
@@ -329,22 +347,22 @@ Napi::Value TestSuite::GetChildren(const CallbackInfo& info) {
 
 inline
 Napi::Value TestSuite::GetBefore(const CallbackInfo& info) {
-    return FunctionOrUndefined(info.Env(), this->before);
+    return TestSuiteFunctionOrUndefined(info.Env(), this->before);
 }
 
 inline
 Napi::Value TestSuite::GetAfter(const CallbackInfo& info) {
-    return FunctionOrUndefined(info.Env(), this->after);
+    return TestSuiteFunctionOrUndefined(info.Env(), this->after);
 }
 
 inline
 Napi::Value TestSuite::GetBeforeEach(const CallbackInfo& info) {
-    return FunctionOrUndefined(info.Env(), this->beforeEach);
+    return TestSuiteFunctionOrUndefined(info.Env(), this->beforeEach);
 }
 
 inline
 Napi::Value TestSuite::GetAfterEach(const CallbackInfo& info) {
-    return FunctionOrUndefined(info.Env(), this->afterEach);
+    return TestSuiteFunctionOrUndefined(info.Env(), this->afterEach);
 }
 
 inline
@@ -358,9 +376,9 @@ TestSuite* TestSuite::Describe(const std::string& description) {
 }
 
 inline
-Napi::Value TestSuite::FunctionOrUndefined(Napi::Env env, TestFunction func) {
+Napi::Value TestSuite::TestSuiteFunctionOrUndefined(const Napi::Env& env, TestSuiteFunction func) {
     if (func) {
-        return Function::New(env, func);
+        return Function::New(env, [func](const Napi::CallbackInfo& info) { func(info.Env()); });
     }
 
     return env.Undefined();

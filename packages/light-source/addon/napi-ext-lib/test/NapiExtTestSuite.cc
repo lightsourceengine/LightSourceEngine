@@ -11,7 +11,7 @@ using Napi::HandleScope;
 using Napi::Object;
 
 namespace ls {
-    void NapiExtSpec(Napi::Env env, Napi::TestSuite* parent);
+    void NapiExtSpec(Napi::TestSuite* parent);
 }
 
 Object Init(Env env, Object exports) {

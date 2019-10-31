@@ -90,9 +90,15 @@ void Surface::Blit(const int32_t x, const int32_t y, const Surface& surface) con
             for (int32_t dx{ 0 }; dx < spitch; dx++) {
                 const auto component{ *sourceRow++ }; // NOLINT(readability/pointer_notation)
 
-                for (int32_t i{ 0 }; i < componentCount; i++) {
-                    *destRow++ = component;
-                }
+//                for (int32_t i{ 0 }; i < componentCount; i++) {
+//                    *destRow++ = component;
+//                }
+
+                // TODO: fix
+                *destRow++ = 255;
+                *destRow++ = 255;
+                *destRow++ = 255;
+                *destRow++ = component;
             }
         }
     }

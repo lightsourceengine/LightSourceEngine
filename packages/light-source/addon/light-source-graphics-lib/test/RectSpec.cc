@@ -8,17 +8,18 @@
 #include <ls/Rect.h>
 
 using Napi::Assert;
+using Napi::TestInfo;
 using Napi::TestSuite;
 
 namespace ls {
 
-void RectSpec(Napi::Env env, TestSuite* parent) {
+void RectSpec(TestSuite* parent) {
     auto spec{ parent->Describe("Rect") };
 
     spec->Describe("Intersect()")->tests = {
         {
             "should intersect two rects",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 auto intersect = Intersect({ 0, 0, 100, 100 }, { 50, 50, 100, 100 });
 
                 Assert::IsFalse(IsEmpty(intersect));
@@ -30,7 +31,7 @@ void RectSpec(Napi::Env env, TestSuite* parent) {
         },
         {
             "should intersect perfectly overlapping rects",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 auto intersect = Intersect({ 0, 0, 100, 100 }, { 0, 0, 100, 100 });
 
                 Assert::IsFalse(IsEmpty(intersect));
@@ -42,7 +43,7 @@ void RectSpec(Napi::Env env, TestSuite* parent) {
         },
         {
             "should return empty when rects do not intersect",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 auto intersect = Intersect({ 0, 0, 10, 10 }, { 50, 50, 100, 100 });
 
                 Assert::IsTrue(IsEmpty(intersect));

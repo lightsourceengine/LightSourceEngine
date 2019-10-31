@@ -8,17 +8,18 @@
 #include <ls/Format.h>
 
 using Napi::Assert;
+using Napi::TestInfo;
 using Napi::TestSuite;
 
 namespace ls {
 
-void FormatSpec(Napi::Env env, TestSuite* parent) {
+void FormatSpec(TestSuite* parent) {
     const auto spec{ parent->Describe("Format") };
 
     spec->Describe("Format()")->tests = {
         {
             "should print empty char arrays",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 const char* nullCharArray = nullptr;
                 const char* emptyCharArray = "";
 
@@ -28,19 +29,19 @@ void FormatSpec(Napi::Env env, TestSuite* parent) {
         },
         {
             "should print std::string objects",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::Equal(Format("x = %s", std::string("value")), std::string("x = value"));
             }
         },
         {
             "should print nullptr as null",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::Equal(Format("x = %s", nullptr), std::string("x = null"));
             }
         },
         {
             "should print large string",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 std::string str(255, 'x');
 
                 Assert::Equal(Format("%s", str), str);

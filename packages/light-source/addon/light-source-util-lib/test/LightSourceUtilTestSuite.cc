@@ -11,8 +11,8 @@ using Napi::HandleScope;
 using Napi::Object;
 
 namespace ls {
-    void FileSystemSpec(Napi::Env env, Napi::TestSuite* parent);
-    void FormatSpec(Napi::Env env, Napi::TestSuite* parent);
+    void FileSystemSpec(Napi::TestSuite* parent);
+    void FormatSpec(Napi::TestSuite* parent);
 }
 
 Object Init(Env env, Object exports) {

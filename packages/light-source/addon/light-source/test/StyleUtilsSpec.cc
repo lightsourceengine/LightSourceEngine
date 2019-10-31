@@ -8,6 +8,7 @@
 #include <StyleUtils.h>
 
 using Napi::Assert;
+using Napi::TestInfo;
 using Napi::TestSuite;
 
 namespace ls {
@@ -38,13 +39,13 @@ struct MockScene {
 void ComputeObjectFitRectTest(StyleObjectFit objectFit, const MockImage& image, const Rect& bounds,
     const Rect& expected);
 
-void StyleUtilsSpec(Napi::Env env, TestSuite* parent) {
+void StyleUtilsSpec(TestSuite* parent) {
     auto spec{ parent->Describe("StyleUtils") };
 
     spec->Describe("CreateRoundedRectangleUri()")->tests = {
         {
             "should create rounded rectangle svg xml",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 auto svg{ CreateRoundedRectangleUri(10, 10, 10, 10, 4) };
 
                 // TODO: validate svg string
@@ -56,7 +57,7 @@ void StyleUtilsSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("ComputeObjectFitRect()")->tests = {
         {
             "should position image with 'contain'",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 ComputeObjectFitRectTest(
                     StyleObjectFitContain,
                     { 200, 200 },
@@ -66,7 +67,7 @@ void StyleUtilsSpec(Napi::Env env, TestSuite* parent) {
         },
         {
             "should position image with 'none'",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 ComputeObjectFitRectTest(
                     StyleObjectFitNone,
                     { 200, 200 },
@@ -76,7 +77,7 @@ void StyleUtilsSpec(Napi::Env env, TestSuite* parent) {
         },
         {
             "should position image with 'cover'",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 ComputeObjectFitRectTest(
                     StyleObjectFitCover,
                     { 100, 200 },
@@ -86,7 +87,7 @@ void StyleUtilsSpec(Napi::Env env, TestSuite* parent) {
         },
         {
             "should position image with 'fill'",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 ComputeObjectFitRectTest(
                     StyleObjectFitFill,
                     { 10, 10 },
@@ -96,7 +97,7 @@ void StyleUtilsSpec(Napi::Env env, TestSuite* parent) {
         },
         {
             "should always position capinsets image with 'fill'",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 for (int32_t i = 0; i < Count<StyleObjectFit>(); i++) {
                     ComputeObjectFitRectTest(
                         static_cast<StyleObjectFit>(i),
@@ -112,7 +113,7 @@ void StyleUtilsSpec(Napi::Env env, TestSuite* parent) {
 //    spec->Describe("ComputeIntegerPointValue()")->tests = {
 //        {
 //            "should ...",
-//            [=](const Napi::CallbackInfo& info) {
+//            [=](const TestInfo&) {
 //            }
 //        },
 //    };
@@ -120,7 +121,7 @@ void StyleUtilsSpec(Napi::Env env, TestSuite* parent) {
 //    spec->Describe("CalculateLineHeight()")->tests = {
 //        {
 //            "should ...",
-//            [=](const Napi::CallbackInfo& info) {
+//            [=](const TestInfo&) {
 //            }
 //        },
 //    };

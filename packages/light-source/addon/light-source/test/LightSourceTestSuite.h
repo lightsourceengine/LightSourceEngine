@@ -10,9 +10,9 @@
 
 namespace ls {
 
-void TaskQueueSpec(Napi::Env env, Napi::TestSuite* parent);
-void ExecutorSpec(Napi::Env env, Napi::TestSuite* parent);
-void StyleUtilsSpec(Napi::Env env, Napi::TestSuite* parent);
+void TaskQueueSpec(Napi::TestSuite* parent);
+void ExecutorSpec(Napi::TestSuite* parent);
+void StyleUtilsSpec(Napi::TestSuite* parent);
 
 inline
 Napi::Value LightSourceTestSuite(Napi::Env env) {

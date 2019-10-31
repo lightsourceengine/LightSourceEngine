@@ -8,6 +8,7 @@
 #include <ls/Surface.h>
 
 using Napi::Assert;
+using Napi::TestInfo;
 using Napi::TestSuite;
 
 namespace ls {
@@ -30,13 +31,13 @@ bool BytesEqualTo(uint8_t* bytes, int32_t bytesLen, uint8_t value) {
     return true;
 }
 
-void SurfaceSpec(Napi::Env env, TestSuite* parent) {
+void SurfaceSpec(TestSuite* parent) {
     auto spec{ parent->Describe("Surface") };
 
     spec->Describe("constructor")->tests = {
         {
             "should create a surface from a single channel buffer",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 auto buffer{ NewBytes(10 * 10) };
                 auto surface{ Surface(buffer, 10, 10) };
 
@@ -50,7 +51,7 @@ void SurfaceSpec(Napi::Env env, TestSuite* parent) {
         },
         {
             "should create a surface from a 4 channel buffer",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 auto buffer{ NewBytes(10 * 10 * 4) };
                 auto surface{ Surface(buffer, 10, 10, 10 * 4, PixelFormatRGBA) };
 
@@ -67,7 +68,7 @@ void SurfaceSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("FillTransparent()")->tests = {
         {
             "should clear single channel surface",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 uint8_t full{255};
                 uint8_t zero{0};
                 int32_t len{10 * 10};
@@ -82,7 +83,7 @@ void SurfaceSpec(Napi::Env env, TestSuite* parent) {
         },
         {
             "should clear 4 channel surface",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 uint8_t full{255};
                 uint8_t zero{0};
                 int32_t len{10 * 10 * 4};

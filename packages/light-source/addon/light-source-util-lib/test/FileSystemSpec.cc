@@ -9,6 +9,7 @@
 #include <std17/filesystem>
 
 using Napi::Assert;
+using Napi::TestInfo;
 using Napi::TestSuite;
 using ls::internal::HasExtension;
 namespace fs = std17::filesystem;
@@ -24,13 +25,13 @@ static fs::path P(const std::string& filename) {
     return path;
 }
 
-void FileSystemSpec(Napi::Env env, TestSuite* parent) {
+void FileSystemSpec(TestSuite* parent) {
     const auto spec{ parent->Describe("FileSystem") };
 
     spec->Describe("CFile")->tests = {
         {
             "should get file size",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 auto file{ CFile::Open("test/resources/300x300.svg") };
 
                 Assert::Equal(file.GetSize(), 166UL);
@@ -38,7 +39,7 @@ void FileSystemSpec(Napi::Env env, TestSuite* parent) {
         },
         {
             "should read bytes from file",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 uint8_t buffer[1];
                 auto file{ CFile::Open("test/resources/300x300.svg") };
 
@@ -57,7 +58,7 @@ void FileSystemSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("HasExtension()")->tests = {
         {
             "should return true when file has an extension",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::IsTrue(HasExtension(P("file.txt")));
                 Assert::IsTrue(HasExtension(P("path/file.txt")));
                 Assert::IsTrue(HasExtension(P("path/file.txt")));
@@ -66,7 +67,7 @@ void FileSystemSpec(Napi::Env env, TestSuite* parent) {
         },
         {
             "should return false when file has no extension",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::IsFalse(HasExtension(P("file")));
                 Assert::IsFalse(HasExtension(P("path/file")));
                 Assert::IsFalse(HasExtension(P("path.d/file")));
@@ -78,13 +79,13 @@ void FileSystemSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("IsDataUri()")->tests = {
         {
             "should return true for a valid data uri",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::IsTrue(IsDataUri("data:text/html,<script>alert('hi');</script>"));
             }
         },
         {
             "should return false for an invalid data uri",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::IsFalse(IsDataUri("file.txt"));
                 Assert::IsFalse(IsDataUri(""));
             }
@@ -94,13 +95,13 @@ void FileSystemSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("IsResourceUri()")->tests = {
         {
             "should return true for a valid resource uri",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::IsTrue(IsResourceUri("file://resource/file.txt"));
             }
         },
         {
             "should return false for an invalid resource uri",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::IsFalse(IsResourceUri("file.txt"));
                 Assert::IsFalse(IsResourceUri(""));
             }
@@ -110,13 +111,13 @@ void FileSystemSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("IsSvgDataUri()")->tests = {
         {
             "should return true for a valid svg data uri",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::IsTrue(IsSvgDataUri("data:image/svg+xml,<svg/>"));
             }
         },
         {
             "should return false for invalid svg data uri",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::IsFalse(IsSvgDataUri("file.txt"));
                 Assert::IsFalse(IsSvgDataUri(""));
             }
@@ -126,7 +127,7 @@ void FileSystemSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("GetResourceUriPath()")->tests = {
         {
             "should return relative path from file uri",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::Equal(GetResourceUriPath("file://resource/file.txt"), P("file.txt"));
                 Assert::Equal(GetResourceUriPath("file://resource/path/file.txt"), P("path/file.txt"));
             }
@@ -136,7 +137,7 @@ void FileSystemSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("GetSvgUriData()")->tests = {
         {
             "should return svg xml from svg data uri",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::Equal(GetSvgUriData("data:image/svg+xml,<svg/>"), "<svg/>");
             }
         }
@@ -145,31 +146,31 @@ void FileSystemSpec(Napi::Env env, TestSuite* parent) {
     spec->Describe("FindFile()")->tests = {
         {
             "should find file by filename",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::Equal(FindFile("test/resources/600x400.jpg", {}), P("test/resources/600x400.jpg"));
             }
         },
         {
             "should throw exception if file not found",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::Throws([]() { FindFile("does-not-exist", {}); });
             }
         },
         {
             "should find file using extension search",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::Equal(FindFile("test/resources/600x400", { ".jpg" }), P("test/resources/600x400.jpg"));
             }
         },
         {
             "should find file using extension search and resource paths",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::Equal(FindFile("600x400", { ".jpg" }, { "test/resources" }), P("test/resources/600x400.jpg"));
             }
         },
         {
             "should throw exception if file not found in resource paths",
-            [](const Napi::CallbackInfo& info) {
+            [](const TestInfo&) {
                 Assert::Throws([](){ FindFile("does-not-exist", {}, { "test/resources" }); });
             }
         }
