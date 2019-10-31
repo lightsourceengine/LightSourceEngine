@@ -57,11 +57,16 @@ void SDLRenderer::Present() {
 }
 
 void SDLRenderer::DrawFillRect(const Rect& rect, const uint32_t fillColor) {
+    if (!this->fillRectTexture) {
+        return;
+    }
+
+    auto texturePtr{ ToRawTexture(this->fillRectTexture) };
     const SDL_Rect destRect{ ToSDLRect(rect) };
 
-    this->SetRenderDrawColor(fillColor);
+    SetTextureTintColor(texturePtr, fillColor);
 
-    SDL_RenderFillRect(this->renderer, &destRect);
+    SDL_RenderCopy(this->renderer, texturePtr, nullptr, &destRect);
 }
 
 void SDLRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const uint32_t borderColor) {
@@ -260,6 +265,29 @@ std::shared_ptr<Texture> SDLRenderer::CreateTexture(const int32_t width, const i
         this, width, height, SDL_TEXTUREACCESS_STREAMING));
 }
 
+std::shared_ptr<Texture> SDLRenderer::CreateFillRectTexture() noexcept {
+    // SDL2 FillRect API does not allow rotation. To work around the limitation, on attach, this texture is
+    // created. A 2x2, solid white texture. The texture can be tinted to the desired fill rect color and rotated
+    // through RenderCopyEx.
+    constexpr auto FILL_RECT_TEXTURE_SIZE = 2;
+    uint8_t rectTexturePixels[FILL_RECT_TEXTURE_SIZE * FILL_RECT_TEXTURE_SIZE * 4]{ 255 };
+    Surface surface{
+        std::shared_ptr<uint8_t>(rectTexturePixels, [](uint8_t*){}),
+        FILL_RECT_TEXTURE_SIZE,
+        FILL_RECT_TEXTURE_SIZE,
+        0,
+        this->GetTextureFormat()
+    };
+
+    try {
+        return this->CreateTextureFromSurface(surface);
+    } catch (const std::exception& e) {
+        LOG_ERROR("Unable to create fill rect texture. %s", e);
+    }
+
+    return nullptr;
+}
+
 void SDLRenderer::SetRenderDrawColor(const uint32_t color) noexcept {
     if (this->drawColor != color) {
         // TODO: consider opacity
@@ -276,6 +304,8 @@ void SDLRenderer::Attach(SDL_Window* window) {
     if (!this->renderer) {
         throw std::runtime_error(Format("Failed to create an SDL renderer. SDL Error: %s", SDL_GetError()));
     }
+
+    this->fillRectTexture = this->CreateFillRectTexture();
 
     SDL_GetRendererOutputSize(renderer, &this->width, &this->height);
 
@@ -304,6 +334,7 @@ void SDLRenderer::Detach() {
         return;
     }
 
+    this->fillRectTexture = nullptr;
     this->renderTarget = nullptr;
 
     SDL_DestroyRenderer(this->renderer);

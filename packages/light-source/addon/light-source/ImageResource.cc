@@ -110,6 +110,7 @@ void ImageResource::Load() {
     auto callback = [this, LAMBDA_FUNCTION = __FUNCTION__](Surface& surface, const std::exception_ptr& eptr) {
         if (eptr) {
             this->width = this->height = 0;
+            this->aspectRatio = 0;
 
             try {
                 std::rethrow_exception(eptr);
@@ -121,6 +122,7 @@ void ImageResource::Load() {
         } else {
             this->width = surface.Width();
             this->height = surface.Height();
+            this->aspectRatio = this->height > 0 ?  this->GetWidthF() / this->GetHeightF() : 0.f;
             this->image = std::move(surface);
 
             LOG_INFO_LAMBDA("%s: %s", ResourceStateToString(ResourceStateReady), this->GetId());

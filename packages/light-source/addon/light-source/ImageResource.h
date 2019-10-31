@@ -24,8 +24,14 @@ class ImageResource : public Resource<std::string> {
     virtual ~ImageResource() noexcept;
 
     std::shared_ptr<Texture> GetTexture() const noexcept { return this->texture; }
+
     int32_t GetWidth() const noexcept { return this->width; }
     int32_t GetHeight() const noexcept { return this->height; }
+
+    float GetWidthF() const noexcept { return static_cast<float>(this->width); }
+    float GetHeightF() const noexcept { return static_cast<float>(this->height); }
+
+    float GetAspectRatio() const noexcept { return this->aspectRatio; }
     bool HasCapInsets() const noexcept { return this->uri.HasCapInsets(); }
     const EdgeRect& GetCapInsets() const noexcept { return this->uri.GetCapInsets(); }
     const ImageUri& GetUri() const noexcept { return this->uri; }
@@ -44,6 +50,7 @@ class ImageResource : public Resource<std::string> {
     ImageUri uri{};
     int32_t width{};
     int32_t height{};
+    float aspectRatio{0.f};
     std::shared_ptr<Texture> texture;
     Task loadImageTask;
     Surface image;

@@ -9,6 +9,8 @@
 #include <cstdint>
 #include <string>
 #include <ls/Size.h>
+#include <ls/Rect.h>
+#include <ls/Math.h>
 #include "StyleEnums.h"
 #include "StyleValue.h"
 
@@ -44,97 +46,27 @@ float CalculateBackgroundDimension(const StyleNumberValue* styleDimension, const
     }
 }
 
-template<typename I /* ImageResource */>
-Size CalculateObjectFitDimensions(const StyleObjectFit objectFit, const I* image,
-        const float boxWidth, const float boxHeight) {
-    if (image->HasCapInsets()) {
-        return {
-            boxWidth,
-            boxHeight
-        };
-    }
-
-    const auto imageWidth{ static_cast<float>(image->GetWidth()) };
-    const auto imageHeight{ static_cast<float>(image->GetHeight()) };
-    const auto imageAspectRatio{ imageWidth / imageHeight };
-
-    switch (objectFit) {
-        case StyleObjectFitContain:
-            if (imageAspectRatio > (boxWidth / boxHeight)) {
-                return {
-                    boxWidth,
-                    boxWidth / imageAspectRatio
-                };
-            } else {
-                return {
-                    boxHeight * imageAspectRatio,
-                    boxHeight
-                };
-            }
-        case StyleObjectFitCover:
-            if (imageAspectRatio > (boxWidth / boxHeight)) {
-                return {
-                    boxHeight * imageAspectRatio,
-                    boxHeight
-                };
-            } else {
-                return {
-                    boxWidth,
-                    boxWidth / imageAspectRatio
-                };
-            }
-        case StyleObjectFitScaleDown:
-            if (imageWidth > boxWidth || imageHeight > boxHeight) {
-                // contain
-                if (imageAspectRatio > (boxWidth / boxHeight)) {
-                    return {
-                        boxWidth,
-                        boxWidth / imageAspectRatio
-                    };
-                } else {
-                    return {
-                        boxHeight * imageAspectRatio,
-                        boxHeight
-                    };
-                }
-            } else {
-                // none
-                return {
-                    imageWidth,
-                    imageHeight
-                };
-            }
-        case StyleObjectFitNone:
-            return {
-                imageWidth,
-                imageHeight
-            };
-        default:
-            return {
-                boxWidth,
-                boxHeight
-            };
-    }
-}
-
 template<typename S /* Scene */>
-float CalculateObjectPosition(const StyleNumberValue* objectPosition, const bool isX, const float boxDimension,
-                              const float fitDimension, const float defaultPercent, const S* scene) {
+float ComputeObjectPosition(const StyleNumberValue* objectPosition, const float boxDimension,
+                            const float fitDimension, const S* scene) {
     if (objectPosition) {
         switch (objectPosition->GetUnit()) {
             case StyleNumberUnitPoint:
                 return objectPosition->GetValue();
             case StyleNumberUnitPercent:
             {
-                auto percent{ objectPosition->GetValuePercent() };
+                const auto percent{ objectPosition->GetValuePercent() };
 
                 return (boxDimension * percent - fitDimension * percent);
             }
             case StyleNumberUnitAnchor:
             {
-                if (objectPosition->Int32Value() == (isX ? StyleAnchorRight : StyleAnchorBottom)) {
+                const auto anchor{ objectPosition->Int32Value() };
+
+                if (anchor == StyleAnchorRight || anchor == StyleAnchorBottom) {
                     return boxDimension - fitDimension;
                 }
+
                 return 0;
             }
             case StyleNumberUnitViewportWidth:
@@ -152,8 +84,60 @@ float CalculateObjectPosition(const StyleNumberValue* objectPosition, const bool
         }
     }
 
-    // default position of objectPosition = 50%
-    return boxDimension * defaultPercent - fitDimension * defaultPercent;
+    return boxDimension * 0.5f - fitDimension * 0.5f;
+}
+
+template<typename I /* ImageResource */, typename S /* Scene */>
+Rect ComputeObjectFitRect(StyleObjectFit objectFit, const StyleNumberValue* objectPositionX,
+        const StyleNumberValue* objectPositionY, const Rect& bounds, const I* image, const S* scene) noexcept {
+    if (image->HasCapInsets()) {
+        objectFit = StyleObjectFitFill;
+    } else if (objectFit == StyleObjectFitScaleDown) {
+        if (image->GetWidthF() > bounds.width || image->GetHeightF() > bounds.height) {
+            objectFit = StyleObjectFitContain;
+        } else {
+            objectFit = StyleObjectFitNone;
+        }
+    }
+
+    float fitWidth;
+    float fitHeight;
+
+    switch (objectFit) {
+        case StyleObjectFitContain:
+            if (image->GetAspectRatio() > (bounds.width / bounds.height)) {
+                fitWidth = bounds.width;
+                fitHeight = bounds.width / image->GetAspectRatio();
+            } else {
+                fitWidth = bounds.height * image->GetAspectRatio();
+                fitHeight = bounds.height;
+            }
+            break;
+        case StyleObjectFitCover:
+            if (image->GetAspectRatio() > (bounds.width / bounds.height)) {
+                fitWidth = bounds.height * image->GetAspectRatio();
+                fitHeight = bounds.height;
+            } else {
+                fitWidth = bounds.width;
+                fitHeight = bounds.width / image->GetAspectRatio();
+            }
+            break;
+        case StyleObjectFitNone:
+            fitWidth = image->GetWidthF();
+            fitHeight = image->GetHeightF();
+            break;
+        default:
+            fitWidth = bounds.width;
+            fitHeight = bounds.height;
+            break;
+    }
+
+    return {
+        SnapToPixelGrid(bounds.x + ComputeObjectPosition(objectPositionX, bounds.width, fitWidth, scene)),
+        SnapToPixelGrid(bounds.y + ComputeObjectPosition(objectPositionY, bounds.height, fitHeight, scene)),
+        SnapToPixelGrid(fitWidth),
+        SnapToPixelGrid(fitHeight)
+    };
 }
 
 template<typename S /* Scene */>

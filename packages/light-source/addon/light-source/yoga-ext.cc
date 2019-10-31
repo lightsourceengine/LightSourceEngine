@@ -46,12 +46,11 @@ Rect YGNodeLayoutGetInnerRect(YGNodeConstRef node) noexcept {
     const auto& layout{ node->getLayout() };
     const auto& border{ layout.border };
     const auto& padding{ layout.padding };
-    const auto& position{ layout.position };
     const auto& dimensions{ layout.dimensions };
 
     return {
-        position[YGEdgeLeft] + border[YGEdgeLeft] + padding[YGEdgeLeft],
-        position[YGEdgeRight] + border[YGEdgeRight] + padding[YGEdgeRight],
+        border[YGEdgeLeft] + padding[YGEdgeLeft],
+        border[YGEdgeRight] + padding[YGEdgeRight],
         dimensions[YGDimensionWidth]
             - border[YGEdgeLeft] - padding[YGEdgeLeft] - border[YGEdgeRight] - padding[YGEdgeRight],
         dimensions[YGDimensionHeight]

@@ -13,7 +13,6 @@
 #include <ls/Math.h>
 #include <ls/Renderer.h>
 #include "yoga-ext.h"
-#include <ls/Log.h>
 #include <ls/PixelConversion.h>
 
 using Napi::Array;
@@ -37,8 +36,8 @@ ImageSceneNode::ImageSceneNode(const CallbackInfo& info) : ObjectWrap<ImageScene
 
             if (self && self->image && self->image->IsReady()) {
                 return {
-                    static_cast<float>(self->image->GetWidth()),
-                    static_cast<float>(self->image->GetHeight()),
+                    self->image->GetWidthF(),
+                    self->image->GetHeightF(),
                 };
             }
 
@@ -145,54 +144,25 @@ void ImageSceneNode::SetOnErrorCallback(const CallbackInfo& info, const Napi::Va
 }
 
 void ImageSceneNode::ComputeStyle() {
-    const auto boxStyle{ this->GetStyleOrEmpty() };
-
     if (!this->image) {
         return;
     }
 
-    auto bounds{ YGNodeLayoutGetInnerRect(this->ygNode) };
-    auto fit{ CalculateObjectFitDimensions(
+    YGNodeSetHasNewLayout(this->ygNode, false);
+
+    const auto boxStyle{ this->GetStyleOrEmpty() };
+
+    this->destRect = ComputeObjectFitRect(
         boxStyle->objectFit(),
-        this->image.Get(),
-        bounds.width,
-        bounds.height)
-    };
-    auto offsetX{ CalculateObjectPosition(
         boxStyle->objectPositionX(),
-        true,
-        bounds.width,
-        fit.width,
-        0.5f,
-        this->scene)
-    };
-    auto offsetY{ CalculateObjectPosition(
         boxStyle->objectPositionY(),
-        false,
-        bounds.height,
-        fit.height,
-        0.5f,
-        this->scene)
-    };
-
-//    this->srcRect = {
-//        0.f,
-//        0.f,
-//        static_cast<float>(this->image->GetWidth()),
-//        static_cast<float>(this->image->GetHeight()),
-//    };
-
-    this->destRect = {
-        SnapToPixelGrid(bounds.x + offsetX),
-        SnapToPixelGrid(bounds.y + offsetY),
-        SnapToPixelGrid(fit.width),
-        SnapToPixelGrid(fit.height),
-    };
-
-    // TODO: clip dest against bounds
+        YGNodeLayoutGetInnerRect(this->ygNode),
+        this->image.Get(),
+        this->scene);
 }
 
 void ImageSceneNode::Paint(Renderer* renderer) {
+    // TODO: layer mode vs image mode
     if (!this->image) {
         return;
     }
@@ -200,7 +170,7 @@ void ImageSceneNode::Paint(Renderer* renderer) {
     this->image->Sync(renderer);
 
     const auto boxStyle{ this->GetStyleOrEmpty() };
-    auto rect{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
+    const auto rect{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
 
     if (this->image->HasCapInsets() || boxStyle->HasBorder()) {
         if (!this->layer) {
@@ -244,7 +214,7 @@ void ImageSceneNode::Composite(CompositeContext* context, Renderer* renderer) {
 
     const auto boxStyle{ this->GetStyleOrEmpty() };
     const auto tintColor{ boxStyle->tintColor() ? boxStyle->tintColor()->Get() : RGB(255, 255, 255) };
-    auto transform{ context->CurrentMatrix() };
+    const auto transform{ context->CurrentMatrix() };
     auto dest{ YGNodeLayoutGetRect(this->ygNode) };
 
     dest.x += (transform.GetTranslateX());

@@ -32,7 +32,7 @@ EdgeRect YGNodeLayoutGetBorderRect(YGNodeConstRef node) noexcept;
 /**
  * Get the node's innermost rectangle that takes border and padding into account.
  *
- * The position of the rectangle is relative to the parent node.
+ * The position of the rectangle is relative to (0, 0).
  */
 Rect YGNodeLayoutGetInnerRect(YGNodeConstRef node) noexcept;
 

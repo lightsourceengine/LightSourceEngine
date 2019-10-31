@@ -51,6 +51,7 @@ class SDLRenderer : public Renderer {
  private:
     void SetRenderDrawColor(const uint32_t color) noexcept;
     void UpdateTextureFormats(const SDL_RendererInfo& info) noexcept;
+    std::shared_ptr<Texture> CreateFillRectTexture() noexcept;
 
  private:
     SDL_Renderer* renderer{};
@@ -58,6 +59,7 @@ class SDLRenderer : public Renderer {
     PixelFormat textureFormat{PixelFormatUnknown};
     uint32_t drawColor{};
     std::shared_ptr<Texture> renderTarget;
+    std::shared_ptr<Texture> fillRectTexture;
     int32_t width{0};
     int32_t height{0};
 };

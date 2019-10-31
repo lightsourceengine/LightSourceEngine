@@ -12,6 +12,32 @@ using Napi::TestSuite;
 
 namespace ls {
 
+struct MockImage {
+    float width{};
+    float height{};
+    bool hasCapInsets{false};
+
+    float GetWidthF() const { return this->width; }
+    float GetHeightF() const { return this->height; }
+    float GetAspectRatio() const { return this->height != 0 ? this->width / this->height : 0.f; }
+    bool HasCapInsets() const { return this->hasCapInsets; }
+};
+
+struct MockScene {
+    float width{};
+    float height{};
+    int32_t rootFontSize{16};
+
+    float GetWidth() const { return this->width; }
+    float GetHeight() const { return this->height; }
+    float GetViewportMin() const { return this->height > this->width ? this->width : this->height; }
+    float GetViewportMax() const { return this->height > this->width ? this->height : this->width; }
+    int32_t GetRootFontSize() const { return this->rootFontSize; }
+};
+
+void ComputeObjectFitRectTest(StyleObjectFit objectFit, const MockImage& image, const Rect& bounds,
+    const Rect& expected);
+
 void StyleUtilsSpec(Napi::Env env, TestSuite* parent) {
     auto spec{ parent->Describe("StyleUtils") };
 
@@ -27,31 +53,62 @@ void StyleUtilsSpec(Napi::Env env, TestSuite* parent) {
         },
     };
 
+    spec->Describe("ComputeObjectFitRect()")->tests = {
+        {
+            "should position image with 'contain'",
+            [](const Napi::CallbackInfo& info) {
+                ComputeObjectFitRectTest(
+                    StyleObjectFitContain,
+                    { 200, 200 },
+                    { 0, 0, 40, 40 },
+                    { 0, 0, 40, 40 });
+            }
+        },
+        {
+            "should position image with 'none'",
+            [](const Napi::CallbackInfo& info) {
+                ComputeObjectFitRectTest(
+                    StyleObjectFitNone,
+                    { 200, 200 },
+                    { 0, 0, 100, 100 },
+                    { -50, -50, 200, 200 });
+            }
+        },
+        {
+            "should position image with 'cover'",
+            [](const Napi::CallbackInfo& info) {
+                ComputeObjectFitRectTest(
+                    StyleObjectFitCover,
+                    { 100, 200 },
+                    { 0, 0, 100, 100 },
+                    { 0, -50, 100, 200 });
+            }
+        },
+        {
+            "should position image with 'fill'",
+            [](const Napi::CallbackInfo& info) {
+                ComputeObjectFitRectTest(
+                    StyleObjectFitFill,
+                    { 10, 10 },
+                    { 0, 0, 100, 100 },
+                    { 0, 0, 100, 100 });
+            }
+        },
+        {
+            "should always position capinsets image with 'fill'",
+            [](const Napi::CallbackInfo& info) {
+                for (int32_t i = 0; i < Count<StyleObjectFit>(); i++) {
+                    ComputeObjectFitRectTest(
+                        static_cast<StyleObjectFit>(i),
+                        { 10, 10, true },
+                        { 0, 0, 100, 100 },
+                        { 0, 0, 100, 100 });
+                }
+            }
+        }
+    };
+
     // TODO: implement tests
-//    spec->Describe("CalculateBackgroundDimension()")->tests = {
-//        {
-//            "should ...",
-//            [=](const Napi::CallbackInfo& info) {
-//            }
-//        },
-//    };
-//
-//    spec->Describe("CalculateObjectFitDimensions()")->tests = {
-//        {
-//            "should ...",
-//            [=](const Napi::CallbackInfo& info) {
-//            }
-//        },
-//    };
-//
-//    spec->Describe("CalculateObjectPosition()")->tests = {
-//        {
-//            "should ...",
-//            [=](const Napi::CallbackInfo& info) {
-//            }
-//        },
-//    };
-//
 //    spec->Describe("ComputeIntegerPointValue()")->tests = {
 //        {
 //            "should ...",
@@ -67,6 +124,17 @@ void StyleUtilsSpec(Napi::Env env, TestSuite* parent) {
 //            }
 //        },
 //    };
+}
+
+void ComputeObjectFitRectTest(StyleObjectFit objectFit, const MockImage& image, const Rect& bounds,
+        const Rect& expected) {
+    MockScene scene{ 1280, 720, 16 };
+    Rect fit = ComputeObjectFitRect(objectFit, nullptr, nullptr, bounds, &image, &scene);
+
+    Assert::Equal(fit.x, expected.x);
+    Assert::Equal(fit.y, expected.y);
+    Assert::Equal(fit.width, expected.width);
+    Assert::Equal(fit.height, expected.height);
 }
 
 } // namespace ls
