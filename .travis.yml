@@ -4,6 +4,7 @@ dist: xenial
 env:
   global:
     - npm_config_with_sdl_mixer=true
+    - LS_NODE_GYP_OPTS="--jobs max"
 cache:
   yarn: true
   directories:
