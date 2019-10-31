@@ -1,59 +1,49 @@
-matrix:
-  include:
-    - os: linux
-      dist: xenial
-    - os: osx
-
 language: node_js
 node_js: 10
-
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - gcc-6
-      - g++-6
-      - libegl1-mesa-dev
-      - libgles2-mesa-dev
-      - libcec-dev
-      - libsdl2-dev
-      - libsdl2-mixer-dev
-      - patchelf
-
+dist: xenial
 env:
   global:
-    - NODE_DOWNLOADS=${HOME}/node_downloads
-    - npm_config_with_native_tests=true
     - npm_config_with_sdl_mixer=true
-
-before_install:
-  - set -e
-  - . ${HOME}/.nvm/nvm.sh
-  - mkdir -p ${NODE_DOWNLOADS}
-  - |
-    if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-      sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
-      sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
-      git clone --depth 1 https://github.com/dananderson/crosstools.git ${HOME}/crosstools
-    elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      HOMEBREW_NO_AUTO_UPDATE=1 brew install sdl2 sdl2_mixer
-    fi
-
-install:
-  - yarn --force
-
-script:
-  - |
-    if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      yarn test
-    fi
-  - |
-    if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-      nvm install v12.0.0
-      ./scripts/package-ls-node.sh linux-armv7l
-    fi
-
 cache:
+  yarn: true
   directories:
     - ${HOME}/node_downloads
+
+matrix:
+  include:
+    - name: "linux-x64 [Release]"
+      os: linux
+      env: npm_config_with_native_tests=true
+      addons:
+        apt:
+          sources: [ubuntu-toolchain-r-test]
+          packages: [gcc-6, g++-6, libegl1-mesa-dev, libgles2-mesa-dev, libsdl2-dev, libsdl2-mixer-dev]
+      before_install:
+        - set -e
+        - sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
+        - sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
+      install: yarn --force
+      script: skip
+    - name: "darwin-x64 [Release]"
+      os: osx
+      env: npm_config_with_native_tests=true
+      before_install:
+        - set -e
+        - HOMEBREW_NO_AUTO_UPDATE=1 brew install sdl2 sdl2_mixer
+      install: yarn --force
+      script: yarn test
+    - name: "linux-armv7l [Release]"
+      os: linux
+      env: npm_config_with_native_tests=false NODE_DOWNLOADS="${HOME}/node_downloads"
+      addons:
+        apt:
+          packages: [patchelf]
+      before_install:
+        - set -e
+        - mkdir -p ${NODE_DOWNLOADS}
+        - git clone --depth 1 https://github.com/dananderson/crosstools.git ${HOME}/crosstools
+        - . ${HOME}/.nvm/nvm.sh
+      install:
+        - nvm install v12.0.0
+        - ./scripts/package-ls-node.sh linux-armv7l
+      script: skip
