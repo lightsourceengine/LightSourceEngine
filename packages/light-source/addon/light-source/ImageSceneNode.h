@@ -35,17 +35,16 @@ class ImageSceneNode : public Napi::ObjectWrap<ImageSceneNode>, public SceneNode
     Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; }
 
  private:
-    ImageUri uri{};
-    ResourceLink<ImageResource> image;
-    std::shared_ptr<Texture> layer;
-    Napi::FunctionReference onLoadCallback;
-    Napi::FunctionReference onErrorCallback;
-    Rect destRect{};
-
- private:
     void DestroyRecursive() override;
     void DoCallbacks();
     void AppendChild(SceneNode* child) override;
+
+ private:
+    ImageUri uri{};
+    ResourceLink<ImageResource> image;
+    Napi::FunctionReference onLoadCallback;
+    Napi::FunctionReference onErrorCallback;
+    Rect destRect{};
 };
 
 } // namespace ls

@@ -81,15 +81,15 @@ void TextSceneNode::ComputeStyle() {
 void TextSceneNode::Paint(Renderer* renderer) {
     auto boxStyle{ this->GetStyleOrEmpty() };
 
+    // TODO: layer should not be a condition
     if (this->layer || !this->font || this->textBlock.IsEmpty() || !boxStyle->color()) {
         return;
     }
 
     auto dest{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
 
-    if (!this->layer) {
-        this->layer = renderer->CreateTexture(
-            static_cast<int32_t>(dest.width), static_cast<int32_t>(dest.height));
+    if (!this->InitLayerRenderTarget(renderer, static_cast<int32_t>(dest.width), static_cast<int32_t>(dest.height))) {
+        return;
     }
 
     Timer t{ "text paint" };
@@ -110,7 +110,7 @@ void TextSceneNode::Paint(Renderer* renderer) {
         surface,
         CalculateLineHeight(this->style->lineHeight(), this->scene, this->font->GetLineHeight()),
         this->style->textAlign(),
-        width);
+        dest.width);
 }
 
 void TextSceneNode::Composite(CompositeContext* context, Renderer* renderer) {
@@ -287,7 +287,6 @@ void TextSceneNode::ClearFont() noexcept {
 
 void TextSceneNode::DestroyRecursive() {
     this->ClearFont();
-    this->layer = nullptr;
 
     SceneNode::DestroyRecursive();
 }

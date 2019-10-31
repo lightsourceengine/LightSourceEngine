@@ -162,52 +162,59 @@ void ImageSceneNode::ComputeStyle() {
 }
 
 void ImageSceneNode::Paint(Renderer* renderer) {
-    // TODO: layer mode vs image mode
     if (!this->image) {
         return;
     }
 
+    // TODO: image not ready
     this->image->Sync(renderer);
 
     const auto boxStyle{ this->GetStyleOrEmpty() };
+    const auto borderColor{ boxStyle->borderColor() };
+    const auto hasCapInsets{ this->image->HasCapInsets() };
+
+    if (!hasCapInsets && !borderColor) {
+        return;
+    }
+
     const auto rect{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
 
-    if (this->image->HasCapInsets() || boxStyle->HasBorder()) {
-        if (!this->layer) {
-            this->layer = renderer->CreateRenderTarget(
-                static_cast<int32_t>(rect.width), static_cast<int32_t>(rect.height));
-        }
+    if (!this->InitLayerRenderTarget(renderer, static_cast<int32_t>(rect.width), static_cast<int32_t>(rect.height))) {
+        return;
+    }
 
-        renderer->SetRenderTarget(this->layer);
-        renderer->FillRenderTarget(0);
+    renderer->FillRenderTarget(0);
 
-        if (this->image->GetTexture()) {
-            const auto tintColor{ boxStyle->tintColor() ? boxStyle->tintColor()->Get() : RGB(255, 255, 255) };
+    // TODO: has texture
+    if (this->image->GetTexture()) {
+        const auto tintColor{ boxStyle->tintColor() ? boxStyle->tintColor()->Get() : RGB(255, 255, 255) };
 
-            if (this->image->HasCapInsets()) {
-                renderer->DrawImage(
-                    this->image->GetTexture(),
-                    this->destRect,
-                    this->image->GetCapInsets(),
-                    tintColor);
-            } else {
-                renderer->DrawImage(
-                    this->image->GetTexture(),
-                    this->destRect,
-                    tintColor);
-            }
-        }
-
-        if (boxStyle->HasBorder() && boxStyle->borderColor()) {
-            renderer->DrawBorder(
-                rect,
-                YGNodeLayoutGetBorderRect(this->ygNode),
-                boxStyle->borderColor()->Get());
+        if (hasCapInsets) {
+            renderer->DrawImage(
+                this->image->GetTexture(),
+                this->destRect,
+                this->image->GetCapInsets(),
+                tintColor);
+        } else {
+            renderer->DrawImage(
+                this->image->GetTexture(),
+                this->destRect,
+                tintColor);
         }
     }
+
+    if (borderColor) {
+        renderer->DrawBorder(
+            rect,
+            YGNodeLayoutGetBorderRect(this->ygNode),
+            borderColor->Get());
+    }
+
+    renderer->SetRenderTarget(nullptr);
 }
 
 void ImageSceneNode::Composite(CompositeContext* context, Renderer* renderer) {
+    // TODO: sync image
     if (!this->image || !this->image->GetTexture() || !this->layer) {
         return;
     }
@@ -225,7 +232,6 @@ void ImageSceneNode::Composite(CompositeContext* context, Renderer* renderer) {
 
 void ImageSceneNode::DestroyRecursive() {
     this->image = nullptr;
-    this->layer = nullptr;
     this->onLoadCallback.Reset();
     this->onErrorCallback.Reset();
 

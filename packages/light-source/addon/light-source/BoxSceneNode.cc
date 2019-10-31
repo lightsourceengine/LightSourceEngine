@@ -56,14 +56,12 @@ void BoxSceneNode::Paint(Renderer* renderer) {
         return;
     }
 
-    auto dest{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
+    const auto dest{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
 
-    if (!this->layer) {
-        this->layer = renderer->CreateRenderTarget(
-            static_cast<int32_t>(dest.width), static_cast<int32_t>(dest.height));
+    if (!this->InitLayerRenderTarget(renderer, static_cast<int32_t>(dest.width), static_cast<int32_t>(dest.height))) {
+        SceneNode::Paint(renderer);
+        return;
     }
-
-    renderer->SetRenderTarget(this->layer);
 
     if (boxStyle->backgroundColor()) {
         renderer->FillRenderTarget(boxStyle->backgroundColor()->Get());
@@ -74,6 +72,8 @@ void BoxSceneNode::Paint(Renderer* renderer) {
             renderer->DrawImage(this->backgroundImage->GetTexture(), dest,
                 this->backgroundImage->GetCapInsets(), RGB(255, 255, 255));
         } else {
+            const auto tintColor{ boxStyle->tintColor() ? boxStyle->tintColor()->Get() : RGB(255, 255, 255) };
+
             renderer->DrawImage(this->backgroundImage->GetTexture(), dest, tintColor);
         }
     }
@@ -124,7 +124,6 @@ void BoxSceneNode::SetBackgroundImage(const Style* style) {
 
 void BoxSceneNode::DestroyRecursive() {
     this->backgroundImage = nullptr;
-    this->layer = nullptr;
 
     SceneNode::DestroyRecursive();
 }

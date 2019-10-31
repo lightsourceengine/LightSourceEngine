@@ -280,6 +280,8 @@ void SceneNode::DestroyRecursive() {
         return;
     }
 
+    this->layer = nullptr;
+
     instanceCount--;
 
     for (auto child : this->children) {
@@ -359,6 +361,17 @@ void SceneNode::ValidateInsertCandidate(SceneNode* child) {
     if (child->parent != nullptr) {
         throw Error::New(env, "child already has a parent.");
     }
+}
+
+bool SceneNode::InitLayerRenderTarget(Renderer* renderer, int32_t width, int32_t height) {
+    if (this->layer && this->layer->IsAttached() && this->layer->GetWidth() == width
+            && this->layer->GetHeight() == height) {
+        return renderer->SetRenderTarget(this->layer);
+    }
+
+    this->layer = renderer->CreateRenderTarget(width, height);
+
+    return this->layer && renderer->SetRenderTarget(this->layer);
 }
 
 void SceneNode::Focus(const CallbackInfo& info) {

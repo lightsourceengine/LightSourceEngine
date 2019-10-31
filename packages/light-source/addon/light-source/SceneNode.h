@@ -19,6 +19,7 @@ class SceneNode;
 class Style;
 class Renderer;
 class CompositeContext;
+class Texture;
 
 class SceneNode {
  public:
@@ -47,7 +48,6 @@ class SceneNode {
 
     void Destroy();
     void Layout(float width, float height);
-    Style* GetStyleOrEmpty() const noexcept { return this->style ? this->style : Style::Empty(); }
 
     virtual void ComputeStyle();
     virtual void Paint(Renderer* renderer);
@@ -62,16 +62,19 @@ class SceneNode {
     static std::vector<Napi::ClassPropertyDescriptor<T>> Extend(const Napi::Env& env,
          const std::initializer_list<Napi::ClassPropertyDescriptor<T>>& subClassProperties);
     void SetParent(SceneNode* newParent);
-    virtual void DestroyRecursive();
-    virtual void AppendChild(SceneNode* child);
     void InsertBefore(SceneNode* child, SceneNode* before);
     void RemoveChild(SceneNode* child);
     void ValidateInsertCandidate(SceneNode* child);
+    virtual void DestroyRecursive();
+    virtual void AppendChild(SceneNode* child);
     virtual void UpdateStyle(Style* newStyle, Style* oldStyle);
+    Style* GetStyleOrEmpty() const noexcept { return this->style ? this->style : Style::Empty(); }
+    bool InitLayerRenderTarget(Renderer* renderer, int32_t width, int32_t height);
 
  protected:
     static int instanceCount;
     std::vector<SceneNode*> children;
+    std::shared_ptr<Texture> layer;
     YGNodeRef ygNode{};
     Scene* scene{};
     SceneNode* parent{};

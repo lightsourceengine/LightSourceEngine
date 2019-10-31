@@ -36,7 +36,6 @@ class BoxSceneNode : public Napi::ObjectWrap<BoxSceneNode>, public SceneNode {
  private:
     std::string backgroundImageUri;
     std::shared_ptr<ImageResource> backgroundImage;
-    std::shared_ptr<Texture> layer;
 };
 
 } // namespace ls

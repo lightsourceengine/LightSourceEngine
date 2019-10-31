@@ -47,7 +47,6 @@ class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
     std::string text;
     ResourceLink<FontResource> fontResource;
     std::shared_ptr<Font> font;
-    std::shared_ptr<Texture> layer;
     TextBlock textBlock;
 };
 
