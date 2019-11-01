@@ -24,7 +24,7 @@
 # - node
 # - patchelf
 # - python 2.7 (for node-gyp)
-# - crosstools (https://github.com/dananderson/crosstools)
+# - crosstools (https://github.com/lightsourceengine/crosstools)
 # - C++ 11 toolchain (gcc or clang)
 # - SDL 2.0.4 development libraries
 # - SDL Mixer 2.0.0 development libraries

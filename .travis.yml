@@ -42,7 +42,7 @@ matrix:
       before_install:
         - set -e
         - mkdir -p ${NODE_DOWNLOADS}
-        - git clone --depth 1 https://github.com/dananderson/crosstools.git ${HOME}/crosstools
+        - git clone --depth 1 https://github.com/lightsourceengine/crosstools.git ${HOME}/crosstools
         - . ${HOME}/.nvm/nvm.sh
       install:
         - nvm install v12.0.0
