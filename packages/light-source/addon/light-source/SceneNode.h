@@ -70,6 +70,7 @@ class SceneNode {
     virtual void UpdateStyle(Style* newStyle, Style* oldStyle);
     Style* GetStyleOrEmpty() const noexcept { return this->style ? this->style : Style::Empty(); }
     bool InitLayerRenderTarget(Renderer* renderer, int32_t width, int32_t height);
+    bool InitLayerSoftwareRenderTarget(Renderer* renderer, int32_t width, int32_t height);
 
  protected:
     static int instanceCount;

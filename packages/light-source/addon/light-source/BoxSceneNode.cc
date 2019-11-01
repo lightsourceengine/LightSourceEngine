@@ -67,15 +67,24 @@ void BoxSceneNode::Paint(Renderer* renderer) {
         renderer->FillRenderTarget(boxStyle->backgroundColor()->Get());
     }
 
-    if (this->backgroundImage && this->backgroundImage->GetTexture()) {
-        if (this->backgroundImage->HasCapInsets()) {
-            renderer->DrawImage(this->backgroundImage->GetTexture(), dest,
-                this->backgroundImage->GetCapInsets(), RGB(255, 255, 255));
-        } else {
-            const auto tintColor{ boxStyle->tintColor() ? boxStyle->tintColor()->Get() : RGB(255, 255, 255) };
-
-            renderer->DrawImage(this->backgroundImage->GetTexture(), dest, tintColor);
+    if (this->backgroundImage && this->backgroundImage->Sync(renderer)) {
+        if (boxStyle->backgroundRepeat() == StyleBackgroundRepeatXY) {
+            for (float y = 0.f; y < dest.height; y+=this->backgroundImage->GetHeightF()) {
+                for (float x = 0.f; x < dest.width; x+=this->backgroundImage->GetWidthF()) {
+                    renderer->DrawImage(this->backgroundImage->GetTexture(),
+                        { x, y, this->backgroundImage->GetWidthF(), this->backgroundImage->GetHeightF() },
+                        this->backgroundImage->GetCapInsets(), RGB(255, 255, 255));
+                }
+            }
         }
+//        if (this->backgroundImage->HasCapInsets()) {
+//            renderer->DrawImage(this->backgroundImage->GetTexture(), dest,
+//                this->backgroundImage->GetCapInsets(), RGB(255, 255, 255));
+//        } else {
+//            const auto tintColor{ boxStyle->tintColor() ? boxStyle->tintColor()->Get() : RGB(255, 255, 255) };
+//
+//            renderer->DrawImage(this->backgroundImage->GetTexture(), dest, tintColor);
+//        }
     }
 
     if (boxStyle->borderColor()) {

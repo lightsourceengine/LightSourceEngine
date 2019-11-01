@@ -374,6 +374,17 @@ bool SceneNode::InitLayerRenderTarget(Renderer* renderer, int32_t width, int32_t
     return this->layer && renderer->SetRenderTarget(this->layer);
 }
 
+bool SceneNode::InitLayerSoftwareRenderTarget(Renderer* renderer, int32_t width, int32_t height) {
+    if (this->layer && this->layer->IsAttached() && this->layer->GetWidth() == width
+            && this->layer->GetHeight() == height) {
+        return true;
+    }
+
+    this->layer = renderer->CreateTexture(width, height);
+
+    return static_cast<bool>(this->layer);
+}
+
 void SceneNode::Focus(const CallbackInfo& info) {
     HandleScope scope(info.Env());
 

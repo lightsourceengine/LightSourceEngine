@@ -78,6 +78,32 @@ const char* StyleBackgroundClipToString(const StyleBackgroundClip value) noexcep
   return "unknown";
 }
 
+const char* StyleBackgroundRepeatToString(const StyleBackgroundRepeat value) noexcept {
+    switch (value) {
+        case StyleBackgroundRepeatXY:
+            return "repeat";
+        case StyleBackgroundRepeatX:
+            return "repeat-x";
+        case StyleBackgroundRepeatY:
+            return "repeat-y";
+        case StyleBackgroundRepeatOff:
+            return "no-repeat";
+    }
+    return "unknown";
+}
+
+const char* StyleBackgroundSizeToString(const StyleBackgroundSize value) noexcept {
+    switch (value) {
+        case StyleBackgroundSizeNone:
+            return "none";
+        case StyleBackgroundSizeCover:
+            return "cover";
+        case StyleBackgroundSizeContain:
+            return "contain";
+    }
+    return "unknown";
+}
+
 const char* StyleTextTransformToString(const StyleTextTransform value) noexcept {
   switch (value) {
     case StyleTextTransformNone:

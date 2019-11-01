@@ -185,10 +185,6 @@ export class Style extends StyleBase {
 
   set backgroundColor (value) { super.backgroundColor = parseColorValue(value) }
 
-  get backgroundFit () { return StyleEnumMappings.objectFitToString.get(super.backgroundFit) }
-
-  set backgroundFit (value) { super.backgroundFit = StyleEnumMappings.objectFitFromString.get(value) }
-
   get backgroundHeight () { return super.backgroundHeight }
 
   set backgroundHeight (value) { super.backgroundHeight = parsePointValue(value, POINT_PERCENT_REGEX, autoResultFromString, -1) }
@@ -203,6 +199,14 @@ export class Style extends StyleBase {
   get backgroundPositionY () { return super.backgroundPositionY }
 
   set backgroundPositionY (value) { super.backgroundPositionY = parsePointValue(value, POINT_PERCENT_REGEX, anchorResultFromString, -1) }
+
+  get backgroundRepeat () { return StyleEnumMappings.backgroundRepeatToString.get(super.backgroundRepeat) }
+
+  set backgroundRepeat (value) { super.backgroundRepeat = StyleEnumMappings.backgroundRepeatFromString.get(value) }
+
+  get backgroundSize () { return StyleEnumMappings.backgroundSizeToString.get(super.backgroundSize) }
+
+  set backgroundSize (value) { super.backgroundSize = StyleEnumMappings.backgroundSizeFromString.get(value) }
 
   get backgroundWidth () { return super.backgroundWidth }
 

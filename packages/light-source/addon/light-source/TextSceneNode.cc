@@ -88,7 +88,10 @@ void TextSceneNode::Paint(Renderer* renderer) {
 
     auto dest{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
 
-    if (!this->InitLayerRenderTarget(renderer, static_cast<int32_t>(dest.width), static_cast<int32_t>(dest.height))) {
+    if (!this->InitLayerSoftwareRenderTarget(
+            renderer,
+            static_cast<int32_t>(this->textBlock.GetComputedWidth()),
+            static_cast<int32_t>(this->textBlock.GetComputedHeight()))) {
         return;
     }
 
@@ -119,12 +122,15 @@ void TextSceneNode::Composite(CompositeContext* context, Renderer* renderer) {
     }
 
     const auto& transform{ context->CurrentMatrix() };
+    auto boxStyle{ this->GetStyleOrEmpty() };
     auto rect{ YGNodeLayoutGetRect(this->ygNode) };
 
     rect.x += transform.GetTranslateX();
     rect.y += transform.GetTranslateY();
+    rect.width = this->layer->GetWidth();
+    rect.height = this->layer->GetHeight();
 
-    renderer->DrawImage(this->layer, rect, RGB(255, 255, 255));
+    renderer->DrawImage(this->layer, rect, boxStyle->color() ? boxStyle->color()->Get() : RGB(255, 255, 255));
 
     SceneNode::Composite(context, renderer);
 }

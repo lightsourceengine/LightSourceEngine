@@ -19,7 +19,7 @@ using Napi::Value;
 
 namespace ls {
 
-Value KeyValuePair(Napi::Env env, Napi::Value key, Napi::Value value) {
+static Value KeyValuePair(Napi::Env env, Napi::Value key, Napi::Value value) {
     auto pair = Array::New(env, 2);
 
     pair[0u] = key;
@@ -29,7 +29,7 @@ Value KeyValuePair(Napi::Env env, Napi::Value key, Napi::Value value) {
 }
 
 template<typename E>
-void AddMapping(Object target, const std::string& basePropertyName, const char* (*toString)(E)) {
+static void AddMapping(Object target, const std::string& basePropertyName, const char* (*toString)(E)) {
     auto env{target.Env()};
     HandleScope scope{env};
     const auto enumCount{static_cast<uint32_t>(Count<E>())};
@@ -57,6 +57,8 @@ Object StyleEnumMappings::Init(Env env, Object exports) {
     AddMapping(mappings, "fontStyle", StyleFontStyleToString);
     AddMapping(mappings, "textTransform", StyleTextTransformToString);
     AddMapping(mappings, "backgroundClip", StyleBackgroundClipToString);
+    AddMapping(mappings, "backgroundRepeat", StyleBackgroundRepeatToString);
+    AddMapping(mappings, "backgroundSize", StyleBackgroundSizeToString);
     AddMapping(mappings, "objectFit", StyleObjectFitToString);
     AddMapping(mappings, "textAlign", StyleTextAlignToString);
     AddMapping(mappings, "textOverflow", StyleTextOverflowToString);

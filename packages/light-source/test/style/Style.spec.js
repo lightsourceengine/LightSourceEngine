@@ -80,10 +80,23 @@ describe('Style', () => {
       }
     })
   })
-  describe('backgroundFit property', () => {
-    const property = 'backgroundFit'
+  describe('backgroundSize property', () => {
+    const property = 'backgroundSize'
     it('should set values', () => {
-      for (const value of ['fill', 'contain', 'cover', 'none', 'scale-down']) {
+      for (const value of ['none', 'contain', 'cover']) {
+        testStyleValue(property, value, value)
+      }
+    })
+    it('should reject invalid values', () => {
+      for (const value of invalidStringValues) {
+        testStyleValueEmpty(property, value)
+      }
+    })
+  })
+  describe('backgroundRepeat property', () => {
+    const property = 'backgroundRepeat'
+    it('should set values', () => {
+      for (const value of ['repeat', 'repeat-x', 'repeat-y', 'no-repeat']) {
         testStyleValue(property, value, value)
       }
     })

@@ -68,6 +68,21 @@ LS_ENUM_SEQ_DECL(
 )
 
 LS_ENUM_SEQ_DECL(
+    StyleBackgroundRepeat,
+    StyleBackgroundRepeatXY,
+    StyleBackgroundRepeatX,
+    StyleBackgroundRepeatY,
+    StyleBackgroundRepeatOff
+)
+
+LS_ENUM_SEQ_DECL(
+    StyleBackgroundSize,
+    StyleBackgroundSizeNone,
+    StyleBackgroundSizeCover,
+    StyleBackgroundSizeContain
+)
+
+LS_ENUM_SEQ_DECL(
     StyleNumberUnit,
     StyleNumberUnitPoint,
     StyleNumberUnitPercent,
@@ -126,10 +141,13 @@ LS_ENUM_SEQ_DECL(
 
     backgroundClip,
     backgroundColor,
+    backgroundHeight,
     backgroundImage,
-    backgroundFit,
     backgroundPositionX,
     backgroundPositionY,
+    backgroundRepeat,
+    backgroundSize,
+    backgroundWidth,
     borderColor,
     borderRadius,
     borderRadiusTopLeft,

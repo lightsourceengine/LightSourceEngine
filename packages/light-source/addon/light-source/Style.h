@@ -85,10 +85,12 @@ class Style : public Napi::ObjectWrap<Style> {
     DefineStyleColorProperty(backgroundColor);
     DefineStyleNumberProperty(backgroundHeight);
     DefineStyleStringProperty(backgroundImage);
-    DefineStyleEnumPropertyWithDefault(backgroundFit, StyleObjectFit, StyleObjectFitNone);
     DefineStyleNumberProperty(backgroundPositionX);
     DefineStyleNumberProperty(backgroundPositionY);
+    DefineStyleEnumProperty(backgroundRepeat, StyleBackgroundRepeat);
+    DefineStyleEnumProperty(backgroundSize, StyleBackgroundSize);
     DefineStyleNumberProperty(backgroundWidth);
+
     DefineStyleColorProperty(borderColor);
     DefineStyleNumberProperty(borderRadius);
     DefineStyleNumberProperty(borderRadiusTopLeft);
