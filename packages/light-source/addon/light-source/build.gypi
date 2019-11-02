@@ -19,6 +19,9 @@
         "../deps/cpp17_headers/include",
         "../deps/utfcpp/repo/source",
         "../deps/concurrentqueue/repo",
+        "../deps/ls-ctx/repo/include",
+        "../deps/ls-ctx/repo/ctx",
+        "../deps/filesystem/include",
       ],
       "dependencies": [
         "yoga",
@@ -30,6 +33,7 @@
         "light-source-graphics-lib",
         "logger-lib",
         "logger-bindings-lib",
+        "ls-ctx"
       ],
       "sources": [
         "yoga-ext.cc",
