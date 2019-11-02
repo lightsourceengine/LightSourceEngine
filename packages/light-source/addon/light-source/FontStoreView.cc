@@ -7,7 +7,9 @@
 #include "FontStoreView.h"
 #include "FontStore.h"
 #include "Stage.h"
+#include <ls/FileSystem.h>
 #include <ls/Format.h>
+#include <std17/filesystem>
 #include <napi-ext.h>
 
 using Napi::Array;
@@ -71,30 +73,27 @@ void FontStoreView::Add(const CallbackInfo& info) {
 
     auto env{ info.Env() };
     HandleScope scope(env);
+    auto arg{ info[0] };
 
-    if (!info[0].IsObject()) {
-        throw Error::New(env, "add() expects an Object with font creation options");
-    }
+    if (arg.IsString()) {
+        std17::filesystem::path p{ arg.As<String>() };
 
-    const auto options{ info[0].As<Object>() };
+        if (p.has_extension()) {
+            this->AddFont(p.stem(), StyleFontStyleNormal, StyleFontWeightNormal, p.native(), 0);
+        } else {
+            this->AddFontFamily(p.native());
+        }
+    } else if (arg.IsObject()) {
+        const auto options{ arg.As<Object>() };
 
-    const FontId fontId {
-        ObjectGetString(options, "family"),
-        StringToFontStyle(env, ObjectGetStringOrEmpty(options, "style"), false),
-        StringToFontWeight(env, ObjectGetStringOrEmpty(options, "weight"), false)
-    };
-
-    if (this->stage->GetFontStore()->Has(fontId)) {
-        throw Error::New(env, Format("%s already exists", static_cast<std::string>(fontId)));
-    }
-
-    try {
-        this->stage->GetFontStore()->AddFont(
-            fontId,
+        this->AddFont(
+            ObjectGetString(options, "family"),
+            StringToFontStyle(env, ObjectGetStringOrEmpty(options, "style"), false),
+            StringToFontWeight(env, ObjectGetStringOrEmpty(options, "weight"), false),
             ObjectGetString(options, "uri"),
             ObjectGetNumberOrDefault(options, "index", 0));
-    } catch (const std::exception& e) {
-        throw Error::New(env, Format("Error adding font: %s", e.what()));
+    } else {
+        throw Error::New(env, "add() expects a String uri or Object with font creation options");
     }
 }
 
@@ -140,6 +139,56 @@ Value FontStoreView::List(const CallbackInfo& info) {
     });
 
     return fontList;
+}
+void FontStoreView::AddFont(const std::string &family, StyleFontStyle style, StyleFontWeight weight,
+                            const std::string &uri, int32_t ttfIndex) {
+    const FontId fontId { family, style, weight };
+
+    if (this->stage->GetFontStore()->Has(fontId)) {
+        throw Error::New(this->Env(), Format("Font %s (%s, %s) already exists",
+            family, StyleFontStyleToString(style), StyleFontWeightToString(weight)));
+    }
+
+    try {
+        this->stage->GetFontStore()->AddFont(fontId, uri, ttfIndex);
+    } catch (const std::exception& e) {
+        throw Error::New(this->Env(), Format("Font: %s (%s, %s) Error: %s",
+            family, StyleFontStyleToString(style), StyleFontWeightToString(weight), e.what()));
+    }
+}
+
+void FontStoreView::AddFontFamily(const std::string& familyUri) {
+    std17::filesystem::path filename;
+
+    if (IsResourceUri(familyUri)) {
+        filename = this->stage->GetResourcePath();
+        filename.append(GetResourceUriPath(familyUri));
+    } else {
+        filename = familyUri;
+    }
+
+    if (std17::filesystem::exists(filename.native() + "-Regular" + ".ttf")) {
+        this->AddFont(filename.stem(), StyleFontStyleNormal, StyleFontWeightNormal,
+            familyUri + "-Regular" + ".ttf", 0);
+    } else if (std17::filesystem::exists(filename.native() + ".ttf")) {
+        this->AddFont(filename.stem(), StyleFontStyleNormal, StyleFontWeightNormal,
+            familyUri + ".ttf", 0);
+    }
+
+    if (std17::filesystem::exists(filename.native() + "-Bold" + ".ttf")) {
+        this->AddFont(filename.stem(), StyleFontStyleNormal, StyleFontWeightBold,
+            familyUri + "-Bold" + ".ttf", 0);
+    }
+
+    if (std17::filesystem::exists(filename.native() + "-Italic" + ".ttf")) {
+        this->AddFont(filename.stem(), StyleFontStyleItalic, StyleFontWeightNormal,
+            familyUri + "-Italic" + ".ttf", 0);
+    }
+
+    if (std17::filesystem::exists(filename.native() + "-BoldItalic" + ".ttf")) {
+        this->AddFont(filename.stem(), StyleFontStyleItalic, StyleFontWeightBold,
+            familyUri + "-BoldItalic" + ".ttf", 0);
+    }
 }
 
 static void EnsureFontStoreAttached(Stage* stage) {
