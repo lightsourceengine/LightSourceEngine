@@ -10,8 +10,6 @@
 #include "Font.h"
 #include "FontStore.h"
 #include "StyleUtils.h"
-#include "Layer.h"
-#include "LayerCache.h"
 #include "yoga-ext.h"
 #include "CompositeContext.h"
 #include <ls/Timer.h>
@@ -19,6 +17,7 @@
 #include <ls/Renderer.h>
 #include <napi-ext.h>
 #include <ls/PixelConversion.h>
+#include <ls-ctx.h>
 
 using Napi::Array;
 using Napi::CallbackInfo;
@@ -35,11 +34,7 @@ namespace ls {
 
 static int32_t GetMaxLines(Style* style) noexcept;
 static bool LineHeightsEqual(Style* a, Style* b) noexcept;
-static void MarkDirtyIfViewportSizeDependent(YGNode* ygNode, const StyleNumberValue* value) noexcept;
-static void MarkDirtyIfRootFontSizeDependent(YGNode* ygNode, const StyleNumberValue* value) noexcept;
 static std::string TextTransform(const Napi::Env& env, const StyleTextTransform transform, const std::string& text);
-
-constexpr int32_t defaultFontSize{ 16 };
 
 TextSceneNode::TextSceneNode(const CallbackInfo& info) : ObjectWrap<TextSceneNode>(info), SceneNode(info) {
     YGNodeSetMeasureFunc(
@@ -51,7 +46,13 @@ TextSceneNode::TextSceneNode(const CallbackInfo& info) : ObjectWrap<TextSceneNod
                 return { 0.f, 0.f };
             }
 
-            return self->Measure(width, widthMode, height, heightMode);
+            try {
+                return self->Measure(width, widthMode, height, heightMode);
+            } catch (const std::exception& e) {
+                LOG_ERROR("text measure: %s", e);
+            }
+
+            return { 0.f, 0.f };
     });
 }
 
@@ -82,38 +83,82 @@ void TextSceneNode::Paint(Renderer* renderer) {
     auto boxStyle{ this->GetStyleOrEmpty() };
 
     // TODO: layer should not be a condition
-    if (this->layer || !this->font || this->textBlock.IsEmpty() || !boxStyle->color()) {
+    if (this->layer || !this->font || !this->font->IsReady() || this->layout.IsEmpty() || !boxStyle->color()) {
         return;
     }
 
-    auto dest{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
+    auto inner{ YGNodeLayoutGetInnerRect(this->ygNode) };
+    auto box{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
+    auto w{ box.width };
+    auto h{ box.height };
+    auto color{ boxStyle->color()->Get() };
 
-    if (!this->InitLayerSoftwareRenderTarget(
-            renderer,
-            static_cast<int32_t>(this->textBlock.GetComputedWidth()),
-            static_cast<int32_t>(this->textBlock.GetComputedHeight()))) {
+    if (!this->InitLayerSoftwareRenderTarget(renderer, static_cast<int32_t>(w), static_cast<int32_t>(h))) {
         return;
     }
 
-    Timer t{ "text paint" };
+    Ctx* ctx = nullptr;
 
-    auto surface{ this->layer->Lock() };
+    {
+        auto surface{this->layer->Lock()};
 
-    t.Log();
+        ctx = ctx_new_for_framebuffer(
+            surface.Pixels(), surface.Width(), surface.Height(), surface.Pitch(),
+            CTX_FORMAT_RGBA8);
 
-    if (surface.IsEmpty()) {
-        return;
+        Timer t{ "text paint" };
+        auto fontSize{ ComputeFontSize(boxStyle->fontSize(), this->scene) };
+        auto lineHeight{ ComputeLineHeight(boxStyle->lineHeight(), this->scene,
+            this->font->GetFont()->LineHeight(fontSize)) };
+        auto textAlign{ boxStyle->textAlign() };
+        auto xpos{ 0.f };
+        auto ypos{inner.y + this->font->GetFont()->Ascent(fontSize) };
+
+        ctx_set_font(ctx, this->font->GetId().c_str());
+        ctx_set_font_size(ctx, fontSize);
+        ctx_set_rgba_u8(ctx, GetR(color), GetG(color), GetB(color), GetA(color));
+
+        for (auto& textLine : this->layout.lines) {
+            switch (textAlign) {
+                case StyleTextAlignLeft:
+                    xpos = inner.x;
+                    break;
+                case StyleTextAlignCenter:
+                    xpos = inner.x + ((w - textLine.width) / 2.f);
+                    break;
+                case StyleTextAlignRight:
+                    xpos = inner.x + w - textLine.width;
+                    break;
+            }
+
+            ctx_move_to(ctx, xpos, ypos);
+            ctx_text_w(ctx, textLine.chars.data(), textLine.chars.size());
+
+            ypos += lineHeight;
+        }
+
+        if (style->borderColor()) {
+            auto borderColor{ style->borderColor()->Get() };
+            auto border{ YGNodeLayoutGetBorderRect(this->ygNode) };
+
+            ctx_set_rgba_u8(ctx, GetR(borderColor), GetG(borderColor), GetB(borderColor), GetA(borderColor));
+            ctx_set_line_width(ctx, border.top);
+            ctx_rectangle(ctx, 0, 0, w, border.top);
+            ctx_fill(ctx);
+            ctx_set_line_width(ctx, border.bottom);
+            ctx_rectangle(ctx, 0, 0 + h - border.bottom, w, border.bottom);
+            ctx_fill(ctx);
+            ctx_set_line_width(ctx, border.left);
+            ctx_rectangle(ctx, 0, border.top, border.left, h - border.top - border.bottom);
+            ctx_fill(ctx);
+            ctx_set_line_width(ctx, border.right);
+            // TODO: right side rendering is off by one (edge clipping bug?)
+            ctx_rectangle(ctx, w - border.right - 1.f, 0 + border.top, border.right, h - border.top - border.bottom);
+            ctx_fill(ctx);
+        }
     }
 
-    surface.FillTransparent();
-
-    t.Log();
-
-    this->textBlock.Paint(
-        surface,
-        CalculateLineHeight(this->style->lineHeight(), this->scene, this->font->GetLineHeight()),
-        this->style->textAlign(),
-        dest.width);
+    ctx_free(ctx);
 }
 
 void TextSceneNode::Composite(CompositeContext* context, Renderer* renderer) {
@@ -122,7 +167,6 @@ void TextSceneNode::Composite(CompositeContext* context, Renderer* renderer) {
     }
 
     const auto& transform{ context->CurrentMatrix() };
-    auto boxStyle{ this->GetStyleOrEmpty() };
     auto rect{ YGNodeLayoutGetRect(this->ygNode) };
 
     rect.x += transform.GetTranslateX();
@@ -130,7 +174,7 @@ void TextSceneNode::Composite(CompositeContext* context, Renderer* renderer) {
     rect.width = this->layer->GetWidth();
     rect.height = this->layer->GetHeight();
 
-    renderer->DrawImage(this->layer, rect, boxStyle->color() ? boxStyle->color()->Get() : RGB(255, 255, 255));
+    renderer->DrawImage(this->layer, rect, RGB(255, 255, 255));
 
     SceneNode::Composite(context, renderer);
 }
@@ -160,104 +204,46 @@ bool TextSceneNode::SetFont(Style* style) {
     auto dirty{ false };
 
     if (!style || !style->HasFont()) {
-        dirty = !!this->fontResource;
+        dirty = !!this->font;
         this->ClearFont();
 
         return dirty;
     }
 
-    const FontId fontId{ style->fontFamily(), style->fontStyle(), style->fontWeight() };
-
-    if (this->fontResource && this->fontResource->GetId() == fontId) {
+    if (this->font && this->font->IsSame(style->fontFamily(), style->fontStyle(), style->fontWeight())) {
         return false;
     }
 
     this->ClearFont();
 
-    this->fontResource = this->scene->GetStage()->GetFontStore()->Get(fontId);
+    this->font = this->scene->GetStage()->GetFontStore()->FindFont(
+        style->fontFamily(), style->fontStyle(), style->fontWeight());
 
-    if (!this->fontResource) {
+    if (!this->font) {
         return true;
     }
 
-    const auto fontSize{ ComputeIntegerPointValue(style->fontSize(), this->scene, defaultFontSize) };
-
-    switch (this->fontResource->GetState()) {
+    switch (this->font->GetState()) {
         case ResourceStateReady:
-            this->font = this->fontResource->GetFont(fontSize);
             dirty = true;
             break;
         case ResourceStateError:
-            this->fontResource = nullptr;
+            this->font = nullptr;
             dirty = true;
             break;
         default:
-            this->fontResource.Listen([this, ptr = this->fontResource.Get(), fontSize]() {
-                if (this->fontResource != ptr) {
+            this->font.Listen([this, ptr = this->font.Get()]() {
+                if (this->font != ptr) {
                     return;
                 }
 
-                switch (this->fontResource->GetState()) {
-                    case ResourceStateReady:
-                        this->font = this->fontResource->GetFont(fontSize);
-                        break;
-                    case ResourceStateError:
-                        this->fontResource = nullptr;
-                        break;
-                    default:
-                        return;
-                }
-
-                this->fontResource.Unlisten();
+                this->font.Unlisten();
                 YGNodeMarkDirty(this->ygNode);
             });
             break;
     }
 
     return dirty;
-}
-
-bool TextSceneNode::SetFontSize(Style* style) {
-    if (!style) {
-        if (this->font) {
-            this->font = nullptr;
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    if (!this->fontResource || !this->fontResource->IsReady()) {
-        return false;
-    }
-
-    const auto fontSize{ ComputeIntegerPointValue(style->fontSize(), this->scene, defaultFontSize) };
-
-    if (this->font && this->font->GetSize() == fontSize) {
-        return false;
-    }
-
-    this->font = this->fontResource->GetFont(fontSize);
-
-    return true;
-}
-
-void TextSceneNode::OnViewportSizeChange() {
-    SceneNode::OnViewportSizeChange();
-
-    if (this->style) {
-        MarkDirtyIfViewportSizeDependent(this->ygNode, this->style->lineHeight());
-        MarkDirtyIfViewportSizeDependent(this->ygNode, this->style->fontSize());
-    }
-}
-
-void TextSceneNode::OnRootFontSizeChange() {
-    SceneNode::OnRootFontSizeChange();
-
-    if (this->style) {
-        MarkDirtyIfRootFontSizeDependent(this->ygNode, this->style->lineHeight());
-        MarkDirtyIfRootFontSizeDependent(this->ygNode, this->style->fontSize());
-    }
 }
 
 void TextSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
@@ -267,13 +253,14 @@ void TextSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
         return;
     }
 
+    SetFont(newStyle);
+    YGNodeMarkDirty(this->ygNode);
+
     auto fontChanged{ SetFont(newStyle) };
-    auto fontSizeChanged { SetFontSize(newStyle) };
     auto current{ oldStyle ? oldStyle : Style::Empty() };
     auto style{ newStyle ? newStyle : Style::Empty() };
 
     if (fontChanged
-            || fontSizeChanged
             || current->textOverflow() != style->textOverflow()
             || current->textTransform() != style->textTransform()
             || GetMaxLines(current) != GetMaxLines(style)
@@ -281,13 +268,12 @@ void TextSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
         YGNodeMarkDirty(this->ygNode);
     }
 
-//    if (current->textAlign() != style->textAlign() && this->layer) {
-//        this->layer->MarkDirty();
-//    }
+    if (current->textAlign() != style->textAlign() && this->layer) {
+        this->layer = nullptr;
+    }
 }
 
 void TextSceneNode::ClearFont() noexcept {
-    this->fontResource = nullptr;
     this->font = nullptr;
 }
 
@@ -302,36 +288,22 @@ void TextSceneNode::AppendChild(SceneNode* child) {
 }
 
 YGSize TextSceneNode::Measure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
-    this->textBlock.Clear();
-    this->textBlock.SetFont(this->font);
+    this->layout.Layout();
 
-    if (this->style && this->font) {
-        this->textBlock.Layout(
+    if (this->style && this->font && this->font->IsReady()) {
+        const auto fontSize{ ComputeFontSize(this->style->fontSize(), this->scene) };
+        const auto lineHeight{ ComputeLineHeight(this->style->lineHeight(), this->scene,
+            this->font->GetFont()->LineHeight(fontSize)) };
+
+        this->layout.Layout(
+            TextLayoutFont(this->font->GetFont().get(), fontSize, lineHeight),
+            this->style->textOverflow(),
             TextTransform(this->Env(), this->style->textTransform(), this->text),
             width,
-            height,
-            this->style->textOverflow() == StyleTextOverflowEllipsis,
-            CalculateLineHeight(this->style->lineHeight(), this->scene, this->font->GetLineHeight()),
-            GetMaxLines(this->style));
+            height);
     }
 
-//    if (this->layer) {
-//        this->layer->MarkDirty();
-//    }
-
-    return { this->textBlock.GetComputedWidth(), this->textBlock.GetComputedHeight() };
-}
-
-static void MarkDirtyIfViewportSizeDependent(YGNode* ygNode, const StyleNumberValue* value) noexcept {
-    if (value && value->IsViewportSizeDependent()) {
-        YGNodeMarkDirty(ygNode);
-    }
-}
-
-static void MarkDirtyIfRootFontSizeDependent(YGNode* ygNode, const StyleNumberValue* value) noexcept {
-    if (value && value->IsRootFontSizeDependent()) {
-        YGNodeMarkDirty(ygNode);
-    }
+    return { this->layout.Width(), this->layout.Height() };
 }
 
 static int32_t GetMaxLines(Style* style) noexcept {

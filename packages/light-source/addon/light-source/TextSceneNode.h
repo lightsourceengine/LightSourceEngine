@@ -7,7 +7,7 @@
 #pragma once
 
 #include "SceneNode.h"
-#include "TextBlock.h"
+#include "TextLayout.h"
 #include "FontResource.h"
 #include <napi.h>
 
@@ -31,13 +31,9 @@ class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
     void Paint(Renderer* renderer) override;
     void Composite(CompositeContext* context, Renderer* renderer) override;
 
-    void OnViewportSizeChange() override;
-    void OnRootFontSizeChange() override;
-
  private:
     void UpdateStyle(Style* newStyle, Style* oldStyle) override;
     bool SetFont(Style* style);
-    bool SetFontSize(Style* style);
     void ClearFont() noexcept;
     void DestroyRecursive() override;
     void AppendChild(SceneNode* child) override;
@@ -45,9 +41,8 @@ class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
 
  private:
     std::string text;
-    ResourceLink<FontResource> fontResource;
-    std::shared_ptr<Font> font;
-    TextBlock textBlock;
+    ResourceLink<FontResource> font;
+    TextLayout layout;
 };
 
 } // namespace ls

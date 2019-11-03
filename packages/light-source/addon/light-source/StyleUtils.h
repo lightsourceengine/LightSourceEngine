@@ -165,7 +165,7 @@ int32_t ComputeIntegerPointValue(const StyleNumberValue* styleValue, const S* sc
 }
 
 template<typename S /* Scene */>
-float CalculateLineHeight(const StyleNumberValue* styleValue, const S* scene, const float fontLineHeight) {
+float ComputeLineHeight(const StyleNumberValue* styleValue, const S* scene, const float fontLineHeight) {
     if (!styleValue) {
         return fontLineHeight;
     }
@@ -187,6 +187,31 @@ float CalculateLineHeight(const StyleNumberValue* styleValue, const S* scene, co
             return styleValue->GetValue() * scene->GetRootFontSize();
         default:
             return fontLineHeight;
+    }
+}
+
+template<typename S /* Scene */>
+float ComputeFontSize(const StyleNumberValue* styleValue, const S* scene) {
+    if (!styleValue) {
+        // TODO: default value?
+        return 16.f;
+    }
+
+    switch (styleValue->GetUnit()) {
+        case StyleNumberUnitPoint:
+            return styleValue->GetValue();
+        case StyleNumberUnitViewportWidth:
+            return styleValue->GetValuePercent() * scene->GetWidth();
+        case StyleNumberUnitViewportHeight:
+            return styleValue->GetValuePercent() * scene->GetHeight();
+        case StyleNumberUnitViewportMin:
+            return styleValue->GetValuePercent() * scene->GetViewportMin();
+        case StyleNumberUnitViewportMax:
+            return styleValue->GetValuePercent() * scene->GetViewportMax();
+        case StyleNumberUnitRootEm:
+            return styleValue->GetValue() * scene->GetRootFontSize();
+        default:
+            return 16.f;
     }
 }
 

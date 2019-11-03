@@ -109,11 +109,10 @@ void FontStoreView::Remove(const CallbackInfo& info) {
 
     auto options{ info[0].As<Object>() };
 
-    this->stage->GetFontStore()->RemoveFont({
+    this->stage->GetFontStore()->RemoveFont(
         ObjectGetString(options, "family"),
         StringToFontStyle(env, ObjectGetString(options, "style"), true),
-        StringToFontWeight(env, ObjectGetString(options, "weight"), true)
-    });
+        StringToFontWeight(env, ObjectGetString(options, "weight"), true));
 }
 
 Value FontStoreView::List(const CallbackInfo& info) {
@@ -142,15 +141,8 @@ Value FontStoreView::List(const CallbackInfo& info) {
 }
 void FontStoreView::AddFont(const std::string &family, StyleFontStyle style, StyleFontWeight weight,
                             const std::string &uri, int32_t ttfIndex) {
-    const FontId fontId { family, style, weight };
-
-    if (this->stage->GetFontStore()->Has(fontId)) {
-        throw Error::New(this->Env(), Format("Font %s (%s, %s) already exists",
-            family, StyleFontStyleToString(style), StyleFontWeightToString(weight)));
-    }
-
     try {
-        this->stage->GetFontStore()->AddFont(fontId, uri, ttfIndex);
+        this->stage->GetFontStore()->AddFont(family, style, weight, uri, ttfIndex);
     } catch (const std::exception& e) {
         throw Error::New(this->Env(), Format("Font: %s (%s, %s) Error: %s",
             family, StyleFontStyleToString(style), StyleFontWeightToString(weight), e.what()));

@@ -95,7 +95,6 @@ void Scene::Attach(const CallbackInfo& info) {
     // TODO: exceptions?
     this->adapter->Attach();
     this->imageStore.Attach(this);
-    this->layerCache.Attach(this);
 
     auto self{ info.This().As<Object>() };
 
@@ -117,7 +116,6 @@ void Scene::Detach(const CallbackInfo& info) {
     // TODO: exceptions?
 
     this->imageStore.Detach();
-    this->layerCache.Detach();
 
     if (this->adapter) {
         this->adapter->Detach();

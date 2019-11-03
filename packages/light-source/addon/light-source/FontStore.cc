@@ -9,26 +9,35 @@
 
 namespace ls {
 
-FontStore::FontStore() noexcept : ResourceStore<FontResource, FontResource::idType, FontResource::idType::Hash>() {
-}
-
-void FontStore::AddFont(const FontId& fontId, const std::string& uri, const int32_t index) {
+void FontStore::AddFont(const std::string& family, StyleFontStyle style, StyleFontWeight weight,
+                        const std::string& uri, int32_t index) {
     assert(this->IsAttached());
 
-    auto font{ std::make_shared<FontResource>(fontId, uri, index) };
+    auto it{ this->families.find(family) };
+
+    if (it != this->families.end()) {
+        if (it->second.fonts[style][weight]) {
+            throw std::runtime_error("Font has already been added.");
+        }
+    } else {
+        this->families.insert(std::make_pair(family, FontSet()));
+        it = this->families.find(family);
+    }
+
+    auto font{ std::make_shared<FontResource>(family, style, weight, uri, index) };
 
     font->Load(this->stage);
-    this->Add(font);
+
+    it->second.fonts[style][weight] = font;
 }
 
-void FontStore::RemoveFont(const FontId& fontId) {
+void FontStore::RemoveFont(const std::string& family, StyleFontStyle style, StyleFontWeight weight) {
     assert(this->IsAttached());
 
-    auto font{ this->Get(fontId) };
+    auto it{ this->families.find(family) };
 
-    if (font) {
-        this->Remove(fontId);
-        font->Reset();
+    if (it != this->families.end()) {
+        it->second.fonts[style][weight].reset();
     }
 }
 
@@ -36,7 +45,30 @@ std::shared_ptr<FontResource> FontStore::FindFont(const std::string& family, con
         const StyleFontWeight weight) const {
     assert(this->IsAttached());
 
-    return this->Get({ family, style, weight });
+    auto it{ this->families.find(family) };
+
+    if (it == this->families.end()) {
+        return nullptr;
+    }
+
+    std::shared_ptr<FontResource> p = it->second.fonts[style][weight];
+
+    if (p) {
+        return p;
+    }
+
+    for (int32_t s = 0; s < Count<StyleFontStyle>(); s++) {
+        for (int32_t w = 0; w < Count<StyleFontWeight>(); w++) {
+            if (s != style && w != weight) {
+                p = it->second.fonts[s][w];
+                if (p) {
+                    return p;
+                }
+            }
+        }
+    }
+
+    return nullptr;
 }
 
 void FontStore::Attach(Stage* stage) noexcept {
@@ -51,7 +83,7 @@ void FontStore::Detach() noexcept {
     }
 
     this->stage = nullptr;
-    this->resources.clear();
+    this->families.clear();
 }
 
 } // namespace ls

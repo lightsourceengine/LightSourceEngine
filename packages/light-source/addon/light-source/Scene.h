@@ -10,7 +10,6 @@
 #include <memory>
 #include <algorithm>
 #include "ImageStore.h"
-#include "LayerCache.h"
 
 namespace ls {
 
@@ -32,7 +31,6 @@ class Scene : public Napi::ObjectWrap<Scene> {
     int32_t GetViewportMax() const noexcept { return std::max(this->width, this->height); }
     int32_t GetRootFontSize() const noexcept { return this->rootFontSize; }
 
-    LayerCache* GetLayerCache() const noexcept { return &this->layerCache; }
     ImageStore* GetImageStore() const noexcept { return &this->imageStore; }
     Renderer* GetRenderer() const noexcept;
 
@@ -52,7 +50,6 @@ class Scene : public Napi::ObjectWrap<Scene> {
 
  private:
     mutable ImageStore imageStore;
-    mutable LayerCache layerCache;
     SceneNode* root{};
     Stage* stage{};
     std::unique_ptr<SceneAdapter> adapter;

@@ -8,20 +8,28 @@
 #include "Font.h"
 #include "Stage.h"
 #include <ls/FileSystem.h>
-#include <stb_truetype.h>
 #include <ls/Log.h>
+#include <ls/Format.h>
 #include <cstring>
+#include <ls-ctx.h>
 
 namespace ls {
 
-std::shared_ptr<stbtt_fontinfo> LoadFont(const std::vector<std::string>&, const std::string&, const int32_t);
+static std::shared_ptr<Font> LoadFont(const std::vector<std::string>&, const std::string&, const int32_t);
+static std::string FontId(const std::string& family, StyleFontStyle style, StyleFontWeight weight);
 
-FontResource::FontResource(const FontId& fontId, const std::string& uri, const int32_t index) noexcept
-: Resource(fontId), uri(uri), index(index) {
+FontResource::FontResource(const std::string& family, StyleFontStyle style, StyleFontWeight weight,
+                           const std::string& uri, int32_t index) noexcept
+: Resource(FontId(family, style, weight)), family(family), style(style), weight(weight), uri(uri), index(index) {
 }
 
 FontResource::~FontResource() noexcept {
+    this->CtxUninstall();
     this->fontLoadingTask.Cancel();
+}
+
+bool FontResource::IsSame(const std::string& family, StyleFontStyle style, StyleFontWeight weight) const noexcept {
+    return this->family == family && this->style == style && this->weight == weight;
 }
 
 void FontResource::Load(Stage* stage) {
@@ -30,18 +38,17 @@ void FontResource::Load(Stage* stage) {
     auto execute = [
         path = stage->GetResourcePath(),
         uri = this->uri,
-        index = this->index]() -> std::shared_ptr<stbtt_fontinfo> {
+        index = this->index]() -> std::shared_ptr<Font> {
         return LoadFont({ path }, uri, index);
     };
 
-    auto callback = [this, LAMBDA_FUNCTION = __FUNCTION__](std::shared_ptr<stbtt_fontinfo>& fontInfo,
+    auto callback = [this, LAMBDA_FUNCTION = __FUNCTION__](std::shared_ptr<Font>& font,
             const std::exception_ptr& eptr) {
         if (this->resourceState != ResourceStateLoading) {
             return;
         }
 
         ResourceState nextState;
-        std::string fontId{ this->GetId() };
 
         if (eptr) {
             try {
@@ -52,9 +59,10 @@ void FontResource::Load(Stage* stage) {
 
             nextState = ResourceStateError;
         } else {
-            this->fontInfo = fontInfo;
-
-            LOG_INFO_LAMBDA("%s: %s", ResourceStateToString(ResourceStateReady), fontId);
+            this->font = font;
+            ctx_load_font_info(this->id.c_str(), font->Info());
+            this->ctxInstalled = true;
+            LOG_INFO_LAMBDA("%s: %s", ResourceStateToString(ResourceStateReady), this->id);
 
             nextState = ResourceStateReady;
         }
@@ -63,7 +71,7 @@ void FontResource::Load(Stage* stage) {
     };
 
     try {
-        this->fontLoadingTask = stage->GetTaskQueue()->Async<std::shared_ptr<stbtt_fontinfo>>(
+        this->fontLoadingTask = stage->GetTaskQueue()->Async<std::shared_ptr<Font>>(
             std::move(execute), std::move(callback));
     } catch (const std::exception& e) {
         LOG_ERROR(e);
@@ -77,42 +85,25 @@ void FontResource::Load(Stage* stage) {
 }
 
 void FontResource::Reset() {
+    this->CtxUninstall();
     this->fontLoadingTask.Cancel();
-
-    this->fontInfo.reset();
-    this->fontsBySize.clear();
-
+    this->font.reset();
     this->SetState(ResourceStateInit, false);
 }
 
-std::shared_ptr<Font> FontResource::GetFont(int32_t fontSize) const {
-    // TODO: assert font size
-    // TODO: assert fontInfo / ready
-
-    const auto it{ this->fontsBySize.find(fontSize) };
-
-    if (it == this->fontsBySize.end()) {
-        try {
-            // TODO: font info might be null...
-            const auto font{ std::make_shared<Font>(this->fontInfo, fontSize) };
-
-            this->fontsBySize.insert(std::make_pair(fontSize, font));
-
-            return font;
-        } catch (const std::exception& e) {
-            LOG_ERROR("%s@%i: %s", std::string(this->id), fontSize, e);
-
-            return {};
-        }
+void FontResource::CtxUninstall() {
+    if (this->ctxInstalled) {
+        ctx_unload_font(this->id.c_str());
+        this->ctxInstalled = false;
     }
-
-    return it->second;
 }
 
-std::shared_ptr<stbtt_fontinfo> LoadFont(const std::vector<std::string>& path, const std::string& filename,
+static std::string FontId(const std::string& family, StyleFontStyle style, StyleFontWeight weight) {
+    return Format("%s:%i:%i", family, style, weight);
+}
+
+static std::shared_ptr<Font> LoadFont(const std::vector<std::string>& path, const std::string& filename,
         const int32_t index) {
-    const std::shared_ptr<stbtt_fontinfo> result(
-        new stbtt_fontinfo(), [](stbtt_fontinfo* p) { delete [] p->data; delete p; });
     const auto resolvedFilename{
         IsResourceUri(filename) ? FindFile(GetResourceUriPath(filename), {}, path) : filename
     };
@@ -122,19 +113,7 @@ std::shared_ptr<stbtt_fontinfo> LoadFont(const std::vector<std::string>& path, c
 
     file.Read(ttf.get(), size);
 
-    const auto offset{ stbtt_GetFontOffsetForIndex(ttf.get(), index) };
-
-    if (offset == -1) {
-        throw std::runtime_error("Cannot find font at index.");
-    }
-
-    if (stbtt_InitFont(result.get(), ttf.get(), offset) == 0) {
-        throw std::runtime_error("Failed to init font.");
-    }
-
-    ttf.release();
-
-    return result;
+    return std::make_shared<Font>(std::move(ttf), index);
 }
 
 } // namespace ls

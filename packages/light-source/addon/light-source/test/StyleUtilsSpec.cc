@@ -118,7 +118,7 @@ void StyleUtilsSpec(TestSuite* parent) {
 //        },
 //    };
 //
-//    spec->Describe("CalculateLineHeight()")->tests = {
+//    spec->Describe("ComputeLineHeight()")->tests = {
 //        {
 //            "should ...",
 //            [=](const TestInfo&) {
