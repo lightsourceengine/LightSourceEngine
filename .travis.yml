@@ -24,6 +24,7 @@ matrix:
         - sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
         - sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
       install: yarn --force
+      # intermittent test failures on linux (?), skipping tests for now
       script: skip
     - name: "darwin-x64 [Release]"
       os: osx
@@ -33,6 +34,19 @@ matrix:
         - HOMEBREW_NO_AUTO_UPDATE=1 brew install sdl2 sdl2_mixer
       install: yarn --force
       script: yarn test
+    - name: "windows-x64 [Release]"
+      os: windows
+      env: YARN_GPG=no npm_config_with_native_tests=true npm_config_sdl_include_path="$HOME/SDL2-2.0.10/include" npm_config_sdl_library_path="$HOME/SDL2-2.0.10/lib/x64" npm_config_sdl_mixer_include_path="$HOME/SDL2_mixer-2.0.4/include" npm_config_sdl_mixer_library_path="$HOME/SDL2_mixer-2.0.4/lib/x64"
+      before_install:
+        - set -e
+        - git clone --depth 1 https://github.com/lightsourceengine/ci-packages.git ${HOME}/ci-packages
+        - powershell expand-archive -path "$HOME/ci-packages/SDL2/2.0.10/SDL2-devel-2.0.10-VC.zip" -destinationpath "$HOME"
+        - powershell expand-archive -path "$HOME/ci-packages/SDL2_mixer/2.0.4/SDL2_mixer-devel-2.0.4-VC.zip" -destinationpath "$HOME"
+      install: yarn --force
+      # cpplint hangs on travis (ok locally), so just run js lint and tests
+      script:
+        - (cd packages/light-source && yarn run lint && yarn run testOnly)
+        - (cd packages/light-source-react && yarn run lint && yarn run testOnly)
     - name: "linux-armv7l [Release]"
       os: linux
       env: npm_config_with_native_tests=false NODE_DOWNLOADS="${HOME}/node_downloads"
