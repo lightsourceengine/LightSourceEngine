@@ -25,9 +25,6 @@ struct TextLayoutFont {
     float fontSize;
     float lineHeight;
     uint32_t fallbackCodepoint;
-    uint32_t ellipsisCodepoint;
-    float ellipsisLength;
-    int32_t ellipsisRepeat;
 
     TextLayoutFont(Font* font, float fontSize, float lineHeight) noexcept;
 

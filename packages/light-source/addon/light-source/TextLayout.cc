@@ -43,11 +43,11 @@ constexpr bool IsBreakingSpace(uint32_t codepoint) noexcept {
     }
 }
 
-constexpr int32_t UnicodeNewLine{ 0x0A };
-constexpr int32_t UnicodeFallback{ 0xFFFD };
-constexpr int32_t UnicodeQuestionMark{ 0x3F };
-constexpr int32_t UnicodeDot{ 0x2E };
-constexpr int32_t UnicodeEllipsis{ 0x2026 };
+constexpr uint32_t UnicodeNewLine{ 0x0A };
+constexpr uint32_t UnicodeFallback{ 0xFFFD };
+constexpr uint32_t UnicodeQuestionMark{ 0x3F };
+constexpr uint32_t UnicodeDot{ 0x2E };
+constexpr uint32_t UnicodeEllipsis{ 0x2026 };
 
 void TextLayout::Layout() {
     this->lines.clear();
@@ -133,7 +133,7 @@ void TextLayout::Layout(const TextLayoutFont& font, StyleTextOverflow textOverfl
 
 static bool CanAdvanceLine(int32_t currentLineNumber, float lineHeight, float heightLimit, int32_t maxLines) {
     return (maxLines == 0 || currentLineNumber < maxLines)
-        && (heightLimit == 0 || ((currentLineNumber + 1) * lineHeight) < heightLimit);
+        && (heightLimit == 0 || (static_cast<float>(currentLineNumber + 1) * lineHeight) < heightLimit);
 }
 
 static bool TextLineAppend(TextLine& line, uint32_t codepoint, const TextLayoutFont& font, float maxWidth) {
@@ -201,16 +201,29 @@ static void TextLineFinalize(TextLine& line, const TextLayoutFont& font) {
 }
 
 static void TextLineEllipsize(TextLine& line, const TextLayoutFont& font, float maxWidth) {
-    if (line.chars.empty() || !font.ellipsisCodepoint) {
+    if (line.chars.empty()) {
         return;
     }
 
-    auto ellipsisLength{ font.ellipsisLength * font.ellipsisRepeat };
+    uint32_t ellipsisCodepoint;
+    int32_t ellipsisRepeat;
+
+    if (font.Exists(UnicodeEllipsis)) {
+        ellipsisCodepoint = UnicodeEllipsis;
+        ellipsisRepeat = 1;
+    } else if (font->Exists(UnicodeDot)) {
+        ellipsisCodepoint = UnicodeDot;
+        ellipsisRepeat = 3;
+    } else {
+        return;
+    }
+
+    auto ellipsisLength{ font.Advance(ellipsisCodepoint) * ellipsisRepeat };
 
     while (!line.chars.empty()) {
         if (maxWidth - line.width >= ellipsisLength && !IsBreakingSpace(line.chars.back())) {
-            for (auto i{0}; i < font.ellipsisRepeat; i++) {
-                line.chars.push_back(font.ellipsisCodepoint);
+            for (auto i{0}; i < ellipsisRepeat; i++) {
+                line.chars.push_back(ellipsisCodepoint);
             }
 
             line.width += ellipsisLength;
@@ -248,19 +261,6 @@ static float TextLineComputeWidth(TextLine& line, const TextLayoutFont& font) {
 
 TextLayoutFont::TextLayoutFont(Font* font, float fontSize, float lineHeight) noexcept
 : font(font), fontSize(fontSize), lineHeight(lineHeight) {
-    if (font->Exists(UnicodeEllipsis)) {
-        this->ellipsisCodepoint = UnicodeEllipsis;
-        this->ellipsisRepeat = 1;
-    } else if (font->Exists(UnicodeDot)) {
-        this->ellipsisCodepoint = UnicodeDot;
-        this->ellipsisRepeat = 3;
-    } else {
-        this->ellipsisCodepoint = 0;
-        this->ellipsisRepeat = 0;
-    }
-
-    this->ellipsisLength = this->Advance(this->ellipsisCodepoint);
-
     if (font->Exists(UnicodeFallback)) {
         this->fallbackCodepoint = UnicodeFallback;
     } else if (font->Exists(UnicodeQuestionMark)) {
