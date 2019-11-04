@@ -153,8 +153,7 @@ void FontStoreView::AddFontFamily(const std::string& familyUri) {
     std17::filesystem::path filename;
 
     if (IsResourceUri(familyUri)) {
-        filename = this->stage->GetResourcePath();
-        filename.append(GetResourceUriPath(familyUri));
+        filename = this->stage->GetResourcePath() + GetResourceUriPath(familyUri);
     } else {
         filename = familyUri;
     }

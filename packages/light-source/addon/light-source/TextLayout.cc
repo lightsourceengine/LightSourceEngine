@@ -55,8 +55,8 @@ void TextLayout::Layout() {
     this->computedHeight = 0;
 }
 
-void TextLayout::Layout(const TextLayoutFont& font, StyleTextOverflow textOverflow, const std::string& text,
-        float width, float height) {
+void TextLayout::Layout(const TextLayoutFont& font, StyleTextOverflow textOverflow, int32_t maxLines,
+        const std::string& text, float width, float height) {
     this->Layout();
 
     if (text.empty() || font.fontSize <= 0 || font.lineHeight <= 0) {
@@ -95,7 +95,7 @@ void TextLayout::Layout(const TextLayoutFont& font, StyleTextOverflow textOverfl
         }
 
         if (!appendResult) {
-            if (!CanAdvanceLine(static_cast<int32_t>(this->lines.size()), lineHeight, height, maxLines)) {
+            if (!CanAdvanceLine(static_cast<int32_t>(this->lines.size()), font.lineHeight, height, maxLines)) {
                 if (width > 0 && textOverflow == StyleTextOverflowEllipsis) {
                     TextLineEllipsize(this->lines.back(), font, width);
                 }
@@ -104,6 +104,10 @@ void TextLayout::Layout(const TextLayoutFont& font, StyleTextOverflow textOverfl
             }
 
             this->lines.emplace_back(TextLineBreak(this->lines.back(), font, hardLineBreak));
+
+            if (codepoint != UnicodeNewLine) {
+                TextLineAppend(this->lines.back(), codepoint, font, width);
+            }
         }
     }
 
@@ -124,7 +128,7 @@ void TextLayout::Layout(const TextLayoutFont& font, StyleTextOverflow textOverfl
     }
 
     this->computedWidth = std::ceil(blockWidth);
-    this->computedHeight = std::ceil(this->lines.size() * lineHeight);
+    this->computedHeight = std::ceil(this->lines.size() * font.lineHeight);
 }
 
 static bool CanAdvanceLine(int32_t currentLineNumber, float lineHeight, float heightLimit, int32_t maxLines) {
@@ -154,9 +158,8 @@ static bool TextLineAppend(TextLine& line, uint32_t codepoint, const TextLayoutF
 }
 
 static TextLine TextLineBreak(TextLine& line, const TextLayoutFont& font, bool hardLineBreak) {
-    TextLineFinalize(line, font);
-
     if (hardLineBreak) {
+        TextLineFinalize(line, font);
         return {};
     }
 
@@ -182,10 +185,10 @@ static TextLine TextLineBreak(TextLine& line, const TextLayoutFont& font, bool h
             std::back_insert_iterator<decltype(nextLine.chars)>(nextLine.chars));
 
         nextLine.width = TextLineComputeWidth(nextLine, font);
-
         line.chars.erase(nextLineStart, line.chars.end());
-        line.width = TextLineComputeWidth(line, font);
     }
+
+    TextLineFinalize(line, font);
 
     return nextLine;
 }
@@ -205,7 +208,7 @@ static void TextLineEllipsize(TextLine& line, const TextLayoutFont& font, float 
     auto ellipsisLength{ font.ellipsisLength * font.ellipsisRepeat };
 
     while (!line.chars.empty()) {
-        if (maxWidth - width >= ellipsisLength && !IsBreakingSpace(line.chars.back())) {
+        if (maxWidth - line.width >= ellipsisLength && !IsBreakingSpace(line.chars.back())) {
             for (auto i{0}; i < font.ellipsisRepeat; i++) {
                 line.chars.push_back(font.ellipsisCodepoint);
             }

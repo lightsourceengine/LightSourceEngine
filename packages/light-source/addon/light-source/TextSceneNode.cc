@@ -124,10 +124,10 @@ void TextSceneNode::Paint(Renderer* renderer) {
                     xpos = inner.x;
                     break;
                 case StyleTextAlignCenter:
-                    xpos = inner.x + ((w - textLine.width) / 2.f);
+                    xpos = inner.x + ((inner.width - textLine.width) / 2.f);
                     break;
                 case StyleTextAlignRight:
-                    xpos = inner.x + w - textLine.width;
+                    xpos = inner.x + inner.width - textLine.width;
                     break;
             }
 
@@ -298,6 +298,7 @@ YGSize TextSceneNode::Measure(float width, YGMeasureMode widthMode, float height
         this->layout.Layout(
             TextLayoutFont(this->font->GetFont().get(), fontSize, lineHeight),
             this->style->textOverflow(),
+            GetMaxLines(this->style),
             TextTransform(this->Env(), this->style->textTransform(), this->text),
             width,
             height);
