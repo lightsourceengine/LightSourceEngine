@@ -24,7 +24,6 @@ matrix:
         - sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
         - sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
       install: yarn --force
-      # intermittent test failures on linux (?), skipping tests for now
       script: skip
     - name: "darwin-x64 [Release]"
       os: osx
@@ -43,10 +42,7 @@ matrix:
         - powershell expand-archive -path "$HOME/ci-packages/SDL2/2.0.10/SDL2-devel-2.0.10-VC.zip" -destinationpath "$HOME"
         - powershell expand-archive -path "$HOME/ci-packages/SDL2_mixer/2.0.4/SDL2_mixer-devel-2.0.4-VC.zip" -destinationpath "$HOME"
       install: yarn --force
-      # cpplint hangs on travis (ok locally), so just run js lint and tests
-      script:
-        - (cd packages/light-source && yarn run lint && yarn run testOnly)
-        - (cd packages/light-source-react && yarn run lint && yarn run testOnly)
+      script: skip
     - name: "linux-armv7l [Release]"
       os: linux
       env: npm_config_with_native_tests=false NODE_DOWNLOADS="${HOME}/node_downloads"
