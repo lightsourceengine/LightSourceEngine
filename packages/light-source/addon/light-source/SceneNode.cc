@@ -94,39 +94,37 @@ Napi::Value SceneNode::GetChildren(const Napi::CallbackInfo& info) {
 }
 
 Value SceneNode::GetStyle(const CallbackInfo& info) {
-    if (this->style) {
-        return this->style->Value();
+    if (this->style == nullptr) {
+        this->style = Style::New();
+        this->style->Bind(this);
     }
 
-    return info.Env().Null();
+    return this->style->Value();
 }
 
 void SceneNode::SetStyle(const CallbackInfo& info, const Napi::Value& value) {
-    HandleScope scope(info.Env());
-    Style* newStyle;
-    auto oldStyle{ this->style };
+    if (this->style == nullptr) {
+        this->style = Style::New();
+        this->style->Bind(this);
 
-    if (!value.IsObject()) {
-        newStyle = nullptr;
-    } else {
-        newStyle = ObjectWrap<Style>::Unwrap(value.As<Object>());
+        if (value.IsNull() || value.IsUndefined()) {
+            return;
+        }
     }
 
-    if (newStyle == oldStyle) {
-        return;
+    Style* other{};
+
+    if (value.IsNull() || value.IsUndefined()) {
+        other = Style::Empty();
+    } else if (value.IsObject()) {
+        other = Style::Unwrap(value.As<Object>());
     }
 
-    if (newStyle) {
-        newStyle->Ref();
+    if (other == nullptr) {
+        throw Error::New(info.Env(), "style can only be aassigned to a Style class instance");
     }
 
-    this->style = newStyle;
-
-    this->UpdateStyle(newStyle, oldStyle);
-
-    if (oldStyle) {
-        oldStyle->Unref();
-    }
+    this->style->Assign(other);
 }
 
 void SceneNode::SetParent(SceneNode* newParent) {
@@ -143,38 +141,6 @@ void SceneNode::SetParent(SceneNode* newParent) {
         this->parent = newParent;
         this->parent->AsReference()->Ref();
     }
-}
-
-void SceneNode::OnViewportSizeChange() {
-    if (this->style) {
-        this->style->ApplyViewportSize(this->ygNode, this->scene->GetWidth(), this->scene->GetHeight());
-    }
-
-    for (auto child : this->children) {
-        child->OnViewportSizeChange();
-    }
-}
-
-void SceneNode::OnRootFontSizeChange() {
-    if (this->style) {
-        this->style->ApplyRootFontSize(this->ygNode, this->scene->GetRootFontSize());
-    }
-
-    for (auto child : this->children) {
-        child->OnRootFontSizeChange();
-    }
-}
-
-void SceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
-    if (newStyle == nullptr) {
-        newStyle = Style::Empty();
-    }
-
-    newStyle->Reset(
-        this->ygNode,
-        this->scene->GetWidth(),
-        this->scene->GetHeight(),
-        this->scene->GetRootFontSize());
 }
 
 void SceneNode::AppendChild(const CallbackInfo& info) {
@@ -321,7 +287,7 @@ void SceneNode::Paint(Renderer* renderer) {
 
 void SceneNode::Composite(CompositeContext* context, Renderer* renderer) {
     const auto bounds{ YGNodeLayoutGetRect(this->ygNode) };
-    const auto clip{ this->GetStyleOrEmpty()->overflow() == YGOverflowHidden };
+    const auto clip{ this->GetStyleOrEmpty()->overflow == YGOverflowHidden };
 
     context->PushMatrix(Matrix::Translate(bounds.x, bounds.y));
 
@@ -361,6 +327,10 @@ void SceneNode::ValidateInsertCandidate(SceneNode* child) {
     if (child->parent != nullptr) {
         throw Error::New(env, "child already has a parent.");
     }
+}
+
+Style* SceneNode::GetStyleOrEmpty() const noexcept {
+    return this->style ? this->style : Style::Empty();
 }
 
 bool SceneNode::InitLayerRenderTarget(Renderer* renderer, int32_t width, int32_t height) {

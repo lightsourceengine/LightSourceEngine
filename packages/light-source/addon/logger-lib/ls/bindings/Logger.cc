@@ -18,6 +18,7 @@ using Napi::String;
 using Napi::Value;
 
 namespace ls {
+namespace bindings {
 
 Logger::Logger(const CallbackInfo& info) : ObjectWrap<Logger>(info) {
 }
@@ -131,4 +132,5 @@ void Logger::SetSink(const CallbackInfo& info) {
     ls::SetLogSink(nullptr);
 }
 
+} // namespace bindings
 } // namespace ls

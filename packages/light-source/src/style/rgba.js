@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { parseColorValue } from './parseColorValue'
+import { parseColor } from '../addon'
 import { clamp, isNumber } from '../util'
 import { rgb } from './rgb'
 
@@ -24,7 +24,7 @@ export const rgba = (...args) => {
 
   if (args.length === 2) {
     a = args[1]
-    color = parseColorValue(args[0]) & 0xFFFFFF
+    color = ((typeof args[0] === 'string') ? parseColor(args[0]) : args[0]) & 0xFFFFFF
   } else if (args.length === 4) {
     a = args[3]
     color = rgb(args[0], args[1], args[2]) & 0xFFFFFF

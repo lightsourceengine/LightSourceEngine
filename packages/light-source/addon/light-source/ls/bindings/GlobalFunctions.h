@@ -9,9 +9,9 @@
 #include <napi.h>
 
 namespace ls {
-namespace StyleEnumMappings {
+namespace bindings {
 
-Napi::Object Init(Napi::Env env, Napi::Object exports);
+void InitGlobalFunctions(Napi::Env env, Napi::Object exports);
 
-} // namespace StyleEnumMappings
+} // namespace bindings
 } // namespace ls

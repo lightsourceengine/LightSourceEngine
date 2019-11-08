@@ -14,7 +14,11 @@ describe('BoxElement', () => {
   afterEach(afterSceneTest)
   describe('prop: style', () => {
     it('should set style with Style object', async () => {
-      await renderAsync(<box style={new Style({ backgroundColor: 'red' })} />)
+      const style = new Style()
+
+      style.backgroundColor = 'red'
+      
+      await renderAsync(<box style={style} />)
 
       assert.equal(root().children[0].style.backgroundColor, 0xFFFF0000)
     })

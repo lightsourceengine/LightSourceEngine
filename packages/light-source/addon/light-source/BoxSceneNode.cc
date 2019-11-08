@@ -8,6 +8,7 @@
 #include "ImageResource.h"
 #include "ImageStore.h"
 #include "Scene.h"
+#include "Style.h"
 #include "StyleUtils.h"
 #include "yoga-ext.h"
 #include "CompositeContext.h"
@@ -63,12 +64,12 @@ void BoxSceneNode::Paint(Renderer* renderer) {
         return;
     }
 
-    if (boxStyle->backgroundColor()) {
-        renderer->FillRenderTarget(boxStyle->backgroundColor()->Get());
+    if (!boxStyle->backgroundColor.empty()) {
+        renderer->FillRenderTarget(boxStyle->backgroundColor.value);
     }
 
     if (this->backgroundImage && this->backgroundImage->Sync(renderer)) {
-        if (boxStyle->backgroundRepeat() == StyleBackgroundRepeatXY) {
+        if (boxStyle->backgroundRepeat == StyleBackgroundRepeatXY) {
             for (float y = 0.f; y < dest.height; y+=this->backgroundImage->GetHeightF()) {
                 for (float x = 0.f; x < dest.width; x+=this->backgroundImage->GetWidthF()) {
                     renderer->DrawImage(this->backgroundImage->GetTexture(),
@@ -87,8 +88,8 @@ void BoxSceneNode::Paint(Renderer* renderer) {
 //        }
     }
 
-    if (boxStyle->borderColor()) {
-        renderer->DrawBorder(dest, YGNodeLayoutGetBorderRect(this->ygNode), boxStyle->borderColor()->Get());
+    if (!boxStyle->borderColor.empty()) {
+        renderer->DrawBorder(dest, YGNodeLayoutGetBorderRect(this->ygNode), boxStyle->borderColor.value);
     }
 
     renderer->SetRenderTarget(nullptr);
@@ -112,23 +113,25 @@ void BoxSceneNode::Composite(CompositeContext* context, Renderer* renderer) {
     SceneNode::Composite(context, renderer);
 }
 
-void BoxSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
-    SceneNode::UpdateStyle(newStyle, oldStyle);
-
-    this->SetBackgroundImage(newStyle);
+void BoxSceneNode::OnPropertyChanged(StyleProperty property) {
+    if (property == StyleProperty::backgroundImage) {
+        this->SetBackgroundImage(this->style->backgroundImage);
+    }
 }
 
-void BoxSceneNode::SetBackgroundImage(const Style* style) {
-    if (!style || style->backgroundImage().empty()) {
+void BoxSceneNode::SetBackgroundImage(const std::string& imageUri) {
+    if (imageUri.empty()) {
         this->backgroundImage = nullptr;
         return;
     }
 
-    if (this->backgroundImage && this->backgroundImage->GetUri().GetId() == style->backgroundImage()) {
+    if (this->backgroundImage && this->backgroundImage->GetUri().GetId() == imageUri) {
         return;
     }
 
-    this->backgroundImage = this->scene->GetImageStore()->GetOrLoadImage({ style->backgroundImage() });
+    this->backgroundImage = this->scene->GetImageStore()->GetOrLoadImage({ imageUri });
+
+    // TODO: listen for load event and mark dirty
 }
 
 void BoxSceneNode::DestroyRecursive() {

@@ -12,6 +12,7 @@
 #include "StyleUtils.h"
 #include "yoga-ext.h"
 #include "CompositeContext.h"
+#include "Style.h"
 #include <ls/Timer.h>
 #include <ls/Surface.h>
 #include <ls/Renderer.h>
@@ -33,7 +34,6 @@ using Napi::Value;
 namespace ls {
 
 static int32_t GetMaxLines(Style* style) noexcept;
-static bool LineHeightsEqual(Style* a, Style* b) noexcept;
 static std::string TextTransform(const Napi::Env& env, const StyleTextTransform transform, const std::string& text);
 
 TextSceneNode::TextSceneNode(const CallbackInfo& info) : ObjectWrap<TextSceneNode>(info), SceneNode(info) {
@@ -77,13 +77,16 @@ Function TextSceneNode::Constructor(Napi::Env env) {
 }
 
 void TextSceneNode::ComputeStyle() {
+    if (this->SetFont(this->style)) {
+        YGNodeMarkDirty(this->ygNode);
+    }
 }
 
 void TextSceneNode::Paint(Renderer* renderer) {
     auto boxStyle{ this->GetStyleOrEmpty() };
 
     // TODO: layer should not be a condition
-    if (this->layer || !this->font || !this->font->IsReady() || this->layout.IsEmpty() || !boxStyle->color()) {
+    if (this->layer || !this->font || !this->font->IsReady() || this->layout.IsEmpty() || boxStyle->color.empty()) {
         return;
     }
 
@@ -91,7 +94,7 @@ void TextSceneNode::Paint(Renderer* renderer) {
     auto box{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
     auto w{ box.width };
     auto h{ box.height };
-    auto color{ boxStyle->color()->Get() };
+    auto color{ boxStyle->color.value };
 
     if (!this->InitLayerSoftwareRenderTarget(renderer, static_cast<int32_t>(w), static_cast<int32_t>(h))) {
         return;
@@ -107,10 +110,9 @@ void TextSceneNode::Paint(Renderer* renderer) {
             CTX_FORMAT_RGBA8);
 
         Timer t{ "text paint" };
-        auto fontSize{ ComputeFontSize(boxStyle->fontSize(), this->scene) };
-        auto lineHeight{ ComputeLineHeight(boxStyle->lineHeight(), this->scene,
+        auto fontSize{ ComputeFontSize(boxStyle->fontSize, this->scene) };
+        auto lineHeight{ ComputeLineHeight(boxStyle->lineHeight, this->scene,
             this->font->GetFont()->LineHeight(fontSize)) };
-        auto textAlign{ boxStyle->textAlign() };
         auto xpos{ 0.f };
         auto ypos{inner.y + this->font->GetFont()->Ascent(fontSize) };
 
@@ -119,7 +121,7 @@ void TextSceneNode::Paint(Renderer* renderer) {
         ctx_set_rgba_u8(ctx, GetR(color), GetG(color), GetB(color), GetA(color));
 
         for (auto& textLine : this->layout.lines) {
-            switch (textAlign) {
+            switch (boxStyle->textAlign) {
                 case StyleTextAlignLeft:
                     xpos = inner.x;
                     break;
@@ -137,8 +139,8 @@ void TextSceneNode::Paint(Renderer* renderer) {
             ypos += lineHeight;
         }
 
-        if (style->borderColor()) {
-            auto borderColor{ style->borderColor()->Get() };
+        if (!boxStyle->borderColor.empty()) {
+            auto borderColor{ boxStyle->borderColor.value };
             auto border{ YGNodeLayoutGetBorderRect(this->ygNode) };
 
             ctx_set_rgba_u8(ctx, GetR(borderColor), GetG(borderColor), GetB(borderColor), GetA(borderColor));
@@ -203,21 +205,21 @@ void TextSceneNode::SetText(const CallbackInfo& info, const Napi::Value& value) 
 bool TextSceneNode::SetFont(Style* style) {
     auto dirty{ false };
 
-    if (!style || !style->HasFont()) {
+    if (!style || style->fontFamily.empty() || style->fontSize.empty()) {
         dirty = !!this->font;
         this->ClearFont();
 
         return dirty;
     }
 
-    if (this->font && this->font->IsSame(style->fontFamily(), style->fontStyle(), style->fontWeight())) {
+    if (this->font && this->font->IsSame(style->fontFamily, style->fontStyle, style->fontWeight)) {
         return false;
     }
 
     this->ClearFont();
 
     this->font = this->scene->GetStage()->GetFontStore()->FindFont(
-        style->fontFamily(), style->fontStyle(), style->fontWeight());
+        style->fontFamily, style->fontStyle, style->fontWeight);
 
     if (!this->font) {
         return true;
@@ -246,31 +248,7 @@ bool TextSceneNode::SetFont(Style* style) {
     return dirty;
 }
 
-void TextSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
-    SceneNode::UpdateStyle(newStyle, oldStyle);
-
-    if (newStyle == oldStyle) {
-        return;
-    }
-
-    SetFont(newStyle);
-    YGNodeMarkDirty(this->ygNode);
-
-    auto fontChanged{ SetFont(newStyle) };
-    auto current{ oldStyle ? oldStyle : Style::Empty() };
-    auto style{ newStyle ? newStyle : Style::Empty() };
-
-    if (fontChanged
-            || current->textOverflow() != style->textOverflow()
-            || current->textTransform() != style->textTransform()
-            || GetMaxLines(current) != GetMaxLines(style)
-            || !LineHeightsEqual(current, style)) {
-        YGNodeMarkDirty(this->ygNode);
-    }
-
-    if (current->textAlign() != style->textAlign() && this->layer) {
-        this->layer = nullptr;
-    }
+void TextSceneNode::OnPropertyChanged(StyleProperty property) {
 }
 
 void TextSceneNode::ClearFont() noexcept {
@@ -291,15 +269,15 @@ YGSize TextSceneNode::Measure(float width, YGMeasureMode widthMode, float height
     this->layout.Layout();
 
     if (this->style && this->font && this->font->IsReady()) {
-        const auto fontSize{ ComputeFontSize(this->style->fontSize(), this->scene) };
-        const auto lineHeight{ ComputeLineHeight(this->style->lineHeight(), this->scene,
+        const auto fontSize{ ComputeFontSize(this->style->fontSize, this->scene) };
+        const auto lineHeight{ ComputeLineHeight(this->style->lineHeight, this->scene,
             this->font->GetFont()->LineHeight(fontSize)) };
 
         this->layout.Layout(
             TextLayoutFont(this->font->GetFont().get(), fontSize, lineHeight),
-            this->style->textOverflow(),
+            this->style->textOverflow,
             GetMaxLines(this->style),
-            TextTransform(this->Env(), this->style->textTransform(), this->text),
+            TextTransform(this->Env(), this->style->textTransform, this->text),
             width,
             height);
     }
@@ -308,29 +286,13 @@ YGSize TextSceneNode::Measure(float width, YGMeasureMode widthMode, float height
 }
 
 static int32_t GetMaxLines(Style* style) noexcept {
-    auto maxLines{ style->maxLines() };
+    const auto& maxLines{ style->maxLines };
 
-    if (maxLines && maxLines->GetUnit() == StyleNumberUnitPoint) {
-        return maxLines->Int32Value();
+    if (!maxLines.empty() && maxLines.unit == StyleNumberUnitPoint) {
+        return maxLines.value;
     }
 
     return 0;
-}
-
-static bool LineHeightsEqual(Style* a, Style* b) noexcept {
-    auto lineHeightA{ a->lineHeight() };
-    auto lineHeightB{ b->lineHeight() };
-
-    if (!lineHeightA && !lineHeightB) {
-        return true;
-    }
-
-    if (!lineHeightA || !lineHeightB) {
-        return false;
-    }
-
-    return lineHeightA->GetUnit() == lineHeightB->GetUnit()
-        && YGFloatsEqual(lineHeightA->GetValue(), lineHeightB->GetValue());
 }
 
 static std::string TextTransform(const Napi::Env& env, const StyleTextTransform transform, const std::string& text) {

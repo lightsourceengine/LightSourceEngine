@@ -5,8 +5,41 @@
  */
 
 #include "StyleEnums.h"
+#include <ls/CStringHashMap.h>
+#include <stdexcept>
 
 namespace ls {
+
+template<typename T>
+CStringHashMap<T> LoadFromStringMap() {
+    CStringHashMap<T> map;
+
+    for (int32_t i = 0; i < Count<T>(); i++) {
+        auto e{ static_cast<T>(i) };
+
+        map.insert(std::make_pair(ToString(e), e));
+    }
+
+    return map;
+}
+
+static auto sStyleFontStyleFromString = LoadFromStringMap<StyleFontStyle>();
+static auto sStyleFontWeightFromString = LoadFromStringMap<StyleFontWeight>();
+static auto sStyleTextOverflowFromString = LoadFromStringMap<StyleTextOverflow>();
+static auto sStyleTextAlignFromString = LoadFromStringMap<StyleTextAlign>();
+static auto sStyleBackgroundClipFromString = LoadFromStringMap<StyleBackgroundClip>();
+static auto sStyleTextTransformFromString = LoadFromStringMap<StyleTextTransform>();
+static auto sStyleAnchorFromString = LoadFromStringMap<StyleAnchor>();
+static auto sStyleBackgroundRepeatFromString = LoadFromStringMap<StyleBackgroundRepeat>();
+static auto sStyleBackgroundSizeFromString = LoadFromStringMap<StyleBackgroundSize>();
+static auto sStyleObjectFitFromString = LoadFromStringMap<StyleObjectFit>();
+static auto sYGAlignFromString = LoadFromStringMap<YGAlign>();
+static auto sYGDisplayFromString = LoadFromStringMap<YGDisplay>();
+static auto sYGFlexDirectionFromString = LoadFromStringMap<YGFlexDirection>();
+static auto sYGJustifyFromString = LoadFromStringMap<YGJustify>();
+static auto sYGOverflowFromString = LoadFromStringMap<YGOverflow>();
+static auto sYGWrapFromString = LoadFromStringMap<YGWrap>();
+static auto sYGPositionTypeFromString = LoadFromStringMap<YGPositionType>();
 
 const char* StyleFontWeightToString(const StyleFontWeight value) noexcept {
     switch (value) {
@@ -19,6 +52,16 @@ const char* StyleFontWeightToString(const StyleFontWeight value) noexcept {
 }
 
 const char* StyleFontStyleToString(const StyleFontStyle value) noexcept {
+    switch (value) {
+        case StyleFontStyleNormal:
+            return "normal";
+        case StyleFontStyleItalic:
+            return "italic";
+    }
+    return "unknown";
+}
+
+const char* ToString(const StyleFontStyle value) noexcept {
     switch (value) {
         case StyleFontStyleNormal:
             return "normal";
@@ -128,6 +171,85 @@ const char* StyleAnchorToString(const StyleAnchor value) noexcept {
         return "left";
   }
   return "unknown";
+}
+
+template<typename T>
+T StyleEnumFromString(const CStringHashMap<T>& map, const char* value) {
+    auto it{ value ? map.find(value) : map.end() };
+
+    if (it == map.end()) {
+        throw std::invalid_argument(value ? value : "null");
+    }
+
+    return it->second;
+}
+
+StyleFontStyle StyleFontStyleFromString(const char* value) {
+    return StyleEnumFromString(sStyleFontStyleFromString, value);
+}
+
+StyleFontWeight StyleFontWeightFromString(const char* value) {
+    return StyleEnumFromString(sStyleFontWeightFromString, value);
+}
+
+StyleTextAlign StyleTextAlignFromString(const char* value) {
+    return StyleEnumFromString(sStyleTextAlignFromString, value);
+}
+
+StyleTextOverflow StyleTextOverflowFromString(const char* value) {
+    return StyleEnumFromString(sStyleTextOverflowFromString, value);
+}
+
+StyleBackgroundClip StyleBackgroundClipFromString(const char* value) {
+    return StyleEnumFromString(sStyleBackgroundClipFromString, value);
+}
+
+StyleTextTransform StyleTextTransformFromString(const char* value) {
+    return StyleEnumFromString(sStyleTextTransformFromString, value);
+}
+
+StyleAnchor StyleAnchorFromString(const char* value) {
+    return StyleEnumFromString(sStyleAnchorFromString, value);
+}
+
+StyleBackgroundRepeat StyleBackgroundRepeatFromString(const char* value) {
+    return StyleEnumFromString(sStyleBackgroundRepeatFromString, value);
+}
+
+StyleBackgroundSize StyleBackgroundSizeFromString(const char* value) {
+    return StyleEnumFromString(sStyleBackgroundSizeFromString, value);
+}
+
+StyleObjectFit StyleObjectFitFromString(const char* value) {
+    return StyleEnumFromString(sStyleObjectFitFromString, value);
+}
+
+YGAlign YGAlignFromString(const char* value) {
+    return StyleEnumFromString(sYGAlignFromString, value);
+}
+
+YGDisplay YGDisplayFromString(const char* value) {
+    return StyleEnumFromString(sYGDisplayFromString, value);
+}
+
+YGFlexDirection YGFlexDirectionFromString(const char* value) {
+    return StyleEnumFromString(sYGFlexDirectionFromString, value);
+}
+
+YGJustify YGJustifyFromString(const char* value) {
+    return StyleEnumFromString(sYGJustifyFromString, value);
+}
+
+YGOverflow YGOverflowFromString(const char* value) {
+    return StyleEnumFromString(sYGOverflowFromString, value);
+}
+
+YGWrap YGWrapFromString(const char* value) {
+    return StyleEnumFromString(sYGWrapFromString, value);
+}
+
+YGPositionType YGPositionTypeFromString(const char* value) {
+    return StyleEnumFromString(sYGPositionTypeFromString, value);
 }
 
 } // namespace ls

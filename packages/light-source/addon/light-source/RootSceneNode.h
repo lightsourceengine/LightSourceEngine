@@ -11,6 +11,8 @@
 
 namespace ls {
 
+class Style;
+
 class RootSceneNode : public Napi::ObjectWrap<RootSceneNode>, public SceneNode {
  public:
     explicit RootSceneNode(const Napi::CallbackInfo& info);
@@ -23,9 +25,7 @@ class RootSceneNode : public Napi::ObjectWrap<RootSceneNode>, public SceneNode {
     void Composite(CompositeContext* context, Renderer* renderer) override;
 
     Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; }
-
- private:
-    void UpdateStyle(Style* newStyle, Style* oldStyle) override;
+    void OnPropertyChanged(StyleProperty property) override;
 };
 
 } // namespace ls

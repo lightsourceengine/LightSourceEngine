@@ -13,6 +13,8 @@ namespace ls {
 
 class Stage;
 
+namespace bindings {
+
 class FontStoreView : public Napi::ObjectWrap<FontStoreView> {
  public:
     explicit FontStoreView(const Napi::CallbackInfo& info);
@@ -27,11 +29,12 @@ class FontStoreView : public Napi::ObjectWrap<FontStoreView> {
 
  private:
     void AddFont(const std::string& family, StyleFontStyle style, StyleFontWeight weight,
-        const std::string& uri, int32_t ttfIndex);
+                 const std::string& uri, int32_t ttfIndex);
     void AddFontFamily(const std::string& familyUri);
 
  private:
     Stage* stage{};
 };
 
+} // namespace bindings
 } // namespace ls

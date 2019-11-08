@@ -9,6 +9,7 @@ import { emptyObject } from './emptyObject'
 
 const throwBadNodeArg = () => { throw Error('Invalid node arg passed to Element constructor.') }
 const throwBadPropsArg = () => { throw Error('Invalid props arg passed to Element constructor.') }
+const styleTag = Symbol.for('style')
 
 /**
  * @class Element
@@ -38,7 +39,20 @@ export class Element {
     if (oldProps.style !== newProps.style) {
       const { style } = newProps
 
-      this.node.style = style ? (style instanceof Style ? style : new Style(style)) : style
+      if (!style || style[styleTag]) {
+        this.node.style = style
+      } else {
+        const s = new Style()
+
+        // TODO: move this into a factory method
+        for (const prop in style) {
+          if (prop in Style.prototype) {
+            s[prop] = style[prop]
+          }
+        }
+
+        this.node.style = s
+      }
     }
 
     this.node.focusable = !!newProps.focusable

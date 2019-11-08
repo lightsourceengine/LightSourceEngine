@@ -7,6 +7,7 @@
 #include "RootSceneNode.h"
 #include "Scene.h"
 #include "StyleUtils.h"
+#include "Style.h"
 #include <ls/Renderer.h>
 
 using Napi::CallbackInfo;
@@ -40,38 +41,37 @@ Function RootSceneNode::Constructor(Napi::Env env) {
     return constructor.Value();
 }
 
-void RootSceneNode::UpdateStyle(Style* newStyle, Style* oldStyle) {
-    SceneNode::UpdateStyle(newStyle, oldStyle);
+void RootSceneNode::OnPropertyChanged(StyleProperty property) {
+    if (property == StyleProperty::fontSize) {
+        const auto& fontSize{ this->style->fontSize };
+        float computedFontSize;
 
-    auto rootStyleFontSize{ this->GetStyleOrEmpty()->fontSize() };
-    auto computedFontSize{ 0 };
-
-    if (rootStyleFontSize) {
-        switch (rootStyleFontSize->GetUnit()) {
+        switch (fontSize.unit) {
             case StyleNumberUnitPoint:
-                computedFontSize = rootStyleFontSize->GetValue();
+                computedFontSize = fontSize.value;
                 break;
             case StyleNumberUnitViewportWidth:
-                computedFontSize = rootStyleFontSize->GetValuePercent() * this->scene->GetWidth();
+                computedFontSize = fontSize.AsPercent() * this->scene->GetWidth();
                 break;
             case StyleNumberUnitViewportHeight:
-                computedFontSize = rootStyleFontSize->GetValuePercent() * this->scene->GetHeight();
+                computedFontSize = fontSize.AsPercent() * this->scene->GetHeight();
                 break;
             case StyleNumberUnitViewportMin:
-                computedFontSize = rootStyleFontSize->GetValuePercent() * this->scene->GetViewportMax();
+                computedFontSize = fontSize.AsPercent() * this->scene->GetViewportMax();
                 break;
             case StyleNumberUnitViewportMax:
-                computedFontSize = rootStyleFontSize->GetValuePercent() * this->scene->GetViewportMin();
+                computedFontSize = fontSize.AsPercent() * this->scene->GetViewportMin();
                 break;
             case StyleNumberUnitRootEm:
-                computedFontSize = rootStyleFontSize->GetValue() * DEFAULT_ROOT_FONT_SIZE;
+                computedFontSize = fontSize.value * DEFAULT_ROOT_FONT_SIZE;
                 break;
             default:
+                computedFontSize = 0;
                 break;
         }
-    }
 
-    this->scene->NotifyRootFontSizeChanged(computedFontSize);
+        this->scene->NotifyRootFontSizeChanged(computedFontSize);
+    }
 }
 
 void RootSceneNode::ComputeStyle() {
@@ -83,10 +83,10 @@ void RootSceneNode::Paint(Renderer* renderer) {
 }
 
 void RootSceneNode::Composite(CompositeContext* context, Renderer* renderer) {
-    auto backgroundColor{ this->GetStyleOrEmpty()->backgroundColor() };
+    const auto& backgroundColor{ this->GetStyleOrEmpty()->backgroundColor };
 
-    if (backgroundColor) {
-        renderer->FillRenderTarget(backgroundColor->Get());
+    if (!backgroundColor.undefined) {
+        renderer->FillRenderTarget(backgroundColor.value);
     }
 
     SceneNode::Composite(context, renderer);

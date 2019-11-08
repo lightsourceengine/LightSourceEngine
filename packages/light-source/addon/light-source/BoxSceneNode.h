@@ -13,7 +13,6 @@
 namespace ls {
 
 class ImageResource;
-class Texture;
 
 class BoxSceneNode : public Napi::ObjectWrap<BoxSceneNode>, public SceneNode {
  public:
@@ -27,11 +26,11 @@ class BoxSceneNode : public Napi::ObjectWrap<BoxSceneNode>, public SceneNode {
     void Composite(CompositeContext* context, Renderer* renderer) override;
 
     Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; }
+    void OnPropertyChanged(StyleProperty property) override;
 
  private:
     void DestroyRecursive() override;
-    void UpdateStyle(Style* newStyle, Style* oldStyle) override;
-    void SetBackgroundImage(const Style* style);
+    void SetBackgroundImage(const std::string& imageUri);
 
  private:
     std::string backgroundImageUri;

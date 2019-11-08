@@ -6,8 +6,8 @@
 
 import { assert } from 'chai'
 import { createStyleSheet } from '../../src/style/createStyleSheet'
+import { Style } from '../../src/addon'
 import { rgb } from '../../src/exports'
-import { Style } from '../../src/style/Style'
 
 describe('createStyleSheet()', () => {
   it('should return an empty style sheet given an empty object', () => {

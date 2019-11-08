@@ -20,76 +20,68 @@ std::string CreateRoundedRectangleUri(const int32_t radiusTopLeft, const int32_t
     const int32_t radiusBottomRight, const int32_t radiusBottomLeft, const int32_t stroke);
 
 template<typename S /* Scene */>
-float CalculateBackgroundDimension(const StyleNumberValue* styleDimension, const float imageDimension,
+float CalculateBackgroundDimension(const StyleValueNumber& styleDimension, const float imageDimension,
                                    const float boxDimension, const S* scene) {
-    if (!styleDimension) {
-        return imageDimension;
-    }
-
-    switch (styleDimension->GetUnit()) {
+    switch (styleDimension.unit) {
         case StyleNumberUnitPercent:
-            return styleDimension->GetValuePercent() * boxDimension;
+            return styleDimension.AsPercent() * boxDimension;
         case StyleNumberUnitPoint:
-            return styleDimension->GetValue();
+            return styleDimension.value;
         case StyleNumberUnitViewportWidth:
-            return styleDimension->GetValuePercent() * scene->GetWidth();
+            return styleDimension.AsPercent() * scene->GetWidth();
         case StyleNumberUnitViewportHeight:
-            return styleDimension->GetValuePercent() * scene->GetHeight();
+            return styleDimension.AsPercent() * scene->GetHeight();
         case StyleNumberUnitViewportMin:
-            return styleDimension->GetValuePercent() * scene->GetViewportMin();
+            return styleDimension.AsPercent() * scene->GetViewportMin();
         case StyleNumberUnitViewportMax:
-            return styleDimension->GetValuePercent() * scene->GetViewportMax();
+            return styleDimension.AsPercent() * scene->GetViewportMax();
         case StyleNumberUnitRootEm:
-            return styleDimension->GetValue() * scene->GetRootFontSize();
+            return styleDimension.value * scene->GetRootFontSize();
         default: // StyleNumberUnitAuto
             return imageDimension;
     }
 }
 
 template<typename S /* Scene */>
-float ComputeObjectPosition(const StyleNumberValue* objectPosition, const float boxDimension,
+float ComputeObjectPosition(const StyleValueNumber& objectPosition, const float boxDimension,
                             const float fitDimension, const S* scene) {
-    if (objectPosition) {
-        switch (objectPosition->GetUnit()) {
-            case StyleNumberUnitPoint:
-                return objectPosition->GetValue();
-            case StyleNumberUnitPercent:
-            {
-                const auto percent{ objectPosition->GetValuePercent() };
+    switch (objectPosition.unit) {
+        case StyleNumberUnitPoint:
+            return objectPosition.value;
+        case StyleNumberUnitPercent:
+        {
+            const auto percent{ objectPosition.AsPercent() };
 
-                return (boxDimension * percent - fitDimension * percent);
-            }
-            case StyleNumberUnitAnchor:
-            {
-                const auto anchor{ objectPosition->Int32Value() };
-
-                if (anchor == StyleAnchorRight || anchor == StyleAnchorBottom) {
-                    return boxDimension - fitDimension;
-                }
-
-                return 0;
-            }
-            case StyleNumberUnitViewportWidth:
-                return objectPosition->GetValuePercent() * scene->GetWidth();
-            case StyleNumberUnitViewportHeight:
-                return objectPosition->GetValuePercent() * scene->GetHeight();
-            case StyleNumberUnitViewportMin:
-                return objectPosition->GetValuePercent() * scene->GetViewportMin();
-            case StyleNumberUnitViewportMax:
-                return objectPosition->GetValuePercent() * scene->GetViewportMax();
-            case StyleNumberUnitRootEm:
-                return objectPosition->GetValue() * scene->GetRootFontSize();
-            default:
-                break;
+            return (boxDimension * percent - fitDimension * percent);
         }
-    }
+        case StyleNumberUnitAnchor:
+        {
+            const auto anchor{ objectPosition.AsInt32() };
 
-    return boxDimension * 0.5f - fitDimension * 0.5f;
+            if (anchor == StyleAnchorRight || anchor == StyleAnchorBottom) {
+                return boxDimension - fitDimension;
+            }
+
+            return 0;
+        }
+        case StyleNumberUnitViewportWidth:
+            return objectPosition.AsPercent() * scene->GetWidth();
+        case StyleNumberUnitViewportHeight:
+            return objectPosition.AsPercent() * scene->GetHeight();
+        case StyleNumberUnitViewportMin:
+            return objectPosition.AsPercent() * scene->GetViewportMin();
+        case StyleNumberUnitViewportMax:
+            return objectPosition.AsPercent() * scene->GetViewportMax();
+        case StyleNumberUnitRootEm:
+            return objectPosition.AsPercent() * scene->GetRootFontSize();
+        default:
+            return boxDimension * 0.5f - fitDimension * 0.5f;
+    }
 }
 
 template<typename I /* ImageResource */, typename S /* Scene */>
-Rect ComputeObjectFitRect(StyleObjectFit objectFit, const StyleNumberValue* objectPositionX,
-        const StyleNumberValue* objectPositionY, const Rect& bounds, const I* image, const S* scene) noexcept {
+Rect ComputeObjectFitRect(StyleObjectFit objectFit, const StyleValueNumber& objectPositionX,
+        const StyleValueNumber& objectPositionY, const Rect& bounds, const I* image, const S* scene) noexcept {
     if (image->HasCapInsets()) {
         objectFit = StyleObjectFitFill;
     } else if (objectFit == StyleObjectFitScaleDown) {
@@ -141,75 +133,62 @@ Rect ComputeObjectFitRect(StyleObjectFit objectFit, const StyleNumberValue* obje
 }
 
 template<typename S /* Scene */>
-int32_t ComputeIntegerPointValue(const StyleNumberValue* styleValue, const S* scene, const int32_t defaultValue) {
-    if (!styleValue) {
-        return defaultValue;
-    }
-
-    switch (styleValue->GetUnit()) {
+int32_t ComputeIntegerPointValue(const StyleValueNumber& value, const S* scene, const int32_t defaultValue) {
+    switch (value.unit) {
         case StyleNumberUnitPoint:
-            return styleValue->GetValue();
+            return value.value;
         case StyleNumberUnitViewportWidth:
-            return styleValue->GetValuePercent() * scene->GetWidth();
+            return value.AsPercent() * scene->GetWidth();
         case StyleNumberUnitViewportHeight:
-            return styleValue->GetValuePercent() * scene->GetHeight();
+            return value.AsPercent() * scene->GetHeight();
         case StyleNumberUnitViewportMin:
-            return styleValue->GetValuePercent() * scene->GetViewportMin();
+            return value.AsPercent() * scene->GetViewportMin();
         case StyleNumberUnitViewportMax:
-            return styleValue->GetValuePercent() * scene->GetViewportMax();
+            return value.AsPercent() * scene->GetViewportMax();
         case StyleNumberUnitRootEm:
-            return styleValue->GetValue() * scene->GetRootFontSize();
+            return value.value * scene->GetRootFontSize();
         default:
             return defaultValue;
     }
 }
 
 template<typename S /* Scene */>
-float ComputeLineHeight(const StyleNumberValue* styleValue, const S* scene, const float fontLineHeight) {
-    if (!styleValue) {
-        return fontLineHeight;
-    }
-
-    switch (styleValue->GetUnit()) {
+float ComputeLineHeight(const StyleValueNumber& value, const S* scene, const float fontLineHeight) {
+    switch (value.unit) {
         case StyleNumberUnitPoint:
-            return styleValue->GetValue();
+            return value.value;
         case StyleNumberUnitPercent:
-            return styleValue->GetValuePercent() * fontLineHeight;
+            return value.AsPercent() * fontLineHeight;
         case StyleNumberUnitViewportWidth:
-            return styleValue->GetValuePercent() * scene->GetWidth();
+            return value.AsPercent() * scene->GetWidth();
         case StyleNumberUnitViewportHeight:
-            return styleValue->GetValuePercent() * scene->GetHeight();
+            return value.AsPercent() * scene->GetHeight();
         case StyleNumberUnitViewportMin:
-            return styleValue->GetValuePercent() * scene->GetViewportMin();
+            return value.AsPercent() * scene->GetViewportMin();
         case StyleNumberUnitViewportMax:
-            return styleValue->GetValuePercent() * scene->GetViewportMax();
+            return value.AsPercent() * scene->GetViewportMax();
         case StyleNumberUnitRootEm:
-            return styleValue->GetValue() * scene->GetRootFontSize();
+            return value.value * scene->GetRootFontSize();
         default:
             return fontLineHeight;
     }
 }
 
 template<typename S /* Scene */>
-float ComputeFontSize(const StyleNumberValue* styleValue, const S* scene) {
-    if (!styleValue) {
-        // TODO: default value?
-        return 16.f;
-    }
-
-    switch (styleValue->GetUnit()) {
+float ComputeFontSize(const StyleValueNumber& value, const S* scene) {
+    switch (value.unit) {
         case StyleNumberUnitPoint:
-            return styleValue->GetValue();
+            return value.value;
         case StyleNumberUnitViewportWidth:
-            return styleValue->GetValuePercent() * scene->GetWidth();
+            return value.AsPercent() * scene->GetWidth();
         case StyleNumberUnitViewportHeight:
-            return styleValue->GetValuePercent() * scene->GetHeight();
+            return value.AsPercent() * scene->GetHeight();
         case StyleNumberUnitViewportMin:
-            return styleValue->GetValuePercent() * scene->GetViewportMin();
+            return value.AsPercent() * scene->GetViewportMin();
         case StyleNumberUnitViewportMax:
-            return styleValue->GetValuePercent() * scene->GetViewportMax();
+            return value.AsPercent() * scene->GetViewportMax();
         case StyleNumberUnitRootEm:
-            return styleValue->GetValue() * scene->GetRootFontSize();
+            return value.value * scene->GetRootFontSize();
         default:
             return 16.f;
     }

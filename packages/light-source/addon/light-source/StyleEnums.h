@@ -84,6 +84,7 @@ LS_ENUM_SEQ_DECL(
 
 LS_ENUM_SEQ_DECL(
     StyleNumberUnit,
+    StyleNumberUnitUndefined,
     StyleNumberUnitPoint,
     StyleNumberUnitPercent,
     StyleNumberUnitViewportWidth,
@@ -136,9 +137,7 @@ LS_ENUM_SEQ_DECL(
     right,
     top,
     width,
-
     // Extended Style Properties
-
     backgroundClip,
     backgroundColor,
     backgroundHeight,
@@ -171,10 +170,31 @@ LS_ENUM_SEQ_DECL(
     tintColor
 )
 
-// maps yoga style enums to the Count() function, so all style enums look the same
-template <typename E>
-constexpr int32_t Count() noexcept {
-    return facebook::yoga::enums::count<E>();
-}
+// Add ToString, FromString and Count to Yoga enum types for a consistent enum interface across style properties.
+
+#define LS_GEN_ENUM_FUNCTIONS(ENUM)                          \
+    ENUM ENUM##FromString(const char* value);                \
+    template<>                                               \
+    inline ENUM FromString(const char* value) {              \
+        return ENUM##FromString(value);                      \
+    }                                                        \
+    template <>                                              \
+    inline const char* ToString<ENUM>(ENUM value) noexcept { \
+        return ENUM##ToString(value);                        \
+    }                                                        \
+    template <>                                              \
+    constexpr int32_t Count<ENUM>() noexcept {               \
+        return facebook::yoga::enums::count<ENUM>();         \
+    }
+
+LS_GEN_ENUM_FUNCTIONS(YGAlign)
+LS_GEN_ENUM_FUNCTIONS(YGDisplay)
+LS_GEN_ENUM_FUNCTIONS(YGFlexDirection)
+LS_GEN_ENUM_FUNCTIONS(YGJustify)
+LS_GEN_ENUM_FUNCTIONS(YGOverflow)
+LS_GEN_ENUM_FUNCTIONS(YGPositionType)
+LS_GEN_ENUM_FUNCTIONS(YGWrap)
+
+#undef LS_GEN_ENUM_FUNCTIONS
 
 } // namespace ls

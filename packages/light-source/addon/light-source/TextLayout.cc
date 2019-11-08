@@ -211,7 +211,7 @@ static void TextLineEllipsize(TextLine& line, const TextLayoutFont& font, float 
     if (font.Exists(UnicodeEllipsis)) {
         ellipsisCodepoint = UnicodeEllipsis;
         ellipsisRepeat = 1;
-    } else if (font->Exists(UnicodeDot)) {
+    } else if (font.Exists(UnicodeDot)) {
         ellipsisCodepoint = UnicodeDot;
         ellipsisRepeat = 3;
     } else {

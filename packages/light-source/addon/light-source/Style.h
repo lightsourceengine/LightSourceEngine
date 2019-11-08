@@ -6,145 +6,184 @@
 
 #pragma once
 
+#include "StyleEnums.h"
+#include "StyleValue.h"
 #include <napi.h>
 #include <Yoga.h>
-#include <memory>
-#include <map>
-#include <algorithm>
-#include <bitset>
-#include "StyleValue.h"
-#include "StyleMacros.h"
 
 namespace ls {
 
-class Style : public Napi::ObjectWrap<Style> {
- private:
-    enum StyleFlags {
-        StyleFlagsBorder,
-        StyleFlagsPadding,
-        StyleFlagsBorderRadius,
-        StyleFlagsLayoutOnly,
-        StyleFlagsHasFont,
-        StyleFlagsCount,
-    };
+class SceneNode;
 
+/**
+ * Inline style declarations for a SceneNode.
+ */
+class Style : public Napi::ObjectWrap<Style> {
  public:
     explicit Style(const Napi::CallbackInfo& info);
     virtual ~Style() = default;
 
-    // Yoga Layout Style Properties
-
-    DefineYogaStyleEnumProperty(alignItems, YGAlign, YGNodeStyleSetAlignItems);
-    DefineYogaStyleEnumProperty(alignContent, YGAlign, YGNodeStyleSetAlignContent);
-    DefineYogaStyleEnumProperty(alignSelf, YGAlign, YGNodeStyleSetAlignSelf);
-    DefineYogaEdgeStyleNumberProperty(border, YGEdgeAll, YGNodeStyleSetBorder);
-    DefineYogaEdgeStyleNumberProperty(borderBottom, YGEdgeBottom, YGNodeStyleSetBorder);
-    DefineYogaEdgeStyleNumberProperty(borderLeft, YGEdgeLeft, YGNodeStyleSetBorder);
-    DefineYogaEdgeStyleNumberProperty(borderRight, YGEdgeRight, YGNodeStyleSetBorder);
-    DefineYogaEdgeStyleNumberProperty(borderTop, YGEdgeTop, YGNodeStyleSetBorder);
-    DefineYogaEdgeStyleNumberProperty(bottom, YGEdgeBottom, YGNodeStyleSetPosition, YGNodeStyleSetPositionPercent);
-    DefineYogaStyleEnumProperty(display, YGDisplay, YGNodeStyleSetDisplay);
-    DefineYogaStyleNumberProperty(flex, YGNodeStyleSetFlex);
-    DefineYogaStyleNumberProperty(
-        flexBasis, YGNodeStyleSetFlexBasis, YGNodeStyleSetFlexBasisPercent, YGNodeStyleSetFlexBasisAuto);
-    DefineYogaStyleEnumProperty(flexDirection, YGFlexDirection, YGNodeStyleSetFlexDirection);
-    DefineYogaStyleNumberProperty(flexGrow, YGNodeStyleSetFlexGrow);
-    DefineYogaStyleNumberProperty(flexShrink, YGNodeStyleSetFlexShrink);
-    DefineYogaStyleEnumProperty(flexWrap, YGWrap, YGNodeStyleSetFlexWrap);
-    DefineYogaStyleNumberProperty(height, YGNodeStyleSetHeight, YGNodeStyleSetHeightPercent, YGNodeStyleSetHeightAuto);
-    DefineYogaStyleEnumProperty(justifyContent, YGJustify, YGNodeStyleSetJustifyContent);
-    DefineYogaEdgeStyleNumberProperty(left, YGEdgeLeft, YGNodeStyleSetPosition, YGNodeStyleSetPositionPercent);
-    DefineYogaEdgeStyleNumberProperty(
-        margin, YGEdgeAll, YGNodeStyleSetMargin, YGNodeStyleSetMarginPercent, YGNodeStyleSetMarginAuto);
-    DefineYogaEdgeStyleNumberProperty(
-        marginBottom, YGEdgeBottom, YGNodeStyleSetMargin, YGNodeStyleSetMarginPercent, YGNodeStyleSetMarginAuto);
-    DefineYogaEdgeStyleNumberProperty(
-        marginLeft, YGEdgeLeft, YGNodeStyleSetMargin, YGNodeStyleSetMarginPercent, YGNodeStyleSetMarginAuto);
-    DefineYogaEdgeStyleNumberProperty(
-        marginRight, YGEdgeRight, YGNodeStyleSetMargin, YGNodeStyleSetMarginPercent, YGNodeStyleSetMarginAuto);
-    DefineYogaEdgeStyleNumberProperty(
-        marginTop, YGEdgeTop, YGNodeStyleSetMargin, YGNodeStyleSetMarginPercent, YGNodeStyleSetMarginAuto);
-    DefineYogaStyleNumberProperty(maxHeight, YGNodeStyleSetMaxHeight, YGNodeStyleSetMaxHeightPercent);
-    DefineYogaStyleNumberProperty(maxWidth, YGNodeStyleSetMaxWidth, YGNodeStyleSetMaxWidthPercent);
-    DefineYogaStyleNumberProperty(minHeight, YGNodeStyleSetMinHeight, YGNodeStyleSetMinHeightPercent);
-    DefineYogaStyleNumberProperty(minWidth, YGNodeStyleSetMinWidth, YGNodeStyleSetMinWidthPercent);
-    DefineYogaStyleEnumProperty(overflow, YGOverflow, YGNodeStyleSetOverflow);
-    DefineYogaEdgeStyleNumberProperty(padding, YGEdgeAll, YGNodeStyleSetPadding, YGNodeStyleSetPaddingPercent);
-    DefineYogaEdgeStyleNumberProperty(paddingBottom, YGEdgeBottom, YGNodeStyleSetPadding, YGNodeStyleSetPaddingPercent);
-    DefineYogaEdgeStyleNumberProperty(paddingLeft, YGEdgeLeft, YGNodeStyleSetPadding, YGNodeStyleSetPaddingPercent);
-    DefineYogaEdgeStyleNumberProperty(paddingRight, YGEdgeRight, YGNodeStyleSetPadding, YGNodeStyleSetPaddingPercent);
-    DefineYogaEdgeStyleNumberProperty(paddingTop, YGEdgeTop, YGNodeStyleSetPadding, YGNodeStyleSetPaddingPercent);
-    DefineYogaStyleEnumProperty(position, YGPositionType, YGNodeStyleSetPositionType);
-    DefineYogaEdgeStyleNumberProperty(right, YGEdgeRight, YGNodeStyleSetPosition, YGNodeStyleSetPositionPercent);
-    DefineYogaEdgeStyleNumberProperty(top, YGEdgeTop, YGNodeStyleSetPosition, YGNodeStyleSetPositionPercent);
-    DefineYogaStyleNumberProperty(width, YGNodeStyleSetWidth, YGNodeStyleSetWidthPercent, YGNodeStyleSetWidthAuto);
-
-    // Visual Style Properties
-
-    DefineStyleEnumProperty(backgroundClip, StyleBackgroundClip);
-    DefineStyleColorProperty(backgroundColor);
-    DefineStyleNumberProperty(backgroundHeight);
-    DefineStyleStringProperty(backgroundImage);
-    DefineStyleNumberProperty(backgroundPositionX);
-    DefineStyleNumberProperty(backgroundPositionY);
-    DefineStyleEnumProperty(backgroundRepeat, StyleBackgroundRepeat);
-    DefineStyleEnumProperty(backgroundSize, StyleBackgroundSize);
-    DefineStyleNumberProperty(backgroundWidth);
-
-    DefineStyleColorProperty(borderColor);
-    DefineStyleNumberProperty(borderRadius);
-    DefineStyleNumberProperty(borderRadiusTopLeft);
-    DefineStyleNumberProperty(borderRadiusTopRight);
-    DefineStyleNumberProperty(borderRadiusBottomLeft);
-    DefineStyleNumberProperty(borderRadiusBottomRight);
-    DefineStyleColorProperty(color);
-    DefineStyleStringProperty(fontFamily);
-    DefineStyleNumberProperty(fontSize);
-    DefineStyleEnumProperty(fontStyle, StyleFontStyle);
-    DefineStyleEnumProperty(fontWeight, StyleFontWeight);
-    DefineStyleNumberProperty(lineHeight);
-    DefineStyleNumberProperty(maxLines);
-    DefineStyleEnumProperty(objectFit, StyleObjectFit);
-    DefineStyleNumberProperty(objectPositionX);
-    DefineStyleNumberProperty(objectPositionY);
-    DefineStyleNumberProperty(opacity);
-    DefineStyleEnumProperty(textAlign, StyleTextAlign);
-    DefineStyleEnumProperty(textOverflow, StyleTextOverflow);
-    DefineStyleEnumProperty(textTransform, StyleTextTransform);
-    DefineStyleColorProperty(tintColor);
-
-    // Public Methods
-
-    bool HasBorder() const { return this->flags[StyleFlagsBorder]; }
-    bool HasPadding() const { return this->flags[StyleFlagsPadding]; }
-    bool HasBorderRadius() const { return this->flags[StyleFlagsBorderRadius]; }
-    bool IsLayoutOnly() const { return this->flags[StyleFlagsLayoutOnly]; }
-    bool HasFont() const { return this->flags[StyleFlagsHasFont]; }
-
-    static Napi::Function Constructor(Napi::Env env);
+    static Napi::Function Constructor();
+    static Style* New();
     static void Init(Napi::Env env);
-    static Style* Empty();
+    static Style* Empty() noexcept;
+    void Assign(const Style* other) noexcept;
+    void Bind(SceneNode* node) noexcept;
+    bool IsLayoutOnly() const noexcept;
 
-    void Reset(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight,
-        const int32_t rootFontSize) const;
-    void ApplyRootFontSize(const YGNodeRef ygNode, const int32_t rootFontSize) const;
-    void ApplyViewportSize(const YGNodeRef ygNode, const float viewportWidth, const float viewportHeight) const;
+ public:
+    #define LS_PROPERTY_BINDINGS(PROP, BOX_FUNC, UNBOX_FUNC)                                  \
+        void Setter_##PROP(const Napi::CallbackInfo& info, const Napi::Value& value) {        \
+            this->Set_##PROP(UNBOX_FUNC(value));                                              \
+        }                                                                                     \
+        Napi::Value Getter_##PROP(const Napi::CallbackInfo& info) {                           \
+            return BOX_FUNC(info.Env(), this->PROP);                                          \
+        }
+    #define LS_PROPERTY(PROP, TYPE, DEFAULT, BOX_FUNC, UNBOX_FUNC)                            \
+        TYPE PROP DEFAULT;                                                                    \
+        void Set_##PROP(const TYPE& value) {                                                  \
+            this->Set(StyleProperty::PROP, this->PROP, value);                                \
+        }                                                                                     \
+        LS_PROPERTY_BINDINGS(PROP, BOX_FUNC, UNBOX_FUNC)
+    #define LS_PROPERTY_CONSTRAINT(PROP, TYPE, CONSTRAINT, DEFAULT, BOX_FUNC, UNBOX_FUNC)     \
+        TYPE PROP DEFAULT;                                                                    \
+        void Set_##PROP(const TYPE& value) {                                                  \
+            this->SetWithConstraint<CONSTRAINT>(StyleProperty::PROP, this->PROP, value);      \
+        }                                                                                     \
+        LS_PROPERTY_BINDINGS(PROP, BOX_FUNC, UNBOX_FUNC)
+    #define LS_ENUM_PROPERTY(PROP, TYPE)                                                      \
+        LS_PROPERTY(PROP, TYPE, {}, StyleValueEnum::Box<TYPE>, StyleValueEnum::Unbox<TYPE>)
+    #define LS_STRING_PROPERTY(PROP)                                                          \
+        LS_PROPERTY(PROP, std::string, {}, StyleValueString::Box, StyleValueString::Unbox)
+    #define LS_COLOR_PROPERTY(PROP)                                                           \
+        LS_PROPERTY(PROP, StyleValueColor, {}, StyleValueColor::Box, StyleValueColor::Unbox)
+    #define LS_NUMBER_PROPERTY(PROP, CONSTRAINT, DEFAULT_VALUE)                               \
+        LS_PROPERTY_CONSTRAINT(PROP, StyleValueNumber, CONSTRAINT, DEFAULT_VALUE,             \
+        StyleValueNumber::Box, StyleValueNumber::Unbox)
+    #define LS_EDGE_PROPERTY(BASE, CONSTRAINT, DEFAULT_VALUE)                                 \
+        LS_NUMBER_PROPERTY(BASE, CONSTRAINT, DEFAULT_VALUE)                                   \
+        LS_NUMBER_PROPERTY(BASE##Top, CONSTRAINT, DEFAULT_VALUE)                              \
+        LS_NUMBER_PROPERTY(BASE##Right, CONSTRAINT, DEFAULT_VALUE)                            \
+        LS_NUMBER_PROPERTY(BASE##Bottom, CONSTRAINT, DEFAULT_VALUE)                           \
+        LS_NUMBER_PROPERTY(BASE##Left, CONSTRAINT, DEFAULT_VALUE)
 
-    void UpdateInternalFlags(const Napi::CallbackInfo& info);
+    LS_STRING_PROPERTY(backgroundImage)
+    LS_STRING_PROPERTY(fontFamily)
+
+    LS_COLOR_PROPERTY(backgroundColor)
+    LS_COLOR_PROPERTY(borderColor)
+    LS_COLOR_PROPERTY(color)
+    LS_COLOR_PROPERTY(tintColor)
+
+    LS_EDGE_PROPERTY(border, PointOnlyGTEZeroConstraint, {})
+    LS_EDGE_PROPERTY(margin, MarginConstraint, {})
+    LS_EDGE_PROPERTY(padding, PointPercentOnlyGTEZeroConstraint, {})
+    LS_NUMBER_PROPERTY(bottom, PointPercentOnlyConstraint, {})
+    LS_NUMBER_PROPERTY(flex, PointOnlyGTEZeroConstraint, {})
+    LS_NUMBER_PROPERTY(flexBasis, GTEZeroConstraint, {StyleNumberUnitAuto})
+    LS_NUMBER_PROPERTY(flexGrow, PointOnlyGTEZeroConstraint, {})
+    LS_NUMBER_PROPERTY(flexShrink, PointOnlyGTEZeroConstraint, {})
+    LS_NUMBER_PROPERTY(height, GTEZeroConstraint, {StyleNumberUnitAuto})
+    LS_NUMBER_PROPERTY(left, PointPercentOnlyConstraint, {})
+    LS_NUMBER_PROPERTY(maxHeight, PointPercentOnlyGTEZeroConstraint, {})
+    LS_NUMBER_PROPERTY(maxWidth, PointPercentOnlyGTEZeroConstraint, {})
+    LS_NUMBER_PROPERTY(minHeight, PointPercentOnlyGTEZeroConstraint, {})
+    LS_NUMBER_PROPERTY(minWidth, PointPercentOnlyGTEZeroConstraint, {})
+    LS_NUMBER_PROPERTY(right, PointPercentOnlyConstraint, {})
+    LS_NUMBER_PROPERTY(top, PointPercentOnlyConstraint, {})
+    LS_NUMBER_PROPERTY(width, GTEZeroConstraint, {StyleNumberUnitAuto})
+
+    LS_NUMBER_PROPERTY(backgroundHeight, PointPercentOnlyGTEZeroConstraint, {})
+    LS_NUMBER_PROPERTY(backgroundPositionX, ObjectPositionConstraint, {})
+    LS_NUMBER_PROPERTY(backgroundPositionY, ObjectPositionConstraint, {})
+    LS_NUMBER_PROPERTY(backgroundWidth, PointPercentOnlyGTEZeroConstraint, {})
+    LS_NUMBER_PROPERTY(borderRadius, PointOnlyGTEZeroConstraint, {})
+    LS_NUMBER_PROPERTY(borderRadiusTopLeft, PointOnlyGTEZeroConstraint, {})
+    LS_NUMBER_PROPERTY(borderRadiusTopRight, PointOnlyGTEZeroConstraint, {})
+    LS_NUMBER_PROPERTY(borderRadiusBottomLeft, PointOnlyGTEZeroConstraint, {})
+    LS_NUMBER_PROPERTY(borderRadiusBottomRight, PointOnlyGTEZeroConstraint, {})
+    LS_NUMBER_PROPERTY(fontSize, PointOnlyGTEZeroConstraint, {})
+    LS_NUMBER_PROPERTY(lineHeight, PointPercentOnlyGTEZeroConstraint, {})
+    LS_NUMBER_PROPERTY(maxLines, PointOnlyGTEZeroConstraint, {})
+    LS_NUMBER_PROPERTY(objectPositionX, ObjectPositionConstraint, {})
+    LS_NUMBER_PROPERTY(objectPositionY, ObjectPositionConstraint, {})
+    LS_NUMBER_PROPERTY(opacity, OpacityConstraint, {})
+
+    LS_ENUM_PROPERTY(alignContent, YGAlign)
+    LS_ENUM_PROPERTY(alignItems, YGAlign)
+    LS_ENUM_PROPERTY(alignSelf, YGAlign)
+    LS_ENUM_PROPERTY(display, YGDisplay)
+    LS_ENUM_PROPERTY(flexDirection, YGFlexDirection)
+    LS_ENUM_PROPERTY(flexWrap, YGWrap)
+    LS_ENUM_PROPERTY(justifyContent, YGJustify)
+    LS_ENUM_PROPERTY(overflow, YGOverflow)
+    LS_ENUM_PROPERTY(position, YGPositionType)
+
+    LS_ENUM_PROPERTY(backgroundClip, StyleBackgroundClip)
+    LS_ENUM_PROPERTY(backgroundRepeat, StyleBackgroundRepeat)
+    LS_ENUM_PROPERTY(backgroundSize, StyleBackgroundSize)
+    LS_ENUM_PROPERTY(fontStyle, StyleFontStyle)
+    LS_ENUM_PROPERTY(fontWeight, StyleFontWeight)
+    LS_ENUM_PROPERTY(objectFit, StyleObjectFit)
+    LS_ENUM_PROPERTY(textAlign, StyleTextAlign)
+    LS_ENUM_PROPERTY(textOverflow, StyleTextOverflow)
+    LS_ENUM_PROPERTY(textTransform, StyleTextTransform)
+
+    #undef LS_EDGE_PROPERTY
+    #undef LS_NUMBER_PROPERTY
+    #undef LS_COLOR_PROPERTY
+    #undef LS_STRING_PROPERTY
+    #undef LS_ENUM_PROPERTY
+    #undef LS_PROPERTY
+    #undef LS_PROPERTY_CONSTRAINT
+    #undef LS_PROPERTY_BINDINGS
 
  private:
+    void NotifyPropertyChanged(StyleProperty property);
+    void SyncYogaProperty(StyleProperty property);
+
     template<typename T>
-    Napi::Value JSGetter(const std::unique_ptr<T>& styleValue, Napi::Env env) const;
+    void Set(StyleProperty name, T& property, const T& value);
 
-    template<typename E, typename T>
-    void JSSetter(std::unique_ptr<T>& styleValue, // NOLINT(runtime/references)
-                  Napi::Value jsValue,
-                  bool isYogaStyleValue);
+    template<typename T>
+    void Set(StyleProperty name, T& property, T&& value);
+
+    template<typename Constraint>
+    void SetWithConstraint(StyleProperty name, StyleValueNumber& property, const StyleValueNumber& value);
 
  private:
-    static Style* empty;
-    std::vector<StyleValue *>yogaValues;
-    std::bitset<StyleFlagsCount> flags;
+    static Style* sEmptyStyle;
+    static Napi::FunctionReference sConstructor;
+    SceneNode* node{};
 };
+
+template<typename T>
+void Style::Set(StyleProperty name, T& property, const T& value) {
+    if (!(property == value)) {
+        property = value;
+        if (this->node) {
+            this->NotifyPropertyChanged(name);
+        }
+    }
+}
+
+template<typename T>
+void Style::Set(StyleProperty name, T& property, T&& value) {
+    if (!(property == value)) {
+        property = std::forward<T>(value);
+        if (this->node) {
+            this->NotifyPropertyChanged(name);
+        }
+    }
+}
+
+template<typename Constraint>
+void Style::SetWithConstraint(StyleProperty name, StyleValueNumber& property, const StyleValueNumber& value) {
+    if (value.empty() || !Constraint()(value)) {
+        this->Set(name, property, {});
+    } else {
+        this->Set(name, property, value);
+    }
+}
 
 } // namespace ls

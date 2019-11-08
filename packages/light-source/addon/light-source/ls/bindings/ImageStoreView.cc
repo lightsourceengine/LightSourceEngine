@@ -6,10 +6,10 @@
 
 #include "ImageStoreView.h"
 #include <napi-ext.h>
-#include "ImageStore.h"
-#include "ImageResource.h"
-#include "Stage.h"
-#include "Scene.h"
+#include <ImageStore.h>
+#include <ImageResource.h>
+#include <Stage.h>
+#include <Scene.h>
 
 using Napi::Array;
 using Napi::CallbackInfo;
@@ -28,6 +28,7 @@ using Napi::String;
 using Napi::Value;
 
 namespace ls {
+namespace bindings {
 
 ImageStoreView::ImageStoreView(const CallbackInfo& info) : ObjectWrap<ImageStoreView>(info) {
     auto env{ info.Env() };
@@ -170,4 +171,5 @@ void ImageStoreView::SetExtensions(const CallbackInfo& info, const Napi::Value& 
     imageStore->SetSearchExtensions(extensions);
 }
 
+} // namespace bindings
 } // namespace ls

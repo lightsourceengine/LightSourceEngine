@@ -130,7 +130,7 @@ void StyleUtilsSpec(TestSuite* parent) {
 void ComputeObjectFitRectTest(StyleObjectFit objectFit, const MockImage& image, const Rect& bounds,
         const Rect& expected) {
     MockScene scene{ 1280, 720, 16 };
-    Rect fit = ComputeObjectFitRect(objectFit, nullptr, nullptr, bounds, &image, &scene);
+    Rect fit = ComputeObjectFitRect(objectFit, {}, {}, bounds, &image, &scene);
 
     Assert::Equal(fit.x, expected.x);
     Assert::Equal(fit.y, expected.y);

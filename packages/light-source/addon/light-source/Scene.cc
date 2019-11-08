@@ -13,7 +13,6 @@
 #include <ls/SceneAdapter.h>
 #include <ls/Log.h>
 #include "CompositeContext.h"
-#include <ls/Timer.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -157,12 +156,12 @@ void Scene::Frame(const CallbackInfo& info) {
     this->imageStore.ProcessEvents();
 
     if (this->isSizeDirty) {
-        this->root->OnViewportSizeChange();
+        // TODO: update style values with viewport units
         this->isSizeDirty = false;
     }
 
     if (this->isRootFontSizeDirty) {
-        this->root->OnRootFontSizeChange();
+        // TODO: update style value with rem units
         this->isRootFontSizeDirty = false;
     }
 

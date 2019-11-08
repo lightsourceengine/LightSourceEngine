@@ -5,7 +5,6 @@
  */
 
 import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode, ImageStoreView } from '../addon'
-import { Style } from '../style/Style'
 import { EventEmitter } from '../util/EventEmitter'
 import {
   $width,
@@ -19,7 +18,8 @@ import {
   $destroying,
   $events,
   $hasFocus,
-  $emit, $image
+  $emit,
+  $image
 } from '../util/InternalSymbols'
 import { BlurEvent } from '../event/BlurEvent'
 import { FocusEvent } from '../event/FocusEvent'
@@ -37,15 +37,15 @@ export class Scene extends SceneBase {
     this[$activeNode] = null
     this[$image] = new ImageStoreView(this)
 
-    this.root.style = new Style({
-      position: 'absolute',
-      left: 0,
-      top: 0,
-      right: 0,
-      bottom: 0,
-      fontSize: 16,
-      backgroundColor: 'black'
-    })
+    const { style } = this.root
+
+    style.position = 'absolute'
+    style.left = 0
+    style.top = 0
+    style.right = 0
+    style.bottom = 0
+    style.fontSize = 16
+    style.backgroundColor = 'black'
   }
 
   get root () {

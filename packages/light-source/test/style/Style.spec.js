@@ -5,18 +5,20 @@
  */
 
 import { assert } from 'chai'
-import { Style } from '../../src/style/Style'
+import { Style } from '../../src/addon'
 
-const style = (obj) => new Style(obj)
+const style = (obj) => Object.assign(new Style(), obj)
 
 const testStyleValue = (name, value, expectedValue) => {
   assert.equal(style({ [name]: value })[name], expectedValue)
 }
 
-const testStyleValueEmpty = (name, value) => testStyleValue(name, value, undefined)
+const testStyleValueEmpty = (name, value) => {
+  assert.sameOrderedMembers(style({ [name]: value })[name], [undefined, Style.UnitUndefined])
+}
 
 const testStyleUnitValue = (name, value, expectedUnit, expectedValue) => {
-  assert.deepEqual(style({ [name]: value })[name], { unit: expectedUnit, value: expectedValue })
+  assert.sameOrderedMembers(style({ [name]: value })[name], [expectedValue, expectedUnit])
 }
 
 const invalidStringValues = ['', 3, null, undefined, {}]
@@ -63,7 +65,7 @@ describe('Style', () => {
     })
     it('should return 0 for invalid color values', () => {
       for (const property of colorProperties) {
-        testStyleValue(property, '', 0)
+        testStyleValue(property, '', undefined)
       }
     })
   })
@@ -76,7 +78,7 @@ describe('Style', () => {
     })
     it('should reject invalid values', () => {
       for (const value of invalidStringValues) {
-        testStyleValueEmpty(property, value)
+        testStyleValue(property, value, 'border-box')
       }
     })
   })
@@ -89,7 +91,7 @@ describe('Style', () => {
     })
     it('should reject invalid values', () => {
       for (const value of invalidStringValues) {
-        testStyleValueEmpty(property, value)
+        testStyleValue(property, value, 'none')
       }
     })
   })
@@ -102,12 +104,31 @@ describe('Style', () => {
     })
     it('should reject invalid values', () => {
       for (const value of invalidStringValues) {
-        testStyleValueEmpty(property, value)
+        testStyleValue(property, value, 'repeat')
       }
     })
   })
   describe('backgroundWidth property', () => {
     const property = 'backgroundWidth'
+    it('should set value', () => {
+      testStyleUnitValue(property, 50, Style.UnitPoint, 50)
+      testStyleUnitValue(property, '100%', Style.UnitPercent, 100)
+      testStyleUnitValue(property, '50px', Style.UnitPoint, 50)
+      testStyleUnitValue(property, '0px', Style.UnitPoint, 0)
+      testStyleUnitValue(property, '5vw', Style.UnitViewportWidth, 5)
+      testStyleUnitValue(property, '5vh', Style.UnitViewportHeight, 5)
+      testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
+      testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
+      testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
+    })
+    it('should reject invalid value', () => {
+      for (const input of [-50, '', null, {}, [], undefined, NaN]) {
+        testStyleValueEmpty(property, input)
+      }
+    })
+  })
+  describe('backgroundHeight property', () => {
+    const property = 'backgroundHeight'
     it('should set value', () => {
       testStyleUnitValue(property, 50, Style.UnitPoint, 50)
       testStyleUnitValue(property, '100%', Style.UnitPercent, 100)
@@ -138,8 +159,8 @@ describe('Style', () => {
       testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
       testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
       testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
-      testStyleUnitValue(property, 'left', Style.UnitAnchor, 3)
-      testStyleUnitValue(property, 'right', Style.UnitAnchor, 1)
+      testStyleUnitValue(property, 'left', Style.UnitAnchor, 'left')
+      testStyleUnitValue(property, 'right', Style.UnitAnchor, 'right')
     })
     it('should reject invalid value', () => {
       for (const input of ['', null, {}, [], undefined, NaN]) {
@@ -160,30 +181,11 @@ describe('Style', () => {
       testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
       testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
       testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
-      testStyleUnitValue(property, 'top', Style.UnitAnchor, 0)
-      testStyleUnitValue(property, 'bottom', Style.UnitAnchor, 2)
+      testStyleUnitValue(property, 'top', Style.UnitAnchor, 'top')
+      testStyleUnitValue(property, 'bottom', Style.UnitAnchor, 'bottom')
     })
     it('should reject invalid value', () => {
       for (const input of ['', null, {}, [], undefined, NaN]) {
-        testStyleValueEmpty(property, input)
-      }
-    })
-  })
-  describe('backgroundWidth property', () => {
-    const property = 'backgroundWidth'
-    it('should set value', () => {
-      testStyleUnitValue(property, 50, Style.UnitPoint, 50)
-      testStyleUnitValue(property, '100%', Style.UnitPercent, 100)
-      testStyleUnitValue(property, '50px', Style.UnitPoint, 50)
-      testStyleUnitValue(property, '0px', Style.UnitPoint, 0)
-      testStyleUnitValue(property, '5vw', Style.UnitViewportWidth, 5)
-      testStyleUnitValue(property, '5vh', Style.UnitViewportHeight, 5)
-      testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
-      testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
-      testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
-    })
-    it('should reject invalid value', () => {
-      for (const input of [-50, '', null, {}, [], undefined, NaN]) {
         testStyleValueEmpty(property, input)
       }
     })
@@ -221,7 +223,7 @@ describe('Style', () => {
       testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
     })
     it('should reject invalid values', () => {
-      for (const input of [0, -1, '10', null, {}, [], undefined, NaN]) {
+      for (const input of [-1, '10', null, {}, [], undefined, NaN]) {
         testStyleValueEmpty(property, input)
       }
     })
@@ -235,7 +237,7 @@ describe('Style', () => {
     })
     it('should reject invalid values', () => {
       for (const value of invalidStringValues) {
-        testStyleValueEmpty(property, value)
+        testStyleValue(property, value, 'normal')
       }
     })
   })
@@ -248,14 +250,14 @@ describe('Style', () => {
     })
     it('should reject invalid values', () => {
       for (const value of invalidStringValues) {
-        testStyleValueEmpty(property, value)
+        testStyleValue(property, value, 'normal')
       }
     })
   })
   describe('lineHeight property', () => {
     const property = 'lineHeight'
     it('should set values', () => {
-      testStyleUnitValue(property, 1, Style.UnitPercent, 100)
+      testStyleUnitValue(property, 100, Style.UnitPoint, 100)
       testStyleUnitValue(property, '100%', Style.UnitPercent, 100)
       testStyleUnitValue(property, '50px', Style.UnitPoint, 50)
       testStyleUnitValue(property, '0px', Style.UnitPoint, 0)
@@ -278,7 +280,7 @@ describe('Style', () => {
       testStyleUnitValue(property, 1, Style.UnitPoint, 1)
     })
     it('should reject invalid values', () => {
-      for (const input of [-1, '10', '10px', null, {}, [], undefined, NaN]) {
+      for (const input of [-1, '10', null, {}, [], undefined, NaN]) {
         testStyleValueEmpty(property, input)
       }
     })
@@ -292,7 +294,7 @@ describe('Style', () => {
     })
     it('should reject invalid values', () => {
       for (const value of invalidStringValues) {
-        testStyleValueEmpty(property, value)
+        testStyleValue(property, value, 'fill')
       }
     })
   })
@@ -309,8 +311,8 @@ describe('Style', () => {
       testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
       testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
       testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
-      testStyleUnitValue(property, 'left', Style.UnitAnchor, 3)
-      testStyleUnitValue(property, 'right', Style.UnitAnchor, 1)
+      testStyleUnitValue(property, 'left', Style.UnitAnchor, 'left')
+      testStyleUnitValue(property, 'right', Style.UnitAnchor, 'right')
     })
     it('should reject invalid value', () => {
       for (const input of ['', null, {}, [], undefined, NaN]) {
@@ -331,8 +333,8 @@ describe('Style', () => {
       testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
       testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
       testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
-      testStyleUnitValue(property, 'top', Style.UnitAnchor, 0)
-      testStyleUnitValue(property, 'bottom', Style.UnitAnchor, 2)
+      testStyleUnitValue(property, 'top', Style.UnitAnchor, 'top')
+      testStyleUnitValue(property, 'bottom', Style.UnitAnchor, 'bottom')
     })
     it('should reject invalid value', () => {
       for (const input of ['', null, {}, [], undefined, NaN]) {
@@ -365,7 +367,7 @@ describe('Style', () => {
     })
     it('should reject invalid values', () => {
       for (const value of invalidStringValues) {
-        testStyleValueEmpty(property, value)
+        testStyleValue(property, value, 'left')
       }
     })
   })
@@ -378,7 +380,7 @@ describe('Style', () => {
     })
     it('should reject invalid values', () => {
       for (const value of invalidStringValues) {
-        testStyleValueEmpty(property, value)
+        testStyleValue(property, value, 'none')
       }
     })
   })
@@ -391,7 +393,7 @@ describe('Style', () => {
     })
     it('should reject invalid values', () => {
       for (const value of invalidStringValues) {
-        testStyleValueEmpty(property, value)
+        testStyleValue(property, value, 'none')
       }
     })
   })

@@ -14,6 +14,7 @@
 namespace ls {
 
 class Texture;
+class Style;
 
 class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
  public:
@@ -26,13 +27,13 @@ class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
     void SetText(const Napi::CallbackInfo& info, const Napi::Value& value);
 
     Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; }
+    void OnPropertyChanged(StyleProperty property) override;
 
     void ComputeStyle() override;
     void Paint(Renderer* renderer) override;
     void Composite(CompositeContext* context, Renderer* renderer) override;
 
  private:
-    void UpdateStyle(Style* newStyle, Style* oldStyle) override;
     bool SetFont(Style* style);
     void ClearFont() noexcept;
     void DestroyRecursive() override;

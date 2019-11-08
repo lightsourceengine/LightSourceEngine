@@ -7,11 +7,12 @@
 #pragma once
 
 #include <napi.h>
-#include "ResourceStore.h"
 
 namespace ls {
 
 class Scene;
+
+namespace bindings {
 
 class ImageStoreView : public Napi::ObjectWrap<ImageStoreView> {
  public:
@@ -30,4 +31,5 @@ class ImageStoreView : public Napi::ObjectWrap<ImageStoreView> {
     Scene* scene{};
 };
 
+} // namespace bindings
 } // namespace ls

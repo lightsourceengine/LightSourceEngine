@@ -11,15 +11,30 @@
 #define LS_ENUM_SEQ_DECL(NAME, ...)  \
     enum NAME {__VA_ARGS__}; \
     const char* NAME##ToString(NAME) noexcept; \
+    NAME NAME##FromString(const char*); \
     template <> \
     constexpr int32_t Count<NAME>() noexcept { \
         return internal::CountMacroVariadicArgs<__VA_ARGS__>(); \
+    } \
+    template <> \
+    inline const char* ToString<NAME>(NAME value) noexcept { \
+        return NAME##ToString(value); \
+    } \
+    template <> \
+    inline NAME FromString<NAME>(const char* value) { \
+        return NAME##FromString(value); \
     }
 
 namespace ls {
 
 template <typename T>
 constexpr int32_t Count() noexcept;
+
+template <typename T>
+const char* ToString(T) noexcept;
+
+template <typename T>
+T FromString(const char*);
 
 template <typename T>
 constexpr bool IsEnum(const int32_t value) noexcept {

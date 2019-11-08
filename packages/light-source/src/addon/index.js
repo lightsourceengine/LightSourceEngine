@@ -13,8 +13,7 @@ try {
 } catch (e) {
   console.log('Error loading light-source.node: ' + e.message)
   lib = {
-    StyleBase: () => {},
-    StyleEnumMappings: () => {},
+    Style: () => {},
     SceneBase: () => {},
     StageBase: () => {},
     FontStoreView: () => {},
@@ -25,13 +24,13 @@ try {
     TextSceneNode: () => {},
     Logger: {},
     getSceneNodeInstanceCount: () => 0,
+    parseColor: () => 0,
     addonError: e,
   }
 }
 
 export const {
-  StyleBase,
-  StyleEnumMappings,
+  Style,
   SceneBase,
   StageBase,
   FontStoreView,
@@ -42,6 +41,7 @@ export const {
   TextSceneNode,
   Logger,
   getSceneNodeInstanceCount,
+  parseColor,
   addonError
 } = lib
 

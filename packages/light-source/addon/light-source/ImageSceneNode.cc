@@ -10,7 +10,6 @@
 #include "Scene.h"
 #include "StyleUtils.h"
 #include "CompositeContext.h"
-#include <ls/Math.h>
 #include <ls/Renderer.h>
 #include "yoga-ext.h"
 #include <ls/PixelConversion.h>
@@ -153,9 +152,9 @@ void ImageSceneNode::ComputeStyle() {
     const auto boxStyle{ this->GetStyleOrEmpty() };
 
     this->destRect = ComputeObjectFitRect(
-        boxStyle->objectFit(),
-        boxStyle->objectPositionX(),
-        boxStyle->objectPositionY(),
+        boxStyle->objectFit,
+        boxStyle->objectPositionX,
+        boxStyle->objectPositionY,
         YGNodeLayoutGetInnerRect(this->ygNode),
         this->image.Get(),
         this->scene);
@@ -170,10 +169,10 @@ void ImageSceneNode::Paint(Renderer* renderer) {
     this->image->Sync(renderer);
 
     const auto boxStyle{ this->GetStyleOrEmpty() };
-    const auto borderColor{ boxStyle->borderColor() };
+    const auto& borderColor{ boxStyle->borderColor };
     const auto hasCapInsets{ this->image->HasCapInsets() };
 
-    if (!hasCapInsets && !borderColor) {
+    if (!hasCapInsets && borderColor) {
         return;
     }
 
@@ -187,7 +186,7 @@ void ImageSceneNode::Paint(Renderer* renderer) {
 
     // TODO: has texture
     if (this->image->GetTexture()) {
-        const auto tintColor{ boxStyle->tintColor() ? boxStyle->tintColor()->Get() : RGB(255, 255, 255) };
+        const auto tintColor{ !boxStyle->tintColor ? boxStyle->tintColor.value : RGB(255, 255, 255) };
 
         if (hasCapInsets) {
             renderer->DrawImage(
@@ -203,11 +202,11 @@ void ImageSceneNode::Paint(Renderer* renderer) {
         }
     }
 
-    if (borderColor) {
+    if (!borderColor) {
         renderer->DrawBorder(
             rect,
             YGNodeLayoutGetBorderRect(this->ygNode),
-            borderColor->Get());
+            static_cast<uint32_t>(borderColor));
     }
 
     renderer->SetRenderTarget(nullptr);
@@ -220,7 +219,7 @@ void ImageSceneNode::Composite(CompositeContext* context, Renderer* renderer) {
     }
 
     const auto boxStyle{ this->GetStyleOrEmpty() };
-    const auto tintColor{ boxStyle->tintColor() ? boxStyle->tintColor()->Get() : RGB(255, 255, 255) };
+    const auto tintColor{ !boxStyle->tintColor ? boxStyle->tintColor.value : RGB(255, 255, 255) };
     const auto transform{ context->CurrentMatrix() };
     auto dest{ YGNodeLayoutGetRect(this->ygNode) };
 

@@ -5,8 +5,8 @@
  */
 
 #include "FontStoreView.h"
-#include "FontStore.h"
-#include "Stage.h"
+#include <FontStore.h>
+#include <Stage.h>
 #include <ls/FileSystem.h>
 #include <ls/Format.h>
 #include <std17/filesystem>
@@ -26,6 +26,7 @@ using Napi::String;
 using Napi::Value;
 
 namespace ls {
+namespace bindings {
 
 static void EnsureFontStoreAttached(Stage* stage);
 static StyleFontStyle StringToFontStyle(const Napi::Env& env, const std::string& value, const bool isRequired);
@@ -212,4 +213,5 @@ static StyleFontWeight StringToFontWeight(const Napi::Env& env, const std::strin
     return StyleFontWeightNormal;
 }
 
+} // namespace bindings
 } // namespace ls

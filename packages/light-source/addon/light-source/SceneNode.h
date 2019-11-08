@@ -10,7 +10,7 @@
 #include <vector>
 #include <map>
 #include <napi-ext.h>
-#include "Style.h"
+#include "StyleEnums.h"
 
 namespace ls {
 
@@ -54,8 +54,8 @@ class SceneNode {
     virtual void Composite(CompositeContext* context, Renderer* renderer);
 
     virtual Napi::Reference<Napi::Object>* AsReference() noexcept = 0;
-    virtual void OnViewportSizeChange();
-    virtual void OnRootFontSizeChange();
+
+    virtual void OnPropertyChanged(StyleProperty property) {}
 
  protected:
     template<typename T>
@@ -67,8 +67,7 @@ class SceneNode {
     void ValidateInsertCandidate(SceneNode* child);
     virtual void DestroyRecursive();
     virtual void AppendChild(SceneNode* child);
-    virtual void UpdateStyle(Style* newStyle, Style* oldStyle);
-    Style* GetStyleOrEmpty() const noexcept { return this->style ? this->style : Style::Empty(); }
+    Style* GetStyleOrEmpty() const noexcept;
     bool InitLayerRenderTarget(Renderer* renderer, int32_t width, int32_t height);
     bool InitLayerSoftwareRenderTarget(Renderer* renderer, int32_t width, int32_t height);
 
@@ -80,6 +79,8 @@ class SceneNode {
     Scene* scene{};
     SceneNode* parent{};
     Style* style{};
+
+    friend Style;
 };
 
 template<typename T>

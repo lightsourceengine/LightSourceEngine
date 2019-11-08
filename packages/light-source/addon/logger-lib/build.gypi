@@ -23,7 +23,7 @@
         ".",
       ],
       "sources": [
-        "ls/Logger.cc",
+        "ls/bindings/Logger.cc",
       ]
     }
   ]

@@ -6,7 +6,7 @@
 
 import { assert } from 'chai'
 import sinon from 'sinon'
-import { BoxSceneNode, TextSceneNode, ImageSceneNode } from '../../src/addon'
+import { BoxSceneNode, TextSceneNode, ImageSceneNode, Style } from '../../src/addon'
 import { afterSceneTest, beforeSceneTest, createNode } from '..'
 import { $attach } from '../../src/util/InternalSymbols'
 
@@ -20,7 +20,7 @@ describe('Scene', () => {
   })
   describe('constructor', () => {
     it('should set root style', () => {
-      assert.equal(scene.root.style.fontSize.value, 16)
+      assert.sameOrderedMembers(scene.root.style.fontSize, [16, Style.UnitPoint])
       assert.equal(scene.root.style.backgroundColor, 0xFF000000)
     })
   })
