@@ -7,7 +7,7 @@
 #pragma once
 
 #include <napi.h>
-#include "StyleEnums.h"
+#include "ls/StyleEnums.h"
 
 namespace ls {
 

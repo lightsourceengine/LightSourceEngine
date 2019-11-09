@@ -5,8 +5,8 @@
  */
 
 #include "GlobalFunctions.h"
-#include <StyleValue.h>
-#include <SceneNode.h>
+#include <ls/StyleValue.h>
+#include <ls/SceneNode.h>
 #include <algorithm>
 #include <cctype>
 

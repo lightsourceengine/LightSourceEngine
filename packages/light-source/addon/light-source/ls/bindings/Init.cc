@@ -9,13 +9,13 @@
 #include <ls/bindings/GlobalFunctions.h>
 #include <ls/bindings/FontStoreView.h>
 #include <ls/bindings/ImageStoreView.h>
-#include <Scene.h>
-#include <Stage.h>
-#include <Style.h>
-#include <BoxSceneNode.h>
-#include <ImageSceneNode.h>
-#include <RootSceneNode.h>
-#include <TextSceneNode.h>
+#include <ls/Scene.h>
+#include <ls/Stage.h>
+#include <ls/Style.h>
+#include <ls/BoxSceneNode.h>
+#include <ls/ImageSceneNode.h>
+#include <ls/RootSceneNode.h>
+#include <ls/TextSceneNode.h>
 
 #ifdef LIGHT_SOURCE_NATIVE_TESTS
 #include <test/LightSourceTestSuite.h>

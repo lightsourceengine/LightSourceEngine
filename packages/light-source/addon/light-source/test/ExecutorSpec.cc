@@ -5,10 +5,9 @@
  */
 
 #include <napi-unit.h>
-#include <Executor.h>
+#include <ls/Executor.h>
 #include <memory>
 #include <chrono>
-#include <mutex>
 
 using Napi::Assert;
 using Napi::TestInfo;

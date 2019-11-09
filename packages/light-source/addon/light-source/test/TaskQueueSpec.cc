@@ -5,7 +5,7 @@
  */
 
 #include <napi-unit.h>
-#include <TaskQueue.h>
+#include <ls/TaskQueue.h>
 #include <memory>
 #include <thread>
 #include <chrono>

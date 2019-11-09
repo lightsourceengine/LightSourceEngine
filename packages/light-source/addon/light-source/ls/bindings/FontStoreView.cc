@@ -5,8 +5,8 @@
  */
 
 #include "FontStoreView.h"
-#include <FontStore.h>
-#include <Stage.h>
+#include <ls/FontStore.h>
+#include <ls/Stage.h>
 #include <ls/FileSystem.h>
 #include <ls/Format.h>
 #include <std17/filesystem>

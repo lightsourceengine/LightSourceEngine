@@ -6,10 +6,10 @@
 
 #include "ImageStoreView.h"
 #include <napi-ext.h>
-#include <ImageStore.h>
-#include <ImageResource.h>
-#include <Stage.h>
-#include <Scene.h>
+#include <ls/ImageStore.h>
+#include <ls/ImageResource.h>
+#include <ls/Stage.h>
+#include <ls/Scene.h>
 
 using Napi::Array;
 using Napi::CallbackInfo;

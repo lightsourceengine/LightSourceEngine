@@ -5,7 +5,7 @@
  */
 
 #include <napi-unit.h>
-#include <StyleUtils.h>
+#include <ls/StyleUtils.h>
 
 using Napi::Assert;
 using Napi::TestInfo;
