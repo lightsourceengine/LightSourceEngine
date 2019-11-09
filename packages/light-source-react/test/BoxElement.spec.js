@@ -17,7 +17,7 @@ describe('BoxElement', () => {
       const style = new Style()
 
       style.backgroundColor = 'red'
-      
+
       await renderAsync(<box style={style} />)
 
       assert.equal(root().children[0].style.backgroundColor, 0xFFFF0000)
