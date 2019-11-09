@@ -9,6 +9,7 @@
 #include <napi.h>
 #include <memory>
 #include <algorithm>
+#include <unordered_set>
 #include "ImageStore.h"
 
 namespace ls {
@@ -29,14 +30,20 @@ class Scene : public Napi::ObjectWrap<Scene> {
     int32_t GetHeight() const noexcept { return this->height; }
     int32_t GetViewportMin() const noexcept { return std::min(this->width, this->height); }
     int32_t GetViewportMax() const noexcept { return std::max(this->width, this->height); }
-    int32_t GetRootFontSize() const noexcept { return this->rootFontSize; }
+    float GetRootFontSize() const noexcept { return this->rootFontSize; }
 
     ImageStore* GetImageStore() const noexcept { return &this->imageStore; }
     Renderer* GetRenderer() const noexcept;
 
     Stage* GetStage() const { return this->stage; }
-    void NotifyRootFontSizeChanged(int32_t rootFontSize);
     void SetActiveNode(Napi::Value node);
+    void QueuePaint(SceneNode* node);
+
+    void QueueAfterLayout(SceneNode* node);
+    void QueueBeforeLayout(SceneNode* node);
+    void QueueComposite();
+    void QueueRootFontSizeChange(float rootFontSize);
+    void Remove(SceneNode* node);
 
  private: // javascript bindings
     void Attach(const Napi::CallbackInfo& info);
@@ -53,12 +60,16 @@ class Scene : public Napi::ObjectWrap<Scene> {
     SceneNode* root{};
     Stage* stage{};
     std::unique_ptr<SceneAdapter> adapter;
-    int32_t rootFontSize{0};
+    float rootFontSize{0};
     int32_t width{};
     int32_t height{};
     bool isSizeDirty{true};
     bool isRootFontSizeDirty{true};
     bool isAttached{false};
+    bool hasCompositeRequest{false};
+    std::unordered_set<SceneNode*> paintRequests;
+    std::unordered_set<SceneNode*> afterLayoutRequests;
+    std::unordered_set<SceneNode*> beforeLayoutRequests;
 };
 
 } // namespace ls

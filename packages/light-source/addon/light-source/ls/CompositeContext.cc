@@ -12,7 +12,8 @@ CompositeContext::CompositeContext() : matrix(16), clipRect(16) {
     this->matrix.emplace_back(Matrix::Identity());
 }
 
-void CompositeContext::Reset() {
+void CompositeContext::Reset(Renderer* renderer) {
+    this->renderer = renderer;
     this->matrix.resize(1);
     this->clipRect.clear();
 }

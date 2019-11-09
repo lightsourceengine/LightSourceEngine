@@ -36,6 +36,10 @@ struct StyleValueColor {
 
     // Check if the color value is not defined.
     bool empty() const noexcept { return this->undefined; }
+
+    uint32_t ValueOr(const uint32_t defaultValue) const noexcept {
+        return this->undefined ? defaultValue : this->value;
+    }
 };
 
 /**

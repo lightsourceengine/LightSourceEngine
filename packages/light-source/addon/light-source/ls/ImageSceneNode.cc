@@ -9,10 +9,10 @@
 #include "Style.h"
 #include "Scene.h"
 #include "StyleUtils.h"
-#include "CompositeContext.h"
 #include <ls/Renderer.h>
-#include "yoga-ext.h"
 #include <ls/PixelConversion.h>
+#include <ls/CompositeContext.h>
+#include "yoga-ext.h"
 
 using Napi::Array;
 using Napi::Call;
@@ -80,6 +80,7 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
     if (src.empty()) {
         this->image = nullptr;
         YGNodeMarkDirty(this->ygNode);
+        this->QueueAfterLayout();
 
         return;
     }
@@ -97,6 +98,7 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
 
     if (!this->image || this->image->IsReady() || this->image->HasError()) {
         YGNodeMarkDirty(this->ygNode);
+        this->QueueAfterLayout();
         DoCallbacks();
     } else {
         this->image.Listen([this, ptr = this->image.Get()]() {
@@ -108,6 +110,7 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
                 case ResourceStateReady:
                 case ResourceStateError:
                     YGNodeMarkDirty(this->ygNode);
+                    this->QueueAfterLayout();
                     this->image.Unlisten();
                     this->DoCallbacks();
                     break;
@@ -142,7 +145,36 @@ void ImageSceneNode::SetOnErrorCallback(const CallbackInfo& info, const Napi::Va
     }
 }
 
-void ImageSceneNode::ComputeStyle() {
+void ImageSceneNode::OnPropertyChanged(StyleProperty property) {
+    switch (property) {
+        case StyleProperty::tintColor:
+            // TODO: add am immediate mode flag
+            if (this->layer) {
+                this->QueuePaint();
+            } else {
+                this->QueueComposite();
+            }
+            break;
+        case StyleProperty::borderColor:
+            this->QueuePaint();
+            break;
+        case StyleProperty::objectFit:
+        case StyleProperty::objectPositionX:
+        case StyleProperty::objectPositionY:
+            this->QueueAfterLayout();
+            break;
+        default:
+            if (IsYogaLayoutProperty(property)) {
+                this->QueueAfterLayout();
+            }
+            break;
+    }
+}
+
+void ImageSceneNode::BeforeLayout() {
+}
+
+void ImageSceneNode::AfterLayout() {
     if (!this->image) {
         return;
     }
@@ -158,6 +190,8 @@ void ImageSceneNode::ComputeStyle() {
         YGNodeLayoutGetInnerRect(this->ygNode),
         this->image.Get(),
         this->scene);
+
+    this->QueuePaint();
 }
 
 void ImageSceneNode::Paint(Renderer* renderer) {
@@ -165,14 +199,14 @@ void ImageSceneNode::Paint(Renderer* renderer) {
         return;
     }
 
-    // TODO: image not ready
     this->image->Sync(renderer);
 
     const auto boxStyle{ this->GetStyleOrEmpty() };
     const auto& borderColor{ boxStyle->borderColor };
     const auto hasCapInsets{ this->image->HasCapInsets() };
 
-    if (!hasCapInsets && borderColor) {
+    if (!hasCapInsets && borderColor.empty()) {
+        this->QueueComposite();
         return;
     }
 
@@ -184,9 +218,8 @@ void ImageSceneNode::Paint(Renderer* renderer) {
 
     renderer->FillRenderTarget(0);
 
-    // TODO: has texture
-    if (this->image->GetTexture()) {
-        const auto tintColor{ !boxStyle->tintColor ? boxStyle->tintColor.value : RGB(255, 255, 255) };
+    if (this->image->HasTexture()) {
+        const auto tintColor{ boxStyle->tintColor.ValueOr(RGB(255, 255, 255)) };
 
         if (hasCapInsets) {
             renderer->DrawImage(
@@ -202,31 +235,41 @@ void ImageSceneNode::Paint(Renderer* renderer) {
         }
     }
 
-    if (!borderColor) {
-        renderer->DrawBorder(
-            rect,
-            YGNodeLayoutGetBorderRect(this->ygNode),
-            static_cast<uint32_t>(borderColor));
+    if (!borderColor.empty()) {
+        renderer->DrawBorder(rect, YGNodeLayoutGetBorderRect(this->ygNode), borderColor.value);
     }
 
     renderer->SetRenderTarget(nullptr);
+    this->QueueComposite();
 }
 
-void ImageSceneNode::Composite(CompositeContext* context, Renderer* renderer) {
-    // TODO: sync image
-    if (!this->image || !this->image->GetTexture() || !this->layer) {
+void ImageSceneNode::Composite(CompositeContext* context) {
+    if (!this->image || !this->image->HasTexture() || !this->layer) {
         return;
     }
 
     const auto boxStyle{ this->GetStyleOrEmpty() };
-    const auto tintColor{ !boxStyle->tintColor ? boxStyle->tintColor.value : RGB(255, 255, 255) };
-    const auto transform{ context->CurrentMatrix() };
-    auto dest{ YGNodeLayoutGetRect(this->ygNode) };
+    const auto& transform{ context->CurrentMatrix() };
+    const auto tx{ transform.GetTranslateX() };
+    const auto ty{ transform.GetTranslateY() };
 
-    dest.x += (transform.GetTranslateX());
-    dest.y += (transform.GetTranslateY());
+    if (this->layer) {
+        context->renderer->DrawImage(
+            this->layer,
+            YGNodeLayoutGetRect(this->ygNode, tx, ty),
+            RGB(255, 255, 255));
+    } else {
+        const auto tintColor{ boxStyle->tintColor.ValueOr(RGB(255, 255, 255)) };
+        auto dest{ this->destRect };
 
-    renderer->DrawImage(this->layer ? this->layer : this->image->GetTexture(), dest, tintColor);
+        dest.x += tx;
+        dest.y += ty;
+
+        // TODO: must do a manual clip of dest rect!
+        context->PushClipRect(YGNodeLayoutGetRect(this->ygNode, tx, ty));
+        context->renderer->DrawImage(this->image->GetTexture(), dest, tintColor);
+        context->PopClipRect();
+    }
 }
 
 void ImageSceneNode::DestroyRecursive() {

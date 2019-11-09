@@ -24,6 +24,7 @@ class ImageResource : public Resource<std::string> {
     virtual ~ImageResource() noexcept;
 
     std::shared_ptr<Texture> GetTexture() const noexcept { return this->texture; }
+    bool HasTexture() const noexcept { return !!this->texture; }
 
     int32_t GetWidth() const noexcept { return this->width; }
     int32_t GetHeight() const noexcept { return this->height; }

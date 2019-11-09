@@ -8,7 +8,7 @@
 #include "Style.h"
 #include "Scene.h"
 #include "yoga-ext.h"
-#include "CompositeContext.h"
+#include <ls/CompositeContext.h>
 #include <ls/Renderer.h>
 #include <algorithm>
 
@@ -224,6 +224,7 @@ void SceneNode::RemoveChild(SceneNode* child) {
     }
 
     YGNodeRemoveChild(this->ygNode, child->ygNode);
+    // TODO: remove from scene queues?
     this->children.erase(std::remove(this->children.begin(), this->children.end(), child), this->children.end());
     child->AsReference()->Unref();
     child->SetParent(nullptr);
@@ -250,6 +251,8 @@ void SceneNode::DestroyRecursive() {
 
     instanceCount--;
 
+    this->scene->Remove(this);
+
     for (auto child : this->children) {
         child->DestroyRecursive();
     }
@@ -273,19 +276,7 @@ void SceneNode::DestroyRecursive() {
     }
 }
 
-void SceneNode::ComputeStyle() {
-    for (auto& child : this->children) {
-        child->ComputeStyle();
-    }
-}
-
-void SceneNode::Paint(Renderer* renderer) {
-    for (auto& child : this->children) {
-        child->Paint(renderer);
-    }
-}
-
-void SceneNode::Composite(CompositeContext* context, Renderer* renderer) {
+void SceneNode::Composite(CompositeContext* context) {
     const auto bounds{ YGNodeLayoutGetRect(this->ygNode) };
     const auto clip{ this->GetStyleOrEmpty()->overflow == YGOverflowHidden };
 
@@ -293,11 +284,11 @@ void SceneNode::Composite(CompositeContext* context, Renderer* renderer) {
 
     if (clip) {
         context->PushClipRect(bounds);
-        renderer->SetClipRect(context->CurrentClipRect());
+        context->renderer->SetClipRect(context->CurrentClipRect());
     }
 
     for (auto& child : this->children) {
-        child->Composite(context, renderer);
+        child->Composite(context);
     }
 
     if (clip) {
@@ -331,6 +322,24 @@ void SceneNode::ValidateInsertCandidate(SceneNode* child) {
 
 Style* SceneNode::GetStyleOrEmpty() const noexcept {
     return this->style ? this->style : Style::Empty();
+}
+
+void SceneNode::QueuePaint() {
+    // TODO: is queued?
+    this->scene->QueuePaint(this);
+}
+
+void SceneNode::QueueAfterLayout() {
+    // TODO: is queued?
+    this->scene->QueueAfterLayout(this);
+}
+
+void SceneNode::QueueBeforeLayout() {
+    this->scene->QueueBeforeLayout(this);
+}
+
+void SceneNode::QueueComposite() {
+    this->scene->QueueComposite();
 }
 
 bool SceneNode::InitLayerRenderTarget(Renderer* renderer, int32_t width, int32_t height) {

@@ -11,7 +11,7 @@
 #include "Style.h"
 #include "StyleUtils.h"
 #include "yoga-ext.h"
-#include "CompositeContext.h"
+#include <ls/CompositeContext.h>
 #include <ls/Math.h>
 #include <ls/Renderer.h>
 #include <ls/Log.h>
@@ -45,22 +45,63 @@ Function BoxSceneNode::Constructor(Napi::Env env) {
     return constructor.Value();
 }
 
-void BoxSceneNode::ComputeStyle() {
-    SceneNode::ComputeStyle();
+void BoxSceneNode::OnPropertyChanged(StyleProperty property) {
+    switch (property) {
+        case StyleProperty::backgroundImage:
+            this->QueueBeforeLayout();
+            break;
+        case StyleProperty::backgroundColor:
+        case StyleProperty::borderColor:
+            this->QueuePaint();
+            break;
+        // TODO: add background fields
+        default:
+            if (IsYogaLayoutProperty(property)) {
+                this->QueueAfterLayout();
+            }
+            break;
+    }
+}
+
+void BoxSceneNode::BeforeLayout() {
+    this->UpdateBackgroundImage(this->style->backgroundImage);
+}
+
+void BoxSceneNode::AfterLayout() {
+    if (YGNodeGetHasNewLayout(this->ygNode)) {
+        YGNodeSetHasNewLayout(this->ygNode, false);
+        // TODO: a layout change might mean a position change and only a composite is necessary
+        this->QueuePaint();
+    }
+}
+
+void BoxSceneNode::Composite(CompositeContext* context) {
+    if (!this->layer) {
+        SceneNode::Composite(context);
+        return;
+    }
+
+    const auto& transform{ context->CurrentMatrix() };
+    auto rect{ YGNodeLayoutGetRect(this->ygNode) };
+
+    rect.x += transform.GetTranslateX();
+    rect.y += transform.GetTranslateY();
+
+    context->renderer->DrawImage(this->layer, rect, RGB(255, 255, 255));
+
+    SceneNode::Composite(context);
 }
 
 void BoxSceneNode::Paint(Renderer* renderer) {
     const auto boxStyle{ this->GetStyleOrEmpty() };
 
     if (boxStyle->IsLayoutOnly()) {
-        SceneNode::Paint(renderer);
         return;
     }
 
     const auto dest{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
 
     if (!this->InitLayerRenderTarget(renderer, static_cast<int32_t>(dest.width), static_cast<int32_t>(dest.height))) {
-        SceneNode::Paint(renderer);
         return;
     }
 
@@ -93,35 +134,17 @@ void BoxSceneNode::Paint(Renderer* renderer) {
     }
 
     renderer->SetRenderTarget(nullptr);
-    SceneNode::Paint(renderer);
+    this->QueueComposite();
 }
 
-void BoxSceneNode::Composite(CompositeContext* context, Renderer* renderer) {
-    if (!this->layer) {
-        SceneNode::Composite(context, renderer);
-        return;
-    }
-
-    const auto& transform{ context->CurrentMatrix() };
-    auto rect{ YGNodeLayoutGetRect(this->ygNode) };
-
-    rect.x += transform.GetTranslateX();
-    rect.y += transform.GetTranslateY();
-
-    renderer->DrawImage(this->layer, rect, RGB(255, 255, 255));
-
-    SceneNode::Composite(context, renderer);
-}
-
-void BoxSceneNode::OnPropertyChanged(StyleProperty property) {
-    if (property == StyleProperty::backgroundImage) {
-        this->SetBackgroundImage(this->style->backgroundImage);
-    }
-}
-
-void BoxSceneNode::SetBackgroundImage(const std::string& imageUri) {
+void BoxSceneNode::UpdateBackgroundImage(const std::string& imageUri) {
     if (imageUri.empty()) {
+        if (this->backgroundImage) {
+            this->QueuePaint();
+        }
+
         this->backgroundImage = nullptr;
+
         return;
     }
 
@@ -131,7 +154,15 @@ void BoxSceneNode::SetBackgroundImage(const std::string& imageUri) {
 
     this->backgroundImage = this->scene->GetImageStore()->GetOrLoadImage({ imageUri });
 
-    // TODO: listen for load event and mark dirty
+    if (this->backgroundImage) {
+        if (this->backgroundImage->IsReady()) {
+            this->QueuePaint();
+        } else {
+            this->backgroundImage.Listen([this]() {
+                this->QueuePaint();
+            });
+        }
+    }
 }
 
 void BoxSceneNode::DestroyRecursive() {

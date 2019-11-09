@@ -12,6 +12,7 @@
 #include <ls/StageAdapter.h>
 #include <ls/SceneAdapter.h>
 #include <ls/Log.h>
+#include <ls/Math.h>
 #include "CompositeContext.h"
 
 using Napi::Boolean;
@@ -151,37 +152,67 @@ void Scene::Resize(const CallbackInfo& info) {
 }
 
 void Scene::Frame(const CallbackInfo& info) {
-    auto renderer{ this->adapter->GetRenderer() };
-
     this->imageStore.ProcessEvents();
 
-    if (this->isSizeDirty) {
-        // TODO: update style values with viewport units
+    if (this->isSizeDirty || this->isRootFontSizeDirty) {
+        SceneNode::Visit(this->root, [](SceneNode* node) {
+            if (node->style != nullptr) {
+                // TODO: update style
+            }
+        });
+
         this->isSizeDirty = false;
+        this->isRootFontSizeDirty = false;
     }
 
-    if (this->isRootFontSizeDirty) {
-        // TODO: update style value with rem units
-        this->isRootFontSizeDirty = false;
+    if (!this->beforeLayoutRequests.empty()) {
+        std::for_each(this->beforeLayoutRequests.begin(), this->beforeLayoutRequests.end(),
+            [](SceneNode* node) {
+                node->BeforeLayout();
+            });
+
+        this->beforeLayoutRequests.clear();
     }
 
     this->root->Layout(this->width, this->height);
 
-    this->root->ComputeStyle();
+    if (!this->afterLayoutRequests.empty()) {
+        std::for_each(this->afterLayoutRequests.begin(), this->afterLayoutRequests.end(),
+                      [](SceneNode* node) {
+                          node->AfterLayout();
+                      });
+
+        this->afterLayoutRequests.clear();
+    }
 
     if (!this->isAttached) {
         return;
     }
 
-    this->root->Paint(renderer);
+    auto renderer{ this->GetRenderer() };
 
-    renderer->SetRenderTarget(nullptr);
+    if (!this->paintRequests.empty()) {
+        std::for_each(this->paintRequests.begin(), this->paintRequests.end(),
+                      [renderer](SceneNode* node) {
+                          node->Paint(renderer);
+                      });
 
-    CompositeContext context;
+        this->paintRequests.clear();
+    }
 
-    this->root->Composite(&context, renderer);
+    if (this->hasCompositeRequest) {
+        renderer->SetRenderTarget(nullptr);
 
-    renderer->Present();
+        CompositeContext context;
+
+        context.Reset(renderer);
+
+        this->root->Composite(&context);
+
+        this->hasCompositeRequest = false;
+
+        renderer->Present();
+    }
 }
 
 Value Scene::GetTitle(const CallbackInfo& info) {
@@ -200,10 +231,13 @@ void Scene::SetTitle(const CallbackInfo& info, const Napi::Value& value) {
     }
 }
 
-void Scene::NotifyRootFontSizeChanged(int32_t rootFontSize) {
-    if (this->rootFontSize != rootFontSize) {
+void Scene::QueueRootFontSizeChange(float rootFontSize) {
+    if (!Equals(this->rootFontSize, rootFontSize)) {
         this->rootFontSize = rootFontSize;
-        this->isRootFontSizeDirty = true;
+
+        if (!this->root->children.empty()) {
+            this->isRootFontSizeDirty = true;
+        }
     }
 }
 
@@ -219,8 +253,30 @@ void Scene::SetActiveNode(Napi::Value node) {
     }
 }
 
+void Scene::QueuePaint(SceneNode* node) {
+    this->paintRequests.insert(node);
+}
+
+void Scene::QueueAfterLayout(SceneNode* node) {
+    this->afterLayoutRequests.insert(node);
+}
+
+void Scene::QueueBeforeLayout(SceneNode* node) {
+    this->beforeLayoutRequests.insert(node);
+}
+
 Renderer* Scene::GetRenderer() const noexcept {
     return this->adapter->GetRenderer();
+}
+
+void Scene::QueueComposite() {
+    this->hasCompositeRequest = true;
+}
+
+void Scene::Remove(SceneNode* node) {
+    this->paintRequests.erase(node);
+    this->beforeLayoutRequests.erase(node);
+    this->afterLayoutRequests.erase(node);
 }
 
 } // namespace ls

@@ -12,17 +12,22 @@
 
 namespace ls {
 
+class Renderer;
+
 class CompositeContext {
  public:
     CompositeContext();
 
-    void Reset();
+    void Reset(Renderer* renderer);
     void PushMatrix(const Matrix& m);
     void PopMatrix();
     const Matrix& CurrentMatrix();
     void PushClipRect(const Rect& rect);
     void PopClipRect();
     const Rect& CurrentClipRect();
+
+ public:
+    Renderer* renderer;
 
  private:
     std::vector<Matrix> matrix;

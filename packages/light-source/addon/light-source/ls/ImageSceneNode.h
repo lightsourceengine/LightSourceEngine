@@ -28,9 +28,11 @@ class ImageSceneNode : public Napi::ObjectWrap<ImageSceneNode>, public SceneNode
     Napi::Value GetOnErrorCallback(const Napi::CallbackInfo& info);
     void SetOnErrorCallback(const Napi::CallbackInfo& info, const Napi::Value& value);
 
-    void ComputeStyle() override;
+    void OnPropertyChanged(StyleProperty property) override;
+    void BeforeLayout() override;
+    void AfterLayout() override;
     void Paint(Renderer* renderer) override;
-    void Composite(CompositeContext* context, Renderer* renderer) override;
+    void Composite(CompositeContext* context) override;
 
     Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; }
 

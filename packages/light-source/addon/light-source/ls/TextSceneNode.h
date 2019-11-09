@@ -29,9 +29,10 @@ class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
     Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; }
     void OnPropertyChanged(StyleProperty property) override;
 
-    void ComputeStyle() override;
+    void BeforeLayout() override;
+    void AfterLayout() override;
     void Paint(Renderer* renderer) override;
-    void Composite(CompositeContext* context, Renderer* renderer) override;
+    void Composite(CompositeContext* context) override;
 
  private:
     bool SetFont(Style* style);

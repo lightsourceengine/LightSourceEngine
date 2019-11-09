@@ -175,7 +175,7 @@ float ComputeLineHeight(const StyleValueNumber& value, const S* scene, const flo
 }
 
 template<typename S /* Scene */>
-float ComputeFontSize(const StyleValueNumber& value, const S* scene) {
+float ComputeFontSize(const StyleValueNumber& value, const S* scene, const float rootFontSize) {
     switch (value.unit) {
         case StyleNumberUnitPoint:
             return value.value;
@@ -188,10 +188,15 @@ float ComputeFontSize(const StyleValueNumber& value, const S* scene) {
         case StyleNumberUnitViewportMax:
             return value.AsPercent() * scene->GetViewportMax();
         case StyleNumberUnitRootEm:
-            return value.value * scene->GetRootFontSize();
+            return value.value * rootFontSize;
         default:
             return 16.f;
     }
+}
+
+template<typename S /* Scene */>
+float ComputeFontSize(const StyleValueNumber& value, const S* scene) {
+    return ComputeFontSize(value, scene, scene->GetRootFontSize());
 }
 
 } // namespace ls

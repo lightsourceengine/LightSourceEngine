@@ -21,20 +21,21 @@ class BoxSceneNode : public Napi::ObjectWrap<BoxSceneNode>, public SceneNode {
 
     static Napi::Function Constructor(Napi::Env env);
 
-    void ComputeStyle() override;
+    void OnPropertyChanged(StyleProperty property) override;
+    void BeforeLayout() override;
+    void AfterLayout() override;
     void Paint(Renderer* renderer) override;
-    void Composite(CompositeContext* context, Renderer* renderer) override;
+    void Composite(CompositeContext* context) override;
 
     Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; }
-    void OnPropertyChanged(StyleProperty property) override;
 
  private:
     void DestroyRecursive() override;
-    void SetBackgroundImage(const std::string& imageUri);
+    void UpdateBackgroundImage(const std::string& imageUri);
 
  private:
     std::string backgroundImageUri;
-    std::shared_ptr<ImageResource> backgroundImage;
+    ResourceLink<ImageResource> backgroundImage;
 };
 
 } // namespace ls

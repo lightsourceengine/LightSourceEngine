@@ -49,13 +49,16 @@ class SceneNode {
     void Destroy();
     void Layout(float width, float height);
 
-    virtual void ComputeStyle();
-    virtual void Paint(Renderer* renderer);
-    virtual void Composite(CompositeContext* context, Renderer* renderer);
+    virtual void OnPropertyChanged(StyleProperty property) = 0;
+    virtual void BeforeLayout() = 0;
+    virtual void AfterLayout() = 0;
+    virtual void Paint(Renderer* renderer) = 0;
+    virtual void Composite(CompositeContext* context);
 
     virtual Napi::Reference<Napi::Object>* AsReference() noexcept = 0;
 
-    virtual void OnPropertyChanged(StyleProperty property) {}
+    template<typename Callable>
+    static void Visit(SceneNode* node, const Callable& func);
 
  protected:
     template<typename T>
@@ -70,6 +73,10 @@ class SceneNode {
     Style* GetStyleOrEmpty() const noexcept;
     bool InitLayerRenderTarget(Renderer* renderer, int32_t width, int32_t height);
     bool InitLayerSoftwareRenderTarget(Renderer* renderer, int32_t width, int32_t height);
+    void QueuePaint();
+    void QueueAfterLayout();
+    void QueueBeforeLayout();
+    void QueueComposite();
 
  protected:
     static int instanceCount;
@@ -81,7 +88,17 @@ class SceneNode {
     Style* style{};
 
     friend Style;
+    friend Scene;
 };
+
+template<typename Callable>
+void SceneNode::Visit(SceneNode* node, const Callable& func) {
+    func(node);
+
+    for (auto child : node->children) {
+        Visit(child, func);
+    }
+}
 
 template<typename T>
 std::vector<Napi::ClassPropertyDescriptor<T>> SceneNode::Extend(const Napi::Env& env,

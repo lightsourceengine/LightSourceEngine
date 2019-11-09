@@ -9,6 +9,7 @@
 #include "StyleUtils.h"
 #include "Style.h"
 #include <ls/Renderer.h>
+#include <ls/CompositeContext.h>
 
 using Napi::CallbackInfo;
 using Napi::Error;
@@ -42,54 +43,37 @@ Function RootSceneNode::Constructor(Napi::Env env) {
 }
 
 void RootSceneNode::OnPropertyChanged(StyleProperty property) {
-    if (property == StyleProperty::fontSize) {
-        const auto& fontSize{ this->style->fontSize };
-        float computedFontSize;
-
-        switch (fontSize.unit) {
-            case StyleNumberUnitPoint:
-                computedFontSize = fontSize.value;
-                break;
-            case StyleNumberUnitViewportWidth:
-                computedFontSize = fontSize.AsPercent() * this->scene->GetWidth();
-                break;
-            case StyleNumberUnitViewportHeight:
-                computedFontSize = fontSize.AsPercent() * this->scene->GetHeight();
-                break;
-            case StyleNumberUnitViewportMin:
-                computedFontSize = fontSize.AsPercent() * this->scene->GetViewportMax();
-                break;
-            case StyleNumberUnitViewportMax:
-                computedFontSize = fontSize.AsPercent() * this->scene->GetViewportMin();
-                break;
-            case StyleNumberUnitRootEm:
-                computedFontSize = fontSize.value * DEFAULT_ROOT_FONT_SIZE;
-                break;
-            default:
-                computedFontSize = 0;
-                break;
-        }
-
-        this->scene->NotifyRootFontSizeChanged(computedFontSize);
+    switch (property) {
+        case StyleProperty::backgroundColor:
+            this->QueueComposite();
+            break;
+        case StyleProperty::fontSize:
+            this->scene->QueueRootFontSizeChange(
+                ComputeFontSize(this->style->fontSize, this->scene, DEFAULT_ROOT_FONT_SIZE));
+            break;
+        default:
+            if (IsYogaLayoutProperty(property)) {
+                this->QueueAfterLayout();
+            }
+            break;
     }
 }
 
-void RootSceneNode::ComputeStyle() {
-    SceneNode::ComputeStyle();
+void RootSceneNode::AfterLayout() {
+    if (YGNodeGetHasNewLayout(this->ygNode)) {
+        YGNodeSetHasNewLayout(this->ygNode, false);
+        this->QueueComposite();
+    }
 }
 
-void RootSceneNode::Paint(Renderer* renderer) {
-    SceneNode::Paint(renderer);
-}
-
-void RootSceneNode::Composite(CompositeContext* context, Renderer* renderer) {
+void RootSceneNode::Composite(CompositeContext* context) {
     const auto& backgroundColor{ this->GetStyleOrEmpty()->backgroundColor };
 
-    if (!backgroundColor.undefined) {
-        renderer->FillRenderTarget(backgroundColor.value);
+    if (!backgroundColor.empty()) {
+        context->renderer->FillRenderTarget(backgroundColor.value);
     }
 
-    SceneNode::Composite(context, renderer);
+    SceneNode::Composite(context);
 }
 
 } // namespace ls

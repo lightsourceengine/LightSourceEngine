@@ -20,12 +20,13 @@ class RootSceneNode : public Napi::ObjectWrap<RootSceneNode>, public SceneNode {
 
     static Napi::Function Constructor(Napi::Env env);
 
-    void ComputeStyle() override;
-    void Paint(Renderer* renderer) override;
-    void Composite(CompositeContext* context, Renderer* renderer) override;
+    void OnPropertyChanged(StyleProperty property) override;
+    void BeforeLayout() override {}
+    void AfterLayout() override;
+    void Paint(Renderer* renderer) override {}
+    void Composite(CompositeContext* context) override;
 
     Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; }
-    void OnPropertyChanged(StyleProperty property) override;
 };
 
 } // namespace ls

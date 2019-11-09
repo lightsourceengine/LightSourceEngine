@@ -170,6 +170,10 @@ LS_ENUM_SEQ_DECL(
     tintColor
 )
 
+constexpr bool IsYogaLayoutProperty(StyleProperty property) noexcept {
+    return property <= StyleProperty::width;
+}
+
 // Add ToString, FromString and Count to Yoga enum types for a consistent enum interface across style properties.
 
 #define LS_GEN_ENUM_FUNCTIONS(ENUM)                          \

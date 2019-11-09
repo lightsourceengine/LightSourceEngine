@@ -34,9 +34,11 @@ class Style : public Napi::ObjectWrap<Style> {
  public:
     #define LS_PROPERTY_BINDINGS(PROP, BOX_FUNC, UNBOX_FUNC)                                  \
         void Setter_##PROP(const Napi::CallbackInfo& info, const Napi::Value& value) {        \
+            Napi::HandleScope scope(info.Env());                                              \
             this->Set_##PROP(UNBOX_FUNC(value));                                              \
         }                                                                                     \
         Napi::Value Getter_##PROP(const Napi::CallbackInfo& info) {                           \
+            Napi::HandleScope scope(info.Env());                                              \
             return BOX_FUNC(info.Env(), this->PROP);                                          \
         }
     #define LS_PROPERTY(PROP, TYPE, DEFAULT, BOX_FUNC, UNBOX_FUNC)                            \
