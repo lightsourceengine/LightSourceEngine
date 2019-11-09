@@ -20,11 +20,11 @@
         "light-source-stage-lib",
       ],
       "sources": [
-        "RefRenderer.cc",
-        "RefAudioAdapter.cc",
-        "RefSceneAdapter.cc",
-        "RefStageAdapter.cc",
-        "Init.cc",
+        "ls/RefRenderer.cc",
+        "ls/RefAudioAdapter.cc",
+        "ls/RefSceneAdapter.cc",
+        "ls/RefStageAdapter.cc",
+        "ls/Init.cc",
       ]
     }
   ]
