@@ -55,6 +55,9 @@ class Style : public Napi::ObjectWrap<Style> {
         LS_PROPERTY_BINDINGS(PROP, BOX_FUNC, UNBOX_FUNC)
     #define LS_ENUM_PROPERTY(PROP, TYPE)                                                      \
         LS_PROPERTY(PROP, TYPE, {}, StyleValueEnum::Box<TYPE>, StyleValueEnum::Unbox<TYPE>)
+    #define LS_TRANSFORM_PROPERTY(PROP)                                                       \
+        LS_PROPERTY(PROP, StyleValueTransform, {},                                            \
+            StyleValueTransform::Box, StyleValueTransform::Unbox)
     #define LS_STRING_PROPERTY(PROP)                                                          \
         LS_PROPERTY(PROP, std::string, {}, StyleValueString::Box, StyleValueString::Unbox)
     #define LS_COLOR_PROPERTY(PROP)                                                           \
@@ -110,6 +113,10 @@ class Style : public Napi::ObjectWrap<Style> {
     LS_NUMBER_PROPERTY(objectPositionX, ObjectPositionConstraint, {})
     LS_NUMBER_PROPERTY(objectPositionY, ObjectPositionConstraint, {})
     LS_NUMBER_PROPERTY(opacity, OpacityConstraint, {})
+    LS_NUMBER_PROPERTY(transformOriginX, ObjectPositionConstraint, {})
+    LS_NUMBER_PROPERTY(transformOriginY, ObjectPositionConstraint, {})
+
+    LS_TRANSFORM_PROPERTY(transform)
 
     LS_ENUM_PROPERTY(alignContent, YGAlign)
     LS_ENUM_PROPERTY(alignItems, YGAlign)

@@ -12,9 +12,11 @@
 
 using Napi::Array;
 using Napi::Error;
+using Napi::Float32Array;
 using Napi::Number;
 using Napi::Object;
 using Napi::String;
+using Napi::TypedArray;
 
 namespace ls {
 
@@ -22,6 +24,7 @@ static StyleValueNumber ParseNumber(const std::string& value);
 static StyleValueColor ParseHexHashColor(const std::string& str);
 static StyleValueNumber StyleValueNumberUnboxString(String value);
 static StyleValueNumber StyleValueNumberUnboxArray(Array value);
+static Transform UnboxTransform(const Napi::Value& value);
 
 static CStringHashMap<StyleNumberUnit> InitUnitMap();
 static CStringHashMap<uint32_t> InitColorMap();
@@ -63,6 +66,131 @@ StyleValueColor StyleValueColor::Parse(const std::string& value) noexcept {
             return StyleValueColor::OfUndefined();
         }
     }
+}
+
+Napi::Value StyleValueTransform::Box(Napi::Env env, const StyleValueTransform& value) {
+    auto result{ Array::New(env, value.values.size()) };
+
+    for (std::size_t i = 0; i < value.values.size(); i++) {
+        auto transformValue{ Float32Array::New(env, 5) };
+
+        transformValue[0u] = value.values[i].type;
+        transformValue[1u] = value.values[i].value1;
+        transformValue[2u] = value.values[i].unit1;
+        transformValue[3u] = value.values[i].value2;
+        transformValue[4u] = value.values[i].unit2;
+
+        result.Set(i, transformValue);
+    }
+
+    return result;
+}
+
+template<typename T>
+T GetEnum(float value) {
+    const auto valueInt{ static_cast<int32_t>(value) };
+
+    if (IsEnum<T>(valueInt)) {
+        return static_cast<T>(valueInt);
+    }
+
+    throw std::invalid_argument("Value out of enum range.");
+}
+
+Float32Array AsFloat32Array(const Napi::Value& value) {
+    if (value.IsTypedArray()) {
+        auto typedArray{ value.As<TypedArray>() };
+
+        if (typedArray.TypedArrayType() == napi_float32_array) {
+            return typedArray.As<Float32Array>();
+        }
+    }
+
+    return {};
+}
+
+Transform UnboxTransform(const Napi::Value& value) {
+    auto float32Array = AsFloat32Array(value);
+
+    if (float32Array.IsEmpty()) {
+        throw std::invalid_argument("Expected transform value to be Float32Array.");
+    }
+
+    Transform result;
+
+    switch (GetEnum<StyleTransform>(float32Array[0u])) {
+        case StyleTransformRotate:
+            if (float32Array.ElementLength() < 3) {
+                throw std::invalid_argument("Malformed rotate object.");
+            }
+            result = {
+                StyleTransformRotate,
+                float32Array[1u],
+                GetEnum<StyleNumberUnit>(float32Array[2u]),
+                0,
+                StyleNumberUnitUndefined
+            };
+            break;
+        case StyleTransformTranslate:
+        case StyleTransformScale:
+            if (float32Array.ElementLength() < 5) {
+                throw std::invalid_argument("Malformed translate/scale object.");
+            }
+            result = {
+                GetEnum<StyleTransform>(float32Array[0u]),
+                float32Array[1u],
+                GetEnum<StyleNumberUnit>(float32Array[2u]),
+                float32Array[3u],
+                GetEnum<StyleNumberUnit>(float32Array[4u])
+            };
+            break;
+        case StyleTransformIdentity:
+            if (float32Array.ElementLength() == 0) {
+                throw std::invalid_argument("Malformed identity object.");
+            }
+            result = {
+                StyleTransformIdentity,
+                0,
+                StyleNumberUnitUndefined,
+                0,
+                StyleNumberUnitUndefined
+            };
+        default:
+            // unreachable..
+            throw std::runtime_error("");
+    }
+
+    return result;
+}
+
+StyleValueTransform StyleValueTransform::Unbox(const Napi::Value& value) {
+    StyleValueTransform transform;
+
+    if (value.IsTypedArray()) {
+        try {
+            transform.values.emplace_back(UnboxTransform(value));
+        } catch (const std::invalid_argument& e) {
+            return {};
+        }
+
+        return transform;
+    } else if (!value.IsArray()) {
+        return {};
+    }
+
+    auto array{ value.As<Array>() };
+
+    transform.values.reserve(array.Length());
+
+    for (uint32_t i = 0; i < array.Length(); i++) {
+        try {
+            transform.values.emplace_back(UnboxTransform(array.Get(i)));
+        } catch (const std::invalid_argument& e) {
+            return {};
+        }
+    }
+
+    return transform;
 }
 
 Napi::Value StyleValueNumber::Box(Napi::Env env, const StyleValueNumber& value) {
@@ -225,6 +353,17 @@ static StyleValueNumber StyleValueNumberUnboxArray(Array value) {
             }
         }
     }
+}
+
+bool operator==(const StyleValueTransform& lhs, const StyleValueTransform& rhs) noexcept {
+    return lhs.values.size() == rhs.values.size()
+        && std::equal(lhs.values.begin(), lhs.values.end(), rhs.values.begin());
+}
+
+bool operator==(const Transform& lhs, const Transform& rhs) noexcept {
+    return lhs.type == rhs.type
+        && Equals(lhs.value1, rhs.value1) && lhs.unit1 == rhs.unit1
+        && Equals(lhs.value2, rhs.value2) && lhs.unit2 == rhs.unit2;
 }
 
 static CStringHashMap<StyleNumberUnit> InitUnitMap() {

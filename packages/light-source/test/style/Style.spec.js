@@ -6,6 +6,7 @@
 
 import { assert } from 'chai'
 import { Style } from '../../src/addon'
+import { getRotateAngle, isRotate, rotate } from '../../src/style/transform'
 
 const style = (obj) => Object.assign(new Style(), obj)
 
@@ -71,123 +72,68 @@ describe('Style', () => {
   })
   describe('backgroundClip property', () => {
     const property = 'backgroundClip'
+    const enums = ['border-box', 'padding-box']
     it('should set values', () => {
-      for (const value of ['border-box', 'padding-box']) {
-        testStyleValue(property, value, value)
-      }
+      testEnumProperty(property, enums)
     })
-    it('should reject invalid values', () => {
-      for (const value of invalidStringValues) {
-        testStyleValue(property, value, 'border-box')
-      }
+    it('should use default enum value when given invalid input', () => {
+      testInvalidEnumProperty(property, enums[0])
     })
   })
   describe('backgroundSize property', () => {
     const property = 'backgroundSize'
+    const enums = ['none', 'contain', 'cover']
     it('should set values', () => {
-      for (const value of ['none', 'contain', 'cover']) {
-        testStyleValue(property, value, value)
-      }
+      testEnumProperty(property, enums)
     })
-    it('should reject invalid values', () => {
-      for (const value of invalidStringValues) {
-        testStyleValue(property, value, 'none')
-      }
+    it('should use default enum value when given invalid input', () => {
+      testInvalidEnumProperty(property, enums[0])
     })
   })
   describe('backgroundRepeat property', () => {
     const property = 'backgroundRepeat'
+    const enums = ['repeat', 'repeat-x', 'repeat-y', 'no-repeat']
     it('should set values', () => {
-      for (const value of ['repeat', 'repeat-x', 'repeat-y', 'no-repeat']) {
-        testStyleValue(property, value, value)
-      }
+      testEnumProperty(property, enums)
     })
-    it('should reject invalid values', () => {
-      for (const value of invalidStringValues) {
-        testStyleValue(property, value, 'repeat')
-      }
+    it('should use default enum value when given invalid input', () => {
+      testInvalidEnumProperty(property, enums[0])
     })
   })
   describe('backgroundWidth property', () => {
     const property = 'backgroundWidth'
     it('should set value', () => {
-      testStyleUnitValue(property, 50, Style.UnitPoint, 50)
-      testStyleUnitValue(property, '100%', Style.UnitPercent, 100)
-      testStyleUnitValue(property, '50px', Style.UnitPoint, 50)
-      testStyleUnitValue(property, '0px', Style.UnitPoint, 0)
-      testStyleUnitValue(property, '5vw', Style.UnitViewportWidth, 5)
-      testStyleUnitValue(property, '5vh', Style.UnitViewportHeight, 5)
-      testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
-      testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
-      testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
+      testDimensionProperty(property)
     })
     it('should reject invalid value', () => {
-      for (const input of [-50, '', null, {}, [], undefined, NaN]) {
-        testStyleValueEmpty(property, input)
-      }
+      testInvalidDimensionProperty(property)
     })
   })
   describe('backgroundHeight property', () => {
     const property = 'backgroundHeight'
     it('should set value', () => {
-      testStyleUnitValue(property, 50, Style.UnitPoint, 50)
-      testStyleUnitValue(property, '100%', Style.UnitPercent, 100)
-      testStyleUnitValue(property, '50px', Style.UnitPoint, 50)
-      testStyleUnitValue(property, '0px', Style.UnitPoint, 0)
-      testStyleUnitValue(property, '5vw', Style.UnitViewportWidth, 5)
-      testStyleUnitValue(property, '5vh', Style.UnitViewportHeight, 5)
-      testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
-      testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
-      testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
+      testDimensionProperty(property)
     })
     it('should reject invalid value', () => {
-      for (const input of [-50, '', null, {}, [], undefined, NaN]) {
-        testStyleValueEmpty(property, input)
-      }
+      testInvalidDimensionProperty(property)
     })
   })
   describe('backgroundPositionX property', () => {
     const property = 'backgroundPositionX'
     it('should set value', () => {
-      testStyleUnitValue(property, 50, Style.UnitPoint, 50)
-      testStyleUnitValue(property, -50, Style.UnitPoint, -50)
-      testStyleUnitValue(property, '100%', Style.UnitPercent, 100)
-      testStyleUnitValue(property, '50px', Style.UnitPoint, 50)
-      testStyleUnitValue(property, '0px', Style.UnitPoint, 0)
-      testStyleUnitValue(property, '5vw', Style.UnitViewportWidth, 5)
-      testStyleUnitValue(property, '5vh', Style.UnitViewportHeight, 5)
-      testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
-      testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
-      testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
-      testStyleUnitValue(property, 'left', Style.UnitAnchor, 'left')
-      testStyleUnitValue(property, 'right', Style.UnitAnchor, 'right')
+      testPositionProperty(property, xDirection)
     })
     it('should reject invalid value', () => {
-      for (const input of ['', null, {}, [], undefined, NaN]) {
-        testStyleValueEmpty(property, input)
-      }
+      testInvalidPositionProperty(property)
     })
   })
   describe('backgroundPositionY property', () => {
     const property = 'backgroundPositionY'
     it('should set value', () => {
-      testStyleUnitValue(property, 50, Style.UnitPoint, 50)
-      testStyleUnitValue(property, -50, Style.UnitPoint, -50)
-      testStyleUnitValue(property, '100%', Style.UnitPercent, 100)
-      testStyleUnitValue(property, '50px', Style.UnitPoint, 50)
-      testStyleUnitValue(property, '0px', Style.UnitPoint, 0)
-      testStyleUnitValue(property, '5vw', Style.UnitViewportWidth, 5)
-      testStyleUnitValue(property, '5vh', Style.UnitViewportHeight, 5)
-      testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
-      testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
-      testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
-      testStyleUnitValue(property, 'top', Style.UnitAnchor, 'top')
-      testStyleUnitValue(property, 'bottom', Style.UnitAnchor, 'bottom')
+      testPositionProperty(property, yDirection)
     })
     it('should reject invalid value', () => {
-      for (const input of ['', null, {}, [], undefined, NaN]) {
-        testStyleValueEmpty(property, input)
-      }
+      testInvalidPositionProperty(property)
     })
   })
   describe('borderRadius properties', () => {
@@ -230,28 +176,22 @@ describe('Style', () => {
   })
   describe('fontStyle property', () => {
     const property = 'fontStyle'
-    it('should set string value', () => {
-      for (const value of ['italic', 'normal']) {
-        testStyleValue(property, value, value)
-      }
+    const enums = ['normal', 'italic']
+    it('should set values', () => {
+      testEnumProperty(property, enums)
     })
-    it('should reject invalid values', () => {
-      for (const value of invalidStringValues) {
-        testStyleValue(property, value, 'normal')
-      }
+    it('should use default enum value when given invalid input', () => {
+      testInvalidEnumProperty(property, enums[0])
     })
   })
   describe('fontWeight property', () => {
     const property = 'fontWeight'
-    it('should set fontWeight string value', () => {
-      for (const value of ['bold', 'normal']) {
-        testStyleValue(property, value, value)
-      }
+    const enums = ['normal', 'bold']
+    it('should set values', () => {
+      testEnumProperty(property, enums)
     })
-    it('should reject invalid values', () => {
-      for (const value of invalidStringValues) {
-        testStyleValue(property, value, 'normal')
-      }
+    it('should use default enum value when given invalid input', () => {
+      testInvalidEnumProperty(property, enums[0])
     })
   })
   describe('lineHeight property', () => {
@@ -287,59 +227,30 @@ describe('Style', () => {
   })
   describe('objectFit property', () => {
     const property = 'objectFit'
-    it('should set string value', () => {
-      for (const value of ['fill', 'contain', 'cover', 'none', 'scale-down']) {
-        testStyleValue(property, value, value)
-      }
+    const enums = ['fill', 'contain', 'cover', 'none', 'scale-down']
+    it('should set values', () => {
+      testEnumProperty(property, enums)
     })
-    it('should reject invalid values', () => {
-      for (const value of invalidStringValues) {
-        testStyleValue(property, value, 'fill')
-      }
+    it('should use default enum value when given invalid input', () => {
+      testInvalidEnumProperty(property, enums[0])
     })
   })
   describe('objectPositionX property', () => {
     const property = 'objectPositionX'
     it('should set value', () => {
-      testStyleUnitValue(property, 50, Style.UnitPoint, 50)
-      testStyleUnitValue(property, -50, Style.UnitPoint, -50)
-      testStyleUnitValue(property, '100%', Style.UnitPercent, 100)
-      testStyleUnitValue(property, '50px', Style.UnitPoint, 50)
-      testStyleUnitValue(property, '0px', Style.UnitPoint, 0)
-      testStyleUnitValue(property, '5vw', Style.UnitViewportWidth, 5)
-      testStyleUnitValue(property, '5vh', Style.UnitViewportHeight, 5)
-      testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
-      testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
-      testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
-      testStyleUnitValue(property, 'left', Style.UnitAnchor, 'left')
-      testStyleUnitValue(property, 'right', Style.UnitAnchor, 'right')
+      testPositionProperty(property, xDirection)
     })
     it('should reject invalid value', () => {
-      for (const input of ['', null, {}, [], undefined, NaN]) {
-        testStyleValueEmpty(property, input)
-      }
+      testInvalidPositionProperty(property)
     })
   })
   describe('objectPositionY property', () => {
     const property = 'objectPositionY'
     it('should set value', () => {
-      testStyleUnitValue(property, 50, Style.UnitPoint, 50)
-      testStyleUnitValue(property, -50, Style.UnitPoint, -50)
-      testStyleUnitValue(property, '100%', Style.UnitPercent, 100)
-      testStyleUnitValue(property, '50px', Style.UnitPoint, 50)
-      testStyleUnitValue(property, '0px', Style.UnitPoint, 0)
-      testStyleUnitValue(property, '5vw', Style.UnitViewportWidth, 5)
-      testStyleUnitValue(property, '5vh', Style.UnitViewportHeight, 5)
-      testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
-      testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
-      testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
-      testStyleUnitValue(property, 'top', Style.UnitAnchor, 'top')
-      testStyleUnitValue(property, 'bottom', Style.UnitAnchor, 'bottom')
+      testPositionProperty(property, yDirection)
     })
     it('should reject invalid value', () => {
-      for (const input of ['', null, {}, [], undefined, NaN]) {
-        testStyleValueEmpty(property, input)
-      }
+      testInvalidPositionProperty(property)
     })
   })
   describe('opacity property', () => {
@@ -360,41 +271,152 @@ describe('Style', () => {
   })
   describe('textAlign property', () => {
     const property = 'textAlign'
-    it('should set string value', () => {
-      for (const value of ['left', 'center', 'right']) {
-        testStyleValue(property, value, value)
-      }
+    const enums = ['left', 'center', 'right']
+    it('should set values', () => {
+      testEnumProperty(property, enums)
     })
-    it('should reject invalid values', () => {
-      for (const value of invalidStringValues) {
-        testStyleValue(property, value, 'left')
-      }
+    it('should use default enum value when given invalid input', () => {
+      testInvalidEnumProperty(property, enums[0])
     })
   })
   describe('textOverflow property', () => {
     const property = 'textOverflow'
-    it('should set string value', () => {
-      for (const value of ['none', 'clip', 'ellipsis']) {
-        testStyleValue(property, value, value)
-      }
+    const enums = ['none', 'clip', 'ellipsis']
+    it('should set values', () => {
+      testEnumProperty(property, enums)
     })
-    it('should reject invalid values', () => {
-      for (const value of invalidStringValues) {
-        testStyleValue(property, value, 'none')
-      }
+    it('should use default enum value when given invalid input', () => {
+      testInvalidEnumProperty(property, enums[0])
     })
   })
   describe('textTransform property', () => {
     const property = 'textTransform'
-    it('should set string value', () => {
-      for (const value of ['none', 'lowercase', 'uppercase']) {
-        testStyleValue(property, value, value)
-      }
+    const enums = ['none', 'lowercase', 'uppercase']
+    it('should set values', () => {
+      testEnumProperty(property, enums)
+    })
+    it('should use default enum value when given invalid input', () => {
+      testInvalidEnumProperty(property, enums[0])
+    })
+  })
+  describe('transform property', () => {
+    it('should be initialized to zero length array', () => {
+      assert.lengthOf(style({}).transform, 0)
+    })
+    it('should be assignable', () => {
+      const s1 = style({ transform: [rotate('90deg')] })
+      const s2 = style({})
+
+      s2.tranform = s1.transform
+
+      assert.lengthOf(s2.tranform, 1)
+      assert.isTrue(isRotate(s2.tranform[0]))
+    })
+    it('should assignable to transform array', () => {
+      const s = style({ transform: [rotate('90deg')] })
+
+      assert.lengthOf(s.transform, 1)
+
+      const transformValue = s.transform[0]
+
+      assert.isTrue(isRotate(transformValue))
+      assert.sameOrderedMembers(getRotateAngle(transformValue), [90, Style.UnitDegree])
+    })
+    it('should assignable to transform value', () => {
+      const s = style({ transform: rotate('90deg') })
+
+      assert.lengthOf(s.transform, 1)
+
+      const transformValue = s.transform[0]
+
+      assert.isTrue(isRotate(transformValue))
+      assert.sameOrderedMembers(getRotateAngle(transformValue), [90, Style.UnitDegree])
     })
     it('should reject invalid values', () => {
-      for (const value of invalidStringValues) {
-        testStyleValue(property, value, 'none')
-      }
+      const s = style({ transform: 'invalid' })
+      assert.lengthOf(s.transform, 0)
+    })
+  })
+  describe('transformOriginX property', () => {
+    const property = 'transformOriginX'
+    it('should set value', () => {
+      testPositionProperty(property, xDirection)
+    })
+    it('should reject invalid value', () => {
+      testInvalidPositionProperty(property)
+    })
+  })
+  describe('transformOriginY property', () => {
+    const property = 'transformOriginY'
+    it('should set value', () => {
+      testPositionProperty(property, yDirection)
+    })
+    it('should reject invalid value', () => {
+      testInvalidPositionProperty(property)
     })
   })
 })
+
+const xDirection = 1
+const yDirection = 2
+
+const testPositionProperty = (property, direction) => {
+  testStyleUnitValue(property, 50, Style.UnitPoint, 50)
+  testStyleUnitValue(property, -50, Style.UnitPoint, -50)
+  testStyleUnitValue(property, '100%', Style.UnitPercent, 100)
+  testStyleUnitValue(property, '50px', Style.UnitPoint, 50)
+  testStyleUnitValue(property, '0px', Style.UnitPoint, 0)
+  testStyleUnitValue(property, '5vw', Style.UnitViewportWidth, 5)
+  testStyleUnitValue(property, '5vh', Style.UnitViewportHeight, 5)
+  testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
+  testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
+  testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
+
+  if (direction === xDirection) {
+    testStyleUnitValue(property, 'left', Style.UnitAnchor, 'left')
+    testStyleUnitValue(property, 'right', Style.UnitAnchor, 'right')
+  } else if (direction === yDirection) {
+    testStyleUnitValue(property, 'top', Style.UnitAnchor, 'top')
+    testStyleUnitValue(property, 'bottom', Style.UnitAnchor, 'bottom')
+  } else {
+    assert.fail()
+  }
+}
+
+const testInvalidPositionProperty = (property) => {
+  for (const input of ['', null, {}, [], undefined, NaN]) {
+    testStyleValueEmpty(property, input)
+  }
+}
+
+const testDimensionProperty = (property) => {
+  testStyleUnitValue(property, 50, Style.UnitPoint, 50)
+  testStyleUnitValue(property, '100%', Style.UnitPercent, 100)
+  testStyleUnitValue(property, '50px', Style.UnitPoint, 50)
+  testStyleUnitValue(property, '0px', Style.UnitPoint, 0)
+  testStyleUnitValue(property, '5vw', Style.UnitViewportWidth, 5)
+  testStyleUnitValue(property, '5vh', Style.UnitViewportHeight, 5)
+  testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
+  testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
+  testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
+}
+
+const testInvalidDimensionProperty = (property) => {
+  for (const input of [-50, '', null, {}, [], undefined, NaN]) {
+    testStyleValueEmpty(property, input)
+  }
+}
+
+const testEnumProperty = (property, enums) => {
+  for (const value of enums) {
+    testStyleValue(property, value, value)
+  }
+}
+
+const testInvalidEnumProperty = (property, fallback) => {
+  assert.equal(style({})[property], fallback)
+
+  for (const value of invalidStringValues) {
+    testStyleValue(property, value, fallback)
+  }
+}

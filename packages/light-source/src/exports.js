@@ -13,6 +13,23 @@ import { waypoint } from './scene/waypoint'
 import { Mapping } from './input/Mapping'
 import { Key } from './input/Key'
 import { Style } from './addon'
+import {
+  translate,
+  scale,
+  rotate,
+  scaleX,
+  scaleY,
+  translateX,
+  translateY,
+  isRotate,
+  isScale,
+  isTranslate,
+  getRotateAngle,
+  getTranslateX,
+  getTranslateY,
+  getScaleX,
+  getScaleY
+} from './style/transform'
 
 const errorHandler = obj => {
   if (obj) {
@@ -33,6 +50,21 @@ export {
   rgb,
   rgba,
   createStyleSheet,
+  translate,
+  scale,
+  rotate,
+  scaleX,
+  scaleY,
+  translateX,
+  translateY,
+  isRotate,
+  isScale,
+  isTranslate,
+  getRotateAngle,
+  getTranslateX,
+  getTranslateY,
+  getScaleX,
+  getScaleY,
 
   // stage/scene
   stage,

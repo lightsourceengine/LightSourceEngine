@@ -10,6 +10,7 @@
 #include <ls/Math.h>
 #include <Yoga.h>
 #include <napi.h>
+#include <ls/Matrix.h>
 
 namespace ls {
 
@@ -74,6 +75,35 @@ struct StyleValueNumber {
 
     // Check if the number value is not defined.
     bool empty() const noexcept { return this->unit == StyleNumberUnitUndefined; }
+};
+
+/**
+ * Represents an entry in the transform property array. It specifies the transform type (rotate, scale or translate)
+ * and value declaration data.
+ */
+struct Transform {
+    StyleTransform type;
+    float value1;
+    StyleNumberUnit unit1;
+    float value2;
+    StyleNumberUnit unit2;
+};
+
+/**
+ * Value for transform property, an array of transforms.
+ */
+struct StyleValueTransform {
+    std::vector<Transform> values;
+
+    // Binding methods.
+    static Napi::Value Box(Napi::Env env, const StyleValueTransform& value);
+    static StyleValueTransform Unbox(const Napi::Value& value);
+
+    // operators
+    StyleValueTransform& operator=(const StyleValueTransform&) = default;
+
+    // Check if the color value is not defined.
+    bool empty() const noexcept { return this->values.empty(); }
 };
 
 /**
@@ -152,6 +182,10 @@ struct OpacityConstraint {
 inline bool operator==(const StyleValueColor& lhs, const StyleValueColor& rhs) noexcept {
     return lhs.undefined == rhs.undefined && (lhs.undefined || lhs.value == rhs.value);
 }
+
+bool operator==(const StyleValueTransform& lhs, const StyleValueTransform& rhs) noexcept;
+
+bool operator==(const Transform& lhs, const Transform& rhs) noexcept;
 
 inline bool operator==(const StyleValueNumber& lhs, const StyleValueNumber& rhs) noexcept {
     return lhs.unit == rhs.unit

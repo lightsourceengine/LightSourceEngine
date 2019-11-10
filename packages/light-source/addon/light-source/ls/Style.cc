@@ -449,6 +449,9 @@ void Style::Init(Napi::Env env) {
         LS_ADD_PROPERTY(textOverflow),
         LS_ADD_PROPERTY(textTransform),
         LS_ADD_PROPERTY(tintColor),
+        LS_ADD_PROPERTY(transform),
+        LS_ADD_PROPERTY(transformOriginX),
+        LS_ADD_PROPERTY(transformOriginY),
         #undef LS_ADD_PROPERTY
 
         StaticValue("UnitUndefined", Number::New(env, StyleNumberUnitUndefined)),
@@ -461,6 +464,15 @@ void Style::Init(Napi::Env env) {
         StaticValue("UnitAuto", Number::New(env, StyleNumberUnitAuto)),
         StaticValue("UnitAnchor", Number::New(env, StyleNumberUnitAnchor)),
         StaticValue("UnitRootEm", Number::New(env, StyleNumberUnitRootEm)),
+        StaticValue("UnitRadian", Number::New(env, StyleNumberUnitRadian)),
+        StaticValue("UnitDegree", Number::New(env, StyleNumberUnitDegree)),
+        StaticValue("UnitGradian", Number::New(env, StyleNumberUnitGradian)),
+        StaticValue("UnitTurn", Number::New(env, StyleNumberUnitTurn)),
+
+        StaticValue("TransformIdentity", Number::New(env, StyleTransformIdentity)),
+        StaticValue("TransformTranslate", Number::New(env, StyleTransformTranslate)),
+        StaticValue("TransformRotate", Number::New(env, StyleTransformRotate)),
+        StaticValue("TransformScale", Number::New(env, StyleTransformScale)),
 
         InstanceValue(SymbolFor(env, "style"), Boolean::New(env, true)),
     });

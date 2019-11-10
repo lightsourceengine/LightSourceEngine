@@ -93,7 +93,19 @@ LS_ENUM_SEQ_DECL(
     StyleNumberUnitViewportMax,
     StyleNumberUnitAuto,
     StyleNumberUnitAnchor,
-    StyleNumberUnitRootEm
+    StyleNumberUnitRootEm,
+    StyleNumberUnitRadian,
+    StyleNumberUnitDegree,
+    StyleNumberUnitGradian,
+    StyleNumberUnitTurn
+)
+
+LS_ENUM_SEQ_DECL(
+    StyleTransform,
+    StyleTransformIdentity,
+    StyleTransformTranslate,
+    StyleTransformRotate,
+    StyleTransformScale
 )
 
 LS_ENUM_SEQ_DECL(
@@ -167,7 +179,10 @@ LS_ENUM_SEQ_DECL(
     textAlign,
     textOverflow,
     textTransform,
-    tintColor
+    tintColor,
+    transform,
+    transformOriginX,
+    transformOriginY
 )
 
 constexpr bool IsYogaLayoutProperty(StyleProperty property) noexcept {
