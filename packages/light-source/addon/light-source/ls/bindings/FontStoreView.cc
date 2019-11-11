@@ -34,6 +34,7 @@ static StyleFontWeight StringToFontWeight(const Napi::Env& env, const std::strin
 
 FontStoreView::FontStoreView(const CallbackInfo& info) : ObjectWrap<FontStoreView>(info) {
     auto env{ info.Env() };
+    HandleScope scope(env);
 
     if (info[0].IsObject()) {
         this->stage = Stage::Unwrap(info[0].As<Object>());

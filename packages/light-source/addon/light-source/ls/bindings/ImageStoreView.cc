@@ -5,7 +5,6 @@
  */
 
 #include "ImageStoreView.h"
-#include <napi-ext.h>
 #include <ls/ImageStore.h>
 #include <ls/ImageResource.h>
 #include <ls/Stage.h>
@@ -21,9 +20,6 @@ using Napi::HandleScope;
 using Napi::Number;
 using Napi::Object;
 using Napi::ObjectWrap;
-using Napi::ObjectGetString;
-using Napi::ObjectGetStringOrEmpty;
-using Napi::ObjectGetNumberOrDefault;
 using Napi::String;
 using Napi::Value;
 
@@ -32,6 +28,7 @@ namespace bindings {
 
 ImageStoreView::ImageStoreView(const CallbackInfo& info) : ObjectWrap<ImageStoreView>(info) {
     auto env{ info.Env() };
+    HandleScope scope(env);
 
     if (info[0].IsObject()) {
         this->scene = Scene::Unwrap(info[0].As<Object>());
@@ -99,8 +96,9 @@ Value ImageStoreView::List(const CallbackInfo& info) {
 }
 
 Value ImageStoreView::GetExtensions(const CallbackInfo& info) {
-    const auto& extensions{ this->scene->GetImageStore()->GetSearchExtensions() };
     auto env{ info.Env() };
+    HandleScope scope(env);
+    const auto& extensions{ this->scene->GetImageStore()->GetSearchExtensions() };
     auto i{ 0u };
     auto result{ Array::New(env, extensions.size()) };
 
@@ -112,6 +110,7 @@ Value ImageStoreView::GetExtensions(const CallbackInfo& info) {
 }
 
 void ImageStoreView::SetExtensions(const CallbackInfo& info, const Napi::Value& value) {
+    HandleScope scope(info.Env());
     auto imageStore{ this->scene->GetImageStore() };
     std::vector<std::string> extensions;
 
@@ -119,12 +118,12 @@ void ImageStoreView::SetExtensions(const CallbackInfo& info, const Napi::Value& 
         extensions = { value.As<String>().Utf8Value() };
     } else if (value.IsArray()) {
         auto array{ value.As<Array>() };
-        auto size{ array.Length() };
+        const auto size{ array.Length() };
 
         extensions.reserve(size);
 
         for (decltype(size) i = 0; i < size; i++) {
-            extensions.push_back(array.Get(i).As<String>().Utf8Value());
+            extensions.emplace_back(array.Get(i).As<String>().Utf8Value());
         }
     } else if (value.IsNull() || value.IsUndefined()) {
         extensions = ImageStore::defaultExtensions;

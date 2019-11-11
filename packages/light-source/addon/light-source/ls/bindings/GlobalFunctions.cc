@@ -13,6 +13,7 @@
 using Napi::CallbackInfo;
 using Napi::Error;
 using Napi::Function;
+using Napi::HandleScope;
 using Napi::Number;
 using Napi::Object;
 using Napi::String;
@@ -22,6 +23,7 @@ namespace bindings {
 
 Napi::Value ParseColor(const Napi::CallbackInfo& info) {
     auto env{ info.Env() };
+    HandleScope scope(env);
 
     if (!info[0].IsString()) {
         throw Error::New(env, "parseColor(): String argument expected");
