@@ -11,11 +11,15 @@ import { getRotateAngle, isRotate, rotate } from '../../src/style/transform'
 const style = (obj) => Object.assign(new Style(), obj)
 
 const testStyleValue = (name, value, expectedValue) => {
-  assert.equal(style({ [name]: value })[name], expectedValue)
+  assert.deepEqual(style({ [name]: value })[name], expectedValue)
 }
 
 const testStyleValueEmpty = (name, value) => {
   assert.sameOrderedMembers(style({ [name]: value })[name], [undefined, Style.UnitUndefined])
+}
+
+const testStyleValueNull = (name, value) => {
+  assert.isNull(style({ [name]: value })[name])
 }
 
 const testStyleUnitValue = (name, value, expectedUnit, expectedValue) => {
@@ -353,6 +357,49 @@ describe('Style', () => {
     })
     it('should reject invalid value', () => {
       testInvalidPositionProperty(property)
+    })
+  })
+  describe('backgroundImage property', () => {
+    const property = 'backgroundImage'
+    const testUri = 'test.jpg'
+    const testId = 'test-id'
+    it('should be assignable to a string uri', () => {
+      testStyleValue(property, testUri, { id: testUri, uri: testUri })
+    })
+    it('should set from uri property', () => {
+      testStyleValue(property, { uri: testUri }, { id: testUri, uri: testUri })
+    })
+    it('should set from uri property and override id', () => {
+      testStyleValue(property, { id: testId, uri: testUri }, { id: testId, uri: testUri })
+    })
+    it('should set from uri property and reject invalid id', () => {
+      testStyleValue(property, { id: 3, uri: testUri }, { id: testUri, uri: testUri })
+    })
+    it('should set from uri property and use width & height', () => {
+      testStyleValue(property, { uri: testUri, width: 10, height: 20 },
+        { id: testUri, uri: testUri, width: 10, height: 20 })
+    })
+    it('should  set from uri property and use int capInsets', () => {
+      testStyleValue(property, { uri: testUri, capInsets: 10 },
+        { id: testUri, uri: testUri, capInsets: { top: 10, right: 10, bottom: 10, left: 10 } })
+    })
+    it('should  set from uri property and use full capInsets', () => {
+      const capInsets = { top: 1, right: 2, bottom: 3, left: 4 }
+      testStyleValue(property, { uri: testUri, capInsets }, { id: testUri, uri: testUri, capInsets })
+    })
+    it('should reject invalid value', () => {
+      const inputs = [
+        null,
+        undefined,
+        3,
+        '',
+        NaN,
+        {},
+        { id: 'x' },
+        { uri: 3 }
+      ]
+
+      inputs.forEach(input => testStyleValueNull(property, input))
     })
   })
 })

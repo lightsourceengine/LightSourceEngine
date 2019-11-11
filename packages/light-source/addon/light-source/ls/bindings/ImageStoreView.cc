@@ -71,40 +71,14 @@ void ImageStoreView::Add(const CallbackInfo& info) {
     auto env{ info.Env() };
     HandleScope scope(env);
     ImageUri imageUri;
+    auto arg{ info[0] };
 
-    if (info[0].IsString()) {
-        imageUri = { info[0].As<String>().Utf8Value() };
-    } else if (info[0].IsObject()) {
-        auto options{ info[0].As<Object>() };
-        auto uri{ ObjectGetString(options, "uri") };
-        auto id{ ObjectGetStringOrEmpty(options, "id") };
-        auto capInsetsValue{ options.Get("capInsets") };
-        EdgeRect capInsets;
+    if (arg.IsString() || arg.IsObject()) {
+        imageUri = ImageUri::Unbox(arg);
 
-        if (capInsetsValue.IsObject()) {
-            auto capInsetsObject{ capInsetsValue.As<Object>() };
-
-            capInsets = {
-                ObjectGetNumberOrDefault(capInsetsObject, "top", 0),
-                ObjectGetNumberOrDefault(capInsetsObject, "right", 0),
-                ObjectGetNumberOrDefault(capInsetsObject, "bottom", 0),
-                ObjectGetNumberOrDefault(capInsetsObject, "left", 0),
-            };
-        } else if (capInsetsValue.IsNumber()) {
-            const int32_t value{ capInsetsValue.As<Number>() };
-
-            capInsets = { value, value, value, value };
-        } else {
-            capInsets = {};
+        if (imageUri.IsEmpty()) {
+            throw Error::New(env, "Invalid image uri specified.");
         }
-
-        imageUri = {
-            uri,
-            id.empty() ? uri : id,
-            ObjectGetNumberOrDefault(options, "width", 0),
-            ObjectGetNumberOrDefault(options, "height", 0),
-            capInsets
-        };
     } else {
         throw Error::New(env, "Expected an image uri specified string or object.");
     }
@@ -118,11 +92,7 @@ Value ImageStoreView::List(const CallbackInfo& info) {
     auto imageList{ Array::New(env) };
 
     this->scene->GetImageStore()->ForEach([&](const std::shared_ptr<ImageResource>& resource) {
-        auto info{ resource->ToObject(env).As<Object>() };
-
-        info["refs"] = Number::New(env, static_cast<int32_t >(resource.use_count() - 2));
-
-        imageList[imageList.Length()] = info;
+        imageList[imageList.Length()] = ImageUri::Box(env, resource->GetUri());
     });
 
     return scope.Escape(imageList);

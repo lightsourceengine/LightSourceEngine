@@ -72,7 +72,7 @@ class Style : public Napi::ObjectWrap<Style> {
         LS_NUMBER_PROPERTY(BASE##Bottom, CONSTRAINT, DEFAULT_VALUE)                           \
         LS_NUMBER_PROPERTY(BASE##Left, CONSTRAINT, DEFAULT_VALUE)
 
-    LS_STRING_PROPERTY(backgroundImage)
+    LS_PROPERTY(backgroundImage, StyleValueImageUri, {}, StyleValueImageUri::Box, StyleValueImageUri::Unbox)
     LS_STRING_PROPERTY(fontFamily)
 
     LS_COLOR_PROPERTY(backgroundColor)

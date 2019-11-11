@@ -18,6 +18,7 @@ using Napi::Array;
 using Napi::Call;
 using Napi::CallbackInfo;
 using Napi::Error;
+using Napi::EscapableHandleScope;
 using Napi::Function;
 using Napi::FunctionReference;
 using Napi::HandleScope;
@@ -67,14 +68,21 @@ Function ImageSceneNode::Constructor(Napi::Env env) {
 }
 
 Value ImageSceneNode::GetSource(const CallbackInfo& info) {
-    if (this->uri.GetId().empty()) {
-        return info.Env().Null();
+    auto env{ info.Env() };
+    Napi::Value result;
+    EscapableHandleScope scope(env);
+
+    if (this->uri.IsEmpty()) {
+        result = env.Null();
     } else {
-        return this->uri.ToObject(info.Env());
+        result = ImageUri::Box(env, this->uri);
     }
+
+    return scope.Escape(result);
 }
 
 void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& value) {
+    HandleScope scope(info.Env());
     const std::string src{ value.IsString() ? value.As<String>().Utf8Value() : "" };
 
     if (src.empty()) {

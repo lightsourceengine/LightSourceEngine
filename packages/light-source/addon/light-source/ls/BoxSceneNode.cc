@@ -64,7 +64,7 @@ void BoxSceneNode::OnPropertyChanged(StyleProperty property) {
 }
 
 void BoxSceneNode::BeforeLayout() {
-    this->UpdateBackgroundImage(this->style->backgroundImage);
+    this->UpdateBackgroundImage(this->style->backgroundImage.value);
 }
 
 void BoxSceneNode::AfterLayout() {
@@ -137,8 +137,8 @@ void BoxSceneNode::Paint(Renderer* renderer) {
     this->QueueComposite();
 }
 
-void BoxSceneNode::UpdateBackgroundImage(const std::string& imageUri) {
-    if (imageUri.empty()) {
+void BoxSceneNode::UpdateBackgroundImage(const ImageUri& imageUri) {
+    if (imageUri.IsEmpty()) {
         if (this->backgroundImage) {
             this->QueuePaint();
         }
@@ -148,7 +148,7 @@ void BoxSceneNode::UpdateBackgroundImage(const std::string& imageUri) {
         return;
     }
 
-    if (this->backgroundImage && this->backgroundImage->GetUri().GetId() == imageUri) {
+    if (this->backgroundImage && this->backgroundImage->GetUri() == imageUri) {
         return;
     }
 

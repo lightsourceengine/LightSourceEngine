@@ -193,6 +193,24 @@ StyleValueTransform StyleValueTransform::Unbox(const Napi::Value& value) {
     return transform;
 }
 
+Napi::Value StyleValueImageUri::Box(Napi::Env env, const StyleValueImageUri& value) {
+    if (value.empty()) {
+        return env.Null();
+    } else {
+        return ImageUri::Box(env, value.value);
+    }
+}
+
+StyleValueImageUri StyleValueImageUri::Unbox(const Napi::Value& value) {
+    if (value.IsNull() || value.IsUndefined()) {
+        return {};
+    } else {
+        return {
+            ImageUri::Unbox(value)
+        };
+    }
+}
+
 Napi::Value StyleValueNumber::Box(Napi::Env env, const StyleValueNumber& value) {
     auto array{ Array::New(env, 2) };
 

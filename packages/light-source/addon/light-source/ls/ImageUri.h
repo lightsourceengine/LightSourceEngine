@@ -26,9 +26,10 @@ class ImageUri {
     int32_t GetHeight() const noexcept { return this->height; }
     const EdgeRect& GetCapInsets() const noexcept { return this->capInsets; }
     bool HasCapInsets() const noexcept { return this->hasCapInsets; }
+    bool IsEmpty() const noexcept { return this->uri.empty(); }
 
-    Napi::Value ToObject(const Napi::Env& env) const;
-    static ImageUri FromObject(const Napi::Object& spec);
+    static Napi::Value Box(Napi::Env env, const ImageUri& value);
+    static ImageUri Unbox(const Napi::Value& value);
 
     bool operator==(const ImageUri& rhs) const noexcept { return this->GetId() == rhs.GetId(); }
 

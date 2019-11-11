@@ -144,16 +144,6 @@ void ImageResource::Load() {
     this->SetState(ResourceStateLoading, true);
 }
 
-Value ImageResource::ToObject(const Napi::Env& env) const {
-    EscapableHandleScope scope(env);
-    auto image{ this->GetUri().ToObject(env).As<Object>() };
-
-    image["state"] = String::New(env, ResourceStateToString(this->resourceState));
-    image["hasTexture"] = Boolean::New(env, !!this->texture);
-
-    return scope.Escape(image);
-}
-
 static bool HasSvgHeader(const CFile& file) {
     uint8_t header[32];
 

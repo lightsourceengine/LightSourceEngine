@@ -6,6 +6,7 @@
 
 #include "ImageUri.h"
 #include <napi-ext.h>
+#include <algorithm>
 
 using Napi::EscapableHandleScope;
 using Napi::Number;
@@ -18,14 +19,7 @@ using Napi::Value;
 
 namespace ls {
 
-EdgeRect ToCapInsets(const Object& spec) noexcept {
-    return {
-        ObjectGetNumberOrDefault(spec, "top", 0),
-        ObjectGetNumberOrDefault(spec, "right", 0),
-        ObjectGetNumberOrDefault(spec, "bottom", 0),
-        ObjectGetNumberOrDefault(spec, "left", 0),
-    };
-}
+EdgeRect UnboxCapInsets(const Value& value);
 
 ImageUri::ImageUri(const std::string& uri) noexcept : uri(uri) {
 }
@@ -44,46 +38,76 @@ ImageUri::ImageUri(
       hasCapInsets(capInsets.top || capInsets.right || capInsets.bottom || capInsets.left) {
 }
 
-ImageUri ImageUri::FromObject(const Object& spec) {
-    const auto uri{ ObjectGetString(spec, "uri") };
-    const auto id{ ObjectGetStringOrEmpty(spec, "id") };
-    const auto width{ std::max(ObjectGetNumberOrDefault(spec, "width", 0), 0) };
-    const auto height{ std::max(ObjectGetNumberOrDefault(spec, "height", 0), 0) };
+Napi::Value ImageUri::Box(Napi::Env env, const ImageUri& value) {
+    auto result{ Object::New(env) };
 
-    if (spec.Has("capInsets") && spec.Get("capInsets").IsObject()) {
-        return ImageUri(uri, id, width, height, ToCapInsets(spec.Get("capInsets").As<Object>()));
+    result["id"] = String::New(env, value.GetId());
+    result["uri"] = String::New(env, value.GetUri());
+
+    if (value.width > 0) {
+        result["width"] = Number::New(env, value.width);
     }
 
-    return ImageUri(uri, id, width, height);
-}
-
-Value ImageUri::ToObject(const Napi::Env& env) const {
-    EscapableHandleScope scope(env);
-    auto imageUri{ Object::New(env) };
-
-    imageUri["id"] = String::New(env, this->GetId());
-    imageUri["uri"] = String::New(env, this->GetUri());
-
-    if (this->width > 0) {
-        imageUri["width"] = Number::New(env, this->width);
+    if (value.height > 0) {
+        result["height"] = Number::New(env, value.height);
     }
 
-    if (this->height > 0) {
-        imageUri["height"] = Number::New(env, this->height);
-    }
-
-    if (this->HasCapInsets()) {
+    if (value.HasCapInsets()) {
         auto capInsets{ Object::New(env) };
 
-        capInsets["top"] = Number::New(env, this->capInsets.top);
-        capInsets["right"] = Number::New(env, this->capInsets.right);
-        capInsets["bottom"] = Number::New(env, this->capInsets.bottom);
-        capInsets["left"] = Number::New(env, this->capInsets.left);
+        capInsets["top"] = Number::New(env, value.capInsets.top);
+        capInsets["right"] = Number::New(env, value.capInsets.right);
+        capInsets["bottom"] = Number::New(env, value.capInsets.bottom);
+        capInsets["left"] = Number::New(env, value.capInsets.left);
 
-        imageUri["capInsets"] = capInsets;
+        result["capInsets"] = capInsets;
     }
 
-    return scope.Escape(imageUri);
+    return result;
+}
+
+ImageUri ImageUri::Unbox(const Napi::Value& value) {
+    if (value.IsString()) {
+        return {
+            ImageUri(value.As<String>())
+        };
+    }
+
+    auto spec{ value.As<Object>() };
+
+    return {
+        ObjectGetStringOrEmpty(spec, "uri"),
+        ObjectGetStringOrEmpty(spec, "id"),
+        std::max(ObjectGetNumberOrDefault(spec, "width", 0), 0),
+        std::max(ObjectGetNumberOrDefault(spec, "height", 0), 0),
+        UnboxCapInsets(spec.Get("capInsets"))
+    };
+}
+
+EdgeRect UnboxCapInsets(const Value& value) {
+    if (value.IsNumber()) {
+        const auto component{ std::max(value.As<Number>().Int32Value(), 0) };
+
+        return {
+            component,
+            component,
+            component,
+            component
+        };
+    }
+
+    if (!value.IsObject()) {
+        return {};
+    }
+
+    auto spec{ value.As<Object>() };
+
+    return {
+        std::max(ObjectGetNumberOrDefault<int32_t>(spec, "top", 0), 0),
+        std::max(ObjectGetNumberOrDefault<int32_t>(spec, "right", 0), 0),
+        std::max(ObjectGetNumberOrDefault<int32_t>(spec, "bottom", 0), 0),
+        std::max(ObjectGetNumberOrDefault<int32_t>(spec, "left", 0), 0),
+    };
 }
 
 } // namespace ls

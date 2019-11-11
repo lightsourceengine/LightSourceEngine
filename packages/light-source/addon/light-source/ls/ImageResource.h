@@ -39,8 +39,6 @@ class ImageResource : public Resource<std::string> {
 
     bool Sync(Renderer* renderer);
 
-    Napi::Value ToObject(const Napi::Env& env) const;
-
  private:
     void Load();
     void Attach(Scene* scene);

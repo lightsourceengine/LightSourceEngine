@@ -9,6 +9,7 @@
 #include <napi.h>
 #include "Resource.h"
 #include "SceneNode.h"
+#include "ImageUri.h"
 
 namespace ls {
 
@@ -31,10 +32,10 @@ class BoxSceneNode : public Napi::ObjectWrap<BoxSceneNode>, public SceneNode {
 
  private:
     void DestroyRecursive() override;
-    void UpdateBackgroundImage(const std::string& imageUri);
+    void UpdateBackgroundImage(const ImageUri& imageUri);
 
  private:
-    std::string backgroundImageUri;
+    ImageUri backgroundImageUri;
     ResourceLink<ImageResource> backgroundImage;
 };
 
