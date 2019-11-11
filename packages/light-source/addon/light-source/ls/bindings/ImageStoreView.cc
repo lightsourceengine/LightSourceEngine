@@ -122,7 +122,7 @@ void ImageStoreView::SetExtensions(const CallbackInfo& info, const Napi::Value& 
 
         extensions.reserve(size);
 
-        for (decltype(size) i = 0; i < size; i++) {
+        for (uint32_t i = 0; i < size; i++) {
             extensions.emplace_back(array.Get(i).As<String>().Utf8Value());
         }
     } else if (value.IsNull() || value.IsUndefined()) {
