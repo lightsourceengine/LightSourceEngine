@@ -187,6 +187,7 @@ void SceneNode::RemoveChild(const CallbackInfo& info) {
 
 void SceneNode::AppendChild(SceneNode* child) {
     this->children.push_back(child);
+    this->sortedChildren.clear();
     child->AsReference()->Ref();
     child->SetParent(this);
 
@@ -211,6 +212,7 @@ void SceneNode::InsertBefore(SceneNode* child, SceneNode* before) {
     }
 
     this->children.insert(this->children.begin() + beforeIndex, child);
+    this->sortedChildren.clear();
 
     reference->Ref();
     child->SetParent(this);
@@ -226,6 +228,7 @@ void SceneNode::RemoveChild(SceneNode* child) {
     YGNodeRemoveChild(this->ygNode, child->ygNode);
     // TODO: remove from scene queues?
     this->children.erase(std::remove(this->children.begin(), this->children.end(), child), this->children.end());
+    this->sortedChildren.clear();
     child->AsReference()->Unref();
     child->SetParent(nullptr);
 }
@@ -258,6 +261,7 @@ void SceneNode::DestroyRecursive() {
     }
 
     this->children.clear();
+    this->sortedChildren.clear();
     this->SetParent(nullptr);
 
     if (this->ygNode) {
@@ -277,6 +281,10 @@ void SceneNode::DestroyRecursive() {
 }
 
 void SceneNode::Composite(CompositeContext* context) {
+    if (this->children.empty()) {
+        return;
+    }
+
     const auto bounds{ YGNodeLayoutGetRect(this->ygNode) };
     const auto clip{ this->GetStyleOrEmpty()->overflow == YGOverflowHidden };
 
@@ -287,7 +295,7 @@ void SceneNode::Composite(CompositeContext* context) {
         context->renderer->SetClipRect(context->CurrentClipRect());
     }
 
-    for (auto& child : this->children) {
+    for (auto& child : this->SortChildrenByStackingOrder()) {
         child->Composite(context);
     }
 
@@ -296,6 +304,17 @@ void SceneNode::Composite(CompositeContext* context) {
     }
 
     context->PopMatrix();
+}
+
+void SceneNode::OnPropertyChanged(StyleProperty property) {
+    switch (property) {
+        case StyleProperty::transform:
+        case StyleProperty::zIndex:
+            this->sortedChildren.clear();
+            break;
+        default:
+            break;
+    }
 }
 
 void SceneNode::Layout(float width, float height) {
@@ -374,6 +393,42 @@ void SceneNode::Blur(const CallbackInfo& info) {
     HandleScope scope(info.Env());
 
     this->scene->SetActiveNode(info.Env().Null());
+}
+
+bool SceneNode::HasTransform() const noexcept {
+    return this->style && !this->style->transform.empty();
+}
+
+int32_t SceneNode::GetZIndex() const noexcept {
+    return this->style ? this->style->zIndex.AsInt32(0) : 0;
+}
+
+const std::vector<SceneNode*>& SceneNode::SortChildrenByStackingOrder() {
+    if (!this->sortedChildren.empty()) {
+        // already sorted
+        return this->sortedChildren;
+    }
+
+    this->sortedChildren.reserve(this->children.size());
+    std::copy(this->children.begin(), this->children.end(), std::back_inserter(this->sortedChildren));
+
+    // use stable_sort to preserve the original order of nodes when z-indexes are the same
+    std::stable_sort(this->sortedChildren.begin(), this->sortedChildren.end(), [](SceneNode* a, SceneNode* b) {
+        const auto aHasTransform{ a->HasTransform() };
+
+        if (aHasTransform != b->HasTransform()) {
+            // nodes with transform always drawn above nodes with no transform
+            //
+            // if a has transform and b not has transform, then a is less than b
+            // if b has transform and a not has transform, then a is less than b
+            return !aHasTransform;
+        }
+
+        // by default, nodes have a z-index of 0
+        return a->GetZIndex() < b->GetZIndex();
+    });
+
+    return this->sortedChildren;
 }
 
 } // namespace ls

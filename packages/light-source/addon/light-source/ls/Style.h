@@ -115,6 +115,7 @@ class Style : public Napi::ObjectWrap<Style> {
     LS_NUMBER_PROPERTY(opacity, OpacityConstraint, {})
     LS_NUMBER_PROPERTY(transformOriginX, ObjectPositionConstraint, {})
     LS_NUMBER_PROPERTY(transformOriginY, ObjectPositionConstraint, {})
+    LS_NUMBER_PROPERTY(zIndex, ZIndexConstraint, {})
 
     LS_TRANSFORM_PROPERTY(transform)
 

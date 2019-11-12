@@ -49,7 +49,7 @@ class SceneNode {
     void Destroy();
     void Layout(float width, float height);
 
-    virtual void OnPropertyChanged(StyleProperty property) = 0;
+    virtual void OnPropertyChanged(StyleProperty property);
     virtual void BeforeLayout() = 0;
     virtual void AfterLayout() = 0;
     virtual void Paint(Renderer* renderer) = 0;
@@ -77,10 +77,14 @@ class SceneNode {
     void QueueAfterLayout();
     void QueueBeforeLayout();
     void QueueComposite();
+    const std::vector<SceneNode*>& SortChildrenByStackingOrder();
+    bool HasTransform() const noexcept;
+    int32_t GetZIndex() const noexcept;
 
  protected:
     static int instanceCount;
     std::vector<SceneNode*> children;
+    std::vector<SceneNode*> sortedChildren;
     std::shared_ptr<Texture> layer;
     YGNodeRef ygNode{};
     Scene* scene{};

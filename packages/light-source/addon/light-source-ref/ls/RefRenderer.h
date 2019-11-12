@@ -26,6 +26,8 @@ class RefRenderer : public Renderer {
     void DrawFillRect(const Rect& rect, const uint32_t fillColor) override;
     void DrawBorder(const Rect& rect, const EdgeRect& border, const uint32_t borderColor) override;
     void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const uint32_t tintColor) override;
+    void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect,
+        const Matrix& transform, uint32_t tintColor) override;
     void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const EdgeRect& capInsets,
         const uint32_t tintColor) override;
     void DrawQuad(const std::shared_ptr<Texture>& texture, const Rect& srcRect, const Rect& destRect,

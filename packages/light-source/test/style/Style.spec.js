@@ -402,6 +402,27 @@ describe('Style', () => {
       inputs.forEach(input => testStyleValueNull(property, input))
     })
   })
+  describe('zIndex property', () => {
+    const property = 'zIndex'
+    it('should set positive value', () => {
+      testStyleUnitValue(property, 1, Style.UnitPoint, 1)
+    })
+    it('should set negative value', () => {
+      testStyleUnitValue(property, -1, Style.UnitPoint, -1)
+    })
+    it('should reject invalid value', () => {
+      const inputs = [
+        '',
+        '3',
+        null,
+        undefined,
+        NaN,
+        {}
+      ]
+
+      inputs.forEach(i => testStyleValueEmpty(property, i))
+    })
+  })
 })
 
 const xDirection = 1

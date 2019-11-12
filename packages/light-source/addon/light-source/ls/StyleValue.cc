@@ -32,6 +32,28 @@ static CStringHashMap<uint32_t> InitColorMap();
 static CStringHashMap<StyleNumberUnit> sUnitMap = InitUnitMap();
 static CStringHashMap<uint32_t> sColorMap = InitColorMap();
 
+constexpr float ComputeRotateAngle(float value, StyleNumberUnit unit) {
+    switch (unit) {
+        case StyleNumberUnitDegree:
+            return value * (std20::pi_v<float> / 180.f);
+        case StyleNumberUnitGradian:
+            return value * (std20::pi_v<float> / 200.f);
+        case StyleNumberUnitTurn:
+            return value * 2 * std20::pi_v<float>;
+        default:
+            return value; // radians
+    }
+}
+
+constexpr float ComputeTranslateAxis(float value, StyleNumberUnit unit, float containerLength) {
+    switch (unit) {
+        case StyleNumberUnitPercent:
+            return (value / 100.f) * containerLength;
+        default:
+            return value;
+    }
+}
+
 Napi::Value StyleValueColor::Box(Napi::Env env, const StyleValueColor& value) {
     if (value.undefined) {
         return env.Undefined();
@@ -191,6 +213,31 @@ StyleValueTransform StyleValueTransform::Unbox(const Napi::Value& value) {
     }
 
     return transform;
+}
+
+Matrix StyleValueTransform::ToMatrix(float containerWidth, float containerHeight) const noexcept {
+    Matrix result{ Matrix::Identity() };
+
+    for (auto& t : this->values) {
+        switch (t.type) {
+            case StyleTransformIdentity:
+                result *= Matrix::Identity();
+                break;
+            case StyleTransformTranslate:
+                result *= Matrix::Translate(
+                    ComputeTranslateAxis(t.value1, t.unit1, containerWidth),
+                    ComputeTranslateAxis(t.value2, t.unit2, containerHeight));
+                break;
+            case StyleTransformScale:
+                result *= Matrix::Scale(t.value1, t.value2);
+                break;
+            case StyleTransformRotate:
+                result *= Matrix::Rotate(ComputeRotateAngle(t.value1, t.unit1));
+                break;
+        }
+    }
+
+    return result;
 }
 
 Napi::Value StyleValueImageUri::Box(Napi::Env env, const StyleValueImageUri& value) {

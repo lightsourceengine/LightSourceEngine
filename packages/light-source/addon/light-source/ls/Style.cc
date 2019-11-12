@@ -143,6 +143,9 @@ void Style::Assign(const Style* other) noexcept {
     LS_PROPERTY_COMPARE(textOverflow);
     LS_PROPERTY_COMPARE(textTransform);
     LS_PROPERTY_COMPARE(tintColor);
+    LS_PROPERTY_COMPARE(transform);
+    LS_PROPERTY_COMPARE(transformOriginX);
+    LS_PROPERTY_COMPARE(transformOriginY);
 
     #undef LS_PROPERTY_COMPARE
 }
@@ -452,6 +455,7 @@ void Style::Init(Napi::Env env) {
         LS_ADD_PROPERTY(transform),
         LS_ADD_PROPERTY(transformOriginX),
         LS_ADD_PROPERTY(transformOriginY),
+        LS_ADD_PROPERTY(zIndex),
         #undef LS_ADD_PROPERTY
 
         StaticValue("UnitUndefined", Number::New(env, StyleNumberUnitUndefined)),

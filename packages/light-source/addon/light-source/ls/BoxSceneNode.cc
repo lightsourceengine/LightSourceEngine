@@ -61,6 +61,8 @@ void BoxSceneNode::OnPropertyChanged(StyleProperty property) {
             }
             break;
     }
+
+    SceneNode::OnPropertyChanged(property);
 }
 
 void BoxSceneNode::BeforeLayout() {
@@ -81,13 +83,14 @@ void BoxSceneNode::Composite(CompositeContext* context) {
         return;
     }
 
-    const auto& transform{ context->CurrentMatrix() };
-    auto rect{ YGNodeLayoutGetRect(this->ygNode) };
+    const auto boxStyle{ this->GetStyleOrEmpty() };
+    const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
 
-    rect.x += transform.GetTranslateX();
-    rect.y += transform.GetTranslateY();
-
-    context->renderer->DrawImage(this->layer, rect, RGB(255, 255, 255));
+    context->renderer->DrawImage(
+        this->layer,
+        rect,
+        context->CurrentMatrix() * boxStyle->transform.ToMatrix(rect.width, rect.height),
+        RGB(255, 255, 255));
 
     SceneNode::Composite(context);
 }

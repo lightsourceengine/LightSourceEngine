@@ -9,6 +9,7 @@
 #include <ls/Rect.h>
 #include <ls/Surface.h>
 #include <ls/Texture.h>
+#include <ls/Matrix.h>
 #include <ls/PixelFormat.h>
 #include <cstdint>
 #include <memory>
@@ -75,6 +76,12 @@ class Renderer {
      * Draw an image.
      */
     virtual void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const uint32_t tintColor) = 0;
+
+    /**
+     * Draw an image.
+     */
+    virtual void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect,
+        const Matrix& transform, uint32_t tintColor) = 0;
 
     /**
      * Draw an image with end-cap insets.

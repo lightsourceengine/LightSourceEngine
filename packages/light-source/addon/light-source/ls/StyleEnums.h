@@ -182,7 +182,8 @@ LS_ENUM_SEQ_DECL(
     tintColor,
     transform,
     transformOriginX,
-    transformOriginY
+    transformOriginY,
+    zIndex
 )
 
 constexpr bool IsYogaLayoutProperty(StyleProperty property) noexcept {

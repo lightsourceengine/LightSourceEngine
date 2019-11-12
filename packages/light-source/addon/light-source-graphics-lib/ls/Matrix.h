@@ -108,6 +108,11 @@ struct Matrix {
             c * other.a + d * other.c, c * other.b + d * other.d, c * other.x + d * other.y + y,
         };
     }
+
+    Matrix& operator*=(const Matrix &other) noexcept {
+        *this = *this * other;
+        return *this;
+    }
 };
 
 } // namespace ls

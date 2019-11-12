@@ -13,6 +13,7 @@
         "../light-source-graphics-lib",
         "../light-source-stage-lib",
         "../light-source-util-lib",
+        "../deps/cpp17_headers/include",
       ],
       "dependencies": [
         "napi-ext-lib",

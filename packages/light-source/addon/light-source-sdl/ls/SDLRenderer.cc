@@ -17,6 +17,7 @@ namespace ls {
 static void SetTextureTintColor(SDL_Texture* texture, const uint32_t color) noexcept;
 static SDL_Texture* ToRawTexture(const std::shared_ptr<Texture>& texture) noexcept;
 static SDL_Rect ToSDLRect(const Rect& rect) noexcept;
+static SDL_Rect ToSDLRect(const Rect& rect, float tx, float ty) noexcept;
 
 SDLRenderer::SDLRenderer() {
     SDL_RendererInfo info;
@@ -98,6 +99,27 @@ void SDLRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect&
     SetTextureTintColor(texturePtr, tintColor);
 
     SDL_RenderCopy(this->renderer, texturePtr, nullptr, &destRect);
+}
+
+void SDLRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect,
+        const Matrix& transform, uint32_t tintColor) {
+    if (!texture) {
+        return;
+    }
+
+    const auto texturePtr{ ToRawTexture(texture) };
+    const SDL_Rect destRect{ ToSDLRect(rect, transform.GetTranslateX(), transform.GetTranslateY()) };
+
+    SetTextureTintColor(texturePtr, tintColor);
+
+    SDL_RenderCopyEx(
+        this->renderer,
+        texturePtr,
+        nullptr,
+        &destRect,
+        transform.GetAxisAngleDeg(),
+        nullptr,
+        SDL_FLIP_NONE);
 }
 
 void SDLRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const EdgeRect& capInsets,
@@ -366,6 +388,15 @@ static SDL_Rect ToSDLRect(const Rect& rect) noexcept {
     return {
         static_cast<int32_t>(rect.x),
         static_cast<int32_t>(rect.y),
+        static_cast<int32_t>(rect.width),
+        static_cast<int32_t>(rect.height),
+    };
+}
+
+static SDL_Rect ToSDLRect(const Rect& rect, float tx, float ty) noexcept {
+    return {
+        static_cast<int32_t>(rect.x + tx),
+        static_cast<int32_t>(rect.y + ty),
         static_cast<int32_t>(rect.width),
         static_cast<int32_t>(rect.height),
     };

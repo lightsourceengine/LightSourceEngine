@@ -67,6 +67,9 @@ struct StyleValueNumber {
     // Value conversion methods.
     float AsPercent() const noexcept { return this->value / 100.f; }
     int32_t AsInt32() const noexcept { return static_cast<int32_t>(this->value); }
+    int32_t AsInt32(int32_t defaultValue) const noexcept {
+        return this->empty() ? defaultValue : static_cast<int32_t>(this->value);
+    }
 
     // operators
     StyleValueNumber& operator=(const StyleValueNumber&) = default;
@@ -105,6 +108,7 @@ struct StyleValueTransform {
 
     // Check if the color value is not defined.
     bool empty() const noexcept { return this->values.empty(); }
+    Matrix ToMatrix(float containerWidth, float containerHeight) const noexcept;
 };
 
 /**
@@ -194,6 +198,13 @@ struct OpacityConstraint {
             default:
                 return false;
         }
+    }
+};
+
+
+struct ZIndexConstraint {
+    bool operator()(const StyleValueNumber& value) noexcept {
+        return value.unit == StyleNumberUnitPoint;
     }
 };
 

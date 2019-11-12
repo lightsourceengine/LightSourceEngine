@@ -8,7 +8,9 @@
 
 namespace ls {
 
-CompositeContext::CompositeContext() : matrix(16), clipRect(16) {
+CompositeContext::CompositeContext() {
+    this->matrix.reserve(16);
+    this->clipRect.reserve(16);
     this->matrix.emplace_back(Matrix::Identity());
 }
 
@@ -19,7 +21,7 @@ void CompositeContext::Reset(Renderer* renderer) {
 }
 
 void CompositeContext::PushMatrix(const Matrix& m) {
-    this->matrix.emplace_back(this->matrix.back() * m);
+    this->matrix.push_back(this->matrix.back() * m);
 }
 
 void CompositeContext::PopMatrix() {

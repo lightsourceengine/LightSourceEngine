@@ -57,6 +57,8 @@ void RootSceneNode::OnPropertyChanged(StyleProperty property) {
             }
             break;
     }
+
+    SceneNode::OnPropertyChanged(property);
 }
 
 void RootSceneNode::AfterLayout() {

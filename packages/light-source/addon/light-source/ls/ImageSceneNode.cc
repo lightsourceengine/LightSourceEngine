@@ -177,6 +177,8 @@ void ImageSceneNode::OnPropertyChanged(StyleProperty property) {
             }
             break;
     }
+
+    SceneNode::OnPropertyChanged(property);
 }
 
 void ImageSceneNode::BeforeLayout() {
@@ -257,27 +259,26 @@ void ImageSceneNode::Composite(CompositeContext* context) {
     }
 
     const auto boxStyle{ this->GetStyleOrEmpty() };
-    const auto& transform{ context->CurrentMatrix() };
-    const auto tx{ transform.GetTranslateX() };
-    const auto ty{ transform.GetTranslateY() };
+    const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
 
-    if (this->layer) {
+//    if (this->layer) {
         context->renderer->DrawImage(
             this->layer,
-            YGNodeLayoutGetRect(this->ygNode, tx, ty),
+            rect,
+            context->CurrentMatrix() * boxStyle->transform.ToMatrix(rect.width, rect.height),
             RGB(255, 255, 255));
-    } else {
-        const auto tintColor{ boxStyle->tintColor.ValueOr(RGB(255, 255, 255)) };
-        auto dest{ this->destRect };
-
-        dest.x += tx;
-        dest.y += ty;
-
-        // TODO: must do a manual clip of dest rect!
-        context->PushClipRect(YGNodeLayoutGetRect(this->ygNode, tx, ty));
-        context->renderer->DrawImage(this->image->GetTexture(), dest, tintColor);
-        context->PopClipRect();
-    }
+//    } else {
+//        const auto tintColor{ boxStyle->tintColor.ValueOr(RGB(255, 255, 255)) };
+//        auto dest{ this->destRect };
+//
+//        dest.x += tx;
+//        dest.y += ty;
+//
+//        // TODO: must do a manual clip of dest rect!
+//        context->PushClipRect(YGNodeLayoutGetRect(this->ygNode, tx, ty));
+//        context->renderer->DrawImage(this->image->GetTexture(), dest, tintColor);
+//        context->PopClipRect();
+//    }
 }
 
 void ImageSceneNode::DestroyRecursive() {

@@ -60,6 +60,10 @@ void RefRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const uin
 void RefRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const uint32_t tintColor) {
 }
 
+void RefRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect,
+               const Matrix& transform, uint32_t tintColor) {
+}
+
 void RefRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const EdgeRect& capInsets,
         const uint32_t tintColor) {
 }
