@@ -171,6 +171,12 @@ void ImageSceneNode::OnPropertyChanged(StyleProperty property) {
         case StyleProperty::objectPositionY:
             this->QueueAfterLayout();
             break;
+        case StyleProperty::transform:
+        case StyleProperty::transformOriginX:
+        case StyleProperty::transformOriginY:
+        case StyleProperty::opacity:
+            this->QueueComposite();
+            break;
         default:
             if (IsYogaLayoutProperty(property)) {
                 this->QueueAfterLayout();

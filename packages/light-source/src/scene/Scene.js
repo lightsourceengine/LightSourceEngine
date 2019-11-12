@@ -19,7 +19,8 @@ import {
   $events,
   $hasFocus,
   $emit,
-  $image
+  $image,
+  $frame
 } from '../util/InternalSymbols'
 import { BlurEvent } from '../event/BlurEvent'
 import { FocusEvent } from '../event/FocusEvent'
@@ -27,6 +28,10 @@ import { performance } from 'perf_hooks'
 import { eventBubblePhase } from '../event/eventBubblePhase'
 
 const { now } = performance
+const $frameListenersForeground = Symbol.for('frameListenersForeground')
+const $frameListenersBackground = Symbol.for('frameListenersBackground')
+const sEmptyRafEntry = Object.freeze([0, null])
+let sNextFrameRequestId = 1
 
 export class Scene extends SceneBase {
   constructor (stage, displayIndex, width, height, fullscreen) {
@@ -36,6 +41,8 @@ export class Scene extends SceneBase {
     this[$events] = new EventEmitter()
     this[$activeNode] = null
     this[$image] = new ImageStoreView(this)
+    this[$frameListenersForeground] = []
+    this[$frameListenersBackground] = []
 
     const { style } = this.root
 
@@ -119,6 +126,44 @@ export class Scene extends SceneBase {
     super.resize(width, height, fullscreen)
   }
 
+  requestAnimationFrame (callback) {
+    const requestId = sNextFrameRequestId++
+
+    this[$frameListenersForeground].push([requestId, callback])
+
+    return requestId
+  }
+
+  cancelAnimationFrame (requestId) {
+    removeAnimationFrameListener(requestId, this[$frameListenersForeground])
+
+    // use case: calling cancel in a raf() callback
+    removeAnimationFrameListener(requestId, this[$frameListenersBackground])
+  }
+
+  [$frame] (delta) {
+    if (this[$frameListenersForeground].length) {
+      // - background listener list should be empty here
+      // - swap background and foreground -> background listeners will be processed right now. any listeners added
+      //    during processing will be added to foreground and processed next frame (so user can call raf() in
+      //    raf callbacks)
+
+      swapPropValues(this, $frameListenersForeground, $frameListenersBackground)
+
+      for (const [, callback] of this[$frameListenersBackground]) {
+        try {
+          callback && callback(delta)
+        } catch (e) {
+          // TODO: exception in user callback.. log?
+        }
+      }
+
+      this[$frameListenersBackground].length = 0
+    }
+
+    super[$frame](delta)
+  }
+
   [$emit] (event) {
     this[$events].emit(event)
   }
@@ -154,4 +199,20 @@ const setHasFocus = (node, value) => {
     node.waypoint && node.waypoint.sync(node)
     node = node.parent
   }
+}
+
+const removeAnimationFrameListener = (requestId, listeners) => {
+  const index = listeners.findIndex(value => value[0] === requestId)
+
+  if (index >= 0) {
+    // Just clear the listener and preserve the array structure, as the frame may be processing this list right now
+    listeners[index] = sEmptyRafEntry
+  }
+}
+
+const swapPropValues = (obj, prop1, prop2) => {
+  const t = obj[prop1]
+
+  obj[prop1] = obj[prop2]
+  obj[prop2] = t
 }

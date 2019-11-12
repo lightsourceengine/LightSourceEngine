@@ -108,4 +108,41 @@ describe('Scene', () => {
       assert.isTrue(node.onBlur.called)
     })
   })
+  describe('requestAnimationFrame()', () => {
+    it('should return requestId > 0', () => {
+      const requestId = scene.requestAnimationFrame(() => {})
+
+      assert.isAbove(requestId, 0)
+    })
+    it('should call callback on the next frame', (done) => {
+      scene.requestAnimationFrame(() => done())
+      scene.stage.start()
+    })
+    it('should be schedulable in callback', (done) => {
+      scene.requestAnimationFrame(() => {
+        scene.requestAnimationFrame(() => done())
+      })
+      scene.stage.start()
+    })
+  })
+  describe('cancelAnimationFrame()', () => {
+    it('should cancel a request', () => {
+      const requestId = scene.requestAnimationFrame(() => {})
+
+      scene.cancelAnimationFrame(requestId)
+    })
+    it('should cancel within callback', (done) => {
+      scene.requestAnimationFrame(() => {
+        scene.cancelAnimationFrame(toCancel)
+      })
+
+      const toCancel = scene.requestAnimationFrame(() => {
+        assert.fail('should not have been called')
+      })
+
+      scene.requestAnimationFrame(() => done())
+
+      scene.stage.start()
+    })
+  })
 })

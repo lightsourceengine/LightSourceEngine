@@ -54,6 +54,12 @@ void BoxSceneNode::OnPropertyChanged(StyleProperty property) {
         case StyleProperty::borderColor:
             this->QueuePaint();
             break;
+        case StyleProperty::transform:
+        case StyleProperty::transformOriginX:
+        case StyleProperty::transformOriginY:
+        case StyleProperty::opacity:
+            this->QueueComposite();
+            break;
         // TODO: add background fields
         default:
             if (IsYogaLayoutProperty(property)) {

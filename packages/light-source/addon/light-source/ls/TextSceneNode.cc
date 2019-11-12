@@ -98,6 +98,9 @@ void TextSceneNode::OnPropertyChanged(StyleProperty property) {
         case StyleProperty::color:
             this->QueuePaint();
             break;
+        case StyleProperty::transform:
+        case StyleProperty::transformOriginX:
+        case StyleProperty::transformOriginY:
         case StyleProperty::opacity:
             this->QueueComposite();
             break;
