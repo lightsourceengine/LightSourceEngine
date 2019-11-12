@@ -37,6 +37,10 @@ static int32_t GetMaxLines(Style* style) noexcept;
 static std::string TextTransform(const Napi::Env& env, const StyleTextTransform transform, const std::string& text);
 
 TextSceneNode::TextSceneNode(const CallbackInfo& info) : ObjectWrap<TextSceneNode>(info), SceneNode(info) {
+    if (!this->scene) {
+        return;
+    }
+
     YGNodeSetMeasureFunc(
         this->ygNode,
         [](YGNodeRef nodeRef, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) -> YGSize {

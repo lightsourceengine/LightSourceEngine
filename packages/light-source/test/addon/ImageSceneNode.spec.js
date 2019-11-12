@@ -28,9 +28,12 @@ describe('ImageSceneNode', () => {
   })
   afterEach(afterSceneTest)
   describe('constructor()', () => {
-    it('should throw Error when arg is not a Scene', () => {
+    it('should create uninitialized node when passed an invalid Scene', () => {
       for (const input of [null, undefined, {}]) {
-        assert.throws(() => new ImageSceneNode(input))
+        const obj = new ImageSceneNode(input)
+
+        assert.isNull(obj.scene)
+        obj.destroy()
       }
     })
   })

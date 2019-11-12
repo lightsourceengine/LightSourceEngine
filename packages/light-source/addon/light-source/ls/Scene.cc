@@ -34,11 +34,19 @@ using Napi::Value;
 namespace ls {
 
 Scene::Scene(const CallbackInfo& info) : ObjectWrap<Scene>(info) {
+    try {
+        this->Construct(info);
+    } catch (const Error& e) {
+        LOG_ERROR("%s", e.what());
+        this->stage = nullptr;
+    }
+}
+
+void Scene::Construct(const CallbackInfo& info) {
     auto env{ info.Env() };
     HandleScope scope(env);
 
     this->stage = Stage::Unwrap(info[0].As<Object>());
-    this->stage->Ref();
 
     this->adapter = stage->GetStageAdapter()->CreateSceneAdapter({
         info[1].As<Number>().Int32Value(),
@@ -47,14 +55,12 @@ Scene::Scene(const CallbackInfo& info) : ObjectWrap<Scene>(info) {
         info[4].As<Boolean>().Value(),
     });
 
-    auto rootValue{ RootSceneNode::Constructor(env).New({ this->Value() }) };
-
-    this->root = ObjectWrap<SceneNode>::Unwrap(rootValue);
-    this->root->AsReference()->Ref();
-
-    auto self{ info.This().As<Object>() };
-
-    self.Set(SymbolFor(env, "root"), rootValue);
+    try {
+        this->stage->Ref();
+    } catch (const Error& e) {
+        this->adapter.reset();
+        this->stage = nullptr;
+    }
 }
 
 Function Scene::Constructor(Napi::Env env) {
@@ -67,8 +73,8 @@ Function Scene::Constructor(Napi::Env env) {
             InstanceValue(SymbolFor(env, "width"), Number::New(env, 0), napi_writable),
             InstanceValue(SymbolFor(env, "height"), Number::New(env, 0), napi_writable),
             InstanceValue(SymbolFor(env, "fullscreen"), Boolean::New(env, true), napi_writable),
-            InstanceValue(SymbolFor(env, "root"), env.Null(), napi_writable),
             InstanceAccessor("stage", &Scene::GetStage, nullptr),
+            InstanceAccessor(SymbolFor(env, "root"), &Scene::GetRoot, &Scene::SetRoot),
             InstanceAccessor("title", &Scene::GetTitle, &Scene::SetTitle),
             InstanceMethod("resize", &Scene::Resize),
             InstanceMethod(SymbolFor(env, "attach"), &Scene::Attach),
@@ -221,6 +227,25 @@ Value Scene::GetTitle(const CallbackInfo& info) {
 
 Value Scene::GetStage(const CallbackInfo& info) {
     return this->stage ? this->stage->Value() : info.Env().Null();
+}
+
+Napi::Value Scene::GetRoot(const Napi::CallbackInfo& info) {
+    return this->root->AsReference()->Value();
+}
+
+void Scene::SetRoot(const Napi::CallbackInfo& info, const Napi::Value& value) {
+    if (this->root) {
+        this->root->AsReference()->Unref();
+        this->root = nullptr;
+    }
+
+    if (value.IsObject()) {
+        this->root = ObjectWrap<SceneNode>::Unwrap(value.As<Object>());
+
+        if (this->root) {
+            this->root->AsReference()->Ref();
+        }
+    }
 }
 
 void Scene::SetTitle(const CallbackInfo& info, const Napi::Value& value) {

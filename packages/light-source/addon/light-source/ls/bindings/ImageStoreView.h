@@ -21,6 +21,10 @@ class ImageStoreView : public Napi::ObjectWrap<ImageStoreView> {
 
     static Napi::Function Constructor(Napi::Env env);
 
+ private:
+    void Construct(const Napi::CallbackInfo& info);
+    void EnsureScene() const;
+
  private: // javascript bindings
     void Add(const Napi::CallbackInfo& info);
     Napi::Value List(const Napi::CallbackInfo& info);

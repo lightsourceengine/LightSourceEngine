@@ -10,6 +10,8 @@ import { afterSceneTest, beforeSceneTest } from '../index'
 
 const testImage = 'test/resources/640x480.png'
 
+const uninitializedErrorMessage = 'ImageStoreView not connected to Scene.'
+
 describe('ImageStoreView', () => {
   let scene
   let imageStoreView
@@ -26,7 +28,22 @@ describe('ImageStoreView', () => {
       assert.lengthOf(imageStoreView.list(), 0)
     })
     it('should throw error if scene not passed into constructor', () => {
-      assert.throws(() => new ImageStoreView())
+      const obj = new ImageStoreView()
+
+      assert.throws(() => obj.add(), uninitializedErrorMessage)
+      assert.throws(() => obj.extensions, uninitializedErrorMessage)
+      assert.throws(() => obj.extensions = [], uninitializedErrorMessage)
+    })
+    it('should throw error if invalid scene not passed into constructor', () => {
+      const inputs = [{}, null, undefined, '']
+
+      inputs.forEach((input) => {
+        const obj = new ImageStoreView(input)
+
+        assert.throws(() => obj.add(), uninitializedErrorMessage)
+        assert.throws(() => obj.extensions, uninitializedErrorMessage)
+        assert.throws(() => obj.extensions = [], uninitializedErrorMessage)
+      })
     })
   })
   describe('extensions', () => {

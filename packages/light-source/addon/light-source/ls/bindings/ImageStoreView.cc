@@ -9,6 +9,7 @@
 #include <ls/ImageResource.h>
 #include <ls/Stage.h>
 #include <ls/Scene.h>
+#include <ls/Log.h>
 
 using Napi::Array;
 using Napi::CallbackInfo;
@@ -27,22 +28,30 @@ namespace ls {
 namespace bindings {
 
 ImageStoreView::ImageStoreView(const CallbackInfo& info) : ObjectWrap<ImageStoreView>(info) {
+    try {
+        this->Construct(info);
+    } catch (const Error& e) {
+        this->scene = nullptr;
+        LOG_ERROR("%s", e.what());
+    }
+}
+
+ImageStoreView::~ImageStoreView() {
+    if (this->scene) {
+        this->scene->Unref();
+    }
+}
+
+void ImageStoreView::Construct(const Napi::CallbackInfo& info) {
     auto env{ info.Env() };
     HandleScope scope(env);
 
     if (info[0].IsObject()) {
         this->scene = Scene::Unwrap(info[0].As<Object>());
+        if (this->scene) {
+            this->scene->Ref();
+        }
     }
-
-    if (scene == nullptr) {
-        throw Error::New(env, "ImageStoreView expects a Scene instance.");
-    }
-
-    this->scene->Ref();
-}
-
-ImageStoreView::~ImageStoreView() {
-    this->scene->Unref();
 }
 
 Function ImageStoreView::Constructor(Napi::Env env) {
@@ -65,6 +74,8 @@ Function ImageStoreView::Constructor(Napi::Env env) {
 }
 
 void ImageStoreView::Add(const CallbackInfo& info) {
+    EnsureScene();
+
     auto env{ info.Env() };
     HandleScope scope(env);
     ImageUri imageUri;
@@ -84,6 +95,8 @@ void ImageStoreView::Add(const CallbackInfo& info) {
 }
 
 Value ImageStoreView::List(const CallbackInfo& info) {
+    EnsureScene();
+
     auto env{ info.Env() };
     EscapableHandleScope scope{env};
     auto imageList{ Array::New(env) };
@@ -96,6 +109,8 @@ Value ImageStoreView::List(const CallbackInfo& info) {
 }
 
 Value ImageStoreView::GetExtensions(const CallbackInfo& info) {
+    EnsureScene();
+
     auto env{ info.Env() };
     HandleScope scope(env);
     const auto& extensions{ this->scene->GetImageStore()->GetSearchExtensions() };
@@ -110,6 +125,8 @@ Value ImageStoreView::GetExtensions(const CallbackInfo& info) {
 }
 
 void ImageStoreView::SetExtensions(const CallbackInfo& info, const Napi::Value& value) {
+    EnsureScene();
+
     HandleScope scope(info.Env());
     auto imageStore{ this->scene->GetImageStore() };
     std::vector<std::string> extensions;
@@ -138,6 +155,12 @@ void ImageStoreView::SetExtensions(const CallbackInfo& info, const Napi::Value& 
     }
 
     imageStore->SetSearchExtensions(extensions);
+}
+
+void ImageStoreView::EnsureScene() const {
+    if (this->scene == nullptr) {
+        throw Error::New(this->Env(), "ImageStoreView not connected to Scene.");
+    }
 }
 
 } // namespace bindings

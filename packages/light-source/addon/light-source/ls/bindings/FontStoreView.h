@@ -28,6 +28,8 @@ class FontStoreView : public Napi::ObjectWrap<FontStoreView> {
     Napi::Value List(const Napi::CallbackInfo& info);
 
  private:
+    void Construct(const Napi::CallbackInfo& info);
+    void EnsureStage() const;
     void AddFont(const std::string& family, StyleFontStyle style, StyleFontWeight weight,
                  const std::string& uri, int32_t ttfIndex);
     void AddFontFamily(const std::string& familyUri);

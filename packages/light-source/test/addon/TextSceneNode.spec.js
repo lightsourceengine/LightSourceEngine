@@ -12,9 +12,12 @@ describe('TextSceneNode', () => {
   before(beforeSceneTest)
   after(afterSceneTest)
   describe('constructor()', () => {
-    it('should throw Error when arg is not a Scene', () => {
+    it('should create uninitialized node when passed an invalid Scene', () => {
       for (const input of [null, undefined, {}]) {
-        assert.throws(() => new TextSceneNode(input))
+        const obj = new TextSceneNode(input)
+
+        assert.isNull(obj.scene)
+        obj.destroy()
       }
     })
   })

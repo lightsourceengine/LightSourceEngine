@@ -8,6 +8,8 @@ import { assert } from 'chai'
 import { FontStoreView } from '../../src/addon'
 import { afterSceneTest, beforeSceneTest } from '../index'
 
+const uninitializedErrorMessage = 'FontStoreView not connected to Stage.'
+
 describe('FontStoreView', () => {
   let fontStore
   let stage
@@ -22,11 +24,19 @@ describe('FontStoreView', () => {
   })
   describe('constructor', () => {
     it('should throw Error when no argument passed', () => {
-      assert.throws(() => new FontStoreView())
+      const obj = new FontStoreView()
+
+      assert.throws(() => obj.add(), uninitializedErrorMessage)
+      assert.throws(() => obj.remove(), uninitializedErrorMessage)
+      assert.throws(() => obj.list(), uninitializedErrorMessage)
     })
     it('should throw Error when stage instance not passed', () => {
       for (const arg of [{}, null, undefined, '']) {
-        assert.throws(() => new FontStoreView(arg))
+        const obj = new FontStoreView(arg)
+
+        assert.throws(() => obj.add(), uninitializedErrorMessage)
+        assert.throws(() => obj.remove(), uninitializedErrorMessage)
+        assert.throws(() => obj.list(), uninitializedErrorMessage)
       }
     })
   })

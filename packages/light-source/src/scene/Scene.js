@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode, ImageStoreView } from '../addon'
+import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode, RootSceneNode, ImageStoreView } from '../addon'
 import { EventEmitter } from '../util/EventEmitter'
 import {
   $width,
@@ -37,14 +37,19 @@ export class Scene extends SceneBase {
   constructor (stage, displayIndex, width, height, fullscreen) {
     super(stage, displayIndex, width, height, fullscreen)
 
+    if (!this.stage) {
+      throw Error('Failed to create Scene (native constructor).')
+    }
+
     this[$displayIndex] = displayIndex
     this[$events] = new EventEmitter()
     this[$activeNode] = null
     this[$image] = new ImageStoreView(this)
+    this[$root] = new RootSceneNode(this)
     this[$frameListenersForeground] = []
     this[$frameListenersBackground] = []
 
-    const { style } = this.root
+    const { style } = this[$root]
 
     style.position = 'absolute'
     style.left = 0
@@ -119,7 +124,13 @@ export class Scene extends SceneBase {
   // TODO: add vsync
 
   createNode (tag) {
-    return new (nodeClass.get(tag) || throwNodeClassNotFound(tag))(this)
+    const node = new (nodeClass.get(tag) || throwNodeClassNotFound(tag))(this)
+
+    if (!node.scene) {
+      throwUninitializedNode(tag)
+    }
+
+    return node
   }
 
   resize (width = 0, height = 0, fullscreen = true) {
@@ -191,6 +202,10 @@ const nodeClass = new Map([
 
 const throwNodeClassNotFound = tag => {
   throw new Error(`'${tag}' is not a valid scene node tag.`)
+}
+
+const throwUninitializedNode = tag => {
+  throw new Error(`Failed to construct node '${tag}'`)
 }
 
 const setHasFocus = (node, value) => {

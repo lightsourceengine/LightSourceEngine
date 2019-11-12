@@ -45,6 +45,9 @@ class Scene : public Napi::ObjectWrap<Scene> {
     void QueueRootFontSizeChange(float rootFontSize);
     void Remove(SceneNode* node);
 
+ private:
+    void Construct(const Napi::CallbackInfo& info);
+
  private: // javascript bindings
     void Attach(const Napi::CallbackInfo& info);
     void Detach(const Napi::CallbackInfo& info);
@@ -52,6 +55,8 @@ class Scene : public Napi::ObjectWrap<Scene> {
     void Resize(const Napi::CallbackInfo& info);
     void Frame(const Napi::CallbackInfo& info);
     Napi::Value GetStage(const Napi::CallbackInfo& info);
+    Napi::Value GetRoot(const Napi::CallbackInfo& info);
+    void SetRoot(const Napi::CallbackInfo& info, const Napi::Value& value);
     Napi::Value GetTitle(const Napi::CallbackInfo& info);
     void SetTitle(const Napi::CallbackInfo& info, const Napi::Value& value);
 

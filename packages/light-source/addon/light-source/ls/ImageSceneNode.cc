@@ -29,6 +29,10 @@ using Napi::Value;
 namespace ls {
 
 ImageSceneNode::ImageSceneNode(const CallbackInfo& info) : ObjectWrap<ImageSceneNode>(info), SceneNode(info) {
+    if (this->scene == nullptr) {
+        return;
+    }
+
     YGNodeSetMeasureFunc(
         this->ygNode,
         [](YGNodeRef nodeRef, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) -> YGSize {

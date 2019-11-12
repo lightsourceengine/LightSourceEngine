@@ -64,6 +64,8 @@ class SceneNode {
     template<typename T>
     static std::vector<Napi::ClassPropertyDescriptor<T>> Extend(const Napi::Env& env,
          const std::initializer_list<Napi::ClassPropertyDescriptor<T>>& subClassProperties);
+
+    void Construct(const Napi::CallbackInfo& info);
     void SetParent(SceneNode* newParent);
     void InsertBefore(SceneNode* child, SceneNode* before);
     void RemoveChild(SceneNode* child);

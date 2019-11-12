@@ -9,6 +9,7 @@
 #include <ls/Stage.h>
 #include <ls/FileSystem.h>
 #include <ls/Format.h>
+#include <ls/Log.h>
 #include <std17/filesystem>
 #include <napi-ext.h>
 
@@ -28,27 +29,40 @@ using Napi::Value;
 namespace ls {
 namespace bindings {
 
-static void EnsureFontStoreAttached(Stage* stage);
 static StyleFontStyle StringToFontStyle(const Napi::Env& env, const std::string& value, const bool isRequired);
 static StyleFontWeight StringToFontWeight(const Napi::Env& env, const std::string& value, const bool isRequired);
 
 FontStoreView::FontStoreView(const CallbackInfo& info) : ObjectWrap<FontStoreView>(info) {
+    try {
+        this->Construct(info);
+    } catch (const Error& e) {
+        this->stage = nullptr;
+        LOG_ERROR("%s", e.what());
+    }
+}
+
+FontStoreView::~FontStoreView() {
+    if (this->stage) {
+        this->stage->Unref();
+    }
+}
+
+void FontStoreView::Construct(const Napi::CallbackInfo& info) {
     auto env{ info.Env() };
     HandleScope scope(env);
 
     if (info[0].IsObject()) {
         this->stage = Stage::Unwrap(info[0].As<Object>());
+        if (this->stage) {
+            this->stage->Ref();
+        }
     }
-
-    if (stage == nullptr) {
-        throw Error::New(env, "FontStoreView expects a Stage instance.");
-    }
-
-    this->stage->Ref();
 }
 
-FontStoreView::~FontStoreView() {
-    this->stage->Unref();
+void FontStoreView::EnsureStage() const {
+    if (this->stage == nullptr || !stage->GetFontStore()->IsAttached()) {
+        throw Error::New(this->Env(), "FontStoreView not connected to Stage.");
+    }
 }
 
 Function FontStoreView::Constructor(Napi::Env env) {
@@ -71,7 +85,7 @@ Function FontStoreView::Constructor(Napi::Env env) {
 }
 
 void FontStoreView::Add(const CallbackInfo& info) {
-    EnsureFontStoreAttached(this->stage);
+    this->EnsureStage();
 
     auto env{ info.Env() };
     HandleScope scope(env);
@@ -100,7 +114,7 @@ void FontStoreView::Add(const CallbackInfo& info) {
 }
 
 void FontStoreView::Remove(const CallbackInfo& info) {
-    EnsureFontStoreAttached(this->stage);
+    this->EnsureStage();
 
     auto env{ info.Env() };
     HandleScope scope(env);
@@ -118,7 +132,7 @@ void FontStoreView::Remove(const CallbackInfo& info) {
 }
 
 Value FontStoreView::List(const CallbackInfo& info) {
-    EnsureFontStoreAttached(this->stage);
+    this->EnsureStage();
 
     auto env{ info.Env() };
     auto fontList{ Array::New(env) };
@@ -181,12 +195,6 @@ void FontStoreView::AddFontFamily(const std::string& familyUri) {
     if (std17::filesystem::exists(filename.native() + "-BoldItalic" + ".ttf")) {
         this->AddFont(filename.stem(), StyleFontStyleItalic, StyleFontWeightBold,
             familyUri + "-BoldItalic" + ".ttf", 0);
-    }
-}
-
-static void EnsureFontStoreAttached(Stage* stage) {
-    if (!stage->GetFontStore()->IsAttached()) {
-        throw Napi::Error::New(stage->Env(), "Cannot use FontStoreView after Stage has been destroyed.");
     }
 }
 

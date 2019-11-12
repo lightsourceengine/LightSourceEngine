@@ -10,6 +10,7 @@
 #include "yoga-ext.h"
 #include <ls/CompositeContext.h>
 #include <ls/Renderer.h>
+#include <ls/Log.h>
 #include <algorithm>
 
 using Napi::Array;
@@ -27,21 +28,27 @@ namespace ls {
 int32_t SceneNode::instanceCount{0};
 
 SceneNode::SceneNode(const CallbackInfo& info) {
-    auto env{ info.Env() };
+    try {
+        this->Construct(info);
+    } catch (const Error& e) {
+        this->scene = nullptr;
+        LOG_ERROR("%s", e.what());
+    }
 
+    if (this->scene) {
+        this->ygNode = YGNodeNew();
+        YGNodeSetContext(this->ygNode, this);
+        instanceCount++;
+    }
+}
+
+void SceneNode::Construct(const Napi::CallbackInfo& info) {
     if (info[0].IsObject()) {
         this->scene = ObjectWrap<Scene>::Unwrap(info[0].As<Object>());
+        if (this->scene) {
+            this->scene->Ref();
+        }
     }
-
-    if (!this->scene) {
-        throw Error::New(env, "SceneNode constructor expects a Scene object.");
-    }
-
-    this->scene->Ref();
-    this->ygNode = YGNodeNew();
-    YGNodeSetContext(this->ygNode, this);
-
-    instanceCount++;
 }
 
 Value SceneNode::GetInstanceCount(const CallbackInfo& info) {
