@@ -18,6 +18,9 @@ class SceneNode;
 /**
  * Inline style declarations for a SceneNode.
  */
+// TODO: this design does not work well (too much memory and too much code to manage properties). consider
+//       splitting this class into an immutable style class and a mutable hash map of style properties owned by the
+//       node.
 class Style : public Napi::ObjectWrap<Style> {
  public:
     explicit Style(const Napi::CallbackInfo& info);
@@ -30,6 +33,7 @@ class Style : public Napi::ObjectWrap<Style> {
     void Assign(const Style* other) noexcept;
     void Bind(SceneNode* node) noexcept;
     bool IsLayoutOnly() const noexcept;
+    void UpdateDependentProperties(bool rem, bool viewport) noexcept;
 
  public:
     #define LS_PROPERTY_BINDINGS(PROP, BOX_FUNC, UNBOX_FUNC)                                  \

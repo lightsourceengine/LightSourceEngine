@@ -66,6 +66,67 @@ bool Style::IsLayoutOnly() const noexcept {
     return this->borderColor.undefined && this->backgroundColor.undefined && this->backgroundImage.empty();
 }
 
+void Style::UpdateDependentProperties(bool rem, bool viewport) noexcept {
+    // TODO: this is horrible, but it is functional. root font size and viewport will rarely change.
+    //       style needs a better design to improve this update
+    #define LS_UPDATE(PROP)                                                                 \
+        switch (this->PROP.unit) {                                                          \
+            case StyleNumberUnitRootEm:                                                     \
+                if (rem) { this->NotifyPropertyChanged(StyleProperty::PROP); } break;       \
+            case StyleNumberUnitViewportWidth:                                              \
+            case StyleNumberUnitViewportHeight:                                             \
+            case StyleNumberUnitViewportMin:                                                \
+            case StyleNumberUnitViewportMax:                                                \
+                if (viewport) { this->NotifyPropertyChanged(StyleProperty::PROP); } break;  \
+            default: break;                                                                 \
+        }
+    #define LS_UPDATE_EDGE(PROP) \
+        LS_UPDATE(PROP) \
+        LS_UPDATE(PROP##Top) \
+        LS_UPDATE(PROP##Right) \
+        LS_UPDATE(PROP##Bottom) \
+        LS_UPDATE(PROP##Left)
+
+    LS_UPDATE_EDGE(border)
+    LS_UPDATE_EDGE(margin)
+    LS_UPDATE_EDGE(padding)
+    LS_UPDATE(bottom)
+    LS_UPDATE(flex)
+    LS_UPDATE(flexBasis)
+    LS_UPDATE(flexGrow)
+    LS_UPDATE(flexShrink)
+    LS_UPDATE(height)
+    LS_UPDATE(left)
+    LS_UPDATE(maxHeight)
+    LS_UPDATE(maxWidth)
+    LS_UPDATE(minHeight)
+    LS_UPDATE(minWidth)
+    LS_UPDATE(right)
+    LS_UPDATE(top)
+    LS_UPDATE(width)
+    LS_UPDATE(backgroundHeight)
+    LS_UPDATE(backgroundPositionX)
+    LS_UPDATE(backgroundPositionY)
+    LS_UPDATE(backgroundWidth)
+    LS_UPDATE(borderRadius)
+    LS_UPDATE(borderRadiusTopLeft)
+    LS_UPDATE(borderRadiusTopRight)
+    LS_UPDATE(borderRadiusBottomLeft)
+    LS_UPDATE(borderRadiusBottomRight)
+    LS_UPDATE(fontSize)
+    LS_UPDATE(lineHeight)
+    LS_UPDATE(maxLines)
+    LS_UPDATE(objectPositionX)
+    LS_UPDATE(objectPositionY)
+    LS_UPDATE(opacity)
+    LS_UPDATE(transformOriginX)
+    LS_UPDATE(transformOriginY)
+    LS_UPDATE(zIndex)
+
+    #undef LS_UPDATE
+    #undef LS_UPDATE_EDGE
+}
+
 void Style::Assign(const Style* other) noexcept {
     // The other Style object has properties that have already been validated. No constraint checks are required. The
     // Set method checks if the property has changed before assignment. If the property has changed, the bound node

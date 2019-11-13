@@ -13,6 +13,7 @@
 #include <ls/SceneAdapter.h>
 #include <ls/Log.h>
 #include <ls/Math.h>
+#include <ls/Style.h>
 #include "CompositeContext.h"
 
 using Napi::Boolean;
@@ -161,9 +162,9 @@ void Scene::Frame(const CallbackInfo& info) {
     this->imageStore.ProcessEvents();
 
     if (this->isSizeDirty || this->isRootFontSizeDirty) {
-        SceneNode::Visit(this->root, [](SceneNode* node) {
+        SceneNode::Visit(this->root, [=](SceneNode* node) {
             if (node->style != nullptr) {
-                // TODO: update style
+                node->style->UpdateDependentProperties(this->isRootFontSizeDirty, this->isSizeDirty);
             }
         });
 
