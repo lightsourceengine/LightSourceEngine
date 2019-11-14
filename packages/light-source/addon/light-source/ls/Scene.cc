@@ -14,7 +14,6 @@
 #include <ls/Log.h>
 #include <ls/Math.h>
 #include <ls/Style.h>
-#include "CompositeContext.h"
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -210,12 +209,8 @@ void Scene::Frame(const CallbackInfo& info) {
     if (this->hasCompositeRequest) {
         renderer->SetRenderTarget(nullptr);
 
-        CompositeContext context;
-
-        context.Reset(renderer);
-
-        this->root->Composite(&context);
-
+        this->context.Reset(renderer);
+        this->root->Composite(&this->context);
         this->hasCompositeRequest = false;
 
         renderer->Present();

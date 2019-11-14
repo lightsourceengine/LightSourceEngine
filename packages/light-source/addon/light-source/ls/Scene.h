@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <unordered_set>
 #include "ImageStore.h"
+#include "CompositeContext.h"
 
 namespace ls {
 
@@ -75,6 +76,7 @@ class Scene : public Napi::ObjectWrap<Scene> {
     std::unordered_set<SceneNode*> paintRequests;
     std::unordered_set<SceneNode*> afterLayoutRequests;
     std::unordered_set<SceneNode*> beforeLayoutRequests;
+    CompositeContext context;
 };
 
 } // namespace ls

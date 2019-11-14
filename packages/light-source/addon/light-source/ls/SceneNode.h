@@ -39,6 +39,9 @@ class SceneNode {
     Napi::Value GetStyle(const Napi::CallbackInfo& info);
     void SetStyle(const Napi::CallbackInfo& info, const Napi::Value& value);
 
+    Napi::Value GetVisible(const Napi::CallbackInfo& info);
+    void SetVisible(const Napi::CallbackInfo& info, const Napi::Value& value);
+
     void AppendChild(const Napi::CallbackInfo& info);
     void InsertBefore(const Napi::CallbackInfo& info);
     void RemoveChild(const Napi::CallbackInfo& info);
@@ -92,6 +95,7 @@ class SceneNode {
     Scene* scene{};
     SceneNode* parent{};
     Style* style{};
+    bool isVisible{true};
 
     friend Style;
     friend Scene;
@@ -129,6 +133,7 @@ std::vector<Napi::ClassPropertyDescriptor<T>> SceneNode::Extend(const Napi::Env&
         Napi::ObjectWrap<T>::InstanceAccessor("children", &SceneNode::GetChildren, nullptr),
         Napi::ObjectWrap<T>::InstanceAccessor("scene", &SceneNode::GetScene, nullptr),
         Napi::ObjectWrap<T>::InstanceAccessor("style", &SceneNode::GetStyle, &SceneNode::SetStyle),
+        Napi::ObjectWrap<T>::InstanceAccessor("visible", &SceneNode::GetVisible, &SceneNode::SetVisible),
         Napi::ObjectWrap<T>::InstanceMethod("destroy", &SceneNode::Destroy),
         Napi::ObjectWrap<T>::InstanceMethod("appendChild", &SceneNode::AppendChild),
         Napi::ObjectWrap<T>::InstanceMethod("insertBefore", &SceneNode::InsertBefore),

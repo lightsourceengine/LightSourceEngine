@@ -14,6 +14,7 @@
 #include <algorithm>
 
 using Napi::Array;
+using Napi::Boolean;
 using Napi::CallbackInfo;
 using Napi::Error;
 using Napi::EscapableHandleScope;
@@ -132,6 +133,14 @@ void SceneNode::SetStyle(const CallbackInfo& info, const Napi::Value& value) {
     }
 
     this->style->Assign(other);
+}
+
+Napi::Value SceneNode::GetVisible(const CallbackInfo& info) {
+    return Boolean::New(info.Env(), this->isVisible);
+}
+
+void SceneNode::SetVisible(const CallbackInfo& info, const Napi::Value& value) {
+    this->isVisible = value.ToBoolean();
 }
 
 void SceneNode::SetParent(SceneNode* newParent) {
@@ -288,7 +297,7 @@ void SceneNode::DestroyRecursive() {
 }
 
 void SceneNode::Composite(CompositeContext* context) {
-    if (this->children.empty()) {
+    if (!this->isVisible || this->children.empty()) {
         return;
     }
 
