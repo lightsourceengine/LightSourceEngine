@@ -96,7 +96,7 @@ void BoxSceneNode::Composite(CompositeContext* context) {
         this->layer,
         rect,
         context->CurrentMatrix() * boxStyle->transform.ToMatrix(rect.width, rect.height),
-        RGB(255, 255, 255));
+        ARGB(context->CurrentOpacity8(), 255, 255, 255));
 
     SceneNode::Composite(context);
 }

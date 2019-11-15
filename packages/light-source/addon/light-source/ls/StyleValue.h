@@ -71,6 +71,10 @@ struct StyleValueNumber {
         return this->empty() ? defaultValue : static_cast<int32_t>(this->value);
     }
 
+    float AsFloat(float defaultValue) const noexcept {
+        return this->empty() ? defaultValue : this->value;
+    }
+
     // operators
     StyleValueNumber& operator=(const StyleValueNumber&) = default;
     explicit operator int32_t() const { return static_cast<int32_t>(this->value); }

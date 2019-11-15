@@ -19,12 +19,18 @@ class CompositeContext {
     CompositeContext();
 
     void Reset(Renderer* renderer);
+
     void PushMatrix(const Matrix& m);
     void PopMatrix();
     const Matrix& CurrentMatrix();
+
     void PushClipRect(const Rect& rect);
     void PopClipRect();
     const Rect& CurrentClipRect();
+
+    void PushOpacity(float opacity);
+    void PopOpacity();
+    uint8_t CurrentOpacity8() const;
 
  public:
     Renderer* renderer;
@@ -32,6 +38,7 @@ class CompositeContext {
  private:
     std::vector<Matrix> matrix;
     std::vector<Rect> clipRect;
+    std::vector<float> opacity;
 };
 
 } // namespace ls

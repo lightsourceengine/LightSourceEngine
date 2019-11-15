@@ -5,13 +5,17 @@
  */
 
 #include "CompositeContext.h"
+#include <std17/algorithm>
 
 namespace ls {
 
 CompositeContext::CompositeContext() {
     this->matrix.reserve(16);
     this->clipRect.reserve(16);
+    this->opacity.reserve(16);
+
     this->matrix.emplace_back(Matrix::Identity());
+    this->opacity.push_back(1.0f);
 }
 
 void CompositeContext::Reset(Renderer* renderer) {
@@ -53,6 +57,18 @@ void CompositeContext::PopClipRect() {
 
 const Rect& CompositeContext::CurrentClipRect() {
     return this->clipRect.back();
+}
+
+void CompositeContext::PushOpacity(float opacity) {
+    this->opacity.push_back(this->opacity.back() * std17::clamp(opacity, 0.f, 1.f));
+}
+
+void CompositeContext::PopOpacity() {
+    this->opacity.pop_back();
+}
+
+uint8_t CompositeContext::CurrentOpacity8() const {
+    return static_cast<uint8_t>(this->opacity.back() * 255.f);
 }
 
 } // namespace ls

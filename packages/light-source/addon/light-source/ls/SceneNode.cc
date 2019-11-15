@@ -301,10 +301,13 @@ void SceneNode::Composite(CompositeContext* context) {
         return;
     }
 
+
+    const auto boxStyle{ this->GetStyleOrEmpty() };
     const auto bounds{ YGNodeLayoutGetRect(this->ygNode) };
-    const auto clip{ this->GetStyleOrEmpty()->overflow == YGOverflowHidden };
+    const auto clip{ boxStyle->overflow == YGOverflowHidden };
 
     context->PushMatrix(Matrix::Translate(bounds.x, bounds.y));
+    context->PushOpacity(boxStyle->opacity.AsFloat(1.f));
 
     if (clip) {
         context->PushClipRect(bounds);
@@ -319,6 +322,7 @@ void SceneNode::Composite(CompositeContext* context) {
         context->PopClipRect();
     }
 
+    context->PopOpacity();
     context->PopMatrix();
 }
 

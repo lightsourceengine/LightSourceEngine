@@ -419,7 +419,7 @@ void FillVector(std::vector<std::string>* destination, const std::function<const
 }
 
 float ConstrainVolume(const float volume) noexcept {
-    return std17::clamp(0.f, 1.f, volume);
+    return std17::clamp(volume, 0.f, 1.f);
 }
 
 int32_t GetPropertyAsInt(const CallbackInfo& info, const char* property, const int32_t defaultValue) {
