@@ -6,25 +6,30 @@
 
 #pragma once
 
-#include <napi.h>
+#include <napi-ext.h>
 #include <ls/BaseAudioAdapter.h>
 #include <SDL.h>
 
 namespace ls {
 
-class SDLAudioAdapter : public Napi::ObjectWrap<SDLAudioAdapter>, public BaseAudioAdapter {
+class SDLAudioAdapter : public Napi::SafeObjectWrap<SDLAudioAdapter>, public BaseAudioAdapter {
  public:
     explicit SDLAudioAdapter(const Napi::CallbackInfo& info);
     virtual ~SDLAudioAdapter() = default;
 
-    static Napi::Function Constructor(Napi::Env env);
+ public:
+    static Napi::Function GetClass(Napi::Env env);
 
+ private: // javascript bindings
     void Attach(const Napi::CallbackInfo& info) override;
     void Detach(const Napi::CallbackInfo& info) override;
     Napi::Value CreateSampleAudioDestination(const Napi::CallbackInfo& info) override;
 
  private:
     int32_t deviceId{-1};
+
+    friend Napi::SafeObjectWrap<SDLAudioAdapter>;
+    friend BaseAudioAdapter;
 };
 
 } // namespace ls

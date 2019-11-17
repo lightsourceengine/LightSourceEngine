@@ -10,7 +10,6 @@ using Napi::CallbackInfo;
 using Napi::Function;
 using Napi::FunctionReference;
 using Napi::HandleScope;
-using Napi::ObjectWrap;
 using Napi::Number;
 using Napi::String;
 using Napi::Value;

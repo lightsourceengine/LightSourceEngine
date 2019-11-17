@@ -13,7 +13,7 @@ using Napi::Function;
 using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Number;
-using Napi::ObjectWrap;
+using Napi::SafeObjectWrap;
 using Napi::String;
 using Napi::Value;
 
@@ -24,16 +24,16 @@ constexpr auto KeyboardUUID = "keyboard";
 constexpr auto KeyboardName = "SystemKeyboard";
 constexpr auto KeyboardType = "keyboard";
 
-SDLKeyboard::SDLKeyboard(const CallbackInfo& info) : ObjectWrap<SDLKeyboard>(info) {
+SDLKeyboard::SDLKeyboard(const CallbackInfo& info) : SafeObjectWrap<SDLKeyboard>(info) {
 }
 
-Function SDLKeyboard::Constructor(Napi::Env env) {
+Function SDLKeyboard::GetClass(Napi::Env env) {
     static FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        auto func = DefineClass(env, "SDLKeyboard", {
+        constructor = DefineClass(env, "SDLKeyboard", {
             InstanceValue("type", String::New(env, KeyboardType)),
             InstanceValue("id", Number::New(env, KeyboardId)),
             InstanceValue("uuid", String::New(env, KeyboardUUID)),
@@ -42,9 +42,6 @@ Function SDLKeyboard::Constructor(Napi::Env env) {
             InstanceMethod("isButtonDown", &SDLKeyboard::IsButtonDown),
             InstanceMethod("destroy", &SDLKeyboard::Destroy),
         });
-
-        constructor.Reset(func, 1);
-        constructor.SuppressDestruct();
     }
 
     return constructor.Value();

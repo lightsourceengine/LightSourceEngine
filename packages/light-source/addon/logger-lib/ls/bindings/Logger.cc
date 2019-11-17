@@ -13,23 +13,23 @@ using Napi::Function;
 using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Number;
-using Napi::ObjectWrap;
+using Napi::SafeObjectWrap;
 using Napi::String;
 using Napi::Value;
 
 namespace ls {
 namespace bindings {
 
-Logger::Logger(const CallbackInfo& info) : ObjectWrap<Logger>(info) {
+Logger::Logger(const CallbackInfo& info) : SafeObjectWrap<Logger>(info) {
 }
 
-Function Logger::Constructor(Napi::Env env) {
+Function Logger::GetClass(Napi::Env env) {
     static FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        auto func = DefineClass(env, "Logger", {
+        constructor = DefineClass(env, "Logger", {
             StaticMethod("log", &Logger::Log),
             StaticMethod("getLogLevel", &Logger::GetLogLevel),
             StaticMethod("setLogLevel", &Logger::SetLogLevel),
@@ -44,9 +44,6 @@ Function Logger::Constructor(Napi::Env env) {
 //            StaticMethod("getSink", &Logger::GetSink),
 //            StaticMethod("setSink", &Logger::SetSink),
         });
-
-        constructor.Reset(func, 1);
-        constructor.SuppressDestruct();
     }
 
     return constructor.Value();

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <napi.h>
+#include <napi-ext.h>
 #include "FontStore.h"
 #include "Executor.h"
 #include "TaskQueue.h"
@@ -15,11 +15,10 @@ namespace ls {
 
 class StageAdapter;
 
-class Stage : public Napi::ObjectWrap<Stage> {
+class Stage : public Napi::SafeObjectWrap<Stage> {
  public:
     explicit Stage(const Napi::CallbackInfo& info);
-
-    static Napi::Function Constructor(Napi::Env env);
+    virtual ~Stage() = default;
 
     FontStore* GetFontStore() const noexcept { return &this->fontStore; }
     StageAdapter* GetStageAdapter() const noexcept { return this->stageAdapter; }
@@ -28,7 +27,11 @@ class Stage : public Napi::ObjectWrap<Stage> {
     const std::string& GetResourcePath() const noexcept { return this->resourcePath; }
     void Destroy() noexcept;
 
+ public:
+    static Napi::Function GetClass(Napi::Env env);
+
  private: // javascript bindings
+    void Constructor(const Napi::CallbackInfo& info) override;
     Napi::Value GetStageAdapter(const Napi::CallbackInfo& info);
     void SetStageAdapter(const Napi::CallbackInfo& info, const Napi::Value& value);
     Napi::Value GetResourcePath(const Napi::CallbackInfo& info);
@@ -41,6 +44,8 @@ class Stage : public Napi::ObjectWrap<Stage> {
     mutable TaskQueue taskQueue;
     mutable Executor executor;
     std::string resourcePath;
+
+    friend Napi::SafeObjectWrap<Stage>;
 };
 
 } // namespace ls

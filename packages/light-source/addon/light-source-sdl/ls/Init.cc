@@ -14,8 +14,8 @@ using ls::SDLStageAdapter;
 using ls::SDLAudioAdapter;
 
 Object Init(Env env, Object exports) {
-    exports["StageAdapter"] = SDLStageAdapter::Constructor(env);
-    exports["AudioAdapter"] = SDLAudioAdapter::Constructor(env);
+    exports["StageAdapter"] = SDLStageAdapter::GetClass(env);
+    exports["AudioAdapter"] = SDLAudioAdapter::GetClass(env);
 
     return exports;
 }

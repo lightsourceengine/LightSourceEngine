@@ -21,7 +21,7 @@ class Renderer;
 class CompositeContext;
 class Texture;
 
-class SceneNode {
+class SceneNode : public virtual Napi::SafeObjectWrapBase {
  public:
     explicit SceneNode(const Napi::CallbackInfo& info);
     virtual ~SceneNode() = default;
@@ -58,21 +58,19 @@ class SceneNode {
     virtual void Paint(Renderer* renderer) = 0;
     virtual void Composite(CompositeContext* context);
 
-    virtual Napi::Reference<Napi::Object>* AsReference() noexcept = 0;
-
     template<typename Callable>
     static void Visit(SceneNode* node, const Callable& func);
 
  protected:
     template<typename T>
-    static std::vector<Napi::ClassPropertyDescriptor<T>> Extend(const Napi::Env& env,
-         const std::initializer_list<Napi::ClassPropertyDescriptor<T>>& subClassProperties);
+    static std::vector<Napi::PropertyDescriptor> Extend(const Napi::Env& env,
+        const std::initializer_list<Napi::PropertyDescriptor>& subClassProperties);
 
-    void Construct(const Napi::CallbackInfo& info);
+    void BaseConstructor(const Napi::CallbackInfo& info);
     void SetParent(SceneNode* newParent);
-    void InsertBefore(SceneNode* child, SceneNode* before);
+    void InsertBefore(const Napi::Env& env, SceneNode* child, SceneNode* before);
     void RemoveChild(SceneNode* child);
-    void ValidateInsertCandidate(SceneNode* child);
+    void ValidateInsertCandidate(const Napi::Env& env, SceneNode* child);
     virtual void DestroyRecursive();
     virtual void AppendChild(SceneNode* child);
     Style* GetStyleOrEmpty() const noexcept;
@@ -111,35 +109,34 @@ void SceneNode::Visit(SceneNode* node, const Callable& func) {
 }
 
 template<typename T>
-std::vector<Napi::ClassPropertyDescriptor<T>> SceneNode::Extend(const Napi::Env& env,
-        const std::initializer_list<Napi::ClassPropertyDescriptor<T>>& subClassProperties) {
-    std::vector<Napi::ClassPropertyDescriptor<T>> result = {
-        Napi::ObjectWrap<T>::InstanceValue("focusable", Napi::Boolean::New(env, false), napi_writable),
-        Napi::ObjectWrap<T>::InstanceValue("onKeyUp", env.Null(), napi_writable),
-        Napi::ObjectWrap<T>::InstanceValue("onKeyDown", env.Null(), napi_writable),
-        Napi::ObjectWrap<T>::InstanceValue("onAxisMotion", env.Null(), napi_writable),
-        Napi::ObjectWrap<T>::InstanceValue("onDeviceButtonUp", env.Null(), napi_writable),
-        Napi::ObjectWrap<T>::InstanceValue("onDeviceButtonDown", env.Null(), napi_writable),
-        Napi::ObjectWrap<T>::InstanceValue("onDeviceAxisMotion", env.Null(), napi_writable),
-        Napi::ObjectWrap<T>::InstanceValue("onFocus", env.Null(), napi_writable),
-        Napi::ObjectWrap<T>::InstanceValue("onBlur", env.Null(), napi_writable),
-        Napi::ObjectWrap<T>::InstanceValue(
-            Napi::SymbolFor(env, "hasFocus"), Napi::Boolean::New(env, false), napi_writable),
-        Napi::ObjectWrap<T>::InstanceAccessor("x", &SceneNode::GetX, nullptr),
-        Napi::ObjectWrap<T>::InstanceAccessor("y", &SceneNode::GetY, nullptr),
-        Napi::ObjectWrap<T>::InstanceAccessor("width", &SceneNode::GetWidth, nullptr),
-        Napi::ObjectWrap<T>::InstanceAccessor("height", &SceneNode::GetHeight, nullptr),
-        Napi::ObjectWrap<T>::InstanceAccessor("parent", &SceneNode::GetParent, nullptr),
-        Napi::ObjectWrap<T>::InstanceAccessor("children", &SceneNode::GetChildren, nullptr),
-        Napi::ObjectWrap<T>::InstanceAccessor("scene", &SceneNode::GetScene, nullptr),
-        Napi::ObjectWrap<T>::InstanceAccessor("style", &SceneNode::GetStyle, &SceneNode::SetStyle),
-        Napi::ObjectWrap<T>::InstanceAccessor("visible", &SceneNode::GetVisible, &SceneNode::SetVisible),
-        Napi::ObjectWrap<T>::InstanceMethod("destroy", &SceneNode::Destroy),
-        Napi::ObjectWrap<T>::InstanceMethod("appendChild", &SceneNode::AppendChild),
-        Napi::ObjectWrap<T>::InstanceMethod("insertBefore", &SceneNode::InsertBefore),
-        Napi::ObjectWrap<T>::InstanceMethod("removeChild", &SceneNode::RemoveChild),
-        Napi::ObjectWrap<T>::InstanceMethod("focus", &SceneNode::Focus),
-        Napi::ObjectWrap<T>::InstanceMethod("blur", &SceneNode::Blur),
+std::vector<Napi::PropertyDescriptor> SceneNode::Extend(const Napi::Env& env,
+        const std::initializer_list<Napi::PropertyDescriptor>& subClassProperties) {
+    std::vector<Napi::PropertyDescriptor> result = {
+        T::InstanceValue("focusable", Napi::Boolean::New(env, false), napi_writable),
+        T::InstanceValue("onKeyUp", env.Null(), napi_writable),
+        T::InstanceValue("onKeyDown", env.Null(), napi_writable),
+        T::InstanceValue("onAxisMotion", env.Null(), napi_writable),
+        T::InstanceValue("onDeviceButtonUp", env.Null(), napi_writable),
+        T::InstanceValue("onDeviceButtonDown", env.Null(), napi_writable),
+        T::InstanceValue("onDeviceAxisMotion", env.Null(), napi_writable),
+        T::InstanceValue("onFocus", env.Null(), napi_writable),
+        T::InstanceValue("onBlur", env.Null(), napi_writable),
+        T::InstanceValue(Napi::SymbolFor(env, "hasFocus"), Napi::Boolean::New(env, false), napi_writable),
+        T::InstanceAccessor("x", &SceneNode::GetX),
+        T::InstanceAccessor("y", &SceneNode::GetY),
+        T::InstanceAccessor("width", &SceneNode::GetWidth),
+        T::InstanceAccessor("height", &SceneNode::GetHeight),
+        T::InstanceAccessor("parent", &SceneNode::GetParent),
+        T::InstanceAccessor("children", &SceneNode::GetChildren),
+        T::InstanceAccessor("scene", &SceneNode::GetScene),
+        T::InstanceAccessor("style", &SceneNode::GetStyle, &SceneNode::SetStyle),
+        T::InstanceAccessor("visible", &SceneNode::GetVisible, &SceneNode::SetVisible),
+        T::InstanceMethod("destroy", &SceneNode::Destroy),
+        T::InstanceMethod("appendChild", &SceneNode::AppendChild),
+        T::InstanceMethod("insertBefore", &SceneNode::InsertBefore),
+        T::InstanceMethod("removeChild", &SceneNode::RemoveChild),
+        T::InstanceMethod("focus", &SceneNode::Focus),
+        T::InstanceMethod("blur", &SceneNode::Blur),
     };
 
     for (auto& property : subClassProperties) {

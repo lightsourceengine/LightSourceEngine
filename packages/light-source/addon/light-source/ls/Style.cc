@@ -16,7 +16,8 @@ using Napi::Function;
 using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Number;
-using Napi::ObjectWrap;
+using Napi::SafeObjectWrap;
+using Napi::QueryInterface;
 using Napi::String;
 using Napi::SymbolFor;
 
@@ -37,17 +38,17 @@ static void YGNodeSetNumber(YGNodeRef ygNode, StyleValueNumber& value, Scene* sc
 Style* Style::sEmptyStyle{};
 FunctionReference Style::sConstructor;
 
-Style::Style(const CallbackInfo& info) : ObjectWrap<Style>(info) {
+Style::Style(const CallbackInfo& info) : SafeObjectWrap<Style>(info) {
 }
 
-Function Style::Constructor() {
+Function Style::GetClass() {
     assert(!sConstructor.IsEmpty());
     return sConstructor.Value();
 }
 
 Style* Style::New() {
-    auto styleObject{ Constructor().New({}) };
-    auto style{ Unwrap(styleObject) };
+    auto styleObject{GetClass().New({}) };
+    auto style{QueryInterface<Style>(styleObject) };
 
     style->Ref();
 
@@ -441,7 +442,7 @@ static void YGNodeSetNumber(YGNodeRef ygNode, StyleValueNumber& value, Scene* sc
 void Style::Init(Napi::Env env) {
     HandleScope scope(env);
 
-    auto func = DefineClass(env, "Style", {
+    sConstructor = DefineClass(env, "Style", {
         #define LS_ADD_PROPERTY(NAME) InstanceAccessor(#NAME, &Style::Getter_##NAME, &Style::Setter_##NAME)
         // Yoga Layout Style Properties
         LS_ADD_PROPERTY(alignItems),
@@ -541,9 +542,6 @@ void Style::Init(Napi::Env env) {
 
         InstanceValue(SymbolFor(env, "style"), Boolean::New(env, true)),
     });
-
-    sConstructor.Reset(func, 1);
-    sConstructor.SuppressDestruct();
 
     sEmptyStyle = New();
     sEmptyStyle->SuppressDestruct();

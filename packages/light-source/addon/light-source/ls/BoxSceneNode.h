@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <napi.h>
+#include <napi-ext.h>
 #include "Resource.h"
 #include "SceneNode.h"
 #include "ImageUri.h"
@@ -15,20 +15,23 @@ namespace ls {
 
 class ImageResource;
 
-class BoxSceneNode : public Napi::ObjectWrap<BoxSceneNode>, public SceneNode {
+class BoxSceneNode : public Napi::SafeObjectWrap<BoxSceneNode>, public SceneNode {
  public:
     explicit BoxSceneNode(const Napi::CallbackInfo& info);
     virtual ~BoxSceneNode() = default;
 
-    static Napi::Function Constructor(Napi::Env env);
-
     void OnPropertyChanged(StyleProperty property) override;
+
     void BeforeLayout() override;
     void AfterLayout() override;
     void Paint(Renderer* renderer) override;
     void Composite(CompositeContext* context) override;
 
-    Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; }
+ public:
+    static Napi::Function GetClass(Napi::Env env);
+
+ private: // javascript bindings
+    void Constructor(const Napi::CallbackInfo& info) override;
 
  private:
     void DestroyRecursive() override;
@@ -37,6 +40,8 @@ class BoxSceneNode : public Napi::ObjectWrap<BoxSceneNode>, public SceneNode {
  private:
     ImageUri backgroundImageUri;
     ResourceLink<ImageResource> backgroundImage;
+
+    friend Napi::SafeObjectWrap<BoxSceneNode>;
 };
 
 } // namespace ls

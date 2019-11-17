@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <napi.h>
+#include <napi-ext.h>
 
 namespace ls {
 namespace bindings {
@@ -14,12 +14,13 @@ namespace bindings {
 /**
  * Log API exposed to javascript as static methods on a Logger class.
  */
-class Logger : public Napi::ObjectWrap<Logger> {
+class Logger : public Napi::SafeObjectWrap<Logger> {
  public:
     explicit Logger(const Napi::CallbackInfo &info);
     virtual ~Logger() = default;
 
-    static Napi::Function Constructor(Napi::Env env);
+ public:
+    static Napi::Function GetClass(Napi::Env env);
 
  private: // javascript bindings
     static void Log(const Napi::CallbackInfo &info);
@@ -28,6 +29,8 @@ class Logger : public Napi::ObjectWrap<Logger> {
     static void SetLogLevel(const Napi::CallbackInfo &info);
     static Napi::Value GetSink(const Napi::CallbackInfo &info);
     static void SetSink(const Napi::CallbackInfo &info);
+
+    friend SafeObjectWrap<Logger>;
 };
 
 } // namespace bindings

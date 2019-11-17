@@ -6,27 +6,16 @@
 
 #pragma once
 
-#include <napi.h>
+#include <napi-ext.h>
 #include "SceneNode.h"
 #include "ImageResource.h"
 
 namespace ls {
 
-class ImageSceneNode : public Napi::ObjectWrap<ImageSceneNode>, public SceneNode {
+class ImageSceneNode : public Napi::SafeObjectWrap<ImageSceneNode>, public SceneNode {
  public:
     explicit ImageSceneNode(const Napi::CallbackInfo& info);
     virtual ~ImageSceneNode() = default;
-
-    static Napi::Function Constructor(Napi::Env env);
-
-    Napi::Value GetSource(const Napi::CallbackInfo& info);
-    void SetSource(const Napi::CallbackInfo& info, const Napi::Value& value);
-
-    Napi::Value GetOnLoadCallback(const Napi::CallbackInfo& info);
-    void SetOnLoadCallback(const Napi::CallbackInfo& info, const Napi::Value& value);
-
-    Napi::Value GetOnErrorCallback(const Napi::CallbackInfo& info);
-    void SetOnErrorCallback(const Napi::CallbackInfo& info, const Napi::Value& value);
 
     void OnPropertyChanged(StyleProperty property) override;
     void BeforeLayout() override;
@@ -34,7 +23,17 @@ class ImageSceneNode : public Napi::ObjectWrap<ImageSceneNode>, public SceneNode
     void Paint(Renderer* renderer) override;
     void Composite(CompositeContext* context) override;
 
-    Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; }
+ public:
+    static Napi::Function GetClass(Napi::Env env);
+
+ private: // javascript bindings
+    void Constructor(const Napi::CallbackInfo& info) override;
+    Napi::Value GetSource(const Napi::CallbackInfo& info);
+    void SetSource(const Napi::CallbackInfo& info, const Napi::Value& value);
+    Napi::Value GetOnLoadCallback(const Napi::CallbackInfo& info);
+    void SetOnLoadCallback(const Napi::CallbackInfo& info, const Napi::Value& value);
+    Napi::Value GetOnErrorCallback(const Napi::CallbackInfo& info);
+    void SetOnErrorCallback(const Napi::CallbackInfo& info, const Napi::Value& value);
 
  private:
     void DestroyRecursive() override;
@@ -47,6 +46,8 @@ class ImageSceneNode : public Napi::ObjectWrap<ImageSceneNode>, public SceneNode
     Napi::FunctionReference onLoadCallback;
     Napi::FunctionReference onErrorCallback;
     Rect destRect{};
+
+    friend Napi::SafeObjectWrap<ImageSceneNode>;
 };
 
 } // namespace ls

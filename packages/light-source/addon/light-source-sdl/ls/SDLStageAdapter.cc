@@ -23,7 +23,8 @@ using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Number;
 using Napi::Object;
-using Napi::ObjectWrap;
+using Napi::SafeObjectWrap;
+using Napi::QueryInterface;
 using Napi::String;
 using Napi::Value;
 
@@ -75,7 +76,10 @@ std::unordered_map<std::string, SDLStageAdapter::StageCallback> SDLStageAdapter:
     { "quit", StageCallbackQuit },
 };
 
-SDLStageAdapter::SDLStageAdapter(const CallbackInfo& info) : ObjectWrap<SDLStageAdapter>(info) {
+SDLStageAdapter::SDLStageAdapter(const CallbackInfo& info) : SafeObjectWrap<SDLStageAdapter>(info) {
+}
+
+void SDLStageAdapter::Constructor(const Napi::CallbackInfo& info) {
     auto env{ info.Env() };
     HandleScope scope(env);
 
@@ -86,17 +90,17 @@ SDLStageAdapter::SDLStageAdapter(const CallbackInfo& info) : ObjectWrap<SDLStage
     SDL_GetVersion(&linked);
 
     LOG_INFO("SDL Version: compiled=%i.%i.%i linked=%i.%i.%i",
-        compiled.major, compiled.minor, compiled.patch,
-        linked.major, linked.minor, linked.patch);
+             compiled.major, compiled.minor, compiled.patch,
+             linked.major, linked.minor, linked.patch);
 }
 
-Function SDLStageAdapter::Constructor(Napi::Env env) {
+Function SDLStageAdapter::GetClass(Napi::Env env) {
     static FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        auto func = DefineClass(env, "SDLStageAdapter", {
+        constructor = DefineClass(env, "SDLStageAdapter", {
             InstanceMethod("getKeyboard", &SDLStageAdapter::GetKeyboard),
             InstanceMethod("getGamepads", &SDLStageAdapter::GetGamepads),
             InstanceMethod("getDisplays", &SDLStageAdapter::GetDisplays),
@@ -108,9 +112,6 @@ Function SDLStageAdapter::Constructor(Napi::Env env) {
             InstanceMethod("resetCallbacks", &SDLStageAdapter::ResetCallbacks),
             InstanceMethod("addGameControllerMappings", &SDLStageAdapter::AddGameControllerMappings),
         });
-
-        constructor.Reset(func, 1);
-        constructor.SuppressDestruct();
     }
 
     return constructor.Value();
@@ -220,7 +221,7 @@ void SDLStageAdapter::Attach(Napi::Env env) {
     this->SyncGamepads(env);
 
     if (!this->keyboard) {
-        this->keyboard = ObjectWrap<SDLKeyboard>::Unwrap(SDLKeyboard::Constructor(env).New({}));
+        this->keyboard = QueryInterface<SDLKeyboard>(SDLKeyboard::GetClass(env).New({}));
         this->keyboard->Ref();
     }
 
@@ -447,6 +448,7 @@ void SDLStageAdapter::DispatchJoystickAdded(Napi::Env env, int32_t index) {
         return;
     }
 
+    // TODO: exception
     auto gamepad{ this->AddGamepad(env, index) };
 
     if (!IsCallbackEmpty(StageCallbackGamepadConnected)) {
@@ -512,12 +514,15 @@ void SDLStageAdapter::ClearGamepads() {
 
 SDLGamepad* SDLStageAdapter::AddGamepad(Napi::Env env, int32_t index) {
     HandleScope scope(env);
-    auto gamepadObject{ SDLGamepad::Constructor(env).New({ Number::New(env, index) }) };
-    auto gamepad{ ObjectWrap<SDLGamepad>::Unwrap(gamepadObject) };
+    auto gamepad{ SDLGamepad::New(env, index) };
 
     gamepad->Ref();
 
-    this->gamepadsByInstanceId[gamepad->GetId()] = gamepad;
+    try {
+        this->gamepadsByInstanceId[gamepad->GetId()] = gamepad;
+    } catch (const std::exception&) {
+        gamepad->Unref();
+    }
 
     return gamepad;
 }

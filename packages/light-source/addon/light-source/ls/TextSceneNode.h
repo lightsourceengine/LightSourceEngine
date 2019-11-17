@@ -6,33 +6,35 @@
 
 #pragma once
 
+#include <napi-ext.h>
 #include "SceneNode.h"
 #include "TextLayout.h"
 #include "FontResource.h"
-#include <napi.h>
 
 namespace ls {
 
 class Texture;
 class Style;
 
-class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
+class TextSceneNode : public Napi::SafeObjectWrap<TextSceneNode>, public SceneNode {
  public:
     explicit TextSceneNode(const Napi::CallbackInfo& info);
     virtual ~TextSceneNode() = default;
 
-    static Napi::Function Constructor(Napi::Env env);
-
-    Napi::Value GetText(const Napi::CallbackInfo& info);
-    void SetText(const Napi::CallbackInfo& info, const Napi::Value& value);
-
-    Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; }
     void OnPropertyChanged(StyleProperty property) override;
 
     void BeforeLayout() override;
     void AfterLayout() override;
     void Paint(Renderer* renderer) override;
     void Composite(CompositeContext* context) override;
+
+ public:
+    static Napi::Function GetClass(Napi::Env env);
+
+ private: // javascript bindings
+    void Constructor(const Napi::CallbackInfo& info) override;
+    Napi::Value GetText(const Napi::CallbackInfo& info);
+    void SetText(const Napi::CallbackInfo& info, const Napi::Value& value);
 
  private:
     bool SetFont(Style* style);
@@ -45,6 +47,8 @@ class TextSceneNode : public Napi::ObjectWrap<TextSceneNode>, public SceneNode {
     std::string text;
     ResourceLink<FontResource> font;
     TextLayout layout;
+
+    friend Napi::SafeObjectWrap<TextSceneNode>;
 };
 
 } // namespace ls

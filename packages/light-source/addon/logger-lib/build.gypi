@@ -21,6 +21,7 @@
       ],
       "include_dirs": [
         ".",
+        "../napi-ext-lib",
       ],
       "sources": [
         "ls/bindings/Logger.cc",

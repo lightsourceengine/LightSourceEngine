@@ -15,22 +15,22 @@ using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Number;
 using Napi::Object;
-using Napi::ObjectWrap;
+using Napi::SafeObjectWrap;
 using Napi::String;
 using Napi::Value;
 
 namespace ls {
 
-RefStageAdapter::RefStageAdapter(const CallbackInfo& info) : ObjectWrap<RefStageAdapter>(info) {
+RefStageAdapter::RefStageAdapter(const CallbackInfo& info) : SafeObjectWrap<RefStageAdapter>(info) {
 }
 
-Function RefStageAdapter::Constructor(Napi::Env env) {
+Function RefStageAdapter::GetClass(Napi::Env env) {
     static FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        auto func = DefineClass(env, "RefStageAdapter", {
+        constructor = DefineClass(env, "RefStageAdapter", {
             InstanceMethod("getKeyboard", &RefStageAdapter::GetKeyboard),
             InstanceMethod("getGamepads", &RefStageAdapter::GetGamepads),
             InstanceMethod("getDisplays", &RefStageAdapter::GetDisplays),
@@ -41,9 +41,6 @@ Function RefStageAdapter::Constructor(Napi::Env env) {
             InstanceMethod("setCallback", &RefStageAdapter::SetCallback),
             InstanceMethod("resetCallbacks", &RefStageAdapter::ResetCallbacks),
         });
-
-        constructor.Reset(func, 1);
-        constructor.SuppressDestruct();
     }
 
     return constructor.Value();

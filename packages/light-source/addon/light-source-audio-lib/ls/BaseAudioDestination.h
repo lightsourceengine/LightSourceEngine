@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <napi.h>
+#include <napi-ext.h>
 #include <ls/Audio.h>
 
 namespace ls {
@@ -34,29 +34,26 @@ class BaseAudioDestination {
 
  protected:
     template<typename T>
-    static Napi::Function ConstructorInternal(Napi::Env env, const char* className);
+    static Napi::Function GetClassInternal(Napi::Env env, const char* className);
     std::vector<std::string> decoders;
 };
 
 template<typename T>
-Napi::Function BaseAudioDestination::ConstructorInternal(Napi::Env env, const char* className) {
+Napi::Function BaseAudioDestination::GetClassInternal(Napi::Env env, const char* className) {
     static Napi::FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         Napi::HandleScope scope(env);
 
-        auto func = T::DefineClass(env, className, {
+        constructor = T::DefineClass(env, className, {
             T::InstanceMethod("createAudioSource", &T::CreateAudioSource),
             T::InstanceMethod("resume", &T::Resume),
             T::InstanceMethod("pause", &T::Pause),
             T::InstanceMethod("stop", &T::Stop),
             T::InstanceMethod("hasCapability", &T::HasCapability),
             T::InstanceAccessor("volume", &T::GetVolume, &T::SetVolume),
-            T::InstanceAccessor("decoders", &T::GetDecoders, nullptr),
+            T::InstanceAccessor("decoders", &T::GetDecoders),
         });
-
-        constructor.Reset(func, 1);
-        constructor.SuppressDestruct();
     }
 
     return constructor.Value();

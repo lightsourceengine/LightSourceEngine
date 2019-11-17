@@ -12,13 +12,17 @@
 
 namespace ls {
 
-class RefStageAdapter : public StageAdapter, public Napi::ObjectWrap<RefStageAdapter> {
+class RefStageAdapter : public Napi::SafeObjectWrap<RefStageAdapter>, public StageAdapter {
  public:
     explicit RefStageAdapter(const Napi::CallbackInfo& info);
     virtual ~RefStageAdapter() = default;
 
-    static Napi::Function Constructor(Napi::Env env);
+    std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) override;
 
+ public:
+    static Napi::Function GetClass(Napi::Env env);
+
+ private: // javascript bindings
     Napi::Value GetKeyboard(const Napi::CallbackInfo& info) override;
     Napi::Value GetGamepads(const Napi::CallbackInfo& info) override;
     Napi::Value GetDisplays(const Napi::CallbackInfo& info) override;
@@ -28,9 +32,6 @@ class RefStageAdapter : public StageAdapter, public Napi::ObjectWrap<RefStageAda
     void Destroy(const Napi::CallbackInfo& info) override;
     void SetCallback(const Napi::CallbackInfo& info) override;
     void ResetCallbacks(const Napi::CallbackInfo& info) override;
-
-    std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) override;
-    Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; };
 };
 
 } // namespace ls

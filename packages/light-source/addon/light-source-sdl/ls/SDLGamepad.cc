@@ -15,7 +15,8 @@ using Napi::Function;
 using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Number;
-using Napi::ObjectWrap;
+using Napi::SafeObjectWrap;
+using Napi::QueryInterface;
 using Napi::String;
 using Napi::Value;
 
@@ -25,7 +26,16 @@ constexpr int32_t log2(int32_t n) {
 
 namespace ls {
 
-SDLGamepad::SDLGamepad(const CallbackInfo& info) : ObjectWrap<SDLGamepad>(info) {
+SDLGamepad::SDLGamepad(const CallbackInfo& info) : SafeObjectWrap<SDLGamepad>(info) {
+}
+
+SDLGamepad::~SDLGamepad() {
+    if (this->joystick) {
+        LOG_WARN("SDLGamepad was not destroyed.");
+    }
+}
+
+void SDLGamepad::Constructor(const Napi::CallbackInfo& info) {
     auto env{ info.Env() };
     auto index{ info[0].As<Number>().Int32Value() };
 
@@ -63,19 +73,19 @@ SDLGamepad::SDLGamepad(const CallbackInfo& info) : ObjectWrap<SDLGamepad>(info) 
     }
 }
 
-SDLGamepad::~SDLGamepad() {
-    if (this->joystick) {
-        LOG_WARN("SDLGamepad was not destroyed.");
-    }
+SDLGamepad* SDLGamepad::New(Napi::Env env, int32_t index) {
+    auto jsObject{ GetClass(env).New({ Number::New(env, index) }) };
+
+    return QueryInterface<SDLGamepad>(jsObject);
 }
 
-Function SDLGamepad::Constructor(Napi::Env env) {
+Function SDLGamepad::GetClass(Napi::Env env) {
     static FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        auto func = DefineClass(env, "SDLGamepad", {
+        constructor = DefineClass(env, "SDLGamepad", {
             InstanceValue("type", String::New(env, "gamepad")),
             InstanceAccessor("id", &InputDevice::GetId, nullptr),
             InstanceAccessor("uuid", &InputDevice::GetUUID, nullptr),
@@ -93,9 +103,6 @@ Function SDLGamepad::Constructor(Napi::Env env) {
             InstanceMethod("getAxisValue", &SDLGamepad::GetAxisValue),
             InstanceMethod("destroy", &SDLGamepad::Destroy),
         });
-
-        constructor.Reset(func, 1);
-        constructor.SuppressDestruct();
     }
 
     return constructor.Value();

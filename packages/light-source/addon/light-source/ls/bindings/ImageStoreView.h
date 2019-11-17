@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <napi.h>
+#include <napi-ext.h>
 
 namespace ls {
 
@@ -14,18 +14,19 @@ class Scene;
 
 namespace bindings {
 
-class ImageStoreView : public Napi::ObjectWrap<ImageStoreView> {
+class ImageStoreView : public Napi::SafeObjectWrap<ImageStoreView> {
  public:
     explicit ImageStoreView(const Napi::CallbackInfo& info);
     virtual ~ImageStoreView();
 
-    static Napi::Function Constructor(Napi::Env env);
-
  private:
-    void Construct(const Napi::CallbackInfo& info);
     void EnsureScene() const;
 
+ public:
+    static Napi::Function GetClass(Napi::Env env);
+
  private: // javascript bindings
+    void Constructor(const Napi::CallbackInfo& info) override;
     void Add(const Napi::CallbackInfo& info);
     Napi::Value List(const Napi::CallbackInfo& info);
     Napi::Value GetExtensions(const Napi::CallbackInfo& info);
@@ -33,6 +34,8 @@ class ImageStoreView : public Napi::ObjectWrap<ImageStoreView> {
 
  private:
     Scene* scene{};
+
+    friend Napi::SafeObjectWrap<ImageStoreView>;
 };
 
 } // namespace bindings

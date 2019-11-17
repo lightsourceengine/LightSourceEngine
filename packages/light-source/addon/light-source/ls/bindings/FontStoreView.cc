@@ -11,7 +11,6 @@
 #include <ls/Format.h>
 #include <ls/Log.h>
 #include <std17/filesystem>
-#include <napi-ext.h>
 
 using Napi::Array;
 using Napi::CallbackInfo;
@@ -22,7 +21,8 @@ using Napi::HandleScope;
 using Napi::Number;
 using Napi::Object;
 using Napi::ObjectGetString;
-using Napi::ObjectWrap;
+using Napi::SafeObjectWrap;
+using Napi::QueryInterface;
 using Napi::String;
 using Napi::Value;
 
@@ -32,13 +32,7 @@ namespace bindings {
 static StyleFontStyle StringToFontStyle(const Napi::Env& env, const std::string& value, const bool isRequired);
 static StyleFontWeight StringToFontWeight(const Napi::Env& env, const std::string& value, const bool isRequired);
 
-FontStoreView::FontStoreView(const CallbackInfo& info) : ObjectWrap<FontStoreView>(info) {
-    try {
-        this->Construct(info);
-    } catch (const Error& e) {
-        this->stage = nullptr;
-        LOG_ERROR("%s", e.what());
-    }
+FontStoreView::FontStoreView(const CallbackInfo& info) : SafeObjectWrap<FontStoreView>(info) {
 }
 
 FontStoreView::~FontStoreView() {
@@ -47,12 +41,12 @@ FontStoreView::~FontStoreView() {
     }
 }
 
-void FontStoreView::Construct(const Napi::CallbackInfo& info) {
+void FontStoreView::Constructor(const Napi::CallbackInfo& info) {
     auto env{ info.Env() };
     HandleScope scope(env);
 
     if (info[0].IsObject()) {
-        this->stage = Stage::Unwrap(info[0].As<Object>());
+        this->stage = QueryInterface<Stage>(info[0]);
         if (this->stage) {
             this->stage->Ref();
         }
@@ -65,20 +59,17 @@ void FontStoreView::EnsureStage() const {
     }
 }
 
-Function FontStoreView::Constructor(Napi::Env env) {
+Function FontStoreView::GetClass(Napi::Env env) {
     static FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        auto func = DefineClass(env, "FontStoreView", {
+        constructor = DefineClass(env, "FontStoreView", {
             InstanceMethod("add", &FontStoreView::Add),
             InstanceMethod("remove", &FontStoreView::Remove),
             InstanceMethod("list", &FontStoreView::List),
         });
-
-        constructor.Reset(func, 1);
-        constructor.SuppressDestruct();
     }
 
     return constructor.Value();

@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include <napi-ext.h>
 #include "StyleEnums.h"
 #include "StyleValue.h"
-#include <napi.h>
 #include <Yoga.h>
 
 namespace ls {
@@ -21,12 +21,12 @@ class SceneNode;
 // TODO: this design does not work well (too much memory and too much code to manage properties). consider
 //       splitting this class into an immutable style class and a mutable hash map of style properties owned by the
 //       node.
-class Style : public Napi::ObjectWrap<Style> {
+class Style : public Napi::SafeObjectWrap<Style> {
  public:
     explicit Style(const Napi::CallbackInfo& info);
     virtual ~Style() = default;
 
-    static Napi::Function Constructor();
+    static Napi::Function GetClass();
     static Style* New();
     static void Init(Napi::Env env);
     static Style* Empty() noexcept;
@@ -169,6 +169,8 @@ class Style : public Napi::ObjectWrap<Style> {
     static Style* sEmptyStyle;
     static Napi::FunctionReference sConstructor;
     SceneNode* node{};
+
+    friend Napi::SafeObjectWrap<Style>;
 };
 
 template<typename T>

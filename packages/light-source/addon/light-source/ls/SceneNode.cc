@@ -21,7 +21,7 @@ using Napi::EscapableHandleScope;
 using Napi::HandleScope;
 using Napi::Number;
 using Napi::Object;
-using Napi::ObjectWrap;
+using Napi::QueryInterface;
 using Napi::Value;
 
 namespace ls {
@@ -29,26 +29,20 @@ namespace ls {
 int32_t SceneNode::instanceCount{0};
 
 SceneNode::SceneNode(const CallbackInfo& info) {
-    try {
-        this->Construct(info);
-    } catch (const Error& e) {
-        this->scene = nullptr;
-        LOG_ERROR("%s", e.what());
+}
+
+void SceneNode::BaseConstructor(const Napi::CallbackInfo& info) {
+    this->scene = QueryInterface<Scene>(info[0]);
+
+    if (this->scene) {
+        // Ref() can throw
+        this->scene->Ref();
     }
 
     if (this->scene) {
         this->ygNode = YGNodeNew();
         YGNodeSetContext(this->ygNode, this);
         instanceCount++;
-    }
-}
-
-void SceneNode::Construct(const Napi::CallbackInfo& info) {
-    if (info[0].IsObject()) {
-        this->scene = ObjectWrap<Scene>::Unwrap(info[0].As<Object>());
-        if (this->scene) {
-            this->scene->Ref();
-        }
     }
 }
 
@@ -77,7 +71,7 @@ Value SceneNode::GetParent(const CallbackInfo& info) {
         return info.Env().Null();
     }
 
-    return this->parent->AsReference()->Value();
+    return this->parent->Value();
 }
 
 Value SceneNode::GetScene(const CallbackInfo& info) {
@@ -95,7 +89,7 @@ Napi::Value SceneNode::GetChildren(const Napi::CallbackInfo& info) {
     auto i{ 0u };
 
     for (auto& child : this->children) {
-        childArray[i++] = child->AsReference()->Value();
+        childArray[i++] = child->Value();
     }
 
     return scope.Escape(childArray);
@@ -125,7 +119,7 @@ void SceneNode::SetStyle(const CallbackInfo& info, const Napi::Value& value) {
     if (value.IsNull() || value.IsUndefined()) {
         other = Style::Empty();
     } else if (value.IsObject()) {
-        other = Style::Unwrap(value.As<Object>());
+        other = QueryInterface<Style>(value.As<Object>());
     }
 
     if (other == nullptr) {
@@ -149,46 +143,43 @@ void SceneNode::SetParent(SceneNode* newParent) {
     }
 
     if (this->parent) {
-        this->parent->AsReference()->Unref();
+        this->parent->Unref();
         this->parent = nullptr;
     }
 
     if (newParent) {
         this->parent = newParent;
-        this->parent->AsReference()->Ref();
+        this->parent->Ref();
     }
 }
 
 void SceneNode::AppendChild(const CallbackInfo& info) {
-    auto childObject{ info[0].As<Object>() };
-    auto child{ ObjectWrap<SceneNode>::Unwrap(childObject) };
+    auto child{QueryInterface<SceneNode>(info[0]) };
 
-    this->ValidateInsertCandidate(child);
+    this->ValidateInsertCandidate(info.Env(), child);
 
     this->AppendChild(child);
 }
 
 void SceneNode::InsertBefore(const CallbackInfo& info) {
     auto env{ info.Env() };
-    auto childObject{ info[0].As<Object>() };
-    auto child{ ObjectWrap<SceneNode>::Unwrap(childObject) };
+    auto child{QueryInterface<SceneNode>(info[0]) };
 
-    this->ValidateInsertCandidate(child);
+    this->ValidateInsertCandidate(env, child);
 
-    auto beforeObject{ info[1].As<Object>() };
-    auto before{ ObjectWrap<SceneNode>::Unwrap(beforeObject) };
+    auto before{QueryInterface<SceneNode>(info[1]) };
 
     if (before == nullptr || before->parent != this) {
         throw Error::New(env, "before must be a child of this SceneNode");
     }
 
-    this->InsertBefore(child, before);
+    this->InsertBefore(env, child, before);
 }
 
 void SceneNode::RemoveChild(const CallbackInfo& info) {
     auto env{ info.Env() };
     auto childObject{ info[0].As<Object>() };
-    auto child{ ObjectWrap<SceneNode>::Unwrap(childObject) };
+    auto child{QueryInterface<SceneNode>(childObject) };
 
     if (child == nullptr) {
         throw Error::New(env, "Node to remove must be a SceneNode instance.");
@@ -204,13 +195,13 @@ void SceneNode::RemoveChild(const CallbackInfo& info) {
 void SceneNode::AppendChild(SceneNode* child) {
     this->children.push_back(child);
     this->sortedChildren.clear();
-    child->AsReference()->Ref();
+    child->Ref();
     child->SetParent(this);
 
     YGNodeInsertChild(this->ygNode, child->ygNode, YGNodeGetChildCount(this->ygNode));
 }
 
-void SceneNode::InsertBefore(SceneNode* child, SceneNode* before) {
+void SceneNode::InsertBefore(const Napi::Env& env, SceneNode* child, SceneNode* before) {
     auto beforeIndex{ -1 };
     auto childrenLen{ static_cast<int32_t>(this->children.size()) };
 
@@ -221,16 +212,14 @@ void SceneNode::InsertBefore(SceneNode* child, SceneNode* before) {
         }
     }
 
-    auto reference{ child->AsReference() };
-
     if (beforeIndex < 0) {
-        throw Error::New(reference->Env(), "before is not a child of SceneNode.");
+        throw Error::New(env, "before is not a child of SceneNode.");
     }
 
     this->children.insert(this->children.begin() + beforeIndex, child);
     this->sortedChildren.clear();
 
-    reference->Ref();
+    child->Ref();
     child->SetParent(this);
 
     YGNodeInsertChild(this->ygNode, child->ygNode, beforeIndex);
@@ -245,7 +234,7 @@ void SceneNode::RemoveChild(SceneNode* child) {
     // TODO: remove from scene queues?
     this->children.erase(std::remove(this->children.begin(), this->children.end(), child), this->children.end());
     this->sortedChildren.clear();
-    child->AsReference()->Unref();
+    child->Unref();
     child->SetParent(nullptr);
 }
 
@@ -274,6 +263,7 @@ void SceneNode::DestroyRecursive() {
 
     for (auto child : this->children) {
         child->DestroyRecursive();
+        child->Unref();
     }
 
     this->children.clear();
@@ -300,7 +290,6 @@ void SceneNode::Composite(CompositeContext* context) {
     if (!this->isVisible || this->children.empty()) {
         return;
     }
-
 
     const auto boxStyle{ this->GetStyleOrEmpty() };
     const auto bounds{ YGNodeLayoutGetRect(this->ygNode) };
@@ -343,9 +332,7 @@ void SceneNode::Layout(float width, float height) {
     }
 }
 
-void SceneNode::ValidateInsertCandidate(SceneNode* child) {
-    auto env{ this->AsReference()->Env() };
-
+void SceneNode::ValidateInsertCandidate(const Napi::Env& env, SceneNode* child) {
     if (child == nullptr) {
         throw Error::New(env, "child must be a SceneNode instance.");
     }
@@ -406,7 +393,7 @@ bool SceneNode::InitLayerSoftwareRenderTarget(Renderer* renderer, int32_t width,
 void SceneNode::Focus(const CallbackInfo& info) {
     HandleScope scope(info.Env());
 
-    this->scene->SetActiveNode(this->AsReference()->Value());
+    this->scene->SetActiveNode(this->Value());
 }
 
 void SceneNode::Blur(const CallbackInfo& info) {

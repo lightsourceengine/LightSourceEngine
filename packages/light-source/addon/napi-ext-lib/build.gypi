@@ -7,6 +7,7 @@
         "../common.gypi",
       ],
       "sources": [
+        "SafeObjectWrap.cc",
         "napi-ext.cc",
       ]
     }
@@ -25,6 +26,7 @@
           ],
           "sources": [
             "test/NapiExtSpec.cc",
+            "test/SafeObjectWrapSpec.cc",
             "test/NapiExtTestSuite.cc",
           ],
           "dependencies": [

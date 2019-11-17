@@ -25,5 +25,9 @@ const char* FormatArg(const char* value) noexcept {
     return value ? value : "null";
 }
 
+const char* FormatArg(const std::exception& e) noexcept {
+    return e.what();
+}
+
 } // namespace internal
 } // namespace ls

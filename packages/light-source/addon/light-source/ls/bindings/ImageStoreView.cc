@@ -20,20 +20,15 @@ using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Number;
 using Napi::Object;
-using Napi::ObjectWrap;
+using Napi::SafeObjectWrap;
+using Napi::QueryInterface;
 using Napi::String;
 using Napi::Value;
 
 namespace ls {
 namespace bindings {
 
-ImageStoreView::ImageStoreView(const CallbackInfo& info) : ObjectWrap<ImageStoreView>(info) {
-    try {
-        this->Construct(info);
-    } catch (const Error& e) {
-        this->scene = nullptr;
-        LOG_ERROR("%s", e.what());
-    }
+ImageStoreView::ImageStoreView(const CallbackInfo& info) : SafeObjectWrap<ImageStoreView>(info) {
 }
 
 ImageStoreView::~ImageStoreView() {
@@ -42,32 +37,29 @@ ImageStoreView::~ImageStoreView() {
     }
 }
 
-void ImageStoreView::Construct(const Napi::CallbackInfo& info) {
+void ImageStoreView::Constructor(const Napi::CallbackInfo& info) {
     auto env{ info.Env() };
     HandleScope scope(env);
 
     if (info[0].IsObject()) {
-        this->scene = Scene::Unwrap(info[0].As<Object>());
+        this->scene = QueryInterface<Scene>(info[0]);
         if (this->scene) {
             this->scene->Ref();
         }
     }
 }
 
-Function ImageStoreView::Constructor(Napi::Env env) {
+Function ImageStoreView::GetClass(Napi::Env env) {
     static FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        auto func = DefineClass(env, "ImageStoreView", {
+        constructor = DefineClass(env, "ImageStoreView", {
             InstanceMethod("add", &ImageStoreView::Add),
             InstanceMethod("list", &ImageStoreView::List),
             InstanceAccessor("extensions", &ImageStoreView::GetExtensions, &ImageStoreView::SetExtensions),
         });
-
-        constructor.Reset(func, 1);
-        constructor.SuppressDestruct();
     }
 
     return constructor.Value();

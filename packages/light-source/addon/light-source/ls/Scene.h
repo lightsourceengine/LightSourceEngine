@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <napi.h>
+#include <napi-ext.h>
 #include <memory>
 #include <algorithm>
 #include <unordered_set>
@@ -20,12 +20,10 @@ class Stage;
 class SceneAdapter;
 class Renderer;
 
-class Scene : public Napi::ObjectWrap<Scene> {
+class Scene : public Napi::SafeObjectWrap<Scene> {
  public:
     explicit Scene(const Napi::CallbackInfo& info);
     virtual ~Scene() = default;
-
-    static Napi::Function Constructor(Napi::Env env);
 
     int32_t GetWidth() const noexcept { return this->width; }
     int32_t GetHeight() const noexcept { return this->height; }
@@ -46,10 +44,11 @@ class Scene : public Napi::ObjectWrap<Scene> {
     void QueueRootFontSizeChange(float rootFontSize);
     void Remove(SceneNode* node);
 
- private:
-    void Construct(const Napi::CallbackInfo& info);
+ public:
+    static Napi::Function GetClass(Napi::Env env);
 
  private: // javascript bindings
+    void Constructor(const Napi::CallbackInfo& info) override;
     void Attach(const Napi::CallbackInfo& info);
     void Detach(const Napi::CallbackInfo& info);
     void Destroy(const Napi::CallbackInfo& info);
@@ -77,6 +76,8 @@ class Scene : public Napi::ObjectWrap<Scene> {
     std::unordered_set<SceneNode*> afterLayoutRequests;
     std::unordered_set<SceneNode*> beforeLayoutRequests;
     CompositeContext context;
+
+    friend Napi::SafeObjectWrap<Scene>;
 };
 
 } // namespace ls

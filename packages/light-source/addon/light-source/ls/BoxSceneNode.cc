@@ -21,25 +21,26 @@ using Napi::CallbackInfo;
 using Napi::Function;
 using Napi::FunctionReference;
 using Napi::HandleScope;
-using Napi::ObjectWrap;
+using Napi::SafeObjectWrap;
 
 namespace ls {
 
-BoxSceneNode::BoxSceneNode(const CallbackInfo& info) : ObjectWrap<BoxSceneNode>(info), SceneNode(info) {
+BoxSceneNode::BoxSceneNode(const CallbackInfo& info) : SafeObjectWrap<BoxSceneNode>(info), SceneNode(info) {
 }
 
-Function BoxSceneNode::Constructor(Napi::Env env) {
+void BoxSceneNode::Constructor(const Napi::CallbackInfo& info) {
+    SceneNode::BaseConstructor(info);
+}
+
+Function BoxSceneNode::GetClass(Napi::Env env) {
     static FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        auto func{ DefineClass(env, "BoxSceneNode", SceneNode::Extend<BoxSceneNode>(env, {
+        constructor = DefineClass(env, "BoxSceneNode", SceneNode::Extend<BoxSceneNode>(env, {
             InstanceValue("waypoint", env.Null(), napi_writable),
-        })) };
-
-        constructor.Reset(func, 1);
-        constructor.SuppressDestruct();
+        }));
     }
 
     return constructor.Value();

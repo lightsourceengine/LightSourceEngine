@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include <napi-ext.h>
 #include <unordered_map>
 #include <array>
-#include <napi.h>
 #include <ls/StageAdapter.h>
 
 namespace ls {
@@ -16,7 +16,7 @@ namespace ls {
 class SDLKeyboard;
 class SDLGamepad;
 
-class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAdapter> {
+class SDLStageAdapter : public Napi::SafeObjectWrap<SDLStageAdapter>, public StageAdapter {
  private:
     enum StageCallback {
         StageCallbackGamepadConnected,
@@ -36,8 +36,12 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
     explicit SDLStageAdapter(const Napi::CallbackInfo& info);
     virtual ~SDLStageAdapter() = default;
 
-    static Napi::Function Constructor(Napi::Env env);
+    std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) override;
 
+ public: // javascript bindings
+    static Napi::Function GetClass(Napi::Env env);
+
+    void Constructor(const Napi::CallbackInfo& info) override;
     Napi::Value GetKeyboard(const Napi::CallbackInfo& info) override;
     Napi::Value GetGamepads(const Napi::CallbackInfo& info) override;
     Napi::Value GetDisplays(const Napi::CallbackInfo& info) override;
@@ -48,9 +52,6 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
     void SetCallback(const Napi::CallbackInfo& info) override;
     void ResetCallbacks(const Napi::CallbackInfo& info) override;
     Napi::Value AddGameControllerMappings(const Napi::CallbackInfo& info);
-
-    std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) override;
-    Napi::Reference<Napi::Object>* AsReference() noexcept override { return this; };
 
  private:
     void Call(const StageCallback callbackId, const std::initializer_list<napi_value>& args);
@@ -78,6 +79,8 @@ class SDLStageAdapter : public StageAdapter, public Napi::ObjectWrap<SDLStageAda
     SDLKeyboard* keyboard{};
     std::unordered_map<int32_t, SDLGamepad*> gamepadsByInstanceId{};
     bool isAttached{false};
+
+    friend Napi::SafeObjectWrap<SDLStageAdapter>;
 };
 
 } // namespace ls

@@ -6,8 +6,9 @@
 
 #pragma once
 
-#include <napi.h>
+#include <napi-ext.h>
 #include <memory>
+#include <SafeObjectWrap.h>
 #include "SceneAdapter.h"
 
 namespace ls {
@@ -15,7 +16,7 @@ namespace ls {
 /**
  * Provides an interface for the Stage to communicate with the native window manager and graphics environment.
  */
-class StageAdapter {
+class StageAdapter : public virtual Napi::SafeObjectWrapBase {
  public:
     virtual ~StageAdapter() = default;
 
@@ -37,11 +38,6 @@ class StageAdapter {
      * Factory method for creating a SceneAdapter.
      */
     virtual std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) = 0;
-
-    /**
-     * Cast to a Napi reference object.
-     */
-    virtual Napi::Reference<Napi::Object>* AsReference() noexcept = 0;
 };
 
 } // namespace ls

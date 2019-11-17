@@ -17,8 +17,8 @@ using ls::RefAudioAdapter;
 Object Init(Env env, Object exports) {
     HandleScope scope(env);
 
-    exports["StageAdapter"] = RefStageAdapter::Constructor(env);
-    exports["AudioAdapter"] = RefAudioAdapter::Constructor(env);
+    exports["StageAdapter"] = RefStageAdapter::GetClass(env);
+    exports["AudioAdapter"] = RefAudioAdapter::GetClass(env);
 
     return exports;
 }

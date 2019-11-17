@@ -35,17 +35,17 @@ Object Init(Env env, Object exports) {
 
     ls::Style::Init(env);
 
-    ExportClass(&exports, ls::bindings::Logger::Constructor(env));
-    ExportClass(&exports, ls::bindings::FontStoreView::Constructor(env));
-    ExportClass(&exports, ls::bindings::ImageStoreView::Constructor(env));
+    ExportClass(&exports, ls::bindings::Logger::GetClass(env));
+    ExportClass(&exports, ls::bindings::FontStoreView::GetClass(env));
+    ExportClass(&exports, ls::bindings::ImageStoreView::GetClass(env));
 
-    ExportClass(&exports, ls::Style::Constructor());
-    ExportClass(&exports, ls::Scene::Constructor(env));
-    ExportClass(&exports, ls::Stage::Constructor(env));
-    ExportClass(&exports, ls::BoxSceneNode::Constructor(env));
-    ExportClass(&exports, ls::ImageSceneNode::Constructor(env));
-    ExportClass(&exports, ls::TextSceneNode::Constructor(env));
-    ExportClass(&exports, ls::RootSceneNode::Constructor(env));
+    ExportClass(&exports, ls::Style::GetClass());
+    ExportClass(&exports, ls::Scene::GetClass(env));
+    ExportClass(&exports, ls::Stage::GetClass(env));
+    ExportClass(&exports, ls::BoxSceneNode::GetClass(env));
+    ExportClass(&exports, ls::ImageSceneNode::GetClass(env));
+    ExportClass(&exports, ls::TextSceneNode::GetClass(env));
+    ExportClass(&exports, ls::RootSceneNode::GetClass(env));
 
     ls::bindings::InitGlobalFunctions(env, exports);
 

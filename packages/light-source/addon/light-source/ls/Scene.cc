@@ -8,10 +8,10 @@
 #include "RootSceneNode.h"
 #include "Stage.h"
 #include <ls/Renderer.h>
-#include <napi-ext.h>
 #include <ls/StageAdapter.h>
 #include <ls/SceneAdapter.h>
 #include <ls/Log.h>
+#include <ls/Format.h>
 #include <ls/Math.h>
 #include <ls/Style.h>
 
@@ -25,7 +25,8 @@ using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Number;
 using Napi::Object;
-using Napi::ObjectWrap;
+using Napi::SafeObjectWrap;
+using Napi::QueryInterface;
 using Napi::Reference;
 using Napi::String;
 using Napi::SymbolFor;
@@ -33,43 +34,47 @@ using Napi::Value;
 
 namespace ls {
 
-Scene::Scene(const CallbackInfo& info) : ObjectWrap<Scene>(info) {
-    try {
-        this->Construct(info);
-    } catch (const Error& e) {
-        LOG_ERROR("%s", e.what());
-        this->stage = nullptr;
-    }
+Scene::Scene(const CallbackInfo& info) : SafeObjectWrap<Scene>(info) {
 }
 
-void Scene::Construct(const CallbackInfo& info) {
+void Scene::Constructor(const CallbackInfo& info) {
     auto env{ info.Env() };
     HandleScope scope(env);
 
-    this->stage = Stage::Unwrap(info[0].As<Object>());
+    this->stage = QueryInterface<Stage>(info[0]);
 
-    this->adapter = stage->GetStageAdapter()->CreateSceneAdapter({
-        info[1].As<Number>().Int32Value(),
-        info[2].As<Number>().Int32Value(),
-        info[3].As<Number>().Int32Value(),
-        info[4].As<Boolean>().Value(),
-    });
+    if (this->stage == nullptr) {
+        throw Error::New(env, "Invalid stage argument.");
+    }
+
+    try {
+        this->adapter = stage->GetStageAdapter()->CreateSceneAdapter({
+            info[1].As<Number>().Int32Value(),
+            info[2].As<Number>().Int32Value(),
+            info[3].As<Number>().Int32Value(),
+            info[4].As<Boolean>().Value(),
+        });
+    } catch (const std::exception& e) {
+        this->stage = nullptr;
+        throw Error::New(env, Format("Failed to create scene adapter: %s", e));
+    }
 
     try {
         this->stage->Ref();
     } catch (const Error& e) {
         this->adapter.reset();
         this->stage = nullptr;
+        throw e;
     }
 }
 
-Function Scene::Constructor(Napi::Env env) {
+Function Scene::GetClass(Napi::Env env) {
     static FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        auto func = DefineClass(env, "SceneBase", {
+        constructor = DefineClass(env, "SceneBase", {
             InstanceValue(SymbolFor(env, "width"), Number::New(env, 0), napi_writable),
             InstanceValue(SymbolFor(env, "height"), Number::New(env, 0), napi_writable),
             InstanceValue(SymbolFor(env, "fullscreen"), Boolean::New(env, true), napi_writable),
@@ -82,9 +87,6 @@ Function Scene::Constructor(Napi::Env env) {
             InstanceMethod(SymbolFor(env, "destroy"), &Scene::Destroy),
             InstanceMethod(SymbolFor(env, "frame"), &Scene::Frame),
         });
-
-        constructor.Reset(func, 1);
-        constructor.SuppressDestruct();
     }
 
     return constructor.Value();
@@ -133,7 +135,7 @@ void Scene::Detach(const CallbackInfo& info) {
 void Scene::Destroy(const CallbackInfo& info) {
     if (this->root) {
         this->root->Destroy();
-        this->root->AsReference()->Unref();
+        this->root->Unref();
         this->root = nullptr;
     }
 
@@ -226,20 +228,20 @@ Value Scene::GetStage(const CallbackInfo& info) {
 }
 
 Napi::Value Scene::GetRoot(const Napi::CallbackInfo& info) {
-    return this->root->AsReference()->Value();
+    return this->root->Value();
 }
 
 void Scene::SetRoot(const Napi::CallbackInfo& info, const Napi::Value& value) {
     if (this->root) {
-        this->root->AsReference()->Unref();
+        this->root->Unref();
         this->root = nullptr;
     }
 
     if (value.IsObject()) {
-        this->root = ObjectWrap<SceneNode>::Unwrap(value.As<Object>());
+        this->root = QueryInterface<SceneNode>(value);
 
         if (this->root) {
-            this->root->AsReference()->Ref();
+            this->root->Ref();
         }
     }
 }

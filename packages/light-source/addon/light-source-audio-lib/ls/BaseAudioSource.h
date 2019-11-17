@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <napi.h>
+#include <napi-ext.h>
 #include <ls/Audio.h>
 
 namespace ls {
@@ -30,26 +30,23 @@ class BaseAudioSource {
 
  protected:
     template<typename T>
-    static Napi::Function ConstructorInternal(Napi::Env env, const char* className);
+    static Napi::Function GetClassInternal(Napi::Env env, const char* className);
 };
 
 template<typename T>
-Napi::Function BaseAudioSource::ConstructorInternal(Napi::Env env, const char* className) {
+Napi::Function BaseAudioSource::GetClassInternal(Napi::Env env, const char* className) {
     static Napi::FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         Napi::HandleScope scope(env);
 
-        auto func = T::DefineClass(env, className, {
+        constructor = T::DefineClass(env, className, {
             T::InstanceMethod("load", &T::Load),
             T::InstanceMethod("destroy", &T::Destroy),
             T::InstanceMethod("play", &T::Play),
             T::InstanceMethod("hasCapability", &T::HasCapability),
             T::InstanceAccessor("volume", &T::GetVolume, &T::SetVolume),
         });
-
-        constructor.Reset(func, 1);
-        constructor.SuppressDestruct();
     }
 
     return constructor.Value();

@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <napi.h>
-#include "ls/StyleEnums.h"
+#include <napi-ext.h>
+#include <ls/StyleEnums.h>
 
 namespace ls {
 
@@ -15,20 +15,21 @@ class Stage;
 
 namespace bindings {
 
-class FontStoreView : public Napi::ObjectWrap<FontStoreView> {
+class FontStoreView : public Napi::SafeObjectWrap<FontStoreView> {
  public:
     explicit FontStoreView(const Napi::CallbackInfo& info);
     virtual ~FontStoreView();
 
-    static Napi::Function Constructor(Napi::Env env);
+ public:
+    static Napi::Function GetClass(Napi::Env env);
 
  private: // javascript bindings
+    void Constructor(const Napi::CallbackInfo& info) override;
     void Add(const Napi::CallbackInfo& info);
     void Remove(const Napi::CallbackInfo& info);
     Napi::Value List(const Napi::CallbackInfo& info);
 
  private:
-    void Construct(const Napi::CallbackInfo& info);
     void EnsureStage() const;
     void AddFont(const std::string& family, StyleFontStyle style, StyleFontWeight weight,
                  const std::string& uri, int32_t ttfIndex);
@@ -36,6 +37,8 @@ class FontStoreView : public Napi::ObjectWrap<FontStoreView> {
 
  private:
     Stage* stage{};
+
+    friend SafeObjectWrap<FontStoreView>;
 };
 
 } // namespace bindings

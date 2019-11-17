@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <napi.h>
+#include <napi-ext.h>
 #include <ls/Audio.h>
 
 namespace ls {
@@ -23,7 +23,7 @@ class BaseAudioAdapter : public AudioAdapter {
 
  protected:
     template<typename T>
-    static Napi::Function ConstructorInternal(Napi::Env env, const char* className);
+    static Napi::Function GetClassInternal(Napi::Env env, const char* className);
 
  protected:
     bool isAttached{false};
@@ -31,23 +31,20 @@ class BaseAudioAdapter : public AudioAdapter {
 };
 
 template<typename T>
-Napi::Function BaseAudioAdapter::ConstructorInternal(Napi::Env env, const char* className) {
+Napi::Function BaseAudioAdapter::GetClassInternal(Napi::Env env, const char* className) {
     static Napi::FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         Napi::HandleScope scope(env);
 
-        auto func = T::DefineClass(env, className, {
+        constructor = T::DefineClass(env, className, {
             T::InstanceMethod("attach", &T::Attach),
             T::InstanceMethod("detach", &T::Detach),
             T::InstanceMethod("createStreamAudioDestination", &T::CreateStreamAudioDestination),
             T::InstanceMethod("createSampleAudioDestination", &T::CreateSampleAudioDestination),
-            T::InstanceAccessor("attached", &T::IsAttached, nullptr),
-            T::InstanceAccessor("devices", &T::GetAudioDevices, nullptr),
+            T::InstanceAccessor("attached", &T::IsAttached),
+            T::InstanceAccessor("devices", &T::GetAudioDevices),
         });
-
-        constructor.Reset(func, 1);
-        constructor.SuppressDestruct();
     }
 
     return constructor.Value();

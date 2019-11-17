@@ -14,20 +14,20 @@ using Napi::Error;
 using Napi::EscapableHandleScope;
 using Napi::Function;
 using Napi::HandleScope;
-using Napi::ObjectWrap;
+using Napi::SafeObjectWrap;
 using Napi::Value;
 
 namespace ls {
 
-class RefAudioSource : public ObjectWrap<RefAudioSource>, public BaseAudioSource {
+class RefAudioSource : public SafeObjectWrap<RefAudioSource>, public BaseAudioSource {
  public:
-    explicit RefAudioSource(const CallbackInfo& info) : ObjectWrap<RefAudioSource>(info) {
+    explicit RefAudioSource(const CallbackInfo& info) : SafeObjectWrap<RefAudioSource>(info) {
     }
 
     virtual ~RefAudioSource() = default;
 
-    static Function Constructor(Napi::Env env) {
-        return ConstructorInternal<RefAudioSource>(env, "RefAudioSource");
+    static Function GetClass(Napi::Env env) {
+        return GetClassInternal<RefAudioSource>(env, "RefAudioSource");
     }
 
     void Load(const CallbackInfo& info) override {
@@ -39,38 +39,46 @@ class RefAudioSource : public ObjectWrap<RefAudioSource>, public BaseAudioSource
     Napi::Value HasCapability(const CallbackInfo& info) override {
         return Boolean::New(info.Env(), true);
     }
+
+    friend SafeObjectWrap<RefAudioSource>;
+    friend BaseAudioSource;
 };
 
-class RefAudioDestination : public ObjectWrap<RefAudioDestination>, public BaseAudioDestination {
+class RefAudioDestination : public SafeObjectWrap<RefAudioDestination>, public BaseAudioDestination {
  public:
-    explicit RefAudioDestination(const CallbackInfo& info) : ObjectWrap<RefAudioDestination>(info) {
-        this->decoders = { "WAVE" };
+    explicit RefAudioDestination(const CallbackInfo& info) : SafeObjectWrap<RefAudioDestination>(info) {
     }
 
     virtual ~RefAudioDestination() = default;
 
-    static Function Constructor(Napi::Env env) {
-        return ConstructorInternal<RefAudioDestination>(env, "RefAudioDestination");
+    static Function GetClass(Napi::Env env) {
+        return GetClassInternal<RefAudioDestination>(env, "RefAudioDestination");
+    }
+
+    void Constructor(const CallbackInfo& info) override {
+        this->decoders = { "WAVE" };
     }
 
     Napi::Value CreateAudioSource(const CallbackInfo& info) override {
         auto env{ info.Env() };
         EscapableHandleScope scope(env);
 
-        return scope.Escape(RefAudioSource::Constructor(env).New({}));
+        return scope.Escape(RefAudioSource::GetClass(env).New({}));
     }
 
     Napi::Value HasCapability(const CallbackInfo& info) override {
         return Boolean::New(info.Env(), true);
     }
+
+    friend SafeObjectWrap<RefAudioDestination>;
+    friend BaseAudioDestination;
 };
 
-RefAudioAdapter::RefAudioAdapter(const CallbackInfo& info) : ObjectWrap(info) {
-    this->audioDevices = { "Reference" };
+RefAudioAdapter::RefAudioAdapter(const CallbackInfo& info) : SafeObjectWrap(info) {
 }
 
-Function RefAudioAdapter::Constructor(Napi::Env env) {
-    return ConstructorInternal<RefAudioAdapter>(env, "RefAudioAdapter");
+Function RefAudioAdapter::GetClass(Napi::Env env) {
+    return GetClassInternal<RefAudioAdapter>(env, "RefAudioAdapter");
 }
 
 void RefAudioAdapter::Attach(const Napi::CallbackInfo& info) {
@@ -85,14 +93,18 @@ Value RefAudioAdapter::CreateSampleAudioDestination(const CallbackInfo& info) {
     auto env{ info.Env() };
     EscapableHandleScope scope(env);
 
-    return scope.Escape(RefAudioDestination::Constructor(env).New({}));
+    return scope.Escape(RefAudioDestination::GetClass(env).New({}));
 }
 
 Value RefAudioAdapter::CreateStreamAudioDestination(const CallbackInfo& info) {
     auto env{ info.Env() };
     EscapableHandleScope scope(env);
 
-    return scope.Escape(RefAudioDestination::Constructor(env).New({}));
+    return scope.Escape(RefAudioDestination::GetClass(env).New({}));
+}
+
+void RefAudioAdapter::Constructor(const CallbackInfo &info) {
+    this->audioDevices = { "Reference" };
 }
 
 } // namespace ls

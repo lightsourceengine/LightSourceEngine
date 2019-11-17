@@ -16,7 +16,7 @@ using Napi::Error;
 using Napi::Function;
 using Napi::FunctionReference;
 using Napi::HandleScope;
-using Napi::ObjectWrap;
+using Napi::SafeObjectWrap;
 using Napi::String;
 using Napi::Value;
 
@@ -24,19 +24,20 @@ namespace ls {
 
 constexpr auto DEFAULT_ROOT_FONT_SIZE{ 16 };
 
-RootSceneNode::RootSceneNode(const CallbackInfo& info) : ObjectWrap<RootSceneNode>(info), SceneNode(info) {
+RootSceneNode::RootSceneNode(const CallbackInfo& info) : SafeObjectWrap<RootSceneNode>(info), SceneNode(info) {
 }
 
-Function RootSceneNode::Constructor(Napi::Env env) {
+void RootSceneNode::Constructor(const Napi::CallbackInfo& info) {
+    SceneNode::BaseConstructor(info);
+}
+
+Function RootSceneNode::GetClass(Napi::Env env) {
     static FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        auto func{ DefineClass(env, "RootSceneNode", SceneNode::Extend<RootSceneNode>(env, {})) };
-
-        constructor.Reset(func, 1);
-        constructor.SuppressDestruct();
+        constructor = DefineClass(env, "RootSceneNode", SceneNode::Extend<RootSceneNode>(env, {}));
     }
 
     return constructor.Value();

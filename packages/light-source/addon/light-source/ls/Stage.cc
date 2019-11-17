@@ -7,7 +7,6 @@
 #include "Stage.h"
 #include "FontStore.h"
 #include <ls/StageAdapter.h>
-#include <napi-ext.h>
 #include <ls/Log.h>
 
 using Napi::CallbackInfo;
@@ -16,33 +15,34 @@ using Napi::Function;
 using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Object;
-using Napi::ObjectWrap;
+using Napi::SafeObjectWrap;
+using Napi::QueryInterface;
 using Napi::String;
 using Napi::SymbolFor;
 using Napi::Value;
 
 namespace ls {
 
-Stage::Stage(const CallbackInfo& info) : ObjectWrap<Stage>(info) {
+Stage::Stage(const CallbackInfo& info) : SafeObjectWrap<Stage>(info) {
+}
+
+void Stage::Constructor(const Napi::CallbackInfo& info) {
     this->fontStore.Attach(this);
     // TODO: need to detach somewhere
     this->taskQueue.Init(this->GetExecutor());
 }
 
-Function Stage::Constructor(Napi::Env env) {
+Function Stage::GetClass(Napi::Env env) {
     static FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        auto func = DefineClass(env, "StageBase", {
+        constructor = DefineClass(env, "StageBase", {
             InstanceAccessor(SymbolFor(env, "adapter"), &Stage::GetStageAdapter, &Stage::SetStageAdapter),
             InstanceAccessor(SymbolFor(env, "resourcePath"), &Stage::GetResourcePath, &Stage::SetResourcePath),
             InstanceMethod(SymbolFor(env, "processEvents"), &Stage::ProcessEvents),
         });
-
-        constructor.Reset(func, 1);
-        constructor.SuppressDestruct();
     }
 
     return constructor.Value();
@@ -51,7 +51,7 @@ Function Stage::Constructor(Napi::Env env) {
 void Stage::Destroy() noexcept {
     if (this->stageAdapter) {
         try {
-            this->stageAdapter->AsReference()->Unref();
+            this->stageAdapter->Unref();
         } catch (const Error& e) {
             LOG_ERROR(e);
         }
@@ -70,7 +70,7 @@ void Stage::ProcessEvents(const CallbackInfo& info) {
 
 Value Stage::GetStageAdapter(const CallbackInfo& info) {
     if (this->stageAdapter) {
-        return this->stageAdapter->AsReference()->Value();
+        return this->stageAdapter->Value();
     }
 
     return info.Env().Null();
@@ -82,7 +82,7 @@ void Stage::SetStageAdapter(const CallbackInfo& info, const Napi::Value& value) 
     StageAdapter* newStageAdapter;
 
     if (value.IsObject()) {
-        newStageAdapter = ObjectWrap<StageAdapter>::Unwrap(value.As<Object>());
+        newStageAdapter = QueryInterface<StageAdapter>(value);
     } else if (value.IsNull() || value.IsUndefined()) {
         newStageAdapter = nullptr;
     } else {
@@ -94,11 +94,11 @@ void Stage::SetStageAdapter(const CallbackInfo& info, const Napi::Value& value) 
     }
 
     if (newStageAdapter) {
-        newStageAdapter->AsReference()->Ref();
+        newStageAdapter->Ref();
     }
 
     if (oldStageAdapter) {
-        oldStageAdapter->AsReference()->Unref();
+        oldStageAdapter->Unref();
     }
 
     this->stageAdapter = newStageAdapter;

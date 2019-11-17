@@ -22,40 +22,45 @@ using Napi::EscapableHandleScope;
 using Napi::Function;
 using Napi::FunctionReference;
 using Napi::HandleScope;
-using Napi::ObjectWrap;
+using Napi::SafeObjectWrap;
 using Napi::String;
 using Napi::Value;
 
 namespace ls {
 
-ImageSceneNode::ImageSceneNode(const CallbackInfo& info) : ObjectWrap<ImageSceneNode>(info), SceneNode(info) {
+ImageSceneNode::ImageSceneNode(const CallbackInfo& info) : SafeObjectWrap<ImageSceneNode>(info), SceneNode(info) {
+}
+
+void ImageSceneNode::Constructor(const Napi::CallbackInfo& info) {
+    SceneNode::BaseConstructor(info);
+
     if (this->scene == nullptr) {
         return;
     }
 
     YGNodeSetMeasureFunc(
-        this->ygNode,
-        [](YGNodeRef nodeRef, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) -> YGSize {
-            const auto self { static_cast<ImageSceneNode *>(YGNodeGetContext(nodeRef)) };
+    this->ygNode,
+    [](YGNodeRef nodeRef, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) -> YGSize {
+        const auto self { static_cast<ImageSceneNode *>(YGNodeGetContext(nodeRef)) };
 
-            if (self && self->image && self->image->IsReady()) {
-                return {
-                    self->image->GetWidthF(),
-                    self->image->GetHeightF(),
-                };
-            }
+        if (self && self->image && self->image->IsReady()) {
+            return {
+                self->image->GetWidthF(),
+                self->image->GetHeightF(),
+            };
+        }
 
-            return { 0.f, 0.f };
+        return { 0.f, 0.f };
     });
 }
 
-Function ImageSceneNode::Constructor(Napi::Env env) {
+Function ImageSceneNode::GetClass(Napi::Env env) {
     static FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        auto func = DefineClass(
+        constructor = DefineClass(
             env,
             "ImageSceneNode",
             SceneNode::Extend<ImageSceneNode>(env, {
@@ -63,9 +68,6 @@ Function ImageSceneNode::Constructor(Napi::Env env) {
                 InstanceAccessor("onLoad", &ImageSceneNode::GetOnLoadCallback, &ImageSceneNode::SetOnLoadCallback),
                 InstanceAccessor("onError", &ImageSceneNode::GetOnErrorCallback, &ImageSceneNode::SetOnErrorCallback),
             }));
-
-        constructor.Reset(func, 1);
-        constructor.SuppressDestruct();
     }
 
     return constructor.Value();

@@ -17,21 +17,25 @@ using Napi::EscapableHandleScope;
 using Napi::Function;
 using Napi::Number;
 using Napi::Object;
-using Napi::ObjectWrap;
+using Napi::SafeObjectWrap;
 using Napi::Value;
 
 namespace ls {
 
-class SDLAudioSource : public ObjectWrap<SDLAudioSource>, public BaseAudioSource {
+class SDLAudioSource : public SafeObjectWrap<SDLAudioSource>, public BaseAudioSource {
  public:
-    explicit SDLAudioSource(const CallbackInfo& info) : ObjectWrap<SDLAudioSource>(info) {
-        this->deviceId = info[0].As<Number>().Int32Value();
+    explicit SDLAudioSource(const CallbackInfo& info) : SafeObjectWrap<SDLAudioSource>(info) {
     }
 
     virtual ~SDLAudioSource() = default;
 
-    static Function Constructor(Napi::Env env) {
-        return ConstructorInternal<SDLAudioSource>(env, "SDLAudioSource");
+
+    static Function GetClass(Napi::Env env) {
+        return GetClassInternal<SDLAudioSource>(env, "SDLAudioSource");
+    }
+
+    void Constructor(const CallbackInfo& info) override {
+        this->deviceId = info[0].As<Number>().Int32Value();
     }
 
     void Load(const CallbackInfo& info) override {
@@ -89,28 +93,36 @@ class SDLAudioSource : public ObjectWrap<SDLAudioSource>, public BaseAudioSource
     uint8_t* audioBuffer{nullptr};
     uint32_t audioBufferLen{0};
     int32_t deviceId{-1};
+
+    friend SafeObjectWrap<SDLAudioSource>;
+    friend BaseAudioSource;
 };
 
-class SDLAudioSampleAudioDestination : public ObjectWrap<SDLAudioSampleAudioDestination>, public BaseAudioDestination {
+class SDLAudioSampleAudioDestination
+    : public SafeObjectWrap<SDLAudioSampleAudioDestination>, public BaseAudioDestination {
  public:
     explicit SDLAudioSampleAudioDestination(const CallbackInfo& info)
-            : ObjectWrap<SDLAudioSampleAudioDestination>(info) {
-        this->deviceId = info[0].As<Number>().Int32Value();
-        // Only the WAVE decoder is supported by SDL Audio.
-        this->decoders = { "WAVE" };
+            : SafeObjectWrap<SDLAudioSampleAudioDestination>(info) {
     }
 
     virtual ~SDLAudioSampleAudioDestination() = default;
 
-    static Function Constructor(Napi::Env env) {
-        return ConstructorInternal<SDLAudioSampleAudioDestination>(env, "SDLAudioSampleAudioDestination");
+
+    static Function GetClass(Napi::Env env) {
+        return GetClassInternal<SDLAudioSampleAudioDestination>(env, "SDLAudioSampleAudioDestination");
+    }
+
+    void Constructor(const CallbackInfo& info) override {
+        this->deviceId = info[0].As<Number>().Int32Value();
+        // Only the WAVE decoder is supported by SDL Audio.
+        this->decoders = { "WAVE" };
     }
 
     Napi::Value CreateAudioSource(const CallbackInfo& info) override {
         auto env{ info.Env() };
         EscapableHandleScope scope(env);
 
-        return scope.Escape(SDLAudioSource::Constructor(env).New({}));
+        return scope.Escape(SDLAudioSource::GetClass(env).New({}));
     }
 
     void Pause(const CallbackInfo& info) override {
@@ -140,13 +152,16 @@ class SDLAudioSampleAudioDestination : public ObjectWrap<SDLAudioSampleAudioDest
 
  private:
     int32_t deviceId{-1};
+
+    friend SafeObjectWrap<SDLAudioSampleAudioDestination>;
+    friend BaseAudioDestination;
 };
 
-SDLAudioAdapter::SDLAudioAdapter(const CallbackInfo& info) : ObjectWrap(info) {
+SDLAudioAdapter::SDLAudioAdapter(const CallbackInfo& info) : SafeObjectWrap(info) {
 }
 
-Function SDLAudioAdapter::Constructor(Napi::Env env) {
-    return ConstructorInternal<SDLAudioAdapter>(env, "SDLAudioAdapter");
+Function SDLAudioAdapter::GetClass(Napi::Env env) {
+    return GetClassInternal<SDLAudioAdapter>(env, "SDLAudioAdapter");
 }
 
 void SDLAudioAdapter::Attach(const CallbackInfo& info) {
@@ -213,7 +228,7 @@ Value SDLAudioAdapter::CreateSampleAudioDestination(const CallbackInfo& info) {
 
     EscapableHandleScope scope(env);
 
-    return scope.Escape(SDLAudioSource::Constructor(env).New({ Number::New(env, this->deviceId) }));
+    return scope.Escape(SDLAudioSource::GetClass(env).New({Number::New(env, this->deviceId) }));
 }
 
 } // namespace ls

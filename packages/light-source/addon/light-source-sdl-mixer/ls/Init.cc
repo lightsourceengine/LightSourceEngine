@@ -15,7 +15,7 @@ using ls::SDLMixerAudioAdapter;
 Object Init(Env env, Object exports) {
     HandleScope scope(env);
 
-    exports["AudioAdapter"] = SDLMixerAudioAdapter::Constructor(env);
+    exports["AudioAdapter"] = SDLMixerAudioAdapter::GetClass(env);
 
     return exports;
 }

@@ -20,6 +20,7 @@ const T& FormatArg(const T& value) noexcept {
 const char* FormatArg(const bool& value) noexcept;
 const char* FormatArg(const std::string& value) noexcept;
 const char* FormatArg(const char* value) noexcept;
+const char* FormatArg(const std::exception& e) noexcept;
 const char* FormatArg(std::nullptr_t) noexcept;
 
 } // namespace internal

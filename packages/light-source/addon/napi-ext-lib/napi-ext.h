@@ -7,6 +7,7 @@
 #pragma once
 
 #include <napi.h>
+#include "SafeObjectWrap.h"
 
 namespace Napi {
 

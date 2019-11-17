@@ -18,7 +18,6 @@
 #include <ls/Renderer.h>
 #include <ls/PixelConversion.h>
 #include <ls-ctx.h>
-#include <napi-ext.h>
 
 using Napi::Array;
 using Napi::CallbackInfo;
@@ -27,7 +26,7 @@ using Napi::Function;
 using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Object;
-using Napi::ObjectWrap;
+using Napi::SafeObjectWrap;
 using Napi::String;
 using Napi::Value;
 
@@ -36,7 +35,12 @@ namespace ls {
 static int32_t GetMaxLines(Style* style) noexcept;
 static std::string TextTransform(const Napi::Env& env, const StyleTextTransform transform, const std::string& text);
 
-TextSceneNode::TextSceneNode(const CallbackInfo& info) : ObjectWrap<TextSceneNode>(info), SceneNode(info) {
+TextSceneNode::TextSceneNode(const CallbackInfo& info) : SafeObjectWrap<TextSceneNode>(info), SceneNode(info) {
+}
+
+void TextSceneNode::Constructor(const Napi::CallbackInfo& info) {
+    SceneNode::BaseConstructor(info);
+
     if (!this->scene) {
         return;
     }
@@ -57,24 +61,21 @@ TextSceneNode::TextSceneNode(const CallbackInfo& info) : ObjectWrap<TextSceneNod
             }
 
             return { 0.f, 0.f };
-    });
+        });
 }
 
-Function TextSceneNode::Constructor(Napi::Env env) {
+Function TextSceneNode::GetClass(Napi::Env env) {
     static FunctionReference constructor;
 
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        auto func = DefineClass(
+        constructor = DefineClass(
             env,
             "TextSceneNode",
             SceneNode::Extend<TextSceneNode>(env, {
                 InstanceAccessor("text", &TextSceneNode::GetText, &TextSceneNode::SetText),
             }));
-
-        constructor.Reset(func, 1);
-        constructor.SuppressDestruct();
     }
 
     return constructor.Value();
