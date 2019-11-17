@@ -126,8 +126,8 @@ struct PropertyName {
     const char* utf8Name;
     napi_value name;
 
-    constexpr PropertyName(const char* utf8Name) noexcept : utf8Name(utf8Name), name(nullptr) {}
-    constexpr PropertyName(const Symbol& value) noexcept : utf8Name(nullptr), name(value) {}
+    PropertyName(const char* utf8Name) noexcept : utf8Name(utf8Name), name(nullptr) {}
+    PropertyName(const Symbol& value) noexcept : utf8Name(nullptr), name(value) {}
 };
 
 namespace detail {
