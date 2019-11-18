@@ -38,7 +38,7 @@ Function Stage::GetClass(Napi::Env env) {
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        constructor = DefineClass(env, "StageBase", {
+        constructor = DefineClass(env, "StageBase", true, {
             InstanceAccessor(SymbolFor(env, "adapter"), &Stage::GetStageAdapter, &Stage::SetStageAdapter),
             InstanceAccessor(SymbolFor(env, "resourcePath"), &Stage::GetResourcePath, &Stage::SetResourcePath),
             InstanceMethod(SymbolFor(env, "processEvents"), &Stage::ProcessEvents),

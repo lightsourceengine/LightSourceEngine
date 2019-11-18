@@ -16,7 +16,6 @@ class Style;
 class RootSceneNode : public Napi::SafeObjectWrap<RootSceneNode>, public SceneNode {
  public:
     explicit RootSceneNode(const Napi::CallbackInfo& info);
-    virtual ~RootSceneNode() = default;
 
     void OnPropertyChanged(StyleProperty property) override;
     void BeforeLayout() override {}

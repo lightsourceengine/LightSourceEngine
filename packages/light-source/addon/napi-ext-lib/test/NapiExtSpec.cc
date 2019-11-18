@@ -10,9 +10,12 @@
 
 using Napi::Assert;
 using Napi::Call;
+using Napi::Error;
 using Napi::Function;
 using Napi::FunctionReference;
 using Napi::NewStringArray;
+using Napi::Number;
+using Napi::RunScript;
 using Napi::String;
 using Napi::TestInfo;
 using Napi::TestSuite;
@@ -139,6 +142,35 @@ void NapiExtSpec(TestSuite* parent) {
                 Assert::IsTrue(called);
                 Assert::Equal(argCount, 1u);
                 Assert::Equal(ret.As<String>().Utf8Value(), std::string("return-value"));
+            }
+        }
+    };
+
+    spec->Describe("RunScript()")->tests = {
+        {
+            "should eval script from std::string",
+            [](const TestInfo& info) {
+                auto result{ RunScript(info.Env(), "(() => 5)()") };
+
+                Assert::IsTrue(result.IsNumber());
+                Assert::Equal(result.As<Number>().Int32Value(), 5);
+            }
+        },
+        {
+            "should eval script from Napi::String",
+            [](const TestInfo& info) {
+                auto result{ RunScript(info.Env(), String::New(info.Env(), "(() => 5)()")) };
+
+                Assert::IsTrue(result.IsNumber());
+                Assert::Equal(result.As<Number>().Int32Value(), 5);
+            }
+        },
+        {
+            "should throw Error from script",
+            [](const TestInfo& info) {
+                Assert::Throws([env = info.Env()]() { RunScript(env, String()); });
+                Assert::Throws([env = info.Env()]() { RunScript(env, "invalid"); });
+                Assert::Throws([env = info.Env()]() { RunScript(env, "throw Error('from script')"); });
             }
         }
     };

@@ -24,7 +24,6 @@ class Texture;
 class SceneNode : public virtual Napi::SafeObjectWrapBase {
  public:
     explicit SceneNode(const Napi::CallbackInfo& info);
-    virtual ~SceneNode() = default;
 
     static Napi::Value GetInstanceCount(const Napi::CallbackInfo& info);
 

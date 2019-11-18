@@ -65,7 +65,7 @@ Function FontStoreView::GetClass(Napi::Env env) {
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        constructor = DefineClass(env, "FontStoreView", {
+        constructor = DefineClass(env, "FontStoreView", true, {
             InstanceMethod("add", &FontStoreView::Add),
             InstanceMethod("remove", &FontStoreView::Remove),
             InstanceMethod("list", &FontStoreView::List),

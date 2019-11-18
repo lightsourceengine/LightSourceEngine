@@ -38,7 +38,7 @@ Function BoxSceneNode::GetClass(Napi::Env env) {
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        constructor = DefineClass(env, "BoxSceneNode", SceneNode::Extend<BoxSceneNode>(env, {
+        constructor = DefineClass(env, "BoxSceneNode", true, SceneNode::Extend<BoxSceneNode>(env, {
             InstanceValue("waypoint", env.Null(), napi_writable),
         }));
     }

@@ -19,7 +19,6 @@ class Style;
 class TextSceneNode : public Napi::SafeObjectWrap<TextSceneNode>, public SceneNode {
  public:
     explicit TextSceneNode(const Napi::CallbackInfo& info);
-    virtual ~TextSceneNode() = default;
 
     void OnPropertyChanged(StyleProperty property) override;
 

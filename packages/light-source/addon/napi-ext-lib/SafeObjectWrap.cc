@@ -12,7 +12,7 @@ namespace detail {
 SafeObjectWrapBase* Unwrap(Napi::Value wrapper) noexcept {
     if (wrapper.IsObject()) {
         void* unwrapped{ nullptr };
-        auto status{ napi_unwrap(wrapper.Env(), wrapper, &unwrapped) };
+        const auto status{ napi_unwrap(wrapper.Env(), wrapper, &unwrapped) };
 
         if (status == napi_ok) {
             return static_cast<SafeObjectWrapBase*>(unwrapped);
@@ -88,8 +88,8 @@ napi_value StaticSetterBridge(napi_env env, napi_callback_info info) {
     return nullptr;
 }
 
-FunctionReference DefineClass(Napi::Env env, const char* utf8name, std::vector<napi_property_descriptor>& properties,
-        napi_callback constructorBridge) {
+FunctionReference DefineClass(Napi::Env env, const char* utf8name, bool permanent,
+    std::vector<napi_property_descriptor>& properties, napi_callback constructorBridge) {
     napi_status status;
 
     // We copy the descriptors to a local array because before defining the class
@@ -114,11 +114,16 @@ FunctionReference DefineClass(Napi::Env env, const char* utf8name, std::vector<n
                                properties.data(), &constructor);
     NAPI_THROW_IF_FAILED(env, status, Function());
 
-    FunctionReference constructorReference = Persistent(Function(env, constructor));
+    FunctionReference ref;
 
-    constructorReference.SuppressDestruct();
+    if (permanent) {
+        ref.Reset(Function(env, constructor), 1);
+        ref.SuppressDestruct();
+    } else {
+        ref.Reset(Function(env, constructor));
+    }
 
-    return constructorReference;
+    return ref;
 }
 
 bool EnsureConstructCall(napi_env env, napi_callback_info info) noexcept {

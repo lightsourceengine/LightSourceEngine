@@ -19,10 +19,8 @@ enum AudioDestinationCapability {
     AudioDestinationCapabilityFadeOut
 };
 
-class BaseAudioDestination {
+class BaseAudioDestination : public virtual Napi::SafeObjectWrapBase{
  public:
-    virtual ~BaseAudioDestination() = default;
-
     virtual Napi::Value GetDecoders(const Napi::CallbackInfo& info);
     virtual Napi::Value CreateAudioSource(const Napi::CallbackInfo& info) = 0;
     virtual void Resume(const Napi::CallbackInfo& info);
@@ -45,7 +43,7 @@ Napi::Function BaseAudioDestination::GetClassInternal(Napi::Env env, const char*
     if (constructor.IsEmpty()) {
         Napi::HandleScope scope(env);
 
-        constructor = T::DefineClass(env, className, {
+        constructor = T::DefineClass(env, className, true, {
             T::InstanceMethod("createAudioSource", &T::CreateAudioSource),
             T::InstanceMethod("resume", &T::Resume),
             T::InstanceMethod("pause", &T::Pause),

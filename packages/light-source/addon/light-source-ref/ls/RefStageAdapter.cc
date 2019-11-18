@@ -30,7 +30,7 @@ Function RefStageAdapter::GetClass(Napi::Env env) {
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        constructor = DefineClass(env, "RefStageAdapter", {
+        constructor = DefineClass(env, "RefStageAdapter", true, {
             InstanceMethod("getKeyboard", &RefStageAdapter::GetKeyboard),
             InstanceMethod("getGamepads", &RefStageAdapter::GetGamepads),
             InstanceMethod("getDisplays", &RefStageAdapter::GetDisplays),

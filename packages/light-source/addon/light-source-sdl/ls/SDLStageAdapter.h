@@ -34,7 +34,6 @@ class SDLStageAdapter : public Napi::SafeObjectWrap<SDLStageAdapter>, public Sta
 
  public:
     explicit SDLStageAdapter(const Napi::CallbackInfo& info);
-    virtual ~SDLStageAdapter() = default;
 
     std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) override;
 

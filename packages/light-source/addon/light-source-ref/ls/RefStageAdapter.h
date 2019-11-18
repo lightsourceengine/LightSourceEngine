@@ -15,7 +15,6 @@ namespace ls {
 class RefStageAdapter : public Napi::SafeObjectWrap<RefStageAdapter>, public StageAdapter {
  public:
     explicit RefStageAdapter(const Napi::CallbackInfo& info);
-    virtual ~RefStageAdapter() = default;
 
     std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) override;
 

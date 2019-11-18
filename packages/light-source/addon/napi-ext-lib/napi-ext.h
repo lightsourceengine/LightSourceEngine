@@ -74,6 +74,16 @@ void Call(const Napi::FunctionReference& func, const std::initializer_list<napi_
 Napi::Value Call(const Napi::Env& env, const Napi::FunctionReference& func,
     const std::initializer_list<napi_value>& args = {});
 
+/**
+ * Evaluate a javascript string.
+ */
+Napi::Value RunScript(const Napi::Env& env, const std::string& script);
+
+/**
+ * Evaluate a javascript string.
+ */
+Napi::Value RunScript(const Napi::Env& env, const Napi::String& script);
+
 } // namespace Napi
 
 #include "napi-ext-inl.h"

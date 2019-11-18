@@ -37,7 +37,7 @@ Function RootSceneNode::GetClass(Napi::Env env) {
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        constructor = DefineClass(env, "RootSceneNode", SceneNode::Extend<RootSceneNode>(env, {}));
+        constructor = DefineClass(env, "RootSceneNode", true, SceneNode::Extend<RootSceneNode>(env, {}));
     }
 
     return constructor.Value();

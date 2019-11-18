@@ -62,7 +62,7 @@ Function ImageSceneNode::GetClass(Napi::Env env) {
 
         constructor = DefineClass(
             env,
-            "ImageSceneNode",
+            "ImageSceneNode", true,
             SceneNode::Extend<ImageSceneNode>(env, {
                 InstanceAccessor("src", &ImageSceneNode::GetSource, &ImageSceneNode::SetSource),
                 InstanceAccessor("onLoad", &ImageSceneNode::GetOnLoadCallback, &ImageSceneNode::SetOnLoadCallback),

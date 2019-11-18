@@ -33,7 +33,7 @@ Function SDLKeyboard::GetClass(Napi::Env env) {
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        constructor = DefineClass(env, "SDLKeyboard", {
+        constructor = DefineClass(env, "SDLKeyboard", true, {
             InstanceValue("type", String::New(env, KeyboardType)),
             InstanceValue("id", Number::New(env, KeyboardId)),
             InstanceValue("uuid", String::New(env, KeyboardUUID)),

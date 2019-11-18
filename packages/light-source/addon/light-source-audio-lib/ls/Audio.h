@@ -6,17 +6,15 @@
 
 #pragma once
 
-#include <napi.h>
+#include <napi-ext.h>
 
 namespace ls {
 
 /**
  * Adapts the native audio system to the javascript AudioManager.
  */
-class AudioAdapter {
+class AudioAdapter : public virtual Napi::SafeObjectWrapBase {
  public:
-    virtual ~AudioAdapter() = default;
-
     // javascript methods
 
     virtual void Attach(const Napi::CallbackInfo& info) = 0;

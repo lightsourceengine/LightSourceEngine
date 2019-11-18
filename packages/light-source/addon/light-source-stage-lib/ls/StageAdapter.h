@@ -18,8 +18,6 @@ namespace ls {
  */
 class StageAdapter : public virtual Napi::SafeObjectWrapBase {
  public:
-    virtual ~StageAdapter() = default;
-
     // javascript methods
 
     virtual Napi::Value GetKeyboard(const Napi::CallbackInfo& info) = 0;

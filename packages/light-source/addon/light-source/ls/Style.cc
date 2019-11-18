@@ -442,8 +442,8 @@ static void YGNodeSetNumber(YGNodeRef ygNode, StyleValueNumber& value, Scene* sc
 void Style::Init(Napi::Env env) {
     HandleScope scope(env);
 
-    sConstructor = DefineClass(env, "Style", {
-        #define LS_ADD_PROPERTY(NAME) InstanceAccessor(#NAME, &Style::Getter_##NAME, &Style::Setter_##NAME)
+    sConstructor = DefineClass(env, "Style", true, {
+#define LS_ADD_PROPERTY(NAME) InstanceAccessor(#NAME, &Style::Getter_##NAME, &Style::Setter_##NAME)
         // Yoga Layout Style Properties
         LS_ADD_PROPERTY(alignItems),
         LS_ADD_PROPERTY(alignContent),
@@ -518,7 +518,7 @@ void Style::Init(Napi::Env env) {
         LS_ADD_PROPERTY(transformOriginX),
         LS_ADD_PROPERTY(transformOriginY),
         LS_ADD_PROPERTY(zIndex),
-        #undef LS_ADD_PROPERTY
+#undef LS_ADD_PROPERTY
 
         StaticValue("UnitUndefined", Number::New(env, StyleNumberUnitUndefined)),
         StaticValue("UnitPoint", Number::New(env, StyleNumberUnitPoint)),

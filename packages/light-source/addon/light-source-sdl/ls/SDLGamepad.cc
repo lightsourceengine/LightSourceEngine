@@ -85,7 +85,7 @@ Function SDLGamepad::GetClass(Napi::Env env) {
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        constructor = DefineClass(env, "SDLGamepad", {
+        constructor = DefineClass(env, "SDLGamepad", true, {
             InstanceValue("type", String::New(env, "gamepad")),
             InstanceAccessor("id", &InputDevice::GetId, nullptr),
             InstanceAccessor("uuid", &InputDevice::GetUUID, nullptr),

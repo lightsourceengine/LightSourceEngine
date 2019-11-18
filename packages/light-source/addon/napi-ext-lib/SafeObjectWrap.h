@@ -66,12 +66,11 @@ template <typename T>
 class SafeObjectWrap : virtual public SafeObjectWrapBase {
  public:
     SafeObjectWrap(const CallbackInfo& info);
-    virtual ~SafeObjectWrap() = default;
 
     // Create a constructor. The returned FunctionReference is persistent.
-    static FunctionReference DefineClass(Napi::Env env, const char* utf8name,
+    static FunctionReference DefineClass(Napi::Env env, const char* utf8name, bool permanent,
         const std::initializer_list<PropertyDescriptor>& properties);
-    static FunctionReference DefineClass(Napi::Env env, const char* utf8name,
+    static FunctionReference DefineClass(Napi::Env env, const char* utf8name, bool permanent,
         const std::vector<PropertyDescriptor>& properties);
 
     // Static property declarations.
@@ -151,8 +150,8 @@ struct InstanceProperty {
 SafeObjectWrapBase* Unwrap(Napi::Value wrapper) noexcept;
 napi_value StaticMethodBridge(napi_env env, napi_callback_info info);
 napi_value StaticVoidMethodBridge(napi_env env, napi_callback_info info);
-FunctionReference DefineClass(Napi::Env env, const char* utf8name, std::vector<napi_property_descriptor>& properties,
-        napi_callback constructorBridge);
+FunctionReference DefineClass(Napi::Env env, const char* utf8name, bool permanent,
+    std::vector<napi_property_descriptor>& properties, napi_callback constructorBridge);
 napi_value StaticGetterBridge(napi_env env, napi_callback_info info);
 napi_value StaticSetterBridge(napi_env env, napi_callback_info info);
 bool EnsureConstructCall(napi_env env, napi_callback_info info) noexcept;
@@ -179,6 +178,8 @@ SafeObjectWrap<T>::SafeObjectWrap(const CallbackInfo &info) {
 
     napi_ref reference;
     const auto status{
+        // cast to SafeObjectWrapBase and convert to void*. this is so QueryInterface can dynamic_cast from
+        // a known class: SafeObjectWrapBase.
         napi_wrap(info.Env(), info.This(), static_cast<SafeObjectWrapBase*>(this), finalizer, nullptr, &reference)
     };
     NAPI_THROW_IF_FAILED_VOID(info.Env(), status);
@@ -277,19 +278,19 @@ napi_value SafeObjectWrap<T>::InstanceSetterBridge(napi_env env, napi_callback_i
 }
 
 template <typename T>
-FunctionReference SafeObjectWrap<T>::DefineClass(Napi::Env env, const char* utf8name,
+FunctionReference SafeObjectWrap<T>::DefineClass(Napi::Env env, const char* utf8name, bool permanent,
         const std::initializer_list<PropertyDescriptor>& properties) {
     auto props{ detail::TransformPropertyDescriptor(properties, properties.size()) };
 
-    return detail::DefineClass(env, utf8name, props, T::ConstructorBridge);
+    return detail::DefineClass(env, utf8name, permanent, props, T::ConstructorBridge);
 }
 
 template <typename T>
-FunctionReference SafeObjectWrap<T>::DefineClass(Napi::Env env, const char* utf8name,
+FunctionReference SafeObjectWrap<T>::DefineClass(Napi::Env env, const char* utf8name, bool permanent,
         const std::vector<PropertyDescriptor>& properties) {
     auto props{ detail::TransformPropertyDescriptor(properties, properties.size()) };
 
-    return detail::DefineClass(env, utf8name, props, T::ConstructorBridge);
+    return detail::DefineClass(env, utf8name, permanent, props, T::ConstructorBridge);
 }
 
 template <typename T>
@@ -356,7 +357,7 @@ PropertyDescriptor SafeObjectWrap<T>::StaticAccessor(const PropertyName& id, Obj
         detail::StaticSetterBridge,
         nullptr,
         static_cast<napi_property_attributes>(attributes | napi_static),
-        static_cast<void *>(data.release())
+        static_cast<void*>(data.release())
     });
 }
 

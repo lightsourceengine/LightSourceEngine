@@ -55,7 +55,7 @@ Function ImageStoreView::GetClass(Napi::Env env) {
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        constructor = DefineClass(env, "ImageStoreView", {
+        constructor = DefineClass(env, "ImageStoreView", true, {
             InstanceMethod("add", &ImageStoreView::Add),
             InstanceMethod("list", &ImageStoreView::List),
             InstanceAccessor("extensions", &ImageStoreView::GetExtensions, &ImageStoreView::SetExtensions),

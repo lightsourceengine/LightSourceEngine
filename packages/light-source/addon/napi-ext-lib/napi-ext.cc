@@ -99,4 +99,20 @@ Value Call(const Napi::Env& env, const FunctionReference& func, const std::initi
     return func.IsEmpty() ? env.Undefined() : func.Call(args);
 }
 
+Napi::Value RunScript(const Napi::Env& env, const String& script) {
+    napi_value result{ nullptr };
+    const auto status{ napi_run_script(env, script, &result) };
+
+    NAPI_THROW_IF_FAILED(
+        env,
+        status,
+        Value());
+
+    return { env, result };
+}
+
+Napi::Value RunScript(const Napi::Env& env, const std::string& script) {
+    return RunScript(env, String::New(env, script));
+}
+
 } // namespace Napi

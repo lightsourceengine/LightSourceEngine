@@ -18,7 +18,6 @@ class ImageResource;
 class BoxSceneNode : public Napi::SafeObjectWrap<BoxSceneNode>, public SceneNode {
  public:
     explicit BoxSceneNode(const Napi::CallbackInfo& info);
-    virtual ~BoxSceneNode() = default;
 
     void OnPropertyChanged(StyleProperty property) override;
 

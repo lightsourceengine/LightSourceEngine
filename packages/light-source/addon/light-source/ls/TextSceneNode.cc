@@ -72,7 +72,7 @@ Function TextSceneNode::GetClass(Napi::Env env) {
 
         constructor = DefineClass(
             env,
-            "TextSceneNode",
+            "TextSceneNode", true,
             SceneNode::Extend<TextSceneNode>(env, {
                 InstanceAccessor("text", &TextSceneNode::GetText, &TextSceneNode::SetText),
             }));

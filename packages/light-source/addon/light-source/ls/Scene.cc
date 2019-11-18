@@ -74,7 +74,7 @@ Function Scene::GetClass(Napi::Env env) {
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        constructor = DefineClass(env, "SceneBase", {
+        constructor = DefineClass(env, "SceneBase", true, {
             InstanceValue(SymbolFor(env, "width"), Number::New(env, 0), napi_writable),
             InstanceValue(SymbolFor(env, "height"), Number::New(env, 0), napi_writable),
             InstanceValue(SymbolFor(env, "fullscreen"), Boolean::New(env, true), napi_writable),

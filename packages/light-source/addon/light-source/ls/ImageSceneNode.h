@@ -15,7 +15,6 @@ namespace ls {
 class ImageSceneNode : public Napi::SafeObjectWrap<ImageSceneNode>, public SceneNode {
  public:
     explicit ImageSceneNode(const Napi::CallbackInfo& info);
-    virtual ~ImageSceneNode() = default;
 
     void OnPropertyChanged(StyleProperty property) override;
     void BeforeLayout() override;

@@ -100,7 +100,7 @@ Function SDLStageAdapter::GetClass(Napi::Env env) {
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        constructor = DefineClass(env, "SDLStageAdapter", {
+        constructor = DefineClass(env, "SDLStageAdapter", true, {
             InstanceMethod("getKeyboard", &SDLStageAdapter::GetKeyboard),
             InstanceMethod("getGamepads", &SDLStageAdapter::GetGamepads),
             InstanceMethod("getDisplays", &SDLStageAdapter::GetDisplays),

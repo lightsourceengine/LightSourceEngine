@@ -307,18 +307,20 @@ Napi::Value TestSuite::GetTests(const CallbackInfo& info) {
         auto object{ Object::New(env) };
 
         auto jsSafeTestFunc = [f = test.func](const Napi::CallbackInfo& info) {
-            const TestInfo testInfo(info.Env());
+            auto env{ info.Env() };
+            HandleScope scope(env);
+            const TestInfo testInfo(env);
 
             try {
                 f(testInfo);
             } catch (const AssertionError& e) {
-                throw Error::New(info.Env(), e.what());
+                throw Error::New(env, e.what());
             } catch (const Error&) {
                 throw;
             } catch (const std::exception& e) {
-                throw Error::New(info.Env(), std::string("Unknown std::exception: ") + e.what());
+                throw Error::New(env, std::string("Unknown std::exception: ") + e.what());
             } catch (...) {
-                throw Error::New(info.Env(), "Unknown native exception!");
+                throw Error::New(env, "Unknown native exception!");
             }
         };
 

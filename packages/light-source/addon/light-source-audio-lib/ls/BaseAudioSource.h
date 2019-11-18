@@ -17,10 +17,8 @@ enum AudioSourceCapability {
     AudioSourceCapabilityFadeIn
 };
 
-class BaseAudioSource {
+class BaseAudioSource : public virtual Napi::SafeObjectWrapBase {
  public:
-    virtual ~BaseAudioSource() = default;
-
     virtual void Load(const Napi::CallbackInfo& info) = 0;
     virtual void Destroy(const Napi::CallbackInfo& info) = 0;
     virtual void Play(const Napi::CallbackInfo& info);
@@ -40,7 +38,7 @@ Napi::Function BaseAudioSource::GetClassInternal(Napi::Env env, const char* clas
     if (constructor.IsEmpty()) {
         Napi::HandleScope scope(env);
 
-        constructor = T::DefineClass(env, className, {
+        constructor = T::DefineClass(env, className, true, {
             T::InstanceMethod("load", &T::Load),
             T::InstanceMethod("destroy", &T::Destroy),
             T::InstanceMethod("play", &T::Play),

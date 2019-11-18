@@ -29,7 +29,7 @@ Function Logger::GetClass(Napi::Env env) {
     if (constructor.IsEmpty()) {
         HandleScope scope(env);
 
-        constructor = DefineClass(env, "Logger", {
+        constructor = DefineClass(env, "Logger", true, {
             StaticMethod("log", &Logger::Log),
             StaticMethod("getLogLevel", &Logger::GetLogLevel),
             StaticMethod("setLogLevel", &Logger::SetLogLevel),

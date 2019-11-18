@@ -132,7 +132,7 @@ static SDL_Texture* CreateTexture(SDLRenderer* renderer, const int32_t width, co
 
     if (result) {
         SDL_SetTextureBlendMode(result, SDL_BLENDMODE_BLEND);
-        LOG_INFO("Texture(%i, %i)", width, height);
+        LOG_INFO("%ix%ix32", width, height);
     } else {
         LOG_ERROR(SDL_GetError());
     }
