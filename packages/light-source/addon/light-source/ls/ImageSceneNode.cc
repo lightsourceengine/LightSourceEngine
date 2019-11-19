@@ -38,10 +38,12 @@ void ImageSceneNode::Constructor(const Napi::CallbackInfo& info) {
         return;
     }
 
+    YGNodeSetContext(this->ygNode, this);
+
     YGNodeSetMeasureFunc(
     this->ygNode,
     [](YGNodeRef nodeRef, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) -> YGSize {
-        const auto self { static_cast<ImageSceneNode *>(YGNodeGetContext(nodeRef)) };
+        const auto self { static_cast<ImageSceneNode*>(YGNodeGetContext(nodeRef)) };
 
         if (self && self->image && self->image->IsReady()) {
             return {

@@ -45,19 +45,19 @@ void TextSceneNode::Constructor(const Napi::CallbackInfo& info) {
         return;
     }
 
+    YGNodeSetContext(this->ygNode, this);
+
     YGNodeSetMeasureFunc(
         this->ygNode,
         [](YGNodeRef nodeRef, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) -> YGSize {
             auto self{ static_cast<TextSceneNode*>(YGNodeGetContext(nodeRef)) };
 
-            if (!self) {
-                return { 0.f, 0.f };
-            }
-
-            try {
-                return self->Measure(width, widthMode, height, heightMode);
-            } catch (const std::exception& e) {
-                LOG_ERROR("text measure: %s", e);
+            if (self) {
+                try {
+                    return self->Measure(width, widthMode, height, heightMode);
+                } catch (const std::exception& e) {
+                    LOG_ERROR("text measure: %s", e);
+                }
             }
 
             return { 0.f, 0.f };

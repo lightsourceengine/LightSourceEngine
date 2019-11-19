@@ -41,7 +41,6 @@ void SceneNode::BaseConstructor(const Napi::CallbackInfo& info) {
 
     if (this->scene) {
         this->ygNode = YGNodeNew();
-        YGNodeSetContext(this->ygNode, this);
         instanceCount++;
     }
 }
