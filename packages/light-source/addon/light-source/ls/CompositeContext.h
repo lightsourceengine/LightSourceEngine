@@ -30,7 +30,8 @@ class CompositeContext {
 
     void PushOpacity(float opacity);
     void PopOpacity();
-    uint8_t CurrentOpacity8() const;
+    float CurrentOpacity() const;
+    uint8_t CurrentOpacityAlpha() const;
 
  public:
     Renderer* renderer;

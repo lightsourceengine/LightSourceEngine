@@ -49,7 +49,7 @@ constexpr uint32_t UnicodeQuestionMark{ 0x3F };
 constexpr uint32_t UnicodeDot{ 0x2E };
 constexpr uint32_t UnicodeEllipsis{ 0x2026 };
 
-void TextLayout::Layout() {
+void TextLayout::Reset() {
     this->lines.clear();
     this->computedWidth = 0;
     this->computedHeight = 0;
@@ -57,7 +57,7 @@ void TextLayout::Layout() {
 
 void TextLayout::Layout(const TextLayoutFont& font, StyleTextOverflow textOverflow, int32_t maxLines,
         const std::string& text, float width, float height) {
-    this->Layout();
+    this->Reset();
 
     if (text.empty() || font.fontSize <= 0 || font.lineHeight <= 0) {
         return;

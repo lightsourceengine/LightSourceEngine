@@ -42,18 +42,6 @@ void ComputeObjectFitRectTest(StyleObjectFit objectFit, const MockImage& image, 
 void StyleUtilsSpec(TestSuite* parent) {
     auto spec{ parent->Describe("StyleUtils") };
 
-    spec->Describe("CreateRoundedRectangleUri()")->tests = {
-        {
-            "should create rounded rectangle svg xml",
-            [](const TestInfo&) {
-                auto svg{ CreateRoundedRectangleUri(10, 10, 10, 10, 4) };
-
-                // TODO: validate svg string
-                Assert::IsFalse(svg.empty());
-            }
-        },
-    };
-
     spec->Describe("ComputeObjectFitRect()")->tests = {
         {
             "should position image with 'contain'",

@@ -320,6 +320,9 @@ void SceneNode::OnPropertyChanged(StyleProperty property) {
         case StyleProperty::zIndex:
             this->sortedChildren.clear();
             break;
+        case StyleProperty::overflow:
+            this->QueueComposite();
+            break;
         default:
             break;
     }
@@ -328,6 +331,10 @@ void SceneNode::OnPropertyChanged(StyleProperty property) {
 void SceneNode::Layout(float width, float height) {
     if (YGNodeIsDirty(this->ygNode)) {
         YGNodeCalculateLayout(this->ygNode, width, height, YGDirectionLTR);
+
+        SceneNode::Visit(this, [](SceneNode* node) {
+            node->QueueAfterLayoutIfNecessary();
+        });
     }
 }
 
@@ -354,8 +361,14 @@ void SceneNode::QueuePaint() {
     this->scene->QueuePaint(this);
 }
 
+void SceneNode::QueueAfterLayoutIfNecessary() {
+    if (YGNodeGetHasNewLayout(this->ygNode)) {
+        YGNodeSetHasNewLayout(this->ygNode, false);
+        this->QueueAfterLayout();
+    }
+}
+
 void SceneNode::QueueAfterLayout() {
-    // TODO: is queued?
     this->scene->QueueAfterLayout(this);
 }
 
@@ -407,6 +420,10 @@ bool SceneNode::HasTransform() const noexcept {
 
 int32_t SceneNode::GetZIndex() const noexcept {
     return this->style ? this->style->zIndex.AsInt32(0) : 0;
+}
+
+void SceneNode::MarkDirty() noexcept {
+    YGNodeMarkDirty(this->ygNode);
 }
 
 const std::vector<SceneNode*>& SceneNode::SortChildrenByStackingOrder() {

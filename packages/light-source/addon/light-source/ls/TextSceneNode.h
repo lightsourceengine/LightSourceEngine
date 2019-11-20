@@ -41,6 +41,7 @@ class TextSceneNode : public Napi::SafeObjectWrap<TextSceneNode>, public SceneNo
     void DestroyRecursive() override;
     void AppendChild(SceneNode* child) override;
     YGSize Measure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode);
+    void QueueTextLayout() noexcept;
 
  private:
     std::string text;

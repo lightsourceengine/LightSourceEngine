@@ -93,15 +93,18 @@ void TextSceneNode::OnPropertyChanged(StyleProperty property) {
         case StyleProperty::maxLines:
         case StyleProperty::textOverflow:
         case StyleProperty::textTransform:
-            YGNodeMarkDirty(this->ygNode);
-            this->QueuePaint();
+            this->QueueTextLayout();
             break;
         case StyleProperty::textAlign:
         case StyleProperty::borderColor:
             this->QueuePaint();
             break;
         case StyleProperty::color:
-            this->QueuePaint();
+            if (this->style->borderColor.empty()) {
+                this->QueueComposite();
+            } else {
+                this->QueuePaint();
+            }
             break;
         case StyleProperty::transform:
         case StyleProperty::transformOriginX:
@@ -112,39 +115,38 @@ void TextSceneNode::OnPropertyChanged(StyleProperty property) {
         case StyleProperty::overflow:
             break;
         default:
-            if (IsYogaLayoutProperty(property)) {
-                this->QueueAfterLayout();
-            }
+            SceneNode::OnPropertyChanged(property);
             break;
     }
-
-    SceneNode::OnPropertyChanged(property);
 }
 
 void TextSceneNode::BeforeLayout() {
     if (this->SetFont(this->style)) {
-        YGNodeMarkDirty(this->ygNode);
-        this->QueueAfterLayout();
-        this->QueuePaint();
+        this->QueueTextLayout();
     }
 }
 
 void TextSceneNode::AfterLayout() {
-    if (YGNodeGetHasNewLayout(this->ygNode)) {
-        YGNodeSetHasNewLayout(this->ygNode, false);
-
-        // TODO: Layout change may not need a repaint. If only the position changes, only a composite should be queued.
-        this->QueuePaint();
+    if (this->layout.IsEmpty()) {
+        try {
+            const auto box{ YGNodeLayoutGetInnerRect(this->ygNode) };
+            this->Measure(box.width, YGMeasureModeExactly, box.height, YGMeasureModeExactly);
+        } catch (const std::exception& e) {
+            LOG_ERROR("text measure: %s", e);
+        }
     }
+
+    // TODO: Layout change may not need a repaint. If only the position changes, only a composite should be queued.
+    this->QueuePaint();
 }
 
 void TextSceneNode::Paint(Renderer* renderer) {
-    if (!this->font || !this->font->IsReady() || this->layout.IsEmpty() || !this->style || this->style->color.empty()) {
+    const auto boxStyle{ this->GetStyleOrEmpty() };
+
+    if (!this->font || !this->font->IsReady() || this->layout.IsEmpty() || boxStyle->color.empty()) {
         return;
     }
 
-    const auto color{ this->style->color.value };
-    const auto inner{ YGNodeLayoutGetInnerRect(this->ygNode) };
     const auto box{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
     const auto w{ box.width };
     const auto h{ box.height };
@@ -156,25 +158,31 @@ void TextSceneNode::Paint(Renderer* renderer) {
         return;
     }
 
-    const auto surface{this->layer->Lock()};
-
+    const auto surface{ this->layer->Lock() };
     // TODO: do not allocate on every repaint!
-    Ctx* ctx = ctx_new_for_framebuffer(
-        surface.Pixels(), surface.Width(), surface.Height(), surface.Pitch(),
-        CTX_FORMAT_RGBA8);
-
-    surface.FillTransparent();
-
-    const auto fontSize{ ComputeFontSize(this->style->fontSize, this->scene) };
-    const auto lineHeight{ ComputeLineHeight(this->style->lineHeight, this->scene,
+    // TODO: texture format -> ctx format
+    auto ctx = ctx_new_for_framebuffer(
+        surface.Pixels(), surface.Width(), surface.Height(), surface.Pitch(), CTX_FORMAT_RGBA8);
+    const auto inner{ YGNodeLayoutGetInnerRect(this->ygNode) };
+    const auto fontSize{ ComputeFontSize(boxStyle->fontSize, this->scene) };
+    const auto lineHeight{ ComputeLineHeight(boxStyle->lineHeight, this->scene,
         this->font->GetFont()->LineHeight(fontSize)) };
-    const auto textAlign{ this->style->textAlign };
+    const auto textAlign{ boxStyle->textAlign };
     auto xpos{ 0.f };
-    auto ypos{inner.y + this->font->GetFont()->Ascent(fontSize) };
+    auto ypos{ inner.y + this->font->GetFont()->Ascent(fontSize) };
+    const auto hasBorderColor{ !boxStyle->borderColor.empty() };
 
     ctx_set_font(ctx, this->font->GetId().c_str());
     ctx_set_font_size(ctx, fontSize);
-    ctx_set_rgba_u8(ctx, GetR(color), GetG(color), GetB(color), GetA(color));
+
+    if (hasBorderColor) {
+        const auto color{ boxStyle->color.value };
+        ctx_set_rgba_u8(ctx, GetR(color), GetG(color), GetB(color), GetA(color));
+    } else {
+        ctx_set_rgba_u8(ctx, GetR(ColorWhite), GetG(ColorWhite), GetB(ColorWhite), GetA(ColorWhite));
+    }
+
+    surface.FillTransparent();
 
     for (auto& textLine : this->layout.lines) {
         switch (textAlign) {
@@ -195,8 +203,8 @@ void TextSceneNode::Paint(Renderer* renderer) {
         ypos += lineHeight;
     }
 
-    if (!this->style->borderColor.empty()) {
-        const auto borderColor{ this->style->borderColor.value };
+    if (hasBorderColor) {
+        const auto borderColor{ boxStyle->borderColor.value };
         const auto border{ YGNodeLayoutGetBorderRect(this->ygNode) };
 
         ctx_set_rgba_u8(ctx, GetR(borderColor), GetG(borderColor), GetB(borderColor), GetA(borderColor));
@@ -221,23 +229,26 @@ void TextSceneNode::Paint(Renderer* renderer) {
 }
 
 void TextSceneNode::Composite(CompositeContext* context) {
-    if (!this->layer) {
-        return;
+    if (this->layer) {
+        const auto boxStyle{ this->GetStyleOrEmpty() };
+        const auto tintColor{
+            boxStyle->borderColor.empty() ?
+                MixAlpha(boxStyle->color.ValueOr(ColorBlack), context->CurrentOpacity())
+                    : MixAlpha(ColorWhite, context->CurrentOpacity())
+        };
+        const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
+        const auto transform{
+            context->CurrentMatrix()
+                * Matrix::Translate(rect.x, rect.y)
+                * boxStyle->transform.ToMatrix(rect.width, rect.height)
+        };
+
+        context->renderer->DrawImage(
+            this->layer,
+            { 0, 0, rect.width, rect.height },
+            transform,
+            tintColor);
     }
-
-    const auto boxStyle{ this->GetStyleOrEmpty() };
-    auto rect{ YGNodeLayoutGetRect(this->ygNode) };
-
-    rect.width = this->layer->GetWidth();
-    rect.height = this->layer->GetHeight();
-
-    context->renderer->DrawImage(
-        this->layer,
-        rect,
-        context->CurrentMatrix() * boxStyle->transform.ToMatrix(rect.width, rect.height),
-        ARGB(context->CurrentOpacity8(), 255, 255, 255));
-
-    SceneNode::Composite(context);
 }
 
 Value TextSceneNode::GetText(const CallbackInfo& info) {
@@ -257,7 +268,7 @@ void TextSceneNode::SetText(const CallbackInfo& info, const Napi::Value& value) 
 
     if (this->text != str) {
         this->text = str;
-        YGNodeMarkDirty(this->ygNode);
+        this->QueueTextLayout();
     }
 }
 
@@ -299,12 +310,18 @@ bool TextSceneNode::SetFont(Style* style) {
                 }
 
                 this->font.Unlisten();
-                YGNodeMarkDirty(this->ygNode);
+                this->QueueTextLayout();
             });
             break;
     }
 
     return dirty;
+}
+
+void TextSceneNode::QueueTextLayout() noexcept {
+    this->layout.Reset();
+    this->MarkDirty();
+    this->QueueAfterLayout();
 }
 
 void TextSceneNode::ClearFont() noexcept {
@@ -322,9 +339,9 @@ void TextSceneNode::AppendChild(SceneNode* child) {
 }
 
 YGSize TextSceneNode::Measure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
-    this->layout.Layout();
+    this->layout.Reset();
 
-    if (this->style && this->font && this->font->IsReady()) {
+    if (!this->text.empty() && this->style && this->font && this->font->IsReady()) {
         const auto fontSize{ ComputeFontSize(this->style->fontSize, this->scene) };
         const auto lineHeight{ ComputeLineHeight(this->style->lineHeight, this->scene,
             this->font->GetFont()->LineHeight(fontSize)) };

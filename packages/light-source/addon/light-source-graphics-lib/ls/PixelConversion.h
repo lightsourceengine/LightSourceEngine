@@ -57,4 +57,16 @@ constexpr uint32_t RGB(const uint8_t r, const uint8_t g, const uint8_t b) noexce
     return ARGB(0xFF, r, g, b);
 }
 
+constexpr uint32_t MixAlpha(const uint32_t color, const float opacity) noexcept {
+    return ARGB(
+        static_cast<uint8_t>(GetA(color) * opacity),
+        GetR(color),
+        GetG(color),
+        GetB(color));
+}
+
+constexpr uint32_t ColorWhite = 0xFFFFFFFF;
+constexpr uint32_t ColorBlack = 0xFF000000;
+constexpr uint32_t ColorTransparent = 0;
+
 } // namespace ls

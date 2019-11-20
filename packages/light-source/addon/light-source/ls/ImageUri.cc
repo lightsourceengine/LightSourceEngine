@@ -71,17 +71,19 @@ ImageUri ImageUri::Unbox(const Napi::Value& value) {
         return {
             ImageUri(value.As<String>())
         };
+    } else if (value.IsObject()) {
+        auto spec{value.As<Object>()};
+
+        return {
+            ObjectGetStringOrEmpty(spec, "uri"),
+            ObjectGetStringOrEmpty(spec, "id"),
+            std::max(ObjectGetNumberOrDefault(spec, "width", 0), 0),
+            std::max(ObjectGetNumberOrDefault(spec, "height", 0), 0),
+            UnboxCapInsets(spec.Get("capInsets"))
+        };
+    } else {
+        return {};
     }
-
-    auto spec{ value.As<Object>() };
-
-    return {
-        ObjectGetStringOrEmpty(spec, "uri"),
-        ObjectGetStringOrEmpty(spec, "id"),
-        std::max(ObjectGetNumberOrDefault(spec, "width", 0), 0),
-        std::max(ObjectGetNumberOrDefault(spec, "height", 0), 0),
-        UnboxCapInsets(spec.Get("capInsets"))
-    };
 }
 
 EdgeRect UnboxCapInsets(const Value& value) {

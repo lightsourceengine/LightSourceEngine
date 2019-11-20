@@ -67,8 +67,12 @@ void CompositeContext::PopOpacity() {
     this->opacity.pop_back();
 }
 
-uint8_t CompositeContext::CurrentOpacity8() const {
+uint8_t CompositeContext::CurrentOpacityAlpha() const {
     return static_cast<uint8_t>(this->opacity.back() * 255.f);
+}
+
+float CompositeContext::CurrentOpacity() const {
+    return this->opacity.back();
 }
 
 } // namespace ls

@@ -53,20 +53,13 @@ void RootSceneNode::OnPropertyChanged(StyleProperty property) {
                 ComputeFontSize(this->style->fontSize, this->scene, DEFAULT_ROOT_FONT_SIZE));
             break;
         default:
-            if (IsYogaLayoutProperty(property)) {
-                this->QueueAfterLayout();
-            }
+            SceneNode::OnPropertyChanged(property);
             break;
     }
-
-    SceneNode::OnPropertyChanged(property);
 }
 
 void RootSceneNode::AfterLayout() {
-    if (YGNodeGetHasNewLayout(this->ygNode)) {
-        YGNodeSetHasNewLayout(this->ygNode, false);
-        this->QueueComposite();
-    }
+    this->QueueComposite();
 }
 
 void RootSceneNode::Composite(CompositeContext* context) {

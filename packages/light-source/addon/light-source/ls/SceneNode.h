@@ -48,6 +48,7 @@ class SceneNode : public virtual Napi::SafeObjectWrapBase {
     void Focus(const Napi::CallbackInfo& info);
     void Blur(const Napi::CallbackInfo& info);
 
+    void MarkDirty() noexcept;
     void Destroy();
     void Layout(float width, float height);
 
@@ -77,6 +78,7 @@ class SceneNode : public virtual Napi::SafeObjectWrapBase {
     bool InitLayerSoftwareRenderTarget(Renderer* renderer, int32_t width, int32_t height);
     void QueuePaint();
     void QueueAfterLayout();
+    void QueueAfterLayoutIfNecessary();
     void QueueBeforeLayout();
     void QueueComposite();
     const std::vector<SceneNode*>& SortChildrenByStackingOrder();

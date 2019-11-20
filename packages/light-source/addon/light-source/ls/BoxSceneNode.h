@@ -14,6 +14,7 @@
 namespace ls {
 
 class ImageResource;
+class Style;
 
 class BoxSceneNode : public Napi::SafeObjectWrap<BoxSceneNode>, public SceneNode {
  public:
@@ -35,6 +36,8 @@ class BoxSceneNode : public Napi::SafeObjectWrap<BoxSceneNode>, public SceneNode
  private:
     void DestroyRecursive() override;
     void UpdateBackgroundImage(const ImageUri& imageUri);
+    void PaintRoundedRect(Renderer* renderer, Style* boxStyle);
+    void PaintBackgroundImage(Renderer* renderer, Style* boxStyle);
 
  private:
     ImageUri backgroundImageUri;

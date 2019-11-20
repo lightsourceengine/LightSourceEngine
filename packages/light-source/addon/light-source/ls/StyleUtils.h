@@ -16,9 +16,6 @@
 
 namespace ls {
 
-std::string CreateRoundedRectangleUri(const int32_t radiusTopLeft, const int32_t radiusTopRight,
-    const int32_t radiusBottomRight, const int32_t radiusBottomLeft, const int32_t stroke);
-
 template<typename S /* Scene */>
 float CalculateBackgroundDimension(const StyleValueNumber& styleDimension, const float imageDimension,
                                    const float boxDimension, const S* scene) {

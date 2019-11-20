@@ -67,6 +67,14 @@ bool Style::IsLayoutOnly() const noexcept {
     return this->borderColor.undefined && this->backgroundColor.undefined && this->backgroundImage.empty();
 }
 
+bool Style::HasBorderRadius() const noexcept {
+    return !this->borderRadius.empty()
+        || !this->borderRadiusTopLeft.empty()
+        || !this->borderRadiusTopRight.empty()
+        || !this->borderRadiusBottomLeft.empty()
+        || !this->borderRadiusBottomRight.empty();
+}
+
 void Style::UpdateDependentProperties(bool rem, bool viewport) noexcept {
     // TODO: this is horrible, but it is functional. root font size and viewport will rarely change.
     //       style needs a better design to improve this update

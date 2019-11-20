@@ -35,7 +35,7 @@ struct TextLayoutFont {
 
 class TextLayout {
  public:
-    void Layout();
+    void Reset();
     void Layout(const TextLayoutFont& font, StyleTextOverflow textOverflow, int32_t maxLines,
                 const std::string& text, float width, float height);
 

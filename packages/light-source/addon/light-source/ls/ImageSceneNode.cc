@@ -46,13 +46,10 @@ void ImageSceneNode::Constructor(const Napi::CallbackInfo& info) {
         const auto self { static_cast<ImageSceneNode*>(YGNodeGetContext(nodeRef)) };
 
         if (self && self->image && self->image->IsReady()) {
-            return {
-                self->image->GetWidthF(),
-                self->image->GetHeightF(),
-            };
+            return { self->image->GetWidthF(), self->image->GetHeightF() };
+        } else {
+            return { 0.f, 0.f };
         }
-
-        return { 0.f, 0.f };
     });
 }
 
@@ -90,31 +87,39 @@ Value ImageSceneNode::GetSource(const CallbackInfo& info) {
 }
 
 void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& value) {
-    HandleScope scope(info.Env());
-    const std::string src{ value.IsString() ? value.As<String>().Utf8Value() : "" };
+    auto env{ info.Env() };
+    HandleScope scope(env);
+    auto imageUri{ ImageUri::Unbox(value) };
 
-    if (src.empty()) {
+    if (imageUri.IsEmpty()) {
+        if (this->image) {
+            this->image = nullptr;
+            this->uri = {};
+            this->MarkDirty();
+        }
+        return;
+    } else if (this->uri == imageUri) {
+        return;
+    }
+
+    try {
+        this->image = this->scene->GetImageStore()->GetOrLoadImage(imageUri.GetId());
+    } catch (const std::exception& e) {
+        LOG_WARN("%s", e);
         this->image = nullptr;
-        YGNodeMarkDirty(this->ygNode);
-        this->QueueAfterLayout();
+    }
 
+    if (!this->image) {
+        this->uri = {};
+        this->MarkDirty();
+        Call(this->onErrorCallback);
         return;
     }
 
-    const ImageUri newUri(src);
+    std::exchange(this->uri, imageUri);
 
-    if (newUri == this->uri) {
-        return;
-    }
-
-    this->uri = newUri;
-
-    // TODO: LoadImage exception?
-    this->image = this->scene->GetImageStore()->GetOrLoadImage(this->uri);
-
-    if (!this->image || this->image->IsReady() || this->image->HasError()) {
-        YGNodeMarkDirty(this->ygNode);
-        this->QueueAfterLayout();
+    if (this->image->IsReady() || this->image->HasError()) {
+        this->MarkDirty();
         DoCallbacks();
     } else {
         this->image.Listen([this, ptr = this->image.Get()]() {
@@ -125,9 +130,8 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
             switch (this->image->GetState()) {
                 case ResourceStateReady:
                 case ResourceStateError:
-                    YGNodeMarkDirty(this->ygNode);
-                    this->QueueAfterLayout();
                     this->image.Unlisten();
+                    this->MarkDirty();
                     this->DoCallbacks();
                     break;
                 default:
@@ -185,14 +189,12 @@ void ImageSceneNode::OnPropertyChanged(StyleProperty property) {
         case StyleProperty::opacity:
             this->QueueComposite();
             break;
+        case StyleProperty::overflow:
+            break;
         default:
-            if (IsYogaLayoutProperty(property)) {
-                this->QueueAfterLayout();
-            }
+            SceneNode::OnPropertyChanged(property);
             break;
     }
-
-    SceneNode::OnPropertyChanged(property);
 }
 
 void ImageSceneNode::BeforeLayout() {
@@ -202,8 +204,6 @@ void ImageSceneNode::AfterLayout() {
     if (!this->image) {
         return;
     }
-
-    YGNodeSetHasNewLayout(this->ygNode, false);
 
     const auto boxStyle{ this->GetStyleOrEmpty() };
 
@@ -229,8 +229,10 @@ void ImageSceneNode::Paint(Renderer* renderer) {
     const auto& borderColor{ boxStyle->borderColor };
     const auto hasCapInsets{ this->image->HasCapInsets() };
 
+    this->QueueComposite();
+
     if (!hasCapInsets && borderColor.empty()) {
-        this->QueueComposite();
+        this->layer = nullptr;
         return;
     }
 
@@ -240,22 +242,20 @@ void ImageSceneNode::Paint(Renderer* renderer) {
         return;
     }
 
-    renderer->FillRenderTarget(0);
+    renderer->FillRenderTarget(ColorTransparent);
 
     if (this->image->HasTexture()) {
-        const auto tintColor{ boxStyle->tintColor.ValueOr(RGB(255, 255, 255)) };
-
         if (hasCapInsets) {
             renderer->DrawImage(
                 this->image->GetTexture(),
                 this->destRect,
                 this->image->GetCapInsets(),
-                tintColor);
+                boxStyle->tintColor.ValueOr(ColorWhite));
         } else {
             renderer->DrawImage(
                 this->image->GetTexture(),
                 this->destRect,
-                tintColor);
+                boxStyle->tintColor.ValueOr(ColorWhite));
         }
     }
 
@@ -264,35 +264,38 @@ void ImageSceneNode::Paint(Renderer* renderer) {
     }
 
     renderer->SetRenderTarget(nullptr);
-    this->QueueComposite();
 }
 
 void ImageSceneNode::Composite(CompositeContext* context) {
-    if (!this->image || !this->image->HasTexture() || !this->layer) {
-        return;
-    }
+    if (this->layer) {
+        const auto boxStyle{ this->GetStyleOrEmpty() };
+        const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
+        const auto transform{
+            context->CurrentMatrix()
+                * Matrix::Translate(rect.x, rect.y)
+                * boxStyle->transform.ToMatrix(rect.width, rect.height)
+        };
 
-    const auto boxStyle{ this->GetStyleOrEmpty() };
-    const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
-
-//    if (this->layer) {
         context->renderer->DrawImage(
             this->layer,
-            rect,
-            context->CurrentMatrix() * boxStyle->transform.ToMatrix(rect.width, rect.height),
-            ARGB(context->CurrentOpacity8(), 255, 255, 255));
-//    } else {
-//        const auto tintColor{ boxStyle->tintColor.ValueOr(RGB(255, 255, 255)) };
-//        auto dest{ this->destRect };
-//
-//        dest.x += tx;
-//        dest.y += ty;
-//
-//        // TODO: must do a manual clip of dest rect!
-//        context->PushClipRect(YGNodeLayoutGetRect(this->ygNode, tx, ty));
-//        context->renderer->DrawImage(this->image->GetTexture(), dest, tintColor);
-//        context->PopClipRect();
-//    }
+            { 0, 0, rect.width, rect.height },
+            transform,
+            ARGB(context->CurrentOpacityAlpha(), 255, 255, 255));
+    } else if (this->image && this->image->HasTexture()) {
+        const auto boxStyle{ this->GetStyleOrEmpty() };
+        const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
+        const auto transform{
+            context->CurrentMatrix()
+                * Matrix::Translate(rect.x, rect.y)
+                * boxStyle->transform.ToMatrix(rect.width, rect.height)
+        };
+
+        context->renderer->DrawImage(
+            this->image->GetTexture(),
+            this->destRect,
+            transform,
+            MixAlpha(boxStyle->tintColor.ValueOr(ColorWhite), context->CurrentOpacity()));
+    }
 }
 
 void ImageSceneNode::DestroyRecursive() {

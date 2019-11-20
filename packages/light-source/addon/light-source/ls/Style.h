@@ -33,6 +33,7 @@ class Style : public Napi::SafeObjectWrap<Style> {
     void Assign(const Style* other) noexcept;
     void Bind(SceneNode* node) noexcept;
     bool IsLayoutOnly() const noexcept;
+    bool HasBorderRadius() const noexcept;
     void UpdateDependentProperties(bool rem, bool viewport) noexcept;
 
  public:
