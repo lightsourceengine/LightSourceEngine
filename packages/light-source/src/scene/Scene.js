@@ -124,13 +124,7 @@ export class Scene extends SceneBase {
   // TODO: add vsync
 
   createNode (tag) {
-    const node = new (nodeClass.get(tag) || throwNodeClassNotFound(tag))(this)
-
-    if (!node.scene) {
-      throwUninitializedNode(tag)
-    }
-
-    return node
+    return new (nodeClass.get(tag) || throwNodeClassNotFound(tag))(this)
   }
 
   resize (width = 0, height = 0, fullscreen = true) {
@@ -202,10 +196,6 @@ const nodeClass = new Map([
 
 const throwNodeClassNotFound = tag => {
   throw new Error(`'${tag}' is not a valid scene node tag.`)
-}
-
-const throwUninitializedNode = tag => {
-  throw new Error(`Failed to construct node '${tag}'`)
 }
 
 const setHasFocus = (node, value) => {

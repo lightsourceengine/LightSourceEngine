@@ -34,14 +34,20 @@ SceneNode::SceneNode(const CallbackInfo& info) {
 void SceneNode::BaseConstructor(const Napi::CallbackInfo& info) {
     this->scene = QueryInterface<Scene>(info[0]);
 
-    if (this->scene) {
-        // Ref() can throw
-        this->scene->Ref();
+    if (!this->scene) {
+        throw Error::New(info.Env(), "Expected scene reference as arg.");
     }
 
-    if (this->scene) {
-        this->ygNode = YGNodeNew();
-        instanceCount++;
+    this->ygNode = YGNodeNew();
+    instanceCount++;
+
+    try {
+        this->scene->Ref();
+    } catch (const Error& error) {
+        YGNodeFree(this->ygNode);
+        this->scene = nullptr;
+        this->ygNode = nullptr;
+        throw;
     }
 }
 

@@ -7,18 +7,37 @@
 import { afterSceneTest, beforeSceneTest } from '..'
 import { assert } from 'chai'
 import { RootSceneNode } from '../../src/addon'
+import { Style } from '../../src/addon'
 
 describe('RootSceneNode', () => {
-  before(beforeSceneTest)
-  after(afterSceneTest)
+  let nodes = []
+  let scene
+  before(() => {
+    scene = beforeSceneTest()
+  })
+  after(() => {
+    for (const node of nodes) {
+      node.destroy()
+    }
+    return afterSceneTest()
+  })
+  const createRoot = (scene) => {
+    const root = new RootSceneNode(scene)
+
+    nodes.push(root)
+
+    return root
+  }
   describe('constructor()', () => {
     it('should create uninitialized node when passed an invalid Scene', () => {
       for (const input of [null, undefined, {}]) {
-        const obj = new RootSceneNode()
-
-        assert.isNull(obj.scene)
-        obj.destroy()
+        assert.throws(() => new RootSceneNode())
       }
+    })
+  })
+  describe('style property', () => {
+    it('should be empty after constructor', () => {
+      assert.isUndefined(createRoot(scene).fontSize)
     })
   })
 })

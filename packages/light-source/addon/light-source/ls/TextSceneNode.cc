@@ -41,10 +41,6 @@ TextSceneNode::TextSceneNode(const CallbackInfo& info) : SafeObjectWrap<TextScen
 void TextSceneNode::Constructor(const Napi::CallbackInfo& info) {
     SceneNode::BaseConstructor(info);
 
-    if (!this->scene) {
-        return;
-    }
-
     YGNodeSetContext(this->ygNode, this);
 
     YGNodeSetMeasureFunc(

@@ -14,10 +14,7 @@ describe('BoxSceneNode', () => {
   describe('constructor()', () => {
     it('should create uninitialized node when passed an invalid Scene', () => {
       for (const input of [null, undefined, {}]) {
-        const obj = new BoxSceneNode(input)
-
-        assert.isNull(obj.scene)
-        obj.destroy()
+        assert.throws(() => new BoxSceneNode(input))
       }
     })
   })

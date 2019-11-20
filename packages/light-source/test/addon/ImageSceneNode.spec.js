@@ -23,17 +23,14 @@ const expectOnError = (node) => new Promise((resolve, reject) => {
 
 describe('ImageSceneNode', () => {
   let scene
-  beforeEach(() => {
+  before(() => {
     scene = beforeSceneTest()
   })
-  afterEach(afterSceneTest)
+  after(afterSceneTest)
   describe('constructor()', () => {
     it('should create uninitialized node when passed an invalid Scene', () => {
       for (const input of [null, undefined, {}]) {
-        const obj = new ImageSceneNode(input)
-
-        assert.isNull(obj.scene)
-        obj.destroy()
+        assert.throws(() => new ImageSceneNode(input))
       }
     })
   })
@@ -135,6 +132,13 @@ describe('ImageSceneNode', () => {
         node.src = input
         assert.isNull(node.src)
       }
+    })
+    it ('should set source to image uri object', () => {
+      const node = createNode('img')
+      const uri = images[0]
+
+      node.src = { uri  }
+      assert.include(node.src, { id: uri, uri })
     })
   })
 })

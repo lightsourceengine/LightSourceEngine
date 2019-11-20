@@ -14,10 +14,7 @@ describe('TextSceneNode', () => {
   describe('constructor()', () => {
     it('should create uninitialized node when passed an invalid Scene', () => {
       for (const input of [null, undefined, {}]) {
-        const obj = new TextSceneNode(input)
-
-        assert.isNull(obj.scene)
-        obj.destroy()
+        assert.throws(() => new TextSceneNode(input))
       }
     })
   })
