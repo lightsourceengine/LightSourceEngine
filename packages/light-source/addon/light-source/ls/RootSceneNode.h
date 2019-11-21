@@ -20,8 +20,8 @@ class RootSceneNode : public Napi::SafeObjectWrap<RootSceneNode>, public SceneNo
     void OnPropertyChanged(StyleProperty property) override;
     void BeforeLayout() override {}
     void AfterLayout() override;
-    void Paint(Renderer* renderer) override {}
-    void Composite(CompositeContext* context) override;
+    void Paint(PaintContext* paint) override {}
+    void Composite(CompositeContext* composite) override;
 
  public:
     static Napi::Function GetClass(Napi::Env env);

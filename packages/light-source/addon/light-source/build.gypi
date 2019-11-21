@@ -38,6 +38,7 @@
         "ls/yoga-ext.cc",
         "ls/Executor.cc",
         "ls/CompositeContext.cc",
+        "ls/PaintContext.cc",
         "ls/Task.cc",
         "ls/TaskQueue.cc",
         "ls/Style.cc",

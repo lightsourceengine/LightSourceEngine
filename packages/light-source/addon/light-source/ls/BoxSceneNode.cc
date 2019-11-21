@@ -12,6 +12,7 @@
 #include "StyleUtils.h"
 #include "yoga-ext.h"
 #include <ls/CompositeContext.h>
+#include <ls/PaintContext.h>
 #include <ls/Math.h>
 #include <ls/Renderer.h>
 #include <ls/Log.h>
@@ -78,7 +79,8 @@ void BoxSceneNode::AfterLayout() {
     this->QueuePaint();
 }
 
-void BoxSceneNode::Paint(Renderer* renderer) {
+void BoxSceneNode::Paint(PaintContext* paint) {
+    auto renderer{ paint->renderer };
     const auto boxStyle{ this->GetStyleOrEmpty() };
 
     if (boxStyle->IsLayoutOnly()) {
@@ -86,7 +88,7 @@ void BoxSceneNode::Paint(Renderer* renderer) {
     }
 
     if (boxStyle->HasBorderRadius()) {
-        this->PaintRoundedRect(renderer, boxStyle);
+        this->PaintRoundedRect(paint, boxStyle);
         this->QueueComposite();
         return;
     }
@@ -106,7 +108,7 @@ void BoxSceneNode::Paint(Renderer* renderer) {
     }
 
     if (this->backgroundImage && this->backgroundImage->Sync(renderer)) {
-        this->PaintBackgroundImage(renderer, boxStyle);
+        this->PaintBackgroundImage(paint->renderer, boxStyle);
     }
 
     if (!boxStyle->borderColor.empty()) {
@@ -117,32 +119,32 @@ void BoxSceneNode::Paint(Renderer* renderer) {
     renderer->SetRenderTarget(nullptr);
 }
 
-void BoxSceneNode::Composite(CompositeContext* context) {
+void BoxSceneNode::Composite(CompositeContext* composite) {
     if (!this->layer) {
-        SceneNode::Composite(context);
+        SceneNode::Composite(composite);
         return;
     }
 
     const auto boxStyle{ this->GetStyleOrEmpty() };
     const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
 
-    context->renderer->DrawImage(
+    composite->renderer->DrawImage(
         this->layer,
         rect,
-        context->CurrentMatrix() * boxStyle->transform.ToMatrix(rect.width, rect.height),
-        ARGB(context->CurrentOpacityAlpha(), 255, 255, 255));
+        composite->CurrentMatrix() * boxStyle->transform.ToMatrix(rect.width, rect.height),
+        ARGB(composite->CurrentOpacityAlpha(), 255, 255, 255));
 
     // TODO: special case - image only
-    // TODO: speical case - background only
+    // TODO: special case - background only
 
-    SceneNode::Composite(context);
+    SceneNode::Composite(composite);
 }
 
-void BoxSceneNode::PaintRoundedRect(Renderer* renderer, Style* boxStyle) {
+void BoxSceneNode::PaintRoundedRect(PaintContext* paint, Style* boxStyle) {
     const auto dest{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
 
     if (!this->InitLayerSoftwareRenderTarget(
-        renderer, static_cast<int32_t>(dest.width), static_cast<int32_t>(dest.height))) {
+        paint->renderer, static_cast<int32_t>(dest.width), static_cast<int32_t>(dest.height))) {
         return;
     }
 
@@ -150,8 +152,7 @@ void BoxSceneNode::PaintRoundedRect(Renderer* renderer, Style* boxStyle) {
 
     // TODO: surface valid?
 
-    auto ctx = ctx_new_for_framebuffer(
-        surface.Pixels(), surface.Width(), surface.Height(), surface.Pitch(), CTX_FORMAT_RGBA8);
+    auto ctx{ paint->Context2D(surface) };
 
     // TODO: radius %
     const auto radius{ boxStyle->borderRadius.AsFloat(0) };
@@ -190,7 +191,6 @@ void BoxSceneNode::PaintRoundedRect(Renderer* renderer, Style* boxStyle) {
         ctx_stroke(ctx);
     }
 
-    ctx_free(ctx);
     this->QueueComposite();
 }
 

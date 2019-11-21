@@ -62,14 +62,14 @@ void RootSceneNode::AfterLayout() {
     this->QueueComposite();
 }
 
-void RootSceneNode::Composite(CompositeContext* context) {
+void RootSceneNode::Composite(CompositeContext* composite) {
     const auto& backgroundColor{ this->GetStyleOrEmpty()->backgroundColor };
 
     if (!backgroundColor.empty()) {
-        context->renderer->FillRenderTarget(backgroundColor.value);
+        composite->renderer->FillRenderTarget(backgroundColor.value);
     }
 
-    SceneNode::Composite(context);
+    SceneNode::Composite(composite);
 }
 
 } // namespace ls

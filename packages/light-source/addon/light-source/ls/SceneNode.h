@@ -19,6 +19,7 @@ class SceneNode;
 class Style;
 class Renderer;
 class CompositeContext;
+class PaintContext;
 class Texture;
 
 class SceneNode : public virtual Napi::SafeObjectWrapBase {
@@ -55,8 +56,8 @@ class SceneNode : public virtual Napi::SafeObjectWrapBase {
     virtual void OnPropertyChanged(StyleProperty property);
     virtual void BeforeLayout() = 0;
     virtual void AfterLayout() = 0;
-    virtual void Paint(Renderer* renderer) = 0;
-    virtual void Composite(CompositeContext* context);
+    virtual void Paint(PaintContext* paint) = 0;
+    virtual void Composite(CompositeContext* composite);
 
     template<typename Callable>
     static void Visit(SceneNode* node, const Callable& func);

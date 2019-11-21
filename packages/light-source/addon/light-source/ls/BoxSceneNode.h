@@ -24,8 +24,8 @@ class BoxSceneNode : public Napi::SafeObjectWrap<BoxSceneNode>, public SceneNode
 
     void BeforeLayout() override;
     void AfterLayout() override;
-    void Paint(Renderer* renderer) override;
-    void Composite(CompositeContext* context) override;
+    void Paint(PaintContext* paint) override;
+    void Composite(CompositeContext* composite) override;
 
  public:
     static Napi::Function GetClass(Napi::Env env);
@@ -36,7 +36,7 @@ class BoxSceneNode : public Napi::SafeObjectWrap<BoxSceneNode>, public SceneNode
  private:
     void DestroyRecursive() override;
     void UpdateBackgroundImage(const ImageUri& imageUri);
-    void PaintRoundedRect(Renderer* renderer, Style* boxStyle);
+    void PaintRoundedRect(PaintContext* paint, Style* boxStyle);
     void PaintBackgroundImage(Renderer* renderer, Style* boxStyle);
 
  private:

@@ -136,7 +136,7 @@ void TextSceneNode::AfterLayout() {
     this->QueuePaint();
 }
 
-void TextSceneNode::Paint(Renderer* renderer) {
+void TextSceneNode::Paint(PaintContext* paint) {
     const auto boxStyle{ this->GetStyleOrEmpty() };
 
     if (!this->font || !this->font->IsReady() || this->layout.IsEmpty() || boxStyle->color.empty()) {
@@ -150,15 +150,13 @@ void TextSceneNode::Paint(Renderer* renderer) {
     // TODO: if layout dimensions are animated, this will create and recreate the texture every frame!
     // TODO: if no border, color can be a composite field and the layer can be sized to the text layout dimensions,
     //       rather than the (probably) much larger box dimensions.
-    if (!this->InitLayerSoftwareRenderTarget(renderer, static_cast<int32_t>(w), static_cast<int32_t>(h))) {
+    if (!this->InitLayerSoftwareRenderTarget(paint->renderer, static_cast<int32_t>(w), static_cast<int32_t>(h))) {
         return;
     }
 
     const auto surface{ this->layer->Lock() };
     // TODO: do not allocate on every repaint!
     // TODO: texture format -> ctx format
-    auto ctx = ctx_new_for_framebuffer(
-        surface.Pixels(), surface.Width(), surface.Height(), surface.Pitch(), CTX_FORMAT_RGBA8);
     const auto inner{ YGNodeLayoutGetInnerRect(this->ygNode) };
     const auto fontSize{ ComputeFontSize(boxStyle->fontSize, this->scene) };
     const auto lineHeight{ ComputeLineHeight(boxStyle->lineHeight, this->scene,
@@ -167,6 +165,7 @@ void TextSceneNode::Paint(Renderer* renderer) {
     auto xpos{ 0.f };
     auto ypos{ inner.y + this->font->GetFont()->Ascent(fontSize) };
     const auto hasBorderColor{ !boxStyle->borderColor.empty() };
+    auto ctx{ paint->Context2D(surface) };
 
     ctx_set_font(ctx, this->font->GetId().c_str());
     ctx_set_font_size(ctx, fontSize);
@@ -219,27 +218,25 @@ void TextSceneNode::Paint(Renderer* renderer) {
         ctx_fill(ctx);
     }
 
-    ctx_free(ctx);
-
     this->QueueComposite();
 }
 
-void TextSceneNode::Composite(CompositeContext* context) {
+void TextSceneNode::Composite(CompositeContext* composite) {
     if (this->layer) {
         const auto boxStyle{ this->GetStyleOrEmpty() };
         const auto tintColor{
             boxStyle->borderColor.empty() ?
-                MixAlpha(boxStyle->color.ValueOr(ColorBlack), context->CurrentOpacity())
-                    : MixAlpha(ColorWhite, context->CurrentOpacity())
+                MixAlpha(boxStyle->color.ValueOr(ColorBlack), composite->CurrentOpacity())
+                    : MixAlpha(ColorWhite, composite->CurrentOpacity())
         };
         const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
         const auto transform{
-            context->CurrentMatrix()
+            composite->CurrentMatrix()
                 * Matrix::Translate(rect.x, rect.y)
                 * boxStyle->transform.ToMatrix(rect.width, rect.height)
         };
 
-        context->renderer->DrawImage(
+        composite->renderer->DrawImage(
             this->layer,
             { 0, 0, rect.width, rect.height },
             transform,

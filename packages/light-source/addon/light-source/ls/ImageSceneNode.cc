@@ -214,16 +214,11 @@ void ImageSceneNode::AfterLayout() {
     this->QueuePaint();
 }
 
-void ImageSceneNode::Paint(Renderer* renderer) {
-    if (!this->image) {
-        return;
-    }
-
-    this->image->Sync(renderer);
-
+void ImageSceneNode::Paint(PaintContext* paint) {
+    auto renderer{ paint->renderer };
     const auto boxStyle{ this->GetStyleOrEmpty() };
     const auto& borderColor{ boxStyle->borderColor };
-    const auto hasCapInsets{ this->image->HasCapInsets() };
+    const auto hasCapInsets{ this->image && this->image->HasCapInsets() };
 
     this->QueueComposite();
 
@@ -240,7 +235,7 @@ void ImageSceneNode::Paint(Renderer* renderer) {
 
     renderer->FillRenderTarget(ColorTransparent);
 
-    if (this->image->HasTexture()) {
+    if (this->image && this->image->Sync(renderer)) {
         if (hasCapInsets) {
             renderer->DrawImage(
                 this->image->GetTexture(),
@@ -262,35 +257,35 @@ void ImageSceneNode::Paint(Renderer* renderer) {
     renderer->SetRenderTarget(nullptr);
 }
 
-void ImageSceneNode::Composite(CompositeContext* context) {
+void ImageSceneNode::Composite(CompositeContext* composite) {
     if (this->layer) {
         const auto boxStyle{ this->GetStyleOrEmpty() };
         const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
         const auto transform{
-            context->CurrentMatrix()
+            composite->CurrentMatrix()
                 * Matrix::Translate(rect.x, rect.y)
                 * boxStyle->transform.ToMatrix(rect.width, rect.height)
         };
 
-        context->renderer->DrawImage(
+        composite->renderer->DrawImage(
             this->layer,
             { 0, 0, rect.width, rect.height },
             transform,
-            ARGB(context->CurrentOpacityAlpha(), 255, 255, 255));
+            ARGB(composite->CurrentOpacityAlpha(), 255, 255, 255));
     } else if (this->image && this->image->HasTexture()) {
         const auto boxStyle{ this->GetStyleOrEmpty() };
         const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
         const auto transform{
-            context->CurrentMatrix()
+            composite->CurrentMatrix()
                 * Matrix::Translate(rect.x, rect.y)
                 * boxStyle->transform.ToMatrix(rect.width, rect.height)
         };
 
-        context->renderer->DrawImage(
+        composite->renderer->DrawImage(
             this->image->GetTexture(),
             this->destRect,
             transform,
-            MixAlpha(boxStyle->tintColor.ValueOr(ColorWhite), context->CurrentOpacity()));
+            MixAlpha(boxStyle->tintColor.ValueOr(ColorWhite), composite->CurrentOpacity()));
     }
 }
 

@@ -199,11 +199,13 @@ void Scene::Frame(const CallbackInfo& info) {
 
     auto renderer{ this->GetRenderer() };
 
+    this->paintContext.Reset(renderer);
+
     if (!this->paintRequests.empty()) {
         std::for_each(this->paintRequests.begin(), this->paintRequests.end(),
-                      [renderer](SceneNode* node) {
-                          node->Paint(renderer);
-                      });
+        [paintContext = &this->paintContext](SceneNode* node) {
+            node->Paint(paintContext);
+        });
 
         this->paintRequests.clear();
     }
@@ -211,8 +213,8 @@ void Scene::Frame(const CallbackInfo& info) {
     if (this->hasCompositeRequest) {
         renderer->SetRenderTarget(nullptr);
 
-        this->context.Reset(renderer);
-        this->root->Composite(&this->context);
+        this->compositeContext.Reset(renderer);
+        this->root->Composite(&this->compositeContext);
         this->hasCompositeRequest = false;
 
         renderer->Present();
