@@ -134,12 +134,12 @@ void SceneNode::SetStyle(const CallbackInfo& info, const Napi::Value& value) {
     this->style->Assign(other);
 }
 
-Napi::Value SceneNode::GetVisible(const CallbackInfo& info) {
-    return Boolean::New(info.Env(), this->isVisible);
+Napi::Value SceneNode::GetHidden(const CallbackInfo& info) {
+    return Boolean::New(info.Env(), this->isHidden);
 }
 
-void SceneNode::SetVisible(const CallbackInfo& info, const Napi::Value& value) {
-    this->isVisible = value.ToBoolean();
+void SceneNode::SetHidden(const CallbackInfo& info, const Napi::Value& value) {
+    this->isHidden = value.ToBoolean();
 }
 
 void SceneNode::SetParent(SceneNode* newParent) {
@@ -292,7 +292,7 @@ void SceneNode::DestroyRecursive() {
 }
 
 void SceneNode::Composite(CompositeContext* context) {
-    if (!this->isVisible || this->children.empty()) {
+    if (this->isHidden || this->children.empty()) {
         return;
     }
 
