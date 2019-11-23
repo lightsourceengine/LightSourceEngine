@@ -203,16 +203,12 @@ void TextSceneNode::Paint(PaintContext* paint) {
         const auto border{ YGNodeLayoutGetBorderRect(this->ygNode) };
 
         ctx_set_rgba_u8(ctx, GetR(borderColor), GetG(borderColor), GetB(borderColor), GetA(borderColor));
-        ctx_set_line_width(ctx, border.top);
         ctx_rectangle(ctx, 0, 0, w, border.top);
         ctx_fill(ctx);
-        ctx_set_line_width(ctx, border.bottom);
         ctx_rectangle(ctx, 0, 0 + h - border.bottom, w, border.bottom);
         ctx_fill(ctx);
-        ctx_set_line_width(ctx, border.left);
         ctx_rectangle(ctx, 0, border.top, border.left, h - border.top - border.bottom);
         ctx_fill(ctx);
-        ctx_set_line_width(ctx, border.right);
         // TODO: right side rendering is off by one (edge clipping bug?)
         ctx_rectangle(ctx, w - border.right - 1.f, 0 + border.top, border.right, h - border.top - border.bottom);
         ctx_fill(ctx);

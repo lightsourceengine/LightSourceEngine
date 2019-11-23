@@ -195,46 +195,65 @@ void BoxSceneNode::PaintRoundedRect(PaintContext* paint, Style* boxStyle) {
 }
 
 void BoxSceneNode::PaintBackgroundImage(Renderer* renderer, Style* boxStyle) {
-    const auto dest{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
-    const auto width{ this->backgroundImage->GetWidthF() };
-    const auto height{ this->backgroundImage->GetHeightF() };
+    const auto dest{
+        boxStyle->backgroundClip == StyleBackgroundClipBorderBox ?
+            YGNodeLayoutGetRect(this->ygNode, 0, 0) : YGNodeLayoutGetInnerRect(this->ygNode)
+    };
+    const auto imageRect{
+        ComputeBackgroundImageRect(
+            boxStyle->backgroundPositionX,
+            boxStyle->backgroundPositionY,
+            boxStyle->backgroundWidth,
+            boxStyle->backgroundHeight,
+            boxStyle->backgroundSize,
+            dest,
+            this->backgroundImage.Get(),
+            this->scene)
+    };
+    auto drawBackgroundImage = [&](float x, float y) {
+        renderer->DrawImage(this->backgroundImage->GetTexture(),
+            { x + imageRect.x, y + imageRect.y, imageRect.width, imageRect.height }, ColorWhite);
+    };
+    float x{ dest.x };
+    float y{ dest.y };
+    const float x2{ x + dest.width };
+    const float y2{ y + dest.height };
+
+    renderer->SetClipRect(dest);
 
     switch (boxStyle->backgroundRepeat) {
         case StyleBackgroundRepeatXY:
-            for (float y = 0.f; y < dest.height; y+=height) {
-                for (float x = 0.f; x < dest.width; x+=width) {
-                    renderer->DrawImage(this->backgroundImage->GetTexture(),
-                        { x, y, width, height },
-                        this->backgroundImage->GetCapInsets(),
-                        ColorWhite);
+            while (y < y2) {
+                x = 0;
+
+                while (x < x2) {
+                    drawBackgroundImage(x, y);
+                    x+=imageRect.width;
                 }
+
+                y+=imageRect.height;
             }
             break;
         case StyleBackgroundRepeatX:
-            for (float x = 0.f; x < dest.width; x+=width) {
-                renderer->DrawImage(this->backgroundImage->GetTexture(),
-                    { x, 0, width, height },
-                    this->backgroundImage->GetCapInsets(),
-                    ColorWhite);
+            while (x < x2) {
+                drawBackgroundImage(x, y);
+                x+=imageRect.width;
             }
             break;
         case StyleBackgroundRepeatY:
-            for (float y = 0.f; y < dest.height; y+=height) {
-                renderer->DrawImage(this->backgroundImage->GetTexture(),
-                    { 0, y, width, height },
-                    this->backgroundImage->GetCapInsets(),
-                    ColorWhite);
+            while (y < y2) {
+                drawBackgroundImage(x, y);
+                y+=imageRect.height;
             }
             break;
         case StyleBackgroundRepeatOff:
-            renderer->DrawImage(this->backgroundImage->GetTexture(),
-                { 0, 0, width, height },
-                this->backgroundImage->GetCapInsets(),
-                ColorWhite);
+            drawBackgroundImage(x, y);
             break;
         default:
             break;
     }
+
+    renderer->ClearClipRect();
 }
 
 void BoxSceneNode::UpdateBackgroundImage(const ImageUri& imageUri) {
@@ -255,11 +274,12 @@ void BoxSceneNode::UpdateBackgroundImage(const ImageUri& imageUri) {
     this->backgroundImage = this->scene->GetImageStore()->GetOrLoadImage({ imageUri });
 
     if (this->backgroundImage) {
-        if (this->backgroundImage->IsReady()) {
+        if (this->backgroundImage->IsReady() || this->backgroundImage->HasError()) {
             this->QueuePaint();
         } else {
             this->backgroundImage.Listen([this]() {
                 this->QueuePaint();
+                this->backgroundImage.Unlisten();
             });
         }
     }

@@ -16,30 +16,9 @@
 
 namespace ls {
 
-template<typename S /* Scene */>
-float CalculateBackgroundDimension(const StyleValueNumber& styleDimension, const float imageDimension,
-                                   const float boxDimension, const S* scene) {
-    switch (styleDimension.unit) {
-        case StyleNumberUnitPercent:
-            return styleDimension.AsPercent() * boxDimension;
-        case StyleNumberUnitPoint:
-            return styleDimension.value;
-        case StyleNumberUnitViewportWidth:
-            return styleDimension.AsPercent() * scene->GetWidth();
-        case StyleNumberUnitViewportHeight:
-            return styleDimension.AsPercent() * scene->GetHeight();
-        case StyleNumberUnitViewportMin:
-            return styleDimension.AsPercent() * scene->GetViewportMin();
-        case StyleNumberUnitViewportMax:
-            return styleDimension.AsPercent() * scene->GetViewportMax();
-        case StyleNumberUnitRootEm:
-            return styleDimension.value * scene->GetRootFontSize();
-        default: // StyleNumberUnitAuto
-            return imageDimension;
-    }
-}
+class Scene;
 
-template<typename S /* Scene */>
+template<typename S /* Scene */, int32_t P = 50>
 float ComputeObjectPosition(const StyleValueNumber& objectPosition, const float boxDimension,
                             const float fitDimension, const S* scene) {
     switch (objectPosition.unit) {
@@ -72,7 +51,7 @@ float ComputeObjectPosition(const StyleValueNumber& objectPosition, const float 
         case StyleNumberUnitRootEm:
             return objectPosition.AsPercent() * scene->GetRootFontSize();
         default:
-            return boxDimension * 0.5f - fitDimension * 0.5f;
+            return boxDimension * (P / 100.f) - fitDimension * (P / 100.f);
     }
 }
 
@@ -194,6 +173,76 @@ float ComputeFontSize(const StyleValueNumber& value, const S* scene, const float
 template<typename S /* Scene */>
 float ComputeFontSize(const StyleValueNumber& value, const S* scene) {
     return ComputeFontSize(value, scene, scene->GetRootFontSize());
+}
+
+template<typename I /* ImageResource */, typename S /* Scene */>
+Rect ComputeBackgroundImageRect(const StyleValueNumber& backgroundX, const StyleValueNumber& backgroundY,
+        const StyleValueNumber& backgroundWidth, const StyleValueNumber& backgroundHeight,
+        StyleBackgroundSize backgroundSize, const Rect& bounds, I* imageResource, const S* scene) {
+    auto computeDimension = [scene](const StyleValueNumber& backgroundDimension, float boundsDimension,
+            float imageDimension) {
+        switch (backgroundDimension.unit) {
+            case StyleNumberUnitPercent:
+                return backgroundDimension.AsPercent() * boundsDimension;
+            case StyleNumberUnitPoint:
+                return backgroundDimension.value;
+            case StyleNumberUnitViewportWidth:
+                return backgroundDimension.AsPercent() * scene->GetWidth();
+            case StyleNumberUnitViewportHeight:
+                return backgroundDimension.AsPercent() * scene->GetHeight();
+            case StyleNumberUnitViewportMin:
+                return backgroundDimension.AsPercent() * scene->GetViewportMin();
+            case StyleNumberUnitViewportMax:
+                return backgroundDimension.AsPercent() * scene->GetViewportMax();
+            case StyleNumberUnitRootEm:
+                return backgroundDimension.value * scene->GetRootFontSize();
+            default: // StyleNumberUnitAuto
+                return imageDimension;
+        }
+    };
+    float width;
+    float height;
+
+    if (imageResource->HasCapInsets()) {
+        backgroundSize = StyleBackgroundSizeNone;
+    }
+
+    switch (backgroundSize) {
+        case StyleBackgroundSizeContain:
+            if (imageResource->GetAspectRatio() > (bounds.width / bounds.height)) {
+                width = bounds.width;
+                height = bounds.width / imageResource->GetAspectRatio();
+            } else {
+                width = bounds.height * imageResource->GetAspectRatio();
+                height = bounds.height;
+            }
+            break;
+        case StyleBackgroundSizeCover:
+            if (imageResource->GetAspectRatio() > (bounds.width / bounds.height)) {
+                width = bounds.height * imageResource->GetAspectRatio();
+                height = bounds.height;
+            } else {
+                width = bounds.width;
+                height = bounds.width / imageResource->GetAspectRatio();
+            }
+            break;
+        default:
+            if (imageResource->HasCapInsets()) {
+                width = imageResource->GetWidthF();
+                height = imageResource->GetHeightF();
+            } else {
+                width = computeDimension(backgroundWidth, bounds.width, imageResource->GetWidthF());
+                height = computeDimension(backgroundHeight, bounds.height, imageResource->GetHeightF());
+            }
+            break;
+    }
+
+    return {
+        ComputeObjectPosition<Scene, 0>(backgroundX, bounds.width, width, scene),
+        ComputeObjectPosition<Scene, 0>(backgroundY, bounds.height, height, scene),
+        width,
+        height
+    };
 }
 
 } // namespace ls
