@@ -58,7 +58,7 @@ export class Element {
     this.node.focusable = !!newProps.focusable
 
     if (oldProps.hidden !== newProps.hidden) {
-      this.node.hidden = (newProps.hidden === undefined) || !!newProps.hidden
+      this.node.hidden = !!newProps.hidden
     }
 
     if (oldProps.onFocus !== newProps.onFocus) {
