@@ -38,10 +38,13 @@ class BoxSceneNode : public Napi::SafeObjectWrap<BoxSceneNode>, public SceneNode
     void UpdateBackgroundImage(const ImageUri& imageUri);
     void PaintRoundedRect(PaintContext* paint, Style* boxStyle);
     void PaintBackgroundImage(Renderer* renderer, Style* boxStyle);
+    void PaintBackgroundStack(Renderer* renderer, Style* boxStyle);
+    bool IsBackgroundOnly(Style* boxStyle) const noexcept;
 
  private:
     ImageUri backgroundImageUri;
     ResourceLink<ImageResource> backgroundImage;
+    bool isImmediate{ false };
 
     friend Napi::SafeObjectWrap<BoxSceneNode>;
 };

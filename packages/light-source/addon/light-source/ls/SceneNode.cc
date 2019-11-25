@@ -325,8 +325,12 @@ void SceneNode::OnPropertyChanged(StyleProperty property) {
         case StyleProperty::transform:
         case StyleProperty::zIndex:
             this->sortedChildren.clear();
+            this->QueueComposite();
             break;
+        case StyleProperty::opacity:
         case StyleProperty::overflow:
+        case StyleProperty::transformOriginX:
+        case StyleProperty::transformOriginY:
             this->QueueComposite();
             break;
         default:

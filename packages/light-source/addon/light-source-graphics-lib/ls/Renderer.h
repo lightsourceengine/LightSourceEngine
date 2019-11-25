@@ -65,7 +65,13 @@ class Renderer {
     /**
      * Draw a solid color rectangle.
      */
-    virtual void DrawFillRect(const Rect& rect, const uint32_t fillColor) = 0;
+    virtual void DrawFillRect(const Rect& rect, const Matrix& transform, const uint32_t fillColor) = 0;
+
+    /**
+     * Draw an image.
+     */
+    virtual void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect,
+                           const Matrix& transform, uint32_t tintColor) = 0;
 
     /**
      * Draw a rectangle's outline.
@@ -78,12 +84,6 @@ class Renderer {
     virtual void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const uint32_t tintColor) = 0;
 
     /**
-     * Draw an image.
-     */
-    virtual void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect,
-        const Matrix& transform, uint32_t tintColor) = 0;
-
-    /**
      * Draw an image with end-cap insets.
      *
      * Each corner of the image is an end-cap, where the size is defined by the edges in the capInsets args. End-caps
@@ -91,12 +91,6 @@ class Renderer {
      * destination rect area.
      */
     virtual void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const EdgeRect& capInsets,
-        const uint32_t tintColor) = 0;
-
-    /**
-     * Draw a portion of an image.
-     */
-    virtual void DrawQuad(const std::shared_ptr<Texture>& texture, const Rect& srcRect, const Rect& destRect,
         const uint32_t tintColor) = 0;
 
     /**

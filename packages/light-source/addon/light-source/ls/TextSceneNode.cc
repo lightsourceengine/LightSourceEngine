@@ -227,14 +227,18 @@ void TextSceneNode::Composite(CompositeContext* composite) {
         };
         const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
         const auto transform{
-            composite->CurrentMatrix()
-                * Matrix::Translate(rect.x, rect.y)
-                * boxStyle->transform.ToMatrix(rect.width, rect.height)
+             ComputeTransform(
+                 composite->CurrentMatrix(),
+                 boxStyle->transform,
+                 boxStyle->transformOriginX,
+                 boxStyle->transformOriginY,
+                 rect,
+                 this->scene)
         };
 
         composite->renderer->DrawImage(
             this->layer,
-            { 0, 0, rect.width, rect.height },
+            rect,
             transform,
             tintColor);
     }

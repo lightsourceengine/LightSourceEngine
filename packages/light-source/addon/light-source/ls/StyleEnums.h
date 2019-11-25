@@ -64,7 +64,8 @@ LS_ENUM_SEQ_DECL(
     StyleAnchorTop,
     StyleAnchorRight,
     StyleAnchorBottom,
-    StyleAnchorLeft
+    StyleAnchorLeft,
+    StyleAnchorCenter
 )
 
 LS_ENUM_SEQ_DECL(

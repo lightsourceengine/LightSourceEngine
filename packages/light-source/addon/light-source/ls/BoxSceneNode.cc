@@ -55,6 +55,17 @@ void BoxSceneNode::OnPropertyChanged(StyleProperty property) {
             break;
         case StyleProperty::backgroundColor:
         case StyleProperty::borderColor:
+        case StyleProperty::backgroundClip:
+        case StyleProperty::backgroundSize:
+        case StyleProperty::backgroundPositionX:
+        case StyleProperty::backgroundPositionY:
+        case StyleProperty::backgroundWidth:
+        case StyleProperty::backgroundHeight:
+        case StyleProperty::borderRadius:
+        case StyleProperty::borderRadiusBottomRight:
+        case StyleProperty::borderRadiusBottomLeft:
+        case StyleProperty::borderRadiusTopRight:
+        case StyleProperty::borderRadiusTopLeft:
             this->QueuePaint();
             break;
         case StyleProperty::transform:
@@ -63,7 +74,6 @@ void BoxSceneNode::OnPropertyChanged(StyleProperty property) {
         case StyleProperty::opacity:
             this->QueueComposite();
             break;
-        // TODO: add background fields
         default:
             SceneNode::OnPropertyChanged(property);
             break;
@@ -80,23 +90,64 @@ void BoxSceneNode::AfterLayout() {
 }
 
 void BoxSceneNode::Paint(PaintContext* paint) {
-    auto renderer{ paint->renderer };
     const auto boxStyle{ this->GetStyleOrEmpty() };
+
+    this->isImmediate = false;
 
     if (boxStyle->IsLayoutOnly()) {
         return;
-    }
-
-    if (boxStyle->HasBorderRadius()) {
+    } else if (this->IsBackgroundOnly(boxStyle)) {
+        this->isImmediate = true;
+    } else if (boxStyle->HasBorderRadius()) {
         this->PaintRoundedRect(paint, boxStyle);
-        this->QueueComposite();
-        return;
+    } else {
+        this->PaintBackgroundStack(paint->renderer, boxStyle);
     }
 
-    // TODO: special cases:
-    // TODO: background image + no border + no background + repeat off + size [cover or contain] -> composite
-    // TODO: background only -> composite
+    this->QueueComposite();
+}
 
+void BoxSceneNode::Composite(CompositeContext* composite) {
+    if (this->isImmediate) {
+        const auto boxStyle{ this->GetStyleOrEmpty() };
+        const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
+        const auto transform{
+            ComputeTransform(
+                composite->CurrentMatrix(),
+                boxStyle->transform,
+                boxStyle->transformOriginX,
+                boxStyle->transformOriginY,
+                rect,
+                this->scene)
+        };
+
+        composite->renderer->DrawFillRect(rect, transform,
+            MixAlpha(boxStyle->backgroundColor.ValueOr(ColorTransparent), composite->CurrentOpacity()));
+    } else if (this->layer) {
+        const auto boxStyle{ this->GetStyleOrEmpty() };
+        const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
+        const auto transform{
+            ComputeTransform(
+                composite->CurrentMatrix(),
+                boxStyle->transform,
+                boxStyle->transformOriginX,
+                boxStyle->transformOriginY,
+                rect,
+                this->scene)
+        };
+
+        composite->renderer->DrawImage(this->layer, rect, transform,
+            ARGB(composite->CurrentOpacityAlpha(), 255, 255, 255));
+    }
+
+    SceneNode::Composite(composite);
+}
+
+bool BoxSceneNode::IsBackgroundOnly(Style* boxStyle) const noexcept {
+    return !boxStyle->backgroundColor.empty() && boxStyle->borderColor.empty() && boxStyle->backgroundImage.empty();
+}
+
+void BoxSceneNode::PaintBackgroundStack(Renderer* renderer, Style* boxStyle) {
     const auto dest{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
 
     if (!this->InitLayerRenderTarget(renderer, static_cast<int32_t>(dest.width), static_cast<int32_t>(dest.height))) {
@@ -108,36 +159,14 @@ void BoxSceneNode::Paint(PaintContext* paint) {
     }
 
     if (this->backgroundImage && this->backgroundImage->Sync(renderer)) {
-        this->PaintBackgroundImage(paint->renderer, boxStyle);
+        this->PaintBackgroundImage(renderer, boxStyle);
     }
 
     if (!boxStyle->borderColor.empty()) {
         renderer->DrawBorder(dest, YGNodeLayoutGetBorderRect(this->ygNode), boxStyle->borderColor.value);
     }
 
-    this->QueueComposite();
     renderer->SetRenderTarget(nullptr);
-}
-
-void BoxSceneNode::Composite(CompositeContext* composite) {
-    if (!this->layer) {
-        SceneNode::Composite(composite);
-        return;
-    }
-
-    const auto boxStyle{ this->GetStyleOrEmpty() };
-    const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
-
-    composite->renderer->DrawImage(
-        this->layer,
-        rect,
-        composite->CurrentMatrix() * boxStyle->transform.ToMatrix(rect.width, rect.height),
-        ARGB(composite->CurrentOpacityAlpha(), 255, 255, 255));
-
-    // TODO: special case - image only
-    // TODO: special case - background only
-
-    SceneNode::Composite(composite);
 }
 
 void BoxSceneNode::PaintRoundedRect(PaintContext* paint, Style* boxStyle) {
@@ -199,6 +228,11 @@ void BoxSceneNode::PaintBackgroundImage(Renderer* renderer, Style* boxStyle) {
         boxStyle->backgroundClip == StyleBackgroundClipBorderBox ?
             YGNodeLayoutGetRect(this->ygNode, 0, 0) : YGNodeLayoutGetInnerRect(this->ygNode)
     };
+
+    if (!this->InitLayerRenderTarget(renderer, static_cast<int32_t>(dest.width), static_cast<int32_t>(dest.height))) {
+        return;
+    }
+
     const auto imageRect{
         ComputeBackgroundImageRect(
             boxStyle->backgroundPositionX,
@@ -254,6 +288,7 @@ void BoxSceneNode::PaintBackgroundImage(Renderer* renderer, Style* boxStyle) {
     }
 
     renderer->ClearClipRect();
+    renderer->SetRenderTarget(nullptr);
 }
 
 void BoxSceneNode::UpdateBackgroundImage(const ImageUri& imageUri) {

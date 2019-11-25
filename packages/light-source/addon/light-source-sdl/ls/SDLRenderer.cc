@@ -17,7 +17,6 @@ namespace ls {
 static void SetTextureTintColor(SDL_Texture* texture, const uint32_t color) noexcept;
 static SDL_Texture* ToRawTexture(const std::shared_ptr<Texture>& texture) noexcept;
 static SDL_Rect ToSDLRect(const Rect& rect) noexcept;
-static SDL_Rect ToSDLRect(const Rect& rect, float tx, float ty) noexcept;
 
 SDLRenderer::SDLRenderer() {
     SDL_RendererInfo info;
@@ -57,17 +56,8 @@ void SDLRenderer::Present() {
     SDL_RenderPresent(this->renderer);
 }
 
-void SDLRenderer::DrawFillRect(const Rect& rect, const uint32_t fillColor) {
-    if (!this->fillRectTexture) {
-        return;
-    }
-
-    auto texturePtr{ ToRawTexture(this->fillRectTexture) };
-    const SDL_Rect destRect{ ToSDLRect(rect) };
-
-    SetTextureTintColor(texturePtr, fillColor);
-
-    SDL_RenderCopy(this->renderer, texturePtr, nullptr, &destRect);
+void SDLRenderer::DrawFillRect(const Rect& rect, const Matrix& transform, const uint32_t fillColor) {
+    this->DrawImage(this->fillRectTexture, rect, transform, fillColor);
 }
 
 void SDLRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const uint32_t borderColor) {
@@ -89,11 +79,12 @@ void SDLRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const uin
 }
 
 void SDLRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const uint32_t tintColor) {
-    if (!texture) {
+    const auto texturePtr{ ToRawTexture(texture) };
+
+    if (!texturePtr) {
         return;
     }
 
-    const auto texturePtr{ ToRawTexture(texture) };
     const SDL_Rect destRect{ ToSDLRect(rect) };
 
     SetTextureTintColor(texturePtr, tintColor);
@@ -103,12 +94,19 @@ void SDLRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect&
 
 void SDLRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect,
         const Matrix& transform, uint32_t tintColor) {
-    if (!texture) {
+    const auto texturePtr{ ToRawTexture(texture) };
+
+    if (!texturePtr) {
         return;
     }
 
-    const auto texturePtr{ ToRawTexture(texture) };
-    const SDL_Rect destRect{ ToSDLRect(rect, transform.GetTranslateX(), transform.GetTranslateY()) };
+    const SDL_Point center{ 0, 0 };
+    const SDL_Rect destRect{
+        static_cast<int32_t>(rect.x + transform.GetTranslateX()),
+        static_cast<int32_t>(rect.y + transform.GetTranslateY()),
+        static_cast<int32_t>(rect.width * transform.GetScaleX()),
+        static_cast<int32_t>(rect.height * transform.GetScaleY())
+    };
 
     SetTextureTintColor(texturePtr, tintColor);
 
@@ -118,17 +116,18 @@ void SDLRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect&
         nullptr,
         &destRect,
         transform.GetAxisAngleDeg(),
-        nullptr,
+        &center,
         SDL_FLIP_NONE);
 }
 
 void SDLRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const EdgeRect& capInsets,
         const uint32_t tintColor) {
-    if (!texture) {
+    const auto texturePtr{ ToRawTexture(texture) };
+
+    if (!texturePtr) {
         return;
     }
 
-    const auto texturePtr{ ToRawTexture(texture) };
     const auto x{ static_cast<int32_t>(rect.x) };
     const auto y{ static_cast<int32_t>(rect.y) };
     const auto w{ static_cast<int32_t>(rect.width) };
@@ -224,21 +223,6 @@ void SDLRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect&
     SDL_RenderCopy(this->renderer, texturePtr, &srcRect, &destRect);
 }
 
-void SDLRenderer::DrawQuad(const std::shared_ptr<Texture>& texture, const Rect& srcRect, const Rect& destRect,
-        const uint32_t tintColor) {
-    if (!texture) {
-        return;
-    }
-
-    const auto texturePtr{ ToRawTexture(texture) };
-    const SDL_Rect src{ ToSDLRect(srcRect) };
-    const SDL_Rect dest{ ToSDLRect(destRect) };
-
-    SetTextureTintColor(texturePtr, tintColor);
-
-    SDL_RenderCopy(this->renderer, texturePtr, &src, &dest);
-}
-
 void SDLRenderer::FillRenderTarget(const uint32_t color) {
     SetRenderDrawColor(color);
     SDL_RenderClear(this->renderer);
@@ -292,7 +276,10 @@ std::shared_ptr<Texture> SDLRenderer::CreateFillRectTexture() noexcept {
     // created. A 2x2, solid white texture. The texture can be tinted to the desired fill rect color and rotated
     // through RenderCopyEx.
     constexpr auto FILL_RECT_TEXTURE_SIZE = 2;
-    uint8_t rectTexturePixels[FILL_RECT_TEXTURE_SIZE * FILL_RECT_TEXTURE_SIZE * 4]{ 255 };
+    uint8_t rectTexturePixels[FILL_RECT_TEXTURE_SIZE * FILL_RECT_TEXTURE_SIZE * 4];
+
+    std::memset(rectTexturePixels, 255, sizeof(rectTexturePixels));
+
     Surface surface{
         std::shared_ptr<uint8_t>(rectTexturePixels, [](uint8_t*){}),
         FILL_RECT_TEXTURE_SIZE,
@@ -371,14 +358,13 @@ void SDLRenderer::Destroy() {
 }
 
 static void SetTextureTintColor(SDL_Texture* texture, const uint32_t color) noexcept {
-    // TODO: consider opacity
     SDL_SetTextureColorMod(texture, GetR(color), GetG(color), GetB(color));
     SDL_SetTextureAlphaMod(texture, GetA(color));
 }
 
 static SDL_Texture* ToRawTexture(const std::shared_ptr<Texture>& texture) noexcept {
     if (texture) {
-        return static_cast<SDLTexture*>(texture.get())->ToRawTexture();
+        return dynamic_cast<SDLTexture*>(texture.get())->ToRawTexture();
     } else {
         return nullptr;
     }
@@ -388,15 +374,6 @@ static SDL_Rect ToSDLRect(const Rect& rect) noexcept {
     return {
         static_cast<int32_t>(rect.x),
         static_cast<int32_t>(rect.y),
-        static_cast<int32_t>(rect.width),
-        static_cast<int32_t>(rect.height),
-    };
-}
-
-static SDL_Rect ToSDLRect(const Rect& rect, float tx, float ty) noexcept {
-    return {
-        static_cast<int32_t>(rect.x + tx),
-        static_cast<int32_t>(rect.y + ty),
         static_cast<int32_t>(rect.width),
         static_cast<int32_t>(rect.height),
     };

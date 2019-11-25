@@ -86,9 +86,18 @@ void MatrixSpec(TestSuite* parent) {
 
     spec->Describe("GetAxisAngle()")->tests = {
         {
-            "should get axis angle (in radians) of rotation matrix",
+            "should get axis angle [+] (in radians) of rotation matrix",
             [](const TestInfo&) {
                 auto radians{ PI / 4.f };
+                auto m{ Matrix::Rotate(radians) };
+
+                Assert::IsTrue(Equals(m.GetAxisAngle(), radians));
+            }
+        },
+        {
+            "should get axis angle [-] (in radians) of rotation matrix",
+            [](const TestInfo&) {
+                auto radians{ -PI / 4.f };
                 auto m{ Matrix::Rotate(radians) };
 
                 Assert::IsTrue(Equals(m.GetAxisAngle(), radians));
@@ -104,12 +113,21 @@ void MatrixSpec(TestSuite* parent) {
 
     spec->Describe("GetAxisAngleDeg()")->tests = {
         {
-            "should get axis angle (in degrees) of rotation matrix",
+            "should get axis angle [+] (in degrees) of rotation matrix",
             [](const TestInfo&) {
                 auto radians{ PI / 4.f };
                 auto m{ Matrix::Rotate(radians) };
 
                 Assert::IsTrue(Equals(m.GetAxisAngleDeg(), 45.f));
+            }
+        },
+        {
+            "should get axis angle [-] (in degrees) of rotation matrix",
+            [](const TestInfo&) {
+                auto radians{ -PI / 4.f };
+                auto m{ Matrix::Rotate(radians) };
+
+                Assert::IsTrue(Equals(m.GetAxisAngleDeg(), 360.f - 45.f));
             }
         },
         {

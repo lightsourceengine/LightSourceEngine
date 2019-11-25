@@ -262,23 +262,31 @@ void ImageSceneNode::Composite(CompositeContext* composite) {
         const auto boxStyle{ this->GetStyleOrEmpty() };
         const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
         const auto transform{
-            composite->CurrentMatrix()
-                * Matrix::Translate(rect.x, rect.y)
-                * boxStyle->transform.ToMatrix(rect.width, rect.height)
+            ComputeTransform(
+                composite->CurrentMatrix(),
+                boxStyle->transform,
+                boxStyle->transformOriginX,
+                boxStyle->transformOriginY,
+                rect,
+                this->scene)
         };
 
         composite->renderer->DrawImage(
             this->layer,
-            { 0, 0, rect.width, rect.height },
+            rect,
             transform,
             ARGB(composite->CurrentOpacityAlpha(), 255, 255, 255));
     } else if (this->image && this->image->HasTexture()) {
         const auto boxStyle{ this->GetStyleOrEmpty() };
         const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
         const auto transform{
-            composite->CurrentMatrix()
-                * Matrix::Translate(rect.x, rect.y)
-                * boxStyle->transform.ToMatrix(rect.width, rect.height)
+            ComputeTransform(
+                composite->CurrentMatrix(),
+                boxStyle->transform,
+                boxStyle->transformOriginX,
+                boxStyle->transformOriginY,
+                rect,
+                this->scene)
         };
 
         composite->renderer->DrawImage(

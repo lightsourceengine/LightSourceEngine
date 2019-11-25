@@ -4,8 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
+import { performance } from 'perf_hooks'
 import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode, RootSceneNode, ImageStoreView } from '../addon'
 import { EventEmitter } from '../util/EventEmitter'
+import { BlurEvent } from '../event/BlurEvent'
+import { FocusEvent } from '../event/FocusEvent'
+import { eventBubblePhase } from '../event/eventBubblePhase'
 import {
   $width,
   $height,
@@ -22,16 +26,12 @@ import {
   $image,
   $frame
 } from '../util/InternalSymbols'
-import { BlurEvent } from '../event/BlurEvent'
-import { FocusEvent } from '../event/FocusEvent'
-import { performance } from 'perf_hooks'
-import { eventBubblePhase } from '../event/eventBubblePhase'
 
 const { now } = performance
 const $frameListenersForeground = Symbol.for('frameListenersForeground')
 const $frameListenersBackground = Symbol.for('frameListenersBackground')
 const sEmptyRafEntry = Object.freeze([0, null])
-let sNextFrameRequestId = 1
+let sFrameRequestId = 0
 
 export class Scene extends SceneBase {
   constructor (stage, displayIndex, width, height, fullscreen) {
@@ -132,11 +132,9 @@ export class Scene extends SceneBase {
   }
 
   requestAnimationFrame (callback) {
-    const requestId = sNextFrameRequestId++
+    this[$frameListenersForeground].push([++sFrameRequestId, callback])
 
-    this[$frameListenersForeground].push([requestId, callback])
-
-    return requestId
+    return sFrameRequestId
   }
 
   cancelAnimationFrame (requestId) {
@@ -146,7 +144,7 @@ export class Scene extends SceneBase {
     removeAnimationFrameListener(requestId, this[$frameListenersBackground])
   }
 
-  [$frame] (delta) {
+  [$frame] (tick, lastTick) {
     if (this[$frameListenersForeground].length) {
       // - background listener list should be empty here
       // - swap background and foreground -> background listeners will be processed right now. any listeners added
@@ -155,9 +153,9 @@ export class Scene extends SceneBase {
 
       swapPropValues(this, $frameListenersForeground, $frameListenersBackground)
 
-      for (const [, callback] of this[$frameListenersBackground]) {
+      for (const [/* handle */, callback] of this[$frameListenersBackground]) {
         try {
-          callback && callback(delta)
+          callback && callback(tick, lastTick)
         } catch (e) {
           // TODO: exception in user callback.. log?
         }
@@ -166,7 +164,7 @@ export class Scene extends SceneBase {
       this[$frameListenersBackground].length = 0
     }
 
-    super[$frame](delta)
+    super[$frame](tick, lastTick)
   }
 
   [$emit] (event) {

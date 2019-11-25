@@ -14,7 +14,6 @@ class RefTexture : public Texture {
         const bool canLock)
         : width(width), height(height), isRenderTarget(isRenderTarget), canUpdate(canUpdate), canLock(canLock) {
     }
-    virtual ~RefTexture() noexcept = default;
 
     bool IsAttached() const noexcept override { return true; }
     int32_t GetWidth() const noexcept override { return this->width; }
@@ -51,7 +50,7 @@ void RefRenderer::SetClipRect(const Rect& rect) {
 void RefRenderer::ClearClipRect() {
 }
 
-void RefRenderer::DrawFillRect(const Rect& rect, const uint32_t fillColor) {
+void RefRenderer::DrawFillRect(const Rect& rect, const Matrix& transform, const uint32_t fillColor) {
 }
 
 void RefRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const uint32_t borderColor) {
@@ -65,10 +64,6 @@ void RefRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect&
 }
 
 void RefRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const EdgeRect& capInsets,
-        const uint32_t tintColor) {
-}
-
-void RefRenderer::DrawQuad(const std::shared_ptr<Texture>& texture, const Rect& srcRect, const Rect& destRect,
         const uint32_t tintColor) {
 }
 

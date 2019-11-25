@@ -169,6 +169,8 @@ const char* StyleAnchorToString(const StyleAnchor value) noexcept {
         return "bottom";
     case StyleAnchorLeft:
         return "left";
+    case StyleAnchorCenter:
+        return "center";
   }
   return "unknown";
 }

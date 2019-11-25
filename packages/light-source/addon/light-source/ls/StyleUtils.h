@@ -11,12 +11,11 @@
 #include <ls/Size.h>
 #include <ls/Rect.h>
 #include <ls/Math.h>
+#include <ls/Matrix.h>
 #include "StyleEnums.h"
 #include "StyleValue.h"
 
 namespace ls {
-
-class Scene;
 
 template<typename S /* Scene */, int32_t P = 50>
 float ComputeObjectPosition(const StyleValueNumber& objectPosition, const float boxDimension,
@@ -31,15 +30,15 @@ float ComputeObjectPosition(const StyleValueNumber& objectPosition, const float 
             return (boxDimension * percent - fitDimension * percent);
         }
         case StyleNumberUnitAnchor:
-        {
-            const auto anchor{ objectPosition.AsInt32() };
-
-            if (anchor == StyleAnchorRight || anchor == StyleAnchorBottom) {
-                return boxDimension - fitDimension;
+            switch (objectPosition.AsInt32()) {
+                case StyleAnchorRight:
+                case StyleAnchorBottom:
+                    return boxDimension - fitDimension;
+                case StyleAnchorCenter:
+                    return boxDimension * .5f - fitDimension * .5f;
+                default:
+                    return 0;
             }
-
-            return 0;
-        }
         case StyleNumberUnitViewportWidth:
             return objectPosition.AsPercent() * scene->GetWidth();
         case StyleNumberUnitViewportHeight:
@@ -106,26 +105,6 @@ Rect ComputeObjectFitRect(StyleObjectFit objectFit, const StyleValueNumber& obje
         SnapToPixelGrid(fitWidth),
         SnapToPixelGrid(fitHeight)
     };
-}
-
-template<typename S /* Scene */>
-int32_t ComputeIntegerPointValue(const StyleValueNumber& value, const S* scene, const int32_t defaultValue) {
-    switch (value.unit) {
-        case StyleNumberUnitPoint:
-            return value.value;
-        case StyleNumberUnitViewportWidth:
-            return value.AsPercent() * scene->GetWidth();
-        case StyleNumberUnitViewportHeight:
-            return value.AsPercent() * scene->GetHeight();
-        case StyleNumberUnitViewportMin:
-            return value.AsPercent() * scene->GetViewportMin();
-        case StyleNumberUnitViewportMax:
-            return value.AsPercent() * scene->GetViewportMax();
-        case StyleNumberUnitRootEm:
-            return value.value * scene->GetRootFontSize();
-        default:
-            return defaultValue;
-    }
 }
 
 template<typename S /* Scene */>
@@ -238,11 +217,55 @@ Rect ComputeBackgroundImageRect(const StyleValueNumber& backgroundX, const Style
     }
 
     return {
-        ComputeObjectPosition<Scene, 0>(backgroundX, bounds.width, width, scene),
-        ComputeObjectPosition<Scene, 0>(backgroundY, bounds.height, height, scene),
+        ComputeObjectPosition<S, 0>(backgroundX, bounds.width, width, scene),
+        ComputeObjectPosition<S, 0>(backgroundY, bounds.height, height, scene),
         width,
         height
     };
+}
+
+template<typename S /* Scene */>
+float ComputeTransformOrigin(const StyleValueNumber& transformOrigin, const float dimension, const S* scene) {
+    switch (transformOrigin.unit) {
+        case StyleNumberUnitPoint:
+            return transformOrigin.value;
+        case StyleNumberUnitPercent:
+            return transformOrigin.AsPercent() * dimension;
+        case StyleNumberUnitAnchor:
+        {
+            switch (transformOrigin.AsInt32()) {
+                case StyleAnchorRight:
+                case StyleAnchorBottom:
+                    return dimension;
+                case StyleAnchorCenter:
+                    return dimension * .5f;
+                default:
+                    return 0;
+            }
+        }
+        case StyleNumberUnitViewportWidth:
+            return transformOrigin.AsPercent() * scene->GetWidth();
+        case StyleNumberUnitViewportHeight:
+            return transformOrigin.AsPercent() * scene->GetHeight();
+        case StyleNumberUnitViewportMin:
+            return transformOrigin.AsPercent() * scene->GetViewportMin();
+        case StyleNumberUnitViewportMax:
+            return transformOrigin.AsPercent() * scene->GetViewportMax();
+        case StyleNumberUnitRootEm:
+            return transformOrigin.AsPercent() * scene->GetRootFontSize();
+        default:
+            return dimension * .5f;
+    }
+}
+
+template<typename S /* Scene */>
+Matrix ComputeTransform(const Matrix& base, const StyleValueTransform& transform,
+        const StyleValueNumber& transformOriginX, const StyleValueNumber& transformOriginY,
+        const Rect& bounds, const S* scene) {
+    const auto x{ ComputeTransformOrigin(transformOriginX, bounds.width, scene) };
+    const auto y{ ComputeTransformOrigin(transformOriginY, bounds.height, scene) };
+
+    return Matrix::Translate(x, y) * transform.ToMatrix(bounds.width, bounds.height) * Matrix::Translate(-x, -y);
 }
 
 } // namespace ls

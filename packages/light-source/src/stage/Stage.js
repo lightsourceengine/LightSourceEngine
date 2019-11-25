@@ -232,7 +232,6 @@ export class Stage extends StageBase {
 
     const mainLoop = () => {
       const tick = now()
-      const delta = tick - lastTick
 
       // TODO: clean up adapter interface
       this[$processEvents]()
@@ -241,9 +240,8 @@ export class Stage extends StageBase {
         return
       }
 
+      scene[$frame](tick, lastTick)
       lastTick = tick
-
-      scene[$frame](delta)
 
       this[$mainLoopHandle] = setTimeout(mainLoop, 1000 / this[$fps])
     }
