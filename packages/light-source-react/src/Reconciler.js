@@ -4,7 +4,6 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import './performance-polyfill'
 import {
   unstable_scheduleCallback as scheduleCallback,
   unstable_cancelCallback as cancelCallback,
@@ -14,6 +13,7 @@ import ReactFiberReconciler from 'react-reconciler'
 import { TextElement } from './TextElement'
 import { BoxElement } from './BoxElement'
 import { ImageElement } from './ImageElement'
+import { performance } from 'perf_hooks'
 
 const TEXT = 'text'
 const BOX = 'box'
@@ -41,7 +41,7 @@ const errorUnknownElementType = (type) => {
 
 export function Reconciler (scene) {
   return ReactFiberReconciler({
-    now: global.performance.now,
+    now: performance.now,
 
     supportsMutation: true,
 
