@@ -268,4 +268,24 @@ Matrix ComputeTransform(const Matrix& base, const StyleValueTransform& transform
     return Matrix::Translate(x, y) * transform.ToMatrix(bounds.width, bounds.height) * Matrix::Translate(-x, -y);
 }
 
+template<typename S /* Scene */>
+float ComputeBorderWidth(const StyleValueNumber& borderValue, float defaultValue, const S* scene) {
+    switch (borderValue.unit) {
+        case StyleNumberUnitPoint:
+            return borderValue.value;
+        case StyleNumberUnitViewportWidth:
+            return borderValue.AsPercent() * scene->GetWidth();
+        case StyleNumberUnitViewportHeight:
+            return borderValue.AsPercent() * scene->GetHeight();
+        case StyleNumberUnitViewportMin:
+            return borderValue.AsPercent() * scene->GetViewportMin();
+        case StyleNumberUnitViewportMax:
+            return borderValue.AsPercent() * scene->GetViewportMax();
+        case StyleNumberUnitRootEm:
+            return borderValue.AsPercent() * scene->GetRootFontSize();
+        default:
+            return defaultValue;
+    }
+}
+
 } // namespace ls

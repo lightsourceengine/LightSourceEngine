@@ -64,11 +64,12 @@ void Style::Bind(SceneNode* node) noexcept {
 }
 
 bool Style::IsLayoutOnly() const noexcept {
-    return this->borderColor.undefined && this->backgroundColor.undefined && this->backgroundImage.empty();
+    return this->borderColor.empty() && this->backgroundColor.empty() && this->backgroundImage.empty();
 }
 
 bool Style::HasBorderRadius() const noexcept {
-    return !this->borderRadius.empty()
+    return !this->border.empty()
+        || !this->borderRadius.empty()
         || !this->borderRadiusTopLeft.empty()
         || !this->borderRadiusTopRight.empty()
         || !this->borderRadiusBottomLeft.empty()

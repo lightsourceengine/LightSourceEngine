@@ -172,28 +172,31 @@ void BoxSceneNode::PaintBackgroundStack(Renderer* renderer, Style* boxStyle) {
 void BoxSceneNode::PaintRoundedRect(PaintContext* paint, Style* boxStyle) {
     const auto dest{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
 
-    if (!this->InitLayerSoftwareRenderTarget(
-        paint->renderer, static_cast<int32_t>(dest.width), static_cast<int32_t>(dest.height))) {
+    this->QueueComposite();
+
+    if (!this->InitLayerSoftwareRenderTarget(paint->renderer,
+            static_cast<int32_t>(dest.width), static_cast<int32_t>(dest.height))) {
         return;
     }
 
     auto surface{ this->layer->Lock() };
 
-    // TODO: surface valid?
+    if (surface.IsEmpty()) {
+        return;
+    }
 
     auto ctx{ paint->Context2D(surface) };
 
-    // TODO: radius %
-    const auto radius{ boxStyle->borderRadius.AsFloat(0) };
-    const auto radiusTopLeft{ boxStyle->borderRadiusTopLeft.AsFloat(radius) };
-    const auto radiusBottomLeft{ boxStyle->borderRadiusBottomLeft.AsFloat(radius) };
-    const auto radiusTopRight{ boxStyle->borderRadiusTopRight.AsFloat(radius) };
-    const auto radiusBottomRight{ boxStyle->borderRadiusBottomRight.AsFloat(radius) };
-    const auto border = boxStyle->border.AsFloat(0);
-    const auto x = border / 2.f;
-    const auto y = border / 2.f;
-    const auto width = dest.width - 1.f - border;
-    const auto height = dest.height - border;
+    const auto radius{ ComputeBorderWidth(boxStyle->borderRadius, 0, this->scene) };
+    const auto radiusTopLeft{ ComputeBorderWidth(boxStyle->borderRadiusTopLeft, radius, this->scene) };
+    const auto radiusBottomLeft{ ComputeBorderWidth(boxStyle->borderRadiusBottomLeft, radius, this->scene) };
+    const auto radiusTopRight{ ComputeBorderWidth(boxStyle->borderRadiusTopRight, radius, this->scene) };
+    const auto radiusBottomRight{ ComputeBorderWidth(boxStyle->borderRadiusBottomRight, radius, this->scene) };
+    const auto border{ ComputeBorderWidth(boxStyle->border, 0, this->scene) };
+    const auto x{ border / 2.f };
+    const auto y{ border / 2.f };
+    const auto width{ dest.width - 1.f - border };
+    const auto height{ dest.height - border };
     auto roundedRect = [&](Ctx* ctx, uint32_t color) {
         ctx_set_rgba_u8(ctx, GetR(color), GetG(color), GetB(color), GetA(color));
         ctx_move_to(ctx, x + radiusTopLeft, y);
@@ -219,8 +222,6 @@ void BoxSceneNode::PaintRoundedRect(PaintContext* paint, Style* boxStyle) {
         roundedRect(ctx, boxStyle->borderColor.value);
         ctx_stroke(ctx);
     }
-
-    this->QueueComposite();
 }
 
 void BoxSceneNode::PaintBackgroundImage(Renderer* renderer, Style* boxStyle) {
