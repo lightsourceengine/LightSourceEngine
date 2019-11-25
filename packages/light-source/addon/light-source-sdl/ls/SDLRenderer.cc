@@ -11,6 +11,7 @@
 #include <ls/PixelConversion.h>
 #include <ls/Log.h>
 #include <ls/Format.h>
+#include <cstring>
 
 namespace ls {
 
