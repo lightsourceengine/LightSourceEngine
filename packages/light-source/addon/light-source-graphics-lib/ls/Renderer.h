@@ -10,6 +10,7 @@
 #include <ls/Surface.h>
 #include <ls/Texture.h>
 #include <ls/Matrix.h>
+#include <ls/Point.h>
 #include <ls/PixelFormat.h>
 #include <cstdint>
 #include <memory>
@@ -70,8 +71,20 @@ class Renderer {
     /**
      * Draw an image.
      */
-    virtual void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect,
-                           const Matrix& transform, uint32_t tintColor) = 0;
+    virtual void DrawImage(const std::shared_ptr<Texture>& texture,
+                           const Rect& rect,
+                           const Matrix& transform,
+                           uint32_t tintColor) = 0;
+
+    /**
+     * Draw an image.
+     */
+    virtual void DrawImage(const std::shared_ptr<Texture>& texture,
+                           const Rect& textureSource,
+                           const Rect& rect,
+                           const Point& centerPoint,
+                           const Matrix& transform,
+                           uint32_t tintColor) = 0;
 
     /**
      * Draw a rectangle's outline.

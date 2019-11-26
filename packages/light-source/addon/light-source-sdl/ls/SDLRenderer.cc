@@ -121,6 +121,38 @@ void SDLRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect&
         SDL_FLIP_NONE);
 }
 
+void SDLRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect& textureSource, const Rect& rect,
+        const Point& centerPoint, const Matrix& transform, uint32_t tintColor) {
+    const auto texturePtr{ ToRawTexture(texture) };
+
+    if (!texturePtr) {
+        return;
+    }
+
+    const SDL_Point center{
+        static_cast<int32_t>(centerPoint.x + transform.GetTranslateX()),
+        static_cast<int32_t>(centerPoint.y + transform.GetTranslateY()),
+    };
+    const SDL_Rect destRect{
+        static_cast<int32_t>(rect.x + transform.GetTranslateX()),
+        static_cast<int32_t>(rect.y + transform.GetTranslateY()),
+        static_cast<int32_t>(rect.width * transform.GetScaleX()),
+        static_cast<int32_t>(rect.height * transform.GetScaleY())
+    };
+    const auto srcRect{ ToSDLRect(textureSource) };
+
+    SetTextureTintColor(texturePtr, tintColor);
+
+    SDL_RenderCopyEx(
+        this->renderer,
+        texturePtr,
+        &srcRect,
+        &destRect,
+        transform.GetAxisAngleDeg(),
+        &center,
+        SDL_FLIP_NONE);
+}
+
 void SDLRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const EdgeRect& capInsets,
         const uint32_t tintColor) {
     const auto texturePtr{ ToRawTexture(texture) };

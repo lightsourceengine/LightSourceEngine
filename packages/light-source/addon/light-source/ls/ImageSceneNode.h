@@ -45,6 +45,7 @@ class ImageSceneNode : public Napi::SafeObjectWrap<ImageSceneNode>, public Scene
     Napi::FunctionReference onLoadCallback;
     Napi::FunctionReference onErrorCallback;
     Rect destRect{};
+    Rect srcRect{};
 
     friend Napi::SafeObjectWrap<ImageSceneNode>;
 };

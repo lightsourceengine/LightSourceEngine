@@ -197,30 +197,57 @@ void ImageSceneNode::BeforeLayout() {
 }
 
 void ImageSceneNode::AfterLayout() {
-    if (!this->image) {
+    if (!this->image || !this->image->IsReady()) {
         return;
     }
 
     const auto boxStyle{ this->GetStyleOrEmpty() };
-
-    this->destRect = ComputeObjectFitRect(
+    const auto innerRect{ YGNodeLayoutGetInnerRect(this->ygNode) };
+    const auto imageRect = ComputeObjectFitRect(
         boxStyle->objectFit,
         boxStyle->objectPositionX,
         boxStyle->objectPositionY,
-        YGNodeLayoutGetInnerRect(this->ygNode),
+        innerRect,
         this->image.Get(),
         this->scene);
+
+    if (!image->HasCapInsets() && boxStyle->borderColor.empty()) {
+        const auto imageWidth{ this->image->GetWidthF() };
+        const auto imageHeight{ this->image->GetHeightF() };
+
+        if (imageWidth == 0 || imageHeight == 0) {
+            this->destRect = {};
+            this->srcRect = {};
+        } else {
+            const auto scaleX{ imageRect.width / imageWidth };
+            const auto scaleY{ imageRect.height / imageHeight };
+
+            this->destRect = Intersect(innerRect, imageRect);
+            this->srcRect = {
+                std::max(innerRect.x - imageRect.x, 0.f) * scaleX,
+                std::max(innerRect.y - imageRect.y, 0.f) * scaleY,
+                this->destRect.width * scaleX,
+                this->destRect.height * scaleY };
+        }
+    } else {
+        this->destRect = imageRect;
+    }
 
     this->QueuePaint();
 }
 
 void ImageSceneNode::Paint(PaintContext* paint) {
+    if (!this->image) {
+        return;
+    }
+
     auto renderer{ paint->renderer };
     const auto boxStyle{ this->GetStyleOrEmpty() };
     const auto& borderColor{ boxStyle->borderColor };
-    const auto hasCapInsets{ this->image && this->image->HasCapInsets() };
+    const auto hasCapInsets{ this->image->HasCapInsets() };
 
     this->QueueComposite();
+    this->image->Sync(renderer);
 
     if (!hasCapInsets && borderColor.empty()) {
         this->layer = nullptr;
@@ -235,7 +262,7 @@ void ImageSceneNode::Paint(PaintContext* paint) {
 
     renderer->FillRenderTarget(ColorTransparent);
 
-    if (this->image && this->image->Sync(renderer)) {
+    if (this->image->HasTexture()) {
         if (hasCapInsets) {
             renderer->DrawImage(
                 this->image->GetTexture(),
@@ -291,7 +318,9 @@ void ImageSceneNode::Composite(CompositeContext* composite) {
 
         composite->renderer->DrawImage(
             this->image->GetTexture(),
-            this->destRect,
+            this->srcRect,
+            Translate(this->destRect, rect.x, rect.y),
+            { rect.x, rect.y },
             transform,
             MixAlpha(boxStyle->tintColor.ValueOr(ColorWhite), composite->CurrentOpacity()));
     }

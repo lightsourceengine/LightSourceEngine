@@ -58,4 +58,13 @@ inline Rect Intersect(const Rect& a, const Rect& b) noexcept {
     };
 }
 
+inline Rect Translate(const Rect& rect, float tx, float ty) noexcept {
+    return {
+        rect.x + tx,
+        rect.y + ty,
+        rect.width,
+        rect.height
+    };
+}
+
 } // namespace ls

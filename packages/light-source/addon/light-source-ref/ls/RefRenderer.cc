@@ -63,6 +63,10 @@ void RefRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect&
                const Matrix& transform, uint32_t tintColor) {
 }
 
+void RefRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect& textureSource, const Rect& rect,
+               const Point& centerPoint, const Matrix& transform, uint32_t tintColor) {
+}
+
 void RefRenderer::DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const EdgeRect& capInsets,
         const uint32_t tintColor) {
 }
