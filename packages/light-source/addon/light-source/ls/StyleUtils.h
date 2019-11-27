@@ -265,7 +265,7 @@ Matrix ComputeTransform(const Matrix& base, const StyleValueTransform& transform
     const auto x{ ComputeTransformOrigin(transformOriginX, bounds.width, scene) };
     const auto y{ ComputeTransformOrigin(transformOriginY, bounds.height, scene) };
 
-    return Matrix::Translate(x, y) * transform.ToMatrix(bounds.width, bounds.height) * Matrix::Translate(-x, -y);
+    return base * Matrix::Translate(x, y) * transform.ToMatrix(bounds.width, bounds.height) * Matrix::Translate(-x, -y);
 }
 
 template<typename S /* Scene */>
