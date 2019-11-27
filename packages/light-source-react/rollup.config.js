@@ -4,6 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
+import { readFileSync } from 'fs'
 import autoExternal from 'rollup-plugin-auto-external'
 import commonjs from 'rollup-plugin-commonjs'
 import resolve from 'rollup-plugin-node-resolve'
@@ -19,13 +20,25 @@ import {
 
 const input = 'src/exports.js'
 
+const removeSchedulerInterop = () => ({
+  name: 'removeSchedulerInterop',
+  load (id) {
+    return id.includes('scheduler-interop.js') ? '' : null
+  }
+}
+)
+
+const readSchedulerInterop = () => readFileSync('src/scheduler-interop.js')
+
 export default [
   {
     input,
     onwarn,
+    external: ['worker_threads'],
     output: {
       format: 'cjs',
-      file: 'dist/cjs/index.js'
+      file: 'dist/cjs/index.js',
+      intro: readSchedulerInterop
     },
     plugins: [
       autoExternal(),
@@ -33,8 +46,10 @@ export default [
       babelPreserveImports({
         babelConfigPath: __dirname
       }),
+      removeSchedulerInterop(),
       commonjs({
-        exclude: ['/**/node_modules/**']
+        exclude: ['/**/node_modules/**'],
+        ignoreGlobal: true
       }),
       beautify()
     ]
@@ -42,9 +57,11 @@ export default [
   {
     input,
     onwarn,
+    external: ['worker_threads'],
     output: {
       format: 'esm',
-      file: 'dist/esm/index.mjs'
+      file: 'dist/esm/index.mjs',
+      intro: readSchedulerInterop
     },
     plugins: [
       autoExternal(),
@@ -52,13 +69,14 @@ export default [
       babelPreserveImports({
         babelConfigPath: __dirname
       }),
+      removeSchedulerInterop(),
       beautify()
     ]
   },
   {
     input,
     onwarn,
-    external: ['react'],
+    external: ['react', 'worker_threads'],
     output: {
       format: 'cjs',
       file: 'build/standalone/cjs/light-source-react.min.js',
@@ -80,6 +98,7 @@ export default [
       }),
       commonjs({
         include: ['/**/node_modules/**'],
+        ignoreGlobal: true,
         namedExports: {
           ...getNamedExports(['react-reconciler', 'scheduler'])
         }

@@ -40,6 +40,10 @@ const createReconciler = (scene) => {
         containers.delete(node)
       }
     }
+
+    if (global.MessageChannel) {
+      global.MessageChannel.close()
+    }
   })
 
   return reconcilers.set(scene, new Reconciler(scene)).get(scene)
