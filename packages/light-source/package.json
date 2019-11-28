@@ -16,6 +16,7 @@
   "files": [
     "dist/",
     "addon/",
+    "scripts/",
     "binding.gyp"
   ],
   "dependencies": {
@@ -23,7 +24,7 @@
     "node-addon-api": "^1.7.1"
   },
   "scripts": {
-    "install": "cross-env-shell node-gyp rebuild $LS_NODE_GYP_OPTS",
+    "install": "./scripts/ls-install.js",
     "bundle": "rimraf dist build/standalone && rollup -c",
     "coverage": "nyc --reporter=text run-s testOnly",
     "cpplint": "tools/cpplint.py --recursive addon",
@@ -39,7 +40,8 @@
       "addon/",
       "node_modules/",
       "build/",
-      "docs/"
+      "docs/",
+      "tools/"
     ],
     "parser": "babel-eslint",
     "env": {
