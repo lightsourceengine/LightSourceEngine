@@ -11,6 +11,7 @@ import { rgb } from './style/rgb'
 import { ScanCode } from './input/ScanCode'
 import { waypoint } from './scene/waypoint'
 import { Mapping } from './input/Mapping'
+import { Direction } from './input/Direction'
 import { Key } from './input/Key'
 import { Style } from './addon'
 import {
@@ -69,6 +70,7 @@ export {
   // stage/scene
   stage,
   waypoint,
+  Direction,
 
   // input
   Mapping,
