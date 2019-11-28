@@ -483,7 +483,7 @@ void SDLStageAdapter::Call(const StageCallback callbackId, const std::initialize
     try {
         this->callbacks[callbackId](args);
     } catch (const std::exception& e) {
-        LOG_ERROR("Callback (%i) uncaught JS exception: %s", e);
+        LOG_ERROR("Callback (%i) uncaught JS exception: %s", callbackId, e);
     }
 }
 

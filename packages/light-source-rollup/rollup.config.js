@@ -7,51 +7,41 @@
 import autoExternal from 'rollup-plugin-auto-external'
 import { terser } from 'rollup-plugin-terser'
 
-const input = 'index.js'
-
-const external = ['rollup-plugin-terser', 'rollup-plugin-babel']
-
-const onwarn = (warning, warn) => {
-  warn(warning)
-  throw Error(warning.message)
+const template = {
+  input: 'index.js',
+  onwarn (warning, warn) {
+    warn(warning)
+    throw Error(warning.message)
+  },
+  external: ['rollup-plugin-terser', 'rollup-plugin-babel'],
+  plugins: [
+    autoExternal(),
+    terser({
+      compress: false,
+      mangle: false,
+      output: {
+        ecma: 8,
+        quote_style: 1,
+        semicolons: false,
+        beautify: true
+      }
+    })
+  ]
 }
-
-const beautify = () => terser({
-  compress: false,
-  mangle: false,
-  output: {
-    ecma: 8,
-    quote_style: 1,
-    semicolons: false,
-    beautify: true
-  }
-})
 
 export default [
   {
-    input,
-    onwarn,
-    external,
     output: {
       format: 'cjs',
       file: 'dist/cjs/index.js'
     },
-    plugins: [
-      autoExternal(),
-      beautify()
-    ]
+    ...template
   },
   {
-    input,
-    external,
-    onwarn,
     output: {
       format: 'esm',
       file: 'dist/esm/index.mjs'
     },
-    plugins: [
-      autoExternal(),
-      beautify()
-    ]
+    ...template
   }
 ]
