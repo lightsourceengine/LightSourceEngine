@@ -4,13 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import './scheduler-interop'
-import {
-  unstable_scheduleCallback as scheduleCallback,
-  unstable_cancelCallback as cancelCallback,
-  unstable_shouldYield as shouldYield
-} from 'scheduler'
-import ReactFiberReconciler from 'react-reconciler'
+import { ReactReconciler } from 'light-source-reconciler'
 import { TextElement } from './TextElement'
 import { BoxElement } from './BoxElement'
 import { ImageElement } from './ImageElement'
@@ -40,12 +34,12 @@ const errorUnknownElementType = (type) => {
   throw Error(`Invalid react element type '${type}'.`)
 }
 
-export function Reconciler (scene) {
-  return ReactFiberReconciler({
+export const Reconciler = (scene) => {
+  return ReactReconciler({
     now: performance.now,
-
     supportsMutation: true,
-
+    supportsHydration: false,
+    supportsPersistence: false,
     isPrimaryRenderer: true,
 
     appendInitialChild: appendChild,
@@ -117,21 +111,11 @@ export function Reconciler (scene) {
     },
 
     commitTextUpdate (textInstance, oldText, newText) {
-
+      // noop
     },
-
-    schedulePassiveEffects: scheduleCallback,
-
-    cancelPassiveEffects: cancelCallback,
 
     shouldDeprioritizeSubtree (type, nextProps) {
-
-    },
-
-    scheduleDeferredCallback: scheduleCallback,
-
-    cancelDeferredCallback: cancelCallback,
-
-    shouldYield
+      // noop
+    }
   })
 }

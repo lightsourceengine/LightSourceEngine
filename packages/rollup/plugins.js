@@ -5,9 +5,8 @@
  */
 
 import { terser } from 'rollup-plugin-terser'
+import replace from 'rollup-plugin-re'
 import babel from 'rollup-plugin-babel'
-import { readFileSync } from 'fs'
-import { join } from 'path'
 
 const preamble = '// Light Source Engine\n' +
   '// Copyright (C) 2019 Daniel Anderson.\n' +
@@ -38,35 +37,11 @@ export const onwarn = (warning, warn) => {
 }
 
 /**
- * Configures the babel rollup plugin with ES6 module transformations disabled.
- *
- * Note, the .babelrc file is configured for runtime targets, such as test or running apps, where babel needs to
- * transform ES6 modules imports to requires. During the rollup process, module transformations are handled by
- * the commonjs plugin. So, preset-env must have the modules settings set to false during rollup.
- *
- * @param babelConfigPath Path to directory containing a .babelrc file.
+ * Run babel using the .babelrc file.
  */
-export const babelPreserveImports = ({ babelConfigPath }) => {
-  const rc = JSON.parse(readFileSync(join(babelConfigPath, '.babelrc')))
-
-  if (!rc.presets) {
-    throw Error('No presets section in .babelrc file.')
-  }
-
-  const env = rc.presets.find(p => Array.isArray(p) && p[0] === '@babel/preset-env')
-
-  if (!env) {
-    throw Error('env preset not found in .babelrc file.')
-  }
-
-  env[1].modules = false
-
-  return babel({
-    ...rc,
-    babelrc: false,
-    exclude: ['node_modules/**']
-  })
-}
+export const babelrc = () => babel({
+  exclude: ['node_modules/**']
+})
 
 /**
  * Plugin to replace a module with a javascript code string.
@@ -115,4 +90,21 @@ export const minify = () => terser({
     semicolons: false,
     preamble
   }
+})
+
+/**
+ * Replaces process.env.NODE_ENV with 'production' string.
+ */
+export const nodeEnv = () => replace({
+  sourceMap: false,
+  replaces: {
+    'process.env.NODE_ENV': JSON.stringify('production')
+  }
+})
+
+/**
+ * Replaces 'object-assign' imports with the standard Object.assign function.
+ */
+export const inlineObjectAssign = () => inlineModule({
+  'object-assign': 'export default Object.assign'
 })

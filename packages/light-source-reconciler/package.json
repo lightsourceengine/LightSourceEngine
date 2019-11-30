@@ -1,0 +1,34 @@
+{
+  "name": "light-source-reconciler",
+  "description": "React reconciler compatibility patches",
+  "version": "1.0.0-private.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LightSourceEngine/LightSourceEngine.git"
+  },
+  "author": "Daniel Anderson <dan.anderson.oss@gmail.com>",
+  "engines": {
+    "node": ">=10"
+  },
+  "main": "dist/cjs/index.js",
+  "scripts": {
+    "bundle": "rollup -c",
+    "coverage": "nyc --reporter=text run-s testOnly",
+    "jsdoc": "echo 'No docs.'",
+    "lint": "standard",
+    "test": "run-p lint testOnly",
+    "testOnly": "echo 'No tests.'"
+  },
+  "standard": {
+    "ignore": [
+      "dist/",
+      "node_modules/"
+    ],
+    "parser": "babel-eslint",
+    "env": {
+      "mocha": true,
+      "node": true
+    }
+  }
+}

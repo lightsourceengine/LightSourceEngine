@@ -20,9 +20,7 @@
     "light-source": "1.0.0-alpha.3"
   },
   "peerDependencies": {
-    "react": "16.12.0",
-    "react-reconciler": "0.24.0",
-    "scheduler": "0.18.0"
+    "react": "^16.12.0"
   },
   "scripts": {
     "bundle": "rimraf dist build/standalone && rollup -c",
@@ -38,7 +36,8 @@
       "build/",
       "dist/",
       "docs/",
-      "node_modules/"
+      "node_modules/",
+      "src/Scheduler.js"
     ],
     "parser": "babel-eslint",
     "env": {

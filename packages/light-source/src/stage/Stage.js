@@ -237,9 +237,8 @@ export class Stage extends StageBase {
       this[$processEvents]()
 
       if (!adapter.processEvents() || this[$quitRequested]) {
-        // TODO: partial destroy here? .. so stage can be restarted?
-        this[$destroy]()
-        return
+        // TODO: revisit stage lifecycle...
+        process.exit()
       }
 
       scene[$frame](tick, lastTick)

@@ -5,9 +5,8 @@
  */
 
 import autoExternal from 'rollup-plugin-auto-external'
-import commonjs from 'rollup-plugin-commonjs'
 import resolve from 'rollup-plugin-node-resolve'
-import { beautify, babelPreserveImports, onwarn, minify } from 'light-source-rollup'
+import { beautify, onwarn, minify, babelrc } from '../rollup/plugins'
 
 const input = 'src/exports.js'
 
@@ -22,12 +21,7 @@ export default [
     plugins: [
       autoExternal(),
       resolve(),
-      babelPreserveImports({
-        babelConfigPath: __dirname
-      }),
-      commonjs({
-        exclude: ['/**/node_modules/**']
-      }),
+      babelrc(),
       beautify()
     ]
   },
@@ -41,32 +35,22 @@ export default [
     plugins: [
       autoExternal(),
       resolve(),
-      babelPreserveImports({
-        babelConfigPath: __dirname
-      }),
+      babelrc(),
       beautify()
     ]
   },
   {
     input,
     onwarn,
-    external: ['node-addon-api'],
     output: {
       format: 'cjs',
       file: 'build/standalone/cjs/light-source.min.js',
       preferConst: true
     },
     plugins: [
-      autoExternal({
-        dependencies: false
-      }),
+      autoExternal(),
       resolve(),
-      babelPreserveImports({
-        babelConfigPath: __dirname
-      }),
-      commonjs({
-        include: ['/**/node_modules/**']
-      }),
+      babelrc(),
       minify()
     ]
   }

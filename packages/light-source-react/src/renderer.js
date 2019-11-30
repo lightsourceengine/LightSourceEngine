@@ -17,15 +17,17 @@ const createContainer = (reconciler, node) => {
   const container = containers.set(node, new ReactRenderer(reconciler, node)).get(node)
 
   container[$disconnecting] = (node) => {
+    const { scene } = node
+
     containers.delete(node)
 
     for (const key of containers.keys()) {
-      if (node.scene === key.scene) {
+      if (scene === key.scene) {
         return
       }
     }
 
-    reconcilers.delete(node.scene)
+    reconcilers.delete(scene)
   }
 
   return container
@@ -40,13 +42,9 @@ const createReconciler = (scene) => {
         containers.delete(node)
       }
     }
-
-    if (global.MessageChannel) {
-      global.MessageChannel.close()
-    }
   })
 
-  return reconcilers.set(scene, new Reconciler(scene)).get(scene)
+  return reconcilers.set(scene, Reconciler(scene)).get(scene)
 }
 
 const getClassName = obj => {

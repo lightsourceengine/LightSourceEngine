@@ -19,7 +19,9 @@
     "binding.gyp"
   ],
   "dependencies": {
-    "bindings": "^1.5.0",
+    "bindings": "^1.5.0"
+  },
+  "devDependencies": {
     "node-addon-api": "^2.0.0"
   },
   "scripts": {

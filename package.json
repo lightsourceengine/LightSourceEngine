@@ -2,8 +2,8 @@
   "private": true,
   "workspaces": [
     "packages/napi-unit",
-    "packages/light-source-rollup",
     "packages/light-source",
+    "packages/light-source-reconciler",
     "packages/light-source-react"
   ],
   "license": "MIT",
@@ -26,13 +26,14 @@
     "@babel/preset-env": "^7.7.4",
     "@babel/preset-react": "^7.7.4",
     "@babel/register": "^7.7.4",
+    "@rollup/plugin-inject": "^4.0.0",
     "babel-eslint": "^10.0.3",
     "chai": "^4.2.0",
     "cross-env": "^6.0.3",
     "docdash": "^1.1.1",
     "eslint": "^6.7.1",
     "jsdoc": "^3.6.3",
-    "light-source-rollup": "1.0.0-private.0",
+    "light-source-reconciler": "1.0.0-private.0",
     "mocha": "^6.2.2",
     "napi-unit": "1.0.0-private.0",
     "npm-run-all": "^4.1.5",
@@ -48,7 +49,6 @@
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-re": "^1.0.7",
     "rollup-plugin-terser": "^5.1.2",
-    "scheduler": "0.18.0",
     "sinon": "^7.5.0",
     "standard": "^14.3.1"
   }

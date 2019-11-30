@@ -6,8 +6,12 @@
 
 import { stage } from 'light-source'
 import { ReactRenderer } from '../src/ReactRenderer'
+import { shutdown } from 'light-source-reconciler'
 import { Reconciler } from '../src/Reconciler'
 import React from 'react'
+
+// After all tests have run, remove all node event loop references held by the React Reconciler so mocha can close.
+after(shutdown)
 
 const state = {
   scene: null,
@@ -50,7 +54,7 @@ export const afterSceneTest = async () => {
 
 export const container = () => {
   if (!state.container) {
-    state.container = new ReactRenderer(new Reconciler(state.scene), state.scene.root)
+    state.container = new ReactRenderer(Reconciler(state.scene), state.scene.root)
   }
 
   return state.container
