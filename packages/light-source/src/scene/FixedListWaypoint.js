@@ -11,7 +11,6 @@ const { UP, DOWN, LEFT, RIGHT } = Direction
 
 const $navigation = Symbol('navigation')
 const $focalPathIndex = Symbol('focalPathIndex')
-const pass = Object.freeze([null, false])
 
 const horizontalTag = 'horizontal'
 const verticalTag = 'vertical'
@@ -43,56 +42,60 @@ export class FixedListWaypoint {
     this[$focalPathIndex] = -1
   }
 
-  navigate (owner, direction) {
+  navigate (context) {
+    const { owner, direction } = context
     const offset = OFFSET[this[$navigation]][direction]
 
     if (!offset) {
-      return pass
+      return context.pass()
     }
 
     const nextFocalPathIndex = this[$focalPathIndex] + offset
     const focalPath = createFocalPath(owner)
 
-    // TODO: index out of range?
-
-    let moved = false
-
-    if (nextFocalPathIndex >= 0 && nextFocalPathIndex < focalPath.length) {
+    if (nextFocalPathIndex < 0) {
+      this[$focalPathIndex] = 0
+      return context.defer(focalPath[0])
+    } else if (nextFocalPathIndex >= focalPath.length) {
+      this[$focalPathIndex] = focalPath.length - 1
+      return context.defer(focalPath[focalPath.length - 1])
+    } else {
       this[$focalPathIndex] = nextFocalPathIndex
-      moved = true
+      return context.move(focalPath[nextFocalPathIndex])
     }
-
-    return [focalPath[this[$focalPathIndex]], moved]
   }
 
-  resolve (owner, pending, direction) {
+  resolve (context) {
+    const { owner, pending, direction } = context
     let focalPathIndex = this[$focalPathIndex]
     const navigation = this[$navigation]
     const focalPath = createFocalPath(owner)
 
-    switch (direction) {
-      case DOWN:
-        if (pending && navigation === VERTICAL && !isDescendent(pending, owner)) {
-          focalPathIndex = 0
-        }
-        break
-      case UP:
-        if (pending && navigation === VERTICAL && !isDescendent(pending, owner)) {
-          focalPathIndex = focalPath.length - 1
-        }
-        break
-      case RIGHT:
-        if (pending && navigation === HORIZONTAL && !isDescendent(pending, owner)) {
-          focalPathIndex = 0
-        }
-        break
-      case LEFT:
-        if (pending && navigation === HORIZONTAL && !isDescendent(pending, owner)) {
-          focalPathIndex = focalPath.length - 1
-        }
-        break
-      default:
-        throw Error(`Unknown direction: ${direction}`)
+    if (pending && !isDescendent(pending, owner)) {
+      switch (direction) {
+        case DOWN:
+          if (navigation === VERTICAL) {
+            focalPathIndex = 0
+          }
+          break
+        case UP:
+          if (navigation === VERTICAL) {
+            focalPathIndex = focalPath.length - 1
+          }
+          break
+        case RIGHT:
+          if (navigation === HORIZONTAL) {
+            focalPathIndex = 0
+          }
+          break
+        case LEFT:
+          if (navigation === HORIZONTAL) {
+            focalPathIndex = focalPath.length - 1
+          }
+          break
+        default:
+          throw Error(`Unknown direction: ${direction}`)
+      }
     }
 
     // TODO: out of range
