@@ -30,6 +30,7 @@ export const ImageSceneNode = lib.ImageSceneNode || EmptyClass
 export const RootSceneNode = lib.RootSceneNode || EmptyClass
 export const TextSceneNode = lib.TextSceneNode || EmptyClass
 export const getSceneNodeInstanceCount = lib.getSceneNodeInstanceCount || emptyFunction
+export const Logger = lib.Logger || {}
 export const parseColor = lib.parseColor || EmptyClass
 export const addonError = error
 

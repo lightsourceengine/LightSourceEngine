@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { onwarn, minify, nodeEnv, inlineObjectAssign, beautify } from '../rollup/plugins'
+import { onwarn, minify, nodeEnv, inlineObjectAssign } from '../rollup/plugins'
 import commonjs from 'rollup-plugin-commonjs'
 import nodeResolve from 'rollup-plugin-node-resolve'
 import autoExternal from 'rollup-plugin-auto-external'
