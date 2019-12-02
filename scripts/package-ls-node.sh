@@ -43,7 +43,7 @@
 #
 # root
 #   lib/
-#     node_modules/
+#     node/
 #       light-source/
 #         package.json
 #         index.js
@@ -57,12 +57,12 @@
 #     node
 #     ls-node -> node
 #
-# lib/node_modules/light-source/package.json - This file exists to coerce bindings into loading node module files from
+# lib/node/light-source/package.json - This file exists to coerce bindings into loading node module files from
 #                                              the light-source directory.
-# lib/node_modules/lib - This directory is in the runpath for node and node module files on Linux. Any platform specific
+# lib/node/lib - This directory is in the runpath for node and node module files on Linux. Any platform specific
 #                        shared objects can be placed here.
-# lib/node_modules/light-source-react/index.js - Contains react-reconciler and scheduler.
-# lib/node_modules/react - Standalone version of react.
+# lib/node/light-source-react/index.js - Contains react-reconciler and scheduler.
+# lib/node/react - Standalone version of react.
 #
 
 set -e
@@ -131,28 +131,34 @@ install_bin_node() {
   fi
 }
 
-install_lib_node_modules() {
+install_global_modules() {
   local GLOBAL_REACT_MODULE
   local GLOBAL_LIGHT_SOURCE_MODULE
   local GLOBAL_REACT_LIGHT_SOURCE_MODULE
+  local LIGHT_SOURCE_RELEASE
 
-  GLOBAL_REACT_MODULE=${STAGING_DIR}/lib/node_modules/react
-  GLOBAL_LIGHT_SOURCE_MODULE=${STAGING_DIR}/lib/node_modules/light-source
-  GLOBAL_REACT_LIGHT_SOURCE_MODULE=${STAGING_DIR}/lib/node_modules/light-source-react
+  GLOBAL_REACT_MODULE=${STAGING_DIR}/lib/node/react
+  GLOBAL_BINDINGS_MODULE=${STAGING_DIR}/lib/node/bindings
+  GLOBAL_LIGHT_SOURCE_MODULE=${STAGING_DIR}/lib/node/light-source
+  GLOBAL_REACT_LIGHT_SOURCE_MODULE=${STAGING_DIR}/lib/node/light-source-react
+  LIGHT_SOURCE_RELEASE="node_modules/light-source/build/Release"
 
-  mkdir -p "${STAGING_DIR}/lib" "${GLOBAL_REACT_MODULE}" "${GLOBAL_REACT_LIGHT_SOURCE_MODULE}" "${GLOBAL_LIGHT_SOURCE_MODULE}"
+  mkdir -p "${STAGING_DIR}/lib" "${GLOBAL_REACT_MODULE}" "${GLOBAL_REACT_LIGHT_SOURCE_MODULE}" "${GLOBAL_LIGHT_SOURCE_MODULE}" "${GLOBAL_BINDINGS_MODULE}"
 
-  cp node_modules/light-source/build/standalone/cjs/light-source.min.js "${GLOBAL_LIGHT_SOURCE_MODULE}/index.js"
+  cp node_modules/light-source/dist/cjs/light-source.standalone.js "${GLOBAL_LIGHT_SOURCE_MODULE}/index.js"
   echo '{ "description": "the precense of an empty package.json coerces bindings to load .node files from this directory" }' > "${GLOBAL_LIGHT_SOURCE_MODULE}/package.json"
 
-  cp node_modules/light-source-react/build/standalone/cjs/react.min.js "${GLOBAL_REACT_MODULE}/index.js"
-  cp node_modules/light-source-react/build/standalone/cjs/light-source-react.min.js "${GLOBAL_REACT_LIGHT_SOURCE_MODULE}/index.js"
+  cp node_modules/light-source-node/dist/cjs/react.standalone.js "${GLOBAL_REACT_MODULE}/index.js"
+  cp node_modules/light-source-node/dist/cjs/bindings.standalone.js "${GLOBAL_BINDINGS_MODULE}/index.js"
+  cp node_modules/light-source-react/dist/cjs/light-source-react.standalone.js "${GLOBAL_REACT_LIGHT_SOURCE_MODULE}/index.js"
 
   mkdir "${GLOBAL_LIGHT_SOURCE_MODULE}/build"
-  cp node_modules/light-source/build/Release/*.node "${GLOBAL_LIGHT_SOURCE_MODULE}/build"
+  cp ${LIGHT_SOURCE_RELEASE}/light-source.node "${GLOBAL_LIGHT_SOURCE_MODULE}/build"
+  cp ${LIGHT_SOURCE_RELEASE}/light-source-sdl.node "${GLOBAL_LIGHT_SOURCE_MODULE}/build"
 
-  # Do not ship the test only reference renderer.
-  rm "${GLOBAL_LIGHT_SOURCE_MODULE}/build/light-source-ref.node"
+  if [[ -f ${LIGHT_SOURCE_RELEASE}/light-source-sdl-mixer.node ]]; then
+    cp ${LIGHT_SOURCE_RELEASE}/light-source-sdl-mixer.node "${GLOBAL_LIGHT_SOURCE_MODULE}/build"
+  fi
 }
 
 install_platform_specific_patches() {
@@ -163,7 +169,7 @@ install_platform_specific_patches() {
   PROFILE=$2
 
   # Some platforms are compiled with gcc 4/5 (S/NES Classic, older Raspian images, etc), which does not support
-  # C++ 11. Patch in libstdc++ to allow these older platforms to run.
+  # C++ 14. Patch in libstdc++ to allow these older platforms to run.
   if [[ "${NODE_PLATFORM_ARCH}" = linux-arm* ]]; then
     cp -a "${CROSSTOOLS_SYSROOT}/lib/libstdc++.so.6" "${STAGING_DIR}/lib"
     cp "${CROSSTOOLS_SYSROOT}/lib/libstdc++.so.6.0.22" "${STAGING_DIR}/lib"
@@ -230,6 +236,7 @@ create_package() {
   echo "****** Creating package for ${PROFILE:-${NODE_PLATFORM_ARCH}}..."
 
   assert_python2
+  export LS_INSTALL_OPTS="--jobs max"
   export npm_config_enable_native_tests=false
 
   echo "****** Building LightSourceEngine..."
@@ -264,7 +271,7 @@ create_package() {
   rm -f build/${LIGHT_SOURCE_PACKAGE_NAME}.tar.gz
 
   install_bin_node ${NODE_PLATFORM_ARCH}
-  install_lib_node_modules
+  install_global_modules
   install_platform_specific_patches ${NODE_PLATFORM_ARCH} ${PROFILE}
 
   echo "****** Creating package (${LIGHT_SOURCE_PACKAGE_NAME}.tar.gz)..."

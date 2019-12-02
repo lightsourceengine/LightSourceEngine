@@ -4,6 +4,7 @@
   "version": "1.0.0-private.0",
   "scripts": {
     "test": "echo 'No tests.'",
+    "lint": "echo 'Nothing to lint.'",
     "bundle": "echo 'Nothing to bundle.'"
   }
 }

@@ -16,7 +16,7 @@ export default [
     onwarn,
     output: {
       format: 'cjs',
-      file: 'dist/cjs/index.js'
+      file: 'dist/cjs/light-source.js'
     },
     plugins: [
       autoExternal(),
@@ -30,7 +30,7 @@ export default [
     onwarn,
     output: {
       format: 'esm',
-      file: 'dist/esm/index.mjs'
+      file: 'dist/esm/light-source.mjs'
     },
     plugins: [
       autoExternal(),
@@ -44,14 +44,23 @@ export default [
     onwarn,
     output: {
       format: 'cjs',
-      file: 'build/standalone/cjs/light-source.min.js',
+      file: 'dist/cjs/light-source.standalone.js',
       preferConst: true
     },
     plugins: [
       autoExternal(),
       resolve(),
       babelrc(),
-      minify()
+      minify({
+        reserved: [
+          // light-source-react relies on function.name to be preserved for these classes
+          'Scene',
+          'BoxSceneNode',
+          'ImageSceneNode',
+          'RootSceneNode',
+          'TextSceneNode'
+        ]
+      })
     ]
   }
 ]

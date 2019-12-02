@@ -78,18 +78,22 @@ export const getNamedExports = (moduleIds) => {
 /**
  * Minify javascript with terser.
  */
-export const minify = () => terser({
+export const minify = (options = {}) => terser({
   mangle: {
-    module: true
+    module: true,
+    reserved: options.reserved,
+    // property name mangling does not produce working code!
+    properties: false
   },
   // Disable compress, as the defaults (inlining in particular) cause performance problems in v8.
   compress: false,
   output: {
-    ecma: 8,
     quote_style: 1,
     semicolons: false,
     preamble
-  }
+  },
+  ecma: 8,
+  module: true
 })
 
 /**

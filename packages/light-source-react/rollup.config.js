@@ -7,7 +7,7 @@
 import autoExternal from 'rollup-plugin-auto-external'
 import commonjs from 'rollup-plugin-commonjs'
 import resolve from 'rollup-plugin-node-resolve'
-import { beautify, onwarn, minify, babelrc, nodeEnv, inlineObjectAssign } from '../rollup/plugins'
+import { beautify, onwarn, minify, babelrc, nodeEnv } from '../rollup/plugins'
 
 const input = 'src/exports.js'
 const cjs = () => commonjs({
@@ -23,7 +23,7 @@ export default [
     external: ['worker_threads'],
     output: {
       format: 'cjs',
-      file: 'dist/cjs/index.js'
+      file: 'dist/cjs/light-source-react.js'
     },
     plugins: [
       autoExternal(),
@@ -40,7 +40,7 @@ export default [
     external: ['worker_threads'],
     output: {
       format: 'esm',
-      file: 'dist/esm/index.mjs'
+      file: 'dist/esm/light-source-react.mjs'
     },
     plugins: [
       autoExternal(),
@@ -57,7 +57,7 @@ export default [
     external: ['react', 'worker_threads'],
     output: {
       format: 'cjs',
-      file: 'build/standalone/cjs/light-source-react.min.js',
+      file: 'dist/cjs/light-source-react.standalone.js',
       preferConst: true
     },
     plugins: [
@@ -66,20 +66,6 @@ export default [
       resolve(),
       babelrc(),
       cjs(),
-      minify()
-    ]
-  },
-  {
-    input: require.resolve('react'),
-    onwarn,
-    output: {
-      format: 'cjs',
-      file: 'build/standalone/cjs/react.min.js'
-    },
-    plugins: [
-      nodeEnv(),
-      cjs(),
-      inlineObjectAssign(),
       minify()
     ]
   }

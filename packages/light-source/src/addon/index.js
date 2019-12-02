@@ -7,43 +7,31 @@
 import bindings from 'bindings'
 
 let lib
+let error
 
 try {
   lib = bindings('light-source')
 } catch (e) {
   console.log('Error loading light-source.node: ' + e.message)
-  lib = {
-    Style: () => {},
-    SceneBase: () => {},
-    StageBase: () => {},
-    FontStoreView: () => {},
-    ImageStoreView: () => {},
-    BoxSceneNode: () => {},
-    ImageSceneNode: () => {},
-    RootSceneNode: () => {},
-    TextSceneNode: () => {},
-    Logger: {},
-    getSceneNodeInstanceCount: () => 0,
-    parseColor: () => 0,
-    addonError: e,
-  }
+  lib = {}
+  error = e
 }
 
-export const {
-  Style,
-  SceneBase,
-  StageBase,
-  FontStoreView,
-  ImageStoreView,
-  BoxSceneNode,
-  ImageSceneNode,
-  RootSceneNode,
-  TextSceneNode,
-  Logger,
-  getSceneNodeInstanceCount,
-  parseColor,
-  addonError
-} = lib
+const EmptyClass = class {}
+const emptyFunction = () => 0
+
+export const Style = lib.Style || EmptyClass
+export const SceneBase = lib.SceneBase || EmptyClass
+export const StageBase = lib.StageBase || EmptyClass
+export const FontStoreView = lib.FontStoreView || EmptyClass
+export const ImageStoreView = lib.ImageStoreView || EmptyClass
+export const BoxSceneNode = lib.BoxSceneNode || EmptyClass
+export const ImageSceneNode = lib.ImageSceneNode || EmptyClass
+export const RootSceneNode = lib.RootSceneNode || EmptyClass
+export const TextSceneNode = lib.TextSceneNode || EmptyClass
+export const getSceneNodeInstanceCount = lib.getSceneNodeInstanceCount || emptyFunction
+export const parseColor = lib.parseColor || EmptyClass
+export const addonError = error
 
 export const SDLModuleId = 'light-source-sdl'
 export const SDLMixerModuleId = 'light-source-sdl-mixer'
