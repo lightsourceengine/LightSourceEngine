@@ -31,70 +31,76 @@ node-pre-gyp right now, so a Light Source User will have to configure a full bui
 ## Dependencies
 
 <details>
-    <summary>Linux (Debian/Ubuntu)</summary>
+<summary>Linux (Debian/Ubuntu)</summary>
+<p>
   
-    ### Install
-    
-    ```
-    sudo apt-get install libsdl2-dev libsdl2-2.0-0
-    ```
-    ```
-    # codecs
-    sudo apt-get install libmikmod-dev libfishsound1-dev libsmpeg-dev liboggz2-dev libflac-dev libfluidsynth-dev
-    # SDL Mixer
-    sudo apt-get install libsdl2-mixer-dev libsdl2-mixer-2.0-0
-    ```
-    
-    ### Environment Variable Defaults
-    
-    | Environment Variable            | Value                        |
-    |---------------------------------|------------------------------|
-    | npm_config_ls_sdl_include       | /usr/include/SDL2            |
-    | npm_config_ls_sdl_lib           | /usr/lib/$(gcc -dumpmachine) |
-    | npm_config_ls_sdl_mixer_include | /usr/include/SDL2            |
-    | npm_config_ls_sdl_mixer_lib     | /usr/lib/$(gcc -dumpmachine) |
+### Install
+
+```
+sudo apt-get install libsdl2-dev libsdl2-2.0-0
+```
+```
+# codecs
+sudo apt-get install libmikmod-dev libfishsound1-dev libsmpeg-dev liboggz2-dev libflac-dev libfluidsynth-dev
+# SDL Mixer
+sudo apt-get install libsdl2-mixer-dev libsdl2-mixer-2.0-0
+```
+
+### Environment Variable Defaults
+
+| Environment Variable            | Value                        |
+|---------------------------------|------------------------------|
+| npm_config_ls_sdl_include       | /usr/include/SDL2            |
+| npm_config_ls_sdl_lib           | /usr/lib/$(gcc -dumpmachine) |
+| npm_config_ls_sdl_mixer_include | /usr/include/SDL2            |
+| npm_config_ls_sdl_mixer_lib     | /usr/lib/$(gcc -dumpmachine) |
+</p>
 </details>
 
 <details>
-    <summary>MacOS</summary>
-  
-    ### Install
-    
-    ```
-    brew install sdl2
-    ```
-    ```
-    brew install sdl2_mixer
-    ```
-    
-    ### Environment Variable Defaults
-    
-    | Environment Variable            | Value                        |
-    |---------------------------------|------------------------------|
-    | npm_config_ls_sdl_include       | /usr/local/include/SDL2      |
-    | npm_config_ls_sdl_lib           | /usr/local/lib               |
-    | npm_config_ls_sdl_mixer_include | /usr/local/include/SDL2      |
-    | npm_config_ls_sdl_mixer_lib     | /usr/local/lib               |
+<summary>MacOS</summary>
+<p>
+
+### Install
+
+```
+brew install sdl2
+```
+```
+brew install sdl2_mixer
+```
+
+### Environment Variable Defaults
+
+| Environment Variable            | Value                        |
+|---------------------------------|------------------------------|
+| npm_config_ls_sdl_include       | /usr/local/include/SDL2      |
+| npm_config_ls_sdl_lib           | /usr/local/lib               |
+| npm_config_ls_sdl_mixer_include | /usr/local/include/SDL2      |
+| npm_config_ls_sdl_mixer_lib     | /usr/local/lib               |
+</p>
 </details>
 
 <details>
-    <summary>Windows</summary>
-  
-    ### Install
-    
-    - [Download SDL2 MSVC development libraries](https://www.libsdl.org/download-2.0.php)
-    - Extract to user home.
-    - [Download SDL Mixer MSVC development libraries](https://www.libsdl.org/projects/SDL_mixer/)
-    - Extract to user home.
-    
-    ### Environment Variable Defaults
-    
-    | Environment Variable            | Value                               |
-    |---------------------------------|-------------------------------------|
-    | npm_config_ls_sdl_include       | %USERPROFILE%\\SDL2\\include        |
-    | npm_config_ls_sdl_lib           | %USERPROFILE%\\SDL2\\lib\\x64       |
-    | npm_config_ls_sdl_mixer_include | %USERPROFILE%\\SDL2_mixer\\include  |
-    | npm_config_ls_sdl_mixer_lib     | %USERPROFILE%\\SDL2_mixer\\lib\\x64 |
+<summary>Windows</summary>
+<p>
+
+### Install
+
+- [Download SDL2 MSVC development libraries](https://www.libsdl.org/download-2.0.php)
+- Extract to user home.
+- [Download SDL Mixer MSVC development libraries](https://www.libsdl.org/projects/SDL_mixer/)
+- Extract to user home.
+
+### Environment Variable Defaults
+
+| Environment Variable            | Value                               |
+|---------------------------------|-------------------------------------|
+| npm_config_ls_sdl_include       | %USERPROFILE%\\SDL2\\include        |
+| npm_config_ls_sdl_lib           | %USERPROFILE%\\SDL2\\lib\\x64       |
+| npm_config_ls_sdl_mixer_include | %USERPROFILE%\\SDL2_mixer\\include  |
+| npm_config_ls_sdl_mixer_lib     | %USERPROFILE%\\SDL2_mixer\\lib\\x64 |
+</p>
 </details>
 
 ## Typical Configurations
