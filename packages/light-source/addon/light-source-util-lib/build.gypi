@@ -21,7 +21,7 @@
   ],
   "conditions": [
     [
-      "with_native_tests==\"true\"", {
+      "ls_with_tests==\"true\"", {
         "targets": [{
           "target_name": "light-source-util-lib-test",
           "includes": [

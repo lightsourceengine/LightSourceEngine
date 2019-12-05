@@ -10,4 +10,4 @@ See [Build Instructions](https://github.com/lightsourceengine/LightSourceEngine/
 
 ## LICENSE
 
-[MIT License](LICENSE.md)
+[MIT License](../LICENSE)

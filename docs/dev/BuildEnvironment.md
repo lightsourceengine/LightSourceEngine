@@ -21,7 +21,7 @@ node-pre-gyp right now, so a Light Source User will have to configure a full bui
 | Name                            | Description                    | Default Value                       |
 |---------------------------------|--------------------------------|-------------------------------------|
 | npm_config_ls_install_opts      | node-gyp options               | Empty                               |
-| npm_config_ls_with_unit_tests   | Build native unit tests        | false                               |
+| npm_config_ls_with_tests        | Build native unit tests        | false                               |
 | npm_config_ls_with_sdl_mixer    | Build SDL2 Mixer audio adapter | false                               |
 | npm_config_ls_sdl_include       | SDL2 native include path       | Default OS path (see Dependencies). |
 | npm_config_ls_sdl_lib           | SDL2 native library path       | Default OS path (see Dependencies). |
@@ -141,7 +141,7 @@ npm install light-source-react
 ### Light Source Engine Developer
 
 ```
-git clone LightSourceEngine submodules
+git clone --recurse-submodules https://github.com/lightsourceengine/LightSourceEngine.git
 cd LightSourceEngine
 yarn
 ```

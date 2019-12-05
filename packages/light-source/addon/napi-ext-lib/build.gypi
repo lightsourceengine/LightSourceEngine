@@ -14,7 +14,7 @@
   ],
   "conditions": [
     [
-      "with_native_tests==\"true\"", {
+      "ls_with_tests==\"true\"", {
         "targets": [{
           "target_name": "napi-ext-lib-test",
           "includes": [

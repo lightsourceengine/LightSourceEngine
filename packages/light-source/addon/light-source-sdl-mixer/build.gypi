@@ -1,7 +1,7 @@
 {
   "conditions": [
     [
-      "with_sdl_mixer==\"true\"",
+      "ls_with_sdl_mixer==\"true\"",
       {
         "targets": [
           {
@@ -10,8 +10,8 @@
               "../common.gypi",
             ],
             "include_dirs": [
-              "<(sdl_mixer_include_path)",
-              "<(sdl_include_path)",
+              "<(ls_sdl_mixer_include)",
+              "<(ls_sdl_include)",
               ".",
               "../napi-ext-lib",
               "../logger-lib",
@@ -33,8 +33,8 @@
               [
                 "OS==\"mac\" or OS==\"linux\"", {
                   "libraries": [
-                    "-L<(sdl_library_path)",
-                    "-L<(sdl_mixer_library_path)",
+                    "-L<(ls_sdl_lib)",
+                    "-L<(ls_sdl_mixer_lib)",
                   ]
                 }
               ]
@@ -42,8 +42,8 @@
             "msvs_settings": {
               "VCLinkerTool": {
                 "AdditionalLibraryDirectories": [
-                  "<(sdl_mixer_library_path)",
-                  "<(sdl_library_path)",
+                  "<(ls_sdl_mixer_lib)",
+                  "<(ls_sdl_lib)",
               ]
             }
           },

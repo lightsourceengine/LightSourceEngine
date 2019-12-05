@@ -13,4 +13,4 @@ The current 1.0.0 release is **unstable**. :construction: :construction_worker: 
 
 ## LICENSE
 
-[MIT License](LICENSE.md)
+[MIT License](LICENSE)

@@ -3,8 +3,8 @@ node_js: 10
 dist: xenial
 env:
   global:
-    - npm_config_with_sdl_mixer=true
-    - LS_INSTALL_OPTS="--jobs max"
+    - npm_config_ls_with_sdl_mixer=true
+    - npm_config_ls_install_opts="--jobs max"
 cache:
   yarn: true
   directories:
@@ -14,7 +14,7 @@ matrix:
   include:
     - name: "linux-x64 [Release]"
       os: linux
-      env: npm_config_with_native_tests=true
+      env: npm_config_ls_with_tests=true
       addons:
         apt:
           sources: [ubuntu-toolchain-r-test]
@@ -27,7 +27,7 @@ matrix:
       script: skip
     - name: "darwin-x64 [Release]"
       os: osx
-      env: npm_config_with_native_tests=true
+      env: npm_config_ls_with_tests=true
       before_install:
         - set -e
         - HOMEBREW_NO_AUTO_UPDATE=1 brew install sdl2 sdl2_mixer
@@ -35,7 +35,7 @@ matrix:
       script: yarn test
     - name: "windows-x64 [Release]"
       os: windows
-      env: YARN_GPG=no npm_config_with_native_tests=true npm_config_sdl_include_path="$HOME/SDL2-2.0.10/include" npm_config_sdl_library_path="$HOME/SDL2-2.0.10/lib/x64" npm_config_sdl_mixer_include_path="$HOME/SDL2_mixer-2.0.4/include" npm_config_sdl_mixer_library_path="$HOME/SDL2_mixer-2.0.4/lib/x64"
+      env: YARN_GPG=no npm_config_ls_with_tests=true npm_config_ls_sdl_include="$HOME/SDL2-2.0.10/include" npm_config_ls_sdl_lib="$HOME/SDL2-2.0.10/lib/x64" npm_config_ls_sdl_mixer_include="$HOME/SDL2_mixer-2.0.4/include" npm_config_ls_sdl_mixer_lib="$HOME/SDL2_mixer-2.0.4/lib/x64"
       before_install:
         - set -e
         - git clone --depth 1 https://github.com/lightsourceengine/ci-packages.git ${HOME}/ci-packages
@@ -45,7 +45,7 @@ matrix:
       script: skip
     - name: "linux-armv7l [Release]"
       os: linux
-      env: npm_config_with_native_tests=false NODE_DOWNLOADS="${HOME}/node_downloads"
+      env: npm_config_ls_with_tests=false NODE_DOWNLOADS="${HOME}/node_downloads"
       addons:
         apt:
           packages: [patchelf]
@@ -55,6 +55,6 @@ matrix:
         - git clone --depth 1 https://github.com/lightsourceengine/crosstools.git ${HOME}/crosstools
         - . ${HOME}/.nvm/nvm.sh
       install:
-        - nvm install v12.0.0
+        - nvm install v12.13.1
         - ./scripts/package-ls-node.sh linux-armv7l
       script: skip

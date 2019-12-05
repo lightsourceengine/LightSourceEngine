@@ -206,18 +206,18 @@ configure_crosstools() {
   local TOOLCHAIN_TYPE
 
   if [[ ! -f "${CROSSTOOLS_HOME}/bin/cross" ]]; then
-    bail "crosstools (https://github.com/dananderson/crosstools) is not found via CROSSTOOLS_HOME environment variable."
+    bail "crosstools (https://github.com/LightSourceEngine/crosstools) is not found via CROSSTOOLS_HOME environment variable."
   fi
 
   TOOLCHAIN_TYPE="arm-rpi-linux-gnueabihf"
   CROSSTOOLS_SYSROOT="${CROSSTOOLS_HOME}/x64-gcc-6.3.1/${TOOLCHAIN_TYPE}/${TOOLCHAIN_TYPE}/sysroot"
 
-  export npm_config_with_sdl_mixer=true
-  export npm_config_with_native_tests=false
-  export npm_config_sdl_include_path="${CROSSTOOLS_SYSROOT}/usr/include/SDL2"
-  export npm_config_sdl_library_path="${CROSSTOOLS_SYSROOT}/usr/lib"
-  export npm_config_sdl_mixer_include_path="${CROSSTOOLS_SYSROOT}/usr/include/SDL2"
-  export npm_config_sdl_mixer_library_path="${CROSSTOOLS_SYSROOT}/usr/lib"
+  export npm_config_ls_with_sdl_mixer=true
+  export npm_config_ls_with_tests=false
+  export npm_config_ls_sdl_include="${CROSSTOOLS_SYSROOT}/usr/include/SDL2"
+  export npm_config_ls_sdl_lib="${CROSSTOOLS_SYSROOT}/usr/lib"
+  export npm_config_ls_sdl_mixer_include="${CROSSTOOLS_SYSROOT}/usr/include/SDL2"
+  export npm_config_ls_sdl_mixer_lib="${CROSSTOOLS_SYSROOT}/usr/lib"
 }
 
 clear_staging_dir() {
@@ -236,8 +236,8 @@ create_package() {
   echo "****** Creating package for ${PROFILE:-${NODE_PLATFORM_ARCH}}..."
 
   assert_python2
-  export LS_INSTALL_OPTS="--jobs max"
-  export npm_config_enable_native_tests=false
+  export npm_config_ls_install_opts="--jobs max"
+  export npm_config_ls_with_tests=false
 
   echo "****** Building LightSourceEngine..."
 

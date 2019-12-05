@@ -67,7 +67,7 @@
       ],
       "conditions": [
         [
-          "with_native_tests==\"true\"", {
+          "ls_with_tests==\"true\"", {
             "include_dirs": [
               "<!@(node -p \"require('napi-unit').include\")"
             ],

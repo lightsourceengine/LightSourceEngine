@@ -6,7 +6,7 @@
         "../common.gypi",
       ],
       "include_dirs": [
-        "<(sdl_include_path)",
+        "<(ls_sdl_include)",
         "../napi-ext-lib",
         "../logger-lib",
         "../light-source-audio-lib",
@@ -38,7 +38,7 @@
         [
           "OS==\"mac\" or OS==\"linux\"", {
             "libraries": [
-              "-L<(sdl_library_path)"
+              "-L<(ls_sdl_lib)"
             ]
           }
         ]
@@ -46,7 +46,7 @@
       "msvs_settings": {
         "VCLinkerTool": {
           "AdditionalLibraryDirectories": [
-            "<(sdl_library_path)"
+            "<(ls_sdl_lib)"
           ]
         }
       },

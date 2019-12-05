@@ -1,30 +1,30 @@
 {
   "variables": {
-    "with_sdl_mixer%": "false",
-    "with_native_tests%": "false",
+    "ls_with_sdl_mixer%": "false",
+    "ls_with_tests%": "false",
     "conditions": [
       [
         "OS==\"mac\"", {
-          "sdl_include_path%": "/usr/local/include/SDL2",
-          "sdl_library_path%": "/usr/local/lib",
-          "sdl_mixer_include_path%": "/usr/local/include/SDL2",
-          "sdl_mixer_library_path%": "/usr/local/lib",
+          "ls_sdl_include%": "/usr/local/include/SDL2",
+          "ls_sdl_lib%": "/usr/local/lib",
+          "ls_sdl_mixer_include%": "/usr/local/include/SDL2",
+          "ls_sdl_mixer_lib%": "/usr/local/lib",
         }
       ],
       [
         "OS==\"linux\"", {
-          "sdl_include_path%": "/usr/include/SDL2",
-          "sdl_library_path%": "/usr/lib/<!@(gcc -dumpmachine)",
-          "sdl_mixer_include_path%": "/usr/include/SDL2",
-          "sdl_mixer_library_path%": "/usr/lib/<!@(gcc -dumpmachine)",
+          "ls_sdl_include%": "/usr/include/SDL2",
+          "ls_sdl_lib%": "/usr/lib/<!@(gcc -dumpmachine)",
+          "ls_sdl_mixer_include%": "/usr/include/SDL2",
+          "ls_sdl_mixer_lib%": "/usr/lib/<!@(gcc -dumpmachine)",
         }
       ],
       [
         "OS==\"win\"", {
-          "sdl_include_path%": "<!@(echo %USERPROFILE%)\\SDL2\\include",
-          "sdl_library_path%": "<!@(echo %USERPROFILE%)\\SDL2\\lib\\x64",
-          "sdl_mixer_include_path%": "<!@(echo %USERPROFILE%)\\SDL2_mixer\\include",
-          "sdl_mixer_library_path%": "<!@(echo %USERPROFILE%)\\SDL2_mixer\\lib\\x64",
+          "ls_sdl_include%": "<!@(echo %USERPROFILE%)\\SDL2\\include",
+          "ls_sdl_lib%": "<!@(echo %USERPROFILE%)\\SDL2\\lib\\x64",
+          "ls_sdl_mixer_include%": "<!@(echo %USERPROFILE%)\\SDL2_mixer\\include",
+          "ls_sdl_mixer_lib%": "<!@(echo %USERPROFILE%)\\SDL2_mixer\\lib\\x64",
         }
       ]
     ]
