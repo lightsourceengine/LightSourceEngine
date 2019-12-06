@@ -55,6 +55,7 @@ matrix:
         - git clone --depth 1 https://github.com/lightsourceengine/crosstools.git ${HOME}/crosstools
         - . ${HOME}/.nvm/nvm.sh
       install:
+        - yarn
         - nvm install v12.13.1
         - ./scripts/build-ls-node.js linux-armv7l
       script: skip
