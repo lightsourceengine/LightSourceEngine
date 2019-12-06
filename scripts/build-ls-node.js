@@ -66,7 +66,7 @@
 // lib/node/react - Standalone version of react.
 //
 
-const { join, sep } = require('path')
+const { join, delimiter } = require('path')
 const { spawnSync } = require('child_process')
 const { emptyDirSync, ensureDirSync, ensureFileSync, pathExistsSync, copySync, symlinkSync } = require('fs-extra')
 const readPkg = require('read-pkg')
@@ -128,7 +128,7 @@ const build = () => {
       env.npm_config_ls_sdl_mixer_include = `${sCrossToolsSysroot}/usr/include/SDL2`
       env.npm_config_ls_sdl_mixer_lib = `${sCrossToolsSysroot}/usr/lib`
       args.unshift(sCrossProfileMapping[sTargetArch], command)
-      env.PATH = `${env.PATH}${sep}${join(sCrossToolsHome, 'bin')}`
+      env.PATH = `${env.PATH}${delimiter}${join(sCrossToolsHome, 'bin')}` 
       command = 'cross'
       break
     default:
