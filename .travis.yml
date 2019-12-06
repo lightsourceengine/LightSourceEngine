@@ -56,5 +56,5 @@ matrix:
         - . ${HOME}/.nvm/nvm.sh
       install:
         - nvm install v12.13.1
-        - ./scripts/package-ls-node.sh linux-armv7l
+        - ./scripts/build-ls-node.js linux-armv7l
       script: skip
