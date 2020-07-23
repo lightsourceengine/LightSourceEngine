@@ -7,7 +7,8 @@
         "../../common.gypi",
       ],
       "include_dirs": [
-        "include"
+        "include",
+        "lib"
       ],
       "sources": [
         "lib/event/event.cpp",
