@@ -1,5 +1,5 @@
 language: node_js
-node_js: 10
+node_js: 12
 dist: xenial
 env:
   global:
@@ -56,6 +56,6 @@ matrix:
         - . ${HOME}/.nvm/nvm.sh
       install:
         - yarn --ignore-scripts
-        - nvm install v12.13.1
+        - nvm install v12.18.3
         - ./scripts/build-ls-node.js linux-armv7l
       script: skip
