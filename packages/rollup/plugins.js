@@ -6,10 +6,10 @@
 
 import { terser } from 'rollup-plugin-terser'
 import replace from 'rollup-plugin-re'
-import babel from 'rollup-plugin-babel'
+import babel from '@rollup/plugin-babel'
 
 const preamble = '// Light Source Engine\n' +
-  '// Copyright (C) 2019 Daniel Anderson.\n' +
+  '// Copyright (C) 2020 Daniel Anderson.\n' +
   '// This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.'
 
 /**
@@ -40,6 +40,7 @@ export const onwarn = (warning, warn) => {
  * Run babel using the .babelrc file.
  */
 export const babelrc = () => babel({
+  babelHelpers: 'bundled',
   exclude: ['node_modules/**']
 })
 

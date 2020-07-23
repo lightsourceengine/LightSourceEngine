@@ -9,7 +9,7 @@
   },
   "author": "Daniel Anderson <dan.anderson.oss@gmail.com>",
   "engines": {
-    "node": ">=10"
+    "node": ">=12"
   },
   "main": "dist/cjs/light-source.js",
   "module": "dist/esm/light-source.mjs",
@@ -22,7 +22,7 @@
     "bindings": "^1.5.0"
   },
   "devDependencies": {
-    "node-addon-api": "^2.0.0"
+    "node-addon-api": "^3.0.0"
   },
   "scripts": {
     "install": "cross-env-shell node-gyp rebuild $npm_config_ls_install_opts",

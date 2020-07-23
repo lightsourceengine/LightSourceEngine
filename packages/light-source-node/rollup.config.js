@@ -5,8 +5,8 @@
  */
 
 import { onwarn, minify, nodeEnv, inlineObjectAssign } from '../rollup/plugins'
-import commonjs from 'rollup-plugin-commonjs'
-import nodeResolve from 'rollup-plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs'
+import nodeResolve from '@rollup/plugin-node-resolve'
 import autoExternal from 'rollup-plugin-auto-external'
 
 export default [
@@ -15,6 +15,7 @@ export default [
     input: require.resolve('react'),
     onwarn,
     output: {
+      exports: "default",
       format: 'cjs',
       file: 'dist/cjs/react.standalone.js'
     },
@@ -36,6 +37,7 @@ export default [
     input: 'lib/bindings-standalone',
     onwarn,
     output: {
+      exports: "default",
       format: 'cjs',
       file: 'dist/cjs/bindings.standalone.js'
     },

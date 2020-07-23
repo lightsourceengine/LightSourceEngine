@@ -32,7 +32,7 @@ matrix:
         - set -e
         - HOMEBREW_NO_AUTO_UPDATE=1 brew install sdl2 sdl2_mixer
       install: yarn --force
-      script: yarn test
+      script: yarn run lint
     - name: "windows-x64 [Release]"
       os: windows
       env: YARN_GPG=no npm_config_ls_with_tests=true npm_config_ls_sdl_include="$HOME/SDL2-2.0.10/include" npm_config_ls_sdl_lib="$HOME/SDL2-2.0.10/lib/x64" npm_config_ls_sdl_mixer_include="$HOME/SDL2_mixer-2.0.4/include" npm_config_ls_sdl_mixer_lib="$HOME/SDL2_mixer-2.0.4/lib/x64"

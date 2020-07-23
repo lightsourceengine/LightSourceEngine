@@ -5,9 +5,9 @@
  */
 
 import autoExternal from 'rollup-plugin-auto-external'
-import nodeResolve from 'rollup-plugin-node-resolve'
+import nodeResolve from '@rollup/plugin-node-resolve'
 import inject from '@rollup/plugin-inject'
-import commonjs from 'rollup-plugin-commonjs'
+import commonjs from '@rollup/plugin-commonjs'
 import { resolve } from 'path'
 import { onwarn, minify, nodeEnv, inlineObjectAssign } from '../rollup/plugins'
 

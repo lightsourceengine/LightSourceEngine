@@ -5,8 +5,8 @@
  */
 
 import autoExternal from 'rollup-plugin-auto-external'
-import commonjs from 'rollup-plugin-commonjs'
-import resolve from 'rollup-plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs'
+import resolve from '@rollup/plugin-node-resolve'
 import { beautify, onwarn, minify, babelrc, nodeEnv } from '../rollup/plugins'
 
 const input = 'src/exports.js'
