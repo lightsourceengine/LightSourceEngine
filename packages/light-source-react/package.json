@@ -20,7 +20,7 @@
     "light-source": "1.0.0-alpha.3"
   },
   "peerDependencies": {
-    "react": "^16.12.0"
+    "react": "^16.13.1"
   },
   "scripts": {
     "bundle": "rimraf dist build/standalone && rollup -c",
