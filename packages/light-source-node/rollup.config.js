@@ -15,7 +15,7 @@ export default [
     input: require.resolve('react'),
     onwarn,
     output: {
-      exports: "default",
+      exports: 'default',
       format: 'cjs',
       file: 'dist/cjs/react.standalone.js'
     },
@@ -37,7 +37,7 @@ export default [
     input: 'lib/bindings-standalone',
     onwarn,
     output: {
-      exports: "default",
+      exports: 'default',
       format: 'cjs',
       file: 'dist/cjs/bindings.standalone.js'
     },
