@@ -16,3 +16,9 @@
 [submodule "packages/light-source/addon/deps/ls-ctx/repo"]
 	path = packages/light-source/addon/deps/ls-ctx/repo
 	url = https://github.com/lightsourceengine/ls-ctx.git
+[submodule "packages/light-source/addon/deps/asmjit/repo"]
+	path = packages/light-source/addon/deps/asmjit/repo
+	url = https://github.com/asmjit/asmjit.git
+[submodule "packages/light-source/addon/deps/blend2d/repo"]
+	path = packages/light-source/addon/deps/blend2d/repo
+	url = https://github.com/blend2d/blend2d.git

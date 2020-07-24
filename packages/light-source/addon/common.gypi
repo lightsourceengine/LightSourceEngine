@@ -1,4 +1,7 @@
 {
+  "variables": {
+    "ls_asmjit_build%": "host"
+  },
   "cflags_cc!": [
     "-fno-exceptions",
     "-std=gnu++1y",
@@ -10,6 +13,8 @@
   ],
   "defines": [
     "STX_NAMESPACE_NAME=std17",
+    "ASMJIT_STATIC=1",
+    "BLEND2D_STATIC=TRUE"
   ],
   "xcode_settings": {
     "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
@@ -36,6 +41,23 @@
           "_HAS_EXCEPTIONS=1",
           "NOMINMAX",
           "_USE_MATH_DEFINES"
+        ]
+      }
+    ],
+    [
+      "ls_asmjit_build==\"arm\"", {
+        "defines": [
+          "ASMJIT_BUILD_ARM=1"
+        ]
+      },
+      "ls_asmjit_build==\"x86\"", {
+        "defines": [
+          "ASMJIT_BUILD_X86=1"
+        ]
+      },
+      {
+        "defines": [
+          "ASMJIT_BUILD_HOST=1"
         ]
       }
     ]

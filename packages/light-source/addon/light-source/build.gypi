@@ -14,6 +14,8 @@
         "../light-source-audio-lib",
         "../light-source-stage-lib",
         "../deps/yoga/lib",
+        "../deps/asmjit/repo/src",
+        "../deps/blend2d/repo/src",
         "../deps/stb/repo",
         "../deps/nanosvg/include",
         "../deps/cpp17_headers/include",
@@ -23,6 +25,8 @@
         "../deps/filesystem/include",
       ],
       "dependencies": [
+        "asmjit",
+        "blend2d",
         "yoga",
         "stb_image",
         "stb_truetype",
