@@ -33,11 +33,11 @@
 // The environment that invokes this script will be the node version of the built package. This restriction is
 // to avoid potential node ABI conflicts when building light-source native modules.
 //
-// light-source depends on seeral npm_config environment variables that describe SDL paths and other options. For
+// light-source depends on several npm_config environment variables that describe SDL paths and other options. For
 // cross compile builds, these environment variables are managed by THIS script. For local builds, these environment
 // variables must be exported by the caller of this script.
 //
-// Pacakge Structure:
+// Package Structure:
 //
 // The Light Source Engine is just a pre-compiled NodeJS distribution with light-source installed as a global
 // module. npm and extraneous files have been removed.
@@ -102,8 +102,8 @@ const run = (...args) => {
   const result = spawnSync(...args)
 
   if (result.status !== 0) {
-    console.log(result.stdout.toString())
-    console.error(result.stderr.toString())
+    result.stdout && console.log(result.stdout.toString())
+    result.stderr && console.error(result.stderr.toString())
     process.exit(1)
   }
 }
@@ -127,6 +127,7 @@ const build = () => {
       env.npm_config_ls_sdl_lib = `${sCrossToolsSysroot}/usr/lib`
       env.npm_config_ls_sdl_mixer_include = `${sCrossToolsSysroot}/usr/include/SDL2`
       env.npm_config_ls_sdl_mixer_lib = `${sCrossToolsSysroot}/usr/lib`
+      env.npm_config_ls_asmjit_build = 'arm'
       args.unshift(sCrossProfileMapping[sTargetArch], command)
       env.PATH = `${env.PATH}${delimiter}${join(sCrossToolsHome, 'bin')}` 
       command = 'cross'
