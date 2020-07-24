@@ -127,7 +127,8 @@ const build = () => {
       env.npm_config_ls_sdl_lib = `${sCrossToolsSysroot}/usr/lib`
       env.npm_config_ls_sdl_mixer_include = `${sCrossToolsSysroot}/usr/include/SDL2`
       env.npm_config_ls_sdl_mixer_lib = `${sCrossToolsSysroot}/usr/lib`
-      env.npm_config_ls_asmjit_build = 'arm'
+      // TODO: use this environment variable when the arm backend is ready
+      // env.npm_config_ls_asmjit_build = 'arm'
       args.unshift(sCrossProfileMapping[sTargetArch], command)
       env.PATH = `${env.PATH}${delimiter}${join(sCrossToolsHome, 'bin')}` 
       command = 'cross'
