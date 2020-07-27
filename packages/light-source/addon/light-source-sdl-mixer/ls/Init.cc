@@ -12,12 +12,8 @@ using Napi::HandleScope;
 using Napi::Object;
 using ls::SDLMixerAudioAdapter;
 
-Object Init(Env env, Object exports) {
-    HandleScope scope(env);
-
-    exports["AudioAdapter"] = SDLMixerAudioAdapter::GetClass(env);
-
-    return exports;
+Object Init(Env env, Object) {
+    return SDLMixerAudioAdapter::GetClass(env);
 }
 
 NODE_API_MODULE(LightSourceSdlMixer, Init);

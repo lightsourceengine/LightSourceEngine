@@ -1,34 +1,27 @@
 {
   "targets": [
     {
-      "target_name": "light-source-sdl",
+      "target_name": "light-source-sdl-audio",
       "includes": [
         "../common.gypi",
       ],
       "include_dirs": [
         "<(ls_sdl_include)",
+        ".",
         "../napi-ext-lib",
         "../logger-lib",
-        "../light-source-graphics-lib",
-        "../light-source-stage-lib",
+        "../light-source-audio-lib",
         "../light-source-util-lib",
         "../deps/cpp17_headers/include",
       ],
       "dependencies": [
         "napi-ext-lib",
-        "light-source-graphics-lib",
-        "light-source-stage-lib",
-        "light-source-util-lib",
         "logger-lib",
+        "light-source-audio-lib",
+        "light-source-util-lib",
       ],
       "sources": [
-        "ls/SDLRenderer.cc",
-        "ls/SDLTexture.cc",
-        "ls/SDLSceneAdapter.cc",
-        "ls/SDLStageAdapter.cc",
-        "ls/InputDevice.cc",
-        "ls/SDLKeyboard.cc",
-        "ls/SDLGamepad.cc",
+        "ls/SDLAudioAdapter.cc",
         "ls/Init.cc",
       ],
       "conditions": [
@@ -43,13 +36,13 @@
       "msvs_settings": {
         "VCLinkerTool": {
           "AdditionalLibraryDirectories": [
-            "<(ls_sdl_lib)"
+            "<(ls_sdl_lib)",
           ]
         }
-      },
-      "libraries": [
-        "-lSDL2"
-      ]
-    }
-  ]
+    },
+    "libraries": [
+      "-lSDL2"
+    ]
+  }
+]
 }
