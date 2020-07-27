@@ -16,23 +16,23 @@ class RefStageAdapter : public Napi::SafeObjectWrap<RefStageAdapter>, public Sta
  public:
     explicit RefStageAdapter(const Napi::CallbackInfo& info);
 
-    std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) override;
-
  public:
     static Napi::Function GetClass(Napi::Env env);
 
  private: // javascript bindings
     Napi::Value GetKeyboard(const Napi::CallbackInfo& info) override;
     Napi::Value GetGamepads(const Napi::CallbackInfo& info) override;
-    Napi::Value GetDisplays(const Napi::CallbackInfo& info) override;
+    Napi::Value GetCapabilities(const Napi::CallbackInfo& info) override;
     Napi::Value ProcessEvents(const Napi::CallbackInfo& info) override;
+    Napi::Value CreateSceneAdapter(const Napi::CallbackInfo& info) override;
     void Attach(const Napi::CallbackInfo& info) override;
     void Detach(const Napi::CallbackInfo& info) override;
     void Destroy(const Napi::CallbackInfo& info) override;
     void SetCallback(const Napi::CallbackInfo& info) override;
     void ResetCallbacks(const Napi::CallbackInfo& info) override;
+
+ private:
+    Napi::ObjectReference capabilitiesRef;
 };
 
 } // namespace ls
-
-#undef DeclareStageCallback

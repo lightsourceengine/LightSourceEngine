@@ -47,17 +47,17 @@ void Scene::Constructor(const CallbackInfo& info) {
         throw Error::New(env, "Invalid stage argument.");
     }
 
-    try {
-        this->adapter = stage->GetStageAdapter()->CreateSceneAdapter({
-            info[1].As<Number>().Int32Value(),
-            info[2].As<Number>().Int32Value(),
-            info[3].As<Number>().Int32Value(),
-            info[4].As<Boolean>().Value(),
-        });
-    } catch (const std::exception& e) {
-        this->stage = nullptr;
-        throw Error::New(env, Format("Failed to create scene adapter: %s", e));
-    }
+//    try {
+//        this->adapter = stage->GetStageAdapter()->CreateSceneAdapter({
+//            info[1].As<Number>().Int32Value(),
+//            info[2].As<Number>().Int32Value(),
+//            info[3].As<Number>().Int32Value(),
+//            info[4].As<Boolean>().Value(),
+//        });
+//    } catch (const std::exception& e) {
+//        this->stage = nullptr;
+//        throw Error::New(env, Format("Failed to create scene adapter: %s", e));
+//    }
 
     try {
         this->stage->Ref();

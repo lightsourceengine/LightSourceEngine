@@ -6,50 +6,64 @@
 
 import { Scene } from '../scene/Scene'
 import bindings from 'bindings'
-import { StageBase, addonError, SDLModuleId, FontStoreView } from '../addon'
+import { StageBase, SDLModuleId, FontStoreView, SDLMixerModuleId, SDLAudioModuleId } from '../addon'
 import { performance } from 'perf_hooks'
 import { join } from 'path'
 
 import { InputManager } from '../input/InputManager'
 import { EventEmitter } from '../util/EventEmitter'
 import {
-  $adapter,
   $mainLoopHandle,
   $fps,
   $attach,
   $detach,
   $destroy,
   $frame,
-  $displays,
-  $exitListener,
   $quitRequested,
   $input,
   $events,
   $scene,
   $audio,
-  $init,
-  $resourcePath,
   $emit,
-  $setResourcePath,
-  $font, $processEvents
+  $font
 } from '../util/InternalSymbols'
 import { AudioManager } from '../audio/AudioManager'
 import { isNumber, logexcept } from '../util'
 
 const { now } = performance
 
+const $plugins = Symbol.for('plugins')
+
+const kPluginTypeAudio = 'audio'
+const kPluginTypeGraphics = 'graphics'
+
+const kNullGraphicsPlugin = {
+  capabilities: Object.freeze({
+    displays: []
+  })
+}
+
 export class Stage extends StageBase {
   constructor () {
     super()
+    this[$plugins] = new Map()
+
     this[$mainLoopHandle] = null
     this[$fps] = 60
     this[$scene] = null
-    this[$displays] = []
-    this[$exitListener] = null
     this[$input] = new InputManager(this)
     this[$audio] = new AudioManager(this)
     this[$events] = new EventEmitter()
     this[$font] = new FontStoreView(this)
+
+    process.on('exit', () => {
+      logexcept(() => this[$destroy](), 'exit: Stage destroy exception: ')
+      global.gc && global.gc()
+    })
+  }
+
+  get capabilities () {
+    return (getGraphicsPlugin(this) || kNullGraphicsPlugin).capabilities
   }
 
   get fps () {
@@ -84,10 +98,6 @@ export class Stage extends StageBase {
     return this[$audio]
   }
 
-  get displays () {
-    return this[$displays]
-  }
-
   /**
    * Local file directory used when resolving the resource host name of a file URI.
    *
@@ -95,28 +105,101 @@ export class Stage extends StageBase {
    * ('file://resource/image.png'). The file://resource prefix is replaced with resourcePath to load the
    * local file.
    *
-   * @property resourcePath
+   * @property resourceDomainPath
    * @returns {string} an absolute or relative file path. If not set, an empty string is returned.
    */
 
-  get resourcePath () {
-    return this[$resourcePath]
+  get resourceDomainPath () {
+    return super.resourceDomainPath
   }
 
-  set resourcePath (value) {
-    if (!value) {
-      value = ''
-    } else if (typeof value !== 'string') {
-      throw Error(`resourcePath must be a string. Got: ${value}`)
+  set resourceDomainPath (value) {
+    if (typeof value !== 'string') {
+      throw Error('resourceDomainPath must be a string.')
     }
 
     if (value) {
       value = join(value)
     }
 
-    this[$audio][$setResourcePath](value)
+    super.resourceDomainPath = value
+  }
 
-    this[$resourcePath] = value
+  /**
+   *
+   */
+  init () {
+    // TODO: need init check? if so, better check?
+    if (this.hasPlugin(kPluginTypeGraphics) || this.hasPlugin(kPluginTypeAudio)) {
+      throw Error('Stage has already been initialized.')
+    }
+
+    try {
+      this.loadPlugin(SDLModuleId, {})
+    } catch (e) {
+      throw Error('Failed to load light-source-sdl.node')
+    }
+
+    try {
+      this.loadPlugin(SDLMixerModuleId, {})
+    } catch (e) {
+      try {
+        this.loadPlugin(SDLAudioModuleId, {})
+      } catch (e) {
+        throw Error('Failed to load audio plugin.')
+      }
+    }
+  }
+
+  /**
+   *
+   * @param plugin
+   * @param config
+   */
+  loadPlugin (plugin, config = {}) {
+    let Plugin
+
+    if (typeof plugin === 'string') {
+      try {
+        Plugin = bindings(plugin)
+      } catch (e) {
+        throw Error(`Failed to load Plugin '${plugin}'. Error: ${e.message}`)
+      }
+    } else if (typeof plugin === 'function') {
+      Plugin = plugin
+    } else {
+      throw Error('plugin argument must be a path to a .node addon or a Plugin class.')
+    }
+
+    const { type } = Plugin
+
+    if (!(type === kPluginTypeAudio || type === kPluginTypeGraphics)) {
+      throw Error(`Unknown plugin type: '${type}'`)
+    }
+
+    if (this.hasPlugin(type)) {
+      throw Error(`Plugin '${type}' has already loaded.`)
+    }
+
+    let instance
+
+    try {
+      instance = new Plugin(config)
+    } catch (e) {
+      throw Error(`Failed to create Plugin instance. Error: ${e.message}`)
+    }
+
+    this[$plugins].set(type, instance)
+
+    if (type === kPluginTypeGraphics) {
+      // this[$input][$init](stageAdapter, gameControllerDb)
+    } else if (type === kPluginTypeAudio) {
+      // this[$audio][$init](audioAdapter)
+    }
+  }
+
+  hasPlugin (pluginType) {
+    return this[$plugins].has(pluginType)
   }
 
   on (id, listener) {
@@ -127,37 +210,12 @@ export class Stage extends StageBase {
     this[$events].off(id, listener)
   }
 
-  init ({ adapter, audioAdapter, gameControllerDb } = {}) {
-    if (addonError) {
-      throw Error(`Error loading light-source native addon: ${addonError.message}`)
-    }
-
-    if (this[$adapter]) {
-      throw Error('Stage has already been initialized.')
-    }
-
-    const stageAdapter = createStageAdapter(validateAdapterConfig(adapter))
-
-    this[$adapter] = stageAdapter
-
-    try {
-      this[$displays] = stageAdapter.getDisplays()
-    } catch (e) {
-      console.log(`Failed to get displays. Error: ${e.message}`)
-      this[$displays] = []
-    }
-
-    this[$audio][$init](audioAdapter)
-    this[$input][$init](stageAdapter, gameControllerDb)
-
-    process.on('exit', this[$exitListener] = () => {
-      logexcept(() => this[$destroy](), 'exit: Stage destroy exception: ')
-      global.gc && global.gc()
-    })
+  once (id, listener) {
+    this[$events].once(id, listener)
   }
 
   createScene ({ displayIndex, width, height, fullscreen } = {}) {
-    if (!this[$adapter]) {
+    if (!this.hasPlugin(kPluginTypeGraphics)) {
       this.init()
     }
 
@@ -202,10 +260,16 @@ export class Stage extends StageBase {
       throw Error('width and height must be integer values.')
     }
 
+    // const adapter = getGraphicsPlugin(this).createSceneAdapter()
+    // new Scene(this, adapter)
+
     this[$scene] = new Scene(this, displayIndex, width, height, fullscreen)
 
-    this[$displays][displayIndex].scene = this[$scene]
+    return this[$scene]
+  }
 
+  getScene (displayIndex = 0) {
+    // TODO: validate displayIndex?
     return this[$scene]
   }
 
@@ -216,30 +280,21 @@ export class Stage extends StageBase {
       return
     }
 
+    const graphicsPlugin = getGraphicsPlugin(this)
     const scene = this[$scene]
-    const adapter = this[$adapter]
-    const audio = this[$audio]
-    const input = this[$input]
     let lastTick = now()
 
-    // TODO: handle exceptions
-
-    adapter.attach()
-
-    input[$attach]()
-    audio[$attach]()
-    scene[$attach]()
+    this[$attach]()
 
     const mainLoop = () => {
       const tick = now()
 
-      // TODO: clean up adapter interface
-      this[$processEvents]()
-
-      if (!adapter.processEvents() || this[$quitRequested]) {
+      if (!graphicsPlugin.processEvents() || this[$quitRequested]) {
         // TODO: revisit stage lifecycle...
         process.exit()
       }
+
+      // TODO: check suspended
 
       scene[$frame](tick, lastTick)
       lastTick = tick
@@ -254,10 +309,7 @@ export class Stage extends StageBase {
     // TODO: stopped?
     if (this[$mainLoopHandle]) {
       // TODO: handle exceptions...
-      this[$scene][$detach]()
-      this[$audio][$detach]()
-      this[$input][$detach]()
-      this[$adapter].detach()
+      this[$detach]()
 
       clearTimeout(this[$mainLoopHandle])
       this[$mainLoopHandle] = null
@@ -274,77 +326,40 @@ export class Stage extends StageBase {
     this[$events].emit(event)
   }
 
+  [$attach] () {
+    getPlugins(this).forEach(plugin => {
+      plugin && plugin.attach()
+    })
+
+    // TODO: attach managers
+  }
+
+  [$detach] () {
+    // TODO: detach managers
+
+    getPlugins(this).reduceRight((_, plugin) => {
+      plugin && plugin.detach()
+    })
+  }
+
   [$destroy] () {
-    const scene = this[$scene]
-    const adapter = this[$adapter]
-    const audio = this[$audio]
-    const input = this[$input]
-    const mainLoopHandle = this[$mainLoopHandle]
-    const exitListener = this[$exitListener]
+    // TODO: destroy managers
 
-    mainLoopHandle && clearTimeout(mainLoopHandle)
-    this[$mainLoopHandle] = null
+    super[$destroy]()
 
-    exitListener && process.off('exit', exitListener)
-    this[$exitListener] = null
-
-    if (scene) {
-      logexcept(() => scene[$destroy](), 'Failed to destroy Scene. Error: ')
-      this[$displays][scene.displayIndex].scene = null
-      this[$scene] = null
-    }
-
-    logexcept(() => input[$destroy](), 'Failed to unbind InputManager. Error: ')
-    logexcept(() => audio[$destroy](), 'Failed to destroy AudioManager. Error: ')
-
-    logexcept(() => adapter && adapter.destroy(), 'Failed to destroy StageAdapter. Error: ')
-    this[$adapter] = null
-
-    this[$font] = null
+    getPlugins(this).reduceRight((_, plugin) => {
+      plugin && plugin.destroy()
+    })
   }
 }
 
-const validateAdapterConfig = (adapter) => {
-  if (typeof adapter === 'function' || typeof adapter === 'string') {
-    return adapter
-  } else if (!adapter) {
-    return SDLModuleId
-  }
+const getPlugins = (stage) => {
+  const plugins = stage[$plugins]
 
-  throw Error('adapter must be a module name string or a StageAdapter class.')
+  return [
+    plugins.get(kPluginTypeGraphics),
+    plugins.get(kPluginTypeAudio)
+  ]
 }
 
-const createStageAdapter = (adapter) => {
-  let StageAdapter
-
-  if (typeof adapter === 'string') {
-    try {
-      StageAdapter = bindings(adapter).StageAdapter
-    } catch (e) {
-      throw Error(`Module ${adapter} failed to load. Error: ${e.message}`)
-    }
-
-    if (typeof StageAdapter !== 'function') {
-      throw Error(`Module ${adapter} does not contain an StageAdapter class.`)
-    }
-  } else {
-    StageAdapter = adapter
-  }
-
-  let adapterInstance
-
-  try {
-    adapterInstance = new StageAdapter()
-  } catch (e) {
-    throw Error(`Failed to construct the StageAdapter instance. Error: ${e.message}`)
-  }
-
-  try {
-    adapterInstance.attach()
-  } catch (e) {
-    logexcept(() => adapterInstance.destroy())
-    throw Error(`Failed to initialize the StageAdapter instance. Error: ${e.message}`)
-  }
-
-  return adapterInstance
-}
+const getGraphicsPlugin = (stage) => stage[$plugins].get(kPluginTypeGraphics)

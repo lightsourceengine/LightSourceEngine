@@ -35,21 +35,21 @@ class SDLStageAdapter : public Napi::SafeObjectWrap<SDLStageAdapter>, public Sta
  public:
     explicit SDLStageAdapter(const Napi::CallbackInfo& info);
 
-    std::unique_ptr<SceneAdapter> CreateSceneAdapter(const SceneAdapterConfig& config) override;
-
  public: // javascript bindings
     static Napi::Function GetClass(Napi::Env env);
 
     void Constructor(const Napi::CallbackInfo& info) override;
     Napi::Value GetKeyboard(const Napi::CallbackInfo& info) override;
     Napi::Value GetGamepads(const Napi::CallbackInfo& info) override;
-    Napi::Value GetDisplays(const Napi::CallbackInfo& info) override;
-    Napi::Value ProcessEvents(const Napi::CallbackInfo& info) override;
+    Napi::Value GetCapabilities(const Napi::CallbackInfo& info) override;
+    void SetCallback(const Napi::CallbackInfo& info) override;
+    void ResetCallbacks(const Napi::CallbackInfo& info) override;
     void Attach(const Napi::CallbackInfo& info) override;
     void Detach(const Napi::CallbackInfo& info) override;
     void Destroy(const Napi::CallbackInfo& info) override;
-    void SetCallback(const Napi::CallbackInfo& info) override;
-    void ResetCallbacks(const Napi::CallbackInfo& info) override;
+    Napi::Value ProcessEvents(const Napi::CallbackInfo& info) override;
+    Napi::Value CreateSceneAdapter(const Napi::CallbackInfo& info) override;
+
     Napi::Value AddGameControllerMappings(const Napi::CallbackInfo& info);
 
  private:
@@ -59,8 +59,6 @@ class SDLStageAdapter : public Napi::SafeObjectWrap<SDLStageAdapter>, public Sta
     void ClearGamepads();
     SDLGamepad* AddGamepad(Napi::Env env, int32_t index);
     Napi::Value GetGamepad(Napi::Env env, int32_t instanceId);
-    void Attach(Napi::Env env);
-    void Detach(Napi::Env env);
     bool DispatchQuit(Napi::Env env);
     void DispatchKeyboardKeyDown(Napi::Env env, int32_t scanCode, bool isRepeat);
     void DispatchKeyboardKeyUp(Napi::Env env, int32_t scanCode);
@@ -70,9 +68,14 @@ class SDLStageAdapter : public Napi::SafeObjectWrap<SDLStageAdapter>, public Sta
     void DispatchJoystickHatMotion(Napi::Env env, int32_t instanceId, uint8_t hatIndex, uint8_t hatValue);
     void DispatchJoystickAdded(Napi::Env env, int32_t index);
     void DispatchJoystickRemoved(Napi::Env env, int32_t instanceId);
+    void Init();
+    Capabilities DetermineCapabilities();
 
  private:
     static std::unordered_map<std::string, StageCallback> callbackMap;
+
+    Capabilities capabilities;
+    Napi::ObjectReference capabilitiesRef;
 
     std::array<Napi::FunctionReference, StageCallbackCount> callbacks;
     SDLKeyboard* keyboard{};

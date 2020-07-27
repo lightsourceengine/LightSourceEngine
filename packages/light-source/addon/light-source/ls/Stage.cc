@@ -7,8 +7,12 @@
 #include "Stage.h"
 #include "FontStore.h"
 #include <ls/StageAdapter.h>
+#include <ls/Audio.h>
+#include <ls/Format.h>
 #include <ls/Log.h>
 
+using Napi::Array;
+using Napi::Boolean;
 using Napi::CallbackInfo;
 using Napi::Error;
 using Napi::Function;
@@ -27,8 +31,6 @@ Stage::Stage(const CallbackInfo& info) : SafeObjectWrap<Stage>(info) {
 }
 
 void Stage::Constructor(const Napi::CallbackInfo& info) {
-    this->fontStore.Attach(this);
-    // TODO: need to detach somewhere
     this->taskQueue.Init(this->GetExecutor());
 }
 
@@ -39,82 +41,27 @@ Function Stage::GetClass(Napi::Env env) {
         HandleScope scope(env);
 
         constructor = DefineClass(env, "StageBase", true, {
-            InstanceAccessor(SymbolFor(env, "adapter"), &Stage::GetStageAdapter, &Stage::SetStageAdapter),
-            InstanceAccessor(SymbolFor(env, "resourcePath"), &Stage::GetResourcePath, &Stage::SetResourcePath),
-            InstanceMethod(SymbolFor(env, "processEvents"), &Stage::ProcessEvents),
+            InstanceAccessor("resourceDomainPath", &Stage::GetResourceDomainPath, &Stage::SetResourceDomainPath),
+            InstanceMethod(SymbolFor(env, "destroy"), &Stage::Destroy),
         });
     }
 
     return constructor.Value();
 }
 
-void Stage::Destroy() noexcept {
-    if (this->stageAdapter) {
-        try {
-            this->stageAdapter->Unref();
-        } catch (const Error& e) {
-            LOG_ERROR(e);
-        }
-
-        this->stageAdapter = nullptr;
-    }
-
-    this->fontStore.Detach();
+void Stage::Destroy(const CallbackInfo& info) {
     this->executor.ShutdownNow();
-    this->taskQueue.ShutdownNow();
 }
 
-void Stage::ProcessEvents(const CallbackInfo& info) {
-    this->taskQueue.ProcessTasks();
+Value Stage::GetResourceDomainPath(const CallbackInfo& info) {
+    return String::New(info.Env(), this->resourceDomainPath);
 }
 
-Value Stage::GetStageAdapter(const CallbackInfo& info) {
-    if (this->stageAdapter) {
-        return this->stageAdapter->Value();
-    }
-
-    return info.Env().Null();
-}
-
-void Stage::SetStageAdapter(const CallbackInfo& info, const Napi::Value& value) {
-    auto env{ info.Env() };
-    auto oldStageAdapter{ this->stageAdapter };
-    StageAdapter* newStageAdapter;
-
-    if (value.IsObject()) {
-        newStageAdapter = QueryInterface<StageAdapter>(value);
-    } else if (value.IsNull() || value.IsUndefined()) {
-        newStageAdapter = nullptr;
+void Stage::SetResourceDomainPath(const CallbackInfo& info, const Napi::Value& value) {
+    if (value.IsString()) {
+        this->resourceDomainPath = value.As<String>();
     } else {
-        throw Error::New(env, "Invalid StageAdapter.");
-    }
-
-    if (oldStageAdapter == newStageAdapter) {
-        return;
-    }
-
-    if (newStageAdapter) {
-        newStageAdapter->Ref();
-    }
-
-    if (oldStageAdapter) {
-        oldStageAdapter->Unref();
-    }
-
-    this->stageAdapter = newStageAdapter;
-}
-
-Value Stage::GetResourcePath(const CallbackInfo& info) {
-    return String::New(info.Env(), this->resourcePath);
-}
-
-void Stage::SetResourcePath(const CallbackInfo& info, const Napi::Value& value) {
-    if (value.IsNull() || value.IsUndefined()) {
-        this->resourcePath = "";
-    } else if (value.IsString()) {
-        this->resourcePath = value.As<String>();
-    } else {
-        throw Error::New(info.Env(), "resourcePath must be a string.");
+        throw Error::New(info.Env(), "resourceDomainPath must be a string.");
     }
 }
 

@@ -12,6 +12,7 @@
 #include <ls/Log.h>
 #include <ls/Format.h>
 #include <ls/Timer.h>
+#include <ls/CapabilitiesView.h>
 
 using Napi::Array;
 using Napi::Boolean;
@@ -23,6 +24,7 @@ using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Number;
 using Napi::Object;
+using Napi::Persistent;
 using Napi::SafeObjectWrap;
 using Napi::QueryInterface;
 using Napi::String;
@@ -32,20 +34,13 @@ bool operator == (SDL_DisplayMode const& lhs, SDL_DisplayMode const& rhs) {
     return (lhs.w == rhs.w) && (lhs.h == rhs.h);
 }
 
-namespace std {
-
-template<> struct hash<SDL_DisplayMode> {
-    std::size_t operator()(const SDL_DisplayMode& displayMode) const noexcept{
+struct SDL_DisplayModeHash {
+    std::size_t operator()(const SDL_DisplayMode& displayMode) const noexcept {
         return (static_cast<std::size_t>(displayMode.w) << 32) | static_cast<std::size_t>(displayMode.h);
     }
 };
 
-} // namespace std
-
 namespace ls {
-
-Object ToDisplayObject(Napi::Env env, int32_t displayIndex);
-Object ToDisplayModeObject(Napi::Env env, const SDL_DisplayMode& mode);
 
 // Note, SDL_JOYSTICK_AXIS_* defines were introduced after 2.0.4.
 
@@ -92,6 +87,10 @@ void SDLStageAdapter::Constructor(const Napi::CallbackInfo& info) {
     LOG_INFO("SDL Version: compiled=%i.%i.%i linked=%i.%i.%i",
              compiled.major, compiled.minor, compiled.patch,
              linked.major, linked.minor, linked.patch);
+
+    this->Init();
+    this->capabilities = this->DetermineCapabilities();
+    this->capabilitiesRef = Persistent(ToCapabilitiesView(env, capabilities));
 }
 
 Function SDLStageAdapter::GetClass(Napi::Env env) {
@@ -104,7 +103,8 @@ Function SDLStageAdapter::GetClass(Napi::Env env) {
             StaticValue("type", String::New(env, "graphics"), napi_default),
             InstanceMethod("getKeyboard", &SDLStageAdapter::GetKeyboard),
             InstanceMethod("getGamepads", &SDLStageAdapter::GetGamepads),
-            InstanceMethod("getDisplays", &SDLStageAdapter::GetDisplays),
+            InstanceAccessor("capabilities", &SDLStageAdapter::GetCapabilities, nullptr),
+            InstanceMethod("createSceneAdapter", &SDLStageAdapter::CreateSceneAdapter),
             InstanceMethod("processEvents", &SDLStageAdapter::ProcessEvents),
             InstanceMethod("attach", &SDLStageAdapter::Attach),
             InstanceMethod("detach", &SDLStageAdapter::Detach),
@@ -135,21 +135,59 @@ Value SDLStageAdapter::GetGamepads(const CallbackInfo& info) {
     return scope.Escape(array);
 }
 
-Value SDLStageAdapter::GetDisplays(const CallbackInfo& info) {
-    auto env{ info.Env() };
-    auto displayCount{ SDL_GetNumVideoDisplays() };
+Value SDLStageAdapter::GetCapabilities(const Napi::CallbackInfo &info) {
+    return this->capabilitiesRef.Value();
+}
 
-    if (displayCount < 0) {
+Capabilities SDLStageAdapter::DetermineCapabilities() {
+    auto env{ this->Env() };
+    Capabilities caps{};
+    auto numVideoDisplays{ SDL_GetNumVideoDisplays() };
+
+    if (numVideoDisplays < 0) {
         throw Error::New(env, Format("Failed to get display count. SDL Error: %s", SDL_GetError()));
     }
 
-    auto displayArray{ Array::New(env, displayCount) };
+    for (auto i{ 0 }; i < numVideoDisplays; i++) {
+      Display display{};
+      auto name{ SDL_GetDisplayName(i) };
 
-    for (auto i{ 0 }; i < displayCount; i++) {
-        displayArray.Set(static_cast<uint32_t>(i), ToDisplayObject(env, i));
+      display.name = name ? name : "";
+
+      auto numDisplayModes{ SDL_GetNumDisplayModes(i) };
+
+      if (numDisplayModes < 0) {
+        throw Error::New(env, Format("Failed to get display count. SDL Error: %s", SDL_GetError()));
+      }
+
+      SDL_DisplayMode desktopDisplayMode;
+
+      if (SDL_GetDesktopDisplayMode(i, &desktopDisplayMode) != 0) {
+        throw Error::New(env, Format("Failed to get default display mode. SDL Error: %s", SDL_GetError()));
+      }
+
+      display.defaultMode = { desktopDisplayMode.w, desktopDisplayMode.h };
+
+      std::unordered_set<SDL_DisplayMode, SDL_DisplayModeHash> uniqueDisplayModes(numDisplayModes);
+
+      for (auto j{ 0 }; j < numDisplayModes; j++) {
+        SDL_DisplayMode displayMode;
+
+        if (SDL_GetDisplayMode(i, j, &displayMode) != 0) {
+          throw Error::New(env, Format("Failed to get display mode. SDL Error: %s", SDL_GetError()));
+        }
+
+        uniqueDisplayModes.insert(displayMode);
+      }
+
+      for (auto& p : uniqueDisplayModes) {
+        display.modes.push_back({ p.w, p.h });
+      }
+
+      caps.displays.emplace_back(display);
     }
 
-    return displayArray;
+    return caps;
 }
 
 Value SDLStageAdapter::AddGameControllerMappings(const CallbackInfo& info) {
@@ -186,17 +224,8 @@ void SDLStageAdapter::ResetCallbacks(const CallbackInfo& info) {
     }
 }
 
-void SDLStageAdapter::Attach(const CallbackInfo& info) {
-    this->Attach(info.Env());
-}
-
-void SDLStageAdapter::Attach(Napi::Env env) {
-    if (this->isAttached) {
-        return;
-    }
-
-    this->isAttached = false;
-
+void SDLStageAdapter::Init() {
+    auto env{ this->Env() };
     Timer t("StageAdapter.attach()");
 
     if (SDL_WasInit(SDL_INIT_VIDEO) == 0 && SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -218,6 +247,18 @@ void SDLStageAdapter::Attach(Napi::Env env) {
     SDL_GameControllerEventState(SDL_IGNORE);
 
     t.Log();
+}
+
+void SDLStageAdapter::Attach(const CallbackInfo& info) {
+    auto env{ info.Env() };
+
+    if (this->isAttached) {
+        return;
+    }
+
+    this->isAttached = false;
+
+    this->Init();
 
     this->SyncGamepads(env);
 
@@ -230,10 +271,6 @@ void SDLStageAdapter::Attach(Napi::Env env) {
 }
 
 void SDLStageAdapter::Detach(const CallbackInfo& info) {
-    this->Detach(info.Env());
-}
-
-void SDLStageAdapter::Detach(Napi::Env env) {
     if (!this->isAttached) {
         return;
     }
@@ -253,14 +290,18 @@ void SDLStageAdapter::Destroy(const CallbackInfo& info) {
         this->keyboard = nullptr;
     }
 
-    this->Detach(info.Env());
+    this->Detach(info);
 }
 
-std::unique_ptr<SceneAdapter> SDLStageAdapter::CreateSceneAdapter(const SceneAdapterConfig& config) {
-    return std::unique_ptr<SceneAdapter>(new SDLSceneAdapter(config));
+Value SDLStageAdapter::CreateSceneAdapter(const Napi::CallbackInfo& info) {
+    return info.Env().Null();
 }
 
-Value SDLStageAdapter::ProcessEvents(const CallbackInfo& info) {
+//std::unique_ptr<SceneAdapter> SDLStageAdapter::CreateSceneAdapter(const SceneAdapterConfig& config) {
+//    return std::unique_ptr<SceneAdapter>(new SDLSceneAdapter(config));
+//}
+
+Value SDLStageAdapter::ProcessEvents(const Napi::CallbackInfo& info) {
     static constexpr auto NUM_EVENTS_PER_FRAME{ 20 };
     static SDL_Event eventBuffer[NUM_EVENTS_PER_FRAME];
 
@@ -532,60 +573,6 @@ Value SDLStageAdapter::GetGamepad(Napi::Env env, int32_t instanceId) {
     auto p{ this->gamepadsByInstanceId.find(instanceId) };
 
     return p == this->gamepadsByInstanceId.end() ? env.Undefined() : p->second->Value();
-}
-
-Object ToDisplayObject(Napi::Env env, int32_t displayIndex) {
-    auto displayObject{ Object::New(env) };
-    auto name{ SDL_GetDisplayName(displayIndex) };
-
-    displayObject["name"] = String::New(env, name ? name : "");
-
-    auto displayModeCount{ SDL_GetNumDisplayModes(displayIndex) };
-
-    if (displayModeCount < 0) {
-        throw Error::New(env, Format("Failed to get display count. SDL Error: %s", SDL_GetError()));
-    }
-
-    SDL_DisplayMode current;
-
-    if (SDL_GetDesktopDisplayMode(displayIndex, &current) != 0) {
-        throw Error::New(env, Format("Failed to get default display mode. SDL Error: %s", SDL_GetError()));
-    }
-
-    displayObject["defaultMode"] = ToDisplayModeObject(env, current);
-
-    std::unordered_set<SDL_DisplayMode> uniqueDisplayModes;
-
-    for (auto j{ 0 }; j < displayModeCount; j++) {
-        SDL_DisplayMode displayMode;
-
-        if (SDL_GetDisplayMode(displayIndex, j, &displayMode) != 0) {
-            throw Error::New(env,
-                Format("Failed to get display mode. SDL Error: %s", SDL_GetError()));
-        }
-
-        uniqueDisplayModes.insert(displayMode);
-    }
-
-    auto displayModeArray{ Array::New(env, uniqueDisplayModes.size()) };
-    auto k{ 0u };
-
-    for (auto& p : uniqueDisplayModes) {
-        displayModeArray.Set(k++, ToDisplayModeObject(env, p));
-    }
-
-    displayObject["modes"] = displayModeArray;
-
-    return displayObject;
-}
-
-Object ToDisplayModeObject(Napi::Env env, const SDL_DisplayMode& mode) {
-    auto result{ Object::New(env) };
-
-    result["width"] = Number::New(env, mode.w);
-    result["height"] = Number::New(env, mode.h);
-
-    return result;
 }
 
 } // namespace ls

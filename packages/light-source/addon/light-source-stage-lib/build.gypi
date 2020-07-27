@@ -14,8 +14,7 @@
         "../logger-lib",
       ],
       "sources": [
-        "ls/BaseSceneAdapter.cc",
-        "ls/BaseStageAdapter.cc",
+        "ls/CapabilitiesView.cc",
       ]
     }
   ]

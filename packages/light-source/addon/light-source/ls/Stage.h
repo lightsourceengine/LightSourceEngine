@@ -14,6 +14,7 @@
 namespace ls {
 
 class StageAdapter;
+class AudioAdapter;
 
 class Stage : public Napi::SafeObjectWrap<Stage> {
  public:
@@ -21,29 +22,24 @@ class Stage : public Napi::SafeObjectWrap<Stage> {
     virtual ~Stage() = default;
 
     FontStore* GetFontStore() const noexcept { return &this->fontStore; }
-    StageAdapter* GetStageAdapter() const noexcept { return this->stageAdapter; }
     TaskQueue* GetTaskQueue() const noexcept { return &this->taskQueue; }
     Executor* GetExecutor() const noexcept { return &this->executor; }
-    const std::string& GetResourcePath() const noexcept { return this->resourcePath; }
-    void Destroy() noexcept;
+    const std::string& GetResourcePath() const noexcept { return this->resourceDomainPath; }
 
  public:
     static Napi::Function GetClass(Napi::Env env);
 
  private: // javascript bindings
     void Constructor(const Napi::CallbackInfo& info) override;
-    Napi::Value GetStageAdapter(const Napi::CallbackInfo& info);
-    void SetStageAdapter(const Napi::CallbackInfo& info, const Napi::Value& value);
-    Napi::Value GetResourcePath(const Napi::CallbackInfo& info);
-    void SetResourcePath(const Napi::CallbackInfo& info, const Napi::Value& value);
-    void ProcessEvents(const Napi::CallbackInfo& info);
+    Napi::Value GetResourceDomainPath(const Napi::CallbackInfo& info);
+    void SetResourceDomainPath(const Napi::CallbackInfo& info, const Napi::Value& value);
+    void Destroy(const Napi::CallbackInfo& info);
 
  private:
-    StageAdapter* stageAdapter{};
     mutable FontStore fontStore;
     mutable TaskQueue taskQueue;
     mutable Executor executor;
-    std::string resourcePath;
+    std::string resourceDomainPath;
 
     friend Napi::SafeObjectWrap<Stage>;
 };

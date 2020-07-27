@@ -6,6 +6,7 @@
 
 #include "RefStageAdapter.h"
 #include "RefSceneAdapter.h"
+#include <ls/CapabilitiesView.h>
 
 using Napi::Array;
 using Napi::Boolean;
@@ -15,6 +16,7 @@ using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Number;
 using Napi::Object;
+using Napi::Persistent;
 using Napi::SafeObjectWrap;
 using Napi::String;
 using Napi::Value;
@@ -22,6 +24,16 @@ using Napi::Value;
 namespace ls {
 
 RefStageAdapter::RefStageAdapter(const CallbackInfo& info) : SafeObjectWrap<RefStageAdapter>(info) {
+    auto env{ info.Env() };
+    HandleScope scope(env);
+    Capabilities capabilities{};
+    DisplayMode displayMode{ 1280, 720 };
+
+    capabilities.displays = {
+        {"mock display", displayMode, { displayMode } }
+    };
+
+    this->capabilitiesRef = Persistent(ToCapabilitiesView(env, capabilities));
 }
 
 Function RefStageAdapter::GetClass(Napi::Env env) {
@@ -34,7 +46,8 @@ Function RefStageAdapter::GetClass(Napi::Env env) {
             StaticValue("type", String::New(env, "graphics"), napi_default),
             InstanceMethod("getKeyboard", &RefStageAdapter::GetKeyboard),
             InstanceMethod("getGamepads", &RefStageAdapter::GetGamepads),
-            InstanceMethod("getDisplays", &RefStageAdapter::GetDisplays),
+            InstanceAccessor("capabilities", &RefStageAdapter::GetCapabilities, nullptr),
+            InstanceMethod("createSceneAdapter", &RefStageAdapter::CreateSceneAdapter),
             InstanceMethod("processEvents", &RefStageAdapter::ProcessEvents),
             InstanceMethod("attach", &RefStageAdapter::Attach),
             InstanceMethod("detach", &RefStageAdapter::Detach),
@@ -55,28 +68,6 @@ Value RefStageAdapter::GetGamepads(const CallbackInfo& info) {
     return Array::New(info.Env());
 }
 
-Value RefStageAdapter::GetDisplays(const CallbackInfo& info) {
-    auto env{ info.Env() };
-    HandleScope scope(env);
-    auto displays{ Array::New(env, 1) };
-    auto display{ Object::New(env) };
-    auto mode{ Object::New(env) };
-    auto modes{ Array::New(env, 1) };
-
-    mode["width"] = Number::New(env, 1280);
-    mode["height"] = Number::New(env, 720);
-
-    modes[0u] = mode;
-
-    display["name"] = String::New(env, "mock display");
-    display["defaultMode"] = mode;
-    display["modes"] = modes;
-
-    displays[0u] = display;
-
-    return displays;
-}
-
 void RefStageAdapter::Attach(const CallbackInfo& info) {
 }
 
@@ -92,8 +83,14 @@ void RefStageAdapter::SetCallback(const CallbackInfo& info) {
 void RefStageAdapter::ResetCallbacks(const CallbackInfo& info) {
 }
 
-std::unique_ptr<SceneAdapter> RefStageAdapter::CreateSceneAdapter(const SceneAdapterConfig& config) {
-    return std::unique_ptr<SceneAdapter>(new RefSceneAdapter(config));
+
+Napi::Value RefStageAdapter::GetCapabilities(const Napi::CallbackInfo& info) {
+    return this->capabilitiesRef.Value();
+}
+
+Value RefStageAdapter::CreateSceneAdapter(const CallbackInfo& info) {
+    // TODO: return scene adapter
+    return info.Env().Null();
 }
 
 Value RefStageAdapter::ProcessEvents(const CallbackInfo& info) {
