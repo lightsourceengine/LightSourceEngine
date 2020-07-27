@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "light-source-ref",
+      "target_name": "light-source-ref-audio",
       "includes": [
         "../common.gypi",
       ],
@@ -9,19 +9,16 @@
         ".",
         "../napi-ext-lib",
         "../logger-lib",
-        "../light-source-graphics-lib",
-        "../light-source-stage-lib",
+        "../light-source-audio-lib",
         "../light-source-util-lib",
         "../deps/cpp17_headers/include",
       ],
       "dependencies": [
         "napi-ext-lib",
-        "light-source-stage-lib",
+        "light-source-audio-lib",
       ],
       "sources": [
-        "ls/RefRenderer.cc",
-        "ls/RefSceneAdapter.cc",
-        "ls/RefStageAdapter.cc",
+        "ls/RefAudioAdapter.cc",
         "ls/Init.cc",
       ]
     }

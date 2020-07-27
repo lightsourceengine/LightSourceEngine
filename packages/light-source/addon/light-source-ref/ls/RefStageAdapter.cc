@@ -31,6 +31,7 @@ Function RefStageAdapter::GetClass(Napi::Env env) {
         HandleScope scope(env);
 
         constructor = DefineClass(env, "RefStageAdapter", true, {
+            StaticValue("type", String::New(env, "graphics"), napi_default),
             InstanceMethod("getKeyboard", &RefStageAdapter::GetKeyboard),
             InstanceMethod("getGamepads", &RefStageAdapter::GetGamepads),
             InstanceMethod("getDisplays", &RefStageAdapter::GetDisplays),

@@ -54,6 +54,7 @@
     # node modules
     "addon/light-source/build.gypi",
     "addon/light-source-ref/build.gypi",
+    "addon/light-source-ref-audio/build.gypi",
     "addon/light-source-sdl/build.gypi",
     "addon/light-source-sdl-audio/build.gypi",
     "addon/light-source-sdl-mixer/build.gypi",

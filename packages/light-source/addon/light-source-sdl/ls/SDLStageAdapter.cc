@@ -101,6 +101,7 @@ Function SDLStageAdapter::GetClass(Napi::Env env) {
         HandleScope scope(env);
 
         constructor = DefineClass(env, "SDLStageAdapter", true, {
+            StaticValue("type", String::New(env, "graphics"), napi_default),
             InstanceMethod("getKeyboard", &SDLStageAdapter::GetKeyboard),
             InstanceMethod("getGamepads", &SDLStageAdapter::GetGamepads),
             InstanceMethod("getDisplays", &SDLStageAdapter::GetDisplays),

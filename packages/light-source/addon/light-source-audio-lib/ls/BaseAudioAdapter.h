@@ -38,6 +38,7 @@ Napi::Function BaseAudioAdapter::GetClassInternal(Napi::Env env, const char* cla
         Napi::HandleScope scope(env);
 
         constructor = T::DefineClass(env, className, true, {
+            T::StaticValue("type", Napi::String::New(env, "audio"), napi_default),
             T::InstanceMethod("attach", &T::Attach),
             T::InstanceMethod("detach", &T::Detach),
             T::InstanceMethod("createStreamAudioDestination", &T::CreateStreamAudioDestination),
