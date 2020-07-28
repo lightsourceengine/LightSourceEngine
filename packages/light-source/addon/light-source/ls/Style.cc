@@ -41,14 +41,124 @@ FunctionReference Style::sConstructor;
 Style::Style(const CallbackInfo& info) : SafeObjectWrap<Style>(info) {
 }
 
-Function Style::GetClass() {
-    assert(!sConstructor.IsEmpty());
+void Style::Init(Napi::Env env) {
+    sEmptyStyle = New(env);
+    sEmptyStyle->SuppressDestruct();
+}
+
+Function Style::GetClass(Napi::Env env) {
+    if (sConstructor.IsEmpty()) {
+        HandleScope scope(env);
+
+        sConstructor = DefineClass(env, "Style", true, {
+#define LS_ADD_PROPERTY(NAME) InstanceAccessor(#NAME, &Style::Getter_##NAME, &Style::Setter_##NAME)
+            // Yoga Layout Style Properties
+            LS_ADD_PROPERTY(alignItems),
+            LS_ADD_PROPERTY(alignContent),
+            LS_ADD_PROPERTY(alignSelf),
+            LS_ADD_PROPERTY(border),
+            LS_ADD_PROPERTY(borderBottom),
+            LS_ADD_PROPERTY(borderLeft),
+            LS_ADD_PROPERTY(borderRight),
+            LS_ADD_PROPERTY(borderTop),
+            LS_ADD_PROPERTY(bottom),
+            LS_ADD_PROPERTY(display),
+            LS_ADD_PROPERTY(flex),
+            LS_ADD_PROPERTY(flexBasis),
+            LS_ADD_PROPERTY(flexDirection),
+            LS_ADD_PROPERTY(flexGrow),
+            LS_ADD_PROPERTY(flexShrink),
+            LS_ADD_PROPERTY(flexWrap),
+            LS_ADD_PROPERTY(height),
+            LS_ADD_PROPERTY(justifyContent),
+            LS_ADD_PROPERTY(left),
+            LS_ADD_PROPERTY(margin),
+            LS_ADD_PROPERTY(marginBottom),
+            LS_ADD_PROPERTY(marginLeft),
+            LS_ADD_PROPERTY(marginRight),
+            LS_ADD_PROPERTY(marginTop),
+            LS_ADD_PROPERTY(maxHeight),
+            LS_ADD_PROPERTY(maxWidth),
+            LS_ADD_PROPERTY(minHeight),
+            LS_ADD_PROPERTY(minWidth),
+            LS_ADD_PROPERTY(overflow),
+            LS_ADD_PROPERTY(padding),
+            LS_ADD_PROPERTY(paddingBottom),
+            LS_ADD_PROPERTY(paddingLeft),
+            LS_ADD_PROPERTY(paddingRight),
+            LS_ADD_PROPERTY(paddingTop),
+            LS_ADD_PROPERTY(position),
+            LS_ADD_PROPERTY(right),
+            LS_ADD_PROPERTY(top),
+            LS_ADD_PROPERTY(width),
+            // Visual Style Properties
+            LS_ADD_PROPERTY(backgroundClip),
+            LS_ADD_PROPERTY(backgroundColor),
+            LS_ADD_PROPERTY(backgroundHeight),
+            LS_ADD_PROPERTY(backgroundImage),
+            LS_ADD_PROPERTY(backgroundPositionX),
+            LS_ADD_PROPERTY(backgroundPositionY),
+            LS_ADD_PROPERTY(backgroundRepeat),
+            LS_ADD_PROPERTY(backgroundSize),
+            LS_ADD_PROPERTY(backgroundWidth),
+            LS_ADD_PROPERTY(borderColor),
+            LS_ADD_PROPERTY(borderRadius),
+            LS_ADD_PROPERTY(borderRadiusTopLeft),
+            LS_ADD_PROPERTY(borderRadiusTopRight),
+            LS_ADD_PROPERTY(borderRadiusBottomLeft),
+            LS_ADD_PROPERTY(borderRadiusBottomRight),
+            LS_ADD_PROPERTY(color),
+            LS_ADD_PROPERTY(fontFamily),
+            LS_ADD_PROPERTY(fontSize),
+            LS_ADD_PROPERTY(fontStyle),
+            LS_ADD_PROPERTY(fontWeight),
+            LS_ADD_PROPERTY(lineHeight),
+            LS_ADD_PROPERTY(maxLines),
+            LS_ADD_PROPERTY(objectFit),
+            LS_ADD_PROPERTY(objectPositionX),
+            LS_ADD_PROPERTY(objectPositionY),
+            LS_ADD_PROPERTY(opacity),
+            LS_ADD_PROPERTY(textAlign),
+            LS_ADD_PROPERTY(textOverflow),
+            LS_ADD_PROPERTY(textTransform),
+            LS_ADD_PROPERTY(tintColor),
+            LS_ADD_PROPERTY(transform),
+            LS_ADD_PROPERTY(transformOriginX),
+            LS_ADD_PROPERTY(transformOriginY),
+            LS_ADD_PROPERTY(zIndex),
+#undef LS_ADD_PROPERTY
+
+            StaticValue("UnitUndefined", Number::New(env, StyleNumberUnitUndefined)),
+            StaticValue("UnitPoint", Number::New(env, StyleNumberUnitPoint)),
+            StaticValue("UnitPercent", Number::New(env, StyleNumberUnitPercent)),
+            StaticValue("UnitViewportWidth", Number::New(env, StyleNumberUnitViewportWidth)),
+            StaticValue("UnitViewportHeight", Number::New(env, StyleNumberUnitViewportHeight)),
+            StaticValue("UnitViewportMin", Number::New(env, StyleNumberUnitViewportMin)),
+            StaticValue("UnitViewportMax", Number::New(env, StyleNumberUnitViewportMax)),
+            StaticValue("UnitAuto", Number::New(env, StyleNumberUnitAuto)),
+            StaticValue("UnitAnchor", Number::New(env, StyleNumberUnitAnchor)),
+            StaticValue("UnitRootEm", Number::New(env, StyleNumberUnitRootEm)),
+            StaticValue("UnitRadian", Number::New(env, StyleNumberUnitRadian)),
+            StaticValue("UnitDegree", Number::New(env, StyleNumberUnitDegree)),
+            StaticValue("UnitGradian", Number::New(env, StyleNumberUnitGradian)),
+            StaticValue("UnitTurn", Number::New(env, StyleNumberUnitTurn)),
+
+            StaticValue("TransformIdentity", Number::New(env, StyleTransformIdentity)),
+            StaticValue("TransformTranslate", Number::New(env, StyleTransformTranslate)),
+            StaticValue("TransformRotate", Number::New(env, StyleTransformRotate)),
+            StaticValue("TransformScale", Number::New(env, StyleTransformScale)),
+
+            InstanceValue(SymbolFor(env, "style"), Boolean::New(env, true)),
+        });
+    }
+
     return sConstructor.Value();
 }
 
-Style* Style::New() {
-    auto styleObject{GetClass().New({}) };
-    auto style{QueryInterface<Style>(styleObject) };
+Style* Style::New(Napi::Env env) {
+    HandleScope scope(env);
+    auto styleObject{ GetClass(env).New({}) };
+    auto style{ QueryInterface<Style>(styleObject) };
 
     style->Ref();
 
@@ -59,8 +169,20 @@ Style* Style::Empty() noexcept {
     return sEmptyStyle;
 }
 
-void Style::Bind(SceneNode* node) noexcept {
-    this->node = node;
+void Style::Bind(SceneNode* sceneNode) noexcept {
+    if (this->node == sceneNode) {
+        return;
+    }
+
+    if (this->node) {
+        this->node->Unref();
+    }
+
+    this->node = sceneNode;
+
+    if (this->node) {
+        this->node->Ref();
+    }
 }
 
 bool Style::IsLayoutOnly() const noexcept {
@@ -222,6 +344,7 @@ void Style::Assign(const Style* other) noexcept {
 }
 
 void Style::NotifyPropertyChanged(StyleProperty property) {
+    // TODO: check this->node?
     this->SyncYogaProperty(property);
     this->node->OnPropertyChanged(property);
 }
@@ -446,114 +569,6 @@ static void YGNodeSetNumber(YGNodeRef ygNode, StyleValueNumber& value, Scene* sc
             SetPoint(ygNode, YGUndefined);
             break;
     }
-}
-
-void Style::Init(Napi::Env env) {
-    HandleScope scope(env);
-
-    sConstructor = DefineClass(env, "Style", true, {
-#define LS_ADD_PROPERTY(NAME) InstanceAccessor(#NAME, &Style::Getter_##NAME, &Style::Setter_##NAME)
-        // Yoga Layout Style Properties
-        LS_ADD_PROPERTY(alignItems),
-        LS_ADD_PROPERTY(alignContent),
-        LS_ADD_PROPERTY(alignSelf),
-        LS_ADD_PROPERTY(border),
-        LS_ADD_PROPERTY(borderBottom),
-        LS_ADD_PROPERTY(borderLeft),
-        LS_ADD_PROPERTY(borderRight),
-        LS_ADD_PROPERTY(borderTop),
-        LS_ADD_PROPERTY(bottom),
-        LS_ADD_PROPERTY(display),
-        LS_ADD_PROPERTY(flex),
-        LS_ADD_PROPERTY(flexBasis),
-        LS_ADD_PROPERTY(flexDirection),
-        LS_ADD_PROPERTY(flexGrow),
-        LS_ADD_PROPERTY(flexShrink),
-        LS_ADD_PROPERTY(flexWrap),
-        LS_ADD_PROPERTY(height),
-        LS_ADD_PROPERTY(justifyContent),
-        LS_ADD_PROPERTY(left),
-        LS_ADD_PROPERTY(margin),
-        LS_ADD_PROPERTY(marginBottom),
-        LS_ADD_PROPERTY(marginLeft),
-        LS_ADD_PROPERTY(marginRight),
-        LS_ADD_PROPERTY(marginTop),
-        LS_ADD_PROPERTY(maxHeight),
-        LS_ADD_PROPERTY(maxWidth),
-        LS_ADD_PROPERTY(minHeight),
-        LS_ADD_PROPERTY(minWidth),
-        LS_ADD_PROPERTY(overflow),
-        LS_ADD_PROPERTY(padding),
-        LS_ADD_PROPERTY(paddingBottom),
-        LS_ADD_PROPERTY(paddingLeft),
-        LS_ADD_PROPERTY(paddingRight),
-        LS_ADD_PROPERTY(paddingTop),
-        LS_ADD_PROPERTY(position),
-        LS_ADD_PROPERTY(right),
-        LS_ADD_PROPERTY(top),
-        LS_ADD_PROPERTY(width),
-        // Visual Style Properties
-        LS_ADD_PROPERTY(backgroundClip),
-        LS_ADD_PROPERTY(backgroundColor),
-        LS_ADD_PROPERTY(backgroundHeight),
-        LS_ADD_PROPERTY(backgroundImage),
-        LS_ADD_PROPERTY(backgroundPositionX),
-        LS_ADD_PROPERTY(backgroundPositionY),
-        LS_ADD_PROPERTY(backgroundRepeat),
-        LS_ADD_PROPERTY(backgroundSize),
-        LS_ADD_PROPERTY(backgroundWidth),
-        LS_ADD_PROPERTY(borderColor),
-        LS_ADD_PROPERTY(borderRadius),
-        LS_ADD_PROPERTY(borderRadiusTopLeft),
-        LS_ADD_PROPERTY(borderRadiusTopRight),
-        LS_ADD_PROPERTY(borderRadiusBottomLeft),
-        LS_ADD_PROPERTY(borderRadiusBottomRight),
-        LS_ADD_PROPERTY(color),
-        LS_ADD_PROPERTY(fontFamily),
-        LS_ADD_PROPERTY(fontSize),
-        LS_ADD_PROPERTY(fontStyle),
-        LS_ADD_PROPERTY(fontWeight),
-        LS_ADD_PROPERTY(lineHeight),
-        LS_ADD_PROPERTY(maxLines),
-        LS_ADD_PROPERTY(objectFit),
-        LS_ADD_PROPERTY(objectPositionX),
-        LS_ADD_PROPERTY(objectPositionY),
-        LS_ADD_PROPERTY(opacity),
-        LS_ADD_PROPERTY(textAlign),
-        LS_ADD_PROPERTY(textOverflow),
-        LS_ADD_PROPERTY(textTransform),
-        LS_ADD_PROPERTY(tintColor),
-        LS_ADD_PROPERTY(transform),
-        LS_ADD_PROPERTY(transformOriginX),
-        LS_ADD_PROPERTY(transformOriginY),
-        LS_ADD_PROPERTY(zIndex),
-#undef LS_ADD_PROPERTY
-
-        StaticValue("UnitUndefined", Number::New(env, StyleNumberUnitUndefined)),
-        StaticValue("UnitPoint", Number::New(env, StyleNumberUnitPoint)),
-        StaticValue("UnitPercent", Number::New(env, StyleNumberUnitPercent)),
-        StaticValue("UnitViewportWidth", Number::New(env, StyleNumberUnitViewportWidth)),
-        StaticValue("UnitViewportHeight", Number::New(env, StyleNumberUnitViewportHeight)),
-        StaticValue("UnitViewportMin", Number::New(env, StyleNumberUnitViewportMin)),
-        StaticValue("UnitViewportMax", Number::New(env, StyleNumberUnitViewportMax)),
-        StaticValue("UnitAuto", Number::New(env, StyleNumberUnitAuto)),
-        StaticValue("UnitAnchor", Number::New(env, StyleNumberUnitAnchor)),
-        StaticValue("UnitRootEm", Number::New(env, StyleNumberUnitRootEm)),
-        StaticValue("UnitRadian", Number::New(env, StyleNumberUnitRadian)),
-        StaticValue("UnitDegree", Number::New(env, StyleNumberUnitDegree)),
-        StaticValue("UnitGradian", Number::New(env, StyleNumberUnitGradian)),
-        StaticValue("UnitTurn", Number::New(env, StyleNumberUnitTurn)),
-
-        StaticValue("TransformIdentity", Number::New(env, StyleTransformIdentity)),
-        StaticValue("TransformTranslate", Number::New(env, StyleTransformTranslate)),
-        StaticValue("TransformRotate", Number::New(env, StyleTransformRotate)),
-        StaticValue("TransformScale", Number::New(env, StyleTransformScale)),
-
-        InstanceValue(SymbolFor(env, "style"), Boolean::New(env, true)),
-    });
-
-    sEmptyStyle = New();
-    sEmptyStyle->SuppressDestruct();
 }
 
 } // namespace ls

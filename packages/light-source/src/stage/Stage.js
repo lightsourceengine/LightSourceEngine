@@ -108,7 +108,6 @@ export class Stage extends StageBase {
    * @property resourceDomainPath
    * @returns {string} an absolute or relative file path. If not set, an empty string is returned.
    */
-
   get resourceDomainPath () {
     return super.resourceDomainPath
   }

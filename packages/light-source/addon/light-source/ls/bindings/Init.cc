@@ -39,7 +39,7 @@ Object Init(Env env, Object exports) {
     ExportClass(&exports, ls::bindings::FontStoreView::GetClass(env));
     ExportClass(&exports, ls::bindings::ImageStoreView::GetClass(env));
 
-    ExportClass(&exports, ls::Style::GetClass());
+    ExportClass(&exports, ls::Style::GetClass(env));
     ExportClass(&exports, ls::Scene::GetClass(env));
     ExportClass(&exports, ls::Stage::GetClass(env));
     ExportClass(&exports, ls::BoxSceneNode::GetClass(env));

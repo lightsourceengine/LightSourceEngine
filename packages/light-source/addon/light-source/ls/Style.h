@@ -26,9 +26,9 @@ class Style : public Napi::SafeObjectWrap<Style> {
     explicit Style(const Napi::CallbackInfo& info);
     virtual ~Style() = default;
 
-    static Napi::Function GetClass();
-    static Style* New();
     static void Init(Napi::Env env);
+    static Napi::Function GetClass(Napi::Env env);
+    static Style* New(Napi::Env env);
     static Style* Empty() noexcept;
     void Assign(const Style* other) noexcept;
     void Bind(SceneNode* node) noexcept;

@@ -102,7 +102,8 @@ Napi::Value SceneNode::GetChildren(const Napi::CallbackInfo& info) {
 
 Value SceneNode::GetStyle(const CallbackInfo& info) {
     if (this->style == nullptr) {
-        this->style = Style::New();
+        // New adds a Ref.
+        this->style = Style::New(info.Env());
         this->style->Bind(this);
     }
 
@@ -111,7 +112,8 @@ Value SceneNode::GetStyle(const CallbackInfo& info) {
 
 void SceneNode::SetStyle(const CallbackInfo& info, const Napi::Value& value) {
     if (this->style == nullptr) {
-        this->style = Style::New();
+        // New adds a Ref.
+        this->style = Style::New(info.Env());
         this->style->Bind(this);
 
         if (value.IsNull() || value.IsUndefined()) {
@@ -286,6 +288,7 @@ void SceneNode::DestroyRecursive() {
     }
 
     if (this->style) {
+        this->style->Bind(nullptr);
         this->style->Unref();
         this->style = nullptr;
     }
