@@ -5,39 +5,75 @@
  */
 
 #include "SDLSceneAdapter.h"
+#include <napi-ext.h>
 #include <ls/Log.h>
+
+using Napi::Boolean;
+using Napi::Error;
+using Napi::Function;
+using Napi::FunctionReference;
+using Napi::HandleScope;
+using Napi::Number;
+using Napi::Object;
+using Napi::String;
+using Napi::Value;
 
 namespace ls {
 
-SDLSceneAdapter::SDLSceneAdapter(const SceneAdapterConfig& config) : config(config) {
+SDLSceneAdapter::SDLSceneAdapter(const Napi::CallbackInfo& info) : SafeObjectWrap<SDLSceneAdapter>(info) {
 }
 
-SDLSceneAdapter::~SDLSceneAdapter() {
-    this->renderer.Destroy();
+void SDLSceneAdapter::Constructor(const Napi::CallbackInfo& info) {
+    HandleScope scope(info.Env());
+    auto config{ info[0].As<Object>() };
 
-    if (this->window) {
-        SDL_DestroyWindow(this->window);
+    this->configDisplayIndex = Napi::ObjectGetNumberOrDefault(config, "displayIndex", 0);
+    this->configWidth = Napi::ObjectGetNumberOrDefault(config, "width", 0);
+    this->configHeight = Napi::ObjectGetNumberOrDefault(config, "height", 0);
+    this->configFullscreen = Napi::ObjectGetBooleanOrDefault(config, "fullscreen", true);
+}
+
+Function SDLSceneAdapter::GetClass(Napi::Env env) {
+    static FunctionReference constructor;
+
+    if (constructor.IsEmpty()) {
+        HandleScope scope(env);
+
+        constructor = DefineClass(env, "SDLSceneAdapter", true, {
+            InstanceAccessor("width", &SDLSceneAdapter::GetWidth, nullptr),
+            InstanceAccessor("height", &SDLSceneAdapter::GetHeight, nullptr),
+            InstanceAccessor("displayIndex", &SDLSceneAdapter::GetDisplayIndex, nullptr),
+            InstanceAccessor("fullscreen", &SDLSceneAdapter::GetFullscreen, nullptr),
+            InstanceAccessor("title", &SDLSceneAdapter::GetTitle, &SDLSceneAdapter::SetTitle),
+            InstanceMethod("attach", &SDLSceneAdapter::Attach),
+            InstanceMethod("detach", &SDLSceneAdapter::Detach),
+            InstanceMethod("resize", &SDLSceneAdapter::Resize),
+        });
     }
+
+    return constructor.Value();
 }
 
-void SDLSceneAdapter::Attach() {
+void SDLSceneAdapter::Attach(const Napi::CallbackInfo& info) {
+    auto env{ info.Env() };
+
     if (!this->window) {
-        auto displayIndex{ this->config.displayIndex };
+        auto displayIndex{ this->configDisplayIndex };
 
         this->window = SDL_CreateWindow(
             this->title.c_str(),
             SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex),
             SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex),
-            this->config.width,
-            this->config.height,
-            this->config.fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
+            this->configWidth,
+            this->configHeight,
+            this->configFullscreen ? SDL_WINDOW_FULLSCREEN : 0);
 
         if (!this->window) {
             LOG_ERROR("SDL_CreateWindow(): %s", SDL_GetError());
-            throw std::runtime_error("Failed to create window");
+            throw Error::New(env, "Failed to create window");
         }
 
-        if (this->config.fullscreen) {
+        if (this->configFullscreen) {
             SDL_ShowCursor(SDL_DISABLE);
         }
 
@@ -53,14 +89,18 @@ void SDLSceneAdapter::Attach() {
             displayIndex);
     }
 
-    this->renderer.Attach(this->window);
+    try {
+        this->renderer.Attach(this->window);
+    } catch (std::exception& e) {
+        throw Error::New(env, e.what());
+    }
 
     this->width = this->renderer.GetWidth();
     this->height = this->renderer.GetHeight();
     this->fullscreen = false;
 }
 
-void SDLSceneAdapter::Detach() {
+void SDLSceneAdapter::Detach(const Napi::CallbackInfo& info) {
     this->renderer.Detach();
 
     if (this->window) {
@@ -69,31 +109,44 @@ void SDLSceneAdapter::Detach() {
     }
 }
 
-void SDLSceneAdapter::Resize(int32_t width, int32_t height, bool fullscreen) {
+void SDLSceneAdapter::Resize(const Napi::CallbackInfo& info) {
+    // TODO: int32_t width, int32_t height, bool fullscreen
 }
 
-int32_t SDLSceneAdapter::GetWidth() const {
-    return this->width;
+Value SDLSceneAdapter::GetWidth(const Napi::CallbackInfo& info) {
+    return Number::New(info.Env(), this->width);
 }
 
-int32_t SDLSceneAdapter::GetHeight() const {
-    return this->height;
+Value SDLSceneAdapter::GetHeight(const Napi::CallbackInfo& info) {
+    return Number::New(info.Env(), this->height);
 }
 
-bool SDLSceneAdapter::GetFullscreen() const {
-    return this->fullscreen;
+Value SDLSceneAdapter::GetDisplayIndex(const Napi::CallbackInfo& info) {
+    return Number::New(info.Env(), this->configDisplayIndex);
 }
 
-Renderer* SDLSceneAdapter::GetRenderer() const {
-    return &this->renderer;
+Value SDLSceneAdapter::GetFullscreen(const Napi::CallbackInfo& info) {
+    return Boolean::New(info.Env(), this->fullscreen);
 }
 
-void SDLSceneAdapter::SetTitle(const std::string& title) {
-    this->title = title;
+Value SDLSceneAdapter::GetTitle(const Napi::CallbackInfo& info) {
+    return String::New(info.Env(), this->title);
+}
+
+void SDLSceneAdapter::SetTitle(const Napi::CallbackInfo& info, const Napi::Value& value) {
+    if (value.IsString()) {
+        this->title = value.As<String>();
+    } else {
+        throw Error::New(info.Env(), "title property must be a string");
+    }
 
     if (this->window) {
         SDL_SetWindowTitle(this->window, this->title.c_str());
     }
+}
+
+Renderer* SDLSceneAdapter::GetRenderer() const {
+    return &this->renderer;
 }
 
 } // namespace ls

@@ -44,10 +44,10 @@ Function RefStageAdapter::GetClass(Napi::Env env) {
 
         constructor = DefineClass(env, "RefStageAdapter", true, {
             StaticValue("type", String::New(env, "graphics"), napi_default),
+            StaticValue("SceneAdapter", RefSceneAdapter::GetClass(env), napi_default),
             InstanceMethod("getKeyboard", &RefStageAdapter::GetKeyboard),
             InstanceMethod("getGamepads", &RefStageAdapter::GetGamepads),
             InstanceAccessor("capabilities", &RefStageAdapter::GetCapabilities, nullptr),
-            InstanceMethod("createSceneAdapter", &RefStageAdapter::CreateSceneAdapter),
             InstanceMethod("processEvents", &RefStageAdapter::ProcessEvents),
             InstanceMethod("attach", &RefStageAdapter::Attach),
             InstanceMethod("detach", &RefStageAdapter::Detach),
@@ -86,11 +86,6 @@ void RefStageAdapter::ResetCallbacks(const CallbackInfo& info) {
 
 Napi::Value RefStageAdapter::GetCapabilities(const Napi::CallbackInfo& info) {
     return this->capabilitiesRef.Value();
-}
-
-Value RefStageAdapter::CreateSceneAdapter(const CallbackInfo& info) {
-    // TODO: return scene adapter
-    return info.Env().Null();
 }
 
 Value RefStageAdapter::ProcessEvents(const CallbackInfo& info) {

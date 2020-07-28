@@ -13,26 +13,36 @@
 
 namespace ls {
 
-class SDLSceneAdapter : public SceneAdapter {
+class SDLSceneAdapter : public Napi::SafeObjectWrap<SDLSceneAdapter>, public SceneAdapter {
  public:
-    explicit SDLSceneAdapter(const SceneAdapterConfig& config);
-    virtual ~SDLSceneAdapter();
+    explicit SDLSceneAdapter(const Napi::CallbackInfo& info);
 
-    void Attach() override;
-    void Detach() override;
-    void Resize(int32_t width, int32_t height, bool fullscreen) override;
+    static Napi::Function GetClass(Napi::Env env);
 
-    void SetTitle(const std::string& title) override;
-    std::string GetTitle() const override { return this->title; }
-    int32_t GetWidth() const override;
-    int32_t GetHeight() const override;
-    bool GetFullscreen() const override;
+    void Constructor(const Napi::CallbackInfo& info) override;
+    void Attach(const Napi::CallbackInfo& info) override;
+    void Detach(const Napi::CallbackInfo& info) override;
+    void Resize(const Napi::CallbackInfo& info) override;
+    Napi::Value GetTitle(const Napi::CallbackInfo& info) override;
+    void SetTitle(const Napi::CallbackInfo& info, const Napi::Value& value) override;
+    Napi::Value GetWidth(const Napi::CallbackInfo& info) override;
+    Napi::Value GetHeight(const Napi::CallbackInfo& info) override;
+    Napi::Value GetDisplayIndex(const Napi::CallbackInfo& info) override;
+    Napi::Value GetFullscreen(const Napi::CallbackInfo& info) override;
+
+    int32_t GetWidth() const override { return this->width; }
+    int32_t GetHeight() const override { return this->height; }
     Renderer* GetRenderer() const override;
 
  private:
-    SceneAdapterConfig config;
     mutable SDLRenderer renderer;
     SDL_Window* window{};
+
+    int32_t configWidth{};
+    int32_t configHeight{};
+    bool configFullscreen{};
+    int32_t configDisplayIndex{};
+
     int32_t width{};
     int32_t height{};
     bool fullscreen{};

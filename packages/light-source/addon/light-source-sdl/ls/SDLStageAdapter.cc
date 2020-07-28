@@ -101,10 +101,10 @@ Function SDLStageAdapter::GetClass(Napi::Env env) {
 
         constructor = DefineClass(env, "SDLStageAdapter", true, {
             StaticValue("type", String::New(env, "graphics"), napi_default),
+            StaticValue("SceneAdapter", SDLSceneAdapter::GetClass(env), napi_default),
             InstanceMethod("getKeyboard", &SDLStageAdapter::GetKeyboard),
             InstanceMethod("getGamepads", &SDLStageAdapter::GetGamepads),
             InstanceAccessor("capabilities", &SDLStageAdapter::GetCapabilities, nullptr),
-            InstanceMethod("createSceneAdapter", &SDLStageAdapter::CreateSceneAdapter),
             InstanceMethod("processEvents", &SDLStageAdapter::ProcessEvents),
             InstanceMethod("attach", &SDLStageAdapter::Attach),
             InstanceMethod("detach", &SDLStageAdapter::Detach),
@@ -292,14 +292,6 @@ void SDLStageAdapter::Destroy(const CallbackInfo& info) {
 
     this->Detach(info);
 }
-
-Value SDLStageAdapter::CreateSceneAdapter(const Napi::CallbackInfo& info) {
-    return info.Env().Null();
-}
-
-//std::unique_ptr<SceneAdapter> SDLStageAdapter::CreateSceneAdapter(const SceneAdapterConfig& config) {
-//    return std::unique_ptr<SceneAdapter>(new SDLSceneAdapter(config));
-//}
 
 Value SDLStageAdapter::ProcessEvents(const Napi::CallbackInfo& info) {
     static constexpr auto NUM_EVENTS_PER_FRAME{ 20 };

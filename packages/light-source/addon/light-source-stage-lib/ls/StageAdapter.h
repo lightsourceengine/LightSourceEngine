@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <napi-ext.h>
-#include <memory>
 #include <SafeObjectWrap.h>
 #include "SceneAdapter.h"
 
@@ -31,7 +29,6 @@ class StageAdapter : public virtual Napi::SafeObjectWrapBase {
     virtual void Detach(const Napi::CallbackInfo& info) = 0;
     virtual void Destroy(const Napi::CallbackInfo& info) = 0;
     virtual Napi::Value ProcessEvents(const Napi::CallbackInfo& info) = 0;
-    virtual Napi::Value CreateSceneAdapter(const Napi::CallbackInfo& info) = 0;
 };
 
 struct DisplayMode {

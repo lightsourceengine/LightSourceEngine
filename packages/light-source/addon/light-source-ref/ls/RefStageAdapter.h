@@ -24,7 +24,6 @@ class RefStageAdapter : public Napi::SafeObjectWrap<RefStageAdapter>, public Sta
     Napi::Value GetGamepads(const Napi::CallbackInfo& info) override;
     Napi::Value GetCapabilities(const Napi::CallbackInfo& info) override;
     Napi::Value ProcessEvents(const Napi::CallbackInfo& info) override;
-    Napi::Value CreateSceneAdapter(const Napi::CallbackInfo& info) override;
     void Attach(const Napi::CallbackInfo& info) override;
     void Detach(const Napi::CallbackInfo& info) override;
     void Destroy(const Napi::CallbackInfo& info) override;

@@ -223,13 +223,13 @@ export class Stage extends StageBase {
       throw Error('Stage can only manage 1 scene at a time.')
     }
 
+    const { capabilities } = this
+
     if (!Number.isInteger(displayIndex)) {
       displayIndex = 0
-    } else {
-      displayIndex = displayIndex >> 0
     }
 
-    if (displayIndex < 0 || displayIndex >= this.displays.length) {
+    if (displayIndex < 0 || displayIndex >= capabilities.displays.length) {
       throw Error(`Invalid displayIndex ${displayIndex}.`)
     }
 
@@ -237,7 +237,7 @@ export class Stage extends StageBase {
 
     if ((width === undefined || width === 0) && (height === undefined || height === 0)) {
       if (fullscreen) {
-        const { defaultMode } = this.displays[displayIndex]
+        const { defaultMode } = capabilities.displays[displayIndex]
 
         width = defaultMode.width
         height = defaultMode.height
@@ -250,7 +250,7 @@ export class Stage extends StageBase {
       height = height >> 0
 
       if (fullscreen) {
-        const i = this.displays[displayIndex].modes.findIndex(mode => mode.width === width && mode.height === height)
+        const i = capabilities.displays[displayIndex].modes.findIndex(mode => mode.width === width && mode.height === height)
 
         if (i === -1) {
           throw Error(`Fullscreen size ${width}x${height} is not available on this system.`)
@@ -260,12 +260,27 @@ export class Stage extends StageBase {
       throw Error('width and height must be integer values.')
     }
 
-    // const adapter = getGraphicsPlugin(this).createSceneAdapter()
-    // new Scene(this, adapter)
+    const SceneAdapter = getGraphicsPlugin(this).constructor.SceneAdapter
 
-    this[$scene] = new Scene(this, displayIndex, width, height, fullscreen)
+    let adapter
 
-    return this[$scene]
+    try {
+      adapter = new SceneAdapter({ displayIndex, width, height, fullscreen })
+    } catch (e) {
+      throw Error(e.message)
+    }
+
+    let scene
+
+    try {
+      scene = new Scene(this, adapter)
+    } catch (e) {
+      throw Error(e.message)
+    }
+
+    this[$scene] = scene
+
+    return scene
   }
 
   getScene (displayIndex = 0) {
@@ -332,10 +347,12 @@ export class Stage extends StageBase {
     })
 
     // TODO: attach managers
+    this[$scene][$attach]()
   }
 
   [$detach] () {
     // TODO: detach managers
+    this[$scene][$detach]()
 
     getPlugins(this).reduceRight((_, plugin) => {
       plugin && plugin.detach()
@@ -344,6 +361,8 @@ export class Stage extends StageBase {
 
   [$destroy] () {
     // TODO: destroy managers
+
+    this[$scene][$destroy]()
 
     super[$destroy]()
 

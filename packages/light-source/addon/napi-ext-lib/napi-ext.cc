@@ -47,6 +47,20 @@ std::string ObjectGetStringOrEmpty(const Object& object, const std::string& key)
     return value.As<Napi::String>();
 }
 
+bool ObjectGetBooleanOrDefault(const Object& object, const std::string& key, bool defaultValue) {
+    if (!object.Has(key)) {
+        return defaultValue;
+    }
+
+    auto value{ object.Get(key) };
+
+    if (!value.IsBoolean()) {
+        return defaultValue;
+    }
+
+    return value.As<Boolean>();
+}
+
 std::string ToLowerCase(const Napi::String& text) {
     if (text.IsEmpty()) {
         return "";

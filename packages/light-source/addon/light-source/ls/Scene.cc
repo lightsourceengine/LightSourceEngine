@@ -14,6 +14,7 @@
 #include <ls/Format.h>
 #include <ls/Math.h>
 #include <ls/Style.h>
+#include <ls/RootSceneNode.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -41,31 +42,14 @@ void Scene::Constructor(const CallbackInfo& info) {
     auto env{ info.Env() };
     HandleScope scope(env);
 
-    this->stage = QueryInterface<Stage>(info[0]);
+    this->stage = QueryInterface<Stage>(info[0].As<Object>());
+    this->stage->Ref();
 
-    if (this->stage == nullptr) {
-        throw Error::New(env, "Invalid stage argument.");
-    }
+    this->adapter = QueryInterface<SceneAdapter>(info[1].As<Object>());
+    this->adapter->Ref();
 
-//    try {
-//        this->adapter = stage->GetStageAdapter()->CreateSceneAdapter({
-//            info[1].As<Number>().Int32Value(),
-//            info[2].As<Number>().Int32Value(),
-//            info[3].As<Number>().Int32Value(),
-//            info[4].As<Boolean>().Value(),
-//        });
-//    } catch (const std::exception& e) {
-//        this->stage = nullptr;
-//        throw Error::New(env, Format("Failed to create scene adapter: %s", e));
-//    }
-
-    try {
-        this->stage->Ref();
-    } catch (const Error& e) {
-        this->adapter.reset();
-        this->stage = nullptr;
-        throw e;
-    }
+    this->root = QueryInterface<SceneNode>(RootSceneNode::GetClass(env).New({ info.This() }));
+    this->root->Ref();
 }
 
 Function Scene::GetClass(Napi::Env env) {
@@ -75,13 +59,9 @@ Function Scene::GetClass(Napi::Env env) {
         HandleScope scope(env);
 
         constructor = DefineClass(env, "SceneBase", true, {
-            InstanceValue(SymbolFor(env, "width"), Number::New(env, 0), napi_writable),
-            InstanceValue(SymbolFor(env, "height"), Number::New(env, 0), napi_writable),
-            InstanceValue(SymbolFor(env, "fullscreen"), Boolean::New(env, true), napi_writable),
+            InstanceAccessor("root", &Scene::GetRoot, nullptr),
             InstanceAccessor("stage", &Scene::GetStage, nullptr),
-            InstanceAccessor(SymbolFor(env, "root"), &Scene::GetRoot, &Scene::SetRoot),
-            InstanceAccessor("title", &Scene::GetTitle, &Scene::SetTitle),
-            InstanceMethod("resize", &Scene::Resize),
+            InstanceAccessor(SymbolFor(env, "adapter"), &Scene::GetAdapter, nullptr),
             InstanceMethod(SymbolFor(env, "attach"), &Scene::Attach),
             InstanceMethod(SymbolFor(env, "detach"), &Scene::Detach),
             InstanceMethod(SymbolFor(env, "destroy"), &Scene::Destroy),
@@ -93,70 +73,19 @@ Function Scene::GetClass(Napi::Env env) {
 }
 
 void Scene::Attach(const CallbackInfo& info) {
-    if (this->isAttached) {
-        return;
-    }
-
-    auto env{ info.Env() };
-    HandleScope scope(env);
-
-    // TODO: exceptions?
-    this->adapter->Attach();
     this->imageStore.Attach(this);
-
-    auto self{ info.This().As<Object>() };
 
     this->width = this->adapter->GetWidth();
     this->height = this->adapter->GetHeight();
-
-    self.Set(SymbolFor(env, "width"), Number::New(env, this->width));
-    self.Set(SymbolFor(env, "height"), Number::New(env, this->height));
-    self.Set(SymbolFor(env, "fullscreen"), Boolean::New(env, this->adapter->GetFullscreen()));
 
     this->isAttached = true;
 }
 
 void Scene::Detach(const CallbackInfo& info) {
-    if (!this->isAttached) {
-        return;
-    }
-
     // TODO: exceptions?
 
     this->imageStore.Detach();
-
-    if (this->adapter) {
-        this->adapter->Detach();
-    }
-
     this->isAttached = false;
-}
-
-void Scene::Destroy(const CallbackInfo& info) {
-    if (this->root) {
-        this->root->Destroy();
-        this->root->Unref();
-        this->root = nullptr;
-    }
-
-    // TODO: image store destroy?
-
-    this->adapter.reset();
-
-    if (this->stage) {
-        this->stage->Unref();
-        this->stage = nullptr;
-    }
-
-    this->isAttached = false;
-}
-
-void Scene::Resize(const CallbackInfo& info) {
-    this->adapter->Resize(
-        info[0].As<Number>().Int32Value(),
-        info[1].As<Number>().Int32Value(),
-        info[2].As<Boolean>());
-    this->isSizeDirty = true;
 }
 
 void Scene::Frame(const CallbackInfo& info) {
@@ -186,9 +115,9 @@ void Scene::Frame(const CallbackInfo& info) {
 
     if (!this->afterLayoutRequests.empty()) {
         std::for_each(this->afterLayoutRequests.begin(), this->afterLayoutRequests.end(),
-                      [](SceneNode* node) {
-                          node->AfterLayout();
-                      });
+            [](SceneNode* node) {
+                node->AfterLayout();
+            });
 
         this->afterLayoutRequests.clear();
     }
@@ -221,38 +150,33 @@ void Scene::Frame(const CallbackInfo& info) {
     }
 }
 
-Value Scene::GetTitle(const CallbackInfo& info) {
-    return String::New(info.Env(), this->adapter->GetTitle());
-}
-
-Value Scene::GetStage(const CallbackInfo& info) {
-    return this->stage ? this->stage->Value() : info.Env().Null();
-}
-
 Napi::Value Scene::GetRoot(const Napi::CallbackInfo& info) {
     return this->root->Value();
 }
 
-void Scene::SetRoot(const Napi::CallbackInfo& info, const Napi::Value& value) {
+Napi::Value Scene::GetStage(const Napi::CallbackInfo& info) {
+    return this->stage->Value();
+}
+
+Napi::Value Scene::GetAdapter(const Napi::CallbackInfo &info) {
+    return this->adapter->Value();
+}
+
+void Scene::Destroy(const Napi::CallbackInfo &info) {
     if (this->root) {
+        this->root->Destroy();
         this->root->Unref();
         this->root = nullptr;
     }
 
-    if (value.IsObject()) {
-        this->root = QueryInterface<SceneNode>(value);
-
-        if (this->root) {
-            this->root->Ref();
-        }
+    if (this->stage) {
+        this->stage->Unref();
+        this->stage = nullptr;
     }
-}
 
-void Scene::SetTitle(const CallbackInfo& info, const Napi::Value& value) {
-    if (value.IsString()) {
-        this->adapter->SetTitle(value.As<String>());
-    } else {
-        this->adapter->SetTitle("");
+    if (this->adapter) {
+        this->adapter->Unref();
+        this->adapter = nullptr;
     }
 }
 

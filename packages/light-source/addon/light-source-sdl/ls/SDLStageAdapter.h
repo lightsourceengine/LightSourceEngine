@@ -48,7 +48,6 @@ class SDLStageAdapter : public Napi::SafeObjectWrap<SDLStageAdapter>, public Sta
     void Detach(const Napi::CallbackInfo& info) override;
     void Destroy(const Napi::CallbackInfo& info) override;
     Napi::Value ProcessEvents(const Napi::CallbackInfo& info) override;
-    Napi::Value CreateSceneAdapter(const Napi::CallbackInfo& info) override;
 
     Napi::Value AddGameControllerMappings(const Napi::CallbackInfo& info);
 

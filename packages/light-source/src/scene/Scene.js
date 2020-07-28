@@ -5,51 +5,40 @@
  */
 
 import { performance } from 'perf_hooks'
-import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode, RootSceneNode, ImageStoreView } from '../addon'
+import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode } from '../addon'
 import { EventEmitter } from '../util/EventEmitter'
 import { BlurEvent } from '../event/BlurEvent'
 import { FocusEvent } from '../event/FocusEvent'
 import { eventBubblePhase } from '../event/eventBubblePhase'
 import {
-  $width,
-  $height,
-  $fullscreen,
-  $stage,
-  $root,
   $destroy,
-  $displayIndex,
   $activeNode,
   $destroying,
   $events,
   $hasFocus,
   $emit,
-  $image,
-  $frame
+  $frame,
+  $attach,
+  $detach
 } from '../util/InternalSymbols'
 
 const { now } = performance
 const $frameListenersForeground = Symbol.for('frameListenersForeground')
 const $frameListenersBackground = Symbol.for('frameListenersBackground')
+const $adapter = Symbol.for('adapter')
 const sEmptyRafEntry = Object.freeze([0, null])
 let sFrameRequestId = 0
 
 export class Scene extends SceneBase {
-  constructor (stage, displayIndex, width, height, fullscreen) {
-    super(stage, displayIndex, width, height, fullscreen)
+  constructor (stage, adapter) {
+    super(stage, adapter)
 
-    if (!this.stage) {
-      throw Error('Failed to create Scene (native constructor).')
-    }
-
-    this[$displayIndex] = displayIndex
     this[$events] = new EventEmitter()
     this[$activeNode] = null
-    this[$image] = new ImageStoreView(this)
-    this[$root] = new RootSceneNode(this)
     this[$frameListenersForeground] = []
     this[$frameListenersBackground] = []
 
-    const { style } = this[$root]
+    const { style } = this.root
 
     style.position = 'absolute'
     style.left = 0
@@ -60,28 +49,28 @@ export class Scene extends SceneBase {
     style.backgroundColor = 'black'
   }
 
-  get root () {
-    return this[$root]
-  }
-
   get fullscreen () {
-    return this[$fullscreen]
+    return this[$adapter].fullscreen
   }
 
   get width () {
-    return this[$width]
+    return this[$adapter].fullscreen
   }
 
   get height () {
-    return this[$height]
+    return this[$adapter].height
   }
 
   get displayIndex () {
-    return this[$displayIndex]
+    return this[$adapter].displayIndex
   }
 
-  get image () {
-    return this[$image]
+  get title () {
+    return this[$adapter].title
+  }
+
+  set title (value) {
+    this[$adapter].title = value
   }
 
   on (id, listener) {
@@ -127,8 +116,8 @@ export class Scene extends SceneBase {
     return new (nodeClass.get(tag) || throwNodeClassNotFound(tag))(this)
   }
 
-  resize (width = 0, height = 0, fullscreen = true) {
-    super.resize(width, height, fullscreen)
+  resize (width, height, fullscreen = true) {
+    this[$adapter].resize(width, height, fullscreen)
   }
 
   requestAnimationFrame (callback) {
@@ -171,17 +160,27 @@ export class Scene extends SceneBase {
     this[$events].emit(event)
   }
 
+  [$attach] () {
+    this[$adapter].attach()
+
+    super[$attach]()
+  }
+
+  [$detach] () {
+    super[$detach]()
+
+    this[$adapter].detach()
+  }
+
   [$destroy] () {
+    super[$destroy]()
+
+    this[$activeNode] = null
+
     if (this[$events]) {
       this[$emit]({ type: $destroying })
       this[$events] = null
     }
-
-    super[$destroy]()
-
-    this[$stage] = null
-    this[$activeNode] = null
-    this[$image] = null
   }
 }
 
