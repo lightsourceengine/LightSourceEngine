@@ -14,6 +14,7 @@
 #include <ls/Style.h>
 #include <ls/BoxSceneNode.h>
 #include <ls/ImageSceneNode.h>
+#include <ls/LinkSceneNode.h>
 #include <ls/RootSceneNode.h>
 #include <ls/TextSceneNode.h>
 
@@ -44,6 +45,7 @@ Object Init(Env env, Object exports) {
     ExportClass(&exports, ls::Stage::GetClass(env));
     ExportClass(&exports, ls::BoxSceneNode::GetClass(env));
     ExportClass(&exports, ls::ImageSceneNode::GetClass(env));
+    ExportClass(&exports, ls::LinkSceneNode::GetClass(env));
     ExportClass(&exports, ls::TextSceneNode::GetClass(env));
     ExportClass(&exports, ls::RootSceneNode::GetClass(env));
 

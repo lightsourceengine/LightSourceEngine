@@ -27,6 +27,7 @@ export const FontStoreView = lib.FontStoreView || EmptyClass
 export const ImageStoreView = lib.ImageStoreView || EmptyClass
 export const BoxSceneNode = lib.BoxSceneNode || EmptyClass
 export const ImageSceneNode = lib.ImageSceneNode || EmptyClass
+export const LinkSceneNode = lib.LinkSceneNode || EmptyClass
 export const RootSceneNode = lib.RootSceneNode || EmptyClass
 export const TextSceneNode = lib.TextSceneNode || EmptyClass
 export const getSceneNodeInstanceCount = lib.getSceneNodeInstanceCount || emptyFunction

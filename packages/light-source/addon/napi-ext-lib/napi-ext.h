@@ -83,6 +83,27 @@ Napi::Value Call(const Napi::Env& env, const Napi::FunctionReference& func,
     const std::initializer_list<napi_value>& args = {});
 
 /**
+ * Safely assign a raw value to a FunctionReference.
+ *
+ * If value is null or undefined, the reference is reset. If the value strictly equals the references value, the
+ * reference is unchanged. If the value is a function, it is assigned to a reference. For all other inputs, the
+ * reference remains unchanged and false is returned (indicating a failed assignment.
+ */
+bool AssignFunctionReference(Napi::FunctionReference& ref, const Napi::Value& value);
+
+/**
+ * Create an ObjectReference for the lifetime of the application. The reference has a ref count of 1 and the
+ * destructor suppressed.
+ */
+Napi::ObjectReference Permanent(Napi::Object value);
+
+/**
+ * Create an FunctionReference for the lifetime of the application. The reference has a ref count of 1 and the
+ * destructor suppressed.
+ */
+Napi::FunctionReference Permanent(Napi::Function value);
+
+/**
  * Evaluate a javascript string.
  */
 Napi::Value RunScript(const Napi::Env& env, const std::string& script);

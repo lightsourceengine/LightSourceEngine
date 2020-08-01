@@ -142,10 +142,8 @@ Value ImageSceneNode::GetOnLoadCallback(const CallbackInfo& info) {
 }
 
 void ImageSceneNode::SetOnLoadCallback(const CallbackInfo& info, const Napi::Value& value) {
-    if (info[0].IsFunction()) {
-        this->onLoadCallback.Reset(info[0].As<Function>(), 1);
-    } else {
-        this->onLoadCallback.Reset();
+    if (!Napi::AssignFunctionReference(this->onLoadCallback, value)) {
+        throw Error::New(info.Env(), "Invalid assignment of onLoad.");
     }
 }
 
@@ -154,10 +152,8 @@ Value ImageSceneNode::GetOnErrorCallback(const CallbackInfo& info) {
 }
 
 void ImageSceneNode::SetOnErrorCallback(const CallbackInfo& info, const Napi::Value& value) {
-    if (info[0].IsFunction()) {
-        this->onErrorCallback.Reset(info[0].As<Function>(), 1);
-    } else {
-        this->onErrorCallback.Reset();
+    if (!Napi::AssignFunctionReference(this->onErrorCallback, value)) {
+        throw Error::New(info.Env(), "Invalid assignment of onError.");
     }
 }
 

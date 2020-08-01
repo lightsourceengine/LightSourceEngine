@@ -12,8 +12,8 @@ Symbol SymbolFor(const Napi::Env& env, const std::string& key) {
     static FunctionReference symbolFor;
 
     if (symbolFor.IsEmpty()) {
-        symbolFor.Reset(env.Global().Get("Symbol").As<Object>().Get("for").As<Function>(), 1);
-        symbolFor.SuppressDestruct();
+        HandleScope scope(env);
+        symbolFor = Napi::Permanent(env.Global().Get("Symbol").As<Object>().Get("for").As<Function>());
     }
 
     return symbolFor({ String::New(env, key) }).As<Symbol>();
@@ -71,12 +71,10 @@ std::string ToLowerCase(const Napi::String& text) {
     static FunctionReference toLowerCase;
 
     if (toLowerCase.IsEmpty()) {
-        toLowerCase.Reset(env.Global()
+        toLowerCase = Napi::Permanent(env.Global()
                 .Get("String").As<Function>()
                 .Get("prototype").As<Object>()
-                .Get("toLowerCase").As<Function>(),
-            1);
-        toLowerCase.SuppressDestruct();
+                .Get("toLowerCase").As<Function>());
     }
 
     return toLowerCase.Call(text, {}).As<String>();
@@ -92,12 +90,10 @@ std::string ToUpperCase(const Napi::String& text) {
     static FunctionReference toUpperCase;
 
     if (toUpperCase.IsEmpty()) {
-        toUpperCase.Reset(env.Global()
+        toUpperCase = Permanent(env.Global()
                 .Get("String").As<Function>()
                 .Get("prototype").As<Object>()
-                .Get("toUpperCase").As<Function>(),
-            1);
-        toUpperCase.SuppressDestruct();
+                .Get("toUpperCase").As<Function>());
     }
 
     return toUpperCase.Call(text, {}).As<String>();
@@ -111,6 +107,39 @@ void Call(const FunctionReference& func, const std::initializer_list<napi_value>
 
 Value Call(const Napi::Env& env, const FunctionReference& func, const std::initializer_list<napi_value>& args) {
     return func.IsEmpty() ? env.Undefined() : func.Call(args);
+}
+
+bool AssignFunctionReference(FunctionReference& ref, const Napi::Value& value, const char* invalidValueErrorMessage) {
+    auto env{ value.Env() };
+    HandleScope scope(env);
+
+    if (value.IsNull() || value.IsUndefined()) {
+        ref.Reset();
+    } else if (value.IsFunction()) {
+        if (ref.IsEmpty() || !value.StrictEquals(ref.Value())) {
+            ref.Reset(value.As<Function>(), 1);
+        }
+    } else {
+        return false;
+    }
+
+    return true;
+}
+
+ObjectReference Permanent(Object value) {
+    ObjectReference ref{ Persistent(value) };
+
+    ref.SuppressDestruct();
+
+    return ref;
+}
+
+FunctionReference Permanent(Function value) {
+    FunctionReference ref{ Persistent(value) };
+
+    ref.SuppressDestruct();
+
+    return ref;
 }
 
 Napi::Value RunScript(const Napi::Env& env, const String& script) {

@@ -5,7 +5,7 @@
  */
 
 import { performance } from 'perf_hooks'
-import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode } from '../addon'
+import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode, LinkSceneNode } from '../addon'
 import { EventEmitter } from '../util/EventEmitter'
 import { BlurEvent } from '../event/BlurEvent'
 import { FocusEvent } from '../event/FocusEvent'
@@ -185,9 +185,10 @@ export class Scene extends SceneBase {
 }
 
 const nodeClass = new Map([
-  ['img', ImageSceneNode],
-  ['div', BoxSceneNode],
   ['box', BoxSceneNode],
+  ['div', BoxSceneNode],
+  ['img', ImageSceneNode],
+  ['link', LinkSceneNode],
   ['text', TextSceneNode]
 ])
 

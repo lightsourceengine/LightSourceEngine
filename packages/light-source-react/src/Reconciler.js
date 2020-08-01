@@ -8,18 +8,17 @@ import { ReactReconciler } from 'light-source-reconciler'
 import { TextElement } from './TextElement'
 import { BoxElement } from './BoxElement'
 import { ImageElement } from './ImageElement'
+import { LinkElement } from './LinkElement'
 import { performance } from 'perf_hooks'
 
-const TEXT = 'text'
-const BOX = 'box'
-const DIV = 'div'
-const IMG = 'img'
+const kText = 'text'
 
-const ELEMENTS = {
-  [TEXT]: TextElement,
-  [BOX]: BoxElement,
-  [DIV]: BoxElement,
-  [IMG]: ImageElement
+const kElementNameToElementClass = {
+  box: BoxElement,
+  div: BoxElement,
+  img: ImageElement,
+  link: LinkElement,
+  [kText]: TextElement
 }
 
 const appendChild = (parentInstance, child) => {
@@ -45,7 +44,7 @@ export const Reconciler = (scene) => {
     appendInitialChild: appendChild,
 
     createInstance (type, props, rootContainerInstance, _currentHostContext, workInProgress) {
-      return new (ELEMENTS[type] || errorUnknownElementType(type))(scene.createNode(type), props)
+      return new (kElementNameToElementClass[type] || errorUnknownElementType(type))(scene.createNode(type), props)
     },
 
     createTextInstance (text, rootContainerInstance, internalInstanceHandle) {
@@ -85,7 +84,7 @@ export const Reconciler = (scene) => {
     },
 
     shouldSetTextContent (type, props) {
-      return type === TEXT
+      return type === kText
     },
 
     appendChild,

@@ -62,6 +62,7 @@
         "ls/BoxSceneNode.cc",
         "ls/ImageSceneNode.cc",
         "ls/TextSceneNode.cc",
+        "ls/LinkSceneNode.cc",
         "ls/Scene.cc",
         "ls/Stage.cc",
         "ls/bindings/GlobalFunctions.cc",
