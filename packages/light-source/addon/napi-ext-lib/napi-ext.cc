@@ -109,7 +109,7 @@ Value Call(const Napi::Env& env, const FunctionReference& func, const std::initi
     return func.IsEmpty() ? env.Undefined() : func.Call(args);
 }
 
-bool AssignFunctionReference(FunctionReference& ref, const Napi::Value& value, const char* invalidValueErrorMessage) {
+bool AssignFunctionReference(FunctionReference& ref, const Napi::Value& value) {
     auto env{ value.Env() };
     HandleScope scope(env);
 

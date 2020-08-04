@@ -16,6 +16,7 @@ namespace ls {
 
 class Scene;
 class SceneNode;
+class Stage;
 class Style;
 class Renderer;
 class CompositeContext;
@@ -41,6 +42,8 @@ class SceneNode : public virtual Napi::SafeObjectWrapBase {
 
     Napi::Value GetHidden(const Napi::CallbackInfo& info);
     void SetHidden(const Napi::CallbackInfo& info, const Napi::Value& value);
+
+    Stage* GetStage() const noexcept;
 
     void AppendChild(const Napi::CallbackInfo& info);
     void InsertBefore(const Napi::CallbackInfo& info);

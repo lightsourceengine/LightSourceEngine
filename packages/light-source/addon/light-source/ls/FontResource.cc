@@ -42,8 +42,9 @@ void FontResource::Load(Stage* stage) {
         return LoadFont({ path }, uri, index);
     };
 
-    auto callback = [this, LAMBDA_FUNCTION = __FUNCTION__](std::shared_ptr<Font>& font,
-            const std::exception_ptr& eptr) {
+    auto callback = [this](std::shared_ptr<Font>& font, const std::exception_ptr& eptr) {
+        constexpr auto LAMBDA_FUNCTION = "FontResourceLoadCallback";
+
         if (this->resourceState != ResourceStateLoading) {
             return;
         }

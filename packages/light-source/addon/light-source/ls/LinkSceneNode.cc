@@ -6,6 +6,8 @@
  */
 
 #include "LinkSceneNode.h"
+#include "Scene.h"
+#include "Stage.h"
 #include <ls/Log.h>
 
 using Napi::Error;
@@ -34,7 +36,8 @@ Function LinkSceneNode::GetClass(Napi::Env env) {
 
         constructor = DefineClass(
             env,
-            "LinkSceneNode", true,
+            "LinkSceneNode",
+            true,
             SceneNode::Extend<LinkSceneNode>(env, {
                 InstanceMethod("fetch", &LinkSceneNode::Fetch),
                 InstanceAccessor("rel", &LinkSceneNode::GetRel, &LinkSceneNode::SetRel),
@@ -62,7 +65,77 @@ void LinkSceneNode::Constructor(const Napi::CallbackInfo& info) {
 }
 
 void LinkSceneNode::Fetch(const Napi::CallbackInfo& info) {
-    // TODO: load font or image
+    if (this->href.empty() || this->resource) {
+        return;
+    }
+
+    auto env{ info.Env() };
+    auto resources{ this->GetStage()->GetResources() };
+
+    switch (this->category) {
+        case LinkCategoryImage:
+            this->resource = resources->AcquireImageData(this->href);
+            break;
+        case LinkCategoryFont:
+            this->resource = resources->AcquireFontFace(this->href);
+            break;
+    }
+
+    if (!this->resource) {
+        LOG_WARN("Failed to acquire resource: %s", this->href);
+
+        return;
+    }
+
+    auto listener{ [this](Res::Owner owner, Res* res) { this->ResourceListener(owner, res); } };
+
+    switch (this->resource->GetState()) {
+        case Res::State::Init:
+            this->resource->AddListener(this, listener);
+            this->resource->Load(env);
+            break;
+        case Res::State::Loading:
+            this->resource->AddListener(this, listener);
+            break;
+        case Res::State::Ready:
+        case Res::State::Error:
+            listener(this, this->resource);
+            break;
+    }
+}
+
+void LinkSceneNode::ResourceListener(Res::Owner owner, Res* res) {
+    if (this != owner || this->resource != res) {
+        LOG_WARN("Invalid owner or resource: %s", this->href);
+        return;
+    }
+
+    Napi::HandleScope scope(this->Env());
+
+    switch (res->GetState()) {
+        case Res::Ready:
+            if (!this->onLoadCallback.IsEmpty()) {
+                try {
+                    this->onLoadCallback.Call({this->Value(), res->GetSummary(this->Env())});
+                } catch (std::exception& e) {
+                    LOG_WARN("onLoad unhandled exception: %s", e);
+                }
+            }
+            break;
+        case Res::Error:
+            if (!this->onErrorCallback.IsEmpty()) {
+                try {
+                    this->onErrorCallback.Call({this->Value(), res->GetErrorMessage(this->Env())});
+                } catch (std::exception& e) {
+                    LOG_WARN("onError unhandled exception: %s", e);
+                }
+            }
+            break;
+        default:
+            break;
+    }
+
+    res->RemoveListener(owner);
 }
 
 Napi::Value LinkSceneNode::GetRel(const Napi::CallbackInfo& info) {
@@ -94,20 +167,26 @@ Napi::Value LinkSceneNode::GetAs(const Napi::CallbackInfo& info) {
 
 void LinkSceneNode::SetAs(const Napi::CallbackInfo& info, const Napi::Value& value) {
     auto env{ info.Env() };
+    LinkCategory newCategory;
 
     if (value.IsString()) {
         HandleScope scope(env);
         auto enumValue{ LinkSceneNode::categoryMap.Value().Get(value) };
 
         if (enumValue.IsNumber()) {
-            this->category = static_cast<LinkCategory>(enumValue.As<Number>().Int32Value());
+            newCategory = static_cast<LinkCategory>(enumValue.As<Number>().Int32Value());
         } else {
             throw Error::New(env, "Invalid 'as' value.");
         }
     } else if (value.IsUndefined()) {
-        this->category = LinkCategoryImage;
+        newCategory = LinkCategoryImage;
     } else {
         throw Error::New(env, "Invalid 'as' value type.");
+    }
+
+    if (newCategory != this->category) {
+        this->category = newCategory;
+        this->ClearResource();
     }
 }
 
@@ -119,9 +198,15 @@ void LinkSceneNode::SetHref(const Napi::CallbackInfo& info, const Napi::Value& v
     auto env{ info.Env() };
 
     if (value.IsString()) {
-        this->href = value.As<String>();
+        auto newHref{ value.As<String>().Utf8Value() };
+
+        if (newHref != this->href) {
+            this->href = newHref;
+            this->ClearResource();
+        }
     } else if (value.IsNull() || value.IsUndefined()) {
         this->href.clear();
+        this->ClearResource();
     } else {
         throw Error::New(env, "Invalid 'href' value type.");
     }
@@ -154,8 +239,17 @@ void LinkSceneNode::AppendChild(SceneNode* child) {
 void LinkSceneNode::DestroyRecursive() {
     this->onLoadCallback.Reset();
     this->onErrorCallback.Reset();
+    this->ClearResource();
 
     SceneNode::DestroyRecursive();
+}
+
+void LinkSceneNode::ClearResource() {
+    if (this->resource) {
+        this->resource->RemoveListener(this);
+        this->GetStage()->GetResources()->ReleaseResource(this->resource, true);
+        this->resource = nullptr;
+    }
 }
 
 ObjectReference CreateMap(Napi::Env env, const std::map <uint32_t, std::string>& entries) {

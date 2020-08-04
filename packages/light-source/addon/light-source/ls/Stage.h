@@ -10,6 +10,7 @@
 #include "FontStore.h"
 #include "Executor.h"
 #include "TaskQueue.h"
+#include "Resources.h"
 
 namespace ls {
 
@@ -24,6 +25,8 @@ class Stage : public Napi::SafeObjectWrap<Stage> {
     FontStore* GetFontStore() const noexcept { return &this->fontStore; }
     TaskQueue* GetTaskQueue() const noexcept { return &this->taskQueue; }
     Executor* GetExecutor() const noexcept { return &this->executor; }
+    Resources* GetResources() const noexcept { return &this->resources; }
+
     const std::string& GetResourcePath() const noexcept { return this->resourceDomainPath; }
 
  public:
@@ -39,6 +42,7 @@ class Stage : public Napi::SafeObjectWrap<Stage> {
     mutable FontStore fontStore;
     mutable TaskQueue taskQueue;
     mutable Executor executor;
+    mutable Resources resources;
     std::string resourceDomainPath;
 
     friend Napi::SafeObjectWrap<Stage>;

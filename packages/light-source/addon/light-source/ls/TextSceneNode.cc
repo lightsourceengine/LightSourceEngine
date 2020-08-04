@@ -52,7 +52,8 @@ void TextSceneNode::Constructor(const Napi::CallbackInfo& info) {
                 try {
                     return self->Measure(width, widthMode, height, heightMode);
                 } catch (const std::exception& e) {
-                    LOG_ERROR("text measure: %s", e);
+                    constexpr auto LAMBDA_FUNCTION = "YogaMeasureCallback";
+                    LOG_ERROR_LAMBDA("text measure: %s", e);
                 }
             }
 

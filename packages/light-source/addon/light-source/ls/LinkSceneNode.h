@@ -9,6 +9,7 @@
 
 #include <napi-ext.h>
 #include "SceneNode.h"
+#include "Resources.h"
 
 namespace ls {
 
@@ -52,6 +53,8 @@ class LinkSceneNode : public Napi::SafeObjectWrap<LinkSceneNode>, public SceneNo
  private:
     void AppendChild(SceneNode* child) override;
     void DestroyRecursive() override;
+    void ClearResource();
+    void ResourceListener(Res::Owner owner, Res* res);
 
  private:
     static Napi::FunctionReference constructor;
@@ -60,9 +63,11 @@ class LinkSceneNode : public Napi::SafeObjectWrap<LinkSceneNode>, public SceneNo
 
     LinkRelationship relationship{ LinkRelationshipPreload };
     LinkCategory category{ LinkCategoryImage };
-    std::string href;
+    std::string href{};
     Napi::FunctionReference onLoadCallback;
     Napi::FunctionReference onErrorCallback;
+
+    Res* resource{};
 
     friend Napi::SafeObjectWrap<LinkSceneNode>;
 };

@@ -107,7 +107,9 @@ void ImageResource::Load() {
         return DecodeImage(uri, extensions, { resourcePath }, textureFormat);
     };
 
-    auto callback = [this, LAMBDA_FUNCTION = __FUNCTION__](Surface& surface, const std::exception_ptr& eptr) {
+    auto callback = [this](Surface& surface, const std::exception_ptr& eptr) {
+        constexpr auto LAMBDA_FUNCTION = "FontResourceLoadCallback";
+
         if (eptr) {
             this->width = this->height = 0;
             this->aspectRatio = 0;

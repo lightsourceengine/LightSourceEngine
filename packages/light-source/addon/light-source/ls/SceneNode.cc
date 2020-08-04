@@ -160,6 +160,10 @@ void SceneNode::SetParent(SceneNode* newParent) {
     }
 }
 
+Stage* SceneNode::GetStage() const noexcept {
+    return this->scene ? this->scene->GetStage() : nullptr;
+}
+
 void SceneNode::AppendChild(const CallbackInfo& info) {
     auto child{QueryInterface<SceneNode>(info[0]) };
 
