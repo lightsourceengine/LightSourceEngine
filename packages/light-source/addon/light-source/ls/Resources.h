@@ -101,7 +101,7 @@ class Resources {
  private:
     template <typename T>
     struct ResourceRef {
-        ResourceRef() noexcept = default;
+        ResourceRef() noexcept : refs(0), resource(nullptr) {}
         explicit ResourceRef(std::unique_ptr<T>&& p) noexcept : refs(1), resource(std::move(p)) {}
         ResourceRef(ResourceRef<T>&& other) noexcept : refs(other.refs), resource(std::move(other.resource)) {}
 

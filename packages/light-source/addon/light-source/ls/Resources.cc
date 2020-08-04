@@ -6,6 +6,7 @@
  */
 
 #include "Resources.h"
+#include <cassert>
 #include "DecodeImage.h"
 #include "DecodeFont.h"
 #include <ls/Log.h>
