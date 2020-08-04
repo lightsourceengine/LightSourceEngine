@@ -55,39 +55,6 @@ napi_value StaticVoidMethodBridge(napi_env env, napi_callback_info info) {
     return nullptr;
 }
 
-napi_value StaticGetterBridge(napi_env env, napi_callback_info info) {
-    const CallbackInfo callbackInfo(env, info);
-    auto data{ static_cast<detail::StaticProperty*>(callbackInfo.Data()) };
-
-#ifdef NAPI_CPP_EXCEPTIONS
-    try {
-        return data->getter(callbackInfo);
-    } catch (const Error& e) {
-        e.ThrowAsJavaScriptException();
-        return nullptr;
-    }
-#else
-    return data->getter(callbackInfo);
-#endif
-}
-
-napi_value StaticSetterBridge(napi_env env, napi_callback_info info) {
-    const CallbackInfo callbackInfo(env, info);
-    auto data{ static_cast<detail::StaticProperty*>(callbackInfo.Data()) };
-
-#ifdef NAPI_CPP_EXCEPTIONS
-    try {
-        data->setter(callbackInfo, callbackInfo[0]);
-    } catch (const Error& e) {
-        e.ThrowAsJavaScriptException();
-    }
-#else
-    data->setter(callbackInfo, callbackInfo[0]);
-#endif
-
-    return nullptr;
-}
-
 FunctionReference DefineClass(Napi::Env env, const char* utf8name, bool permanent,
     std::vector<napi_property_descriptor>& properties, napi_callback constructorBridge) {
     napi_status status;

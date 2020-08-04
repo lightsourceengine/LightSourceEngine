@@ -102,10 +102,40 @@ class SafeObjectWrap : virtual public SafeObjectWrapBase {
     virtual void Constructor(const CallbackInfo& info) {}
 
  private:
-    // Connectors between the napi C API and the SafeObjectWrap instance.
+    struct MethodEntry {
+        MethodEntry() {}
+        MethodEntry(ObjectWrapInstanceMethod<T> method) : instanceMethod(method) {}
+        MethodEntry(ObjectWrapInstanceVoidMethod<T> method) : instanceVoidMethod(method) {}
+        MethodEntry(ObjectWrapInstanceSetter<T> method) : instanceSetterMethod(method) {}
+        MethodEntry(ObjectWrapStaticGetter method) : staticGetterMethod(method) {}
+        MethodEntry(ObjectWrapStaticSetter method) : staticSetterMethod(method) {}
+
+        union {
+            ObjectWrapInstanceMethod<T> instanceMethod;
+            ObjectWrapInstanceVoidMethod<T> instanceVoidMethod;
+            ObjectWrapInstanceSetter<T> instanceSetterMethod;
+
+            ObjectWrapStaticGetter staticGetterMethod;
+            ObjectWrapStaticSetter staticSetterMethod;
+            // Note: static methods are put directly into the data field, as they do not need state.
+        };
+    };
+
+    static std::vector<MethodEntry> vtable;
+
+ private:
     static napi_value ConstructorBridge(napi_env env, napi_callback_info info);
-    static napi_value InstanceGetterBridge(napi_env env, napi_callback_info info);
+    static napi_value InstanceMethodOrGetterBridge(napi_env env, napi_callback_info info);
+    static napi_value InstanceVoidMethodBridge(napi_env env, napi_callback_info info);
     static napi_value InstanceSetterBridge(napi_env env, napi_callback_info info);
+    static napi_value StaticGetterBridge(napi_env env, napi_callback_info info);
+    static napi_value StaticSetterBridge(napi_env env, napi_callback_info info);
+    static void* AppendVTableMethod(MethodEntry&& method) {
+        vtable.emplace_back(method);
+        // return index of new vtable method, but wrapped as a void* to store in the data field
+        return reinterpret_cast<void*>(static_cast<intptr_t>(vtable.size() - 1));
+    }
+    static intptr_t UnwrapVTableIndex(void* data) noexcept { return reinterpret_cast<intptr_t>(data); }
 };
 
 /**
@@ -152,8 +182,6 @@ napi_value StaticMethodBridge(napi_env env, napi_callback_info info);
 napi_value StaticVoidMethodBridge(napi_env env, napi_callback_info info);
 FunctionReference DefineClass(Napi::Env env, const char* utf8name, bool permanent,
     std::vector<napi_property_descriptor>& properties, napi_callback constructorBridge);
-napi_value StaticGetterBridge(napi_env env, napi_callback_info info);
-napi_value StaticSetterBridge(napi_env env, napi_callback_info info);
 bool EnsureConstructCall(napi_env env, napi_callback_info info) noexcept;
 bool EnsureNativeAlloc(napi_env env, bool allocated) noexcept;
 
@@ -169,6 +197,9 @@ std::vector<napi_property_descriptor> TransformPropertyDescriptor(const Iterable
 }
 
 } // namespace detail
+
+template <typename T>
+std::vector<typename SafeObjectWrap<T>::MethodEntry> SafeObjectWrap<T>::vtable(8);
 
 template <typename T>
 SafeObjectWrap<T>::SafeObjectWrap(const CallbackInfo &info) {
@@ -232,49 +263,99 @@ I* QueryInterface(Napi::Value value) noexcept {
 }
 
 template <typename T>
-napi_value SafeObjectWrap<T>::InstanceGetterBridge(napi_env env, napi_callback_info info) {
+napi_value SafeObjectWrap<T>::StaticGetterBridge(napi_env env, napi_callback_info info) {
     const CallbackInfo callbackInfo(env, info);
-    auto data{ static_cast<detail::InstanceProperty<T>*>(callbackInfo.Data()) };
-    auto instance{QueryInterface<T>(callbackInfo.This()) };
-
-    if (!instance) {
-        return nullptr;
-    }
+    auto vtableIndex{ UnwrapVTableIndex(callbackInfo.Data()) };
 
 #ifdef NAPI_CPP_EXCEPTIONS
     try {
-        return data->getter(instance, callbackInfo);
+#endif
+        return vtable[vtableIndex].staticGetterMethod(callbackInfo);
+
+#ifdef NAPI_CPP_EXCEPTIONS
     } catch (const Error& e) {
         e.ThrowAsJavaScriptException();
         return nullptr;
     }
-#else
-    return data->getter(instance, callbackInfo);
+#endif
+}
+
+template <typename T>
+napi_value SafeObjectWrap<T>::StaticSetterBridge(napi_env env, napi_callback_info info) {
+    const CallbackInfo callbackInfo(env, info);
+    auto vtableIndex{ UnwrapVTableIndex(callbackInfo.Data()) };
+
+#ifdef NAPI_CPP_EXCEPTIONS
+    try {
+#endif
+        vtable[vtableIndex + 1].staticSetterMethod(callbackInfo, callbackInfo[0]);
+        return nullptr;
+
+#ifdef NAPI_CPP_EXCEPTIONS
+    } catch (const Error& e) {
+        e.ThrowAsJavaScriptException();
+        return nullptr;
+    }
+#endif
+}
+
+template <typename T>
+napi_value SafeObjectWrap<T>::InstanceMethodOrGetterBridge(napi_env env, napi_callback_info info) {
+    const CallbackInfo callbackInfo(env, info);
+    auto vtableIndex{ UnwrapVTableIndex(callbackInfo.Data()) };
+    auto instance{ QueryInterface<T>(callbackInfo.This()) };
+
+#ifdef NAPI_CPP_EXCEPTIONS
+    try {
+#endif
+        return (instance->*(vtable[vtableIndex].instanceMethod))(callbackInfo);
+
+#ifdef NAPI_CPP_EXCEPTIONS
+    } catch (const Error& e) {
+        e.ThrowAsJavaScriptException();
+        return nullptr;
+    }
+#endif
+}
+
+template <typename T>
+napi_value SafeObjectWrap<T>::InstanceVoidMethodBridge(napi_env env, napi_callback_info info) {
+    const CallbackInfo callbackInfo(env, info);
+    auto vtableIndex{ UnwrapVTableIndex(callbackInfo.Data()) };
+    auto instance{ QueryInterface<T>(callbackInfo.This()) };
+
+#ifdef NAPI_CPP_EXCEPTIONS
+    try {
+#endif
+        (instance->*(vtable[vtableIndex].instanceVoidMethod))(callbackInfo);
+        return nullptr;
+
+#ifdef NAPI_CPP_EXCEPTIONS
+    } catch (const Error& e) {
+        e.ThrowAsJavaScriptException();
+        return nullptr;
+    }
 #endif
 }
 
 template <typename T>
 napi_value SafeObjectWrap<T>::InstanceSetterBridge(napi_env env, napi_callback_info info) {
     const CallbackInfo callbackInfo(env, info);
-    auto property{ static_cast<detail::InstanceProperty<T>*>(callbackInfo.Data()) };
-    auto instance{QueryInterface<T>(callbackInfo.This()) };
-
-    if (!instance) {
-        return nullptr;
-    }
+    auto vtableIndex{ UnwrapVTableIndex(callbackInfo.Data()) + 1 };
+    auto instance{ QueryInterface<T>(callbackInfo.This()) };
 
 #ifdef NAPI_CPP_EXCEPTIONS
     try {
-        property->setter(instance, callbackInfo, callbackInfo[0]);
+#endif
+        (instance->*(vtable[vtableIndex].instanceSetterMethod))(callbackInfo, callbackInfo[0]);
+        return nullptr;
+
+#ifdef NAPI_CPP_EXCEPTIONS
     } catch (const Error& e) {
         e.ThrowAsJavaScriptException();
         return nullptr;
     }
-#else
-    property->setter(instance, callbackInfo, callbackInfo[0]);
 #endif
-
-    return nullptr;
 }
 
 template <typename T>
@@ -336,28 +417,32 @@ PropertyDescriptor SafeObjectWrap<T>::StaticAccessor(const PropertyName& id, Obj
         id.utf8Name,
         id.name,
         nullptr,
-        detail::StaticMethodBridge,
+        StaticGetterBridge,
         nullptr,
         nullptr,
         static_cast<napi_property_attributes>(attributes | napi_static),
-        reinterpret_cast<void*>(getter)
+        AppendVTableMethod({ getter })
     });
 }
 
 template <typename T>
 PropertyDescriptor SafeObjectWrap<T>::StaticAccessor(const PropertyName& id, ObjectWrapStaticMethod getter,
         ObjectWrapStaticSetter setter, napi_property_attributes attributes) noexcept {
-    auto data{ std::make_unique<detail::StaticProperty>(getter, setter) };
+    // Note: Setter stored immediately after getter. Store the index of the getter in data. StaticSetterBridge
+    // will +1 on the stored index to access the setter method pointer.
+    auto index{ AppendVTableMethod({ getter }) };
+
+    AppendVTableMethod({ setter });
 
     return PropertyDescriptor({
         id.utf8Name,
         id.name,
         nullptr,
-        detail::StaticGetterBridge,
-        detail::StaticSetterBridge,
+        StaticGetterBridge,
+        StaticSetterBridge,
         nullptr,
         static_cast<napi_property_attributes>(attributes | napi_static),
-        static_cast<void*>(data.release())
+        index
     });
 }
 
@@ -379,66 +464,45 @@ PropertyDescriptor SafeObjectWrap<T>::InstanceValue(const PropertyName& id, Napi
 template <typename T>
 PropertyDescriptor SafeObjectWrap<T>::InstanceMethod(const PropertyName& id, ObjectWrapInstanceMethod<T> method,
                                                      napi_property_attributes attributes) noexcept {
-    auto data{ std::make_unique<detail::InstanceProperty<T>>(
-        [method](T* instance, const CallbackInfo& info) -> napi_value {
-            return (instance->*method)(info);
-        },
-        nullptr)
-    };
-
     return PropertyDescriptor({
         id.utf8Name,
         id.name,
-        InstanceGetterBridge,
+        InstanceMethodOrGetterBridge,
         nullptr,
         nullptr,
         nullptr,
         attributes,
-        static_cast<void*>(data.release())
+        AppendVTableMethod({ method })
     });
 }
 
 template <typename T>
 PropertyDescriptor SafeObjectWrap<T>::InstanceMethod(const PropertyName& id,
         ObjectWrapInstanceVoidMethod<T> method, napi_property_attributes attributes) noexcept {
-    auto data{ std::make_unique<detail::InstanceProperty<T>>(
-        [method](T* instance, const CallbackInfo& info) -> napi_value {
-            (instance->*method)(info);
-            return nullptr;
-        },
-        nullptr)
-    };
-
     return PropertyDescriptor({
         id.utf8Name,
         id.name,
-        InstanceGetterBridge,
+        InstanceVoidMethodBridge,
         nullptr,
         nullptr,
         nullptr,
         attributes,
-        static_cast<void*>(data.release())
+        AppendVTableMethod({ method })
     });
 }
 
 template <typename T>
 PropertyDescriptor SafeObjectWrap<T>::InstanceAccessor(const PropertyName& id,
         ObjectWrapInstanceMethod<T> getter, napi_property_attributes attributes) noexcept {
-    auto data = std::make_unique<detail::InstanceProperty<T>>(
-        [getter](T* instance, const CallbackInfo& info) -> napi_value {
-            return (instance->*getter)(info);
-        },
-        nullptr);
-
     return PropertyDescriptor({
         id.utf8Name,
         id.name,
         nullptr,
-        InstanceGetterBridge,
+        InstanceMethodOrGetterBridge,
         nullptr,
         nullptr,
         attributes,
-        static_cast<void*>(data.release())
+        AppendVTableMethod({ getter })
     });
 }
 
@@ -448,23 +512,21 @@ PropertyDescriptor SafeObjectWrap<T>::InstanceAccessor(
         ObjectWrapInstanceGetter<T> getter,
         ObjectWrapInstanceSetter<T> setter,
         napi_property_attributes attributes) noexcept {
-    auto data = std::make_unique<detail::InstanceProperty<T>>(
-        [getter](T* instance, const CallbackInfo& info) -> napi_value {
-            return (instance->*getter)(info);
-        },
-        [setter](T* instance, const CallbackInfo& info, const Napi::Value& value) {
-            (instance->*setter)(info, value);
-        });
+    // Note: Setter stored immediately after getter. Store the index of the getter in data. InstanceSetterBridge
+    // will +1 on the stored index to access the setter method pointer.
+    auto index{ AppendVTableMethod({ getter }) };
+
+    AppendVTableMethod({ setter });
 
     return PropertyDescriptor({
         id.utf8Name,
         id.name,
         nullptr,
-        InstanceGetterBridge,
+        InstanceMethodOrGetterBridge,
         InstanceSetterBridge,
         nullptr,
         attributes,
-        static_cast<void*>(data.release())
+        index
     });
 }
 
