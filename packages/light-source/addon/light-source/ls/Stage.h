@@ -14,9 +14,6 @@
 
 namespace ls {
 
-class StageAdapter;
-class AudioAdapter;
-
 class Stage : public Napi::SafeObjectWrap<Stage> {
  public:
     explicit Stage(const Napi::CallbackInfo& info);

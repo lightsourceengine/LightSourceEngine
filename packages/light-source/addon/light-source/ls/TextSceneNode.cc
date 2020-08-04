@@ -32,8 +32,8 @@ using Napi::Value;
 
 namespace ls {
 
-static int32_t GetMaxLines(Style* style) noexcept;
-static std::string TextTransform(const Napi::Env& env, const StyleTextTransform transform, const std::string& text);
+//static int32_t GetMaxLines(Style* style) noexcept;
+//static std::string TextTransform(const Napi::Env& env, const StyleTextTransform transform, const std::string& text);
 
 TextSceneNode::TextSceneNode(const CallbackInfo& info) : SafeObjectWrap<TextSceneNode>(info), SceneNode(info) {
 }
@@ -138,84 +138,84 @@ void TextSceneNode::AfterLayout() {
 }
 
 void TextSceneNode::Paint(PaintContext* paint) {
-    const auto boxStyle{ this->GetStyleOrEmpty() };
-
-    if (!this->font || !this->font->IsReady() || this->layout.IsEmpty() || boxStyle->color.empty()) {
-        return;
-    }
-
-    const auto box{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
-    const auto w{ box.width };
-    const auto h{ box.height };
-
-    // TODO: if layout dimensions are animated, this will create and recreate the texture every frame!
-    // TODO: if no border, color can be a composite field and the layer can be sized to the text layout dimensions,
-    //       rather than the (probably) much larger box dimensions.
-    if (!this->InitLayerSoftwareRenderTarget(paint->renderer, static_cast<int32_t>(w), static_cast<int32_t>(h))) {
-        return;
-    }
-
-    const auto surface{ this->layer->Lock() };
-    // TODO: do not allocate on every repaint!
-    // TODO: texture format -> ctx format
-    const auto inner{ YGNodeLayoutGetInnerRect(this->ygNode) };
-    const auto fontSize{ ComputeFontSize(boxStyle->fontSize, this->scene) };
-    const auto lineHeight{ ComputeLineHeight(boxStyle->lineHeight, this->scene,
-        this->font->GetFont()->LineHeight(fontSize)) };
-    const auto textAlign{ boxStyle->textAlign };
-    auto xpos{ 0.f };
-    auto ypos{ inner.y + this->font->GetFont()->Ascent(fontSize) };
-    const auto hasBorderColor{ !boxStyle->borderColor.empty() };
-    auto ctx{ paint->Context2D(surface) };
-
-    ctx_set_font(ctx, this->font->GetId().c_str());
-    ctx_set_font_size(ctx, fontSize);
-
-    if (hasBorderColor) {
-        const auto color{ boxStyle->color.value };
-        ctx_set_rgba_u8(ctx, GetR(color), GetG(color), GetB(color), GetA(color));
-    } else {
-        ctx_set_rgba_u8(ctx, GetR(ColorWhite), GetG(ColorWhite), GetB(ColorWhite), GetA(ColorWhite));
-    }
-
-    surface.FillTransparent();
-
-    for (auto& textLine : this->layout.lines) {
-        switch (textAlign) {
-            case StyleTextAlignLeft:
-                xpos = inner.x;
-                break;
-            case StyleTextAlignCenter:
-                xpos = inner.x + ((inner.width - textLine.width) / 2.f);
-                break;
-            case StyleTextAlignRight:
-                xpos = inner.x + inner.width - textLine.width;
-                break;
-        }
-
-        ctx_move_to(ctx, xpos, ypos);
-        ctx_text_w(ctx, textLine.chars.data(), textLine.chars.size());
-
-        ypos += lineHeight;
-    }
-
-    if (hasBorderColor) {
-        const auto borderColor{ boxStyle->borderColor.value };
-        const auto border{ YGNodeLayoutGetBorderRect(this->ygNode) };
-
-        ctx_set_rgba_u8(ctx, GetR(borderColor), GetG(borderColor), GetB(borderColor), GetA(borderColor));
-        ctx_rectangle(ctx, 0, 0, w, border.top);
-        ctx_fill(ctx);
-        ctx_rectangle(ctx, 0, 0 + h - border.bottom, w, border.bottom);
-        ctx_fill(ctx);
-        ctx_rectangle(ctx, 0, border.top, border.left, h - border.top - border.bottom);
-        ctx_fill(ctx);
-        // TODO: right side rendering is off by one (edge clipping bug?)
-        ctx_rectangle(ctx, w - border.right - 1.f, 0 + border.top, border.right, h - border.top - border.bottom);
-        ctx_fill(ctx);
-    }
-
-    this->QueueComposite();
+//    const auto boxStyle{ this->GetStyleOrEmpty() };
+//
+//    if (!this->font || !this->font->IsReady() || this->layout.IsEmpty() || boxStyle->color.empty()) {
+//        return;
+//    }
+//
+//    const auto box{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
+//    const auto w{ box.width };
+//    const auto h{ box.height };
+//
+//    // TODO: if layout dimensions are animated, this will create and recreate the texture every frame!
+//    // TODO: if no border, color can be a composite field and the layer can be sized to the text layout dimensions,
+//    //       rather than the (probably) much larger box dimensions.
+//    if (!this->InitLayerSoftwareRenderTarget(paint->renderer, static_cast<int32_t>(w), static_cast<int32_t>(h))) {
+//        return;
+//    }
+//
+//    const auto surface{ this->layer->Lock() };
+//    // TODO: do not allocate on every repaint!
+//    // TODO: texture format -> ctx format
+//    const auto inner{ YGNodeLayoutGetInnerRect(this->ygNode) };
+//    const auto fontSize{ ComputeFontSize(boxStyle->fontSize, this->scene) };
+//    const auto lineHeight{ ComputeLineHeight(boxStyle->lineHeight, this->scene,
+//        this->font->GetFont()->LineHeight(fontSize)) };
+//    const auto textAlign{ boxStyle->textAlign };
+//    auto xpos{ 0.f };
+//    auto ypos{ inner.y + this->font->GetFont()->Ascent(fontSize) };
+//    const auto hasBorderColor{ !boxStyle->borderColor.empty() };
+//    auto ctx{ paint->Context2D(surface) };
+//
+//    ctx_set_font(ctx, this->font->GetId().c_str());
+//    ctx_set_font_size(ctx, fontSize);
+//
+//    if (hasBorderColor) {
+//        const auto color{ boxStyle->color.value };
+//        ctx_set_rgba_u8(ctx, GetR(color), GetG(color), GetB(color), GetA(color));
+//    } else {
+//        ctx_set_rgba_u8(ctx, GetR(ColorWhite), GetG(ColorWhite), GetB(ColorWhite), GetA(ColorWhite));
+//    }
+//
+//    surface.FillTransparent();
+//
+//    for (auto& textLine : this->layout.lines) {
+//        switch (textAlign) {
+//            case StyleTextAlignLeft:
+//                xpos = inner.x;
+//                break;
+//            case StyleTextAlignCenter:
+//                xpos = inner.x + ((inner.width - textLine.width) / 2.f);
+//                break;
+//            case StyleTextAlignRight:
+//                xpos = inner.x + inner.width - textLine.width;
+//                break;
+//        }
+//
+//        ctx_move_to(ctx, xpos, ypos);
+//        ctx_text_w(ctx, textLine.chars.data(), textLine.chars.size());
+//
+//        ypos += lineHeight;
+//    }
+//
+//    if (hasBorderColor) {
+//        const auto borderColor{ boxStyle->borderColor.value };
+//        const auto border{ YGNodeLayoutGetBorderRect(this->ygNode) };
+//
+//        ctx_set_rgba_u8(ctx, GetR(borderColor), GetG(borderColor), GetB(borderColor), GetA(borderColor));
+//        ctx_rectangle(ctx, 0, 0, w, border.top);
+//        ctx_fill(ctx);
+//        ctx_rectangle(ctx, 0, 0 + h - border.bottom, w, border.bottom);
+//        ctx_fill(ctx);
+//        ctx_rectangle(ctx, 0, border.top, border.left, h - border.top - border.bottom);
+//        ctx_fill(ctx);
+//        // TODO: right side rendering is off by one (edge clipping bug?)
+//        ctx_rectangle(ctx, w - border.right - 1.f, 0 + border.top, border.right, h - border.top - border.bottom);
+//        ctx_fill(ctx);
+//    }
+//
+//    this->QueueComposite();
 }
 
 void TextSceneNode::Composite(CompositeContext* composite) {
@@ -270,42 +270,48 @@ bool TextSceneNode::SetFont(Style* style) {
     auto dirty{ false };
 
     if (!style || style->fontFamily.empty() || style->fontSize.empty()) {
-        dirty = !!this->font;
-        this->ClearFont();
+        if (this->fontFace) {
+            dirty = true;
+        }
+
+        this->ClearFontFaceResource();
 
         return dirty;
     }
 
-    if (this->font && this->font->IsSame(style->fontFamily, style->fontStyle, style->fontWeight)) {
+    if (FontFace::Equals(this->fontFace, style->fontFamily, style->fontStyle, style->fontWeight)) {
         return false;
     }
 
-    this->ClearFont();
-
-    this->font = this->scene->GetStage()->GetFontStore()->FindFont(
+    this->ClearFontFaceResource();
+    this->fontFace = this->GetStage()->GetResources()->AcquireFontFaceByStyle(
         style->fontFamily, style->fontStyle, style->fontWeight);
 
-    if (!this->font) {
+    if (!this->fontFace) {
         return true;
     }
 
-    switch (this->font->GetState()) {
-        case ResourceStateReady:
+    switch (this->fontFace->GetState()) {
+        case Res::State::Ready:
             dirty = true;
             break;
-        case ResourceStateError:
-            this->font = nullptr;
-            dirty = true;
+        case Res::State::Loading:
+            this->fontFace->AddListener(this, [this](Res::Owner owner, Res* res) {
+              if (this != owner || this->fontFace != res) {
+                  return;
+              }
+
+              if (this->fontFace->GetState() == Res::State::Ready) {
+                  this->QueueTextLayout();
+                  this->fontFace->RemoveListener(owner);
+              } else {
+                  this->ClearFontFaceResource();
+              }
+            });
             break;
         default:
-            this->font.Listen([this, ptr = this->font.Get()]() {
-                if (this->font != ptr) {
-                    return;
-                }
-
-                this->font.Unlisten();
-                this->QueueTextLayout();
-            });
+            this->ClearFontFaceResource();
+            dirty = true;
             break;
     }
 
@@ -318,12 +324,16 @@ void TextSceneNode::QueueTextLayout() noexcept {
     this->QueueAfterLayout();
 }
 
-void TextSceneNode::ClearFont() noexcept {
-    this->font = nullptr;
+void TextSceneNode::ClearFontFaceResource() {
+    if (this->fontFace) {
+        this->fontFace->RemoveListener(this);
+        this->GetStage()->GetResources()->ReleaseResource(this->fontFace);
+        this->fontFace = nullptr;
+    }
 }
 
 void TextSceneNode::DestroyRecursive() {
-    this->ClearFont();
+    this->ClearFontFaceResource();
 
     SceneNode::DestroyRecursive();
 }
@@ -335,45 +345,45 @@ void TextSceneNode::AppendChild(SceneNode* child) {
 YGSize TextSceneNode::Measure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
     this->layout.Reset();
 
-    if (!this->text.empty() && this->style && this->font && this->font->IsReady()) {
-        const auto fontSize{ ComputeFontSize(this->style->fontSize, this->scene) };
-        const auto lineHeight{ ComputeLineHeight(this->style->lineHeight, this->scene,
-            this->font->GetFont()->LineHeight(fontSize)) };
-
-        this->layout.Layout(
-            TextLayoutFont(this->font->GetFont().get(), fontSize, lineHeight),
-            this->style->textOverflow,
-            GetMaxLines(this->style),
-            TextTransform(this->Env(), this->style->textTransform, this->text),
-            width,
-            height);
-    }
+//    if (!this->text.empty() && this->style && this->font && this->font->IsReady()) {
+//        const auto fontSize{ ComputeFontSize(this->style->fontSize, this->scene) };
+//        const auto lineHeight{ ComputeLineHeight(this->style->lineHeight, this->scene,
+//            this->font->GetFont()->LineHeight(fontSize)) };
+//
+//        this->layout.Layout(
+//            TextLayoutFont(this->font->GetFont().get(), fontSize, lineHeight),
+//            this->style->textOverflow,
+//            GetMaxLines(this->style),
+//            TextTransform(this->Env(), this->style->textTransform, this->text),
+//            width,
+//            height);
+//    }
 
     return { this->layout.Width(), this->layout.Height() };
 }
 
-static int32_t GetMaxLines(Style* style) noexcept {
-    const auto& maxLines{ style->maxLines };
-
-    if (!maxLines.empty() && maxLines.unit == StyleNumberUnitPoint) {
-        return maxLines.value;
-    }
-
-    return 0;
-}
-
-static std::string TextTransform(const Napi::Env& env, const StyleTextTransform transform, const std::string& text) {
-    HandleScope scope(env);
-
-    switch (transform) {
-        case StyleTextTransformUppercase:
-            return ToUpperCase(String::New(env, text));
-        case StyleTextTransformLowercase:
-            return ToLowerCase(String::New(env, text));
-        case StyleTextTransformNone:
-        default:
-            return text;
-    }
-}
+//static int32_t GetMaxLines(Style* style) noexcept {
+//    const auto& maxLines{ style->maxLines };
+//
+//    if (!maxLines.empty() && maxLines.unit == StyleNumberUnitPoint) {
+//        return maxLines.value;
+//    }
+//
+//    return 0;
+//}
+//
+//static std::string TextTransform(const Napi::Env& env, const StyleTextTransform transform, const std::string& text) {
+//    HandleScope scope(env);
+//
+//    switch (transform) {
+//        case StyleTextTransformUppercase:
+//            return ToUpperCase(String::New(env, text));
+//        case StyleTextTransformLowercase:
+//            return ToLowerCase(String::New(env, text));
+//        case StyleTextTransformNone:
+//        default:
+//            return text;
+//    }
+//}
 
 } // namespace ls

@@ -33,16 +33,6 @@ matrix:
         - HOMEBREW_NO_AUTO_UPDATE=1 brew install sdl2 sdl2_mixer
       install: yarn --force
       script: yarn run lint
-    - name: "windows-x64 [Release]"
-      os: windows
-      env: YARN_GPG=no npm_config_ls_with_tests=true npm_config_ls_sdl_include="$HOME/SDL2-2.0.10/include" npm_config_ls_sdl_lib="$HOME/SDL2-2.0.10/lib/x64" npm_config_ls_sdl_mixer_include="$HOME/SDL2_mixer-2.0.4/include" npm_config_ls_sdl_mixer_lib="$HOME/SDL2_mixer-2.0.4/lib/x64"
-      before_install:
-        - set -e
-        - git clone --depth 1 https://github.com/lightsourceengine/ci-packages.git ${HOME}/ci-packages
-        - powershell expand-archive -path "$HOME/ci-packages/SDL2/2.0.10/SDL2-devel-2.0.10-VC.zip" -destinationpath "$HOME"
-        - powershell expand-archive -path "$HOME/ci-packages/SDL2_mixer/2.0.4/SDL2_mixer-devel-2.0.4-VC.zip" -destinationpath "$HOME"
-      install: yarn --force
-      script: skip
     - name: "linux-armv7l [Release]"
       os: linux
       env: npm_config_ls_with_tests=false NODE_DOWNLOADS="${HOME}/node_downloads"
@@ -58,4 +48,15 @@ matrix:
         - yarn --ignore-scripts
         - nvm install v12.18.3
         - ./scripts/build-ls-node.js linux-armv7l
+      script: skip
+  exclude:
+    - name: "windows-x64 [Release]"
+      os: windows
+      env: YARN_GPG=no npm_config_ls_with_tests=true npm_config_ls_sdl_include="$HOME/SDL2-2.0.10/include" npm_config_ls_sdl_lib="$HOME/SDL2-2.0.10/lib/x64" npm_config_ls_sdl_mixer_include="$HOME/SDL2_mixer-2.0.4/include" npm_config_ls_sdl_mixer_lib="$HOME/SDL2_mixer-2.0.4/lib/x64"
+      before_install:
+        - set -e
+        - git clone --depth 1 https://github.com/lightsourceengine/ci-packages.git ${HOME}/ci-packages
+        - powershell expand-archive -path "$HOME/ci-packages/SDL2/2.0.10/SDL2-devel-2.0.10-VC.zip" -destinationpath "$HOME"
+        - powershell expand-archive -path "$HOME/ci-packages/SDL2_mixer/2.0.4/SDL2_mixer-devel-2.0.4-VC.zip" -destinationpath "$HOME"
+      install: yarn --force
       script: skip

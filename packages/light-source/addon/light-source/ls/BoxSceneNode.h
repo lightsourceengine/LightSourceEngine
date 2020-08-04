@@ -7,13 +7,11 @@
 #pragma once
 
 #include <napi-ext.h>
-#include "Resource.h"
+#include "Resources.h"
 #include "SceneNode.h"
-#include "ImageUri.h"
 
 namespace ls {
 
-class ImageResource;
 class Style;
 
 class BoxSceneNode : public Napi::SafeObjectWrap<BoxSceneNode>, public SceneNode {
@@ -35,15 +33,15 @@ class BoxSceneNode : public Napi::SafeObjectWrap<BoxSceneNode>, public SceneNode
 
  private:
     void DestroyRecursive() override;
-    void UpdateBackgroundImage(const ImageUri& imageUri);
+    void UpdateBackgroundImage(const std::string& backgroundUri);
     void PaintRoundedRect(PaintContext* paint, Style* boxStyle);
     void PaintBackgroundImage(Renderer* renderer, Style* boxStyle);
     void PaintBackgroundStack(Renderer* renderer, Style* boxStyle);
     bool IsBackgroundOnly(Style* boxStyle) const noexcept;
+    void ClearBackgroundImageResource();
 
  private:
-    ImageUri backgroundImageUri;
-    ResourceLink<ImageResource> backgroundImage;
+    ImageData* backgroundImage{};
     bool isImmediate{ false };
 
     friend Napi::SafeObjectWrap<BoxSceneNode>;

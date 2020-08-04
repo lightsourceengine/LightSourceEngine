@@ -11,6 +11,7 @@
 #include <map>
 #include <napi-ext.h>
 #include "StyleEnums.h"
+#include "Resources.h"
 
 namespace ls {
 

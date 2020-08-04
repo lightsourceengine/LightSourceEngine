@@ -9,7 +9,7 @@
 #include <napi-ext.h>
 #include "SceneNode.h"
 #include "TextLayout.h"
-#include "FontResource.h"
+#include "Resources.h"
 
 namespace ls {
 
@@ -37,7 +37,7 @@ class TextSceneNode : public Napi::SafeObjectWrap<TextSceneNode>, public SceneNo
 
  private:
     bool SetFont(Style* style);
-    void ClearFont() noexcept;
+    void ClearFontFaceResource();
     void DestroyRecursive() override;
     void AppendChild(SceneNode* child) override;
     YGSize Measure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode);
@@ -45,7 +45,7 @@ class TextSceneNode : public Napi::SafeObjectWrap<TextSceneNode>, public SceneNo
 
  private:
     std::string text;
-    ResourceLink<FontResource> font;
+    FontFace* fontFace{};
     TextLayout layout;
 
     friend Napi::SafeObjectWrap<TextSceneNode>;

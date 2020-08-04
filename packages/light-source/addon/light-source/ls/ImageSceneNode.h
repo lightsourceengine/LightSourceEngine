@@ -8,7 +8,8 @@
 
 #include <napi-ext.h>
 #include "SceneNode.h"
-#include "ImageResource.h"
+#include "Resources.h"
+#include <ls/Rect.h>
 
 namespace ls {
 
@@ -38,10 +39,11 @@ class ImageSceneNode : public Napi::SafeObjectWrap<ImageSceneNode>, public Scene
     void DestroyRecursive() override;
     void DoCallbacks();
     void AppendChild(SceneNode* child) override;
+    void ClearResource();
 
  private:
-    ImageUri uri{};
-    ResourceLink<ImageResource> image;
+    std::string src;
+    ImageData* image{};
     Napi::FunctionReference onLoadCallback;
     Napi::FunctionReference onErrorCallback;
     Rect destRect{};

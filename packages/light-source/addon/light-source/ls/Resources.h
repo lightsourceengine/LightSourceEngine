@@ -9,6 +9,7 @@
 
 #include <blend2d.h>
 #include <ls/AsyncWork.h>
+#include <ls/StyleEnums.h>
 
 #include <memory>
 #include <string>
@@ -36,6 +37,7 @@ class Res {
     void AddListener(Owner owner, Listener&& listener);
     void RemoveListener(Owner owner);
     State GetState() const noexcept { return this->state; }
+    const std::string& GetId() const noexcept { return this->id; }
     virtual void Load(Napi::Env env) = 0;
 
     Napi::String GetErrorMessage(const Napi::Env& env) const;
@@ -76,8 +78,11 @@ class FontFace : public Res {
     explicit FontFace(const std::string& id) : Res(id) {}
     ~FontFace() override = default;
 
+    static bool Equals(FontFace* fontFace, const std::string& family,
+                       StyleFontStyle style, StyleFontWeight weight) noexcept;
     void Load(Napi::Env env) override;
     Napi::Value GetSummary(const Napi::Env& env) const override;
+    std::string GetFamilyName() const;
 
  private:
     AsyncWork<BLFontFace> work;
@@ -92,6 +97,7 @@ class Resources {
 
     bool HasFontFace(const std::string& path) const;
     FontFace* AcquireFontFace(const std::string& path);
+    FontFace* AcquireFontFaceByStyle(const std::string& family, StyleFontStyle style, StyleFontWeight weight);
     void ReleaseFontFace(const std::string& path, bool immediateDelete = false);
 
     void ReleaseResource(Res* resource, bool immediateDelete = false);

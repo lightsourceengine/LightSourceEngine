@@ -116,6 +116,15 @@ Napi::Value ImageData::GetSummary(const Napi::Env& env) const {
     return summary;
 }
 
+bool FontFace::Equals(FontFace* fontFace, const std::string& family,
+                   StyleFontStyle style, StyleFontWeight weight) noexcept {
+    if (fontFace) {
+        return false;
+    } else {
+        return family.empty();
+    }
+}
+
 void FontFace::Load(Napi::Env env) {
     this->work.Reset(
         env,
@@ -164,6 +173,14 @@ Napi::Value FontFace::GetSummary(const Napi::Env& env) const {
     return summary;
 }
 
+std::string FontFace::GetFamilyName() const {
+    if (this->resource.empty() || this->resource.familyNameSize() == 0) {
+        return "";
+    } else {
+        return this->resource.familyName();
+    }
+}
+
 bool Resources::HasImageData(const std::string& path) const {
     return this->images.find(path) != this->images.end();
 }
@@ -210,6 +227,17 @@ FontFace* Resources::AcquireFontFace(const std::string& path) {
     auto result{ this->fonts.emplace(path, FontFaceRef(std::make_unique<FontFace>(path))) };
 
     return result.first->second.ToPointer();
+}
+
+FontFace* Resources::AcquireFontFaceByStyle(const std::string& family, StyleFontStyle style, StyleFontWeight weight) {
+    for (auto& entry : this->fonts) {
+        if (entry.second.resource->GetFamilyName() == family) {
+            entry.second.refs++;
+            return entry.second.ToPointer();
+        }
+    }
+
+    return nullptr;
 }
 
 void Resources::ReleaseFontFace(const std::string& path, bool immediateDelete) {

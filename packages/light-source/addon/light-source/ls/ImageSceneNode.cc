@@ -8,6 +8,7 @@
 #include "ImageStore.h"
 #include "Style.h"
 #include "Scene.h"
+#include "Stage.h"
 #include "StyleUtils.h"
 #include <ls/Renderer.h>
 #include <ls/PixelConversion.h>
@@ -39,13 +40,15 @@ void ImageSceneNode::Constructor(const Napi::CallbackInfo& info) {
     YGNodeSetMeasureFunc(
     this->ygNode,
     [](YGNodeRef nodeRef, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) -> YGSize {
-        const auto self { static_cast<ImageSceneNode*>(YGNodeGetContext(nodeRef)) };
+//        const auto self { static_cast<ImageSceneNode*>(YGNodeGetContext(nodeRef)) };
 
-        if (self && self->image && self->image->IsReady()) {
-            return { self->image->GetWidthF(), self->image->GetHeightF() };
-        } else {
-            return { 0.f, 0.f };
-        }
+        // TODO: return w/h from image data
+//        if (self && self->image && self->image->IsReady()) {
+//            return { self->image->GetWidthF(), self->image->GetHeightF() };
+//        } else {
+//            return { 0.f, 0.f };
+//        }
+        return { 0.f, 0.f };
     });
 }
 
@@ -69,71 +72,94 @@ Function ImageSceneNode::GetClass(Napi::Env env) {
 }
 
 Value ImageSceneNode::GetSource(const CallbackInfo& info) {
-    auto env{ info.Env() };
-    Napi::Value result;
-    EscapableHandleScope scope(env);
-
-    if (this->uri.IsEmpty()) {
-        result = env.Null();
-    } else {
-        result = ImageUri::Box(env, this->uri);
-    }
-
-    return scope.Escape(result);
+    return String::New(info.Env(), this->src);
 }
 
 void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& value) {
     auto env{ info.Env() };
-    HandleScope scope(env);
-    auto imageUri{ ImageUri::Unbox(value) };
+    std::string newSrc{};
 
-    if (imageUri.IsEmpty()) {
-        if (this->image) {
-            this->image = nullptr;
-            this->uri = {};
+    switch (value.Type()) {
+        case napi_string:
+            newSrc = value.As<String>();
+            break;
+        case napi_null:
+        case napi_undefined:
+            break;
+        default:
+            throw Error::New(env, "src must be a string");
+    }
+
+    if (newSrc == this->src) {
+        return;
+    }
+
+    if (newSrc.empty()) {
+        if (!this->src.empty()) {
+            this->src.clear();
+            this->ClearResource();
             this->MarkDirty();
         }
         return;
-    } else if (this->uri == imageUri) {
-        return;
     }
 
-    try {
-        this->image = this->scene->GetImageStore()->GetOrLoadImage(imageUri.GetId());
-    } catch (const std::exception& e) {
-        LOG_WARN("%s", e);
-        this->image = nullptr;
-    }
-
-    if (!this->image) {
-        this->uri = {};
+    if (this->image) {
         this->MarkDirty();
-        Call(this->onErrorCallback);
-        return;
     }
 
-    std::exchange(this->uri, imageUri);
+    this->ClearResource();
+    this->src = newSrc;
+    this->image = this->GetStage()->GetResources()->AcquireImageData(this->src);
 
-    if (this->image->IsReady() || this->image->HasError()) {
-        this->MarkDirty();
-        DoCallbacks();
-    } else {
-        this->image.Listen([this, ptr = this->image.Get()]() {
-            if (this->image != ptr) {
-                return;
-            }
+    auto listener{ [this](Res::Owner owner, Res* res) {
+        constexpr auto LAMBDA_FUNCTION = "ImageResourceListener";
 
-            switch (this->image->GetState()) {
-                case ResourceStateReady:
-                case ResourceStateError:
-                    this->image.Unlisten();
-                    this->MarkDirty();
-                    this->DoCallbacks();
-                    break;
-                default:
-                    break;
-            }
-        });
+      if (this != owner || this->image != res) {
+          LOG_WARN_LAMBDA("Invalid owner or resource: %s", this->src);
+          return;
+      }
+
+      Napi::HandleScope scope(this->Env());
+
+      switch (res->GetState()) {
+          case Res::Ready:
+              if (!this->onLoadCallback.IsEmpty()) {
+                  try {
+                      this->onLoadCallback.Call({this->Value(), res->GetSummary(this->Env())});
+                  } catch (std::exception& e) {
+                      LOG_WARN_LAMBDA("onLoad unhandled exception: %s", e);
+                  }
+              }
+              break;
+          case Res::Error:
+              if (!this->onErrorCallback.IsEmpty()) {
+                  try {
+                      this->onErrorCallback.Call({this->Value(), res->GetErrorMessage(this->Env())});
+                  } catch (std::exception& e) {
+                      LOG_WARN_LAMBDA("onError unhandled exception: %s", e);
+                  }
+              }
+              break;
+          default:
+              break;
+      }
+
+      this->MarkDirty();
+      res->RemoveListener(owner);
+    }};
+
+    switch (this->image->GetState()) {
+        case Res::State::Init:
+            this->image->AddListener(this, listener);
+            this->image->Load(env);
+            break;
+        case Res::State::Loading:
+            this->image->AddListener(this, listener);
+            break;
+        case Res::State::Ready:
+        case Res::State::Error:
+            listener(this, this->image);
+            break;
     }
 }
 
@@ -193,141 +219,149 @@ void ImageSceneNode::BeforeLayout() {
 }
 
 void ImageSceneNode::AfterLayout() {
-    if (!this->image || !this->image->IsReady()) {
-        return;
-    }
-
-    const auto boxStyle{ this->GetStyleOrEmpty() };
-    const auto innerRect{ YGNodeLayoutGetInnerRect(this->ygNode) };
-    const auto imageRect = ComputeObjectFitRect(
-        boxStyle->objectFit,
-        boxStyle->objectPositionX,
-        boxStyle->objectPositionY,
-        innerRect,
-        this->image.Get(),
-        this->scene);
-
-    if (!image->HasCapInsets() && boxStyle->borderColor.empty()) {
-        const auto imageWidth{ this->image->GetWidthF() };
-        const auto imageHeight{ this->image->GetHeightF() };
-
-        if (imageWidth == 0 || imageHeight == 0) {
-            this->destRect = {};
-            this->srcRect = {};
-        } else {
-            const auto scaleX{ imageRect.width / imageWidth };
-            const auto scaleY{ imageRect.height / imageHeight };
-
-            this->destRect = Intersect(innerRect, imageRect);
-            this->srcRect = {
-                std::max(innerRect.x - imageRect.x, 0.f) * scaleX,
-                std::max(innerRect.y - imageRect.y, 0.f) * scaleY,
-                this->destRect.width * scaleX,
-                this->destRect.height * scaleY };
-        }
-    } else {
-        this->destRect = imageRect;
-    }
-
-    this->QueuePaint();
+//    if (!this->image || !this->image->IsReady()) {
+//        return;
+//    }
+//
+//    const auto boxStyle{ this->GetStyleOrEmpty() };
+//    const auto innerRect{ YGNodeLayoutGetInnerRect(this->ygNode) };
+//    const auto imageRect = ComputeObjectFitRect(
+//        boxStyle->objectFit,
+//        boxStyle->objectPositionX,
+//        boxStyle->objectPositionY,
+//        innerRect,
+//        this->image.Get(),
+//        this->scene);
+//
+//    if (!image->HasCapInsets() && boxStyle->borderColor.empty()) {
+//        const auto imageWidth{ this->image->GetWidthF() };
+//        const auto imageHeight{ this->image->GetHeightF() };
+//
+//        if (imageWidth == 0 || imageHeight == 0) {
+//            this->destRect = {};
+//            this->srcRect = {};
+//        } else {
+//            const auto scaleX{ imageRect.width / imageWidth };
+//            const auto scaleY{ imageRect.height / imageHeight };
+//
+//            this->destRect = Intersect(innerRect, imageRect);
+//            this->srcRect = {
+//                std::max(innerRect.x - imageRect.x, 0.f) * scaleX,
+//                std::max(innerRect.y - imageRect.y, 0.f) * scaleY,
+//                this->destRect.width * scaleX,
+//                this->destRect.height * scaleY };
+//        }
+//    } else {
+//        this->destRect = imageRect;
+//    }
+//
+//    this->QueuePaint();
 }
 
 void ImageSceneNode::Paint(PaintContext* paint) {
-    if (!this->image) {
-        return;
-    }
-
-    auto renderer{ paint->renderer };
-    const auto boxStyle{ this->GetStyleOrEmpty() };
-    const auto& borderColor{ boxStyle->borderColor };
-    const auto hasCapInsets{ this->image->HasCapInsets() };
-
-    this->QueueComposite();
-    this->image->Sync(renderer);
-
-    if (!hasCapInsets && borderColor.empty()) {
-        this->layer = nullptr;
-        return;
-    }
-
-    const auto rect{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
-
-    if (!this->InitLayerRenderTarget(renderer, static_cast<int32_t>(rect.width), static_cast<int32_t>(rect.height))) {
-        return;
-    }
-
-    renderer->FillRenderTarget(ColorTransparent);
-
-    if (this->image->HasTexture()) {
-        if (hasCapInsets) {
-            renderer->DrawImage(
-                this->image->GetTexture(),
-                this->destRect,
-                this->image->GetCapInsets(),
-                boxStyle->tintColor.ValueOr(ColorWhite));
-        } else {
-            renderer->DrawImage(
-                this->image->GetTexture(),
-                this->destRect,
-                boxStyle->tintColor.ValueOr(ColorWhite));
-        }
-    }
-
-    if (!borderColor.empty()) {
-        renderer->DrawBorder(rect, YGNodeLayoutGetBorderRect(this->ygNode), borderColor.value);
-    }
-
-    renderer->SetRenderTarget(nullptr);
+//    if (!this->image) {
+//        return;
+//    }
+//
+//    auto renderer{ paint->renderer };
+//    const auto boxStyle{ this->GetStyleOrEmpty() };
+//    const auto& borderColor{ boxStyle->borderColor };
+//    const auto hasCapInsets{ this->image->HasCapInsets() };
+//
+//    this->QueueComposite();
+//    this->image->Sync(renderer);
+//
+//    if (!hasCapInsets && borderColor.empty()) {
+//        this->layer = nullptr;
+//        return;
+//    }
+//
+//    const auto rect{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
+//
+//    if (!this->InitLayerRenderTarget(renderer, static_cast<int32_t>(rect.width), static_cast<int32_t>(rect.height))) {
+//        return;
+//    }
+//
+//    renderer->FillRenderTarget(ColorTransparent);
+//
+//    if (this->image->HasTexture()) {
+//        if (hasCapInsets) {
+//            renderer->DrawImage(
+//                this->image->GetTexture(),
+//                this->destRect,
+//                this->image->GetCapInsets(),
+//                boxStyle->tintColor.ValueOr(ColorWhite));
+//        } else {
+//            renderer->DrawImage(
+//                this->image->GetTexture(),
+//                this->destRect,
+//                boxStyle->tintColor.ValueOr(ColorWhite));
+//        }
+//    }
+//
+//    if (!borderColor.empty()) {
+//        renderer->DrawBorder(rect, YGNodeLayoutGetBorderRect(this->ygNode), borderColor.value);
+//    }
+//
+//    renderer->SetRenderTarget(nullptr);
 }
 
 void ImageSceneNode::Composite(CompositeContext* composite) {
-    if (this->layer) {
-        const auto boxStyle{ this->GetStyleOrEmpty() };
-        const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
-        const auto transform{
-            ComputeTransform(
-                composite->CurrentMatrix(),
-                boxStyle->transform,
-                boxStyle->transformOriginX,
-                boxStyle->transformOriginY,
-                rect,
-                this->scene)
-        };
-
-        composite->renderer->DrawImage(
-            this->layer,
-            rect,
-            transform,
-            ARGB(composite->CurrentOpacityAlpha(), 255, 255, 255));
-    } else if (this->image && this->image->HasTexture()) {
-        const auto boxStyle{ this->GetStyleOrEmpty() };
-        const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
-        const auto transform{
-            ComputeTransform(
-                composite->CurrentMatrix(),
-                boxStyle->transform,
-                boxStyle->transformOriginX,
-                boxStyle->transformOriginY,
-                rect,
-                this->scene)
-        };
-
-        composite->renderer->DrawImage(
-            this->image->GetTexture(),
-            this->srcRect,
-            Translate(this->destRect, rect.x, rect.y),
-            { rect.x, rect.y },
-            transform,
-            MixAlpha(boxStyle->tintColor.ValueOr(ColorWhite), composite->CurrentOpacity()));
-    }
+//    if (this->layer) {
+//        const auto boxStyle{ this->GetStyleOrEmpty() };
+//        const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
+//        const auto transform{
+//            ComputeTransform(
+//                composite->CurrentMatrix(),
+//                boxStyle->transform,
+//                boxStyle->transformOriginX,
+//                boxStyle->transformOriginY,
+//                rect,
+//                this->scene)
+//        };
+//
+//        composite->renderer->DrawImage(
+//            this->layer,
+//            rect,
+//            transform,
+//            ARGB(composite->CurrentOpacityAlpha(), 255, 255, 255));
+//    } else if (this->image && this->image->HasTexture()) {
+//        const auto boxStyle{ this->GetStyleOrEmpty() };
+//        const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
+//        const auto transform{
+//            ComputeTransform(
+//                composite->CurrentMatrix(),
+//                boxStyle->transform,
+//                boxStyle->transformOriginX,
+//                boxStyle->transformOriginY,
+//                rect,
+//                this->scene)
+//        };
+//
+//        composite->renderer->DrawImage(
+//            this->image->GetTexture(),
+//            this->srcRect,
+//            Translate(this->destRect, rect.x, rect.y),
+//            { rect.x, rect.y },
+//            transform,
+//            MixAlpha(boxStyle->tintColor.ValueOr(ColorWhite), composite->CurrentOpacity()));
+//    }
 }
 
 void ImageSceneNode::DestroyRecursive() {
-    this->image = nullptr;
+    this->ClearResource();
     this->onLoadCallback.Reset();
     this->onErrorCallback.Reset();
 
     SceneNode::DestroyRecursive();
+}
+
+void ImageSceneNode::ClearResource() {
+    if (this->image) {
+        this->image->RemoveListener(this);
+        this->GetStage()->GetResources()->ReleaseResource(this->image);
+        this->image = nullptr;
+    }
 }
 
 void ImageSceneNode::DoCallbacks() {

@@ -7,7 +7,6 @@
 #pragma once
 
 #include "StyleEnums.h"
-#include "ImageUri.h"
 #include <ls/Math.h>
 #include <Yoga.h>
 #include <napi.h>
@@ -116,23 +115,6 @@ struct StyleValueTransform {
 };
 
 /**
- * Value for backgroundImage property, an ImageUri object.
- */
-struct StyleValueImageUri {
-    ImageUri value;
-
-    // Binding methods.
-    static Napi::Value Box(Napi::Env env, const StyleValueImageUri& value);
-    static StyleValueImageUri Unbox(const Napi::Value& value);
-
-    // operators
-    StyleValueImageUri& operator=(const StyleValueImageUri&) = default;
-
-    // Check if the color value is not defined.
-    bool empty() const noexcept { return this->value.IsEmpty(); }
-};
-
-/**
  * Enum style property.
  *
  * Note, Style stores the enum and uses this structure for the binding methods.
@@ -214,10 +196,6 @@ struct ZIndexConstraint {
 
 inline bool operator==(const StyleValueColor& lhs, const StyleValueColor& rhs) noexcept {
     return lhs.undefined == rhs.undefined && (lhs.undefined || lhs.value == rhs.value);
-}
-
-inline bool operator==(const StyleValueImageUri& lhs, const StyleValueImageUri& rhs) noexcept {
-    return lhs.value == rhs.value;
 }
 
 bool operator==(const StyleValueTransform& lhs, const StyleValueTransform& rhs) noexcept;

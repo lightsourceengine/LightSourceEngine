@@ -5,9 +5,8 @@
  */
 
 #include "BoxSceneNode.h"
-#include "ImageResource.h"
-#include "ImageStore.h"
 #include "Scene.h"
+#include "Stage.h"
 #include "Style.h"
 #include "StyleUtils.h"
 #include "yoga-ext.h"
@@ -81,7 +80,7 @@ void BoxSceneNode::OnPropertyChanged(StyleProperty property) {
 }
 
 void BoxSceneNode::BeforeLayout() {
-    this->UpdateBackgroundImage(this->style->backgroundImage.value);
+    this->UpdateBackgroundImage(this->style->backgroundImage);
 }
 
 void BoxSceneNode::AfterLayout() {
@@ -158,9 +157,9 @@ void BoxSceneNode::PaintBackgroundStack(Renderer* renderer, Style* boxStyle) {
         renderer->FillRenderTarget(boxStyle->backgroundColor.value);
     }
 
-    if (this->backgroundImage && this->backgroundImage->Sync(renderer)) {
-        this->PaintBackgroundImage(renderer, boxStyle);
-    }
+//    if (this->backgroundImage && this->backgroundImage->Sync(renderer)) {
+//        this->PaintBackgroundImage(renderer, boxStyle);
+//    }
 
     if (!boxStyle->borderColor.empty()) {
         renderer->DrawBorder(dest, YGNodeLayoutGetBorderRect(this->ygNode), boxStyle->borderColor.value);
@@ -225,104 +224,127 @@ void BoxSceneNode::PaintRoundedRect(PaintContext* paint, Style* boxStyle) {
 }
 
 void BoxSceneNode::PaintBackgroundImage(Renderer* renderer, Style* boxStyle) {
-    const auto dest{
-        boxStyle->backgroundClip == StyleBackgroundClipBorderBox ?
-            YGNodeLayoutGetRect(this->ygNode, 0, 0) : YGNodeLayoutGetInnerRect(this->ygNode)
-    };
-
-    if (!this->InitLayerRenderTarget(renderer, static_cast<int32_t>(dest.width), static_cast<int32_t>(dest.height))) {
-        return;
-    }
-
-    const auto imageRect{
-        ComputeBackgroundImageRect(
-            boxStyle->backgroundPositionX,
-            boxStyle->backgroundPositionY,
-            boxStyle->backgroundWidth,
-            boxStyle->backgroundHeight,
-            boxStyle->backgroundSize,
-            dest,
-            this->backgroundImage.Get(),
-            this->scene)
-    };
-    auto drawBackgroundImage = [&](float x, float y) {
-        renderer->DrawImage(this->backgroundImage->GetTexture(),
-            { x + imageRect.x, y + imageRect.y, imageRect.width, imageRect.height }, ColorWhite);
-    };
-    float x{ dest.x };
-    float y{ dest.y };
-    const float x2{ x + dest.width };
-    const float y2{ y + dest.height };
-
-    renderer->SetClipRect(dest);
-
-    switch (boxStyle->backgroundRepeat) {
-        case StyleBackgroundRepeatXY:
-            while (y < y2) {
-                x = 0;
-
-                while (x < x2) {
-                    drawBackgroundImage(x, y);
-                    x+=imageRect.width;
-                }
-
-                y+=imageRect.height;
-            }
-            break;
-        case StyleBackgroundRepeatX:
-            while (x < x2) {
-                drawBackgroundImage(x, y);
-                x+=imageRect.width;
-            }
-            break;
-        case StyleBackgroundRepeatY:
-            while (y < y2) {
-                drawBackgroundImage(x, y);
-                y+=imageRect.height;
-            }
-            break;
-        case StyleBackgroundRepeatOff:
-            drawBackgroundImage(x, y);
-            break;
-        default:
-            break;
-    }
-
-    renderer->ClearClipRect();
-    renderer->SetRenderTarget(nullptr);
+//    const auto dest{
+//        boxStyle->backgroundClip == StyleBackgroundClipBorderBox ?
+//            YGNodeLayoutGetRect(this->ygNode, 0, 0) : YGNodeLayoutGetInnerRect(this->ygNode)
+//    };
+//
+//    if (!this->InitLayerRenderTarget(renderer, static_cast<int32_t>(dest.width), static_cast<int32_t>(dest.height))) {
+//        return;
+//    }
+//
+//    const auto imageRect{
+//        ComputeBackgroundImageRect(
+//            boxStyle->backgroundPositionX,
+//            boxStyle->backgroundPositionY,
+//            boxStyle->backgroundWidth,
+//            boxStyle->backgroundHeight,
+//            boxStyle->backgroundSize,
+//            dest,
+//            this->backgroundImage.Get(),
+//            this->scene)
+//    };
+//    auto drawBackgroundImage = [&](float x, float y) {
+//        renderer->DrawImage(this->backgroundImage->GetTexture(),
+//            { x + imageRect.x, y + imageRect.y, imageRect.width, imageRect.height }, ColorWhite);
+//    };
+//    float x{ dest.x };
+//    float y{ dest.y };
+//    const float x2{ x + dest.width };
+//    const float y2{ y + dest.height };
+//
+//    renderer->SetClipRect(dest);
+//
+//    switch (boxStyle->backgroundRepeat) {
+//        case StyleBackgroundRepeatXY:
+//            while (y < y2) {
+//                x = 0;
+//
+//                while (x < x2) {
+//                    drawBackgroundImage(x, y);
+//                    x+=imageRect.width;
+//                }
+//
+//                y+=imageRect.height;
+//            }
+//            break;
+//        case StyleBackgroundRepeatX:
+//            while (x < x2) {
+//                drawBackgroundImage(x, y);
+//                x+=imageRect.width;
+//            }
+//            break;
+//        case StyleBackgroundRepeatY:
+//            while (y < y2) {
+//                drawBackgroundImage(x, y);
+//                y+=imageRect.height;
+//            }
+//            break;
+//        case StyleBackgroundRepeatOff:
+//            drawBackgroundImage(x, y);
+//            break;
+//        default:
+//            break;
+//    }
+//
+//    renderer->ClearClipRect();
+//    renderer->SetRenderTarget(nullptr);
 }
 
-void BoxSceneNode::UpdateBackgroundImage(const ImageUri& imageUri) {
-    if (imageUri.IsEmpty()) {
+void BoxSceneNode::UpdateBackgroundImage(const std::string& backgroundUri) {
+    if (backgroundUri.empty()) {
         if (this->backgroundImage) {
             this->QueuePaint();
         }
-
-        this->backgroundImage = nullptr;
-
+        this->ClearBackgroundImageResource();
         return;
     }
 
-    if (this->backgroundImage && this->backgroundImage->GetUri() == imageUri) {
+    if (this->backgroundImage && this->backgroundImage->GetId() == backgroundUri) {
         return;
     }
-
-    this->backgroundImage = this->scene->GetImageStore()->GetOrLoadImage({ imageUri });
 
     if (this->backgroundImage) {
-        if (this->backgroundImage->IsReady() || this->backgroundImage->HasError()) {
-            this->QueuePaint();
-        } else {
-            this->backgroundImage.Listen([this]() {
-                this->QueuePaint();
-                this->backgroundImage.Unlisten();
-            });
+        this->QueuePaint();
+    }
+
+    this->ClearBackgroundImageResource();
+    this->backgroundImage = this->GetStage()->GetResources()->AcquireImageData(backgroundUri);
+
+    auto listener{ [this](Res::Owner owner, Res* res) {
+        if (this != owner || this->backgroundImage != res) {
+            return;
         }
+
+        this->QueuePaint();
+        res->RemoveListener(owner);
+    }};
+
+    switch (this->backgroundImage->GetState()) {
+        case Res::State::Init:
+            this->backgroundImage->AddListener(this, listener);
+            this->backgroundImage->Load(this->Env());
+            break;
+        case Res::State::Loading:
+            this->backgroundImage->AddListener(this, listener);
+            break;
+        case Res::State::Ready:
+        case Res::State::Error:
+            listener(this, this->backgroundImage);
+            break;
+    }
+}
+
+void BoxSceneNode::ClearBackgroundImageResource() {
+    if (this->backgroundImage) {
+        this->backgroundImage->RemoveListener(this);
+        this->GetStage()->GetResources()->ReleaseResource(this->backgroundImage);
+        this->backgroundImage = nullptr;
     }
 }
 
 void BoxSceneNode::DestroyRecursive() {
-    this->backgroundImage = nullptr;
+    this->ClearBackgroundImageResource();
 
     SceneNode::DestroyRecursive();
 }

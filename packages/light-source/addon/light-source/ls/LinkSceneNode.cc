@@ -196,19 +196,24 @@ Napi::Value LinkSceneNode::GetHref(const Napi::CallbackInfo& info) {
 
 void LinkSceneNode::SetHref(const Napi::CallbackInfo& info, const Napi::Value& value) {
     auto env{ info.Env() };
+    std::string newHref{};
 
-    if (value.IsString()) {
-        auto newHref{ value.As<String>().Utf8Value() };
+    switch (value.Type()) {
+        case napi_string:
+            newHref = value.As<String>();
 
-        if (newHref != this->href) {
-            this->href = newHref;
+            if (newHref != this->href) {
+                this->href = newHref;
+                this->ClearResource();
+            }
+            break;
+        case napi_null:
+        case napi_undefined:
+            this->href.clear();
             this->ClearResource();
-        }
-    } else if (value.IsNull() || value.IsUndefined()) {
-        this->href.clear();
-        this->ClearResource();
-    } else {
-        throw Error::New(env, "Invalid 'href' value type.");
+            break;
+        default:
+            throw Error::New(env, "href must be a string");
     }
 }
 
