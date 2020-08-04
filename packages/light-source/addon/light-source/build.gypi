@@ -73,7 +73,7 @@
               "LIGHT_SOURCE_NATIVE_TESTS"
             ],
             "sources": [
-              "test/ExecutorSpec.cc",
+              "test/ThreadPoolSpec.cc",
               "test/StyleUtilsSpec.cc",
             ]
           }
