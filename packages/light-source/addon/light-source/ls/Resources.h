@@ -101,14 +101,14 @@ class Resources {
  private:
     template <typename T>
     struct ResourceRef {
-        int32_t refs{};
-        std::unique_ptr<T> resource;
-
         ResourceRef() noexcept = default;
         explicit ResourceRef(std::unique_ptr<T>&& p) noexcept : refs(1), resource(std::move(p)) {}
         ResourceRef(ResourceRef<T>&& other) noexcept : refs(other.refs), resource(std::move(other.resource)) {}
 
         T* ToPointer() const noexcept { return this->resource.get(); }
+
+        int32_t refs{};
+        std::unique_ptr<T> resource;
     };
 
     using ImageDataRef = ResourceRef<ImageData>;
