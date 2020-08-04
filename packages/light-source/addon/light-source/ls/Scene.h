@@ -10,7 +10,6 @@
 #include <memory>
 #include <algorithm>
 #include <unordered_set>
-#include "ImageStore.h"
 #include "CompositeContext.h"
 #include "PaintContext.h"
 
@@ -32,7 +31,6 @@ class Scene : public Napi::SafeObjectWrap<Scene> {
     int32_t GetViewportMax() const noexcept { return std::max(this->width, this->height); }
     float GetRootFontSize() const noexcept { return this->rootFontSize; }
 
-    ImageStore* GetImageStore() const noexcept { return &this->imageStore; }
     Renderer* GetRenderer() const noexcept;
 
     Stage* GetStage() const { return this->stage; }
@@ -59,7 +57,6 @@ class Scene : public Napi::SafeObjectWrap<Scene> {
     Napi::Value GetAdapter(const Napi::CallbackInfo& info);
 
  private:
-    mutable ImageStore imageStore;
     SceneNode* root{};
     Stage* stage{};
     SceneAdapter* adapter{};

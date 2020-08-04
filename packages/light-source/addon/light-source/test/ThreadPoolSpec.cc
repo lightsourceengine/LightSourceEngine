@@ -4,10 +4,11 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
+#include <ls/ThreadPool.h>
 #include <napi-unit.h>
-#include <ls/Executor.h>
-#include <memory>
+
 #include <chrono>
+#include <memory>
 
 using Napi::Assert;
 using Napi::TestInfo;
@@ -16,13 +17,13 @@ using Napi::TestSuite;
 namespace ls {
 
 const auto TIMEOUT = std::chrono::milliseconds(100);
-static std::unique_ptr<Executor> executor;
+static std::unique_ptr<ThreadPool> executor;
 
 void ExecutorSpec(TestSuite* parent) {
-    auto spec{ parent->Describe("Executor") };
+    auto spec{ parent->Describe("ThreadPool") };
 
     spec->beforeEach = [](Napi::Env env) {
-        executor = std::make_unique<Executor>();
+        executor = std::make_unique<ThreadPool>();
     };
 
     spec->afterEach = [](Napi::Env env) {

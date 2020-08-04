@@ -4,11 +4,11 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "Executor.h"
+#include "ThreadPool.h"
 
 namespace ls {
 
-Executor::Executor() {
+ThreadPool::ThreadPool() {
     auto concurrency{ std::thread::hardware_concurrency() };
 
     if (concurrency <= 0) {
@@ -43,18 +43,18 @@ Executor::Executor() {
     }
 }
 
-Executor::~Executor() {
+ThreadPool::~ThreadPool() {
     this->ShutdownNow();
 }
 
-void Executor::Execute(std::function<void()>&& work) {
+void ThreadPool::Execute(std::function<void()>&& work) {
     assert(!!work);
     assert(this->running);
 
     this->workQueue.enqueue(std::move(work));
 }
 
-void Executor::ShutdownNow() {
+void ThreadPool::ShutdownNow() {
     if (!this->running) {
         return;
     }

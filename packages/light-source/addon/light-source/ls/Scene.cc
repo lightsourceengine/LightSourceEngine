@@ -73,24 +73,18 @@ Function Scene::GetClass(Napi::Env env) {
 }
 
 void Scene::Attach(const CallbackInfo& info) {
-    this->imageStore.Attach(this);
-
     this->width = this->adapter->GetWidth();
     this->height = this->adapter->GetHeight();
-
     this->isAttached = true;
 }
 
 void Scene::Detach(const CallbackInfo& info) {
     // TODO: exceptions?
 
-    this->imageStore.Detach();
     this->isAttached = false;
 }
 
 void Scene::Frame(const CallbackInfo& info) {
-    this->imageStore.ProcessEvents();
-
     if (this->isSizeDirty || this->isRootFontSizeDirty) {
         SceneNode::Visit(this->root, [=](SceneNode* node) {
             if (node->style != nullptr) {

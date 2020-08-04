@@ -23,8 +23,6 @@ const emptyFunction = () => 0
 export const Style = lib.Style || EmptyClass
 export const SceneBase = lib.SceneBase || EmptyClass
 export const StageBase = lib.StageBase || EmptyClass
-export const FontStoreView = lib.FontStoreView || EmptyClass
-export const ImageStoreView = lib.ImageStoreView || EmptyClass
 export const BoxSceneNode = lib.BoxSceneNode || EmptyClass
 export const ImageSceneNode = lib.ImageSceneNode || EmptyClass
 export const LinkSceneNode = lib.LinkSceneNode || EmptyClass

@@ -6,9 +6,8 @@
 
 import { Scene } from '../scene/Scene'
 import bindings from 'bindings'
-import { StageBase, SDLModuleId, FontStoreView, SDLMixerModuleId, SDLAudioModuleId } from '../addon'
+import { StageBase, SDLModuleId, SDLMixerModuleId, SDLAudioModuleId } from '../addon'
 import { performance } from 'perf_hooks'
-import { join } from 'path'
 
 import { InputManager } from '../input/InputManager'
 import { EventEmitter } from '../util/EventEmitter'
@@ -24,8 +23,7 @@ import {
   $events,
   $scene,
   $audio,
-  $emit,
-  $font
+  $emit
 } from '../util/InternalSymbols'
 import { AudioManager } from '../audio/AudioManager'
 import { isNumber, logexcept } from '../util'
@@ -54,7 +52,6 @@ export class Stage extends StageBase {
     this[$input] = new InputManager(this)
     this[$audio] = new AudioManager(this)
     this[$events] = new EventEmitter()
-    this[$font] = new FontStoreView(this)
 
     process.on('exit', () => {
       logexcept(() => this[$destroy](), 'exit: Stage destroy exception: ')
@@ -78,10 +75,6 @@ export class Stage extends StageBase {
     this[$fps] = value || 60
   }
 
-  get font () {
-    return this[$font]
-  }
-
   get input () {
     return this[$input]
   }
@@ -96,32 +89,6 @@ export class Stage extends StageBase {
    */
   get audio () {
     return this[$audio]
-  }
-
-  /**
-   * Local file directory used when resolving the resource host name of a file URI.
-   *
-   * Resource loading, including images, audio and fonts, accepts a file URI with a resource hostname
-   * ('file://resource/image.png'). The file://resource prefix is replaced with resourcePath to load the
-   * local file.
-   *
-   * @property resourceDomainPath
-   * @returns {string} an absolute or relative file path. If not set, an empty string is returned.
-   */
-  get resourceDomainPath () {
-    return super.resourceDomainPath
-  }
-
-  set resourceDomainPath (value) {
-    if (typeof value !== 'string') {
-      throw Error('resourceDomainPath must be a string.')
-    }
-
-    if (value) {
-      value = join(value)
-    }
-
-    super.resourceDomainPath = value
   }
 
   /**

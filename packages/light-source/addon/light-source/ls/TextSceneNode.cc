@@ -8,7 +8,6 @@
 #include "Stage.h"
 #include "Scene.h"
 #include "Font.h"
-#include "FontStore.h"
 #include "StyleUtils.h"
 #include "yoga-ext.h"
 #include "Style.h"

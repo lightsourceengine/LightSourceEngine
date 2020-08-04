@@ -20,15 +20,15 @@ namespace ls {
 /**
  * Asynchronous function executor backed by a thread pool.
  *
- * Executor is loosely based on Java's ExecutorService classes. The underlying thread pool contains 4 threads. If the
+ * ThreadPool is loosely based on Java's ExecutorService classes. The underlying thread pool contains 4 threads. If the
  * number of cpu cores is less than 4, the thread pool size equals the number of cores.
  *
  * This class is thread safe, except for constructor and ShutdownNow(), which should be called from the main thread.
  */
-class Executor {
+class ThreadPool {
  public:
-    Executor();
-    ~Executor();
+  ThreadPool();
+    ~ThreadPool();
 
     /**
      * Submits work for execution.
@@ -81,7 +81,7 @@ struct MoveOnCopy {
 } // namespace internal
 
 template<typename T>
-std::future<T> Executor::Submit(std::function<T()>&& work) {
+std::future<T> ThreadPool::Submit(std::function<T()>&& work) {
     assert(!!work);
     assert(this->running);
 

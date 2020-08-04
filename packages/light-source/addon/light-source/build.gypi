@@ -29,7 +29,6 @@
         "blend2d",
         "yoga",
         "stb_image",
-        "stb_truetype",
         "nanosvg",
         "napi-ext-lib",
         "light-source-util-lib",
@@ -40,22 +39,15 @@
       ],
       "sources": [
         "ls/yoga-ext.cc",
-        "ls/Executor.cc",
+        "ls/ThreadPool.cc",
         "ls/CompositeContext.cc",
         "ls/PaintContext.cc",
-        "ls/Task.cc",
-        "ls/TaskQueue.cc",
         "ls/Style.cc",
         "ls/StyleEnums.cc",
         "ls/StyleUtils.cc",
         "ls/StyleValue.cc",
         "ls/Font.cc",
-        "ls/FontStore.cc",
-        "ls/ImageUri.cc",
-        "ls/ImageStore.cc",
         "ls/Resource.cc",
-        "ls/ImageResource.cc",
-        "ls/FontResource.cc",
         "ls/Resources.cc",
         "ls/DecodeImage.cc",
         "ls/DecodeFont.cc",
@@ -69,8 +61,6 @@
         "ls/Scene.cc",
         "ls/Stage.cc",
         "ls/bindings/GlobalFunctions.cc",
-        "ls/bindings/ImageStoreView.cc",
-        "ls/bindings/FontStoreView.cc",
         "ls/bindings/Init.cc",
       ],
       "conditions": [
@@ -84,7 +74,6 @@
             ],
             "sources": [
               "test/ExecutorSpec.cc",
-              "test/TaskQueueSpec.cc",
               "test/StyleUtilsSpec.cc",
             ]
           }

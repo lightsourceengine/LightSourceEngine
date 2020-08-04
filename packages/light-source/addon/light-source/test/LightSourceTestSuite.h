@@ -10,14 +10,12 @@
 
 namespace ls {
 
-void TaskQueueSpec(Napi::TestSuite* parent);
 void ExecutorSpec(Napi::TestSuite* parent);
 void StyleUtilsSpec(Napi::TestSuite* parent);
 
 inline
 Napi::Value LightSourceTestSuite(Napi::Env env) {
     return Napi::TestSuite::Build(env, "light-source native tests", {
-        &TaskQueueSpec,
         &ExecutorSpec,
         &StyleUtilsSpec,
     });

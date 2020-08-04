@@ -7,10 +7,9 @@
 #pragma once
 
 #include <napi-ext.h>
-#include "FontStore.h"
-#include "Executor.h"
-#include "TaskQueue.h"
+
 #include "Resources.h"
+#include "ThreadPool.h"
 
 namespace ls {
 
@@ -19,12 +18,8 @@ class Stage : public Napi::SafeObjectWrap<Stage> {
     explicit Stage(const Napi::CallbackInfo& info);
     virtual ~Stage() = default;
 
-    FontStore* GetFontStore() const noexcept { return &this->fontStore; }
-    TaskQueue* GetTaskQueue() const noexcept { return &this->taskQueue; }
-    Executor* GetExecutor() const noexcept { return &this->executor; }
+    ThreadPool* GetThreadPool() const noexcept { return &this->threadPool; }
     Resources* GetResources() const noexcept { return &this->resources; }
-
-    const std::string& GetResourcePath() const noexcept { return this->resourceDomainPath; }
 
  public:
     static Napi::Function GetClass(Napi::Env env);
@@ -36,9 +31,7 @@ class Stage : public Napi::SafeObjectWrap<Stage> {
     void Destroy(const Napi::CallbackInfo& info);
 
  private:
-    mutable FontStore fontStore;
-    mutable TaskQueue taskQueue;
-    mutable Executor executor;
+    mutable ThreadPool threadPool;
     mutable Resources resources;
     std::string resourceDomainPath;
 

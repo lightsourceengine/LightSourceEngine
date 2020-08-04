@@ -5,7 +5,6 @@
  */
 
 #include "Stage.h"
-#include "FontStore.h"
 #include <ls/StageAdapter.h>
 #include <ls/Audio.h>
 #include <ls/Format.h>
@@ -31,7 +30,6 @@ Stage::Stage(const CallbackInfo& info) : SafeObjectWrap<Stage>(info) {
 }
 
 void Stage::Constructor(const Napi::CallbackInfo& info) {
-    this->taskQueue.Init(this->GetExecutor());
 }
 
 Function Stage::GetClass(Napi::Env env) {
@@ -41,7 +39,6 @@ Function Stage::GetClass(Napi::Env env) {
         HandleScope scope(env);
 
         constructor = DefineClass(env, "StageBase", true, {
-            InstanceAccessor("resourceDomainPath", &Stage::GetResourceDomainPath, &Stage::SetResourceDomainPath),
             InstanceMethod(SymbolFor(env, "destroy"), &Stage::Destroy),
         });
     }
@@ -50,19 +47,7 @@ Function Stage::GetClass(Napi::Env env) {
 }
 
 void Stage::Destroy(const CallbackInfo& info) {
-    this->executor.ShutdownNow();
-}
-
-Value Stage::GetResourceDomainPath(const CallbackInfo& info) {
-    return String::New(info.Env(), this->resourceDomainPath);
-}
-
-void Stage::SetResourceDomainPath(const CallbackInfo& info, const Napi::Value& value) {
-    if (value.IsString()) {
-        this->resourceDomainPath = value.As<String>();
-    } else {
-        throw Error::New(info.Env(), "resourceDomainPath must be a string.");
-    }
+    this->threadPool.ShutdownNow();
 }
 
 } // namespace ls

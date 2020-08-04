@@ -5,7 +5,6 @@
  */
 
 #include "ImageSceneNode.h"
-#include "ImageStore.h"
 #include "Style.h"
 #include "Scene.h"
 #include "Stage.h"
@@ -361,19 +360,6 @@ void ImageSceneNode::ClearResource() {
         this->image->RemoveListener(this);
         this->GetStage()->GetResources()->ReleaseResource(this->image);
         this->image = nullptr;
-    }
-}
-
-void ImageSceneNode::DoCallbacks() {
-    switch (this->image ? this->image->GetState() : ResourceStateInit) {
-        case ResourceStateReady:
-            Call(this->onLoadCallback);
-            break;
-        case ResourceStateError:
-            Call(this->onErrorCallback);
-            break;
-        default:
-            break;
     }
 }
 

@@ -7,8 +7,6 @@
 #include <napi.h>
 #include <ls/bindings/Logger.h>
 #include <ls/bindings/GlobalFunctions.h>
-#include <ls/bindings/FontStoreView.h>
-#include <ls/bindings/ImageStoreView.h>
 #include <ls/Scene.h>
 #include <ls/Stage.h>
 #include <ls/Style.h>
@@ -37,8 +35,6 @@ Object Init(Env env, Object exports) {
     ls::Style::Init(env);
 
     ExportClass(&exports, ls::bindings::Logger::GetClass(env));
-    ExportClass(&exports, ls::bindings::FontStoreView::GetClass(env));
-    ExportClass(&exports, ls::bindings::ImageStoreView::GetClass(env));
 
     ExportClass(&exports, ls::Style::GetClass(env));
     ExportClass(&exports, ls::Scene::GetClass(env));
