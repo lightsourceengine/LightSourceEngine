@@ -7,8 +7,8 @@
 #include "RefAudioPluginImpl.h"
 
 #include <napi-ext.h>
-#include <ls/BaseAudioDestination.h>
-#include <ls/BaseAudioSource.h>
+#include <ls/AudioDestination.h>
+#include <ls/AudioSource.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -16,64 +16,49 @@ using Napi::Error;
 using Napi::EscapableHandleScope;
 using Napi::Function;
 using Napi::HandleScope;
-using Napi::SafeObjectWrap;
+using Napi::NewStringArray;
+using Napi::Number;
 using Napi::Value;
 
 namespace ls {
 
-class RefAudioSource : public SafeObjectWrap<RefAudioSource>, public BaseAudioSource {
+class RefAudioSourceImpl : public AudioSourceInterface {
  public:
-    explicit RefAudioSource(const CallbackInfo& info) : SafeObjectWrap<RefAudioSource>(info) {
-    }
+    explicit RefAudioSourceImpl(const CallbackInfo& info) {}
+    virtual ~RefAudioSourceImpl() = default;
 
-    virtual ~RefAudioSource() = default;
+    void Play(const CallbackInfo& info) override {}
+    void Load(const CallbackInfo& info) override {}
+    void Destroy(const CallbackInfo& info) override {}
+    void SetVolume(const CallbackInfo& info, const Napi::Value& value) override {}
+    Napi::Value HasCapability(const CallbackInfo& info) override { return Boolean::New(info.Env(), true); }
+    Napi::Value GetVolume(const CallbackInfo& info) override { return Number::New(info.Env(), 0); }
 
-    static Function GetClass(Napi::Env env) {
-        return GetClassInternal<RefAudioSource>(env, "RefAudioSource");
-    }
-
-    void Load(const CallbackInfo& info) override {
-    }
-
-    void Destroy(const CallbackInfo& info) override {
-    }
-
-    Napi::Value HasCapability(const CallbackInfo& info) override {
-        return Boolean::New(info.Env(), true);
-    }
-
-    friend SafeObjectWrap<RefAudioSource>;
-    friend BaseAudioSource;
+    void Finalize() override { delete this; }
 };
 
-class RefAudioDestination : public SafeObjectWrap<RefAudioDestination>, public BaseAudioDestination {
+class RefAudioDestinationImpl : public AudioDestinationInterface {
  public:
-    explicit RefAudioDestination(const CallbackInfo& info) : SafeObjectWrap<RefAudioDestination>(info) {
-    }
-
-    virtual ~RefAudioDestination() = default;
-
-    static Function GetClass(Napi::Env env) {
-        return GetClassInternal<RefAudioDestination>(env, "RefAudioDestination");
-    }
-
-    void Constructor(const CallbackInfo& info) override {
-        this->decoders = { "WAVE" };
-    }
+    explicit RefAudioDestinationImpl(const CallbackInfo& info) {}
+    virtual ~RefAudioDestinationImpl() = default;
 
     Napi::Value CreateAudioSource(const CallbackInfo& info) override {
-        auto env{ info.Env() };
-        EscapableHandleScope scope(env);
-
-        return scope.Escape(RefAudioSource::GetClass(env).New({}));
+        return AudioSource::Create<RefAudioSourceImpl>(info.Env());
     }
 
-    Napi::Value HasCapability(const CallbackInfo& info) override {
-        return Boolean::New(info.Env(), true);
-    }
+    Napi::Value HasCapability(const CallbackInfo& info) override { return Boolean::New(info.Env(), true); }
+    Napi::Value GetVolume(const CallbackInfo& info) override { return Number::New(info.Env(), 0); }
+    void Destroy(const CallbackInfo& info) override {}
+    Value GetDecoders(const CallbackInfo& info) override { return NewStringArray(info.Env(), this->decoders); }
+    void Resume(const CallbackInfo& info) override {}
+    void Pause(const CallbackInfo& info) override {}
+    void Stop(const CallbackInfo& info) override {}
+    void SetVolume(const CallbackInfo& info, const Value& value) override {}
 
-    friend SafeObjectWrap<RefAudioDestination>;
-    friend BaseAudioDestination;
+    void Finalize() override { delete this; }
+
+ private:
+    std::vector<std::string> decoders{ "WAVE" };
 };
 
 RefAudioPluginImpl::RefAudioPluginImpl(const Napi::CallbackInfo& info) {
@@ -101,17 +86,11 @@ Value RefAudioPluginImpl::GetAudioDevices(const CallbackInfo& info) {
 }
 
 Value RefAudioPluginImpl::CreateSampleAudioDestination(const CallbackInfo& info) {
-    auto env{ info.Env() };
-    EscapableHandleScope scope(env);
-
-    return scope.Escape(RefAudioDestination::GetClass(env).New({}));
+    return AudioDestination::Create<RefAudioDestinationImpl>(info.Env());
 }
 
 Value RefAudioPluginImpl::CreateStreamAudioDestination(const CallbackInfo& info) {
-    auto env{ info.Env() };
-    EscapableHandleScope scope(env);
-
-    return scope.Escape(RefAudioDestination::GetClass(env).New({}));
+    return AudioDestination::Create<RefAudioDestinationImpl>(info.Env());
 }
 
 void RefAudioPluginImpl::Finalize() {

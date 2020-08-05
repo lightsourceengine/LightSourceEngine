@@ -8,8 +8,8 @@
 
 #include <SDL.h>
 #include <SDL_mixer.h>
-#include <ls/BaseAudioDestination.h>
-#include <ls/BaseAudioSource.h>
+#include <ls/AudioDestination.h>
+#include <ls/AudioSource.h>
 #include <ls/Format.h>
 #include <ls/Log.h>
 #include <ls/Timer.h>
@@ -26,7 +26,6 @@ using Napi::Function;
 using Napi::HandleScope;
 using Napi::Number;
 using Napi::Object;
-using Napi::SafeObjectWrap;
 using Napi::Value;
 
 namespace ls {
@@ -41,16 +40,10 @@ int32_t GetLoops(const CallbackInfo& info);
 
 constexpr auto MIX_MAX_VOLUME_F{ static_cast<float>(MIX_MAX_VOLUME) };
 
-class SDLMixerSampleAudioSource : public SafeObjectWrap<SDLMixerSampleAudioSource>, public BaseAudioSource {
+class SDLMixerSampleAudioSourceImpl : public AudioSourceInterface {
  public:
-    explicit SDLMixerSampleAudioSource(const CallbackInfo& info) : SafeObjectWrap<SDLMixerSampleAudioSource>(info) {
-    }
-
-    virtual ~SDLMixerSampleAudioSource() = default;
-
-    static Function GetClass(Napi::Env env) {
-        return GetClassInternal<SDLMixerSampleAudioSource>(env, "SDLMixerSampleAudioSource");
-    }
+    explicit SDLMixerSampleAudioSourceImpl(const CallbackInfo& info) {}
+    virtual ~SDLMixerSampleAudioSourceImpl() = default;
 
     void Load(const Napi::CallbackInfo& info) override {
         this->Destroy();
@@ -72,8 +65,8 @@ class SDLMixerSampleAudioSource : public SafeObjectWrap<SDLMixerSampleAudioSourc
 
     Napi::Value GetVolume(const Napi::CallbackInfo& info) override {
         if (this->chunk) {
-            return Number::New(info.Env(),
-                ConstrainVolume(static_cast<float>(Mix_VolumeChunk(this->chunk, -1)) / MIX_MAX_VOLUME_F));
+            return Number::New(info.Env(), ConstrainVolume(
+            static_cast<float>(Mix_VolumeChunk(this->chunk, -1)) / MIX_MAX_VOLUME_F));
         }
 
         return Number::New(info.Env(), 0);
@@ -115,6 +108,10 @@ class SDLMixerSampleAudioSource : public SafeObjectWrap<SDLMixerSampleAudioSourc
         }
     }
 
+    void Finalize() override {
+        delete this;
+    }
+
  private:
     void Destroy() {
         if (this->chunk) {
@@ -125,33 +122,18 @@ class SDLMixerSampleAudioSource : public SafeObjectWrap<SDLMixerSampleAudioSourc
 
  private:
     Mix_Chunk* chunk{nullptr};
-
-    friend SafeObjectWrap<SDLMixerSampleAudioSource>;
-    friend BaseAudioSource;
 };
 
-class SDLMixerSampleAudioDestination
-    : public SafeObjectWrap<SDLMixerSampleAudioDestination>, public BaseAudioDestination {
+class SDLMixerSampleAudioDestinationImpl : public AudioDestinationInterface {
  public:
-    explicit SDLMixerSampleAudioDestination(const CallbackInfo& info)
-        : SafeObjectWrap<SDLMixerSampleAudioDestination>(info) {
-    }
-
-    virtual ~SDLMixerSampleAudioDestination() = default;
-
-    static Function GetClass(Napi::Env env) {
-        return GetClassInternal<SDLMixerSampleAudioDestination>(env, "SDLMixerSampleAudioDestination");
-    }
-
-    void Constructor(const Napi::CallbackInfo& info) override {
+    explicit SDLMixerSampleAudioDestinationImpl(const CallbackInfo& info) {
         FillVector(&this->decoders, &Mix_GetChunkDecoder, Mix_GetNumChunkDecoders());
     }
 
-    Napi::Value CreateAudioSource(const CallbackInfo& info) override {
-        auto env{ info.Env() };
-        EscapableHandleScope scope(env);
+    virtual ~SDLMixerSampleAudioDestinationImpl() = default;
 
-        return scope.Escape(SDLMixerSampleAudioSource::GetClass(env).New({}));
+    Napi::Value CreateAudioSource(const CallbackInfo& info) override {
+        return AudioSource::Create<SDLMixerSampleAudioSourceImpl>(info.Env());
     }
 
     Napi::Value GetVolume(const CallbackInfo& info) override {
@@ -188,20 +170,25 @@ class SDLMixerSampleAudioDestination
         return Boolean::New(info.Env(), true);
     }
 
-    friend SafeObjectWrap<SDLMixerSampleAudioDestination>;
-    friend BaseAudioDestination;
+    void Destroy(const CallbackInfo& info) override {
+    }
+
+    Value GetDecoders(const CallbackInfo& info) override {
+        return Napi::NewStringArray(info.Env(), this->decoders);
+    }
+
+    void Finalize() override {
+        delete this;
+    }
+
+ private:
+    std::vector<std::string> decoders{};
 };
 
-class SDLMixerStreamAudioSource : public SafeObjectWrap<SDLMixerStreamAudioSource>, public BaseAudioSource {
+class SDLMixerStreamAudioSourceImpl : public AudioSourceInterface {
  public:
-    explicit SDLMixerStreamAudioSource(const CallbackInfo& info) : SafeObjectWrap<SDLMixerStreamAudioSource>(info) {
-    }
-
-    virtual ~SDLMixerStreamAudioSource() = default;
-
-    static Function GetClass(Napi::Env env) {
-        return GetClassInternal<SDLMixerStreamAudioSource>(env, "SDLMixerStreamAudioSource");
-    }
+    explicit SDLMixerStreamAudioSourceImpl(const CallbackInfo& info) {}
+    virtual ~SDLMixerStreamAudioSourceImpl() = default;
 
     void Load(const CallbackInfo& info) override {
         this->Destroy();
@@ -248,6 +235,17 @@ class SDLMixerStreamAudioSource : public SafeObjectWrap<SDLMixerStreamAudioSourc
         }
     }
 
+    Value GetVolume(const CallbackInfo& info) override {
+        return Number::New(info.Env(), 0);
+    }
+
+    void SetVolume(const CallbackInfo& info, const Value& value) override {
+    }
+
+    void Finalize() override {
+        delete this;
+    }
+
  private:
     void Destroy() {
         if (this->music) {
@@ -258,34 +256,18 @@ class SDLMixerStreamAudioSource : public SafeObjectWrap<SDLMixerStreamAudioSourc
 
  private:
     Mix_Music* music{nullptr};
-
-    friend SafeObjectWrap<SDLMixerStreamAudioSource>;
-    friend BaseAudioSource;
 };
 
-class SDLMixerStreamAudioDestination
-    : public SafeObjectWrap<SDLMixerStreamAudioDestination>, public BaseAudioDestination {
+class SDLMixerStreamAudioDestinationImpl : public AudioDestinationInterface {
  public:
-    explicit SDLMixerStreamAudioDestination(const CallbackInfo& info)
-            : SafeObjectWrap<SDLMixerStreamAudioDestination>(info) {
-    }
-
-    virtual ~SDLMixerStreamAudioDestination() = default;
-
-
-    static Function GetClass(Napi::Env env) {
-        return GetClassInternal<SDLMixerStreamAudioDestination>(env, "SDLMixerStreamAudioDestination");
-    }
-
-    void Constructor(const Napi::CallbackInfo& info) override {
+    explicit SDLMixerStreamAudioDestinationImpl(const CallbackInfo& info) {
         FillVector(&this->decoders, &Mix_GetMusicDecoder, Mix_GetNumMusicDecoders());
     }
 
-    Napi::Value CreateAudioSource(const CallbackInfo& info) override {
-        auto env{ info.Env() };
-        EscapableHandleScope scope(env);
+    virtual ~SDLMixerStreamAudioDestinationImpl() = default;
 
-        return scope.Escape(SDLMixerStreamAudioSource::GetClass(env).New({}));
+    Napi::Value CreateAudioSource(const CallbackInfo& info) override {
+        return AudioSource::Create<SDLMixerStreamAudioSourceImpl>(info.Env());
     }
 
     Napi::Value GetVolume(const CallbackInfo& info) override {
@@ -322,8 +304,19 @@ class SDLMixerStreamAudioDestination
         return Boolean::New(info.Env(), true);
     }
 
-    friend SafeObjectWrap<SDLMixerStreamAudioDestination>;
-    friend BaseAudioDestination;
+    void Destroy(const CallbackInfo& info) override {
+    }
+
+    Value GetDecoders(const CallbackInfo& info) override {
+        return Napi::NewStringArray(info.Env(), this->decoders);
+    }
+
+    void Finalize() override {
+        delete this;
+    }
+
+ private:
+    std::vector<std::string> decoders{};
 };
 
 SDLMixerAudioPluginImpl::SDLMixerAudioPluginImpl(const CallbackInfo& info) {
@@ -397,24 +390,20 @@ Value SDLMixerAudioPluginImpl::CreateSampleAudioDestination(const CallbackInfo& 
     auto env{ info.Env() };
 
     if (!this->isAttached) {
-        throw Error::New(env, "SDLMixerAudioAdapter is not attached!");
+        throw Error::New(env, "SDLMixerAudioPlugin is not attached!");
     }
 
-    EscapableHandleScope scope(env);
-
-    return scope.Escape(SDLMixerSampleAudioDestination::GetClass(env).New({}));
+    return AudioDestination::Create<SDLMixerSampleAudioDestinationImpl>(info.Env());
 }
 
 Value SDLMixerAudioPluginImpl::CreateStreamAudioDestination(const CallbackInfo& info) {
     auto env{ info.Env() };
 
     if (!this->isAttached) {
-        throw Error::New(env, "SDLMixerAudioAdapter is not attached!");
+        throw Error::New(env, "SDLMixerAudioPlugin is not attached!");
     }
 
-    EscapableHandleScope scope(env);
-
-    return scope.Escape(SDLMixerStreamAudioDestination::GetClass(env).New({}));
+    return AudioDestination::Create<SDLMixerStreamAudioDestinationImpl>(info.Env());
 }
 
 void SDLMixerAudioPluginImpl::Finalize() {

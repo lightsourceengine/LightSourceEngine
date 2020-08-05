@@ -6,8 +6,8 @@
 
 #include "SDLAudioPluginImpl.h"
 
-#include <ls/BaseAudioDestination.h>
-#include <ls/BaseAudioSource.h>
+#include <ls/AudioDestination.h>
+#include <ls/AudioSource.h>
 #include <ls/Format.h>
 
 using Napi::Boolean;
@@ -18,26 +18,16 @@ using Napi::EscapableHandleScope;
 using Napi::Function;
 using Napi::Number;
 using Napi::Object;
-using Napi::SafeObjectWrap;
 using Napi::Value;
 
 namespace ls {
 
-class SDLAudioSource : public SafeObjectWrap<SDLAudioSource>, public BaseAudioSource {
+class SDLAudioSourceImpl : public AudioSourceInterface {
  public:
-    explicit SDLAudioSource(const CallbackInfo& info) : SafeObjectWrap<SDLAudioSource>(info) {
+    explicit SDLAudioSourceImpl(const CallbackInfo& info) {
+        this->deviceId = info[1].As<Number>().Int32Value();
     }
-
-    virtual ~SDLAudioSource() = default;
-
-
-    static Function GetClass(Napi::Env env) {
-        return GetClassInternal<SDLAudioSource>(env, "SDLAudioSource");
-    }
-
-    void Constructor(const CallbackInfo& info) override {
-        this->deviceId = info[0].As<Number>().Int32Value();
-    }
+    virtual ~SDLAudioSourceImpl() = default;
 
     void Load(const CallbackInfo& info) override {
         this->Destroy();
@@ -81,6 +71,21 @@ class SDLAudioSource : public SafeObjectWrap<SDLAudioSource>, public BaseAudioSo
         }
     }
 
+    Value GetVolume(const CallbackInfo& info) override {
+        return Number::New(info.Env(), 0);
+    }
+
+    void SetVolume(const CallbackInfo& info, const Value& value) override {
+    }
+
+    Value HasCapability(const CallbackInfo& info) override {
+        return Boolean::New(info.Env(), false);
+    }
+
+    void Finalize() override {
+        delete this;
+    }
+
  private:
     void Destroy() {
         if (this->audioBuffer) {
@@ -94,36 +99,21 @@ class SDLAudioSource : public SafeObjectWrap<SDLAudioSource>, public BaseAudioSo
     uint8_t* audioBuffer{nullptr};
     uint32_t audioBufferLen{0};
     int32_t deviceId{-1};
-
-    friend SafeObjectWrap<SDLAudioSource>;
-    friend BaseAudioSource;
 };
 
-class SDLAudioSampleAudioDestination
-    : public SafeObjectWrap<SDLAudioSampleAudioDestination>, public BaseAudioDestination {
+class SDLAudioSampleAudioDestinationImpl : public AudioDestinationInterface {
  public:
-    explicit SDLAudioSampleAudioDestination(const CallbackInfo& info)
-            : SafeObjectWrap<SDLAudioSampleAudioDestination>(info) {
+    explicit SDLAudioSampleAudioDestinationImpl(const CallbackInfo& info) {
+        this->deviceId = info[1].As<Number>().Int32Value();
     }
-
-    virtual ~SDLAudioSampleAudioDestination() = default;
-
-
-    static Function GetClass(Napi::Env env) {
-        return GetClassInternal<SDLAudioSampleAudioDestination>(env, "SDLAudioSampleAudioDestination");
-    }
-
-    void Constructor(const CallbackInfo& info) override {
-        this->deviceId = info[0].As<Number>().Int32Value();
-        // Only the WAVE decoder is supported by SDL Audio.
-        this->decoders = { "WAVE" };
-    }
+    virtual ~SDLAudioSampleAudioDestinationImpl() = default;
 
     Napi::Value CreateAudioSource(const CallbackInfo& info) override {
         auto env{ info.Env() };
         EscapableHandleScope scope(env);
 
-        return scope.Escape(SDLAudioSource::GetClass(env).New({}));
+        return scope.Escape(
+            AudioSource::Create<SDLAudioSourceImpl>(env, { Number::New(env, this->deviceId) }));
     }
 
     void Pause(const CallbackInfo& info) override {
@@ -136,6 +126,24 @@ class SDLAudioSampleAudioDestination
 
     void Stop(const CallbackInfo& info) override {
         SDL_ClearQueuedAudio(this->deviceId);
+    }
+
+    void Destroy(const CallbackInfo& info) override {
+    }
+
+    Value GetDecoders(const CallbackInfo& info) override {
+        return Napi::NewStringArray(info.Env(), this->decoders);
+    }
+
+    Value GetVolume(const CallbackInfo& info) override {
+        return Number::New(info.Env(), 0);
+    }
+
+    void SetVolume(const CallbackInfo& info, const Value& value) override {
+    }
+
+    void Finalize() override {
+        delete this;
     }
 
     Napi::Value HasCapability(const CallbackInfo& info) override {
@@ -152,10 +160,8 @@ class SDLAudioSampleAudioDestination
     }
 
  private:
+    std::vector<std::string> decoders{ "WAVE" };
     int32_t deviceId{-1};
-
-    friend SafeObjectWrap<SDLAudioSampleAudioDestination>;
-    friend BaseAudioDestination;
 };
 
 SDLAudioPluginImpl::SDLAudioPluginImpl(const CallbackInfo& info) {
@@ -238,7 +244,10 @@ Value SDLAudioPluginImpl::CreateSampleAudioDestination(const CallbackInfo& info)
 
     EscapableHandleScope scope(env);
 
-    return scope.Escape(SDLAudioSource::GetClass(env).New({ Number::New(env, this->deviceId) }));
+    auto destination{ AudioDestination::Create<SDLAudioSampleAudioDestinationImpl>(
+        env, { Number::New(env, this->deviceId) }) };
+
+    return scope.Escape(destination);
 }
 
 Value SDLAudioPluginImpl::CreateStreamAudioDestination(const CallbackInfo& info) {

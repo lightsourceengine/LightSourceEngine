@@ -13,8 +13,8 @@
       ],
       "sources": [
         "ls/AudioPlugin.cc",
-        "ls/BaseAudioSource.cc",
-        "ls/BaseAudioDestination.cc",
+        "ls/AudioSource.cc",
+        "ls/AudioDestination.cc",
       ]
     },
   ]
