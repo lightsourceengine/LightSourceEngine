@@ -229,7 +229,7 @@ export class Stage extends StageBase {
     let adapter
 
     try {
-      adapter = getPlatformPlugin(this).createSceneAdapter({ displayIndex, width, height, fullscreen })
+      adapter = getPlatformPlugin(this).createGraphicsContext({ displayIndex, width, height, fullscreen })
     } catch (e) {
       throw Error(e.message)
     }

@@ -6,20 +6,16 @@
 
 #pragma once
 
-#include "SDLRenderer.h"
-#include <ls/SceneAdapter.h>
-#include <SDL.h>
-#include <memory>
+#include "RefRenderer.h"
+#include <ls/GraphicsContext.h>
 
 namespace ls {
 
-class SDLSceneAdapter : public Napi::SafeObjectWrap<SDLSceneAdapter>, public SceneAdapter {
+class RefGraphicsContextImpl : public GraphicsContextInterface {
  public:
-    explicit SDLSceneAdapter(const Napi::CallbackInfo& info);
+    explicit RefGraphicsContextImpl(const Napi::CallbackInfo& info);
+    virtual ~RefGraphicsContextImpl() = default;
 
-    static Napi::Function GetClass(Napi::Env env);
-
-    void Constructor(const Napi::CallbackInfo& info) override;
     void Attach(const Napi::CallbackInfo& info) override;
     void Detach(const Napi::CallbackInfo& info) override;
     void Resize(const Napi::CallbackInfo& info) override;
@@ -27,26 +23,21 @@ class SDLSceneAdapter : public Napi::SafeObjectWrap<SDLSceneAdapter>, public Sce
     void SetTitle(const Napi::CallbackInfo& info, const Napi::Value& value) override;
     Napi::Value GetWidth(const Napi::CallbackInfo& info) override;
     Napi::Value GetHeight(const Napi::CallbackInfo& info) override;
-    Napi::Value GetDisplayIndex(const Napi::CallbackInfo& info) override;
     Napi::Value GetFullscreen(const Napi::CallbackInfo& info) override;
+    Napi::Value GetDisplayIndex(const Napi::CallbackInfo& info) override;
 
     int32_t GetWidth() const override { return this->width; }
     int32_t GetHeight() const override { return this->height; }
     Renderer* GetRenderer() const override;
+    void Finalize() override;
 
  private:
-    mutable SDLRenderer renderer;
-    SDL_Window* window{};
-
-    int32_t configWidth{};
-    int32_t configHeight{};
-    bool configFullscreen{};
-    int32_t configDisplayIndex{};
-
+    mutable RefRenderer renderer;
+    std::string title{};
     int32_t width{};
     int32_t height{};
+    int32_t displayIndex{};
     bool fullscreen{};
-    std::string title{"Light Source App"};
 };
 
 } // namespace ls

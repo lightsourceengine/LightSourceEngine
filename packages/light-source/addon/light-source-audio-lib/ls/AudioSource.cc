@@ -22,20 +22,8 @@ AudioSource::~AudioSource() {
 }
 
 void AudioSource::Constructor(const Napi::CallbackInfo& info) {
-    auto env{ info.Env() };
-    auto value{ info[0] };
-
-    if (!value.IsExternal()) {
-        throw Napi::Error::New(env, "AudioSource constructor expects an External value");
-    }
-
-    auto factory{ value.As<Napi::External<void>>().Data() };
-
-    if (!factory) {
-        throw Napi::Error::New(env, "External contains to AudioSource implementation factory ");
-    }
-
-    this->impl = reinterpret_cast<AudioSourceInterfaceFactory>(factory)(info);
+    this->impl = Napi::ConstructorWithExternalFactory<AudioSourceInterface, AudioSourceInterfaceFactory>(
+        info, "AudioSource");
 }
 
 Napi::Function AudioSource::GetClass(Napi::Env env) {

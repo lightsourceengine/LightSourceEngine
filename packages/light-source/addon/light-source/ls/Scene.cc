@@ -8,7 +8,7 @@
 #include "RootSceneNode.h"
 #include "Stage.h"
 #include <ls/Renderer.h>
-#include <ls/SceneAdapter.h>
+#include <ls/GraphicsContext.h>
 #include <ls/Log.h>
 #include <ls/Format.h>
 #include <ls/Math.h>
@@ -44,8 +44,8 @@ void Scene::Constructor(const CallbackInfo& info) {
     this->stage = QueryInterface<Stage>(info[0].As<Object>());
     this->stage->Ref();
 
-    this->adapter = QueryInterface<SceneAdapter>(info[1].As<Object>());
-    this->adapter->Ref();
+    this->graphicsContext = QueryInterface<GraphicsContext>(info[1].As<Object>());
+    this->graphicsContext->Ref();
 
     this->root = QueryInterface<SceneNode>(RootSceneNode::GetClass(env).New({ info.This() }));
     this->root->Ref();
@@ -72,8 +72,8 @@ Function Scene::GetClass(Napi::Env env) {
 }
 
 void Scene::Attach(const CallbackInfo& info) {
-    this->width = this->adapter->GetWidth();
-    this->height = this->adapter->GetHeight();
+    this->width = this->graphicsContext->GetWidth();
+    this->height = this->graphicsContext->GetHeight();
     this->isAttached = true;
 }
 
@@ -152,7 +152,7 @@ Napi::Value Scene::GetStage(const Napi::CallbackInfo& info) {
 }
 
 Napi::Value Scene::GetAdapter(const Napi::CallbackInfo &info) {
-    return this->adapter->Value();
+    return this->graphicsContext->Value();
 }
 
 void Scene::Destroy(const Napi::CallbackInfo &info) {
@@ -167,9 +167,9 @@ void Scene::Destroy(const Napi::CallbackInfo &info) {
         this->stage = nullptr;
     }
 
-    if (this->adapter) {
-        this->adapter->Unref();
-        this->adapter = nullptr;
+    if (this->graphicsContext) {
+        this->graphicsContext->Unref();
+        this->graphicsContext = nullptr;
     }
 }
 
@@ -208,7 +208,7 @@ void Scene::QueueBeforeLayout(SceneNode* node) {
 }
 
 Renderer* Scene::GetRenderer() const noexcept {
-    return this->adapter->GetRenderer();
+    return this->graphicsContext->GetRenderer();
 }
 
 void Scene::QueueComposite() {

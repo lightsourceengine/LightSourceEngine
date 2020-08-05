@@ -14,8 +14,8 @@
 #include <unordered_set>
 
 #include "SDLGamepad.h"
+#include "SDLGraphicsContextImpl.h"
 #include "SDLKeyboard.h"
-#include "SDLSceneAdapter.h"
 
 using Napi::Array;
 using Napi::Boolean;
@@ -268,11 +268,8 @@ void SDLPlatformPluginImpl::Destroy(const CallbackInfo& info) {
     this->Detach(info);
 }
 
-Value SDLPlatformPluginImpl::CreateSceneAdapter(const Napi::CallbackInfo& info) {
-    auto env{ info.Env() };
-    EscapableHandleScope scope(env);
-
-    return scope.Escape(SDLSceneAdapter::GetClass(env).New({ info[0] }));
+Value SDLPlatformPluginImpl::CreateGraphicsContext(const Napi::CallbackInfo& info) {
+    return GraphicsContext::Create<SDLGraphicsContextImpl>(info.Env(), info[0]);
 }
 
 Value SDLPlatformPluginImpl::ProcessEvents(const Napi::CallbackInfo& info) {

@@ -4,9 +4,9 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "SDLSceneAdapter.h"
-#include <napi-ext.h>
+#include "SDLGraphicsContextImpl.h"
 #include <ls/Log.h>
+#include <napi-ext.h>
 
 using Napi::Boolean;
 using Napi::Error;
@@ -20,12 +20,9 @@ using Napi::Value;
 
 namespace ls {
 
-SDLSceneAdapter::SDLSceneAdapter(const Napi::CallbackInfo& info) : SafeObjectWrap<SDLSceneAdapter>(info) {
-}
-
-void SDLSceneAdapter::Constructor(const Napi::CallbackInfo& info) {
+SDLGraphicsContextImpl::SDLGraphicsContextImpl(const Napi::CallbackInfo& info) {
     HandleScope scope(info.Env());
-    auto config{ info[0].As<Object>() };
+    auto config{ info[1].As<Object>() };
 
     this->configDisplayIndex = Napi::ObjectGetNumberOrDefault(config, "displayIndex", 0);
     this->configWidth = Napi::ObjectGetNumberOrDefault(config, "width", 0);
@@ -33,28 +30,7 @@ void SDLSceneAdapter::Constructor(const Napi::CallbackInfo& info) {
     this->configFullscreen = Napi::ObjectGetBooleanOrDefault(config, "fullscreen", true);
 }
 
-Function SDLSceneAdapter::GetClass(Napi::Env env) {
-    static FunctionReference constructor;
-
-    if (constructor.IsEmpty()) {
-        HandleScope scope(env);
-
-        constructor = DefineClass(env, "SDLSceneAdapter", true, {
-            InstanceAccessor("width", &SDLSceneAdapter::GetWidth, nullptr),
-            InstanceAccessor("height", &SDLSceneAdapter::GetHeight, nullptr),
-            InstanceAccessor("displayIndex", &SDLSceneAdapter::GetDisplayIndex, nullptr),
-            InstanceAccessor("fullscreen", &SDLSceneAdapter::GetFullscreen, nullptr),
-            InstanceAccessor("title", &SDLSceneAdapter::GetTitle, &SDLSceneAdapter::SetTitle),
-            InstanceMethod("attach", &SDLSceneAdapter::Attach),
-            InstanceMethod("detach", &SDLSceneAdapter::Detach),
-            InstanceMethod("resize", &SDLSceneAdapter::Resize),
-        });
-    }
-
-    return constructor.Value();
-}
-
-void SDLSceneAdapter::Attach(const Napi::CallbackInfo& info) {
+void SDLGraphicsContextImpl::Attach(const Napi::CallbackInfo& info) {
     auto env{ info.Env() };
 
     if (!this->window) {
@@ -100,7 +76,7 @@ void SDLSceneAdapter::Attach(const Napi::CallbackInfo& info) {
     this->fullscreen = false;
 }
 
-void SDLSceneAdapter::Detach(const Napi::CallbackInfo& info) {
+void SDLGraphicsContextImpl::Detach(const Napi::CallbackInfo& info) {
     this->renderer.Detach();
 
     if (this->window) {
@@ -109,31 +85,31 @@ void SDLSceneAdapter::Detach(const Napi::CallbackInfo& info) {
     }
 }
 
-void SDLSceneAdapter::Resize(const Napi::CallbackInfo& info) {
+void SDLGraphicsContextImpl::Resize(const Napi::CallbackInfo& info) {
     // TODO: int32_t width, int32_t height, bool fullscreen
 }
 
-Value SDLSceneAdapter::GetWidth(const Napi::CallbackInfo& info) {
+Value SDLGraphicsContextImpl::GetWidth(const Napi::CallbackInfo& info) {
     return Number::New(info.Env(), this->width);
 }
 
-Value SDLSceneAdapter::GetHeight(const Napi::CallbackInfo& info) {
+Value SDLGraphicsContextImpl::GetHeight(const Napi::CallbackInfo& info) {
     return Number::New(info.Env(), this->height);
 }
 
-Value SDLSceneAdapter::GetDisplayIndex(const Napi::CallbackInfo& info) {
+Value SDLGraphicsContextImpl::GetDisplayIndex(const Napi::CallbackInfo& info) {
     return Number::New(info.Env(), this->configDisplayIndex);
 }
 
-Value SDLSceneAdapter::GetFullscreen(const Napi::CallbackInfo& info) {
+Value SDLGraphicsContextImpl::GetFullscreen(const Napi::CallbackInfo& info) {
     return Boolean::New(info.Env(), this->fullscreen);
 }
 
-Value SDLSceneAdapter::GetTitle(const Napi::CallbackInfo& info) {
+Value SDLGraphicsContextImpl::GetTitle(const Napi::CallbackInfo& info) {
     return String::New(info.Env(), this->title);
 }
 
-void SDLSceneAdapter::SetTitle(const Napi::CallbackInfo& info, const Napi::Value& value) {
+void SDLGraphicsContextImpl::SetTitle(const Napi::CallbackInfo& info, const Napi::Value& value) {
     if (value.IsString()) {
         this->title = value.As<String>();
     } else {
@@ -145,8 +121,12 @@ void SDLSceneAdapter::SetTitle(const Napi::CallbackInfo& info, const Napi::Value
     }
 }
 
-Renderer* SDLSceneAdapter::GetRenderer() const {
+Renderer* SDLGraphicsContextImpl::GetRenderer() const {
     return &this->renderer;
+}
+
+void SDLGraphicsContextImpl::Finalize() {
+    delete this;
 }
 
 } // namespace ls

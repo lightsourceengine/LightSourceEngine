@@ -113,6 +113,15 @@ Napi::Value RunScript(const Napi::Env& env, const std::string& script);
  */
 Napi::Value RunScript(const Napi::Env& env, const Napi::String& script);
 
+/**
+ * Common constructor pattern used by SafeObjectWrap subclasses.
+ *
+ * The constructor is passed an External containing a native factory method. The factory method
+ * creates the internal native implementation.
+ */
+template<typename T, typename F>
+T* ConstructorWithExternalFactory(const Napi::CallbackInfo& info, const char* className);
+
 } // namespace Napi
 
 #include "napi-ext-inl.h"

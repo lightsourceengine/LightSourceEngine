@@ -33,6 +33,7 @@
         "napi-ext-lib",
         "light-source-util-lib",
         "light-source-graphics-lib",
+        "light-source-platform-lib", # TODO: remove dynamic cast from SafeObjectWrap
         "logger-lib",
         "logger-bindings-lib",
         "ls-ctx"

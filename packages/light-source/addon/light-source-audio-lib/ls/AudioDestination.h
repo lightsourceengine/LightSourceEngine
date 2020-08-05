@@ -65,17 +65,17 @@ class AudioDestination : public Napi::SafeObjectWrap<AudioDestination>, public A
 
 template<typename T>
 Napi::Value AudioDestination::Create(Napi::Env env, const std::initializer_list<napi_value>& args) {
-    Napi::EscapableHandleScope scope(env);
-
-    AudioDestinationInterfaceFactory factory{
+    const AudioDestinationInterfaceFactory factory{
         [](const Napi::CallbackInfo& info) -> AudioDestinationInterface* {
           return new T(info);
         }
     };
 
+    Napi::EscapableHandleScope scope(env);
     auto external{ Napi::External<void>::New(env, reinterpret_cast<void*>(factory)) };
-    std::vector<napi_value> constructorArgs(args.size() + 1);
+    static std::vector<napi_value> constructorArgs;
 
+    constructorArgs.clear();
     constructorArgs.push_back(external);
 
     for (auto arg : args) {

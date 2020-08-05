@@ -17,8 +17,8 @@ namespace ls {
 
 class SceneNode;
 class Stage;
-class SceneAdapter;
 class Renderer;
+class GraphicsContext;
 
 class Scene : public Napi::SafeObjectWrap<Scene> {
  public:
@@ -59,7 +59,7 @@ class Scene : public Napi::SafeObjectWrap<Scene> {
  private:
     SceneNode* root{};
     Stage* stage{};
-    SceneAdapter* adapter{};
+    GraphicsContext* graphicsContext{};
     float rootFontSize{0};
     int32_t width{};
     int32_t height{};

@@ -27,22 +27,9 @@ PlatformPlugin::~PlatformPlugin() {
     }
 }
 
-
 void PlatformPlugin::Constructor(const CallbackInfo& info) {
-    auto env{ info.Env() };
-    auto value{ info[0] };
-
-    if (!value.IsExternal()) {
-        throw Napi::Error::New(env, "PlatformPlugin constructor expects an External value");
-    }
-
-    auto factory{ value.As<Napi::External<void>>().Data() };
-
-    if (!factory) {
-        throw Napi::Error::New(env, "External contains to PlatformPlugin implementation factory ");
-    }
-
-    this->impl = reinterpret_cast<PlatformPluginInterfaceFactory>(factory)(info);
+    this->impl = Napi::ConstructorWithExternalFactory<PlatformPluginInterface, PlatformPluginInterfaceFactory>(
+        info, "PlatformPlugin");
 }
 
 Value PlatformPlugin::GetKeyboard(const CallbackInfo& info) {
@@ -94,9 +81,9 @@ Value PlatformPlugin::ProcessEvents(const CallbackInfo& info) {
 }
 
 
-Value PlatformPlugin::CreateSceneAdapter(const CallbackInfo& info) {
+Value PlatformPlugin::CreateGraphicsContext(const CallbackInfo& info) {
     CHECK_IMPL(this->impl);
-    return this->impl->CreateSceneAdapter(info);
+    return this->impl->CreateGraphicsContext(info);
 }
 
 void PlatformPlugin::AddGameControllerMappings(const CallbackInfo& info) {
@@ -124,7 +111,7 @@ Function PlatformPlugin::GetClass(Napi::Env env) {
             InstanceMethod("destroy", &PlatformPlugin::Destroy),
             InstanceMethod("setCallback", &PlatformPlugin::SetCallback),
             InstanceMethod("resetCallbacks", &PlatformPlugin::ResetCallbacks),
-            InstanceMethod("createSceneAdapter", &PlatformPlugin::CreateSceneAdapter),
+            InstanceMethod("createSceneAdapter", &PlatformPlugin::CreateGraphicsContext),
             InstanceMethod("addGameControllerMappings", &PlatformPlugin::AddGameControllerMappings),
         });
     }

@@ -22,7 +22,7 @@ class PlatformPluginInterface {
     virtual void Detach(const Napi::CallbackInfo& info) = 0;
     virtual void Destroy(const Napi::CallbackInfo& info) = 0;
     virtual Napi::Value ProcessEvents(const Napi::CallbackInfo& info) = 0;
-    virtual Napi::Value CreateSceneAdapter(const Napi::CallbackInfo& info) = 0;
+    virtual Napi::Value CreateGraphicsContext(const Napi::CallbackInfo& info) = 0;
     virtual void AddGameControllerMappings(const Napi::CallbackInfo& info) = 0;
 
     virtual void Finalize() = 0;
@@ -32,7 +32,7 @@ using PlatformPluginInterfaceFactory = PlatformPluginInterface* (*)(const Napi::
 
 class PlatformPlugin : public Napi::SafeObjectWrap<PlatformPlugin>, PlatformPluginInterface {
  public:
-  PlatformPlugin(const Napi::CallbackInfo& info);
+    PlatformPlugin(const Napi::CallbackInfo& info);
     ~PlatformPlugin() override;
 
     void Constructor(const Napi::CallbackInfo& info) override;
@@ -45,7 +45,7 @@ class PlatformPlugin : public Napi::SafeObjectWrap<PlatformPlugin>, PlatformPlug
     void Detach(const Napi::CallbackInfo& info) override;
     void Destroy(const Napi::CallbackInfo& info) override;
     Napi::Value ProcessEvents(const Napi::CallbackInfo& info) override;
-    Napi::Value CreateSceneAdapter(const Napi::CallbackInfo& info) override;
+    Napi::Value CreateGraphicsContext(const Napi::CallbackInfo& info) override;
     void AddGameControllerMappings(const Napi::CallbackInfo& info) override;
 
     void Finalize() override;

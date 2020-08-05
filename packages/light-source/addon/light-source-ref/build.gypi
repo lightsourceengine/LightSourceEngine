@@ -22,7 +22,7 @@
       ],
       "sources": [
         "ls/RefRenderer.cc",
-        "ls/RefSceneAdapter.cc",
+        "ls/RefGraphicsContextImpl.cc",
         "ls/RefPlatformPluginImpl.cc",
         "ls/Init.cc",
       ]

@@ -25,7 +25,7 @@
       "sources": [
         "ls/SDLRenderer.cc",
         "ls/SDLTexture.cc",
-        "ls/SDLSceneAdapter.cc",
+        "ls/SDLGraphicsContextImpl.cc",
         "ls/SDLPlatformPluginImpl.cc",
         "ls/InputDevice.cc",
         "ls/SDLKeyboard.cc",

@@ -37,4 +37,22 @@ Napi::Array NewStringArray(const Napi::Env& env, const Iterable& iterable) {
     return result;
 }
 
+template<typename T, typename F>
+T* ConstructorWithExternalFactory(const Napi::CallbackInfo& info, const char* className) {
+    auto env{ info.Env() };
+    auto value{ info[0] };
+
+    if (!value.IsExternal()) {
+        throw Napi::Error::New(env, std::string(className) + ": expected an arg of type External");
+    }
+
+    auto factory{ value.As<Napi::External<void>>().Data() };
+
+    if (!factory) {
+        throw Napi::Error::New(env, std::string(className) + "External contains no factory method");
+    }
+
+    return reinterpret_cast<F>(factory)(info);
+}
+
 } // namespace Napi

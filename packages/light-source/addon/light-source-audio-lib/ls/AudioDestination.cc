@@ -21,20 +21,8 @@ AudioDestination::~AudioDestination() {
 }
 
 void AudioDestination::Constructor(const Napi::CallbackInfo& info) {
-    auto env{ info.Env() };
-    auto value{ info[0] };
-
-    if (!value.IsExternal()) {
-        throw Napi::Error::New(env, "AudioDestination constructor expects an External value");
-    }
-
-    auto factory{ value.As<Napi::External<void>>().Data() };
-
-    if (!factory) {
-        throw Napi::Error::New(env, "External contains to AudioDestination implementation factory ");
-    }
-
-    this->impl = reinterpret_cast<AudioDestinationInterfaceFactory>(factory)(info);
+    this->impl = Napi::ConstructorWithExternalFactory<AudioDestinationInterface, AudioDestinationInterfaceFactory>(
+        info, "AudioDestination");
 }
 
 Napi::Function AudioDestination::GetClass(Napi::Env env) {

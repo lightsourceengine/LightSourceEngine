@@ -41,20 +41,8 @@ AudioPlugin::~AudioPlugin() {
 }
 
 void AudioPlugin::Constructor(const Napi::CallbackInfo& info) {
-    auto env{ info.Env() };
-    auto value{ info[0] };
-
-    if (!value.IsExternal()) {
-        throw Napi::Error::New(env, "AudioPlugin constructor expects an External value");
-    }
-
-    auto factory{ value.As<Napi::External<void>>().Data() };
-
-    if (!factory) {
-        throw Napi::Error::New(env, "External contains to AudioPlugin implementation factory ");
-    }
-
-    this->impl = reinterpret_cast<AudioPluginInterfaceFactory>(factory)(info);
+    this->impl = Napi::ConstructorWithExternalFactory<AudioPluginInterface, AudioPluginInterfaceFactory>(
+        info, "AudioPlugin");
 }
 
 void AudioPlugin::Finalize() {

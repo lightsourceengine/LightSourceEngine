@@ -8,7 +8,7 @@
 
 #include <ls/CapabilitiesView.h>
 
-#include "RefSceneAdapter.h"
+#include "RefGraphicsContextImpl.h"
 
 using Napi::Array;
 using Napi::Boolean;
@@ -67,11 +67,8 @@ Value RefPlatformPluginImpl::ProcessEvents(const CallbackInfo& info) {
     return Boolean::New(info.Env(), true);
 }
 
-Value RefPlatformPluginImpl::CreateSceneAdapter(const CallbackInfo& info) {
-    auto env{ info.Env() };
-    EscapableHandleScope scope(env);
-
-    return scope.Escape(RefSceneAdapter::GetClass(env).New({ info[0] }));
+Value RefPlatformPluginImpl::CreateGraphicsContext(const CallbackInfo& info) {
+    return GraphicsContext::Create<RefGraphicsContextImpl>(info.Env(), info[0]);
 }
 
 void RefPlatformPluginImpl::AddGameControllerMappings(const CallbackInfo& info) {

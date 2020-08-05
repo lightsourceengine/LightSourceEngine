@@ -25,7 +25,7 @@ class RefPlatformPluginImpl : public PlatformPluginInterface {
     void Destroy(const Napi::CallbackInfo& info) override;
     void SetCallback(const Napi::CallbackInfo& info) override;
     void ResetCallbacks(const Napi::CallbackInfo& info) override;
-    Napi::Value CreateSceneAdapter(const Napi::CallbackInfo& info) override;
+    Napi::Value CreateGraphicsContext(const Napi::CallbackInfo& info) override;
     void AddGameControllerMappings(const Napi::CallbackInfo& info) override;
 
     void Finalize() override;
