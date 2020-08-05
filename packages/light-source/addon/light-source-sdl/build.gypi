@@ -6,6 +6,7 @@
         "../common.gypi",
       ],
       "include_dirs": [
+        ".",
         "<(ls_sdl_include)",
         "../napi-ext-lib",
         "../logger-lib",
@@ -25,7 +26,7 @@
         "ls/SDLRenderer.cc",
         "ls/SDLTexture.cc",
         "ls/SDLSceneAdapter.cc",
-        "ls/SDLStageAdapter.cc",
+        "ls/SDLPlatformPluginImpl.cc",
         "ls/InputDevice.cc",
         "ls/SDLKeyboard.cc",
         "ls/SDLGamepad.cc",

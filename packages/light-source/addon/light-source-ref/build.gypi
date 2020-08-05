@@ -16,12 +16,14 @@
       ],
       "dependencies": [
         "napi-ext-lib",
+        "logger-lib",
         "light-source-stage-lib",
+        "light-source-graphics-lib",
       ],
       "sources": [
         "ls/RefRenderer.cc",
         "ls/RefSceneAdapter.cc",
-        "ls/RefStageAdapter.cc",
+        "ls/RefPlatformPluginImpl.cc",
         "ls/Init.cc",
       ]
     }

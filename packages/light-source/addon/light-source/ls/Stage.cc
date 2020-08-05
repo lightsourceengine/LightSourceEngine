@@ -5,8 +5,6 @@
  */
 
 #include "Stage.h"
-#include <ls/StageAdapter.h>
-#include <ls/Audio.h>
 #include <ls/Format.h>
 #include <ls/Log.h>
 

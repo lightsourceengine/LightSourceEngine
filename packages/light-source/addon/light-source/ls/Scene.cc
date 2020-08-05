@@ -8,7 +8,6 @@
 #include "RootSceneNode.h"
 #include "Stage.h"
 #include <ls/Renderer.h>
-#include <ls/StageAdapter.h>
 #include <ls/SceneAdapter.h>
 #include <ls/Log.h>
 #include <ls/Format.h>

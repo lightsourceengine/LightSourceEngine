@@ -51,25 +51,25 @@ class AudioPlugin : public Napi::SafeObjectWrap<AudioPlugin>, public AudioPlugin
 
 template<typename T>
 Napi::Object AudioPluginInit(Napi::Env env, Napi::Object exports, const char* name) {
-    auto createAudioPlugin{
+    auto createInstance{
         [](const Napi::CallbackInfo& info) -> Napi::Value {
-          Napi::EscapableHandleScope scope(info.Env());
+            const AudioPluginInterfaceFactory factory{
+                [](const Napi::CallbackInfo& info) -> AudioPluginInterface* {
+                  return new T(info);
+                }
+            };
 
-          AudioPluginInterfaceFactory factory{
-              [](const Napi::CallbackInfo& info) -> AudioPluginInterface* {
-                return new T(info);
-              }
-          };
+            Napi::EscapableHandleScope scope(info.Env());
 
-          auto external{ Napi::External<void>::New(info.Env(), reinterpret_cast<void*>(factory)) };
+            auto external{ Napi::External<void>::New(info.Env(), reinterpret_cast<void*>(factory)) };
 
-          return scope.Escape(AudioPlugin::GetClass(info.Env()).New({ external }));
+            return scope.Escape(AudioPlugin::GetClass(info.Env()).New({ external }));
         }
     };
 
     exports.Set("name", Napi::String::New(env, name));
     exports.Set("type", Napi::String::New(env, "audio"));
-    exports.Set("createInstance", Napi::Function::New(env, createAudioPlugin));
+    exports.Set("createInstance", Napi::Function::New(env, createInstance));
 
     return exports;
 }

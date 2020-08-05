@@ -8,9 +8,23 @@
 #pragma once
 
 #include <napi.h>
-#include <ls/StageAdapter.h>
 
 namespace ls {
+
+struct DisplayMode {
+    int width{};
+    int height{};
+};
+
+struct Display {
+    std::string name;
+    DisplayMode defaultMode{};
+    std::vector<DisplayMode> modes;
+};
+
+struct Capabilities {
+    std::vector<Display> displays;
+};
 
 Napi::Object ToCapabilitiesView(Napi::Env env, const Capabilities& caps);
 

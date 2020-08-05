@@ -13,6 +13,9 @@
         "../logger-lib",
         "../deps/cpp17_headers/include",
       ],
+      "dependencies": [
+        "napi-ext-lib"
+      ],
       "sources": [
         "ls/PixelConversion.cc",
         "ls/Surface.cc",

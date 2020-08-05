@@ -13,7 +13,12 @@
         "../napi-ext-lib",
         "../logger-lib",
       ],
+      "dependencies": [
+        "napi-ext-lib",
+        "light-source-graphics-lib",
+      ],
       "sources": [
+        "ls/PlatformPlugin.cc",
         "ls/CapabilitiesView.cc",
       ]
     }

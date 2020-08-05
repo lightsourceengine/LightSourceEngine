@@ -33,9 +33,9 @@ const { now } = performance
 const $plugins = Symbol.for('plugins')
 
 const kPluginTypeAudio = 'audio'
-const kPluginTypeGraphics = 'graphics'
+const kPluginTypePlatform = 'platform'
 
-const kNullGraphicsPlugin = {
+const kNullPlatformPlugin = {
   capabilities: Object.freeze({
     displays: []
   })
@@ -60,7 +60,7 @@ export class Stage extends StageBase {
   }
 
   get capabilities () {
-    return (getGraphicsPlugin(this) || kNullGraphicsPlugin).capabilities
+    return (getPlatformPlugin(this) || kNullPlatformPlugin).capabilities
   }
 
   get fps () {
@@ -96,7 +96,7 @@ export class Stage extends StageBase {
    */
   init () {
     // TODO: need init check? if so, better check?
-    if (this.hasPlugin(kPluginTypeGraphics) || this.hasPlugin(kPluginTypeAudio)) {
+    if (this.hasPlugin(kPluginTypePlatform) || this.hasPlugin(kPluginTypeAudio)) {
       throw Error('Stage has already been initialized.')
     }
 
@@ -139,7 +139,7 @@ export class Stage extends StageBase {
 
     const { type } = Plugin
 
-    if (!(type === kPluginTypeAudio || type === kPluginTypeGraphics)) {
+    if (!(type === kPluginTypeAudio || type === kPluginTypePlatform)) {
       throw Error(`Unknown plugin type: '${type}'`)
     }
 
@@ -150,18 +150,14 @@ export class Stage extends StageBase {
     let instance
 
     try {
-      if (typeof Plugin === 'function') {
-        instance = new Plugin(config)
-      } else {
-        instance = Plugin.createInstance()
-      }
+      instance = Plugin.createInstance()
     } catch (e) {
       throw Error(`Failed to create Plugin instance. Error: ${e.message}`)
     }
 
     this[$plugins].set(type, instance)
 
-    if (type === kPluginTypeGraphics) {
+    if (type === kPluginTypePlatform) {
       // this[$input][$init](stageAdapter, gameControllerDb)
     } else if (type === kPluginTypeAudio) {
       // this[$audio][$init](audioAdapter)
@@ -185,7 +181,7 @@ export class Stage extends StageBase {
   }
 
   createScene ({ displayIndex, width, height, fullscreen } = {}) {
-    if (!this.hasPlugin(kPluginTypeGraphics)) {
+    if (!this.hasPlugin(kPluginTypePlatform)) {
       this.init()
     }
 
@@ -230,12 +226,10 @@ export class Stage extends StageBase {
       throw Error('width and height must be integer values.')
     }
 
-    const SceneAdapter = getGraphicsPlugin(this).constructor.SceneAdapter
-
     let adapter
 
     try {
-      adapter = new SceneAdapter({ displayIndex, width, height, fullscreen })
+      adapter = getPlatformPlugin(this).createSceneAdapter({ displayIndex, width, height, fullscreen })
     } catch (e) {
       throw Error(e.message)
     }
@@ -265,7 +259,7 @@ export class Stage extends StageBase {
       return
     }
 
-    const graphicsPlugin = getGraphicsPlugin(this)
+    const graphicsPlugin = getPlatformPlugin(this)
     const scene = this[$scene]
     let lastTick = now()
 
@@ -348,9 +342,9 @@ const getPlugins = (stage) => {
   const plugins = stage[$plugins]
 
   return [
-    plugins.get(kPluginTypeGraphics),
+    plugins.get(kPluginTypePlatform),
     plugins.get(kPluginTypeAudio)
   ]
 }
 
-const getGraphicsPlugin = (stage) => stage[$plugins].get(kPluginTypeGraphics)
+const getPlatformPlugin = (stage) => stage[$plugins].get(kPluginTypePlatform)

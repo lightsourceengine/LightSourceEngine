@@ -14,7 +14,7 @@ namespace ls {
 AudioDestination::AudioDestination(const Napi::CallbackInfo& info) : Napi::SafeObjectWrap<AudioDestination>(info) {
 }
 
-AudioDestination::~AudioDestination() noexcept {
+AudioDestination::~AudioDestination() {
     if (this->impl) {
         this->impl->Finalize();
     }

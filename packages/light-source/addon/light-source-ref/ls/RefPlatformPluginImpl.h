@@ -6,20 +6,16 @@
 
 #pragma once
 
-#include <unordered_map>
-#include <napi.h>
-#include <ls/StageAdapter.h>
+#include <ls/PlatformPlugin.h>
 
 namespace ls {
 
-class RefStageAdapter : public Napi::SafeObjectWrap<RefStageAdapter>, public StageAdapter {
+class RefPlatformPluginImpl : public PlatformPluginInterface {
  public:
-    explicit RefStageAdapter(const Napi::CallbackInfo& info);
+    explicit RefPlatformPluginImpl(const Napi::CallbackInfo& info);
+    virtual ~RefPlatformPluginImpl();
 
- public:
-    static Napi::Function GetClass(Napi::Env env);
-
- private: // javascript bindings
+ private:
     Napi::Value GetKeyboard(const Napi::CallbackInfo& info) override;
     Napi::Value GetGamepads(const Napi::CallbackInfo& info) override;
     Napi::Value GetCapabilities(const Napi::CallbackInfo& info) override;
@@ -29,6 +25,10 @@ class RefStageAdapter : public Napi::SafeObjectWrap<RefStageAdapter>, public Sta
     void Destroy(const Napi::CallbackInfo& info) override;
     void SetCallback(const Napi::CallbackInfo& info) override;
     void ResetCallbacks(const Napi::CallbackInfo& info) override;
+    Napi::Value CreateSceneAdapter(const Napi::CallbackInfo& info) override;
+    void AddGameControllerMappings(const Napi::CallbackInfo& info) override;
+
+    void Finalize() override;
 
  private:
     Napi::ObjectReference capabilitiesRef;

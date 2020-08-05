@@ -4,16 +4,15 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
+#include <ls/PlatformPlugin.h>
+#include <ls/RefPlatformPluginImpl.h>
 #include <napi.h>
-#include "RefStageAdapter.h"
 
 using Napi::Env;
-using Napi::HandleScope;
 using Napi::Object;
-using ls::RefStageAdapter;
 
 Object Init(Env env, Object exports) {
-    return RefStageAdapter::GetClass(env);
+    return ls::PlatformPluginInit<ls::RefPlatformPluginImpl>(env, exports, "light-source-ref");
 }
 
 NODE_API_MODULE(LightSourceRef, Init);
