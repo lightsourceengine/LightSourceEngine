@@ -47,7 +47,7 @@
     "addon/napi-ext-lib/build.gypi",
     "addon/light-source-graphics-lib/build.gypi",
     "addon/light-source-audio-lib/build.gypi",
-    "addon/light-source-stage-lib/build.gypi",
+    "addon/light-source-platform-lib/build.gypi",
     "addon/light-source-util-lib/build.gypi",
     "addon/logger-lib/build.gypi",
 

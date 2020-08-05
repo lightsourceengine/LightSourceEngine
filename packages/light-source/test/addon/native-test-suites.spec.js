@@ -25,7 +25,5 @@ bindTestSuite([
   'light-source',
   'napi-ext-lib-test',
   'light-source-util-lib-test',
-  'light-source-graphics-lib-test',
-  'light-source-audio-lib-test',
-  'light-source-stage-lib-test',
+  'light-source-graphics-lib-test'
 ], bindTestSuiteOptions)

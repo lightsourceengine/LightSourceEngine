@@ -94,7 +94,7 @@ SDLPlatformPluginImpl::SDLPlatformPluginImpl(const CallbackInfo& info) {
 }
 
 SDLPlatformPluginImpl::~SDLPlatformPluginImpl() {
-
+    // TODO: cleanup?
 }
 
 Value SDLPlatformPluginImpl::GetKeyboard(const CallbackInfo& info) {
@@ -396,7 +396,8 @@ void SDLPlatformPluginImpl::DispatchJoystickButtonDown(Napi::Env env, int32_t in
     }
 }
 
-void SDLPlatformPluginImpl::DispatchJoystickAxisMotion(Napi::Env env, int32_t instanceId, uint8_t axisIndex, float value) {
+void SDLPlatformPluginImpl::DispatchJoystickAxisMotion(
+        Napi::Env env, int32_t instanceId, uint8_t axisIndex, float value) {
     if (!this->IsCallbackEmpty(StageCallbackGamepadAxisMotion)) {
         HandleScope scope(env);
 
@@ -408,7 +409,8 @@ void SDLPlatformPluginImpl::DispatchJoystickAxisMotion(Napi::Env env, int32_t in
     }
 }
 
-void SDLPlatformPluginImpl::DispatchJoystickHatMotion(Napi::Env env, int32_t instanceId, uint8_t hatIndex, uint8_t hatValue) {
+void SDLPlatformPluginImpl::DispatchJoystickHatMotion(
+        Napi::Env env, int32_t instanceId, uint8_t hatIndex, uint8_t hatValue) {
     auto p{ this->gamepadsByInstanceId.find(instanceId) };
 
     if (p == this->gamepadsByInstanceId.end()) {

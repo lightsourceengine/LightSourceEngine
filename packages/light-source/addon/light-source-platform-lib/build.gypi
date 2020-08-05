@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "light-source-stage-lib",
+      "target_name": "light-source-platform-lib",
       "type": "static_library",
       "includes": [
         "../common.gypi",
@@ -9,7 +9,6 @@
       "include_dirs": [
         ".",
         "../light-source-graphics-lib",
-        "../light-source-stage-lib",
         "../napi-ext-lib",
         "../logger-lib",
       ],

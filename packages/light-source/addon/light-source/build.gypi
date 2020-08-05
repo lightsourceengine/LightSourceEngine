@@ -12,7 +12,7 @@
         "../light-source-graphics-lib",
         "../light-source-util-lib",
         "../light-source-audio-lib",
-        "../light-source-stage-lib",
+        "../light-source-platform-lib",
         "../deps/yoga/lib",
         "../deps/asmjit/repo/src",
         "../deps/blend2d/repo/src",

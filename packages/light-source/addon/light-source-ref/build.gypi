@@ -10,14 +10,14 @@
         "../napi-ext-lib",
         "../logger-lib",
         "../light-source-graphics-lib",
-        "../light-source-stage-lib",
+        "../light-source-platform-lib",
         "../light-source-util-lib",
         "../deps/cpp17_headers/include",
       ],
       "dependencies": [
         "napi-ext-lib",
         "logger-lib",
-        "light-source-stage-lib",
+        "light-source-platform-lib",
         "light-source-graphics-lib",
       ],
       "sources": [
