@@ -29,7 +29,6 @@ using Napi::Number;
 using Napi::Object;
 using Napi::Persistent;
 using Napi::SafeObjectWrap;
-using Napi::QueryInterface;
 using Napi::String;
 using Napi::Value;
 
@@ -226,6 +225,7 @@ void SDLPlatformPluginImpl::Init(Napi::Env env) {
 
 void SDLPlatformPluginImpl::Attach(const CallbackInfo& info) {
     auto env{ info.Env() };
+    HandleScope scope(env);
 
     if (this->isAttached) {
         return;
@@ -238,7 +238,7 @@ void SDLPlatformPluginImpl::Attach(const CallbackInfo& info) {
     this->SyncGamepads(env);
 
     if (!this->keyboard) {
-        this->keyboard = QueryInterface<SDLKeyboard>(SDLKeyboard::GetClass(env).New({}));
+        this->keyboard = SDLKeyboard::Cast(SDLKeyboard::GetClass(env).New({}));
         this->keyboard->Ref();
     }
 

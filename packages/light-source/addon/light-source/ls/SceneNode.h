@@ -8,7 +8,6 @@
 
 #include <Yoga.h>
 #include <vector>
-#include <map>
 #include <napi-ext.h>
 #include "StyleEnums.h"
 #include "Resources.h"
@@ -24,7 +23,15 @@ class CompositeContext;
 class PaintContext;
 class Texture;
 
-class SceneNode : public virtual Napi::SafeObjectWrapBase {
+enum SceneNodeType {
+    SceneNodeTypeRoot,
+    SceneNodeTypeBox,
+    SceneNodeTypeImage,
+    SceneNodeTypeText,
+    SceneNodeTypeLink
+};
+
+class SceneNode : public virtual Napi::SafeObjectWrapReference {
  public:
     explicit SceneNode(const Napi::CallbackInfo& info);
 
@@ -63,15 +70,18 @@ class SceneNode : public virtual Napi::SafeObjectWrapBase {
     virtual void Paint(PaintContext* paint) = 0;
     virtual void Composite(CompositeContext* composite);
 
+    static SceneNode* QueryInterface(Napi::Value value);
+    static void SetType(Napi::Value value, SceneNodeType type);
+
     template<typename Callable>
     static void Visit(SceneNode* node, const Callable& func);
 
  protected:
     template<typename T>
-    static std::vector<Napi::PropertyDescriptor> Extend(const Napi::Env& env,
-        const std::initializer_list<Napi::PropertyDescriptor>& subClassProperties);
+    static std::vector<napi_property_descriptor> Extend(const Napi::Env& env,
+        const std::initializer_list<napi_property_descriptor>& subClassProperties);
 
-    void BaseConstructor(const Napi::CallbackInfo& info);
+    void BaseConstructor(const Napi::CallbackInfo& info, SceneNodeType type);
     void SetParent(SceneNode* newParent);
     void InsertBefore(const Napi::Env& env, SceneNode* child, SceneNode* before);
     void RemoveChild(SceneNode* child);
@@ -115,9 +125,9 @@ void SceneNode::Visit(SceneNode* node, const Callable& func) {
 }
 
 template<typename T>
-std::vector<Napi::PropertyDescriptor> SceneNode::Extend(const Napi::Env& env,
-        const std::initializer_list<Napi::PropertyDescriptor>& subClassProperties) {
-    std::vector<Napi::PropertyDescriptor> result = {
+std::vector<napi_property_descriptor> SceneNode::Extend(const Napi::Env& env,
+        const std::initializer_list<napi_property_descriptor>& subClassProperties) {
+    std::vector<napi_property_descriptor> result = {
         T::InstanceValue("focusable", Napi::Boolean::New(env, false), napi_writable),
         T::InstanceValue("onKeyUp", env.Null(), napi_writable),
         T::InstanceValue("onKeyDown", env.Null(), napi_writable),

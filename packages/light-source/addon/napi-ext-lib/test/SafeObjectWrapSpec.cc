@@ -16,7 +16,6 @@ using Napi::HandleScope;
 using Napi::Number;
 using Napi::Object;
 using Napi::ObjectReference;
-using Napi::QueryInterface;
 using Napi::RunScript;
 using Napi::SafeObjectWrap;
 using Napi::TestInfo;
@@ -245,7 +244,7 @@ void SafeObjectWrapSpec(TestSuite* parent) {
             [](const TestInfo& info) {
                 auto jsObject{ sClassA.New({}) };
 
-                Assert::IsTrue(QueryInterface<A>(jsObject)->constructorCalled);
+                Assert::IsTrue(A::Cast(jsObject)->constructorCalled);
             }
         },
         {
@@ -259,7 +258,7 @@ void SafeObjectWrapSpec(TestSuite* parent) {
             [](const TestInfo& info) {
                 auto instance{ RunScript(info.Env(), "new SafeObjectWrapSpec.A()") };
 
-                Assert::IsTrue(QueryInterface<A>(instance)->constructorCalled);
+                Assert::IsTrue(A::Cast(instance)->constructorCalled);
             }
         }
     };
@@ -359,7 +358,7 @@ void SafeObjectWrapSpec(TestSuite* parent) {
                 RunScript(info.Env(), "SafeObjectWrapSpec.a.func()");
                 auto instance{ sContext.Get("a") };
 
-                Assert::IsTrue(QueryInterface<A>(instance)->funcCalled);
+                Assert::IsTrue(A::Cast(instance)->funcCalled);
             }
         },
         {
@@ -368,7 +367,7 @@ void SafeObjectWrapSpec(TestSuite* parent) {
                 RunScript(info.Env(), "SafeObjectWrapSpec.a.funcVoid()");
                 auto instance{ sContext.Get("a") };
 
-                Assert::IsTrue(QueryInterface<A>(instance)->funcVoidCalled);
+                Assert::IsTrue(A::Cast(instance)->funcVoidCalled);
             }
         },
         {
@@ -408,7 +407,7 @@ void SafeObjectWrapSpec(TestSuite* parent) {
                 RunScript(info.Env(), "SafeObjectWrapSpec.a.propertyReadOnly");
                 auto instance{ sContext.Get("a") };
 
-                Assert::IsTrue(QueryInterface<A>(instance)->getPropertyReadOnlyCalled);
+                Assert::IsTrue(A::Cast(instance)->getPropertyReadOnlyCalled);
             }
         },
         {
@@ -417,10 +416,10 @@ void SafeObjectWrapSpec(TestSuite* parent) {
                 auto instance{ sContext.Get("a") };
 
                 RunScript(info.Env(), "SafeObjectWrapSpec.a.property");
-                Assert::IsTrue(QueryInterface<A>(instance)->getPropertyCalled);
+                Assert::IsTrue(A::Cast(instance)->getPropertyCalled);
 
                 RunScript(info.Env(), "SafeObjectWrapSpec.a.property = null");
-                Assert::IsTrue(QueryInterface<A>(instance)->setPropertyCalled);
+                Assert::IsTrue(A::Cast(instance)->setPropertyCalled);
             }
         },
         {
@@ -451,7 +450,7 @@ void SafeObjectWrapSpec(TestSuite* parent) {
             [](const TestInfo& info) {
                 auto jsObject{ sClassA.New({}) };
 
-                Assert::IsNotNull(QueryInterface<A>(jsObject));
+                Assert::IsNotNull(A::Cast(jsObject));
             }
         },
         {
@@ -459,17 +458,17 @@ void SafeObjectWrapSpec(TestSuite* parent) {
             [](const TestInfo& info) {
                 auto jsObject{ sClassB.New({}) };
 
-                Assert::IsNull(QueryInterface<A>(jsObject));
+                Assert::IsNull(A::Cast(jsObject));
             }
         },
         {
             "should return null for non SafeObjectWrap javascript objects",
             [](const TestInfo& info) {
-                Assert::IsNull(QueryInterface<A>(Value()));
-                Assert::IsNull(QueryInterface<A>(info.Env().Null()));
-                Assert::IsNull(QueryInterface<A>(info.Env().Undefined()));
-                Assert::IsNull(QueryInterface<A>(Object::New(info.Env())));
-                Assert::IsNull(QueryInterface<A>(Array::New(info.Env())));
+                Assert::IsNull(A::Cast(Value()));
+                Assert::IsNull(A::Cast(info.Env().Null()));
+                Assert::IsNull(A::Cast(info.Env().Undefined()));
+                Assert::IsNull(A::Cast(Object::New(info.Env())));
+                Assert::IsNull(A::Cast(Array::New(info.Env())));
             }
         }
     };

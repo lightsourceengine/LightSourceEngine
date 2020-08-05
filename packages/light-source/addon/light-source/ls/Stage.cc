@@ -17,7 +17,6 @@ using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Object;
 using Napi::SafeObjectWrap;
-using Napi::QueryInterface;
 using Napi::String;
 using Napi::SymbolFor;
 using Napi::Value;

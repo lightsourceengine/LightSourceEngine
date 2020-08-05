@@ -17,7 +17,6 @@ using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Number;
 using Napi::SafeObjectWrap;
-using Napi::QueryInterface;
 using Napi::String;
 using Napi::SymbolFor;
 
@@ -158,7 +157,7 @@ Function Style::GetClass(Napi::Env env) {
 Style* Style::New(Napi::Env env) {
     HandleScope scope(env);
     auto styleObject{ GetClass(env).New({}) };
-    auto style{ QueryInterface<Style>(styleObject) };
+    auto style{ Style::Cast(styleObject) };
 
     style->Ref();
 

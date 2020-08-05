@@ -16,7 +16,6 @@ using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Number;
 using Napi::SafeObjectWrap;
-using Napi::QueryInterface;
 using Napi::String;
 using Napi::Value;
 
@@ -74,9 +73,11 @@ void SDLGamepad::Constructor(const Napi::CallbackInfo& info) {
 }
 
 SDLGamepad* SDLGamepad::New(Napi::Env env, int32_t index) {
+    HandleScope scope(env);
+
     auto jsObject{ GetClass(env).New({ Number::New(env, index) }) };
 
-    return QueryInterface<SDLGamepad>(jsObject);
+    return SDLGamepad::Cast(jsObject);
 }
 
 Function SDLGamepad::GetClass(Napi::Env env) {

@@ -28,7 +28,7 @@ RootSceneNode::RootSceneNode(const CallbackInfo& info) : SafeObjectWrap<RootScen
 }
 
 void RootSceneNode::Constructor(const Napi::CallbackInfo& info) {
-    SceneNode::BaseConstructor(info);
+    SceneNode::BaseConstructor(info, SceneNodeTypeRoot);
 }
 
 Function RootSceneNode::GetClass(Napi::Env env) {

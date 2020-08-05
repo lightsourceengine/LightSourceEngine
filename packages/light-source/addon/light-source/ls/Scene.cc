@@ -26,7 +26,6 @@ using Napi::HandleScope;
 using Napi::Number;
 using Napi::Object;
 using Napi::SafeObjectWrap;
-using Napi::QueryInterface;
 using Napi::Reference;
 using Napi::String;
 using Napi::SymbolFor;
@@ -41,13 +40,13 @@ void Scene::Constructor(const CallbackInfo& info) {
     auto env{ info.Env() };
     HandleScope scope(env);
 
-    this->stage = QueryInterface<Stage>(info[0].As<Object>());
+    this->stage = Stage::Cast(info[0].As<Object>());
     this->stage->Ref();
 
-    this->graphicsContext = QueryInterface<GraphicsContext>(info[1].As<Object>());
+    this->graphicsContext = GraphicsContext::Cast(info[1].As<Object>());
     this->graphicsContext->Ref();
 
-    this->root = QueryInterface<SceneNode>(RootSceneNode::GetClass(env).New({ info.This() }));
+    this->root = SceneNode::QueryInterface(RootSceneNode::GetClass(env).New({ info.This() }));
     this->root->Ref();
 }
 

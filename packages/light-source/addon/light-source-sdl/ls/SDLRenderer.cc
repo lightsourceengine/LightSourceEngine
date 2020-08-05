@@ -397,7 +397,7 @@ static void SetTextureTintColor(SDL_Texture* texture, const uint32_t color) noex
 
 static SDL_Texture* ToRawTexture(const std::shared_ptr<Texture>& texture) noexcept {
     if (texture) {
-        return dynamic_cast<SDLTexture*>(texture.get())->ToRawTexture();
+        return static_cast<SDLTexture*>(texture.get())->ToRawTexture();
     } else {
         return nullptr;
     }

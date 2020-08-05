@@ -9,19 +9,6 @@
 namespace Napi {
 namespace detail {
 
-SafeObjectWrapBase* Unwrap(Napi::Value wrapper) noexcept {
-    if (wrapper.IsObject()) {
-        void* unwrapped{ nullptr };
-        const auto status{ napi_unwrap(wrapper.Env(), wrapper, &unwrapped) };
-
-        if (status == napi_ok) {
-            return static_cast<SafeObjectWrapBase*>(unwrapped);
-        }
-    }
-
-    return nullptr;
-}
-
 napi_value StaticMethodBridge(napi_env env, napi_callback_info info) {
         CallbackInfo callbackInfo(env, info);
     auto callback{ reinterpret_cast<ObjectWrapStaticMethod>(callbackInfo.Data()) };
@@ -56,17 +43,19 @@ napi_value StaticVoidMethodBridge(napi_env env, napi_callback_info info) {
 }
 
 FunctionReference DefineClass(Napi::Env env, const char* utf8name, bool permanent,
-    std::vector<napi_property_descriptor>& properties, napi_callback constructorBridge) {
+        std::vector<napi_property_descriptor>& properties, napi_callback constructorBridge) {
     napi_status status;
 
-    // We copy the descriptors to a local array because before defining the class
-    // we must replace static method property descriptors with value property
+    // From ObjectWrap implementation:
+    //
+    // We must replace static method property descriptors with value property
     // descriptors such that the value is a function-valued `napi_value` created
     // with `CreateFunction()`.
     //
     // This replacement could be made for instance methods as well, but V8 aborts
     // if we do that, because it expects methods defined on the prototype template
     // to have `FunctionTemplate`s.
+
     for (auto& prop : properties) {
         if (prop.method && (prop.attributes & napi_static)) {
             status = napi_create_function(env, prop.utf8name, NAPI_AUTO_LENGTH, prop.method, prop.data, &(prop.value));

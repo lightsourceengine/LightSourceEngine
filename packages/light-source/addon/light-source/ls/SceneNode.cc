@@ -13,6 +13,12 @@
 #include <ls/Log.h>
 #include <algorithm>
 
+#include <ls/BoxSceneNode.h>
+#include <ls/RootSceneNode.h>
+#include <ls/LinkSceneNode.h>
+#include <ls/ImageSceneNode.h>
+#include <ls/TextSceneNode.h>
+
 using Napi::Array;
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -21,7 +27,6 @@ using Napi::EscapableHandleScope;
 using Napi::HandleScope;
 using Napi::Number;
 using Napi::Object;
-using Napi::QueryInterface;
 using Napi::Value;
 
 namespace ls {
@@ -31,8 +36,8 @@ int32_t SceneNode::instanceCount{0};
 SceneNode::SceneNode(const CallbackInfo& info) {
 }
 
-void SceneNode::BaseConstructor(const Napi::CallbackInfo& info) {
-    this->scene = QueryInterface<Scene>(info[0]);
+void SceneNode::BaseConstructor(const Napi::CallbackInfo& info, SceneNodeType type) {
+    this->scene = Scene::Cast(info[0]);
 
     if (!this->scene) {
         throw Error::New(info.Env(), "Expected scene reference as arg.");
@@ -49,6 +54,8 @@ void SceneNode::BaseConstructor(const Napi::CallbackInfo& info) {
         this->ygNode = nullptr;
         throw;
     }
+
+    SetType(info.This(), type);
 }
 
 Value SceneNode::GetInstanceCount(const CallbackInfo& info) {
@@ -126,7 +133,7 @@ void SceneNode::SetStyle(const CallbackInfo& info, const Napi::Value& value) {
     if (value.IsNull() || value.IsUndefined()) {
         other = Style::Empty();
     } else if (value.IsObject()) {
-        other = QueryInterface<Style>(value.As<Object>());
+        other = Style::Cast(value.As<Object>());
     }
 
     if (other == nullptr) {
@@ -165,7 +172,7 @@ Stage* SceneNode::GetStage() const noexcept {
 }
 
 void SceneNode::AppendChild(const CallbackInfo& info) {
-    auto child{QueryInterface<SceneNode>(info[0]) };
+    auto child{ SceneNode::QueryInterface(info[0]) };
 
     this->ValidateInsertCandidate(info.Env(), child);
 
@@ -174,11 +181,11 @@ void SceneNode::AppendChild(const CallbackInfo& info) {
 
 void SceneNode::InsertBefore(const CallbackInfo& info) {
     auto env{ info.Env() };
-    auto child{QueryInterface<SceneNode>(info[0]) };
+    auto child{ SceneNode::QueryInterface(info[0]) };
 
     this->ValidateInsertCandidate(env, child);
 
-    auto before{QueryInterface<SceneNode>(info[1]) };
+    auto before{ SceneNode::QueryInterface(info[1]) };
 
     if (before == nullptr || before->parent != this) {
         throw Error::New(env, "before must be a child of this SceneNode");
@@ -190,7 +197,7 @@ void SceneNode::InsertBefore(const CallbackInfo& info) {
 void SceneNode::RemoveChild(const CallbackInfo& info) {
     auto env{ info.Env() };
     auto childObject{ info[0].As<Object>() };
-    auto child{QueryInterface<SceneNode>(childObject) };
+    auto child{ SceneNode::QueryInterface(childObject) };
 
     if (child == nullptr) {
         throw Error::New(env, "Node to remove must be a SceneNode instance.");
@@ -469,6 +476,35 @@ const std::vector<SceneNode*>& SceneNode::SortChildrenByStackingOrder() {
     });
 
     return this->sortedChildren;
+}
+
+SceneNode* SceneNode::QueryInterface(Napi::Value value) {
+    if (value.IsObject()) {
+        int32_t type = value.As<Object>().Get(0u).As<Number>();
+
+        switch (type) {
+            case SceneNodeTypeRoot:
+                return RootSceneNode::Cast(value);
+            case SceneNodeTypeBox:
+                return BoxSceneNode::Cast(value);
+            case SceneNodeTypeImage:
+                return ImageSceneNode::Cast(value);
+            case SceneNodeTypeText:
+                return TextSceneNode::Cast(value);
+            case SceneNodeTypeLink:
+                return LinkSceneNode::Cast(value);
+            default:
+                break;
+        }
+    }
+
+    return nullptr;
+}
+
+void SceneNode::SetType(Napi::Value value, SceneNodeType type) {
+    if (value.IsObject()) {
+        value.As<Object>().Set(0u, Number::New(value.Env(), type));
+    }
 }
 
 } // namespace ls

@@ -9,6 +9,7 @@
 #include "Scene.h"
 #include "Stage.h"
 #include <ls/Log.h>
+#include <unordered_map>
 
 using Napi::Error;
 using Napi::Function;
@@ -21,7 +22,7 @@ using Napi::String;
 
 namespace ls {
 
-ObjectReference CreateMap(Napi::Env env, const std::map <uint32_t, std::string>& entries);
+ObjectReference CreateMap(Napi::Env env, const std::unordered_map<uint32_t, std::string>& entries);
 
 Napi::FunctionReference LinkSceneNode::constructor;
 Napi::ObjectReference LinkSceneNode::relationshipMap;
@@ -61,7 +62,7 @@ Function LinkSceneNode::GetClass(Napi::Env env) {
 }
 
 void LinkSceneNode::Constructor(const Napi::CallbackInfo& info) {
-    SceneNode::BaseConstructor(info);
+    SceneNode::BaseConstructor(info, SceneNodeTypeLink);
 }
 
 void LinkSceneNode::Fetch(const Napi::CallbackInfo& info) {
@@ -257,7 +258,7 @@ void LinkSceneNode::ClearResource() {
     }
 }
 
-ObjectReference CreateMap(Napi::Env env, const std::map <uint32_t, std::string>& entries) {
+ObjectReference CreateMap(Napi::Env env, const std::unordered_map<uint32_t, std::string>& entries) {
     auto map{ Object::New(env) };
 
     for (const auto &p : entries) {

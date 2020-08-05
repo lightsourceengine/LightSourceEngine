@@ -30,7 +30,7 @@ BoxSceneNode::BoxSceneNode(const CallbackInfo& info) : SafeObjectWrap<BoxSceneNo
 }
 
 void BoxSceneNode::Constructor(const Napi::CallbackInfo& info) {
-    SceneNode::BaseConstructor(info);
+    SceneNode::BaseConstructor(info, SceneNodeTypeBox);
 }
 
 Function BoxSceneNode::GetClass(Napi::Env env) {

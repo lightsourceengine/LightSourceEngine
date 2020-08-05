@@ -32,7 +32,7 @@ ImageSceneNode::ImageSceneNode(const CallbackInfo& info) : SafeObjectWrap<ImageS
 }
 
 void ImageSceneNode::Constructor(const Napi::CallbackInfo& info) {
-    SceneNode::BaseConstructor(info);
+    SceneNode::BaseConstructor(info, SceneNodeTypeImage);
 
     YGNodeSetContext(this->ygNode, this);
 
