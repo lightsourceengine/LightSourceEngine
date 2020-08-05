@@ -4,16 +4,18 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "SDLMixerAudioAdapter.h"
-#include <algorithm>
-#include <std17/algorithm>
-#include <ls/BaseAudioSource.h>
-#include <ls/BaseAudioDestination.h>
+#include "SDLMixerAudioPluginImpl.h"
+
 #include <SDL.h>
 #include <SDL_mixer.h>
-#include <ls/Timer.h>
-#include <ls/Log.h>
+#include <ls/BaseAudioDestination.h>
+#include <ls/BaseAudioSource.h>
 #include <ls/Format.h>
+#include <ls/Log.h>
+#include <ls/Timer.h>
+
+#include <algorithm>
+#include <std17/algorithm>
 
 using Napi::Boolean;
 using Napi::Buffer;
@@ -324,14 +326,11 @@ class SDLMixerStreamAudioDestination
     friend BaseAudioDestination;
 };
 
-SDLMixerAudioAdapter::SDLMixerAudioAdapter(const CallbackInfo& info) : SafeObjectWrap(info) {
+SDLMixerAudioPluginImpl::SDLMixerAudioPluginImpl(const CallbackInfo& info) {
+    this->Attach(info);
 }
 
-Function SDLMixerAudioAdapter::GetClass(Napi::Env env) {
-    return GetClassInternal<SDLMixerAudioAdapter>(env, "SDLMixerAudioAdapter");
-}
-
-void SDLMixerAudioAdapter::Attach(const CallbackInfo& info) {
+void SDLMixerAudioPluginImpl::Attach(const CallbackInfo& info) {
     if (this->isAttached) {
         return;
     }
@@ -365,7 +364,7 @@ void SDLMixerAudioAdapter::Attach(const CallbackInfo& info) {
     this->isAttached = true;
 }
 
-void SDLMixerAudioAdapter::Detach(const CallbackInfo& info) {
+void SDLMixerAudioPluginImpl::Detach(const CallbackInfo& info) {
     if (!this->isAttached) {
         return;
     }
@@ -382,7 +381,19 @@ void SDLMixerAudioAdapter::Detach(const CallbackInfo& info) {
     this->isAttached = false;
 }
 
-Value SDLMixerAudioAdapter::CreateSampleAudioDestination(const CallbackInfo& info) {
+Value SDLMixerAudioPluginImpl::IsAttached(const CallbackInfo& info) {
+    return Boolean::New(info.Env(), this->isAttached);
+}
+
+Value SDLMixerAudioPluginImpl::GetAudioDevices(const CallbackInfo& info) {
+    return NewStringArray(info.Env(), this->audioDevices);
+}
+
+void SDLMixerAudioPluginImpl::Destroy(const Napi::CallbackInfo& info) {
+    this->Detach(info);
+}
+
+Value SDLMixerAudioPluginImpl::CreateSampleAudioDestination(const CallbackInfo& info) {
     auto env{ info.Env() };
 
     if (!this->isAttached) {
@@ -394,7 +405,7 @@ Value SDLMixerAudioAdapter::CreateSampleAudioDestination(const CallbackInfo& inf
     return scope.Escape(SDLMixerSampleAudioDestination::GetClass(env).New({}));
 }
 
-Value SDLMixerAudioAdapter::CreateStreamAudioDestination(const CallbackInfo& info) {
+Value SDLMixerAudioPluginImpl::CreateStreamAudioDestination(const CallbackInfo& info) {
     auto env{ info.Env() };
 
     if (!this->isAttached) {
@@ -404,6 +415,10 @@ Value SDLMixerAudioAdapter::CreateStreamAudioDestination(const CallbackInfo& inf
     EscapableHandleScope scope(env);
 
     return scope.Escape(SDLMixerStreamAudioDestination::GetClass(env).New({}));
+}
+
+void SDLMixerAudioPluginImpl::Finalize() {
+    delete this;
 }
 
 SDL_RWops* LoadRW(Napi::Env env, const Napi::Value& value) {

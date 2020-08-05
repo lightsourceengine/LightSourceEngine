@@ -26,7 +26,7 @@
                 "light-source-util-lib",
             ],
             "sources": [
-              "ls/SDLMixerAudioAdapter.cc",
+              "ls/SDLMixerAudioPluginImpl.cc",
               "ls/Init.cc",
             ],
             "conditions": [

@@ -4,16 +4,14 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <napi.h>
-#include "SDLMixerAudioAdapter.h"
+#include <ls/AudioPlugin.h>
+#include <ls/SDLMixerAudioPluginImpl.h>
 
 using Napi::Env;
-using Napi::HandleScope;
 using Napi::Object;
-using ls::SDLMixerAudioAdapter;
 
-Object Init(Env env, Object) {
-    return SDLMixerAudioAdapter::GetClass(env);
+Object Init(Env env, Object exports) {
+    return ls::AudioPluginInit<ls::SDLMixerAudioPluginImpl>(env, exports, "light-source-sdl-mixer");
 }
 
 NODE_API_MODULE(LightSourceSdlMixer, Init);

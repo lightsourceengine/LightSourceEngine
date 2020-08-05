@@ -6,29 +6,29 @@
 
 #pragma once
 
-#include <napi-ext.h>
-#include <ls/BaseAudioAdapter.h>
+#include <napi.h>
+#include <ls/AudioPlugin.h>
 
 namespace ls {
 
-class RefAudioAdapter : public Napi::SafeObjectWrap<RefAudioAdapter>, public BaseAudioAdapter {
+class RefAudioPluginImpl : public AudioPluginInterface {
  public:
-    explicit RefAudioAdapter(const Napi::CallbackInfo& info);
-    virtual ~RefAudioAdapter() = default;
+    RefAudioPluginImpl(const Napi::CallbackInfo& info);
+    virtual ~RefAudioPluginImpl() = default;
 
- public:
-    static Napi::Function GetClass(Napi::Env env);
-
- private: // javascript bindings
-    void Constructor(const Napi::CallbackInfo& info) override;
     void Attach(const Napi::CallbackInfo& info) override;
     void Detach(const Napi::CallbackInfo& info) override;
-
+    void Destroy(const Napi::CallbackInfo& info) override;
+    Napi::Value IsAttached(const Napi::CallbackInfo& info) override;
+    Napi::Value GetAudioDevices(const Napi::CallbackInfo& info) override;
     Napi::Value CreateSampleAudioDestination(const Napi::CallbackInfo& info) override;
     Napi::Value CreateStreamAudioDestination(const Napi::CallbackInfo& info) override;
 
-    friend Napi::SafeObjectWrap<RefAudioAdapter>;
-    friend BaseAudioAdapter;
+    void Finalize() override;
+
+ private:
+    bool isAttached{false};
+    std::vector<std::string> audioDevices{};
 };
 
 } // namespace ls

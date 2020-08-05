@@ -7,26 +7,28 @@
 #pragma once
 
 #include <napi-ext.h>
-#include <ls/BaseAudioAdapter.h>
+#include <ls/AudioPlugin.h>
 
 namespace ls {
 
-class SDLMixerAudioAdapter : public Napi::SafeObjectWrap<SDLMixerAudioAdapter>, public BaseAudioAdapter {
+class SDLMixerAudioPluginImpl : public AudioPluginInterface {
  public:
-    explicit SDLMixerAudioAdapter(const Napi::CallbackInfo& info);
-    virtual ~SDLMixerAudioAdapter() = default;
+    SDLMixerAudioPluginImpl(const Napi::CallbackInfo& info);
+    virtual ~SDLMixerAudioPluginImpl() = default;
 
-    static Napi::Function GetClass(Napi::Env env);
-
- private: // javascript bindings
     void Attach(const Napi::CallbackInfo& info) override;
     void Detach(const Napi::CallbackInfo& info) override;
-
+    void Destroy(const Napi::CallbackInfo& info) override;
+    Napi::Value IsAttached(const Napi::CallbackInfo& info) override;
+    Napi::Value GetAudioDevices(const Napi::CallbackInfo& info) override;
     Napi::Value CreateSampleAudioDestination(const Napi::CallbackInfo& info) override;
     Napi::Value CreateStreamAudioDestination(const Napi::CallbackInfo& info) override;
 
-    friend Napi::SafeObjectWrap<SDLMixerAudioAdapter>;
-    friend BaseAudioAdapter;
+    void Finalize() override;
+
+ private:
+    bool isAttached{false};
+    std::vector<std::string> audioDevices{};
 };
 
 } // namespace ls

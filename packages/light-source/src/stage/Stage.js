@@ -150,7 +150,11 @@ export class Stage extends StageBase {
     let instance
 
     try {
-      instance = new Plugin(config)
+      if (typeof Plugin === 'function') {
+        instance = new Plugin(config)
+      } else {
+        instance = Plugin.createInstance()
+      }
     } catch (e) {
       throw Error(`Failed to create Plugin instance. Error: ${e.message}`)
     }
@@ -328,7 +332,9 @@ export class Stage extends StageBase {
   [$destroy] () {
     // TODO: destroy managers
 
-    this[$scene][$destroy]()
+    if (this[$scene]) {
+      this[$scene][$destroy]()
+    }
 
     super[$destroy]()
 

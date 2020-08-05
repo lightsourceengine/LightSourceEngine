@@ -12,9 +12,9 @@
         "../logger-lib",
       ],
       "sources": [
+        "ls/AudioPlugin.cc",
         "ls/BaseAudioSource.cc",
         "ls/BaseAudioDestination.cc",
-        "ls/BaseAudioAdapter.cc",
       ]
     },
   ]

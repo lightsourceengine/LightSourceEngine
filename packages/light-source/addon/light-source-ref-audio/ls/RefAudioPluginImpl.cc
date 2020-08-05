@@ -4,9 +4,11 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "RefAudioAdapter.h"
-#include <ls/BaseAudioSource.h>
+#include "RefAudioPluginImpl.h"
+
+#include <napi-ext.h>
 #include <ls/BaseAudioDestination.h>
+#include <ls/BaseAudioSource.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -74,37 +76,46 @@ class RefAudioDestination : public SafeObjectWrap<RefAudioDestination>, public B
     friend BaseAudioDestination;
 };
 
-RefAudioAdapter::RefAudioAdapter(const CallbackInfo& info) : SafeObjectWrap(info) {
+RefAudioPluginImpl::RefAudioPluginImpl(const Napi::CallbackInfo& info) {
+    this->audioDevices = { "Reference" };
+    this->Attach(info);
 }
 
-Function RefAudioAdapter::GetClass(Napi::Env env) {
-    return GetClassInternal<RefAudioAdapter>(env, "RefAudioAdapter");
-}
-
-void RefAudioAdapter::Attach(const Napi::CallbackInfo& info) {
+void RefAudioPluginImpl::Attach(const Napi::CallbackInfo& info) {
     this->isAttached = true;
 }
 
-void RefAudioAdapter::Detach(const Napi::CallbackInfo& info) {
+void RefAudioPluginImpl::Detach(const Napi::CallbackInfo& info) {
     this->isAttached = false;
 }
 
-Value RefAudioAdapter::CreateSampleAudioDestination(const CallbackInfo& info) {
+void RefAudioPluginImpl::Destroy(const Napi::CallbackInfo& info) {
+}
+
+Value RefAudioPluginImpl::IsAttached(const CallbackInfo& info) {
+    return Boolean::New(info.Env(), this->isAttached);
+}
+
+Value RefAudioPluginImpl::GetAudioDevices(const CallbackInfo& info) {
+    return NewStringArray(info.Env(), this->audioDevices);
+}
+
+Value RefAudioPluginImpl::CreateSampleAudioDestination(const CallbackInfo& info) {
     auto env{ info.Env() };
     EscapableHandleScope scope(env);
 
     return scope.Escape(RefAudioDestination::GetClass(env).New({}));
 }
 
-Value RefAudioAdapter::CreateStreamAudioDestination(const CallbackInfo& info) {
+Value RefAudioPluginImpl::CreateStreamAudioDestination(const CallbackInfo& info) {
     auto env{ info.Env() };
     EscapableHandleScope scope(env);
 
     return scope.Escape(RefAudioDestination::GetClass(env).New({}));
 }
 
-void RefAudioAdapter::Constructor(const CallbackInfo &info) {
-    this->audioDevices = { "Reference" };
+void RefAudioPluginImpl::Finalize() {
+    delete this;
 }
 
 } // namespace ls

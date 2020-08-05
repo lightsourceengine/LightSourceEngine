@@ -5,15 +5,15 @@
  */
 
 #include <napi.h>
-#include "RefAudioAdapter.h"
+
+#include <ls/AudioPlugin.h>
+#include <ls/RefAudioPluginImpl.h>
 
 using Napi::Env;
-using Napi::HandleScope;
 using Napi::Object;
-using ls::RefAudioAdapter;
 
 Object Init(Env env, Object exports) {
-    return RefAudioAdapter::GetClass(env);
+    return ls::AudioPluginInit<ls::RefAudioPluginImpl>(env, exports, "light-source-ref-audio");
 }
 
 NODE_API_MODULE(LightSourceRefAudio, Init);

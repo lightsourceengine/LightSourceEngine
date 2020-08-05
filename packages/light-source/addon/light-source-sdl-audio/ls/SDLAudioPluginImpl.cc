@@ -4,9 +4,10 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "SDLAudioAdapter.h"
-#include <ls/BaseAudioSource.h>
+#include "SDLAudioPluginImpl.h"
+
 #include <ls/BaseAudioDestination.h>
+#include <ls/BaseAudioSource.h>
 #include <ls/Format.h>
 
 using Napi::Boolean;
@@ -157,14 +158,23 @@ class SDLAudioSampleAudioDestination
     friend BaseAudioDestination;
 };
 
-SDLAudioAdapter::SDLAudioAdapter(const CallbackInfo& info) : SafeObjectWrap(info) {
+SDLAudioPluginImpl::SDLAudioPluginImpl(const CallbackInfo& info) {
+    this->Attach(info);
 }
 
-Function SDLAudioAdapter::GetClass(Napi::Env env) {
-    return GetClassInternal<SDLAudioAdapter>(env, "SDLAudioAdapter");
+Value SDLAudioPluginImpl::IsAttached(const CallbackInfo& info) {
+    return Boolean::New(info.Env(), this->isAttached);
 }
 
-void SDLAudioAdapter::Attach(const CallbackInfo& info) {
+Value SDLAudioPluginImpl::GetAudioDevices(const CallbackInfo& info) {
+    return NewStringArray(info.Env(), this->audioDevices);
+}
+
+void SDLAudioPluginImpl::Destroy(const Napi::CallbackInfo& info) {
+    this->Detach(info);
+}
+
+void SDLAudioPluginImpl::Attach(const CallbackInfo& info) {
     if (this->isAttached) {
         return;
     }
@@ -208,7 +218,7 @@ void SDLAudioAdapter::Attach(const CallbackInfo& info) {
     this->isAttached = true;
 }
 
-void SDLAudioAdapter::Detach(const CallbackInfo& info) {
+void SDLAudioPluginImpl::Detach(const CallbackInfo& info) {
     if (!this->isAttached) {
         return;
     }
@@ -219,16 +229,24 @@ void SDLAudioAdapter::Detach(const CallbackInfo& info) {
     this->isAttached = false;
 }
 
-Value SDLAudioAdapter::CreateSampleAudioDestination(const CallbackInfo& info) {
+Value SDLAudioPluginImpl::CreateSampleAudioDestination(const CallbackInfo& info) {
     auto env{ info.Env() };
 
     if (!this->isAttached) {
-        throw Error::New(env, "SDLAudioAdapter is not attached!");
+        throw Error::New(env, "SDLAudioPlugin is not attached!");
     }
 
     EscapableHandleScope scope(env);
 
-    return scope.Escape(SDLAudioSource::GetClass(env).New({Number::New(env, this->deviceId) }));
+    return scope.Escape(SDLAudioSource::GetClass(env).New({ Number::New(env, this->deviceId) }));
+}
+
+Value SDLAudioPluginImpl::CreateStreamAudioDestination(const CallbackInfo& info) {
+    return info.Env().Null();
+}
+
+void SDLAudioPluginImpl::Finalize() {
+    delete this;
 }
 
 } // namespace ls

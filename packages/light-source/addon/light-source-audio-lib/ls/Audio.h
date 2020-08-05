@@ -11,21 +11,6 @@
 namespace ls {
 
 /**
- * Adapts the native audio system to the javascript AudioManager.
- */
-class AudioAdapter : public virtual Napi::SafeObjectWrapBase {
- public:
-    // javascript methods
-
-    virtual void Attach(const Napi::CallbackInfo& info) = 0;
-    virtual void Detach(const Napi::CallbackInfo& info) = 0;
-    virtual Napi::Value IsAttached(const Napi::CallbackInfo& info) = 0;
-    virtual Napi::Value GetAudioDevices(const Napi::CallbackInfo& info) = 0;
-    virtual Napi::Value CreateSampleAudioDestination(const Napi::CallbackInfo& info) = 0;
-    virtual Napi::Value CreateStreamAudioDestination(const Napi::CallbackInfo& info) = 0;
-};
-
-/**
  * Audio output buffer.
  */
 class AudioDestination {

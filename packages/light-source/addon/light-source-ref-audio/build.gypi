@@ -18,7 +18,7 @@
         "light-source-audio-lib",
       ],
       "sources": [
-        "ls/RefAudioAdapter.cc",
+        "ls/RefAudioPluginImpl.cc",
         "ls/Init.cc",
       ]
     }
