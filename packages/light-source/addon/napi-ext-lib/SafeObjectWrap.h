@@ -113,6 +113,17 @@ class SafeObjectWrap : public virtual SafeObjectWrapReference {
     // Cast (or unwrap) a javascript object to it's C++ class instance.
     static T* Cast(const Napi::Value& value) noexcept;
 
+    // Cast (or unwrap) a javascript object to it's C++ class instance. If cast successful, add a reference.
+    static T* CastRef(const Napi::Value& value) noexcept;
+
+    /**
+     * Safely add a reference on a SafeObjectWrap instance.
+     *
+     * @param instance The instance to reference
+     * @return instance if ref was added; otherwise nullptr is returned
+     */
+    static T* AddRef(T* instance) noexcept;
+
     /**
      * Safely call remove reference on a SafeObjectWrap instance.
      *
@@ -122,7 +133,7 @@ class SafeObjectWrap : public virtual SafeObjectWrapReference {
      * @param callback Function called before instance reference is removed.
      * @return always return a nullptr
      */
-    static T* RemoveRef(T* instance, ObjectWrapRemoveRefCallback<T> callback = nullptr);
+    static T* RemoveRef(T* instance, ObjectWrapRemoveRefCallback<T> callback = nullptr) noexcept;
 
  protected:
     // Optional override for constructor logic. Do not put logic into the C++ constructor!

@@ -27,7 +27,9 @@ class ImageSceneNode : public Napi::SafeObjectWrap<ImageSceneNode>, public Scene
     Napi::Value GetOnErrorCallback(const Napi::CallbackInfo& info);
     void SetOnErrorCallback(const Napi::CallbackInfo& info, const Napi::Value& value);
 
-    void OnPropertyChanged(StyleProperty property) override;
+    void OnStylePropertyChanged(StyleProperty property) override;
+    void OnBoundingBoxChanged() override;
+    void OnStyleLayout() override;
     YGSize OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) override;
 
     void Paint(GraphicsContext* graphicsContext) override;

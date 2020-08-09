@@ -41,7 +41,6 @@ class LinkSceneNode : public Napi::SafeObjectWrap<LinkSceneNode>, public SceneNo
     Napi::Value GetOnErrorCallback(const Napi::CallbackInfo& info);
     void SetOnErrorCallback(const Napi::CallbackInfo& info, const Napi::Value& value);
 
-    void OnPropertyChanged(StyleProperty property) override {}
     void Paint(GraphicsContext* graphicsContext) override {}
     void Composite(CompositeContext* composite) override {}
 

@@ -22,7 +22,7 @@ class RootSceneNode : public Napi::SafeObjectWrap<RootSceneNode>, public SceneNo
     void Constructor(const Napi::CallbackInfo& info) override;
 
     bool IsLeaf() const noexcept override { return false; }
-    void OnPropertyChanged(StyleProperty property) override;
+    void OnStylePropertyChanged(StyleProperty property) override;
     void Paint(GraphicsContext* graphicsContext) override {}
     void Composite(CompositeContext* composite) override;
 };

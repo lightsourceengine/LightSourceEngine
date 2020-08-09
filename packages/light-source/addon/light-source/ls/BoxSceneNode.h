@@ -21,7 +21,9 @@ class BoxSceneNode : public Napi::SafeObjectWrap<BoxSceneNode>, public SceneNode
     void Constructor(const Napi::CallbackInfo& info) override;
 
     bool IsLeaf() const noexcept override { return false; }
-    void OnPropertyChanged(StyleProperty property) override;
+    void OnStylePropertyChanged(StyleProperty property) override;
+    void OnBoundingBoxChanged() override;
+    void OnStyleLayout() override;
     void Paint(GraphicsContext* graphicsContext) override;
     void Composite(CompositeContext* composite) override;
 
@@ -35,7 +37,7 @@ class BoxSceneNode : public Napi::SafeObjectWrap<BoxSceneNode>, public SceneNode
     void ClearBackgroundImageResource();
 
  private:
-  Image* backgroundImage{};
+    Image* backgroundImage{};
 };
 
 } // namespace ls

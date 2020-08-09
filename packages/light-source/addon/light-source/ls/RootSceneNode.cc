@@ -39,11 +39,11 @@ Function RootSceneNode::GetClass(Napi::Env env) {
     return constructor.Value();
 }
 
-void RootSceneNode::OnPropertyChanged(StyleProperty property) {
+void RootSceneNode::OnStylePropertyChanged(StyleProperty property) {
     switch (property) {
         case StyleProperty::backgroundColor:
         case StyleProperty::opacity:
-            this->QueueComposite();
+            this->RequestComposite();
             break;
         case StyleProperty::fontSize:
             this->scene->OnRootFontSizeChange(ComputeFontSize(

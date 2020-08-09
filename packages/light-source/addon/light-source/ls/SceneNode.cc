@@ -307,18 +307,19 @@ void SceneNode::Composite(CompositeContext* context) {
     context->PopMatrix();
 }
 
-void SceneNode::OnPropertyChanged(StyleProperty property) {
+void SceneNode::OnStylePropertyChanged(StyleProperty property) {
     switch (property) {
-        case StyleProperty::transform:
-        case StyleProperty::zIndex:
-            this->sortedChildren.clear();
-            this->QueueComposite();
-            break;
-        case StyleProperty::opacity:
-        case StyleProperty::overflow:
         case StyleProperty::transformOriginX:
         case StyleProperty::transformOriginY:
-            this->QueueComposite();
+        case StyleProperty::opacity:
+            this->RequestComposite();
+            break;
+        case StyleProperty::transform:
+        case StyleProperty::zIndex:
+            if (this->parent) {
+                this->parent->sortedChildren.clear();
+            }
+            this->RequestComposite();
             break;
         default:
             break;
@@ -351,21 +352,16 @@ Style* SceneNode::GetStyleOrEmpty() const noexcept {
     return this->style ? this->style : Style::Empty();
 }
 
-void SceneNode::QueuePaint() {
-    // TODO: is queued?
-    this->scene->QueuePaint(this);
+void SceneNode::RequestPaint() {
+    this->scene->RequestPaint(this);
 }
 
-void SceneNode::QueueAfterLayout() {
-    this->scene->QueueAfterLayout(this);
+void SceneNode::RequestStyleLayout() {
+    this->scene->RequestStyleLayout(this);
 }
 
-void SceneNode::QueueBeforeLayout() {
-    this->scene->QueueBeforeLayout(this);
-}
-
-void SceneNode::QueueComposite() {
-    this->scene->QueueComposite();
+void SceneNode::RequestComposite() {
+    this->scene->RequestComposite();
 }
 
 bool SceneNode::InitLayerRenderTarget(Renderer* renderer, int32_t width, int32_t height) {
@@ -486,7 +482,7 @@ void SceneNode::YogaNodeLayoutEvent(
     assert(node.getContext() != nullptr);
 
     if (node.getHasNewLayout()) {
-        static_cast<ls::SceneNode*>(node.getContext())->OnLayout();
+        static_cast<ls::SceneNode*>(node.getContext())->OnBoundingBoxChanged();
     }
 }
 

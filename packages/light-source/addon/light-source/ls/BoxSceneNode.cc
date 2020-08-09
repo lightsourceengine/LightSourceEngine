@@ -45,13 +45,10 @@ Function BoxSceneNode::GetClass(Napi::Env env) {
     return constructor.Value();
 }
 
-void BoxSceneNode::OnPropertyChanged(StyleProperty property) {
+void BoxSceneNode::OnStylePropertyChanged(StyleProperty property) {
     switch (property) {
         case StyleProperty::backgroundImage:
-            // this->QueueBeforeLayout();
-            if (!this->style->backgroundImage.empty()) {
-                this->UpdateBackgroundImage(this->style->backgroundImage);
-            }
+            this->UpdateBackgroundImage(this->style->backgroundImage);
             break;
         case StyleProperty::backgroundColor:
         case StyleProperty::borderColor:
@@ -66,33 +63,25 @@ void BoxSceneNode::OnPropertyChanged(StyleProperty property) {
         case StyleProperty::borderRadiusBottomLeft:
         case StyleProperty::borderRadiusTopRight:
         case StyleProperty::borderRadiusTopLeft:
-            this->QueuePaint();
-            break;
-        case StyleProperty::transform:
-        case StyleProperty::transformOriginX:
-        case StyleProperty::transformOriginY:
-        case StyleProperty::opacity:
-            this->QueueComposite();
+            this->RequestStyleLayout();
             break;
         default:
-            SceneNode::OnPropertyChanged(property);
+            SceneNode::OnStylePropertyChanged(property);
             break;
     }
 }
 
+void BoxSceneNode::OnStyleLayout() {
+    // TODO: compute background image position, if necessary
+    // TODO: mark pre-render, if necessary
+    this->RequestComposite();
+}
+
+void BoxSceneNode::OnBoundingBoxChanged() {
+    this->RequestStyleLayout();
+}
+
 void BoxSceneNode::Paint(GraphicsContext* graphicsContext) {
-    const auto boxStyle{ this->style };
-
-    if (boxStyle == nullptr || boxStyle->IsLayoutOnly()) {
-        return;
-    }
-
-    if (boxStyle->backgroundRepeat == StyleBackgroundRepeatOff) {
-        this->QueueComposite();
-        return;
-    }
-
-    this->QueueComposite();
 }
 
 void BoxSceneNode::Composite(CompositeContext* composite) {
@@ -261,23 +250,19 @@ void BoxSceneNode::PaintBackgroundImage(Renderer* renderer, Style* boxStyle) {
 }
 
 void BoxSceneNode::UpdateBackgroundImage(const std::string& backgroundUri) {
-    if (backgroundUri.empty()) {
-        if (this->backgroundImage) {
-            this->QueuePaint();
+    auto clearBackgroundImageResource = [](BoxSceneNode* node) {
+        if (node->backgroundImage && node->backgroundImage->HasTexture()) {
+            node->RequestComposite();
         }
-        this->ClearBackgroundImageResource();
+        node->ClearBackgroundImageResource();
+    };
+
+    clearBackgroundImageResource(this);
+
+    if (backgroundUri.empty()) {
         return;
     }
 
-    if (this->backgroundImage && this->backgroundImage->GetId() == backgroundUri) {
-        return;
-    }
-
-    if (this->backgroundImage) {
-        this->QueuePaint();
-    }
-
-    this->ClearBackgroundImageResource();
     this->backgroundImage = this->GetStage()->GetResources()->AcquireImage(backgroundUri);
 
     auto listener{ [this](Res::Owner owner, Res* res) {
@@ -285,8 +270,8 @@ void BoxSceneNode::UpdateBackgroundImage(const std::string& backgroundUri) {
             return;
         }
 
-        this->QueuePaint();
         res->RemoveListener(owner);
+        this->RequestStyleLayout();
     }};
 
     switch (this->backgroundImage->GetState()) {

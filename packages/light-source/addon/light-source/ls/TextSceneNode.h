@@ -24,7 +24,9 @@ class TextSceneNode : public Napi::SafeObjectWrap<TextSceneNode>, public SceneNo
     Napi::Value GetText(const Napi::CallbackInfo& info);
     void SetText(const Napi::CallbackInfo& info, const Napi::Value& value);
 
-    void OnPropertyChanged(StyleProperty property) override;
+    void OnStylePropertyChanged(StyleProperty property) override;
+    void OnBoundingBoxChanged() override;
+    void OnStyleLayout() override;
     YGSize OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) override;
 
     void Paint(GraphicsContext* graphicsContext) override;

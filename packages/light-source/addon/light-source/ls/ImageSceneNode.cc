@@ -53,6 +53,39 @@ Function ImageSceneNode::GetClass(Napi::Env env) {
     return constructor.Value();
 }
 
+void ImageSceneNode::OnStylePropertyChanged(StyleProperty property) {
+    switch (property) {
+        case StyleProperty::tintColor:
+        case StyleProperty::borderColor:
+            this->RequestComposite();
+            break;
+        case StyleProperty::objectFit:
+        case StyleProperty::objectPositionX:
+        case StyleProperty::objectPositionY:
+            this->RequestStyleLayout();
+            break;
+        default:
+            SceneNode::OnStylePropertyChanged(property);
+            break;
+    }
+}
+
+void ImageSceneNode::OnBoundingBoxChanged() {
+    this->RequestStyleLayout();
+}
+
+void ImageSceneNode::OnStyleLayout() {
+    this->RequestComposite();
+}
+
+YGSize ImageSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
+    if (this->image && this->image->HasDimensions()) {
+        return { this->image->WidthF(), this->image->HeightF() };
+    }
+
+    return { 0.f, 0.f };
+}
+
 Value ImageSceneNode::GetSource(const CallbackInfo& info) {
     return String::New(info.Env(), this->src);
 }
@@ -165,46 +198,6 @@ void ImageSceneNode::SetOnErrorCallback(const CallbackInfo& info, const Napi::Va
     }
 }
 
-void ImageSceneNode::OnPropertyChanged(StyleProperty property) {
-    switch (property) {
-        case StyleProperty::tintColor:
-            // TODO: add am immediate mode flag
-            if (this->layer) {
-                this->QueuePaint();
-            } else {
-                this->QueueComposite();
-            }
-            break;
-        case StyleProperty::borderColor:
-            this->QueuePaint();
-            break;
-        case StyleProperty::objectFit:
-        case StyleProperty::objectPositionX:
-        case StyleProperty::objectPositionY:
-            this->QueueAfterLayout();
-            break;
-        case StyleProperty::transform:
-        case StyleProperty::transformOriginX:
-        case StyleProperty::transformOriginY:
-        case StyleProperty::opacity:
-            this->QueueComposite();
-            break;
-        case StyleProperty::overflow:
-            break;
-        default:
-            SceneNode::OnPropertyChanged(property);
-            break;
-    }
-}
-
-YGSize ImageSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
-    if (this->image && this->image->HasDimensions()) {
-        return { this->image->WidthF(), this->image->HeightF() };
-    }
-
-    return { 0.f, 0.f };
-}
-
 //void ImageSceneNode::AfterLayout() {
 //    if (!this->image || !this->image->IsReady()) {
 //        return;
@@ -294,6 +287,31 @@ void ImageSceneNode::Paint(GraphicsContext* graphicsContext) {
 }
 
 void ImageSceneNode::Composite(CompositeContext* composite) {
+    if (!this->style || !this->image || this->image->GetState() != Res::Ready) {
+        return;
+    }
+
+    const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
+    const auto transform{ ComputeTransform(composite->CurrentMatrix(), this->style->transform,
+            this->style->transformOriginX, this->style->transformOriginY, rect, this->scene) };
+
+    if (!this->image->HasTexture()) {
+        this->image->LoadTexture(composite->renderer);
+    }
+
+    if (this->image->HasTexture()) {
+        composite->renderer->DrawImage(this->image->GetTexture(), rect, transform,
+                MixAlpha(this->style->tintColor.ValueOr(ColorWhite), composite->CurrentOpacity()));
+    }
+
+    if (!this->style->borderColor.empty()) {
+        composite->renderer->DrawBorder(
+            rect,
+            YGNodeLayoutGetBorderRect(this->ygNode),
+            transform,
+            MixAlpha(this->style->borderColor.value, composite->CurrentOpacity()));
+    }
+
 //    if (this->layer) {
 //        const auto boxStyle{ this->GetStyleOrEmpty() };
 //        const auto rect{ YGNodeLayoutGetRect(this->ygNode) };

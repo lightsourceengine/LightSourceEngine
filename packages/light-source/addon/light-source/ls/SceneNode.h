@@ -35,8 +35,6 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
  public:
     ~SceneNode() override = default;
 
-    static Napi::Value GetInstanceCount(const Napi::CallbackInfo& info);
-
     Napi::Value GetX(const Napi::CallbackInfo& info);
     Napi::Value GetY(const Napi::CallbackInfo& info);
     Napi::Value GetWidth(const Napi::CallbackInfo& info);
@@ -44,14 +42,10 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     Napi::Value GetParent(const Napi::CallbackInfo& info);
     Napi::Value GetScene(const Napi::CallbackInfo& info);
     Napi::Value GetChildren(const Napi::CallbackInfo& info);
-
     Napi::Value GetStyle(const Napi::CallbackInfo& info);
     void SetStyle(const Napi::CallbackInfo& info, const Napi::Value& value);
-
     Napi::Value GetHidden(const Napi::CallbackInfo& info);
     void SetHidden(const Napi::CallbackInfo& info, const Napi::Value& value);
-
-    Stage* GetStage() const noexcept;
 
     void AppendChild(const Napi::CallbackInfo& info);
     void InsertBefore(const Napi::CallbackInfo& info);
@@ -60,11 +54,14 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     void Focus(const Napi::CallbackInfo& info);
     void Blur(const Napi::CallbackInfo& info);
 
+    Stage* GetStage() const noexcept;
     void Destroy();
 
-    virtual void OnPropertyChanged(StyleProperty property);
+    virtual void OnStylePropertyChanged(StyleProperty property);
+    virtual void OnBoundingBoxChanged() {}
+    virtual void OnStyleLayout() {}
+
     virtual YGSize OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode);
-    virtual void OnLayout() {}
     virtual void Paint(GraphicsContext* graphicsContext) = 0;
     virtual void Composite(CompositeContext* composite);
     virtual bool IsLeaf() const noexcept { return true; }
@@ -81,6 +78,8 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     static void YogaNodeLayoutEvent(
         const YGNode& node, facebook::yoga::Event::Type event, const facebook::yoga::Event::Data& data);
 
+    static Napi::Value GetInstanceCount(const Napi::CallbackInfo& info);
+
  protected:
     template<typename T>
     static std::vector<napi_property_descriptor> Extend(const Napi::Env& env,
@@ -96,10 +95,9 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     Style* GetStyleOrEmpty() const noexcept;
     bool InitLayerRenderTarget(Renderer* renderer, int32_t width, int32_t height);
     bool InitLayerSoftwareRenderTarget(Renderer* renderer, int32_t width, int32_t height);
-    void QueuePaint();
-    void QueueAfterLayout();
-    void QueueBeforeLayout();
-    void QueueComposite();
+    void RequestPaint();
+    void RequestStyleLayout();
+    void RequestComposite();
     const std::vector<SceneNode*>& SortChildrenByStackingOrder();
     bool HasTransform() const noexcept;
     int32_t GetZIndex() const noexcept;
@@ -117,6 +115,7 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
 
     friend Style;
     friend Scene;
+    friend class BoxSceneNode;
 };
 
 template<typename Callable>

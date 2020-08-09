@@ -348,7 +348,7 @@ void Style::NotifyPropertyChanged(StyleProperty property) {
         if (IsYogaLayoutProperty(property)) {
             this->SyncYogaProperty(property);
         } else {
-            this->node->OnPropertyChanged(property);
+            this->node->OnStylePropertyChanged(property);
         }
     }
 }

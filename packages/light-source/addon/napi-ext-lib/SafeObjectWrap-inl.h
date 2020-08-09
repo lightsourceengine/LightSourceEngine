@@ -29,7 +29,7 @@ template <typename T>
 T* SafeObjectWrap<T>::Cast(const Napi::Value& value) noexcept {
     void* instance;
 
-    if (!value.IsEmpty() && napi_unwrap(value.Env(), value, &instance) == napi_ok) {
+    if (value.IsObject() && napi_unwrap(value.Env(), value, &instance) == napi_ok) {
         return static_cast<T*>(instance);
     }
 
@@ -37,12 +37,41 @@ T* SafeObjectWrap<T>::Cast(const Napi::Value& value) noexcept {
 }
 
 template <typename T>
-T* SafeObjectWrap<T>::RemoveRef(T* instance, ObjectWrapRemoveRefCallback<T> callback) {
+T* SafeObjectWrap<T>::CastRef(const Napi::Value& value) noexcept {
+    return AddRef(T::Cast(value));
+}
+
+template <typename T>
+T* SafeObjectWrap<T>::AddRef(T* instance) noexcept {
+    if (instance) {
+        try {
+            instance->Ref();
+
+            return instance;
+        } catch (std::exception& e) {
+            // TODO: log warning?
+        }
+    }
+
+    return nullptr;
+}
+
+template <typename T>
+T* SafeObjectWrap<T>::RemoveRef(T* instance, ObjectWrapRemoveRefCallback<T> callback) noexcept {
     if (instance) {
         if (callback) {
-            callback(instance);
+            try {
+                callback(instance);
+            } catch (std::exception& e) {
+                // TODO: log warning?
+            }
         }
-        instance->Unref();
+
+        try {
+            instance->Unref();
+        } catch (std::exception& e) {
+            // TODO: log warning?
+        }
     }
     return nullptr;
 }

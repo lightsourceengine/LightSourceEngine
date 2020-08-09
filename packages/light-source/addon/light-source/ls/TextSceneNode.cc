@@ -57,37 +57,35 @@ Function TextSceneNode::GetClass(Napi::Env env) {
     return constructor.Value();
 }
 
-void TextSceneNode::OnPropertyChanged(StyleProperty property) {
+void TextSceneNode::OnStylePropertyChanged(StyleProperty property) {
     switch (property) {
         case StyleProperty::fontFamily:
         case StyleProperty::fontSize:
         case StyleProperty::fontStyle:
         case StyleProperty::fontWeight:
-            this->QueueBeforeLayout();
-            break;
         case StyleProperty::lineHeight:
         case StyleProperty::maxLines:
         case StyleProperty::textOverflow:
         case StyleProperty::textTransform:
-            this->QueueTextLayout();
-            break;
         case StyleProperty::textAlign:
         case StyleProperty::borderColor:
-            this->QueuePaint();
+            this->RequestStyleLayout();
             break;
         case StyleProperty::color:
-            if (this->style->borderColor.empty()) {
-                this->QueueComposite();
-            } else {
-                this->QueuePaint();
-            }
-            break;
-        case StyleProperty::overflow:
+            this->RequestComposite();
             break;
         default:
-            SceneNode::OnPropertyChanged(property);
+            SceneNode::OnStylePropertyChanged(property);
             break;
     }
+}
+
+void TextSceneNode::OnBoundingBoxChanged() {
+    this->RequestStyleLayout();
+}
+
+void TextSceneNode::OnStyleLayout() {
+    this->RequestComposite();
 }
 
 YGSize TextSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
@@ -307,7 +305,7 @@ bool TextSceneNode::SetFont(Style* style) {
 void TextSceneNode::QueueTextLayout() noexcept {
     this->layout.Reset();
     YGNodeMarkDirty(this->ygNode);
-    this->QueueAfterLayout();
+    this->RequestStyleLayout();
 }
 
 void TextSceneNode::ClearFontFaceResource() {
