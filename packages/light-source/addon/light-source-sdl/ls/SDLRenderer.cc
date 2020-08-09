@@ -30,14 +30,14 @@ SDLRenderer::~SDLRenderer() {
 }
 
 void SDLRenderer::UpdateTextureFormats(const SDL_RendererInfo& info) noexcept {
-    constexpr static std::array<SDL_PixelFormatEnum , 4> supportedPixelFormats{
+    constexpr static std::array<uint32_t, 4> supportedPixelFormats{
         SDL_PIXELFORMAT_ARGB8888,
         SDL_PIXELFORMAT_RGBA8888,
         SDL_PIXELFORMAT_ABGR8888,
         SDL_PIXELFORMAT_BGRA8888
     };
 
-    auto format{ SDL_PIXELFORMAT_UNKNOWN };
+    uint32_t format{ SDL_PIXELFORMAT_UNKNOWN };
 
     for (auto &p : supportedPixelFormats) {
         for (auto i{ 0u }; i < info.num_texture_formats; i++) {

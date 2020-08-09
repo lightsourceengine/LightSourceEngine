@@ -49,7 +49,7 @@ constexpr SDL_Rect ToSDLRect(const Rect& rect) noexcept {
 }
 
 /** @return PixelFormat representation or PixelFormatUnknown if a PixelFormat cannot be found. */
-constexpr PixelFormat ToPixelFormat(Uint32 pixelFormat) noexcept {
+constexpr PixelFormat ToPixelFormat(uint32_t pixelFormat) noexcept {
     switch (pixelFormat) {
         case SDL_PIXELFORMAT_ARGB8888:
             return PixelFormatARGB;
@@ -65,7 +65,7 @@ constexpr PixelFormat ToPixelFormat(Uint32 pixelFormat) noexcept {
 }
 
 /** @returns SDL pixel format representation; otherwise SDL_PIXELFORMAT_UNKNOWN */
-constexpr SDL_PixelFormatEnum ToSDLPixelFormat(PixelFormat format) noexcept {
+constexpr uint32_t ToSDLPixelFormat(PixelFormat format) noexcept {
     switch (format) {
         case PixelFormatARGB:
             return SDL_PIXELFORMAT_ARGB8888;

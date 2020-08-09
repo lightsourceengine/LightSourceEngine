@@ -255,7 +255,7 @@ static Texture::Bridge CreateTextureBridge() noexcept {
         },
         // GetPixelFormat()
         [](void* p) -> PixelFormat {
-            Uint32 format{ SDL_PIXELFORMAT_UNKNOWN };
+            uint32_t format{ SDL_PIXELFORMAT_UNKNOWN };
 
             if (p) {
                 SDL_QueryTexture(static_cast<SDL_Texture*>(p), &format, nullptr, nullptr, nullptr);
