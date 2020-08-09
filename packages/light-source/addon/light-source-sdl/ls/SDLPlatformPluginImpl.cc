@@ -4,18 +4,16 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "SDLPlatformPluginImpl.h"
+#include <ls/SDLPlatformPluginImpl.h>
 
 #include <ls/CapabilitiesView.h>
 #include <ls/Format.h>
 #include <ls/Log.h>
 #include <ls/Timer.h>
-
+#include <ls/SDLGamepad.h>
+#include <ls/SDLGraphicsContextImpl.h>
+#include <ls/SDLKeyboard.h>
 #include <unordered_set>
-
-#include "SDLGamepad.h"
-#include "SDLGraphicsContextImpl.h"
-#include "SDLKeyboard.h"
 
 using Napi::Array;
 using Napi::Boolean;

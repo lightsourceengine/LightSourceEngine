@@ -7,7 +7,7 @@
 #pragma once
 
 #include <SDL.h>
-#include "SDLRenderer.h"
+#include <ls/SDLRenderer.h>
 #include <ls/GraphicsContext.h>
 
 namespace ls {

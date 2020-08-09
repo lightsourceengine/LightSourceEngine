@@ -9,24 +9,18 @@
 #include <napi-ext.h>
 #include <SDL.h>
 #include <vector>
-#include "InputDevice.h"
+#include <ls/InputDevice.h>
 
 namespace ls {
 
-class SDLGamepad : public InputDevice, public Napi::SafeObjectWrap<SDLGamepad> {
+class SDLGamepad : public Napi::SafeObjectWrap<SDLGamepad>, public InputDevice {
  public:
-    explicit SDLGamepad(const Napi::CallbackInfo& info);
-    virtual ~SDLGamepad();
+    SDLGamepad(const Napi::CallbackInfo& info);
+    ~SDLGamepad() override;
 
-    void SetHatState(uint8_t hatIndex, uint8_t hatValue);
-    uint8_t GetHatState(uint8_t hatIndex) const;
-    void Destroy();
-
- public:
     static SDLGamepad* New(Napi::Env env, int32_t index);
     static Napi::Function GetClass(Napi::Env env);
 
- private: // javascript bindings
     void Constructor(const Napi::CallbackInfo& info) override;
     Napi::Value IsButtonDown(const Napi::CallbackInfo& info);
     Napi::Value GetAxisValue(const Napi::CallbackInfo& info);
@@ -40,6 +34,10 @@ class SDLGamepad : public InputDevice, public Napi::SafeObjectWrap<SDLGamepad> {
     Napi::Value GetGameControllerMapping(const Napi::CallbackInfo& info);
     void Destroy(const Napi::CallbackInfo& info);
 
+    void SetHatState(uint8_t hatIndex, uint8_t hatValue);
+    uint8_t GetHatState(uint8_t hatIndex) const;
+    void Destroy();
+
  private:
     SDL_Joystick* joystick{};
     int32_t buttonCount{0};
@@ -50,8 +48,6 @@ class SDLGamepad : public InputDevice, public Napi::SafeObjectWrap<SDLGamepad> {
     int32_t vendor{};
     std::vector<uint8_t> hatState;
     std::string gameControllerMapping;
-
-    friend Napi::SafeObjectWrap<SDLGamepad>;
 };
 
 } // namespace ls

@@ -6,10 +6,9 @@
 
 #pragma once
 
+#include <napi-ext.h>
 #include <ls/CapabilitiesView.h>
 #include <ls/PlatformPlugin.h>
-#include <napi-ext.h>
-
 #include <array>
 #include <unordered_map>
 

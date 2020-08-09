@@ -4,7 +4,8 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "SDLGraphicsContextImpl.h"
+#include <ls/SDLGraphicsContextImpl.h>
+
 #include <ls/Log.h>
 #include <napi-ext.h>
 

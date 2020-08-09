@@ -7,23 +7,20 @@
 #pragma once
 
 #include <napi-ext.h>
-#include "InputDevice.h"
+#include <ls/InputDevice.h>
 
 namespace ls {
 
-class SDLKeyboard : public InputDevice, public Napi::SafeObjectWrap<SDLKeyboard> {
+class SDLKeyboard : public Napi::SafeObjectWrap<SDLKeyboard>, public InputDevice {
  public:
-    explicit SDLKeyboard(const Napi::CallbackInfo& info);
-    virtual ~SDLKeyboard() = default;
+    SDLKeyboard(const Napi::CallbackInfo& info);
+    ~SDLKeyboard() override = default;
 
  public:
     static Napi::Function GetClass(Napi::Env env);
 
- private: // javascript bindings
     Napi::Value IsButtonDown(const Napi::CallbackInfo& info);
     void Destroy(const Napi::CallbackInfo& info);
-
-    friend Napi::SafeObjectWrap<SDLKeyboard>;
 };
 
 } // namespace ls
