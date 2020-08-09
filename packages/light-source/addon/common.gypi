@@ -12,7 +12,8 @@
   "defines": [
     "STX_NAMESPACE_NAME=std17",
     "ASMJIT_STATIC=1",
-    "BLEND2D_STATIC=TRUE"
+    "BLEND2D_STATIC=TRUE",
+    "YG_ENABLE_NODE_LAYOUT_EVENT=1",
   ],
   "xcode_settings": {
     "GCC_ENABLE_CPP_EXCEPTIONS": "YES",

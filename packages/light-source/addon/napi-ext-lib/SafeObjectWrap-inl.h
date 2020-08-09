@@ -37,6 +37,17 @@ T* SafeObjectWrap<T>::Cast(const Napi::Value& value) noexcept {
 }
 
 template <typename T>
+T* SafeObjectWrap<T>::RemoveRef(T* instance, ObjectWrapRemoveRefCallback<T> callback) {
+    if (instance) {
+        if (callback) {
+            callback(instance);
+        }
+        instance->Unref();
+    }
+    return nullptr;
+}
+
+template <typename T>
 napi_value SafeObjectWrap<T>::ConstructorBridge(napi_env env, napi_callback_info info) {
     if (!detail::EnsureConstructCall(env, info)) {
         return nullptr;

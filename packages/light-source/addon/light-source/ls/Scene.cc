@@ -4,9 +4,9 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "Scene.h"
-#include "RootSceneNode.h"
-#include "Stage.h"
+#include <ls/Scene.h>
+
+#include <ls/Stage.h>
 #include <ls/Renderer.h>
 #include <ls/GraphicsContext.h>
 #include <ls/Log.h>
@@ -14,6 +14,8 @@
 #include <ls/Math.h>
 #include <ls/Style.h>
 #include <ls/RootSceneNode.h>
+#include <ls/StyleUtils.h>
+#include <YGNode.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -32,9 +34,6 @@ using Napi::SymbolFor;
 using Napi::Value;
 
 namespace ls {
-
-Scene::Scene(const CallbackInfo& info) : SafeObjectWrap<Scene>(info) {
-}
 
 void Scene::Constructor(const CallbackInfo& info) {
     auto env{ info.Env() };
@@ -59,7 +58,7 @@ Function Scene::GetClass(Napi::Env env) {
         constructor = DefineClass(env, "SceneBase", true, {
             InstanceAccessor("root", &Scene::GetRoot, nullptr),
             InstanceAccessor("stage", &Scene::GetStage, nullptr),
-            InstanceAccessor(SymbolFor(env, "adapter"), &Scene::GetAdapter, nullptr),
+            InstanceAccessor(SymbolFor(env, "graphicsContext"), &Scene::GetGraphicsContext, nullptr),
             InstanceMethod(SymbolFor(env, "attach"), &Scene::Attach),
             InstanceMethod(SymbolFor(env, "detach"), &Scene::Detach),
             InstanceMethod(SymbolFor(env, "destroy"), &Scene::Destroy),
@@ -71,8 +70,13 @@ Function Scene::GetClass(Napi::Env env) {
 }
 
 void Scene::Attach(const CallbackInfo& info) {
+    // TODO: attach gc?
+    // TODO: dirty composite?
     this->width = this->graphicsContext->GetWidth();
     this->height = this->graphicsContext->GetHeight();
+    this->viewportMin = std::min(this->width, this->height);
+    this->viewportMax = std::max(this->width, this->height);
+    this->isViewportSizeDirty = true; // TODO: remove?
     this->isAttached = true;
 }
 
@@ -83,36 +87,29 @@ void Scene::Detach(const CallbackInfo& info) {
 }
 
 void Scene::Frame(const CallbackInfo& info) {
-    if (this->isSizeDirty || this->isRootFontSizeDirty) {
-        SceneNode::Visit(this->root, [=](SceneNode* node) {
+    // TODO: UpdateViewportAndRemUnits();
+    if (this->isViewportSizeDirty || this->isRootFontSizeDirty) {
+        if (this->isRootFontSizeDirty) {
+            this->rootFontSize = ComputeFontSize(this->root->style->fontSize, this, DEFAULT_REM_FONT_SIZE);
+        }
+
+        SceneNode::Visit(this->root, [this](SceneNode* node) {
             if (node->style != nullptr) {
-                node->style->UpdateDependentProperties(this->isRootFontSizeDirty, this->isSizeDirty);
+                node->style->UpdateDependentProperties(this->isRootFontSizeDirty, this->isViewportSizeDirty);
             }
         });
 
-        this->isSizeDirty = false;
-        this->isRootFontSizeDirty = false;
+        this->isViewportSizeDirty = this->isRootFontSizeDirty = false;
     }
 
-    if (!this->beforeLayoutRequests.empty()) {
-        std::for_each(this->beforeLayoutRequests.begin(), this->beforeLayoutRequests.end(),
-            [](SceneNode* node) {
-                node->BeforeLayout();
-            });
-
-        this->beforeLayoutRequests.clear();
+    // TODO: RunYogaNodeLayout();
+    if (YGNodeIsDirty(this->root->ygNode)) {
+        YGNodeCalculateLayout(this->root->ygNode, this->width, this->height, YGDirectionLTR);
+        YGTraversePreOrder(this->root->ygNode, [](YGNodeRef node) { node->setHasNewLayout(false); });
     }
 
-    this->root->Layout(this->width, this->height);
+    // TODO: RunSceneNodeLayout();
 
-    if (!this->afterLayoutRequests.empty()) {
-        std::for_each(this->afterLayoutRequests.begin(), this->afterLayoutRequests.end(),
-            [](SceneNode* node) {
-                node->AfterLayout();
-            });
-
-        this->afterLayoutRequests.clear();
-    }
 
     if (!this->isAttached) {
         return;
@@ -120,19 +117,18 @@ void Scene::Frame(const CallbackInfo& info) {
 
     auto renderer{ this->GetRenderer() };
 
-    this->paintContext.Reset(renderer);
-
+    // TODO: RunSceneNodePaint()
     if (!this->paintRequests.empty()) {
-        std::for_each(this->paintRequests.begin(), this->paintRequests.end(),
-        [paintContext = &this->paintContext](SceneNode* node) {
-            node->Paint(paintContext);
-        });
+        for (auto& node : this->paintRequests) {
+            node->Paint(this->graphicsContext);
+        }
 
         this->paintRequests.clear();
     }
 
+    // TODO: RunComposite()
     if (this->hasCompositeRequest) {
-        renderer->SetRenderTarget(nullptr);
+        renderer->Reset();
 
         this->compositeContext.Reset(renderer);
         this->root->Composite(&this->compositeContext);
@@ -150,36 +146,14 @@ Napi::Value Scene::GetStage(const Napi::CallbackInfo& info) {
     return this->stage->Value();
 }
 
-Napi::Value Scene::GetAdapter(const Napi::CallbackInfo &info) {
+Napi::Value Scene::GetGraphicsContext(const Napi::CallbackInfo &info) {
     return this->graphicsContext->Value();
 }
 
 void Scene::Destroy(const Napi::CallbackInfo &info) {
-    if (this->root) {
-        this->root->Destroy();
-        this->root->Unref();
-        this->root = nullptr;
-    }
-
-    if (this->stage) {
-        this->stage->Unref();
-        this->stage = nullptr;
-    }
-
-    if (this->graphicsContext) {
-        this->graphicsContext->Unref();
-        this->graphicsContext = nullptr;
-    }
-}
-
-void Scene::QueueRootFontSizeChange(float rootFontSize) {
-    if (!Equals(this->rootFontSize, rootFontSize)) {
-        this->rootFontSize = rootFontSize;
-
-        if (!this->root->children.empty()) {
-            this->isRootFontSizeDirty = true;
-        }
-    }
+    this->root = SafeObjectWrap<SceneNode>::RemoveRef(this->root, [](SceneNode* node) { node->Destroy(); });
+    this->stage = Stage::RemoveRef(this->stage);
+    this->graphicsContext = GraphicsContext::RemoveRef(this->graphicsContext);
 }
 
 void Scene::SetActiveNode(Napi::Value node) {
@@ -191,6 +165,12 @@ void Scene::SetActiveNode(Napi::Value node) {
         self["activeNode"] = node;
     } catch (const Error& e) {
         LOG_ERROR(e);
+    }
+}
+
+void Scene::OnRootFontSizeChange(float newRootFontSize) noexcept {
+    if (!Equals(this->rootFontSize, newRootFontSize)) {
+        this->isRootFontSizeDirty = true;
     }
 }
 

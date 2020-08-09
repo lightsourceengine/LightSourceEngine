@@ -19,6 +19,7 @@
       "sources": [
         "ls/PixelConversion.cc",
         "ls/Surface.cc",
+        "ls/Texture.cc",
       ]
     }
   ],

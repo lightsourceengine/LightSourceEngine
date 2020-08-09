@@ -4,12 +4,13 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "Surface.h"
+#include <ls/Surface.h>
+
 #include <cassert>
 #include <cstring>
 #include <algorithm>
 #include <std20/bit>
-#include "PixelConversion.h"
+#include <ls/PixelConversion.h>
 
 using std20::endian;
 

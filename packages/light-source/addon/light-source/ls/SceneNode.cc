@@ -4,20 +4,22 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "SceneNode.h"
-#include "Style.h"
-#include "Scene.h"
-#include "yoga-ext.h"
+#include <ls/SceneNode.h>
+
+#include <cassert>
+#include <algorithm>
+#include <ls/Style.h>
+#include <ls/Scene.h>
 #include <ls/CompositeContext.h>
 #include <ls/Renderer.h>
 #include <ls/Log.h>
-#include <algorithm>
-
-#include <ls/BoxSceneNode.h>
 #include <ls/RootSceneNode.h>
-#include <ls/LinkSceneNode.h>
+#include <ls/BoxSceneNode.h>
 #include <ls/ImageSceneNode.h>
 #include <ls/TextSceneNode.h>
+#include <ls/LinkSceneNode.h>
+#include <ls/Timer.h>
+#include <ls/yoga-ext.h>
 
 using Napi::Array;
 using Napi::Boolean;
@@ -33,29 +35,20 @@ namespace ls {
 
 int32_t SceneNode::instanceCount{0};
 
-SceneNode::SceneNode(const CallbackInfo& info) {
-}
-
-void SceneNode::BaseConstructor(const Napi::CallbackInfo& info, SceneNodeType type) {
+void SceneNode::SceneNodeConstructor(const Napi::CallbackInfo& info, SceneNodeType type) {
     this->scene = Scene::Cast(info[0]);
 
     if (!this->scene) {
         throw Error::New(info.Env(), "Expected scene reference as arg.");
     }
 
-    this->ygNode = YGNodeNew();
-    instanceCount++;
-
-    try {
-        this->scene->Ref();
-    } catch (const Error& error) {
-        YGNodeFree(this->ygNode);
-        this->scene = nullptr;
-        this->ygNode = nullptr;
-        throw;
-    }
+    this->scene->Ref();
 
     SetType(info.This(), type);
+
+    this->ygNode = YGNodeNew();
+    YGNodeSetContext(this->ygNode, this);
+    instanceCount++;
 }
 
 Value SceneNode::GetInstanceCount(const CallbackInfo& info) {
@@ -79,19 +72,11 @@ Value SceneNode::GetHeight(const CallbackInfo& info) {
 }
 
 Value SceneNode::GetParent(const CallbackInfo& info) {
-    if (this->parent == nullptr) {
-        return info.Env().Null();
-    }
-
-    return this->parent->Value();
+    return this->parent ? this->parent->Value() : info.Env().Null();
 }
 
 Value SceneNode::GetScene(const CallbackInfo& info) {
-    if (this->scene == nullptr) {
-        return info.Env().Null();
-    }
-
-    return this->scene->Value();
+    return this->scene ? this->scene->Value() : info.Env().Null();
 }
 
 Napi::Value SceneNode::GetChildren(const Napi::CallbackInfo& info) {
@@ -118,6 +103,8 @@ Value SceneNode::GetStyle(const CallbackInfo& info) {
 }
 
 void SceneNode::SetStyle(const CallbackInfo& info, const Napi::Value& value) {
+    HandleScope scope(info.Env());
+
     if (this->style == nullptr) {
         // New adds a Ref.
         this->style = Style::New(info.Env());
@@ -137,7 +124,7 @@ void SceneNode::SetStyle(const CallbackInfo& info, const Napi::Value& value) {
     }
 
     if (other == nullptr) {
-        throw Error::New(info.Env(), "style can only be aassigned to a Style class instance");
+        throw Error::New(info.Env(), "style can only be assigned to a Style class instance");
     }
 
     this->style->Assign(other);
@@ -156,26 +143,22 @@ void SceneNode::SetParent(SceneNode* newParent) {
         return;
     }
 
-    if (this->parent) {
-        this->parent->Unref();
-        this->parent = nullptr;
-    }
+    Napi::SafeObjectWrap<SceneNode>::RemoveRef(this->parent);
+    this->parent = newParent;
 
-    if (newParent) {
-        this->parent = newParent;
+    if (this->parent) {
         this->parent->Ref();
     }
 }
 
 Stage* SceneNode::GetStage() const noexcept {
-    return this->scene ? this->scene->GetStage() : nullptr;
+    return this->scene->GetStage();
 }
 
 void SceneNode::AppendChild(const CallbackInfo& info) {
     auto child{ SceneNode::QueryInterface(info[0]) };
 
-    this->ValidateInsertCandidate(info.Env(), child);
-
+    this->CanAddChild(info.Env(), child);
     this->AppendChild(child);
 }
 
@@ -183,7 +166,7 @@ void SceneNode::InsertBefore(const CallbackInfo& info) {
     auto env{ info.Env() };
     auto child{ SceneNode::QueryInterface(info[0]) };
 
-    this->ValidateInsertCandidate(env, child);
+    this->CanAddChild(env, child);
 
     auto before{ SceneNode::QueryInterface(info[1]) };
 
@@ -221,7 +204,7 @@ void SceneNode::AppendChild(SceneNode* child) {
 
 void SceneNode::InsertBefore(const Napi::Env& env, SceneNode* child, SceneNode* before) {
     auto beforeIndex{ -1 };
-    auto childrenLen{ static_cast<int32_t>(this->children.size()) };
+    const auto childrenLen{ static_cast<int32_t>(this->children.size()) };
 
     for (auto i{ 0 }; i < childrenLen; i++) {
         if (this->children[i] == before) {
@@ -288,21 +271,11 @@ void SceneNode::DestroyRecursive() {
     this->sortedChildren.clear();
     this->SetParent(nullptr);
 
-    if (this->ygNode) {
-        YGNodeFree(this->ygNode);
-        this->ygNode = nullptr;
-    }
+    YGNodeFree(this->ygNode);
+    this->ygNode = nullptr;
 
-    if (this->scene) {
-        this->scene->Unref();
-        this->scene = nullptr;
-    }
-
-    if (this->style) {
-        this->style->Bind(nullptr);
-        this->style->Unref();
-        this->style = nullptr;
-    }
+    this->scene = Scene::RemoveRef(this->scene);
+    this->style = Style::RemoveRef(this->style, [](Style* ref) { ref->Bind(nullptr); });
 }
 
 void SceneNode::Composite(CompositeContext* context) {
@@ -319,7 +292,7 @@ void SceneNode::Composite(CompositeContext* context) {
 
     if (clip) {
         context->PushClipRect(bounds);
-        context->renderer->SetClipRect(context->CurrentClipRect());
+        context->renderer->EnabledClipping(context->CurrentClipRect());
     }
 
     for (auto& child : this->SortChildrenByStackingOrder()) {
@@ -352,17 +325,15 @@ void SceneNode::OnPropertyChanged(StyleProperty property) {
     }
 }
 
-void SceneNode::Layout(float width, float height) {
-    if (YGNodeIsDirty(this->ygNode)) {
-        YGNodeCalculateLayout(this->ygNode, width, height, YGDirectionLTR);
-
-        SceneNode::Visit(this, [](SceneNode* node) {
-            node->QueueAfterLayoutIfNecessary();
-        });
-    }
+YGSize SceneNode::OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
+    return {};
 }
 
-void SceneNode::ValidateInsertCandidate(const Napi::Env& env, SceneNode* child) {
+void SceneNode::CanAddChild(const Napi::Env& env, SceneNode* child) {
+    if (this->IsLeaf()) {
+        throw Error::New(env, "leaf nodes cannot have children");
+    }
+
     if (child == nullptr) {
         throw Error::New(env, "child must be a SceneNode instance.");
     }
@@ -385,13 +356,6 @@ void SceneNode::QueuePaint() {
     this->scene->QueuePaint(this);
 }
 
-void SceneNode::QueueAfterLayoutIfNecessary() {
-    if (YGNodeGetHasNewLayout(this->ygNode)) {
-        YGNodeSetHasNewLayout(this->ygNode, false);
-        this->QueueAfterLayout();
-    }
-}
-
 void SceneNode::QueueAfterLayout() {
     this->scene->QueueAfterLayout(this);
 }
@@ -405,25 +369,27 @@ void SceneNode::QueueComposite() {
 }
 
 bool SceneNode::InitLayerRenderTarget(Renderer* renderer, int32_t width, int32_t height) {
-    if (this->layer && this->layer->IsAttached() && this->layer->GetWidth() == width
-            && this->layer->GetHeight() == height) {
-        return renderer->SetRenderTarget(this->layer);
-    }
-
-    this->layer = renderer->CreateRenderTarget(width, height);
-
-    return this->layer && renderer->SetRenderTarget(this->layer);
+//    if (this->layer && this->layer->IsAttached() && this->layer->GetWidth() == width
+//            && this->layer->GetHeight() == height) {
+//        return renderer->SetRenderTarget(this->layer);
+//    }
+//
+//    this->layer = renderer->CreateRenderTarget(width, height);
+//
+//    return this->layer && renderer->SetRenderTarget(this->layer);
+    return false;
 }
 
 bool SceneNode::InitLayerSoftwareRenderTarget(Renderer* renderer, int32_t width, int32_t height) {
-    if (this->layer && this->layer->IsAttached() && this->layer->GetWidth() == width
-            && this->layer->GetHeight() == height) {
-        return true;
-    }
-
-    this->layer = renderer->CreateTexture(width, height);
-
-    return static_cast<bool>(this->layer);
+//    if (this->layer && this->layer->IsAttached() && this->layer->GetWidth() == width
+//            && this->layer->GetHeight() == height) {
+//        return true;
+//    }
+//
+//    this->layer = renderer->CreateTexture(width, height);
+//
+//    return static_cast<bool>(this->layer);
+    return false;
 }
 
 void SceneNode::Focus(const CallbackInfo& info) {
@@ -446,10 +412,6 @@ int32_t SceneNode::GetZIndex() const noexcept {
     return this->style ? this->style->zIndex.AsInt32(0) : 0;
 }
 
-void SceneNode::MarkDirty() noexcept {
-    YGNodeMarkDirty(this->ygNode);
-}
-
 const std::vector<SceneNode*>& SceneNode::SortChildrenByStackingOrder() {
     if (!this->sortedChildren.empty()) {
         // already sorted
@@ -466,8 +428,8 @@ const std::vector<SceneNode*>& SceneNode::SortChildrenByStackingOrder() {
         if (aHasTransform != b->HasTransform()) {
             // nodes with transform always drawn above nodes with no transform
             //
-            // if a has transform and b not has transform, then a is less than b
-            // if b has transform and a not has transform, then a is less than b
+            // if a has transform and b has no transform, then a is less than b
+            // if b has transform and a has no transform, then a is less than b
             return !aHasTransform;
         }
 
@@ -480,21 +442,23 @@ const std::vector<SceneNode*>& SceneNode::SortChildrenByStackingOrder() {
 
 SceneNode* SceneNode::QueryInterface(Napi::Value value) {
     if (value.IsObject()) {
-        int32_t type = value.As<Object>().Get(0u).As<Number>();
+        auto typeValue{ value.As<Object>().Get(0u) };
 
-        switch (type) {
-            case SceneNodeTypeRoot:
-                return RootSceneNode::Cast(value);
-            case SceneNodeTypeBox:
-                return BoxSceneNode::Cast(value);
-            case SceneNodeTypeImage:
-                return ImageSceneNode::Cast(value);
-            case SceneNodeTypeText:
-                return TextSceneNode::Cast(value);
-            case SceneNodeTypeLink:
-                return LinkSceneNode::Cast(value);
-            default:
-                break;
+        if (typeValue.IsNumber()) {
+            switch (typeValue.As<Number>().Int32Value()) {
+                case SceneNodeTypeRoot:
+                    return RootSceneNode::Cast(value);
+                case SceneNodeTypeBox:
+                    return BoxSceneNode::Cast(value);
+                case SceneNodeTypeImage:
+                    return ImageSceneNode::Cast(value);
+                case SceneNodeTypeText:
+                    return TextSceneNode::Cast(value);
+                case SceneNodeTypeLink:
+                    return LinkSceneNode::Cast(value);
+                default:
+                    break;
+            }
         }
     }
 
@@ -504,6 +468,25 @@ SceneNode* SceneNode::QueryInterface(Napi::Value value) {
 void SceneNode::SetType(Napi::Value value, SceneNodeType type) {
     if (value.IsObject()) {
         value.As<Object>().Set(0u, Number::New(value.Env(), type));
+    }
+}
+
+YGSize SceneNode::YogaMeasureCallback(
+        YGNodeRef nodeRef, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
+    auto sceneNode{ static_cast<SceneNode*>(nodeRef->getContext()) };
+
+    assert(sceneNode != nullptr);
+
+    return sceneNode->OnMeasure(width, widthMode, height, heightMode);
+}
+
+void SceneNode::YogaNodeLayoutEvent(
+        const YGNode& node, facebook::yoga::Event::Type event, const facebook::yoga::Event::Data& data) {
+    assert(event == Event::NodeLayout);
+    assert(node.getContext() != nullptr);
+
+    if (node.getHasNewLayout()) {
+        static_cast<ls::SceneNode*>(node.getContext())->OnLayout();
     }
 }
 

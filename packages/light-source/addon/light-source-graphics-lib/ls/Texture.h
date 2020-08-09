@@ -12,72 +12,87 @@
 
 namespace ls {
 
-class Surface;
-
 /**
- * GPU texture interface.
+ * GPU texture.
  */
 class Texture {
  public:
-    virtual ~Texture() noexcept = default;
+    enum Type {
+        /** Texture can be Update()'d with pixel data. */
+        Updatable,
+        /** Texture can be Lock()'d to access pixel data for writing. */
+        Lockable,
+        /** Texture can be used as a render target in Renderer. Render targets can be Lock()'d and Update()'d. */
+        RenderTarget,
+    };
 
     /**
-     * Is this texture attached to the GPU?
+     * Returned by Lock() to allow pixel write access.
      *
-     * If attached, this texture can be used with draw operations on the renderer.
+     * When this object goes out of scope, the destructor will call Release().
      */
-    virtual bool IsAttached() const noexcept = 0;
+    class Pixels {
+     public:
+        Pixels() noexcept = default;
+        ~Pixels() noexcept;
+
+        uint8_t* Data() const noexcept;
+        int32_t Pitch() const noexcept;
+
+        /**
+         * Invalidate pixel access. After this call, Data() will return nullptr.
+         */
+        void Release() noexcept;
+
+     private:
+        Pixels(Texture* lockedTexture, uint8_t* data, int32_t pitch) noexcept;
+
+     private:
+        Texture* lockedTexture{};
+        uint8_t* data{};
+        int32_t pitch{};
+
+        friend class Texture;
+    };
 
     /**
-     * Width of the texture in pixels. If the texture is not attached, width is 0.
+     * Interface between Texture and the native rendering platform.
      */
-    virtual int32_t GetWidth() const noexcept = 0;
+    struct Bridge {
+        int32_t (*GetWidth)(void*);
+        int32_t (*GetHeight)(void*);
+        bool (*Lock)(void*, void**, int32_t*);
+        void (*Unlock)(void*);
+        bool (*Update)(void*, const uint8_t*, int32_t);
+        PixelFormat (*GetPixelFormat)(void*);
+        Type (*GetType)(void*);
+        void (*Destroy)(void*);
+    };
 
-    /**
-     * Height of the texture in pixels. If the texture is not attached, height is 0.
-     */
-    virtual int32_t GetHeight() const noexcept = 0;
+ public:
+    Texture() noexcept;
+    Texture(void* nativeTexture, Bridge* bridge) noexcept;
 
-    /**
-     * Get the pixel format of this texture. If the texture is not attached, PixelFormatUnknown is returned.
-     */
-    virtual PixelFormat GetFormat() const noexcept = 0;
+    int32_t Width() const noexcept;
+    int32_t Height() const noexcept;
+    PixelFormat PixelFormat() const noexcept;
+    bool IsRenderTarget() const noexcept;
+    bool IsLockable() const noexcept;
+    bool IsUpdatable() const noexcept;
 
-    /**
-     * Can this texture be used as a render target by the renderer?
-     */
-    virtual bool IsRenderTarget() const noexcept = 0;
+    bool Update(const uint8_t* pixels, int32_t pitch) const noexcept;
+    Pixels Lock() noexcept;
+    template<typename T>
+    T* Cast() const noexcept { return static_cast<T*>(this->nativeTexture); }
 
-    /**
-     * Is Update() supported by this texture?
-     */
-    virtual bool CanUpdate() const noexcept = 0;
+    bool Empty() const noexcept;
+    operator bool() const noexcept;
 
-    /**
-     * Copies a surface directly to this texture.
-     *
-     * @param surface Must be the exact same dimensions and format as the texture.
-     * @return false if copy failed; otherwise, true
-     */
-    virtual bool Update(const Surface& surface) noexcept = 0;
+    void Destroy() noexcept;
 
-    /**
-     * Is Lock() supported by this texture?
-     */
-    virtual bool CanLock() const noexcept = 0;
-
-    /**
-     * Get write only access to a texture's pixels.
-     *
-     * Do not use this method to read texture pixel data. The pixel data buffer may or may not contain the latest
-     * state of the texture (for performance reasons). This method is only for writing data into a texture.
-     *
-     * To release access to this texture's pixels, call Surface destructor by letting the return value
-     * fall out of scope. Note, the pixels must be unlocked before rendering this texture.
-     *
-     * @return Writable surface. If texture does not exist, surface will be empty.
-     */
-    virtual Surface Lock() noexcept = 0;
+ private:
+    void* nativeTexture{};
+    Bridge* bridge{};
 };
 
 } // namespace ls

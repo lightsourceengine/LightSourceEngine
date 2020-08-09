@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <cstdint>
 #include <ls/PixelFormat.h>
+#include <cstdint>
 #include <std20/bit>
 
 namespace ls {

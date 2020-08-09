@@ -5,8 +5,11 @@
  * tree.
  */
 
-#include "DecodeImage.h"
+#include <ls/DecodeImage.h>
+
+#include <blend2d.h>
 #include <ls/Format.h>
+#include <ls/PixelConversion.h>
 #include <stb_image.h>
 #include <nanosvg.h>
 #include <nanosvgrast.h>
@@ -65,8 +68,8 @@ bool ScaleSvg(NSVGimagePtr& svg, int32_t scaleWidth, int32_t scaleHeight,
     return true;
 }
 
-uint8_t* LoadSvg(const std17::filesystem::path& path, int32_t* width, int32_t* height,
-                 int32_t scaleWidth, int32_t scaleHeight) {
+uint8_t* LoadSvg(const std17::filesystem::path& path, int32_t scaleWidth, int32_t scaleHeight,
+        int32_t* width, int32_t* height) {
     if (!std17::filesystem::exists(path)) {
         throw std::runtime_error(Format("Error SVG file not found: %s", path.c_str()));
     }
@@ -113,20 +116,26 @@ uint8_t* LoadSvg(const std17::filesystem::path& path, int32_t* width, int32_t* h
     return data.release();
 }
 
-BLImage DecodeImageFromFile(const std17::filesystem::path& path, const BLSizeI& resize) {
-    BLResult result;
-    uint8_t* data;
-    BLDestroyImplFunc destroy;
+ImageBytes DecodeImageFromFile(const std17::filesystem::path& path, int32_t resizeWidth, int32_t resizeHeight) {
+    uint8_t* bytes;
+    ImageBytes::Deleter deleter;
     int32_t width{};
     int32_t height{};
 
     if (equals_simple_insensitive(path.extension().c_str(), ".*")) {
         // Handle the '.*' extension search recursively.
         auto pathCopy{ path };
+        std::error_code errorCode;
 
         for (auto ext : kImageExtensions) {
+            pathCopy.replace_extension(ext);
+
+            if (!std17::filesystem::exists(path, errorCode)) {
+                continue;
+            }
+
             try {
-                return DecodeImageFromFile(pathCopy.replace_extension(ext), resize);
+                return DecodeImageFromFile(pathCopy.replace_extension(ext), resizeWidth, resizeHeight);
             } catch (std::exception& e) {
                 // continue search
             }
@@ -135,37 +144,26 @@ BLImage DecodeImageFromFile(const std17::filesystem::path& path, const BLSizeI& 
         throw std::runtime_error(Format("No image file found for %s", path.c_str()));
     } else if (equals_simple_insensitive(path.extension().c_str(), ".svg")) {
         // Special handling for SVG images.
-        data = LoadSvg(path.c_str(), &width, &height, resize.w, resize.h);
-        destroy = [](void* impl, void* destroyData) noexcept { delete [] static_cast<uint8_t*>(destroyData); };
+        bytes = LoadSvg(path.c_str(), resizeWidth, resizeHeight, &width, &height);
+        deleter = [](uint8_t* p) noexcept { delete [] p; };
     } else {
         // Use stb_image for loading all images. blend2d has an image decoder, but it has a smaller set of
         // supported formats.
         constexpr auto readFlags{ BL_FILE_READ_MMAP_ENABLED | BL_FILE_READ_MMAP_AVOID_SMALL };
         int32_t components{};
-        BLArray<uint8_t> bytes;
+        BLArray<uint8_t> fileBytes;
 
-        result = BLFileSystem::readFile(path.c_str(), bytes, 0, readFlags);
+        BLResult result = BLFileSystem::readFile(path.c_str(), fileBytes, 0, readFlags);
 
         if (result) {
             throw std::runtime_error(Format("Image file not found: %s", path.c_str()));
         }
 
-        data = stbi_load_from_memory(bytes.data(), bytes.size(), &width, &height, &components, kNumChannels);
-        destroy = [](void* impl, void* destroyData) noexcept { stbi_image_free(destroyData); };
+        bytes = stbi_load_from_memory(fileBytes.data(), fileBytes.size(), &width, &height, &components, kNumChannels);
+        deleter = [](uint8_t* p) noexcept { stbi_image_free(p); };
     }
 
-    // Apply the loaded image byte to blend2d.
-    BLImage image;
-
-    result = image.createFromData(
-        width, height, BL_FORMAT_PRGB32, data, width * kNumChannels, destroy, data);
-
-    if (result != BL_SUCCESS) {
-        destroy(nullptr, data);
-        throw std::runtime_error(Format("Error creating BLImage ErrorCode: %i SVG: %s", result, path.c_str()));
-    }
-
-    return image;
+    return { bytes, deleter, width, height, width * 4 };
 }
 
 } // namespace ls

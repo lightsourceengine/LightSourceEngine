@@ -7,11 +7,49 @@
 #pragma once
 
 #include <ls/PixelFormat.h>
+#include <ls/Matrix.h>
+#include <ls/Rect.h>
+#include <ls/Texture.h>
 #include <SDL.h>
 
 namespace ls {
 
-constexpr PixelFormat ToPixelFormat(Uint32 pixelFormat) {
+// Texture operations
+
+Texture CreateTexture(SDL_Renderer* renderer, int32_t width, int32_t height, Texture::Type type,
+        PixelFormat format) noexcept;
+SDL_Texture* DestroyTexture(SDL_Texture* texture) noexcept;
+SDL_Renderer* DestroyRenderer(SDL_Renderer* renderer) noexcept;
+/** Set the color mod and alpha mod of the texture used for render copy operations.  */
+void SetTextureTintColor(SDL_Texture* texture, uint32_t color) noexcept;
+
+// Render operations
+
+void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const Rect& rect, const Matrix& transform,
+        uint32_t tintColor) noexcept;
+void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const EdgeRect& capInsets, const Rect& rect,
+        const Matrix& transform, uint32_t tintColor) noexcept;
+void DrawBorder(SDL_Renderer* renderer, SDL_Texture* fillRectTexture, const Rect& rect, const EdgeRect& border,
+        const Matrix& transform, uint32_t color) noexcept;
+
+// Type conversions
+
+/**
+ * Convert ls::Rect to SDL_Rect.
+ *
+ * The ls::Rect is hard snapped to the pixel grid using floor().
+ */
+constexpr SDL_Rect ToSDLRect(const Rect& rect) noexcept {
+    return {
+        static_cast<int32_t>(rect.x),
+        static_cast<int32_t>(rect.y),
+        static_cast<int32_t>(rect.width),
+        static_cast<int32_t>(rect.height),
+    };
+}
+
+/** @return PixelFormat representation or PixelFormatUnknown if a PixelFormat cannot be found. */
+constexpr PixelFormat ToPixelFormat(Uint32 pixelFormat) noexcept {
     switch (pixelFormat) {
         case SDL_PIXELFORMAT_ARGB8888:
             return PixelFormatARGB;
@@ -23,6 +61,48 @@ constexpr PixelFormat ToPixelFormat(Uint32 pixelFormat) {
             return PixelFormatBGRA;
         default:
             return PixelFormatUnknown;
+    }
+}
+
+/** @returns SDL pixel format representation; otherwise SDL_PIXELFORMAT_UNKNOWN */
+constexpr SDL_PixelFormatEnum ToSDLPixelFormat(PixelFormat format) noexcept {
+    switch (format) {
+        case PixelFormatARGB:
+            return SDL_PIXELFORMAT_ARGB8888;
+        case PixelFormatRGBA:
+            return SDL_PIXELFORMAT_RGBA8888;
+        case PixelFormatABGR:
+            return SDL_PIXELFORMAT_ABGR8888;
+        case PixelFormatBGRA:
+            return SDL_PIXELFORMAT_BGRA8888;
+        default:
+            return SDL_PIXELFORMAT_UNKNOWN;
+    }
+}
+
+/** @returns SDL texture access; otherwise SDL_TEXTUREACCESS_STATIC if unknown  */
+constexpr SDL_TextureAccess ToSDLTextureAccess(Texture::Type type) noexcept {
+    switch (type) {
+        case Texture::Type::Lockable:
+            return SDL_TextureAccess::SDL_TEXTUREACCESS_STREAMING;
+        case Texture::Type::RenderTarget:
+            return SDL_TextureAccess::SDL_TEXTUREACCESS_TARGET;
+        case Texture::Type::Updatable:
+        default:
+            return SDL_TextureAccess::SDL_TEXTUREACCESS_STATIC;
+    }
+}
+
+/** @returns ls::Texture::Type; otherwise Texture::Type::Updatable if unknown */
+constexpr Texture::Type ToTextureType(int32_t textureAccess) noexcept {
+    switch (textureAccess) {
+        case SDL_TextureAccess::SDL_TEXTUREACCESS_STREAMING:
+            return Texture::Type::Lockable;
+        case SDL_TextureAccess::SDL_TEXTUREACCESS_TARGET:
+            return Texture::Type::RenderTarget;
+        case SDL_TextureAccess::SDL_TEXTUREACCESS_STATIC:
+        default:
+            return Texture::Type::Updatable;
     }
 }
 

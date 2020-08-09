@@ -7,10 +7,10 @@
 #pragma once
 
 #include <Yoga.h>
-#include <vector>
+#include <event/event.h>
 #include <napi-ext.h>
-#include "StyleEnums.h"
-#include "Resources.h"
+#include <ls/StyleEnums.h>
+#include <ls/Resources.h>
 
 namespace ls {
 
@@ -20,7 +20,7 @@ class Stage;
 class Style;
 class Renderer;
 class CompositeContext;
-class PaintContext;
+class GraphicsContext;
 class Texture;
 
 enum SceneNodeType {
@@ -33,7 +33,7 @@ enum SceneNodeType {
 
 class SceneNode : public virtual Napi::SafeObjectWrapReference {
  public:
-    explicit SceneNode(const Napi::CallbackInfo& info);
+    ~SceneNode() override = default;
 
     static Napi::Value GetInstanceCount(const Napi::CallbackInfo& info);
 
@@ -60,15 +60,14 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     void Focus(const Napi::CallbackInfo& info);
     void Blur(const Napi::CallbackInfo& info);
 
-    void MarkDirty() noexcept;
     void Destroy();
-    void Layout(float width, float height);
 
     virtual void OnPropertyChanged(StyleProperty property);
-    virtual void BeforeLayout() = 0;
-    virtual void AfterLayout() = 0;
-    virtual void Paint(PaintContext* paint) = 0;
+    virtual YGSize OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode);
+    virtual void OnLayout() {}
+    virtual void Paint(GraphicsContext* graphicsContext) = 0;
     virtual void Composite(CompositeContext* composite);
+    virtual bool IsLeaf() const noexcept { return true; }
 
     static SceneNode* QueryInterface(Napi::Value value);
     static void SetType(Napi::Value value, SceneNodeType type);
@@ -76,24 +75,29 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     template<typename Callable>
     static void Visit(SceneNode* node, const Callable& func);
 
+    static YGSize YogaMeasureCallback(
+        YGNodeRef nodeRef, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode);
+
+    static void YogaNodeLayoutEvent(
+        const YGNode& node, facebook::yoga::Event::Type event, const facebook::yoga::Event::Data& data);
+
  protected:
     template<typename T>
     static std::vector<napi_property_descriptor> Extend(const Napi::Env& env,
         const std::initializer_list<napi_property_descriptor>& subClassProperties);
 
-    void BaseConstructor(const Napi::CallbackInfo& info, SceneNodeType type);
+    void SceneNodeConstructor(const Napi::CallbackInfo& info, SceneNodeType type);
     void SetParent(SceneNode* newParent);
     void InsertBefore(const Napi::Env& env, SceneNode* child, SceneNode* before);
     void RemoveChild(SceneNode* child);
-    void ValidateInsertCandidate(const Napi::Env& env, SceneNode* child);
+    void CanAddChild(const Napi::Env& env, SceneNode* child);
     virtual void DestroyRecursive();
-    virtual void AppendChild(SceneNode* child);
+    void AppendChild(SceneNode* child);
     Style* GetStyleOrEmpty() const noexcept;
     bool InitLayerRenderTarget(Renderer* renderer, int32_t width, int32_t height);
     bool InitLayerSoftwareRenderTarget(Renderer* renderer, int32_t width, int32_t height);
     void QueuePaint();
     void QueueAfterLayout();
-    void QueueAfterLayoutIfNecessary();
     void QueueBeforeLayout();
     void QueueComposite();
     const std::vector<SceneNode*>& SortChildrenByStackingOrder();

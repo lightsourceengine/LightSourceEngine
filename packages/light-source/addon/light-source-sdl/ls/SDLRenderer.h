@@ -12,62 +12,46 @@
 
 namespace ls {
 
-class SDLTexture;
-
 class SDLRenderer : public Renderer {
  public:
     SDLRenderer();
-    virtual ~SDLRenderer();
+    ~SDLRenderer() override;
 
     int32_t GetWidth() const override { return this->width; }
     int32_t GetHeight() const override { return this->height; }
     PixelFormat GetTextureFormat() const override { return this->textureFormat; }
 
-    bool SetRenderTarget(std::shared_ptr<Texture> renderTarget) override;
+    bool SetRenderTarget(const Texture& newRenderTarget) override;
+    void Reset() override;
+    void FillRenderTarget(uint32_t color) override;
     void Present() override;
-    void SetClipRect(const Rect& rect) override;
-    void ClearClipRect() override;
+    void EnabledClipping(const Rect& rect) override;
+    void DisableClipping() override;
 
-    void DrawFillRect(const Rect& rect, const Matrix& transform, const uint32_t fillColor) override;
-    void DrawBorder(const Rect& rect, const EdgeRect& border, const uint32_t borderColor) override;
-    void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const uint32_t tintColor) override;
-    void DrawImage(const std::shared_ptr<Texture>& texture,
-                   const Rect& rect,
-                   const Matrix& transform,
-                   uint32_t tintColor) override;
-    void DrawImage(const std::shared_ptr<Texture>& texture,
-                   const Rect& textureSource,
-                   const Rect& rect,
-                   const Point& centerPoint,
-                   const Matrix& transform,
-                   uint32_t tintColor) override;
-    void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const EdgeRect& capInsets,
-        const uint32_t tintColor) override;
-    void FillRenderTarget(const uint32_t color) override;
+    void DrawFillRect(const Rect& rect, const Matrix& transform, uint32_t fillColor) override;
+    void DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, uint32_t fillColor) override;
+    void DrawImage(const Texture& texture, const Rect& rect, const Matrix& transform,
+            uint32_t tintColor) override;
+    void DrawImage(const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
+            const Matrix& transform, uint32_t tintColor) override;
 
-    std::shared_ptr<Texture> CreateRenderTarget(const int32_t width, const int32_t height) override;
-    std::shared_ptr<Texture> CreateTextureFromSurface(const Surface& surface) override;
-    std::shared_ptr<Texture> CreateTexture(const int32_t width, const int32_t height) override;
+    Texture CreateTexture(int32_t width, int32_t height, Texture::Type type) override;
 
     void Attach(SDL_Window* window);
     void Detach();
     void Destroy();
 
-    Uint32 GetRawTextureFormat() const noexcept { return this->sdlTextureFormat; }
-    SDL_Renderer* ToRawRenderer() noexcept { return this->renderer; }
-
  private:
-    void SetRenderDrawColor(const uint32_t color) noexcept;
+    void ResetInternal(const Texture& newRenderTarget);
+    void SetRenderDrawColor(uint32_t color) noexcept;
     void UpdateTextureFormats(const SDL_RendererInfo& info) noexcept;
-    std::shared_ptr<Texture> CreateFillRectTexture() noexcept;
 
  private:
     SDL_Renderer* renderer{};
-    Uint32 sdlTextureFormat{SDL_PIXELFORMAT_UNKNOWN};
     PixelFormat textureFormat{PixelFormatUnknown};
     uint32_t drawColor{};
-    std::shared_ptr<Texture> renderTarget;
-    std::shared_ptr<Texture> fillRectTexture;
+    Texture fillRectTexture{};
+    Texture renderTarget{};
     int32_t width{0};
     int32_t height{0};
 };

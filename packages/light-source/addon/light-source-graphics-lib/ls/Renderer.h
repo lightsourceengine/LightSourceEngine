@@ -25,120 +25,92 @@ class Renderer {
     virtual ~Renderer() = default;
 
     /**
-     * Width of renderable area in pixels.
-     */
-    virtual int32_t GetWidth() const = 0;
-
-    /**
-     * Height of renderable area in pixels.
-     */
-    virtual int32_t GetHeight() const = 0;
-
-    /**
-     * Get the pixel format for all new textures.
-     */
-    virtual PixelFormat GetTextureFormat() const = 0;
-
-    /**
-     * Sets the target texture of the renderer.
-     *
-     * If renderTarget = nullptr, the renderer is reset and the screen is restored as the render target.
-     */
-    virtual bool SetRenderTarget(std::shared_ptr<Texture> renderTarget) = 0;
-
-    /**
-     * Finish rendering and copy the result to the screen.
+     * Update the screen with any rendering performed since the previous call.
      *
      * If vsync is enabled, this method will block waiting for the next vertical blank.
      */
     virtual void Present() = 0;
 
     /**
-     * Set the clip rect.
+     * Resets the state of the renderer.
+     *
+     * Clipping is disabled. The render target is reset to the screen.
      */
-    virtual void SetClipRect(const Rect& rect) = 0;
+    virtual void Reset() = 0;
+
+    /**
+     * @return The width of the renderable area in pixels.
+     */
+    virtual int32_t GetWidth() const = 0;
+
+    /**
+     * @return The height of renderable area in pixels.
+     */
+    virtual int32_t GetHeight() const = 0;
+
+    /**
+     * Sets the target texture of the renderer.
+     *
+     * To reset the render target to the screen (default behavior), use Reset().
+     *
+     * @param renderTarget A texture of Type::RenderTarget.
+     * @return true if the render target was successfully set, false if renderTarget is incompatible as a render target
+     */
+    virtual bool SetRenderTarget(const Texture& renderTarget) = 0;
+
+    /**
+     * Clip draw calls by a rectangular region.
+     */
+    virtual void EnabledClipping(const Rect& rect) = 0;
 
     /**
      * Turn off clipping.
      */
-    virtual void ClearClipRect() = 0;
+    virtual void DisableClipping() = 0;
 
     /**
-     * Draw a solid color rectangle.
+     * Draw a solid rectangle.
      */
-    virtual void DrawFillRect(const Rect& rect, const Matrix& transform, const uint32_t fillColor) = 0;
+    virtual void DrawFillRect(const Rect& rect, const Matrix& transform, uint32_t fillColor) = 0;
 
     /**
-     * Draw an image.
+     * Draw a hollow rectangle.
      */
-    virtual void DrawImage(const std::shared_ptr<Texture>& texture,
-                           const Rect& rect,
-                           const Matrix& transform,
-                           uint32_t tintColor) = 0;
+    virtual void DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, uint32_t fillColor) = 0;
 
     /**
-     * Draw an image.
+     * Draw a textured rectangle.
      */
-    virtual void DrawImage(const std::shared_ptr<Texture>& texture,
-                           const Rect& textureSource,
-                           const Rect& rect,
-                           const Point& centerPoint,
-                           const Matrix& transform,
-                           uint32_t tintColor) = 0;
+    virtual void DrawImage(const Texture& texture, const Rect& rect, const Matrix& transform, uint32_t tintColor) = 0;
 
     /**
-     * Draw a rectangle's outline.
-     */
-    virtual void DrawBorder(const Rect& rect, const EdgeRect& border, const uint32_t borderColor) = 0;
-
-    /**
-     * Draw an image.
-     */
-    virtual void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const uint32_t tintColor) = 0;
-
-    /**
-     * Draw an image with end-cap insets.
+     * Draw a textured rectangle stretched with end cap insets.
      *
-     * Each corner of the image is an end-cap, where the size is defined by the edges in the capInsets args. End-caps
-     * are rendered 1:1. The areas between the end-caps and the middle are stretched to fill in the remainder of the
-     * destination rect area.
+     * If the image is sliced into 9 equal parts, the four corners, or end caps, are drawn at a fixed size according
+     * to the capInsets arg. The remaining parts are rendered stretched to fill the remaining space. This is typically
+     * used for UI buttons or message box backgrounds.
      */
-    virtual void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const EdgeRect& capInsets,
-        const uint32_t tintColor) = 0;
-
+    virtual void DrawImage(const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
+            const Matrix& transform, uint32_t tintColor) = 0;
     /**
      * Clear the entire renderable area with the specified color.
      */
-    virtual void FillRenderTarget(const uint32_t color) = 0;
-
-    /**
-     * Create a texture that can be used as a render target.
-     *
-     * Render targets cannot be updated or locked.
-     *
-     * @param width Width, in pixels, of new texture.
-     * @param height Height, in pixels, of new texture.
-     * @return texture on success; nullptr if texture could not be created
-     */
-    virtual std::shared_ptr<Texture> CreateRenderTarget(const int32_t width, const int32_t height) = 0;
-
-    /**
-     * Create a new texture from a surface.
-     *
-     * The surface format must be PixelFormatAlpha or GetTextureFormat().
-     *
-     * @return texture on success; nullptr if texture could not be created
-     */
-    virtual std::shared_ptr<Texture> CreateTextureFromSurface(const Surface& surface) = 0;
+    virtual void FillRenderTarget(uint32_t color) = 0;
 
     /**
      * Create a new texture.
      *
      * @param width Width, in pixels, of new texture.
      * @param height Height, in pixels, of new texture.
-     * @return texture on success; nullptr if texture could not be created
+     * @param type The type of texture to create.
+     * @return on success, a valid texture; on failure, an empty texture
      */
-    virtual std::shared_ptr<Texture> CreateTexture(const int32_t width, const int32_t height) = 0;
+    virtual Texture CreateTexture(int32_t width, int32_t height, Texture::Type type) = 0;
+
+    /**
+     * Get the pixel format for all new textures.
+     */
+    virtual PixelFormat GetTextureFormat() const = 0;
 };
 
 } // namespace ls

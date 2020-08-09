@@ -7,26 +7,18 @@
 #pragma once
 
 #include <napi-ext.h>
-#include "SceneNode.h"
-#include "Resources.h"
+#include <ls/SceneNode.h>
+#include <ls/Resources.h>
 #include <ls/Rect.h>
 
 namespace ls {
 
 class ImageSceneNode : public Napi::SafeObjectWrap<ImageSceneNode>, public SceneNode {
  public:
-    explicit ImageSceneNode(const Napi::CallbackInfo& info);
+    ImageSceneNode(const Napi::CallbackInfo& info) : Napi::SafeObjectWrap<ImageSceneNode>(info) {}
+    ~ImageSceneNode() override = default;
 
-    void OnPropertyChanged(StyleProperty property) override;
-    void BeforeLayout() override;
-    void AfterLayout() override;
-    void Paint(PaintContext* paint) override;
-    void Composite(CompositeContext* composite) override;
-
- public:
     static Napi::Function GetClass(Napi::Env env);
-
- private: // javascript bindings
     void Constructor(const Napi::CallbackInfo& info) override;
     Napi::Value GetSource(const Napi::CallbackInfo& info);
     void SetSource(const Napi::CallbackInfo& info, const Napi::Value& value);
@@ -35,20 +27,23 @@ class ImageSceneNode : public Napi::SafeObjectWrap<ImageSceneNode>, public Scene
     Napi::Value GetOnErrorCallback(const Napi::CallbackInfo& info);
     void SetOnErrorCallback(const Napi::CallbackInfo& info, const Napi::Value& value);
 
+    void OnPropertyChanged(StyleProperty property) override;
+    YGSize OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) override;
+
+    void Paint(GraphicsContext* graphicsContext) override;
+    void Composite(CompositeContext* composite) override;
+
  private:
     void DestroyRecursive() override;
-    void AppendChild(SceneNode* child) override;
     void ClearResource();
 
  private:
     std::string src;
-    ImageData* image{};
+    Image* image{};
     Napi::FunctionReference onLoadCallback;
     Napi::FunctionReference onErrorCallback;
     Rect destRect{};
     Rect srcRect{};
-
-    friend Napi::SafeObjectWrap<ImageSceneNode>;
 };
 
 } // namespace ls

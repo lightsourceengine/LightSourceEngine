@@ -4,11 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "Style.h"
-#include "Scene.h"
-#include "SceneNode.h"
-#include <napi-ext.h>
+#include <ls/Style.h>
+
+#include <ls/Scene.h>
+#include <ls/SceneNode.h>
 #include <ls/CStringHashMap.h>
+#include <napi-ext.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -263,89 +264,93 @@ void Style::Assign(const Style* other) noexcept {
     // Set method checks if the property has changed before assignment. If the property has changed, the bound node
     // will have it's Yoga node updated and the SceneNode will be notified of the change.
 
-    #define LS_PROPERTY_COMPARE(PROP) this->Set(StyleProperty::PROP, this->PROP, other->PROP)
+    #define LS_PROPERTY_SET(PROP) this->Set(StyleProperty::PROP, this->PROP, other->PROP)
 
     // Yoga Style Properties
-    LS_PROPERTY_COMPARE(alignItems);
-    LS_PROPERTY_COMPARE(alignContent);
-    LS_PROPERTY_COMPARE(alignSelf);
-    LS_PROPERTY_COMPARE(border);
-    LS_PROPERTY_COMPARE(borderBottom);
-    LS_PROPERTY_COMPARE(borderLeft);
-    LS_PROPERTY_COMPARE(borderRight);
-    LS_PROPERTY_COMPARE(borderTop);
-    LS_PROPERTY_COMPARE(bottom);
-    LS_PROPERTY_COMPARE(display);
-    LS_PROPERTY_COMPARE(flex);
-    LS_PROPERTY_COMPARE(flexBasis);
-    LS_PROPERTY_COMPARE(flexDirection);
-    LS_PROPERTY_COMPARE(flexGrow);
-    LS_PROPERTY_COMPARE(flexShrink);
-    LS_PROPERTY_COMPARE(flexWrap);
-    LS_PROPERTY_COMPARE(height);
-    LS_PROPERTY_COMPARE(justifyContent);
-    LS_PROPERTY_COMPARE(left);
-    LS_PROPERTY_COMPARE(margin);
-    LS_PROPERTY_COMPARE(marginBottom);
-    LS_PROPERTY_COMPARE(marginLeft);
-    LS_PROPERTY_COMPARE(marginRight);
-    LS_PROPERTY_COMPARE(marginTop);
-    LS_PROPERTY_COMPARE(maxHeight);
-    LS_PROPERTY_COMPARE(maxWidth);
-    LS_PROPERTY_COMPARE(minHeight);
-    LS_PROPERTY_COMPARE(minWidth);
-    LS_PROPERTY_COMPARE(overflow);
-    LS_PROPERTY_COMPARE(padding);
-    LS_PROPERTY_COMPARE(paddingBottom);
-    LS_PROPERTY_COMPARE(paddingLeft);
-    LS_PROPERTY_COMPARE(paddingRight);
-    LS_PROPERTY_COMPARE(paddingTop);
-    LS_PROPERTY_COMPARE(position);
-    LS_PROPERTY_COMPARE(right);
-    LS_PROPERTY_COMPARE(top);
-    LS_PROPERTY_COMPARE(width);
+    LS_PROPERTY_SET(alignItems);
+    LS_PROPERTY_SET(alignContent);
+    LS_PROPERTY_SET(alignSelf);
+    LS_PROPERTY_SET(border);
+    LS_PROPERTY_SET(borderBottom);
+    LS_PROPERTY_SET(borderLeft);
+    LS_PROPERTY_SET(borderRight);
+    LS_PROPERTY_SET(borderTop);
+    LS_PROPERTY_SET(bottom);
+    LS_PROPERTY_SET(display);
+    LS_PROPERTY_SET(flex);
+    LS_PROPERTY_SET(flexBasis);
+    LS_PROPERTY_SET(flexDirection);
+    LS_PROPERTY_SET(flexGrow);
+    LS_PROPERTY_SET(flexShrink);
+    LS_PROPERTY_SET(flexWrap);
+    LS_PROPERTY_SET(height);
+    LS_PROPERTY_SET(justifyContent);
+    LS_PROPERTY_SET(left);
+    LS_PROPERTY_SET(margin);
+    LS_PROPERTY_SET(marginBottom);
+    LS_PROPERTY_SET(marginLeft);
+    LS_PROPERTY_SET(marginRight);
+    LS_PROPERTY_SET(marginTop);
+    LS_PROPERTY_SET(maxHeight);
+    LS_PROPERTY_SET(maxWidth);
+    LS_PROPERTY_SET(minHeight);
+    LS_PROPERTY_SET(minWidth);
+    LS_PROPERTY_SET(overflow);
+    LS_PROPERTY_SET(padding);
+    LS_PROPERTY_SET(paddingBottom);
+    LS_PROPERTY_SET(paddingLeft);
+    LS_PROPERTY_SET(paddingRight);
+    LS_PROPERTY_SET(paddingTop);
+    LS_PROPERTY_SET(position);
+    LS_PROPERTY_SET(right);
+    LS_PROPERTY_SET(top);
+    LS_PROPERTY_SET(width);
     // Visual Style Properties
-    LS_PROPERTY_COMPARE(backgroundClip);
-    LS_PROPERTY_COMPARE(backgroundColor);
-    LS_PROPERTY_COMPARE(backgroundHeight);
-    LS_PROPERTY_COMPARE(backgroundImage);
-    LS_PROPERTY_COMPARE(backgroundPositionX);
-    LS_PROPERTY_COMPARE(backgroundPositionY);
-    LS_PROPERTY_COMPARE(backgroundRepeat);
-    LS_PROPERTY_COMPARE(backgroundSize);
-    LS_PROPERTY_COMPARE(backgroundWidth);
-    LS_PROPERTY_COMPARE(borderColor);
-    LS_PROPERTY_COMPARE(borderRadius);
-    LS_PROPERTY_COMPARE(borderRadiusTopLeft);
-    LS_PROPERTY_COMPARE(borderRadiusTopRight);
-    LS_PROPERTY_COMPARE(borderRadiusBottomLeft);
-    LS_PROPERTY_COMPARE(borderRadiusBottomRight);
-    LS_PROPERTY_COMPARE(color);
-    LS_PROPERTY_COMPARE(fontFamily);
-    LS_PROPERTY_COMPARE(fontSize);
-    LS_PROPERTY_COMPARE(fontStyle);
-    LS_PROPERTY_COMPARE(fontWeight);
-    LS_PROPERTY_COMPARE(lineHeight);
-    LS_PROPERTY_COMPARE(maxLines);
-    LS_PROPERTY_COMPARE(objectFit);
-    LS_PROPERTY_COMPARE(objectPositionX);
-    LS_PROPERTY_COMPARE(objectPositionY);
-    LS_PROPERTY_COMPARE(opacity);
-    LS_PROPERTY_COMPARE(textAlign);
-    LS_PROPERTY_COMPARE(textOverflow);
-    LS_PROPERTY_COMPARE(textTransform);
-    LS_PROPERTY_COMPARE(tintColor);
-    LS_PROPERTY_COMPARE(transform);
-    LS_PROPERTY_COMPARE(transformOriginX);
-    LS_PROPERTY_COMPARE(transformOriginY);
+    LS_PROPERTY_SET(backgroundClip);
+    LS_PROPERTY_SET(backgroundColor);
+    LS_PROPERTY_SET(backgroundHeight);
+    LS_PROPERTY_SET(backgroundImage);
+    LS_PROPERTY_SET(backgroundPositionX);
+    LS_PROPERTY_SET(backgroundPositionY);
+    LS_PROPERTY_SET(backgroundRepeat);
+    LS_PROPERTY_SET(backgroundSize);
+    LS_PROPERTY_SET(backgroundWidth);
+    LS_PROPERTY_SET(borderColor);
+    LS_PROPERTY_SET(borderRadius);
+    LS_PROPERTY_SET(borderRadiusTopLeft);
+    LS_PROPERTY_SET(borderRadiusTopRight);
+    LS_PROPERTY_SET(borderRadiusBottomLeft);
+    LS_PROPERTY_SET(borderRadiusBottomRight);
+    LS_PROPERTY_SET(color);
+    LS_PROPERTY_SET(fontFamily);
+    LS_PROPERTY_SET(fontSize);
+    LS_PROPERTY_SET(fontStyle);
+    LS_PROPERTY_SET(fontWeight);
+    LS_PROPERTY_SET(lineHeight);
+    LS_PROPERTY_SET(maxLines);
+    LS_PROPERTY_SET(objectFit);
+    LS_PROPERTY_SET(objectPositionX);
+    LS_PROPERTY_SET(objectPositionY);
+    LS_PROPERTY_SET(opacity);
+    LS_PROPERTY_SET(textAlign);
+    LS_PROPERTY_SET(textOverflow);
+    LS_PROPERTY_SET(textTransform);
+    LS_PROPERTY_SET(tintColor);
+    LS_PROPERTY_SET(transform);
+    LS_PROPERTY_SET(transformOriginX);
+    LS_PROPERTY_SET(transformOriginY);
 
-    #undef LS_PROPERTY_COMPARE
+    #undef LS_PROPERTY_SET
 }
 
 void Style::NotifyPropertyChanged(StyleProperty property) {
-    // TODO: check this->node?
-    this->SyncYogaProperty(property);
-    this->node->OnPropertyChanged(property);
+    if (this->node) {
+        if (IsYogaLayoutProperty(property)) {
+            this->SyncYogaProperty(property);
+        } else {
+            this->node->OnPropertyChanged(property);
+        }
+    }
 }
 
 void Style::SyncYogaProperty(StyleProperty property) {

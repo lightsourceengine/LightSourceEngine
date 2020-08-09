@@ -24,12 +24,12 @@
       ],
       "sources": [
         "ls/SDLRenderer.cc",
-        "ls/SDLTexture.cc",
         "ls/SDLGraphicsContextImpl.cc",
         "ls/SDLPlatformPluginImpl.cc",
         "ls/InputDevice.cc",
         "ls/SDLKeyboard.cc",
         "ls/SDLGamepad.cc",
+        "ls/SDLUtil.cc",
         "ls/Init.cc",
       ],
       "conditions": [

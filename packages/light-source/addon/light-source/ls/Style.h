@@ -7,8 +7,8 @@
 #pragma once
 
 #include <napi-ext.h>
-#include "StyleEnums.h"
-#include "StyleValue.h"
+#include <ls/StyleEnums.h>
+#include <ls/StyleValue.h>
 #include <Yoga.h>
 
 namespace ls {
@@ -178,9 +178,7 @@ template<typename T>
 void Style::Set(StyleProperty name, T& property, const T& value) {
     if (!(property == value)) {
         property = value;
-        if (this->node) {
-            this->NotifyPropertyChanged(name);
-        }
+        this->NotifyPropertyChanged(name);
     }
 }
 
@@ -188,9 +186,7 @@ template<typename T>
 void Style::Set(StyleProperty name, T& property, T&& value) {
     if (!(property == value)) {
         property = std::forward<T>(value);
-        if (this->node) {
-            this->NotifyPropertyChanged(name);
-        }
+        this->NotifyPropertyChanged(name);
     }
 }
 

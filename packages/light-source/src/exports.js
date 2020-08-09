@@ -14,6 +14,7 @@ import { Mapping } from './input/Mapping'
 import { Direction } from './input/Direction'
 import { Key } from './input/Key'
 import { Style } from './addon'
+import { absoluteFill } from './style/absoluteFill'
 import {
   translate,
   scale,
@@ -66,6 +67,7 @@ export {
   getTranslateY,
   getScaleX,
   getScaleY,
+  absoluteFill,
 
   // stage/scene
   stage,

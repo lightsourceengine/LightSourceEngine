@@ -26,6 +26,8 @@ template <typename T>
 using ObjectWrapInstanceGetter = Napi::Value (T::*)(const CallbackInfo& info);
 template <typename T>
 using ObjectWrapInstanceSetter = void (T::*)(const CallbackInfo& info, const Napi::Value& value);
+template <typename T>
+using ObjectWrapRemoveRefCallback = void (*)(T*);
 
 /**
  * Helper wrapper for passing property names to the SafeObjectWrap binding methods.
@@ -110,6 +112,17 @@ class SafeObjectWrap : public virtual SafeObjectWrapReference {
 
     // Cast (or unwrap) a javascript object to it's C++ class instance.
     static T* Cast(const Napi::Value& value) noexcept;
+
+    /**
+     * Safely call remove reference on a SafeObjectWrap instance.
+     *
+     * Use case: this->myObject = MyObject::RemoveRef(this->myObject);
+     *
+     * @param instance The instance to remove reference on. If null, the method is a no-op.
+     * @param callback Function called before instance reference is removed.
+     * @return always return a nullptr
+     */
+    static T* RemoveRef(T* instance, ObjectWrapRemoveRefCallback<T> callback = nullptr);
 
  protected:
     // Optional override for constructor logic. Do not put logic into the C++ constructor!

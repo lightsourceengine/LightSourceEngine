@@ -5,7 +5,8 @@
  * tree.
  */
 
-#include "DecodeFont.h"
+#include <ls/DecodeFont.h>
+
 #include <array>
 #include <ls/Format.h>
 
@@ -23,13 +24,21 @@ constexpr std::array<const char*, 4> kFontExtensions {{
 namespace ls {
 
 BLFontFace DecodeFontFromFile(const std17::filesystem::path& path, uint32_t index) {
+    std::error_code errorCode;
+
     // Handle the '.*' extension search recursively.
     if (equals_simple_insensitive(path.extension().c_str(), ".*")) {
         auto pathCopy{ path };
 
         for (auto ext : kFontExtensions) {
+            pathCopy.replace_extension(ext);
+
+            if (!std17::filesystem::exists(path, errorCode)) {
+                continue;
+            }
+
             try {
-                return DecodeFontFromFile(pathCopy.replace_extension(ext), index);
+                return DecodeFontFromFile(pathCopy, index);
             } catch (std::exception& e) {
                 // continue search
             }

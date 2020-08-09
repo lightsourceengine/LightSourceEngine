@@ -4,13 +4,14 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "TextSceneNode.h"
-#include "Stage.h"
-#include "Scene.h"
-#include "Font.h"
-#include "StyleUtils.h"
-#include "yoga-ext.h"
-#include "Style.h"
+#include <ls/TextSceneNode.h>
+
+#include <ls/Stage.h>
+#include <ls/Scene.h>
+#include <ls/Font.h>
+#include <ls/StyleUtils.h>
+#include <ls/yoga-ext.h>
+#include <ls/Style.h>
 #include <ls/CompositeContext.h>
 #include <ls/Timer.h>
 #include <ls/Surface.h>
@@ -34,30 +35,9 @@ namespace ls {
 //static int32_t GetMaxLines(Style* style) noexcept;
 //static std::string TextTransform(const Napi::Env& env, const StyleTextTransform transform, const std::string& text);
 
-TextSceneNode::TextSceneNode(const CallbackInfo& info) : SafeObjectWrap<TextSceneNode>(info), SceneNode(info) {
-}
-
 void TextSceneNode::Constructor(const Napi::CallbackInfo& info) {
-    SceneNode::BaseConstructor(info, SceneNodeTypeText);
-
-    YGNodeSetContext(this->ygNode, this);
-
-    YGNodeSetMeasureFunc(
-        this->ygNode,
-        [](YGNodeRef nodeRef, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) -> YGSize {
-            auto self{ static_cast<TextSceneNode*>(YGNodeGetContext(nodeRef)) };
-
-            if (self) {
-                try {
-                    return self->Measure(width, widthMode, height, heightMode);
-                } catch (const std::exception& e) {
-                    constexpr auto LAMBDA_FUNCTION = "YogaMeasureCallback";
-                    LOG_ERROR_LAMBDA("text measure: %s", e);
-                }
-            }
-
-            return { 0.f, 0.f };
-        });
+    this->SceneNodeConstructor(info, SceneNodeTypeText);
+    YGNodeSetMeasureFunc(this->ygNode, SceneNode::YogaMeasureCallback);
 }
 
 Function TextSceneNode::GetClass(Napi::Env env) {
@@ -102,12 +82,6 @@ void TextSceneNode::OnPropertyChanged(StyleProperty property) {
                 this->QueuePaint();
             }
             break;
-        case StyleProperty::transform:
-        case StyleProperty::transformOriginX:
-        case StyleProperty::transformOriginY:
-        case StyleProperty::opacity:
-            this->QueueComposite();
-            break;
         case StyleProperty::overflow:
             break;
         default:
@@ -116,27 +90,40 @@ void TextSceneNode::OnPropertyChanged(StyleProperty property) {
     }
 }
 
-void TextSceneNode::BeforeLayout() {
-    if (this->SetFont(this->style)) {
-        this->QueueTextLayout();
-    }
+YGSize TextSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
+//            auto self{ YGSceneNodeContext::Cast(YGNodeGetContext(nodeRef))->As<TextSceneNode>() };
+//
+//            try {
+//                return self->Measure(width, widthMode, height, heightMode);
+//            } catch (const std::exception& e) {
+//                constexpr auto LAMBDA_FUNCTION = "YogaMeasureCallback";
+//                LOG_ERROR_LAMBDA("text measure: %s", e);
+//            }
+
+    return { 0.f, 0.f };
 }
 
-void TextSceneNode::AfterLayout() {
-    if (this->layout.IsEmpty()) {
-        try {
-            const auto box{ YGNodeLayoutGetInnerRect(this->ygNode) };
-            this->Measure(box.width, YGMeasureModeExactly, box.height, YGMeasureModeExactly);
-        } catch (const std::exception& e) {
-            LOG_ERROR("text measure: %s", e);
-        }
-    }
+//void TextSceneNode::BeforeLayout() {
+//    if (this->SetFont(this->style)) {
+//        this->QueueTextLayout();
+//    }
+//}
+//
+//void TextSceneNode::AfterLayout() {
+//    if (this->layout.IsEmpty()) {
+//        try {
+//            const auto box{ YGNodeLayoutGetInnerRect(this->ygNode) };
+//            this->Measure(box.width, YGMeasureModeExactly, box.height, YGMeasureModeExactly);
+//        } catch (const std::exception& e) {
+//            LOG_ERROR("text measure: %s", e);
+//        }
+//    }
+//
+//    // TODO: Layout change may not need a repaint. If only the position changes, only a composite should be queued.
+//    this->QueuePaint();
+//}
 
-    // TODO: Layout change may not need a repaint. If only the position changes, only a composite should be queued.
-    this->QueuePaint();
-}
-
-void TextSceneNode::Paint(PaintContext* paint) {
+void TextSceneNode::Paint(GraphicsContext* graphicsContext) {
 //    const auto boxStyle{ this->GetStyleOrEmpty() };
 //
 //    if (!this->font || !this->font->IsReady() || this->layout.IsEmpty() || boxStyle->color.empty()) {
@@ -218,30 +205,30 @@ void TextSceneNode::Paint(PaintContext* paint) {
 }
 
 void TextSceneNode::Composite(CompositeContext* composite) {
-    if (this->layer) {
-        const auto boxStyle{ this->GetStyleOrEmpty() };
-        const auto tintColor{
-            boxStyle->borderColor.empty() ?
-                MixAlpha(boxStyle->color.ValueOr(ColorBlack), composite->CurrentOpacity())
-                    : MixAlpha(ColorWhite, composite->CurrentOpacity())
-        };
-        const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
-        const auto transform{
-             ComputeTransform(
-                 composite->CurrentMatrix(),
-                 boxStyle->transform,
-                 boxStyle->transformOriginX,
-                 boxStyle->transformOriginY,
-                 rect,
-                 this->scene)
-        };
-
-        composite->renderer->DrawImage(
-            this->layer,
-            rect,
-            transform,
-            tintColor);
-    }
+//    if (this->layer) {
+//        const auto boxStyle{ this->GetStyleOrEmpty() };
+//        const auto tintColor{
+//            boxStyle->borderColor.empty() ?
+//                MixAlpha(boxStyle->color.ValueOr(ColorBlack), composite->CurrentOpacity())
+//                    : MixAlpha(ColorWhite, composite->CurrentOpacity())
+//        };
+//        const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
+//        const auto transform{
+//             ComputeTransform(
+//                 composite->CurrentMatrix(),
+//                 boxStyle->transform,
+//                 boxStyle->transformOriginX,
+//                 boxStyle->transformOriginY,
+//                 rect,
+//                 this->scene)
+//        };
+//
+//        composite->renderer->DrawImage(
+//            this->layer,
+//            rect,
+//            transform,
+//            tintColor);
+//    }
 }
 
 Value TextSceneNode::GetText(const CallbackInfo& info) {
@@ -319,7 +306,7 @@ bool TextSceneNode::SetFont(Style* style) {
 
 void TextSceneNode::QueueTextLayout() noexcept {
     this->layout.Reset();
-    this->MarkDirty();
+    YGNodeMarkDirty(this->ygNode);
     this->QueueAfterLayout();
 }
 
@@ -335,10 +322,6 @@ void TextSceneNode::DestroyRecursive() {
     this->ClearFontFaceResource();
 
     SceneNode::DestroyRecursive();
-}
-
-void TextSceneNode::AppendChild(SceneNode* child) {
-    throw Error::New(this->Env(), "appendChild() is an unsupported operation on text nodes");
 }
 
 YGSize TextSceneNode::Measure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {

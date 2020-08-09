@@ -12,37 +12,28 @@ namespace ls {
 
 class RefRenderer : public Renderer {
  public:
-    virtual ~RefRenderer() = default;
+    ~RefRenderer() override = default;
 
     int32_t GetWidth() const override;
     int32_t GetHeight() const override;
     PixelFormat GetTextureFormat() const override { return PixelFormatRGBA; }
 
-    bool SetRenderTarget(std::shared_ptr<Texture> renderTarget) override;
+    bool SetRenderTarget(const Texture& newRenderTarget) override;
+    void Reset() override;
     void Present() override;
-    void SetClipRect(const Rect& rect) override;
-    void ClearClipRect() override;
+    void EnabledClipping(const Rect& rect) override;
+    void DisableClipping() override;
 
-    void DrawFillRect(const Rect& rect, const Matrix& transform, const uint32_t fillColor) override;
-    void DrawBorder(const Rect& rect, const EdgeRect& border, const uint32_t borderColor) override;
-    void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const uint32_t tintColor) override;
-    void DrawImage(const std::shared_ptr<Texture>& texture,
-                   const Rect& rect,
-                   const Matrix& transform,
-                   uint32_t tintColor) override;
-    void DrawImage(const std::shared_ptr<Texture>& texture,
-                   const Rect& textureSource,
-                   const Rect& rect,
-                   const Point& centerPoint,
-                   const Matrix& transform,
-                   uint32_t tintColor) override;
-    void DrawImage(const std::shared_ptr<Texture>& texture, const Rect& rect, const EdgeRect& capInsets,
-        const uint32_t tintColor) override;
-    void FillRenderTarget(const uint32_t color) override;
+    void DrawFillRect(const Rect& rect, const Matrix& transform, uint32_t fillColor) override;
+    void DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, uint32_t fillColor) override;
+    void DrawImage(const Texture& texture, const Rect& rect, const Matrix& transform,
+            uint32_t tintColor) override;
+    void DrawImage(const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
+            const Matrix& transform, uint32_t tintColor) override;
 
-    std::shared_ptr<Texture> CreateRenderTarget(const int32_t width, const int32_t height) override;
-    std::shared_ptr<Texture> CreateTextureFromSurface(const Surface& surface) override;
-    std::shared_ptr<Texture> CreateTexture(const int32_t width, const int32_t height) override;
+    void FillRenderTarget(uint32_t color) override;
+
+    Texture CreateTexture(int32_t width, int32_t height, Texture::Type type) override;
 };
 
 } // namespace ls

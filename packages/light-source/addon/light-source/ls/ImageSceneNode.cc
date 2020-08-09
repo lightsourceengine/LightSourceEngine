@@ -4,15 +4,16 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "ImageSceneNode.h"
-#include "Style.h"
-#include "Scene.h"
-#include "Stage.h"
-#include "StyleUtils.h"
+#include <ls/ImageSceneNode.h>
+
+#include <ls/Style.h>
+#include <ls/Scene.h>
+#include <ls/Stage.h>
+#include <ls/StyleUtils.h>
 #include <ls/Renderer.h>
 #include <ls/PixelConversion.h>
 #include <ls/CompositeContext.h>
-#include "yoga-ext.h"
+#include <ls/yoga-ext.h>
 
 using Napi::Array;
 using Napi::Call;
@@ -28,27 +29,9 @@ using Napi::Value;
 
 namespace ls {
 
-ImageSceneNode::ImageSceneNode(const CallbackInfo& info) : SafeObjectWrap<ImageSceneNode>(info), SceneNode(info) {
-}
-
 void ImageSceneNode::Constructor(const Napi::CallbackInfo& info) {
-    SceneNode::BaseConstructor(info, SceneNodeTypeImage);
-
-    YGNodeSetContext(this->ygNode, this);
-
-    YGNodeSetMeasureFunc(
-    this->ygNode,
-    [](YGNodeRef nodeRef, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) -> YGSize {
-//        const auto self { static_cast<ImageSceneNode*>(YGNodeGetContext(nodeRef)) };
-
-        // TODO: return w/h from image data
-//        if (self && self->image && self->image->IsReady()) {
-//            return { self->image->GetWidthF(), self->image->GetHeightF() };
-//        } else {
-//            return { 0.f, 0.f };
-//        }
-        return { 0.f, 0.f };
-    });
+    this->SceneNodeConstructor(info, SceneNodeTypeImage);
+    YGNodeSetMeasureFunc(this->ygNode, SceneNode::YogaMeasureCallback);
 }
 
 Function ImageSceneNode::GetClass(Napi::Env env) {
@@ -97,18 +80,18 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
         if (!this->src.empty()) {
             this->src.clear();
             this->ClearResource();
-            this->MarkDirty();
+            YGNodeMarkDirty(this->ygNode);
         }
         return;
     }
 
     if (this->image) {
-        this->MarkDirty();
+        YGNodeMarkDirty(this->ygNode);
     }
 
     this->ClearResource();
     this->src = newSrc;
-    this->image = this->GetStage()->GetResources()->AcquireImageData(this->src);
+    this->image = this->GetStage()->GetResources()->AcquireImage(this->src);
 
     auto listener{ [this](Res::Owner owner, Res* res) {
         constexpr auto LAMBDA_FUNCTION = "ImageResourceListener";
@@ -143,7 +126,7 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
               break;
       }
 
-      this->MarkDirty();
+      YGNodeMarkDirty(this->ygNode);
       res->RemoveListener(owner);
     }};
 
@@ -214,10 +197,15 @@ void ImageSceneNode::OnPropertyChanged(StyleProperty property) {
     }
 }
 
-void ImageSceneNode::BeforeLayout() {
+YGSize ImageSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
+    if (this->image && this->image->HasDimensions()) {
+        return { this->image->WidthF(), this->image->HeightF() };
+    }
+
+    return { 0.f, 0.f };
 }
 
-void ImageSceneNode::AfterLayout() {
+//void ImageSceneNode::AfterLayout() {
 //    if (!this->image || !this->image->IsReady()) {
 //        return;
 //    }
@@ -255,9 +243,9 @@ void ImageSceneNode::AfterLayout() {
 //    }
 //
 //    this->QueuePaint();
-}
+//}
 
-void ImageSceneNode::Paint(PaintContext* paint) {
+void ImageSceneNode::Paint(GraphicsContext* graphicsContext) {
 //    if (!this->image) {
 //        return;
 //    }
@@ -361,10 +349,6 @@ void ImageSceneNode::ClearResource() {
         this->GetStage()->GetResources()->ReleaseResource(this->image);
         this->image = nullptr;
     }
-}
-
-void ImageSceneNode::AppendChild(SceneNode* child) {
-    throw Error::New(this->Env(), "appendChild() is an unsupported operation on img nodes");
 }
 
 } // namespace ls

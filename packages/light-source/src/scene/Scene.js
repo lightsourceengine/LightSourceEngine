@@ -21,17 +21,18 @@ import {
   $attach,
   $detach
 } from '../util/InternalSymbols'
+import { absoluteFill } from '../style/absoluteFill'
 
 const { now } = performance
 const $frameListenersForeground = Symbol.for('frameListenersForeground')
 const $frameListenersBackground = Symbol.for('frameListenersBackground')
-const $adapter = Symbol.for('adapter')
+const $graphicsContext = Symbol.for('graphicsContext')
 const sEmptyRafEntry = Object.freeze([0, null])
 let sFrameRequestId = 0
 
 export class Scene extends SceneBase {
-  constructor (stage, adapter) {
-    super(stage, adapter)
+  constructor (stage, platform, config) {
+    super(stage, createGraphicsContext(stage, platform, config))
 
     this[$events] = new EventEmitter()
     this[$activeNode] = null
@@ -40,37 +41,34 @@ export class Scene extends SceneBase {
 
     const { style } = this.root
 
-    style.position = 'absolute'
-    style.left = 0
-    style.top = 0
-    style.right = 0
-    style.bottom = 0
-    style.fontSize = 16
-    style.backgroundColor = 'black'
+    Object.assign(style, {
+      ...absoluteFill,
+      backgroundColor: 'black'
+    })
   }
 
   get fullscreen () {
-    return this[$adapter].fullscreen
+    return this[$graphicsContext].fullscreen
   }
 
   get width () {
-    return this[$adapter].fullscreen
+    return this[$graphicsContext].width
   }
 
   get height () {
-    return this[$adapter].height
+    return this[$graphicsContext].height
   }
 
   get displayIndex () {
-    return this[$adapter].displayIndex
+    return this[$graphicsContext].displayIndex
   }
 
   get title () {
-    return this[$adapter].title
+    return this[$graphicsContext].title
   }
 
   set title (value) {
-    this[$adapter].title = value
+    this[$graphicsContext].title = value
   }
 
   on (id, listener) {
@@ -117,7 +115,7 @@ export class Scene extends SceneBase {
   }
 
   resize (width, height, fullscreen = true) {
-    this[$adapter].resize(width, height, fullscreen)
+    this[$graphicsContext].resize(width, height, fullscreen)
   }
 
   requestAnimationFrame (callback) {
@@ -161,7 +159,7 @@ export class Scene extends SceneBase {
   }
 
   [$attach] () {
-    this[$adapter].attach()
+    this[$graphicsContext].attach()
 
     super[$attach]()
   }
@@ -169,7 +167,7 @@ export class Scene extends SceneBase {
   [$detach] () {
     super[$detach]()
 
-    this[$adapter].detach()
+    this[$graphicsContext].detach()
   }
 
   [$destroy] () {
@@ -218,4 +216,45 @@ const swapPropValues = (obj, prop1, prop2) => {
 
   obj[prop1] = obj[prop2]
   obj[prop2] = t
+}
+
+const createGraphicsContext = (stage, platform, { displayIndex, width, height, fullscreen }) => {
+  const { capabilities } = stage
+
+  if (!Number.isInteger(displayIndex)) {
+    displayIndex = 0
+  }
+
+  if (displayIndex < 0 || displayIndex >= capabilities.displays.length) {
+    throw Error(`Invalid displayIndex ${displayIndex}.`)
+  }
+
+  fullscreen = (fullscreen === undefined) || (!!fullscreen)
+
+  if ((width === undefined || width === 0) && (height === undefined || height === 0)) {
+    if (fullscreen) {
+      const { defaultMode } = capabilities.displays[displayIndex]
+
+      width = defaultMode.width
+      height = defaultMode.height
+    } else {
+      width = 1280
+      height = 720
+    }
+  } else if (Number.isInteger(width) && Number.isInteger(height)) {
+    width = width >> 0
+    height = height >> 0
+
+    if (fullscreen) {
+      const i = capabilities.displays[displayIndex].modes.findIndex(mode => mode.width === width && mode.height === height)
+
+      if (i === -1) {
+        throw Error(`Fullscreen size ${width}x${height} is not available on this system.`)
+      }
+    }
+  } else {
+    throw Error('width and height must be integer values.')
+  }
+
+  return platform.createGraphicsContext({ displayIndex, width, height, fullscreen })
 }

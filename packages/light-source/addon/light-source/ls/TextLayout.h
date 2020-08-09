@@ -8,7 +8,7 @@
 
 #include <string>
 #include <vector>
-#include "StyleEnums.h"
+#include <ls/StyleEnums.h>
 
 namespace ls {
 

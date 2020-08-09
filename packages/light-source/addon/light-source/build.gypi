@@ -33,7 +33,6 @@
         "napi-ext-lib",
         "light-source-util-lib",
         "light-source-graphics-lib",
-        "light-source-platform-lib", # TODO: remove dynamic cast from SafeObjectWrap
         "logger-lib",
         "logger-bindings-lib",
         "ls-ctx"
@@ -42,7 +41,6 @@
         "ls/yoga-ext.cc",
         "ls/ThreadPool.cc",
         "ls/CompositeContext.cc",
-        "ls/PaintContext.cc",
         "ls/Style.cc",
         "ls/StyleEnums.cc",
         "ls/StyleUtils.cc",

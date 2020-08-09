@@ -187,6 +187,8 @@ LS_ENUM_SEQ_DECL(
     zIndex
 )
 
+constexpr float DEFAULT_REM_FONT_SIZE = 16.f;
+
 constexpr bool IsYogaLayoutProperty(StyleProperty property) noexcept {
     return property <= StyleProperty::width;
 }

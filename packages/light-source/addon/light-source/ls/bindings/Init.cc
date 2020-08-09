@@ -15,6 +15,8 @@
 #include <ls/LinkSceneNode.h>
 #include <ls/RootSceneNode.h>
 #include <ls/TextSceneNode.h>
+#include <YGNode.h>
+#include <event/event.h>
 
 #ifdef LIGHT_SOURCE_NATIVE_TESTS
 #include <test/LightSourceTestSuite.h>
@@ -24,6 +26,7 @@ using Napi::Env;
 using Napi::Function;
 using Napi::HandleScope;
 using Napi::Object;
+using facebook::yoga::Event;
 
 void ExportClass(Object* exports, const Function& constructor) {
     exports->Set(constructor.Get("name").ToString(), constructor);
@@ -31,6 +34,8 @@ void ExportClass(Object* exports, const Function& constructor) {
 
 Object Init(Env env, Object exports) {
     HandleScope scope(env);
+
+    Event::subscribe(ls::SceneNode::YogaNodeLayoutEvent);
 
     ls::Style::Init(env);
 

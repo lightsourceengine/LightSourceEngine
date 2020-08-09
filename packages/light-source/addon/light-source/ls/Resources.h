@@ -10,6 +10,8 @@
 #include <blend2d.h>
 #include <ls/AsyncWork.h>
 #include <ls/StyleEnums.h>
+#include <ls/Texture.h>
+#include <ls/ImageBytes.h>
 
 #include <memory>
 #include <string>
@@ -17,6 +19,8 @@
 #include <unordered_map>
 
 namespace ls {
+
+class Renderer;
 
 class Res {
  public:
@@ -60,17 +64,30 @@ class Res {
     friend class Resources;
 };
 
-class ImageData : public Res {
+class Image : public Res {
  public:
-    explicit ImageData(const std::string& id) : Res(id) {}
-    ~ImageData() override = default;
+    explicit Image(const std::string& id) : Res(id) {}
+    ~Image() override = default;
 
     void Load(Napi::Env env) override;
     Napi::Value GetSummary(const Napi::Env& env) const override;
 
+    bool LoadTexture(Renderer* renderer);
+    bool HasTexture() const noexcept;
+    Texture GetTexture() const noexcept;
+
+    bool HasDimensions() const noexcept;
+    int32_t Width() const noexcept;
+    int32_t Height() const noexcept;
+    float WidthF() const noexcept;
+    float HeightF() const noexcept;
+
  private:
-    AsyncWork<BLImage> work;
-    BLImage resource;
+    AsyncWork<ImageBytes> work;
+    ImageBytes resource;
+    Texture texture;
+    int32_t width;
+    int32_t height;
 };
 
 class FontFace : public Res {
@@ -91,9 +108,9 @@ class FontFace : public Res {
 
 class Resources {
  public:
-    bool HasImageData(const std::string& path) const;
-    ImageData* AcquireImageData(const std::string& path);
-    void ReleaseImageData(const std::string& path, bool immediateDelete = false);
+    bool HasImage(const std::string& path) const;
+    Image* AcquireImage(const std::string& path);
+    void ReleaseImage(const std::string& path, bool immediateDelete = false);
 
     bool HasFontFace(const std::string& path) const;
     FontFace* AcquireFontFace(const std::string& path);
@@ -117,7 +134,7 @@ class Resources {
         std::unique_ptr<T> resource;
     };
 
-    using ImageDataRef = ResourceRef<ImageData>;
+    using ImageDataRef = ResourceRef<Image>;
     using FontFaceRef = ResourceRef<FontFace>;
 
     using ImageDataMap = std::unordered_map<std::string, ImageDataRef>;

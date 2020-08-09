@@ -4,10 +4,11 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "RootSceneNode.h"
-#include "Scene.h"
-#include "StyleUtils.h"
-#include "Style.h"
+#include <ls/RootSceneNode.h>
+
+#include <ls/Scene.h>
+#include <ls/StyleUtils.h>
+#include <ls/Style.h>
 #include <ls/Renderer.h>
 #include <ls/CompositeContext.h>
 
@@ -22,13 +23,8 @@ using Napi::Value;
 
 namespace ls {
 
-constexpr auto DEFAULT_ROOT_FONT_SIZE{ 16 };
-
-RootSceneNode::RootSceneNode(const CallbackInfo& info) : SafeObjectWrap<RootSceneNode>(info), SceneNode(info) {
-}
-
 void RootSceneNode::Constructor(const Napi::CallbackInfo& info) {
-    SceneNode::BaseConstructor(info, SceneNodeTypeRoot);
+    this->SceneNodeConstructor(info, SceneNodeTypeRoot);
 }
 
 Function RootSceneNode::GetClass(Napi::Env env) {
@@ -46,20 +42,16 @@ Function RootSceneNode::GetClass(Napi::Env env) {
 void RootSceneNode::OnPropertyChanged(StyleProperty property) {
     switch (property) {
         case StyleProperty::backgroundColor:
+        case StyleProperty::opacity:
             this->QueueComposite();
             break;
         case StyleProperty::fontSize:
-            this->scene->QueueRootFontSizeChange(
-                ComputeFontSize(this->style->fontSize, this->scene, DEFAULT_ROOT_FONT_SIZE));
+            this->scene->OnRootFontSizeChange(ComputeFontSize(
+                this->style->fontSize, this->scene, DEFAULT_REM_FONT_SIZE));
             break;
         default:
-            SceneNode::OnPropertyChanged(property);
             break;
     }
-}
-
-void RootSceneNode::AfterLayout() {
-    this->QueueComposite();
 }
 
 void RootSceneNode::Composite(CompositeContext* composite) {
@@ -67,9 +59,8 @@ void RootSceneNode::Composite(CompositeContext* composite) {
 
     if (!backgroundColor.empty()) {
         composite->renderer->FillRenderTarget(backgroundColor.value);
+        SceneNode::Composite(composite);
     }
-
-    SceneNode::Composite(composite);
 }
 
 } // namespace ls

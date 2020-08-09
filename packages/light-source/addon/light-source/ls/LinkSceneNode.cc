@@ -6,8 +6,8 @@
  */
 
 #include "LinkSceneNode.h"
-#include "Scene.h"
-#include "Stage.h"
+#include <ls/Scene.h>
+#include <ls/Stage.h>
 #include <ls/Log.h>
 #include <unordered_map>
 
@@ -27,9 +27,6 @@ ObjectReference CreateMap(Napi::Env env, const std::unordered_map<uint32_t, std:
 Napi::FunctionReference LinkSceneNode::constructor;
 Napi::ObjectReference LinkSceneNode::relationshipMap;
 Napi::ObjectReference LinkSceneNode::categoryMap;
-
-LinkSceneNode::LinkSceneNode(const Napi::CallbackInfo& info) : SafeObjectWrap<LinkSceneNode>(info), SceneNode(info) {
-}
 
 Function LinkSceneNode::GetClass(Napi::Env env) {
     if (constructor.IsEmpty()) {
@@ -62,7 +59,7 @@ Function LinkSceneNode::GetClass(Napi::Env env) {
 }
 
 void LinkSceneNode::Constructor(const Napi::CallbackInfo& info) {
-    SceneNode::BaseConstructor(info, SceneNodeTypeLink);
+    this->SceneNodeConstructor(info, SceneNodeTypeLink);
 }
 
 void LinkSceneNode::Fetch(const Napi::CallbackInfo& info) {
@@ -75,7 +72,7 @@ void LinkSceneNode::Fetch(const Napi::CallbackInfo& info) {
 
     switch (this->category) {
         case LinkCategoryImage:
-            this->resource = resources->AcquireImageData(this->href);
+            this->resource = resources->AcquireImage(this->href);
             break;
         case LinkCategoryFont:
             this->resource = resources->AcquireFontFace(this->href);
@@ -236,10 +233,6 @@ void LinkSceneNode::SetOnErrorCallback(const Napi::CallbackInfo& info, const Nap
     if (!Napi::AssignFunctionReference(this->onErrorCallback, value)) {
         throw Error::New(info.Env(), "Invalid assignment of onError.");
     }
-}
-
-void LinkSceneNode::AppendChild(SceneNode* child) {
-    throw Error::New(this->Env(), "appendChild() is an unsupported operation on link nodes");
 }
 
 void LinkSceneNode::DestroyRecursive() {

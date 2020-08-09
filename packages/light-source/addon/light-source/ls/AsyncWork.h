@@ -10,6 +10,7 @@
 #include <napi.h>
 #include <memory>
 #include <unordered_map>
+#include <mutex>
 
 namespace ls {
 
@@ -88,12 +89,20 @@ class AsyncWorkState : public std::enable_shared_from_this<AsyncWorkState<T>> {
  private:
     using AsyncWorkStateMap = std::unordered_map<const AsyncWorkState<T>*, std::shared_ptr<AsyncWorkState<T>>>;
 
-    static AsyncWorkStateMap sQueuedAsyncWorkState;
+    static bool HasState(const AsyncWorkState<T>* state);
+    static void EraseState(AsyncWorkState<T>* state);
+    static void InsertState(AsyncWorkState<T>* state);
+
+ private:
+    static AsyncWorkStateMap sAsyncWorkStateMap;
+    static std::mutex sAsyncWorkStateMapMutex;
+
     Napi::Env env;
     AsyncWorkCreate<T> create;
     AsyncWorkComplete<T> complete;
     napi_async_work work{};
     AsyncWorkResult<T> result{};
+    bool isQueued{false};
 };
 
 /**

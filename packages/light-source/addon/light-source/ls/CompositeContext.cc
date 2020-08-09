@@ -4,7 +4,8 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "CompositeContext.h"
+#include <ls/CompositeContext.h>
+
 #include <std17/algorithm>
 
 namespace ls {

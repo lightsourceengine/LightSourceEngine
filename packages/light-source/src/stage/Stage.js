@@ -30,25 +30,23 @@ import { isNumber, logexcept } from '../util'
 
 const { now } = performance
 
-const $plugins = Symbol.for('plugins')
+const $platformPlugin = Symbol.for('platformPlugin')
+const $audioPlugin = Symbol.for('audioPlugin')
 
+const kEmptyPlatformPlugin = { capabilities: { displays: [] } }
 const kPluginTypeAudio = 'audio'
 const kPluginTypePlatform = 'platform'
-
-const kNullPlatformPlugin = {
-  capabilities: Object.freeze({
-    displays: []
-  })
-}
+const kPluginTypes = new Set([kPluginTypeAudio, kPluginTypePlatform])
 
 export class Stage extends StageBase {
   constructor () {
     super()
-    this[$plugins] = new Map()
 
     this[$mainLoopHandle] = null
     this[$fps] = 60
     this[$scene] = null
+    this[$platformPlugin] = null
+    this[$audioPlugin] = null
     this[$input] = new InputManager(this)
     this[$audio] = new AudioManager(this)
     this[$events] = new EventEmitter()
@@ -60,7 +58,7 @@ export class Stage extends StageBase {
   }
 
   get capabilities () {
-    return (getPlatformPlugin(this) || kNullPlatformPlugin).capabilities
+    return (this[$platformPlugin] || kEmptyPlatformPlugin).capabilities
   }
 
   get fps () {
@@ -96,7 +94,7 @@ export class Stage extends StageBase {
    */
   init () {
     // TODO: need init check? if so, better check?
-    if (this.hasPlugin(kPluginTypePlatform) || this.hasPlugin(kPluginTypeAudio)) {
+    if (this[$platformPlugin] || this[$audioPlugin]) {
       throw Error('Stage has already been initialized.')
     }
 
@@ -131,17 +129,9 @@ export class Stage extends StageBase {
       } catch (e) {
         throw Error(`Failed to load Plugin '${plugin}'. Error: ${e.message}`)
       }
-    } else if (typeof plugin === 'function') {
-      Plugin = plugin
-    } else {
-      throw Error('plugin argument must be a path to a .node addon or a Plugin class.')
     }
 
-    const { type } = Plugin
-
-    if (!(type === kPluginTypeAudio || type === kPluginTypePlatform)) {
-      throw Error(`Unknown plugin type: '${type}'`)
-    }
+    const { type } = validatePluginAddonObject(Plugin)
 
     if (this.hasPlugin(type)) {
       throw Error(`Plugin '${type}' has already loaded.`)
@@ -155,17 +145,27 @@ export class Stage extends StageBase {
       throw Error(`Failed to create Plugin instance. Error: ${e.message}`)
     }
 
-    this[$plugins].set(type, instance)
-
-    if (type === kPluginTypePlatform) {
-      // this[$input][$init](stageAdapter, gameControllerDb)
-    } else if (type === kPluginTypeAudio) {
-      // this[$audio][$init](audioAdapter)
+    switch (type) {
+      case kPluginTypePlatform:
+        this[$platformPlugin] = instance
+        // this[$input][$init](stageAdapter, gameControllerDb)
+        break
+      case kPluginTypeAudio:
+        this[$audioPlugin] = instance
+        // this[$audio][$init](audioAdapter)
+        break
     }
   }
 
   hasPlugin (pluginType) {
-    return this[$plugins].has(pluginType)
+    switch (pluginType) {
+      case kPluginTypeAudio:
+        return !!this[$audioPlugin]
+      case kPluginTypePlatform:
+        return !!this[$platformPlugin]
+      default:
+        return false
+    }
   }
 
   on (id, listener) {
@@ -180,7 +180,7 @@ export class Stage extends StageBase {
     this[$events].once(id, listener)
   }
 
-  createScene ({ displayIndex, width, height, fullscreen } = {}) {
+  createScene (config = {}) {
     if (!this.hasPlugin(kPluginTypePlatform)) {
       this.init()
     }
@@ -189,55 +189,10 @@ export class Stage extends StageBase {
       throw Error('Stage can only manage 1 scene at a time.')
     }
 
-    const { capabilities } = this
-
-    if (!Number.isInteger(displayIndex)) {
-      displayIndex = 0
-    }
-
-    if (displayIndex < 0 || displayIndex >= capabilities.displays.length) {
-      throw Error(`Invalid displayIndex ${displayIndex}.`)
-    }
-
-    fullscreen = (fullscreen === undefined) || (!!fullscreen)
-
-    if ((width === undefined || width === 0) && (height === undefined || height === 0)) {
-      if (fullscreen) {
-        const { defaultMode } = capabilities.displays[displayIndex]
-
-        width = defaultMode.width
-        height = defaultMode.height
-      } else {
-        width = 1280
-        height = 720
-      }
-    } else if (Number.isInteger(width) && Number.isInteger(height)) {
-      width = width >> 0
-      height = height >> 0
-
-      if (fullscreen) {
-        const i = capabilities.displays[displayIndex].modes.findIndex(mode => mode.width === width && mode.height === height)
-
-        if (i === -1) {
-          throw Error(`Fullscreen size ${width}x${height} is not available on this system.`)
-        }
-      }
-    } else {
-      throw Error('width and height must be integer values.')
-    }
-
-    let adapter
-
-    try {
-      adapter = getPlatformPlugin(this).createGraphicsContext({ displayIndex, width, height, fullscreen })
-    } catch (e) {
-      throw Error(e.message)
-    }
-
     let scene
 
     try {
-      scene = new Scene(this, adapter)
+      scene = new Scene(this, this[$platformPlugin], config)
     } catch (e) {
       throw Error(e.message)
     }
@@ -259,7 +214,7 @@ export class Stage extends StageBase {
       return
     }
 
-    const graphicsPlugin = getPlatformPlugin(this)
+    const platform = this[$platformPlugin]
     const scene = this[$scene]
     let lastTick = now()
 
@@ -268,7 +223,7 @@ export class Stage extends StageBase {
     const mainLoop = () => {
       const tick = now()
 
-      if (!graphicsPlugin.processEvents() || this[$quitRequested]) {
+      if (!platform.processEvents() || this[$quitRequested]) {
         // TODO: revisit stage lifecycle...
         process.exit()
       }
@@ -306,9 +261,8 @@ export class Stage extends StageBase {
   }
 
   [$attach] () {
-    getPlugins(this).forEach(plugin => {
-      plugin && plugin.attach()
-    })
+    this[$platformPlugin].attach()
+    this[$audioPlugin] && this[$audioPlugin].attach()
 
     // TODO: attach managers
     this[$scene][$attach]()
@@ -316,35 +270,27 @@ export class Stage extends StageBase {
 
   [$detach] () {
     // TODO: detach managers
-    this[$scene][$detach]()
+    this[$scene] && this[$scene][$detach]()
 
-    getPlugins(this).reduceRight((_, plugin) => {
-      plugin && plugin.detach()
-    })
+    this[$audioPlugin] && this[$audioPlugin].detach()
+    this[$platformPlugin] && this[$platformPlugin].detach()
   }
 
   [$destroy] () {
     // TODO: destroy managers
-
-    if (this[$scene]) {
-      this[$scene][$destroy]()
-    }
-
     super[$destroy]()
 
-    getPlugins(this).reduceRight((_, plugin) => {
-      plugin && plugin.destroy()
-    })
+    this[$scene] && this[$scene][$destroy]()
+    this[$audioPlugin] && this[$audioPlugin].destroy()
+    this[$platformPlugin] && this[$platformPlugin].destroy()
   }
 }
 
-const getPlugins = (stage) => {
-  const plugins = stage[$plugins]
+const validatePluginAddonObject = (object) => {
+  if (typeof object !== 'object' || typeof object.createInstance !== 'function' ||
+      !kPluginTypes.has(object.type)) {
+    throw Error('Invalid plugin addon objet.')
+  }
 
-  return [
-    plugins.get(kPluginTypePlatform),
-    plugins.get(kPluginTypeAudio)
-  ]
+  return object
 }
-
-const getPlatformPlugin = (stage) => stage[$plugins].get(kPluginTypePlatform)

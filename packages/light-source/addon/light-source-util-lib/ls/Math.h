@@ -16,10 +16,15 @@ inline bool Equals(const float a, const float b) noexcept {
 /**
  * Snaps a float value to the screen's pixel grid.
  */
-inline float SnapToPixelGrid(const float f) noexcept {
-    if (std::isnan(f)) {
-        return f;
-    }
+template<typename T>
+T SnapToPixelGrid(float f) noexcept;
 
-    return static_cast<int32_t>(f < 0 ? f - 0.5f : f + 0.5f);
+template<>
+inline int32_t SnapToPixelGrid(float f) noexcept {
+    return std::isnan(f) ? f : f < 0.f ? f - 0.5f : f + 0.5f;
+}
+
+template<>
+inline float SnapToPixelGrid(float f) noexcept {
+    return SnapToPixelGrid<int32_t>(f);
 }

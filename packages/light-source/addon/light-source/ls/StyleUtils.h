@@ -12,8 +12,8 @@
 #include <ls/Rect.h>
 #include <ls/Math.h>
 #include <ls/Matrix.h>
-#include "StyleEnums.h"
-#include "StyleValue.h"
+#include <ls/StyleEnums.h>
+#include <ls/StyleValue.h>
 
 namespace ls {
 
@@ -100,10 +100,10 @@ Rect ComputeObjectFitRect(StyleObjectFit objectFit, const StyleValueNumber& obje
     }
 
     return {
-        SnapToPixelGrid(bounds.x + ComputeObjectPosition(objectPositionX, bounds.width, fitWidth, scene)),
-        SnapToPixelGrid(bounds.y + ComputeObjectPosition(objectPositionY, bounds.height, fitHeight, scene)),
-        SnapToPixelGrid(fitWidth),
-        SnapToPixelGrid(fitHeight)
+        SnapToPixelGrid<float>(bounds.x + ComputeObjectPosition(objectPositionX, bounds.width, fitWidth, scene)),
+        SnapToPixelGrid<float>(bounds.y + ComputeObjectPosition(objectPositionY, bounds.height, fitHeight, scene)),
+        SnapToPixelGrid<float>(fitWidth),
+        SnapToPixelGrid<float>(fitHeight)
     };
 }
 
@@ -145,7 +145,7 @@ float ComputeFontSize(const StyleValueNumber& value, const S* scene, const float
         case StyleNumberUnitRootEm:
             return value.value * rootFontSize;
         default:
-            return 16.f;
+            return DEFAULT_REM_FONT_SIZE;
     }
 }
 

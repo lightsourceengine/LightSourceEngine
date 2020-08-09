@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "StyleEnums.h"
+#include <ls/StyleEnums.h>
 #include <ls/Math.h>
 #include <Yoga.h>
 #include <napi.h>
@@ -186,7 +186,6 @@ struct OpacityConstraint {
         }
     }
 };
-
 
 struct ZIndexConstraint {
     bool operator()(const StyleValueNumber& value) noexcept {

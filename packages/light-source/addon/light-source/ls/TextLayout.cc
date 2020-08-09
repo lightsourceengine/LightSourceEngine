@@ -4,8 +4,9 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "TextLayout.h"
-#include "Font.h"
+#include <ls/TextLayout.h>
+
+#include <ls/Font.h>
 #include <cmath>
 #include <algorithm>
 #include <utf8.h>

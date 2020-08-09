@@ -221,7 +221,10 @@ YOGA_EXPORT WIN_EXPORT YGNodeRef YGNodeNewWithConfig(const YGConfigRef config) {
   const YGNodeRef node = new YGNode{config};
   YGAssertWithConfig(
       config, node != nullptr, "Could not allocate memory for node");
+
+#ifdef YG_ENABLE_ALLOCATION_EVENT
   Event::publish<Event::NodeAllocation>(node, {config});
+#endif
 
   return node;
 }
@@ -241,7 +244,9 @@ YOGA_EXPORT YGNodeRef YGNodeClone(YGNodeRef oldNode) {
       oldNode->getConfig(),
       node != nullptr,
       "Could not allocate memory for node");
+#ifdef YG_ENABLE_ALLOCATION_EVENT
   Event::publish<Event::NodeAllocation>(node, {node->getConfig()});
+#endif
   node->setOwner(nullptr);
   return node;
 }
@@ -257,8 +262,9 @@ static YGNodeRef YGNodeDeepClone(YGNodeRef oldNode) {
   auto config = YGConfigClone(*oldNode->getConfig());
   auto node = new YGNode{*oldNode, config};
   node->setOwner(nullptr);
+#ifdef YG_ENABLE_ALLOCATION_EVENT
   Event::publish<Event::NodeAllocation>(node, {node->getConfig()});
-
+#endif
   YGVector vec = YGVector();
   vec.reserve(oldNode->getChildren().size());
   YGNodeRef childNode = nullptr;
@@ -285,7 +291,9 @@ YOGA_EXPORT void YGNodeFree(const YGNodeRef node) {
   }
 
   node->clearChildren();
+#ifdef YG_ENABLE_DEALLOCATION_EVENT
   Event::publish<Event::NodeDeallocation>(node, {node->getConfig()});
+#endif
   delete node;
 }
 
@@ -1075,15 +1083,17 @@ static inline YGAlign YGNodeAlignItem(const YGNode* node, const YGNode* child) {
 
 static float YGBaseline(const YGNodeRef node, void* layoutContext) {
   if (node->hasBaselineFunc()) {
-
+#ifdef YG_ENABLE_BASELINE_EVENT
     Event::publish<Event::NodeBaselineStart>(node);
-
+#endif
     const float baseline = node->baseline(
         node->getLayout().measuredDimensions[YGDimensionWidth],
         node->getLayout().measuredDimensions[YGDimensionHeight],
         layoutContext);
 
+#ifdef YG_ENABLE_BASELINE_EVENT
     Event::publish<Event::NodeBaselineEnd>(node);
+#endif
 
     YGAssertWithNode(
         node,
@@ -1719,7 +1729,9 @@ static void YGNodeWithMeasureFuncSetMeasuredDimensions(
             ownerWidth),
         YGDimensionHeight);
   } else {
+#ifdef YG_ENABLE_MEASURE_CALLBACK_EVENT
     Event::publish<Event::MeasureCallbackStart>(node);
+#endif
 
     // Measure the text under the current constraints.
     const YGSize measuredSize = node->measure(
@@ -1733,6 +1745,7 @@ static void YGNodeWithMeasureFuncSetMeasuredDimensions(
     layoutMarkerData.measureCallbackReasonsCount[static_cast<size_t>(reason)] +=
         1;
 
+#ifdef YG_ENABLE_MEASURE_CALLBACK_EVENT
     Event::publish<Event::MeasureCallbackEnd>(
         node,
         {layoutContext,
@@ -1743,6 +1756,7 @@ static void YGNodeWithMeasureFuncSetMeasuredDimensions(
          measuredSize.width,
          measuredSize.height,
          reason});
+#endif
 
     node->setLayoutMeasuredDimension(
         YGNodeBoundAxis(
@@ -4054,7 +4068,9 @@ bool YGLayoutNodeInternal(
     layoutType = cachedResults != nullptr ? LayoutType::kCachedMeasure
                                           : LayoutType::kMeasure;
   }
+#ifdef YG_ENABLE_NODE_LAYOUT_EVENT
   Event::publish<Event::NodeLayout>(node, {layoutType, layoutContext});
+#endif
 
   return (needToVisitNode || cachedResults == nullptr);
 }
@@ -4163,7 +4179,9 @@ YOGA_EXPORT void YGNodeCalculateLayoutWithContext(
     const YGDirection ownerDirection,
     void* layoutContext) {
 
+#ifdef YG_ENABLE_LAYOUT_PASS_EVENT
   Event::publish<Event::LayoutPassStart>(node, {layoutContext});
+#endif
   LayoutData markerData = {};
 
   // Increment the generation count. This will force the recursive routine to
@@ -4242,7 +4260,9 @@ YOGA_EXPORT void YGNodeCalculateLayoutWithContext(
 #endif
   }
 
+#ifdef YG_ENABLE_LAYOUT_PASS_EVENT
   Event::publish<Event::LayoutPassEnd>(node, {layoutContext, &markerData});
+#endif
 
   // We want to get rid off `useLegacyStretchBehaviour` from YGConfig. But we
   // aren't sure whether client's of yoga have gotten rid off this flag or not.

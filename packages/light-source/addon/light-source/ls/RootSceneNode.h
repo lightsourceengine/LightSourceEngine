@@ -7,7 +7,7 @@
 #pragma once
 
 #include <napi-ext.h>
-#include "SceneNode.h"
+#include <ls/SceneNode.h>
 
 namespace ls {
 
@@ -15,21 +15,16 @@ class Style;
 
 class RootSceneNode : public Napi::SafeObjectWrap<RootSceneNode>, public SceneNode {
  public:
-    explicit RootSceneNode(const Napi::CallbackInfo& info);
+    explicit RootSceneNode(const Napi::CallbackInfo& info) : SafeObjectWrap<RootSceneNode>(info) {}
+    ~RootSceneNode() override = default;
 
-    void OnPropertyChanged(StyleProperty property) override;
-    void BeforeLayout() override {}
-    void AfterLayout() override;
-    void Paint(PaintContext* paint) override {}
-    void Composite(CompositeContext* composite) override;
-
- public:
     static Napi::Function GetClass(Napi::Env env);
-
- private: // javascript bindings
     void Constructor(const Napi::CallbackInfo& info) override;
 
-    friend Napi::SafeObjectWrap<RootSceneNode>;
+    bool IsLeaf() const noexcept override { return false; }
+    void OnPropertyChanged(StyleProperty property) override;
+    void Paint(GraphicsContext* graphicsContext) override {}
+    void Composite(CompositeContext* composite) override;
 };
 
 } // namespace ls

@@ -5,11 +5,14 @@
  * tree.
  */
 
-#include "Resources.h"
+#include <ls/Resources.h>
+
 #include <cassert>
-#include "DecodeImage.h"
-#include "DecodeFont.h"
+#include <ls/DecodeImage.h>
+#include <ls/DecodeFont.h>
 #include <ls/Log.h>
+#include <ls/Renderer.h>
+#include <ls/PixelConversion.h>
 
 namespace ls {
 
@@ -72,13 +75,13 @@ void Res::RemoveListener(Owner owner) {
     }
 }
 
-void ImageData::Load(Napi::Env env) {
+void Image::Load(Napi::Env env) {
     this->work.Reset(
         env,
         [id = this->id]() {
-            return DecodeImageFromFile(id, { 0, 0 });
+            return DecodeImageFromFile(id, 0, 0);
         },
-        [this](Napi::Env env, AsyncWorkResult<BLImage>* result) {
+        [this](Napi::Env env, AsyncWorkResult<ImageBytes>* result) {
             constexpr auto LAMBDA_FUNCTION = "ResourceLoadComplete";
 
             if (this->state != Res::State::Loading) {
@@ -88,10 +91,14 @@ void ImageData::Load(Napi::Env env) {
             if (result->HasError()) {
                 this->state = Res::State::Error;
                 this->errorMessage = result->TakeError();
+                this->width = 0;
+                this->height = 0;
                 LOG_ERROR_LAMBDA("%s", this->errorMessage);
             } else {
                 this->state = Res::State::Ready;
                 this->resource = result->TakeValue();
+                this->width = this->resource.Width();
+                this->height = this->resource.Height();
                 LOG_INFO_LAMBDA("%s", this->id);
             }
 
@@ -100,20 +107,68 @@ void ImageData::Load(Napi::Env env) {
 
     this->state = Res::State::Loading;
     this->errorMessage.clear();
-    this->resource.reset();
+    this->resource = {};
 
     this->work.Queue();
 }
 
-Napi::Value ImageData::GetSummary(const Napi::Env& env) const {
+Napi::Value Image::GetSummary(const Napi::Env& env) const {
     auto summary{ Napi::Object::New(env) };
 
-    if (!this->resource.empty()) {
-        summary.Set("width", Napi::Number::New(env, this->resource.width()));
-        summary.Set("height", Napi::Number::New(env, this->resource.height()));
-    }
+    summary.Set("width", Napi::Number::New(env, this->resource.Width()));
+    summary.Set("height", Napi::Number::New(env, this->resource.Height()));
 
     return summary;
+}
+
+bool Image::LoadTexture(Renderer* renderer) {
+    if (this->GetState() != Ready) {
+        return false;
+    }
+
+    if (this->HasTexture()) {
+        this->texture.Destroy();
+    }
+
+    this->texture = renderer->CreateTexture(
+            this->resource.Width(), this->resource.Height(), Texture::Type::Updatable);
+
+    if (!this->texture) {
+        return false;
+    }
+
+// TODO: ConvertToFormat(static_cast<Color*>(imageData.pixelData), imageData.size.w * imageData.size.h,
+// renderer->GetTextureFormat());
+
+    return this->texture.Update(this->resource.Bytes(), this->resource.Pitch());
+}
+
+bool Image::HasTexture() const noexcept {
+    return static_cast<bool>(this->texture);
+}
+
+Texture Image::GetTexture() const noexcept {
+    return this->texture;
+}
+
+bool Image::HasDimensions() const noexcept {
+    return this->width > 0 && this->height > 0;
+}
+
+int32_t Image::Width() const noexcept {
+    return this->width;
+}
+
+int32_t Image::Height() const noexcept {
+    return this->height;
+}
+
+float Image::WidthF() const noexcept {
+    return this->width;
+}
+
+float Image::HeightF() const noexcept {
+    return this->height;
 }
 
 bool FontFace::Equals(FontFace* fontFace, const std::string& family,
@@ -181,11 +236,11 @@ std::string FontFace::GetFamilyName() const {
     }
 }
 
-bool Resources::HasImageData(const std::string& path) const {
+bool Resources::HasImage(const std::string& path) const {
     return this->images.find(path) != this->images.end();
 }
 
-ImageData* Resources::AcquireImageData(const std::string& path) {
+Image* Resources::AcquireImage(const std::string& path) {
     auto it{ this->images.find(path) };
 
     if (it != this->images.end()) {
@@ -194,12 +249,12 @@ ImageData* Resources::AcquireImageData(const std::string& path) {
         return it->second.ToPointer();
     }
 
-    auto result{ this->images.emplace(path, ImageDataRef(std::make_unique<ImageData>(path))) };
+    auto result{ this->images.emplace(path, ImageDataRef(std::make_unique<Image>(path))) };
 
     return result.first->second.ToPointer();
 }
 
-void Resources::ReleaseImageData(const std::string& path, bool immediateDelete) {
+void Resources::ReleaseImage(const std::string& path, bool immediateDelete) {
     auto it{ this->images.find(path) };
 
     if (it != this->images.end()) {
@@ -255,7 +310,7 @@ void Resources::ReleaseFontFace(const std::string& path, bool immediateDelete) {
 void Resources::ReleaseResource(Res* resource, bool immediateDelete) {
     if (resource) {
         this->ReleaseFontFace(resource->id, immediateDelete);
-        this->ReleaseImageData(resource->id, immediateDelete);
+        this->ReleaseImage(resource->id, immediateDelete);
     }
 }
 

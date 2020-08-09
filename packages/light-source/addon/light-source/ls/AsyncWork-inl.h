@@ -12,7 +12,9 @@
 namespace ls {
 
 template<typename T>
-typename AsyncWorkState<T>::AsyncWorkStateMap AsyncWorkState<T>::sQueuedAsyncWorkState;
+typename AsyncWorkState<T>::AsyncWorkStateMap AsyncWorkState<T>::sAsyncWorkStateMap;
+template<typename T>
+std::mutex AsyncWorkState<T>::sAsyncWorkStateMapMutex;
 
 template<typename T>
 AsyncWorkState<T>::AsyncWorkState(Napi::Env env, AsyncWorkCreate<T>&& create, AsyncWorkComplete<T>&& complete)
@@ -20,7 +22,7 @@ AsyncWorkState<T>::AsyncWorkState(Napi::Env env, AsyncWorkCreate<T>&& create, As
     const auto executeCallback = [](napi_env env, void* data) {
       auto state{ static_cast<AsyncWorkState<T>*>(data) };
 
-      if (sQueuedAsyncWorkState.find(state) == sQueuedAsyncWorkState.end()) {
+      if (!HasState(state)) {
           return;
       }
 
@@ -35,7 +37,7 @@ AsyncWorkState<T>::AsyncWorkState(Napi::Env env, AsyncWorkCreate<T>&& create, As
       constexpr auto LAMBDA_FUNCTION = "AsyncWorkComplete";
       auto state{ static_cast<AsyncWorkState<T>*>(data) };
 
-      if (sQueuedAsyncWorkState.find(state) == sQueuedAsyncWorkState.end()) {
+      if (!HasState(state)) {
           LOG_WARN_LAMBDA("Unregistered work state");
           return;
       }
@@ -70,18 +72,23 @@ AsyncWorkState<T>::~AsyncWorkState() {
 template<typename T>
 void AsyncWorkState<T>::Queue() {
     if (this->work && !this->IsQueued()) {
+        this->isQueued = true;
+        InsertState(this);
+
         auto status{ napi_queue_async_work(this->env, this->work) };
 
-        NAPI_THROW_IF_FAILED_VOID(this->env, status);
+        if (status != napi_ok) {
+            EraseState(this);
+        }
 
-        sQueuedAsyncWorkState[this] = this->shared_from_this();
+        NAPI_THROW_IF_FAILED_VOID(this->env, status);
     }
 }
 
 template<typename T>
 void AsyncWorkState<T>::Cancel() {
     if (this->work) {
-        if (this->IsQueued()) {
+        if (this->isQueued) {
             auto status{ napi_cancel_async_work(this->env, this->work) };
 
             // napi_generic_failure means the work is inflight and cannot be destroyed until the
@@ -99,17 +106,41 @@ void AsyncWorkState<T>::Cancel() {
 
 template<typename T>
 void AsyncWorkState<T>::Destroy() {
+    if (this->isQueued) {
+        AsyncWorkState<T>::EraseState(this);
+        this->isQueued = false;
+    }
+
     if (this->work) {
         napi_delete_async_work(this->env, this->work);
         this->work = nullptr;
     }
-
-    AsyncWorkState<T>::sQueuedAsyncWorkState.erase(this);
 }
 
 template<typename T>
 bool AsyncWorkState<T>::IsQueued() const {
-    return sQueuedAsyncWorkState.find(this) != sQueuedAsyncWorkState.end();
+    return isQueued;
+}
+
+template<typename T>
+bool AsyncWorkState<T>::HasState(const AsyncWorkState<T>* state) {
+    std::lock_guard<std::mutex> guard(sAsyncWorkStateMapMutex);
+
+    return sAsyncWorkStateMap.find(state) != sAsyncWorkStateMap.cend();
+}
+
+template<typename T>
+void AsyncWorkState<T>::EraseState(AsyncWorkState<T>* state) {
+    std::lock_guard<std::mutex> guard(sAsyncWorkStateMapMutex);
+
+    sAsyncWorkStateMap.erase(state);
+}
+
+template<typename T>
+void AsyncWorkState<T>::InsertState(AsyncWorkState<T>* state) {
+    std::lock_guard<std::mutex> guard(sAsyncWorkStateMapMutex);
+
+    sAsyncWorkStateMap[state] = state->shared_from_this();
 }
 
 template<typename T>

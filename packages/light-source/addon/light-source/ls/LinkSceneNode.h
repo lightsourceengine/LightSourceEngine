@@ -8,12 +8,10 @@
 #pragma once
 
 #include <napi-ext.h>
-#include "SceneNode.h"
-#include "Resources.h"
+#include <ls/SceneNode.h>
+#include <ls/Resources.h>
 
 namespace ls {
-
-class Style;
 
 enum LinkRelationship {
     LinkRelationshipPreload
@@ -26,17 +24,10 @@ enum LinkCategory {
 
 class LinkSceneNode : public Napi::SafeObjectWrap<LinkSceneNode>, public SceneNode {
  public:
-    explicit LinkSceneNode(const Napi::CallbackInfo& info);
+    LinkSceneNode(const Napi::CallbackInfo& info) : Napi::SafeObjectWrap<LinkSceneNode>(info) {}
+    ~LinkSceneNode() override = default;
 
     static Napi::Function GetClass(Napi::Env env);
-
-    void OnPropertyChanged(StyleProperty property) override {}
-    void BeforeLayout() override {}
-    void AfterLayout() override {}
-    void Paint(PaintContext* paint) override {}
-    void Composite(CompositeContext* composite) override {}
-
- private: // javascript bindings
     void Constructor(const Napi::CallbackInfo& info) override;
     void Fetch(const Napi::CallbackInfo& info);
     Napi::Value GetRel(const Napi::CallbackInfo& info);
@@ -50,8 +41,11 @@ class LinkSceneNode : public Napi::SafeObjectWrap<LinkSceneNode>, public SceneNo
     Napi::Value GetOnErrorCallback(const Napi::CallbackInfo& info);
     void SetOnErrorCallback(const Napi::CallbackInfo& info, const Napi::Value& value);
 
+    void OnPropertyChanged(StyleProperty property) override {}
+    void Paint(GraphicsContext* graphicsContext) override {}
+    void Composite(CompositeContext* composite) override {}
+
  private:
-    void AppendChild(SceneNode* child) override;
     void DestroyRecursive() override;
     void ClearResource();
     void ResourceListener(Res::Owner owner, Res* res);
@@ -64,12 +58,9 @@ class LinkSceneNode : public Napi::SafeObjectWrap<LinkSceneNode>, public SceneNo
     LinkRelationship relationship{ LinkRelationshipPreload };
     LinkCategory category{ LinkCategoryImage };
     std::string href{};
+    Res* resource{};
     Napi::FunctionReference onLoadCallback;
     Napi::FunctionReference onErrorCallback;
-
-    Res* resource{};
-
-    friend Napi::SafeObjectWrap<LinkSceneNode>;
 };
 
 } // namespace ls

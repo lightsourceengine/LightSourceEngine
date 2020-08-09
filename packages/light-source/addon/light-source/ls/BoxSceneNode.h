@@ -7,44 +7,35 @@
 #pragma once
 
 #include <napi-ext.h>
-#include "Resources.h"
-#include "SceneNode.h"
+#include <ls/Resources.h>
+#include <ls/SceneNode.h>
 
 namespace ls {
 
-class Style;
-
 class BoxSceneNode : public Napi::SafeObjectWrap<BoxSceneNode>, public SceneNode {
  public:
-    explicit BoxSceneNode(const Napi::CallbackInfo& info);
+    BoxSceneNode(const Napi::CallbackInfo& info) : SafeObjectWrap<BoxSceneNode>(info) {}
+    ~BoxSceneNode() override = default;
 
-    void OnPropertyChanged(StyleProperty property) override;
-
-    void BeforeLayout() override;
-    void AfterLayout() override;
-    void Paint(PaintContext* paint) override;
-    void Composite(CompositeContext* composite) override;
-
- public:
     static Napi::Function GetClass(Napi::Env env);
-
- private: // javascript bindings
     void Constructor(const Napi::CallbackInfo& info) override;
+
+    bool IsLeaf() const noexcept override { return false; }
+    void OnPropertyChanged(StyleProperty property) override;
+    void Paint(GraphicsContext* graphicsContext) override;
+    void Composite(CompositeContext* composite) override;
 
  private:
     void DestroyRecursive() override;
     void UpdateBackgroundImage(const std::string& backgroundUri);
-    void PaintRoundedRect(PaintContext* paint, Style* boxStyle);
+    // TODO: void PaintRoundedRect(PaintContext* paint, Style* boxStyle);
     void PaintBackgroundImage(Renderer* renderer, Style* boxStyle);
     void PaintBackgroundStack(Renderer* renderer, Style* boxStyle);
     bool IsBackgroundOnly(Style* boxStyle) const noexcept;
     void ClearBackgroundImageResource();
 
  private:
-    ImageData* backgroundImage{};
-    bool isImmediate{ false };
-
-    friend Napi::SafeObjectWrap<BoxSceneNode>;
+  Image* backgroundImage{};
 };
 
 } // namespace ls

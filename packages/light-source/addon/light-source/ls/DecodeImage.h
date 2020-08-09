@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <blend2d.h>
 #include <std17/filesystem>
+#include <ls/ImageBytes.h>
 
 namespace ls {
 
@@ -19,10 +19,11 @@ namespace ls {
  * supported image extensions, such as .png or .jpg.
  *
  * @param path The filesystem path to the image.
- * @param resize The dimensions to scale the image to. Only used by SVG files.
+ * @param resizeWidth If greater than 0, force the image width to be this value. Only used by SVG files.
+ * @param resizeHeight If greater than 0, force the image height to be this value. Only used by SVG files.
  * @return image bytes
  * @throws std::exception for file not found or other parsing errors
  */
-BLImage DecodeImageFromFile(const std17::filesystem::path& path, const BLSizeI& resize);
+ImageBytes DecodeImageFromFile(const std17::filesystem::path& path, int32_t resizeWidth, int32_t resizeHeight);
 
 } // namespace ls

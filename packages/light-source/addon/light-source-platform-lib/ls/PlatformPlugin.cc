@@ -111,7 +111,7 @@ Function PlatformPlugin::GetClass(Napi::Env env) {
             InstanceMethod("destroy", &PlatformPlugin::Destroy),
             InstanceMethod("setCallback", &PlatformPlugin::SetCallback),
             InstanceMethod("resetCallbacks", &PlatformPlugin::ResetCallbacks),
-            InstanceMethod("createSceneAdapter", &PlatformPlugin::CreateGraphicsContext),
+            InstanceMethod("createGraphicsContext", &PlatformPlugin::CreateGraphicsContext),
             InstanceMethod("addGameControllerMappings", &PlatformPlugin::AddGameControllerMappings),
         });
     }
