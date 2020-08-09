@@ -53,7 +53,7 @@ bool Texture::IsUpdatable() const noexcept {
     return this->bridge->GetType(this->nativeTexture) == Updatable;
 }
 
-PixelFormat Texture::PixelFormat() const noexcept {
+PixelFormat Texture::Format() const noexcept {
     return this->bridge->GetPixelFormat(this->nativeTexture);
 }
 

@@ -75,7 +75,7 @@ class Texture {
 
     int32_t Width() const noexcept;
     int32_t Height() const noexcept;
-    PixelFormat PixelFormat() const noexcept;
+    PixelFormat Format() const noexcept;
     bool IsRenderTarget() const noexcept;
     bool IsLockable() const noexcept;
     bool IsUpdatable() const noexcept;
