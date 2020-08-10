@@ -106,7 +106,6 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     static int instanceCount;
     std::vector<SceneNode*> children;
     std::vector<SceneNode*> sortedChildren;
-    std::shared_ptr<Texture> layer;
     YGNodeRef ygNode{};
     Scene* scene{};
     SceneNode* parent{};
@@ -115,7 +114,6 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
 
     friend Style;
     friend Scene;
-    friend class BoxSceneNode;
 };
 
 template<typename Callable>

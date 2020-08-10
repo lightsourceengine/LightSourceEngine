@@ -227,6 +227,7 @@ void TextSceneNode::Composite(CompositeContext* composite) {
 //            transform,
 //            tintColor);
 //    }
+    SceneNode::Composite(composite);
 }
 
 Value TextSceneNode::GetText(const CallbackInfo& info) {

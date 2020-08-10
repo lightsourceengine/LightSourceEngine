@@ -199,19 +199,29 @@ bool Style::HasBorderRadius() const noexcept {
 }
 
 void Style::UpdateDependentProperties(bool rem, bool viewport) noexcept {
+    auto updateProp = [](Style* self, StyleProperty property, StyleNumberUnit unit, bool rem, bool viewport) {
+        switch (unit) {
+            case StyleNumberUnitRootEm:                                                     
+                if (rem) {
+                    self->NotifyPropertyChanged(property);
+                }
+                break;
+            case StyleNumberUnitViewportWidth:                                              
+            case StyleNumberUnitViewportHeight:                                             
+            case StyleNumberUnitViewportMin:                                                
+            case StyleNumberUnitViewportMax:                                                
+                if (viewport) {
+                    self->NotifyPropertyChanged(property);
+                }
+                break;
+            default:
+                break;
+        }       
+    };
+
     // TODO: this is horrible, but it is functional. root font size and viewport will rarely change.
     //       style needs a better design to improve this update
-    #define LS_UPDATE(PROP)                                                                 \
-        switch (this->PROP.unit) {                                                          \
-            case StyleNumberUnitRootEm:                                                     \
-                if (rem) { this->NotifyPropertyChanged(StyleProperty::PROP); } break;       \
-            case StyleNumberUnitViewportWidth:                                              \
-            case StyleNumberUnitViewportHeight:                                             \
-            case StyleNumberUnitViewportMin:                                                \
-            case StyleNumberUnitViewportMax:                                                \
-                if (viewport) { this->NotifyPropertyChanged(StyleProperty::PROP); } break;  \
-            default: break;                                                                 \
-        }
+    #define LS_UPDATE(PROP) updateProp(this, StyleProperty::PROP, this->PROP.unit, rem, viewport);
     #define LS_UPDATE_EDGE(PROP) \
         LS_UPDATE(PROP) \
         LS_UPDATE(PROP##Top) \

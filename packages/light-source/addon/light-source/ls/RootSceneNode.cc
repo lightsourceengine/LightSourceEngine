@@ -59,8 +59,9 @@ void RootSceneNode::Composite(CompositeContext* composite) {
 
     if (!backgroundColor.empty()) {
         composite->renderer->FillRenderTarget(backgroundColor.value);
-        SceneNode::Composite(composite);
     }
+
+    SceneNode::Composite(composite);
 }
 
 } // namespace ls

@@ -88,6 +88,7 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
     const auto boxStyle{ this->style };
 
     if (boxStyle == nullptr || boxStyle->IsLayoutOnly()) {
+        SceneNode::Composite(composite);
         return;
     }
 

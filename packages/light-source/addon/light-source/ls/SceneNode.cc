@@ -36,13 +36,11 @@ namespace ls {
 int32_t SceneNode::instanceCount{0};
 
 void SceneNode::SceneNodeConstructor(const Napi::CallbackInfo& info, SceneNodeType type) {
-    this->scene = Scene::Cast(info[0]);
+    this->scene = Scene::CastRef(info[0]);
 
     if (!this->scene) {
         throw Error::New(info.Env(), "Expected scene reference as arg.");
     }
-
-    this->scene->Ref();
 
     SetType(info.This(), type);
 
@@ -152,6 +150,7 @@ void SceneNode::SetParent(SceneNode* newParent) {
 }
 
 Stage* SceneNode::GetStage() const noexcept {
+    assert(this->scene);
     return this->scene->GetStage();
 }
 
@@ -256,8 +255,6 @@ void SceneNode::DestroyRecursive() {
         return;
     }
 
-    this->layer = nullptr;
-
     instanceCount--;
 
     this->scene->Remove(this);
@@ -300,6 +297,7 @@ void SceneNode::Composite(CompositeContext* context) {
     }
 
     if (clip) {
+        context->renderer->DisableClipping();
         context->PopClipRect();
     }
 

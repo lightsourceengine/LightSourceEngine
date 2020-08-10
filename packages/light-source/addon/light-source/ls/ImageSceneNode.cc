@@ -239,55 +239,11 @@ void ImageSceneNode::SetOnErrorCallback(const CallbackInfo& info, const Napi::Va
 //}
 
 void ImageSceneNode::Paint(GraphicsContext* graphicsContext) {
-//    if (!this->image) {
-//        return;
-//    }
-//
-//    auto renderer{ paint->renderer };
-//    const auto boxStyle{ this->GetStyleOrEmpty() };
-//    const auto& borderColor{ boxStyle->borderColor };
-//    const auto hasCapInsets{ this->image->HasCapInsets() };
-//
-//    this->QueueComposite();
-//    this->image->Sync(renderer);
-//
-//    if (!hasCapInsets && borderColor.empty()) {
-//        this->layer = nullptr;
-//        return;
-//    }
-//
-//    const auto rect{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
-//
-//    if (!this->InitLayerRenderTarget(renderer, static_cast<int32_t>(rect.width), static_cast<int32_t>(rect.height))) {
-//        return;
-//    }
-//
-//    renderer->FillRenderTarget(ColorTransparent);
-//
-//    if (this->image->HasTexture()) {
-//        if (hasCapInsets) {
-//            renderer->DrawImage(
-//                this->image->GetTexture(),
-//                this->destRect,
-//                this->image->GetCapInsets(),
-//                boxStyle->tintColor.ValueOr(ColorWhite));
-//        } else {
-//            renderer->DrawImage(
-//                this->image->GetTexture(),
-//                this->destRect,
-//                boxStyle->tintColor.ValueOr(ColorWhite));
-//        }
-//    }
-//
-//    if (!borderColor.empty()) {
-//        renderer->DrawBorder(rect, YGNodeLayoutGetBorderRect(this->ygNode), borderColor.value);
-//    }
-//
-//    renderer->SetRenderTarget(nullptr);
 }
 
 void ImageSceneNode::Composite(CompositeContext* composite) {
     if (!this->style || !this->image || this->image->GetState() != Res::Ready) {
+        SceneNode::Composite(composite);
         return;
     }
 
@@ -311,6 +267,8 @@ void ImageSceneNode::Composite(CompositeContext* composite) {
             transform,
             this->style->borderColor.value.MixAlpha(composite->CurrentOpacity()));
     }
+
+    SceneNode::Composite(composite);
 
 //    if (this->layer) {
 //        const auto boxStyle{ this->GetStyleOrEmpty() };
