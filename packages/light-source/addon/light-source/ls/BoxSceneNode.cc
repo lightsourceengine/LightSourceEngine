@@ -14,7 +14,7 @@
 #include <ls/Math.h>
 #include <ls/Renderer.h>
 #include <ls/Log.h>
-#include <ls/PixelConversion.h>
+#include <ls/Color.h>
 #include <ls-ctx.h>
 #include <ls/yoga-ext.h>
 #include <ls/GraphicsContext.h>
@@ -99,7 +99,7 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
         composite->renderer->DrawFillRect(
             rect,
             transform,
-            MixAlpha(boxStyle->backgroundColor.value, composite->CurrentOpacity()));
+            boxStyle->backgroundColor.value.MixAlpha(composite->CurrentOpacity()));
     }
 
     if (this->backgroundImage) {
@@ -111,7 +111,7 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
 
         if (this->backgroundImage->HasTexture()) {
             composite->renderer->DrawImage(this->backgroundImage->GetTexture(), rect, transform,
-                     MixAlpha(ColorWhite, composite->CurrentOpacity()));
+                ColorWhite.MixAlpha(composite->CurrentOpacity()));
         }
     }
 
@@ -120,7 +120,7 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
             rect,
             YGNodeLayoutGetBorderRect(this->ygNode),
             transform,
-            MixAlpha(boxStyle->borderColor.value, composite->CurrentOpacity()));
+            boxStyle->borderColor.value.MixAlpha(composite->CurrentOpacity()));
     }
 
     SceneNode::Composite(composite);

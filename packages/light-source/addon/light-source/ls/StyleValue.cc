@@ -55,11 +55,11 @@ constexpr float ComputeTranslateAxis(float value, StyleNumberUnit unit, float co
     }
 }
 
-Napi::Value StyleValueColor::Box(Napi::Env env, const StyleValueColor& value) {
-    if (value.undefined) {
+Napi::Value StyleValueColor::Box(Napi::Env env, const StyleValueColor& color) {
+    if (color.undefined) {
         return env.Undefined();
     } else {
-        return Napi::Number::New(env, value.value);
+        return Napi::Number::New(env, color.value.value);
     }
 }
 

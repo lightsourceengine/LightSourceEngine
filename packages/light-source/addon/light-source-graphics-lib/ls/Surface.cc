@@ -124,8 +124,8 @@ void Surface::Convert(const PixelFormat format) noexcept {
         return;
     }
 
-    auto buffer{ reinterpret_cast<Color*>(this->Pixels()) };
-    const auto len{ (this->height * this->pitch) / sizeof(Color) };
+    auto buffer{ reinterpret_cast<color_t*>(this->Pixels()) };
+    const auto len{ (this->height * this->pitch) / sizeof(color_t) };
 
     ConvertToFormat(buffer, len, format);
 

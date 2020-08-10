@@ -24,14 +24,14 @@ class RefRenderer : public Renderer {
     void EnabledClipping(const Rect& rect) override;
     void DisableClipping() override;
 
-    void DrawFillRect(const Rect& rect, const Matrix& transform, uint32_t fillColor) override;
-    void DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, uint32_t fillColor) override;
+    void DrawFillRect(const Rect& rect, const Matrix& transform, color_t fillColor) override;
+    void DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) override;
     void DrawImage(const Texture& texture, const Rect& rect, const Matrix& transform,
-            uint32_t tintColor) override;
+            color_t tintColor) override;
     void DrawImage(const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
-            const Matrix& transform, uint32_t tintColor) override;
+            const Matrix& transform, color_t tintColor) override;
 
-    void FillRenderTarget(uint32_t color) override;
+    void FillRenderTarget(color_t color) override;
 
     Texture CreateTexture(int32_t width, int32_t height, Texture::Type type) override;
 };

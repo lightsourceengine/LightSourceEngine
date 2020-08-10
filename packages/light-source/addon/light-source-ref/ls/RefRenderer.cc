@@ -36,21 +36,21 @@ void RefRenderer::EnabledClipping(const Rect& rect) {
 void RefRenderer::DisableClipping() {
 }
 
-void RefRenderer::DrawFillRect(const Rect& rect, const Matrix& transform, uint32_t fillColor) {
+void RefRenderer::DrawFillRect(const Rect& rect, const Matrix& transform, color_t fillColor) {
 }
 
-void RefRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, uint32_t fillColor) {
+void RefRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) {
 }
 
 void RefRenderer::DrawImage(const Texture& texture, const Rect& rect,
-        const Matrix& transform, uint32_t tintColor) {
+        const Matrix& transform, color_t tintColor) {
 }
 
 void RefRenderer::DrawImage(const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
-        const Matrix& transform, uint32_t tintColor) {
+        const Matrix& transform, color_t tintColor) {
 }
 
-void RefRenderer::FillRenderTarget(const uint32_t color) {
+void RefRenderer::FillRenderTarget(const color_t color) {
 }
 
 bool RefRenderer::SetRenderTarget(const Texture& renderTarget) {

@@ -23,17 +23,17 @@ class SDLRenderer : public Renderer {
 
     bool SetRenderTarget(const Texture& newRenderTarget) override;
     void Reset() override;
-    void FillRenderTarget(uint32_t color) override;
+    void FillRenderTarget(color_t color) override;
     void Present() override;
     void EnabledClipping(const Rect& rect) override;
     void DisableClipping() override;
 
-    void DrawFillRect(const Rect& rect, const Matrix& transform, uint32_t fillColor) override;
-    void DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, uint32_t fillColor) override;
+    void DrawFillRect(const Rect& rect, const Matrix& transform, color_t fillColor) override;
+    void DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) override;
     void DrawImage(const Texture& texture, const Rect& rect, const Matrix& transform,
-            uint32_t tintColor) override;
+            color_t tintColor) override;
     void DrawImage(const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
-            const Matrix& transform, uint32_t tintColor) override;
+            const Matrix& transform, color_t tintColor) override;
 
     Texture CreateTexture(int32_t width, int32_t height, Texture::Type type) override;
 
@@ -43,13 +43,13 @@ class SDLRenderer : public Renderer {
 
  private:
     void ResetInternal(const Texture& newRenderTarget);
-    void SetRenderDrawColor(uint32_t color) noexcept;
+    void SetRenderDrawColor(color_t color) noexcept;
     void UpdateTextureFormats(const SDL_RendererInfo& info) noexcept;
 
  private:
     SDL_Renderer* renderer{};
     PixelFormat textureFormat{PixelFormatUnknown};
-    uint32_t drawColor{};
+    color_t drawColor{};
     Texture fillRectTexture{};
     Texture renderTarget{};
     int32_t width{0};

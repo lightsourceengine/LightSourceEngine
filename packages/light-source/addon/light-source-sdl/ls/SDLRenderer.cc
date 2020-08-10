@@ -55,25 +55,25 @@ void SDLRenderer::Present() {
     SDL_RenderPresent(this->renderer);
 }
 
-void SDLRenderer::DrawFillRect(const Rect& rect, const Matrix& transform, const uint32_t fillColor) {
+void SDLRenderer::DrawFillRect(const Rect& rect, const Matrix& transform, const color_t fillColor) {
     ls::DrawImage(this->renderer, this->fillRectTexture.Cast<SDL_Texture>(), rect, transform, fillColor);
 }
 
 void SDLRenderer::DrawImage(const Texture& texture, const Rect& rect,
-        const Matrix& transform, uint32_t tintColor) {
+        const Matrix& transform, color_t tintColor) {
     ls::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), rect, transform, tintColor);
 }
 
-void SDLRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, uint32_t fillColor) {
+void SDLRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) {
     ls::DrawBorder(this->renderer, this->fillRectTexture.Cast<SDL_Texture>(), rect, border, transform, fillColor);
 }
 
 void SDLRenderer::DrawImage(const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
-        const Matrix& transform, uint32_t tintColor) {
+        const Matrix& transform, color_t tintColor) {
     ls::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), capInsets, rect, transform, tintColor);
 }
 
-void SDLRenderer::FillRenderTarget(const uint32_t color) {
+void SDLRenderer::FillRenderTarget(const color_t color) {
     SetRenderDrawColor(color);
     SDL_RenderClear(this->renderer);
 }
@@ -109,7 +109,7 @@ void SDLRenderer::ResetInternal(const Texture& newRenderTarget) {
     }
 
     this->DisableClipping();
-    this->SetRenderDrawColor(RGB(255, 255, 255));
+    this->SetRenderDrawColor(ColorWhite);
     SDL_SetRenderDrawBlendMode(this->renderer, SDL_BLENDMODE_BLEND);
 }
 
@@ -127,10 +127,10 @@ Texture SDLRenderer::CreateTexture(int32_t width, int32_t height, Texture::Type 
     return ls::CreateTexture(this->renderer, width, height, type, this->textureFormat);
 }
 
-void SDLRenderer::SetRenderDrawColor(const uint32_t color) noexcept {
+void SDLRenderer::SetRenderDrawColor(color_t color) noexcept {
     if (this->drawColor != color) {
         // TODO: consider opacity
-        SDL_SetRenderDrawColor(this->renderer, GetR(color), GetG(color), GetB(color), GetA(color));
+        SDL_SetRenderDrawColor(this->renderer, color.r, color.g, color.b, color.a);
         this->drawColor = color;
     }
 }

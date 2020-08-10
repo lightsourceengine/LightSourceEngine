@@ -40,13 +40,13 @@ SDL_Renderer* DestroyRenderer(SDL_Renderer* renderer) noexcept {
     return nullptr;
 }
 
-void SetTextureTintColor(SDL_Texture* texture, uint32_t color) noexcept {
-    SDL_SetTextureColorMod(texture, GetR(color), GetG(color), GetB(color));
-    SDL_SetTextureAlphaMod(texture, GetA(color));
+void SetTextureTintColor(SDL_Texture* texture, color_t color) noexcept {
+    SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
+    SDL_SetTextureAlphaMod(texture, color.a);
 }
 
 void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const Rect& rect, const Matrix& transform,
-        uint32_t tintColor) noexcept {
+        color_t tintColor) noexcept {
     if (!texture) {
         return;
     }
@@ -64,7 +64,7 @@ void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const Rect& rect, c
 }
 
 void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const EdgeRect& capInsets, const Rect& rect,
-        const Matrix& transform, uint32_t tintColor) noexcept {
+        const Matrix& transform, color_t tintColor) noexcept {
     if (!texture) {
         return;
     }
@@ -165,7 +165,7 @@ void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const EdgeRect& cap
 }
 
 void DrawBorder(SDL_Renderer* renderer, SDL_Texture* fillRectTexture, const Rect& rect, const EdgeRect& border,
-        const Matrix& transform, uint32_t fillColor) noexcept {
+        const Matrix& transform, color_t fillColor) noexcept {
     // TODO: snap to pixel grid
     const auto x{ static_cast<int32_t>(rect.x + transform.GetTranslateX()) };
     const auto y{ static_cast<int32_t>(rect.y + transform.GetTranslateY()) };

@@ -38,7 +38,7 @@ Napi::Value ParseColor(const Napi::CallbackInfo& info) {
     if (color.empty()) {
         return env.Undefined();
     } else {
-        return Number::New(env, color.value);
+        return Number::New(env, color.value.value);
     }
 }
 

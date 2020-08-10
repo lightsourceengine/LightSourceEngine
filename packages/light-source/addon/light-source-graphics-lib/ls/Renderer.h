@@ -7,13 +7,11 @@
 #pragma once
 
 #include <ls/Rect.h>
-#include <ls/Surface.h>
 #include <ls/Texture.h>
 #include <ls/Matrix.h>
-#include <ls/Point.h>
+#include <ls/Color.h>
 #include <ls/PixelFormat.h>
 #include <cstdint>
-#include <memory>
 
 namespace ls {
 
@@ -71,17 +69,17 @@ class Renderer {
     /**
      * Draw a solid rectangle.
      */
-    virtual void DrawFillRect(const Rect& rect, const Matrix& transform, uint32_t fillColor) = 0;
+    virtual void DrawFillRect(const Rect& rect, const Matrix& transform, color_t fillColor) = 0;
 
     /**
      * Draw a hollow rectangle.
      */
-    virtual void DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, uint32_t fillColor) = 0;
+    virtual void DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) = 0;
 
     /**
      * Draw a textured rectangle.
      */
-    virtual void DrawImage(const Texture& texture, const Rect& rect, const Matrix& transform, uint32_t tintColor) = 0;
+    virtual void DrawImage(const Texture& texture, const Rect& rect, const Matrix& transform, color_t tintColor) = 0;
 
     /**
      * Draw a textured rectangle stretched with end cap insets.
@@ -91,11 +89,11 @@ class Renderer {
      * used for UI buttons or message box backgrounds.
      */
     virtual void DrawImage(const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
-            const Matrix& transform, uint32_t tintColor) = 0;
+            const Matrix& transform, color_t tintColor) = 0;
     /**
      * Clear the entire renderable area with the specified color.
      */
-    virtual void FillRenderTarget(uint32_t color) = 0;
+    virtual void FillRenderTarget(color_t color) = 0;
 
     /**
      * Create a new texture.

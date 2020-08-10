@@ -11,6 +11,7 @@
 #include <Yoga.h>
 #include <napi.h>
 #include <ls/Matrix.h>
+#include <ls/Color.h>
 
 namespace ls {
 
@@ -18,7 +19,7 @@ namespace ls {
  * 32-bit, RGB color style property.
  */
 struct StyleValueColor {
-    uint32_t value{};
+    color_t value{};
     bool undefined{true};
 
     // Binding methods.
@@ -27,18 +28,18 @@ struct StyleValueColor {
     static StyleValueColor Parse(const std::string& value) noexcept;
 
     // Factory methods.
-    static StyleValueColor Of(uint32_t value) noexcept { return { value, false }; }
+    static StyleValueColor Of(color_t value) noexcept { return { value, false }; }
     static StyleValueColor OfUndefined() noexcept { return {}; }
 
     // operators
     StyleValueColor& operator=(const StyleValueColor&) = default;
-    explicit operator uint32_t() const noexcept { return this->value; }
+    explicit operator color_t() const noexcept { return this->value; }
     explicit operator bool() const noexcept { return !this->undefined; }
 
     // Check if the color value is not defined.
     bool empty() const noexcept { return this->undefined; }
 
-    uint32_t ValueOr(const uint32_t defaultValue) const noexcept {
+    color_t ValueOr(const color_t defaultValue) const noexcept {
         return this->undefined ? defaultValue : this->value;
     }
 };

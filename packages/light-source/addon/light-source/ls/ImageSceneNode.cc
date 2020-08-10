@@ -11,7 +11,7 @@
 #include <ls/Stage.h>
 #include <ls/StyleUtils.h>
 #include <ls/Renderer.h>
-#include <ls/PixelConversion.h>
+#include <ls/Color.h>
 #include <ls/CompositeContext.h>
 #include <ls/yoga-ext.h>
 
@@ -301,7 +301,7 @@ void ImageSceneNode::Composite(CompositeContext* composite) {
 
     if (this->image->HasTexture()) {
         composite->renderer->DrawImage(this->image->GetTexture(), rect, transform,
-                MixAlpha(this->style->tintColor.ValueOr(ColorWhite), composite->CurrentOpacity()));
+                this->style->tintColor.ValueOr(ColorWhite).MixAlpha(composite->CurrentOpacity()));
     }
 
     if (!this->style->borderColor.empty()) {
@@ -309,7 +309,7 @@ void ImageSceneNode::Composite(CompositeContext* composite) {
             rect,
             YGNodeLayoutGetBorderRect(this->ygNode),
             transform,
-            MixAlpha(this->style->borderColor.value, composite->CurrentOpacity()));
+            this->style->borderColor.value.MixAlpha(composite->CurrentOpacity()));
     }
 
 //    if (this->layer) {

@@ -11,9 +11,9 @@ using std20::endian;
 namespace ls {
 
 template<int32_t C1, int32_t C2, int32_t C3, int32_t C4>
-void Convert(Color* pixels, const uint32_t len) noexcept {
+void Convert(color_t* pixels, const uint32_t len) noexcept {
     for (uint32_t i = 0; i < len; i++) {
-        const Color color{ pixels[i] };
+        const color_t color{ pixels[i] };
 
         pixels[i].value = (color.channels[C1] << 24)
             | (color.channels[C2] << 16)
@@ -22,7 +22,7 @@ void Convert(Color* pixels, const uint32_t len) noexcept {
     }
 }
 
-void ToFormatLE(Color* pixels, const int32_t len, const PixelFormat format) noexcept {
+void ToFormatLE(color_t* pixels, const int32_t len, const PixelFormat format) noexcept {
     // Mapping for PixelFormatABGR
     constexpr auto R = 0;
     constexpr auto G = 1;
@@ -45,7 +45,7 @@ void ToFormatLE(Color* pixels, const int32_t len, const PixelFormat format) noex
     }
 }
 
-void ToFormatBE(Color* pixels, const int32_t len, const PixelFormat format) noexcept {
+void ToFormatBE(color_t* pixels, const int32_t len, const PixelFormat format) noexcept {
     // Mapping for PixelFormatRGBA
     constexpr auto R = 3;
     constexpr auto G = 2;
@@ -68,7 +68,7 @@ void ToFormatBE(Color* pixels, const int32_t len, const PixelFormat format) noex
     }
 }
 
-void ConvertToFormat(Color* pixels, const int32_t len, const PixelFormat format) noexcept {
+void ConvertToFormat(color_t* pixels, int32_t len, PixelFormat format) noexcept {
     if (endian::native == endian::big) {
        ToFormatBE(pixels, len, format);
     } else {
