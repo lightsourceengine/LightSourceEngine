@@ -133,7 +133,7 @@ void ImageSceneNode::Composite(CompositeContext* composite) {
         }
     }
 
-    if (!this->style->borderColor.empty()) {
+    if (!imageStyle->borderColor.empty()) {
         composite->renderer->DrawBorder(
             rect,
             YGNodeLayoutGetBorderRect(this->ygNode),

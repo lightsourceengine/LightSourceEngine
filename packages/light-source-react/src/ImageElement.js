@@ -5,9 +5,12 @@
  */
 
 import { Element } from './Element'
-import { emptyObject } from './emptyObject'
 
-const getId = src => typeof src === 'string' ? src : src.id || src.uri || null
+const kImageProps = [
+  'src',
+  'onLoad',
+  'onError'
+]
 
 export class ImageElement extends Element {
   /**
@@ -25,16 +28,12 @@ export class ImageElement extends Element {
   updateProps (oldProps, newProps) {
     super.updateProps(oldProps, newProps)
 
-    if (getId(oldProps.src || emptyObject) !== getId(newProps.src || emptyObject)) {
-      this.node.src = newProps.src
-    }
+    const { node } = this
 
-    if (oldProps.onLoad !== newProps.onLoad) {
-      this.node.onLoad = newProps.onLoad
-    }
-
-    if (oldProps.onError !== newProps.onError) {
-      this.node.onError = newProps.onError
+    for (const name of kImageProps) {
+      if (oldProps[name] !== newProps[name]) {
+        node[name] = newProps[name]
+      }
     }
   }
 }

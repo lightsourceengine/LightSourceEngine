@@ -6,7 +6,6 @@
 
 import { assert } from 'chai'
 import React from 'react'
-import { stage } from 'light-source'
 import { root, container, beforeSceneTest, afterSceneTest } from './test-env'
 
 const testImagePath = 'test/640x480.png'
@@ -14,7 +13,6 @@ const testImagePath = 'test/640x480.png'
 describe('ImageElement', () => {
   beforeEach(() => {
     beforeSceneTest()
-    stage.start()
   })
   afterEach(afterSceneTest)
   describe('prop: src', () => {

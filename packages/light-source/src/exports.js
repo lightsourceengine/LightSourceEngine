@@ -6,6 +6,7 @@
 
 import { Stage } from './stage/Stage'
 import { createStyleSheet } from './style/createStyleSheet'
+import { style } from './style/style'
 import { rgba } from './style/rgba'
 import { rgb } from './style/rgb'
 import { ScanCode } from './input/ScanCode'
@@ -49,6 +50,7 @@ const stage = new Stage()
 export {
   // style
   Style,
+  style,
   rgb,
   rgba,
   createStyleSheet,

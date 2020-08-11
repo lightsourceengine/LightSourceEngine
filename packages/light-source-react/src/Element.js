@@ -4,12 +4,21 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { Style } from 'light-source'
 import { emptyObject } from './emptyObject'
+import { style as StyleFactory, Style } from 'light-source'
 
-const throwBadNodeArg = () => { throw Error('Invalid node arg passed to Element constructor.') }
-const throwBadPropsArg = () => { throw Error('Invalid props arg passed to Element constructor.') }
-const styleTag = Symbol.for('style')
+const kCommentElementProps = [
+  'focusable',
+  'hidden',
+  'onFocus',
+  'onBlur',
+  'onKeyUp',
+  'onKeyDown',
+  'onAxisMotion',
+  'onDeviceButtonUp',
+  'onDeviceButtonDown',
+  'onDeviceAxisMotion'
+]
 
 /**
  * @class Element
@@ -36,61 +45,17 @@ export class Element {
    * @param {Object} newProps
    */
   updateProps (oldProps, newProps) {
-    if (oldProps.style !== newProps.style) {
-      const { style } = newProps
+    const { node } = this
+    const { style } = newProps
 
-      if (!style || style[styleTag]) {
-        this.node.style = style
-      } else {
-        const s = new Style()
+    if (oldProps.style !== style) {
+      node.style = (style && style instanceof Style) ? style : StyleFactory(style)
+    }
 
-        // TODO: move this into a factory method
-        for (const prop in style) {
-          if (prop in Style.prototype) {
-            s[prop] = style[prop]
-          }
-        }
-
-        this.node.style = s
+    for (const name of kCommentElementProps) {
+      if (oldProps[name] !== newProps[name]) {
+        node[name] = newProps[name]
       }
-    }
-
-    this.node.focusable = !!newProps.focusable
-
-    if (oldProps.hidden !== newProps.hidden) {
-      this.node.hidden = !!newProps.hidden
-    }
-
-    if (oldProps.onFocus !== newProps.onFocus) {
-      this.node.onFocus = newProps.onFocus
-    }
-
-    if (oldProps.onBlur !== newProps.onBlur) {
-      this.node.onBlur = newProps.onBlur
-    }
-
-    if (oldProps.onKeyUp !== newProps.onKeyUp) {
-      this.node.onKeyUp = newProps.onKeyUp
-    }
-
-    if (oldProps.onKeyDown !== newProps.onKeyDown) {
-      this.node.onKeyDown = newProps.onKeyDown
-    }
-
-    if (oldProps.onAxisMotion !== newProps.onAxisMotion) {
-      this.node.onAxisMotion = newProps.onAxisMotion
-    }
-
-    if (oldProps.onDeviceButtonUp !== newProps.onDeviceButtonUp) {
-      this.node.onDeviceButtonUp = newProps.onDeviceButtonUp
-    }
-
-    if (oldProps.onDeviceButtonDown !== newProps.onDeviceButtonDown) {
-      this.node.onDeviceButtonDown = newProps.onDeviceButtonDown
-    }
-
-    if (oldProps.onDeviceAxisMotion !== newProps.onDeviceAxisMotion) {
-      this.node.onDeviceAxisMotion = newProps.onDeviceAxisMotion
     }
 
     this.props = newProps
@@ -124,3 +89,6 @@ export class Element {
     child.node.destroy()
   }
 }
+
+const throwBadNodeArg = () => { throw Error('Invalid node arg passed to Element constructor.') }
+const throwBadPropsArg = () => { throw Error('Invalid props arg passed to Element constructor.') }

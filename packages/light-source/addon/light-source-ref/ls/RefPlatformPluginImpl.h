@@ -13,7 +13,7 @@ namespace ls {
 class RefPlatformPluginImpl : public PlatformPluginInterface {
  public:
     explicit RefPlatformPluginImpl(const Napi::CallbackInfo& info);
-    virtual ~RefPlatformPluginImpl();
+    virtual ~RefPlatformPluginImpl() = default;
 
  private:
     Napi::Value GetKeyboard(const Napi::CallbackInfo& info) override;

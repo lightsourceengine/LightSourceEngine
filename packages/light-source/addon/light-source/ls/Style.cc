@@ -146,9 +146,7 @@ Function Style::GetClass(Napi::Env env) {
             StaticValue("TransformIdentity", Number::New(env, StyleTransformIdentity)),
             StaticValue("TransformTranslate", Number::New(env, StyleTransformTranslate)),
             StaticValue("TransformRotate", Number::New(env, StyleTransformRotate)),
-            StaticValue("TransformScale", Number::New(env, StyleTransformScale)),
-
-            InstanceValue(SymbolFor(env, "style"), Boolean::New(env, true)),
+            StaticValue("TransformScale", Number::New(env, StyleTransformScale))
         });
     }
 

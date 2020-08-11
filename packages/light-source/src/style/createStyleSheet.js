@@ -5,6 +5,7 @@
  */
 
 import { Style } from '../addon'
+import { style } from './style'
 
 /**
  * Create a new style sheet.
@@ -24,15 +25,7 @@ export const createStyleSheet = (spec) => {
     if (entry instanceof Style) {
       result[key] = entry
     } else {
-      const style = new Style()
-
-      for (const prop in spec[key]) {
-        if (prop in Style.prototype) {
-          style[prop] = spec[key][prop]
-        }
-      }
-
-      result[key] = style
+      result[key] = style(entry)
     }
   }
 
