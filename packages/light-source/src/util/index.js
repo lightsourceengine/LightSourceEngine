@@ -24,8 +24,6 @@ export const clamp = (val, min, max) => val > max ? max : val < min ? min : val
 
 export const isNumber = (value) => ((typeof value === 'number') && (value - value === 0))
 
-export const isObject = (value) => (!!value) && (value.constructor === Object)
-
 export const symbolFor = Symbol.for
 
 export const symbolKeyFor = Symbol.keyFor

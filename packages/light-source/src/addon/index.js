@@ -28,9 +28,9 @@ export const ImageSceneNode = lib.ImageSceneNode || EmptyClass
 export const LinkSceneNode = lib.LinkSceneNode || EmptyClass
 export const RootSceneNode = lib.RootSceneNode || EmptyClass
 export const TextSceneNode = lib.TextSceneNode || EmptyClass
-export const getSceneNodeInstanceCount = lib.getSceneNodeInstanceCount || emptyFunction
 export const Logger = lib.Logger || {}
-export const parseColor = lib.parseColor || EmptyClass
+export const getSceneNodeInstanceCount = lib.getSceneNodeInstanceCount || emptyFunction
+export const parseColor = lib.parseColor || emptyFunction
 export const addonError = error
 
 export const SDLModuleId = 'light-source-sdl'

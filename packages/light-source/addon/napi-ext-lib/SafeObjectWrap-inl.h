@@ -10,7 +10,7 @@
 namespace Napi {
 
 template <typename T>
-std::vector<typename SafeObjectWrap<T>::MethodEntry> SafeObjectWrap<T>::vtable(8);
+std::vector<typename SafeObjectWrap<T>::MethodEntry> SafeObjectWrap<T>::vtable = SafeObjectWrap<T>::CreateVTable();
 
 template <typename T>
 SafeObjectWrap<T>::SafeObjectWrap(const CallbackInfo &info) {
@@ -404,6 +404,15 @@ void* SafeObjectWrap<T>::AppendVTableMethod(MethodEntry&& method) {
 template <typename T>
 intptr_t SafeObjectWrap<T>::UnwrapVTableIndex(void* data) noexcept {
     return reinterpret_cast<intptr_t>(data);
+}
+
+template <typename T>
+std::vector<typename SafeObjectWrap<T>::MethodEntry> SafeObjectWrap<T>::CreateVTable() {
+    decltype(vtable) v;
+
+    v.reserve(8);
+
+    return v;
 }
 
 } // namespace Napi

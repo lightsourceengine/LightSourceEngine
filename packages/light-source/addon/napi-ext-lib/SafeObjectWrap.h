@@ -167,6 +167,7 @@ class SafeObjectWrap : public virtual SafeObjectWrapReference {
     static napi_value StaticSetterBridge(napi_env env, napi_callback_info info);
     static void* AppendVTableMethod(struct MethodEntry&& method);
     static intptr_t UnwrapVTableIndex(void* data) noexcept;
+    static std::vector<typename SafeObjectWrap<T>::MethodEntry> CreateVTable();
 
  private:
     static std::vector<MethodEntry> vtable;
