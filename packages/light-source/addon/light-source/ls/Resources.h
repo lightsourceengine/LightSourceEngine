@@ -17,6 +17,8 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include "StyleUtils.h"
+
 
 namespace ls {
 
@@ -81,13 +83,14 @@ class Image : public Res {
     int32_t Height() const noexcept;
     float WidthF() const noexcept;
     float HeightF() const noexcept;
+    float AspectRatio() const noexcept;
 
  private:
     AsyncWork<ImageBytes> work;
     ImageBytes resource;
     Texture texture;
-    int32_t width;
-    int32_t height;
+    int32_t width{};
+    int32_t height{};
 };
 
 class FontFace : public Res {

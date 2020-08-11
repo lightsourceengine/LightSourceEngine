@@ -6,10 +6,11 @@
 
 #pragma once
 
-#include <napi-ext.h>
-#include <ls/SceneNode.h>
-#include <ls/Resources.h>
 #include <ls/Rect.h>
+#include <ls/ResourceProgress.h>
+#include <ls/Resources.h>
+#include <ls/SceneNode.h>
+#include <napi-ext.h>
 
 namespace ls {
 
@@ -42,10 +43,8 @@ class ImageSceneNode : public Napi::SafeObjectWrap<ImageSceneNode>, public Scene
  private:
     std::string src;
     Image* image{};
-    Napi::FunctionReference onLoadCallback;
-    Napi::FunctionReference onErrorCallback;
-    Rect destRect{};
-    Rect srcRect{};
+    ImageRect imageRect{};
+    ResourceProgress resourceProgress;
 };
 
 } // namespace ls

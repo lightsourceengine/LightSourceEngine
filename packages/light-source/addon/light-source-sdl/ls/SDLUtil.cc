@@ -7,8 +7,6 @@
 
 #include <ls/SDLUtil.h>
 
-#include <ls/PixelConversion.h>
-
 namespace ls {
 
 static Texture::Bridge CreateTextureBridge() noexcept;
@@ -18,8 +16,14 @@ static Texture::Bridge sTextureBridge = CreateTextureBridge();
 
 Texture CreateTexture(SDL_Renderer* renderer, int32_t width, int32_t height, Texture::Type type,
         PixelFormat format) noexcept {
+    auto texturePtr { SDL_CreateTexture(renderer, ToSDLPixelFormat(format), ToSDLTextureAccess(type), width, height) };
+
+    if (texturePtr) {
+        SDL_SetTextureBlendMode(texturePtr, SDL_BLENDMODE_BLEND);
+    }
+
     return {
-        SDL_CreateTexture(renderer, ToSDLPixelFormat(format), ToSDLTextureAccess(type), width, height),
+        texturePtr,
         &sTextureBridge
     };
 }
@@ -51,6 +55,7 @@ void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const Rect& rect, c
         return;
     }
 
+    // TODO: snap to pixel grid?
     const SDL_Rect destRect{
         static_cast<int32_t>(rect.x + transform.GetTranslateX()),
         static_cast<int32_t>(rect.y + transform.GetTranslateY()),
@@ -61,6 +66,34 @@ void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const Rect& rect, c
     SetTextureTintColor(texture, tintColor);
 
     SDL_RenderCopyEx(renderer, texture, nullptr, &destRect, transform.GetAxisAngleDeg(), &kCenterPoint, SDL_FLIP_NONE);
+}
+
+void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const Rect& srcRect, const Rect& destRect,
+        const Matrix& transform, color_t tintColor) noexcept {
+    if (!texture) {
+        return;
+    }
+
+    // TODO: snap to pixel grid?
+    const SDL_Rect sdlDestRect{
+        static_cast<int32_t>(destRect.x + transform.GetTranslateX()),
+        static_cast<int32_t>(destRect.y + transform.GetTranslateY()),
+        static_cast<int32_t>(destRect.width * transform.GetScaleX()),
+        static_cast<int32_t>(destRect.height * transform.GetScaleY())
+    };
+
+    // TODO: snap to pixel grid?
+    const SDL_Rect sdlSrcRect{
+        static_cast<int32_t>(srcRect.x),
+        static_cast<int32_t>(srcRect.y),
+        static_cast<int32_t>(srcRect.width),
+        static_cast<int32_t>(srcRect.height)
+    };
+
+    SetTextureTintColor(texture, tintColor);
+
+    SDL_RenderCopyEx(
+        renderer, texture, &sdlSrcRect, &sdlDestRect, transform.GetAxisAngleDeg(), &kCenterPoint, SDL_FLIP_NONE);
 }
 
 void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const EdgeRect& capInsets, const Rect& rect,

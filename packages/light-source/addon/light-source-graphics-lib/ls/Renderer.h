@@ -81,6 +81,9 @@ class Renderer {
      */
     virtual void DrawImage(const Texture& texture, const Rect& rect, const Matrix& transform, color_t tintColor) = 0;
 
+    virtual void DrawImage(const Texture& texture, const Rect& srcRect, const Rect& destRect,
+            const Matrix& transform, color_t tintColor) = 0;
+
     /**
      * Draw a textured rectangle stretched with end cap insets.
      *

@@ -56,6 +56,7 @@ Function ImageSceneNode::GetClass(Napi::Env env) {
 void ImageSceneNode::OnStylePropertyChanged(StyleProperty property) {
     switch (property) {
         case StyleProperty::tintColor:
+        case StyleProperty::backgroundColor:
         case StyleProperty::borderColor:
             this->RequestComposite();
             break;
@@ -75,7 +76,72 @@ void ImageSceneNode::OnBoundingBoxChanged() {
 }
 
 void ImageSceneNode::OnStyleLayout() {
+    if (!this->image || !this->image->HasDimensions()) {
+        return;
+    }
+
+    auto bounds{ YGNodeLayoutGetInnerRect(this->ygNode) };
+
+    if (IsEmpty(bounds)) {
+        return;
+    }
+
+    auto fit{ ComputeObjectFit(this->scene, this->style, bounds, this->image) };
+
+    this->imageRect = ClipImage(bounds, fit, this->image);
+
     this->RequestComposite();
+}
+
+void ImageSceneNode::Paint(GraphicsContext* graphicsContext) {
+}
+
+void ImageSceneNode::Composite(CompositeContext* composite) {
+    if (this->style == nullptr && (!this->image || this->image->GetState() != Res::Ready)) {
+        SceneNode::Composite(composite);
+        return;
+    }
+
+    const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
+
+    if (IsEmpty(rect)) {
+        SceneNode::Composite(composite);
+        return;
+    }
+
+    const auto transform{ composite->CurrentMatrix() * ComputeTransform(this->scene, this->style, rect) };
+    const auto opacity{ composite->CurrentOpacity() };
+    const auto imageStyle{ Style::OrEmpty(this->style) };
+
+    if (!imageStyle->backgroundColor.empty()) {
+        composite->renderer->DrawFillRect(
+            rect,
+            transform,
+            imageStyle->backgroundColor.value.MixAlpha(opacity));
+    }
+
+    if (this->image) {
+        if (!this->image->HasTexture()) {
+            this->image->LoadTexture(composite->renderer);
+        }
+
+        if (this->image->HasTexture() && !IsEmpty(this->imageRect.dest)) {
+            const auto imageDestRect{Translate(this->imageRect.dest, rect.x, rect.y)};
+
+            composite->renderer->DrawImage(this->image->GetTexture(), this->imageRect.src, imageDestRect,
+                    transform, imageStyle->tintColor.ValueOr(ColorWhite).MixAlpha(opacity));
+        }
+    }
+
+    if (!this->style->borderColor.empty()) {
+        composite->renderer->DrawBorder(
+            rect,
+            YGNodeLayoutGetBorderRect(this->ygNode),
+            transform,
+            imageStyle->borderColor.value.MixAlpha(opacity));
+    }
+
+    SceneNode::Composite(composite);
 }
 
 YGSize ImageSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
@@ -134,30 +200,7 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
           return;
       }
 
-      Napi::HandleScope scope(this->Env());
-
-      switch (res->GetState()) {
-          case Res::Ready:
-              if (!this->onLoadCallback.IsEmpty()) {
-                  try {
-                      this->onLoadCallback.Call({this->Value(), res->GetSummary(this->Env())});
-                  } catch (std::exception& e) {
-                      LOG_WARN_LAMBDA("onLoad unhandled exception: %s", e);
-                  }
-              }
-              break;
-          case Res::Error:
-              if (!this->onErrorCallback.IsEmpty()) {
-                  try {
-                      this->onErrorCallback.Call({this->Value(), res->GetErrorMessage(this->Env())});
-                  } catch (std::exception& e) {
-                      LOG_WARN_LAMBDA("onError unhandled exception: %s", e);
-                  }
-              }
-              break;
-          default:
-              break;
-      }
+      this->resourceProgress.Dispatch(this, this->image);
 
       YGNodeMarkDirty(this->ygNode);
       res->RemoveListener(owner);
@@ -179,142 +222,24 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
 }
 
 Value ImageSceneNode::GetOnLoadCallback(const CallbackInfo& info) {
-    return this->onLoadCallback.Value();
+    return this->resourceProgress.GetOnLoad(info.Env());
 }
 
 void ImageSceneNode::SetOnLoadCallback(const CallbackInfo& info, const Napi::Value& value) {
-    if (!Napi::AssignFunctionReference(this->onLoadCallback, value)) {
-        throw Error::New(info.Env(), "Invalid assignment of onLoad.");
-    }
+    return this->resourceProgress.SetOnLoad(info.Env(), value);
 }
 
 Value ImageSceneNode::GetOnErrorCallback(const CallbackInfo& info) {
-    return this->onErrorCallback.Value();
+    return this->resourceProgress.GetOnError(info.Env());
 }
 
 void ImageSceneNode::SetOnErrorCallback(const CallbackInfo& info, const Napi::Value& value) {
-    if (!Napi::AssignFunctionReference(this->onErrorCallback, value)) {
-        throw Error::New(info.Env(), "Invalid assignment of onError.");
-    }
-}
-
-//void ImageSceneNode::AfterLayout() {
-//    if (!this->image || !this->image->IsReady()) {
-//        return;
-//    }
-//
-//    const auto boxStyle{ this->GetStyleOrEmpty() };
-//    const auto innerRect{ YGNodeLayoutGetInnerRect(this->ygNode) };
-//    const auto imageRect = ComputeObjectFitRect(
-//        boxStyle->objectFit,
-//        boxStyle->objectPositionX,
-//        boxStyle->objectPositionY,
-//        innerRect,
-//        this->image.Get(),
-//        this->scene);
-//
-//    if (!image->HasCapInsets() && boxStyle->borderColor.empty()) {
-//        const auto imageWidth{ this->image->GetWidthF() };
-//        const auto imageHeight{ this->image->GetHeightF() };
-//
-//        if (imageWidth == 0 || imageHeight == 0) {
-//            this->destRect = {};
-//            this->srcRect = {};
-//        } else {
-//            const auto scaleX{ imageRect.width / imageWidth };
-//            const auto scaleY{ imageRect.height / imageHeight };
-//
-//            this->destRect = Intersect(innerRect, imageRect);
-//            this->srcRect = {
-//                std::max(innerRect.x - imageRect.x, 0.f) * scaleX,
-//                std::max(innerRect.y - imageRect.y, 0.f) * scaleY,
-//                this->destRect.width * scaleX,
-//                this->destRect.height * scaleY };
-//        }
-//    } else {
-//        this->destRect = imageRect;
-//    }
-//
-//    this->QueuePaint();
-//}
-
-void ImageSceneNode::Paint(GraphicsContext* graphicsContext) {
-}
-
-void ImageSceneNode::Composite(CompositeContext* composite) {
-    if (!this->style || !this->image || this->image->GetState() != Res::Ready) {
-        SceneNode::Composite(composite);
-        return;
-    }
-
-    const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
-    const auto transform{ ComputeTransform(composite->CurrentMatrix(), this->style->transform,
-            this->style->transformOriginX, this->style->transformOriginY, rect, this->scene) };
-
-    if (!this->image->HasTexture()) {
-        this->image->LoadTexture(composite->renderer);
-    }
-
-    if (this->image->HasTexture()) {
-        composite->renderer->DrawImage(this->image->GetTexture(), rect, transform,
-                this->style->tintColor.ValueOr(ColorWhite).MixAlpha(composite->CurrentOpacity()));
-    }
-
-    if (!this->style->borderColor.empty()) {
-        composite->renderer->DrawBorder(
-            rect,
-            YGNodeLayoutGetBorderRect(this->ygNode),
-            transform,
-            this->style->borderColor.value.MixAlpha(composite->CurrentOpacity()));
-    }
-
-    SceneNode::Composite(composite);
-
-//    if (this->layer) {
-//        const auto boxStyle{ this->GetStyleOrEmpty() };
-//        const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
-//        const auto transform{
-//            ComputeTransform(
-//                composite->CurrentMatrix(),
-//                boxStyle->transform,
-//                boxStyle->transformOriginX,
-//                boxStyle->transformOriginY,
-//                rect,
-//                this->scene)
-//        };
-//
-//        composite->renderer->DrawImage(
-//            this->layer,
-//            rect,
-//            transform,
-//            ARGB(composite->CurrentOpacityAlpha(), 255, 255, 255));
-//    } else if (this->image && this->image->HasTexture()) {
-//        const auto boxStyle{ this->GetStyleOrEmpty() };
-//        const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
-//        const auto transform{
-//            ComputeTransform(
-//                composite->CurrentMatrix(),
-//                boxStyle->transform,
-//                boxStyle->transformOriginX,
-//                boxStyle->transformOriginY,
-//                rect,
-//                this->scene)
-//        };
-//
-//        composite->renderer->DrawImage(
-//            this->image->GetTexture(),
-//            this->srcRect,
-//            Translate(this->destRect, rect.x, rect.y),
-//            { rect.x, rect.y },
-//            transform,
-//            MixAlpha(boxStyle->tintColor.ValueOr(ColorWhite), composite->CurrentOpacity()));
-//    }
+    return this->resourceProgress.SetOnLoad(info.Env(), value);
 }
 
 void ImageSceneNode::DestroyRecursive() {
     this->ClearResource();
-    this->onLoadCallback.Reset();
-    this->onErrorCallback.Reset();
+    this->resourceProgress.Reset();
 
     SceneNode::DestroyRecursive();
 }

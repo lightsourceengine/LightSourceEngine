@@ -48,6 +48,7 @@
         "ls/Font.cc",
         "ls/Resource.cc",
         "ls/Resources.cc",
+        "ls/ResourceProgress.cc",
         "ls/DecodeImage.cc",
         "ls/DecodeFont.cc",
         "ls/TextLayout.cc",

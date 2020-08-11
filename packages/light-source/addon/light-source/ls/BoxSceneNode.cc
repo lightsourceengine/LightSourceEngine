@@ -93,8 +93,7 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
     }
 
     const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
-    const auto transform{ ComputeTransform(composite->CurrentMatrix(), boxStyle->transform,
-        boxStyle->transformOriginX, boxStyle->transformOriginY, rect, this->scene) };
+    const auto transform{ composite->CurrentMatrix() * ComputeTransform(this->scene, boxStyle, rect) };
 
     if (!boxStyle->backgroundColor.empty()) {
         composite->renderer->DrawFillRect(

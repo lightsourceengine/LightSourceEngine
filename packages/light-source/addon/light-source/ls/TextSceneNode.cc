@@ -38,6 +38,7 @@ namespace ls {
 void TextSceneNode::Constructor(const Napi::CallbackInfo& info) {
     this->SceneNodeConstructor(info, SceneNodeTypeText);
     YGNodeSetMeasureFunc(this->ygNode, SceneNode::YogaMeasureCallback);
+    YGNodeSetNodeType(this->ygNode, YGNodeTypeText);
 }
 
 Function TextSceneNode::GetClass(Napi::Env env) {

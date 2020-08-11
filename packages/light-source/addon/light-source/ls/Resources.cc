@@ -171,6 +171,10 @@ float Image::HeightF() const noexcept {
     return this->height;
 }
 
+float Image::AspectRatio() const noexcept {
+    return this->height > 0 ? this->WidthF() / this->HeightF() : 0;
+}
+
 bool FontFace::Equals(FontFace* fontFace, const std::string& family,
                    StyleFontStyle style, StyleFontWeight weight) noexcept {
     if (fontFace) {

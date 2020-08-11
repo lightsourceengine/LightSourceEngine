@@ -7,9 +7,10 @@
 
 #pragma once
 
-#include <napi-ext.h>
-#include <ls/SceneNode.h>
+#include <ls/ResourceProgress.h>
 #include <ls/Resources.h>
+#include <ls/SceneNode.h>
+#include <napi-ext.h>
 
 namespace ls {
 
@@ -58,8 +59,7 @@ class LinkSceneNode : public Napi::SafeObjectWrap<LinkSceneNode>, public SceneNo
     LinkCategory category{ LinkCategoryImage };
     std::string href{};
     Res* resource{};
-    Napi::FunctionReference onLoadCallback;
-    Napi::FunctionReference onErrorCallback;
+    ResourceProgress resourceProgress;
 };
 
 } // namespace ls

@@ -42,8 +42,11 @@ void RefRenderer::DrawFillRect(const Rect& rect, const Matrix& transform, color_
 void RefRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) {
 }
 
-void RefRenderer::DrawImage(const Texture& texture, const Rect& rect,
-        const Matrix& transform, color_t tintColor) {
+void RefRenderer::DrawImage(const Texture& texture, const Rect& rect, const Matrix& transform, color_t tintColor) {
+}
+
+void RefRenderer::DrawImage(const Texture& texture, const Rect& srcRect, const Rect& destRect, const Matrix& transform,
+        color_t tintColor) {
 }
 
 void RefRenderer::DrawImage(const Texture& texture, const EdgeRect& capInsets, const Rect& rect,

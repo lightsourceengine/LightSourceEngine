@@ -169,6 +169,10 @@ Style* Style::Empty() noexcept {
     return sEmptyStyle;
 }
 
+Style* Style::OrEmpty(Style* style) noexcept {
+    return style ? style : sEmptyStyle;
+}
+
 void Style::Bind(SceneNode* sceneNode) noexcept {
     if (this->node == sceneNode) {
         return;
@@ -201,22 +205,22 @@ bool Style::HasBorderRadius() const noexcept {
 void Style::UpdateDependentProperties(bool rem, bool viewport) noexcept {
     auto updateProp = [](Style* self, StyleProperty property, StyleNumberUnit unit, bool rem, bool viewport) {
         switch (unit) {
-            case StyleNumberUnitRootEm:                                                     
+            case StyleNumberUnitRootEm:
                 if (rem) {
                     self->NotifyPropertyChanged(property);
                 }
                 break;
-            case StyleNumberUnitViewportWidth:                                              
-            case StyleNumberUnitViewportHeight:                                             
-            case StyleNumberUnitViewportMin:                                                
-            case StyleNumberUnitViewportMax:                                                
+            case StyleNumberUnitViewportWidth:
+            case StyleNumberUnitViewportHeight:
+            case StyleNumberUnitViewportMin:
+            case StyleNumberUnitViewportMax:
                 if (viewport) {
                     self->NotifyPropertyChanged(property);
                 }
                 break;
             default:
                 break;
-        }       
+        }
     };
 
     // TODO: this is horrible, but it is functional. root font size and viewport will rarely change.

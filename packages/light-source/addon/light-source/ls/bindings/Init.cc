@@ -40,7 +40,6 @@ Object Init(Env env, Object exports) {
     ls::Style::Init(env);
 
     ExportClass(&exports, ls::bindings::Logger::GetClass(env));
-
     ExportClass(&exports, ls::Style::GetClass(env));
     ExportClass(&exports, ls::Scene::GetClass(env));
     ExportClass(&exports, ls::Stage::GetClass(env));

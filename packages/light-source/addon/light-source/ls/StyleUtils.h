@@ -17,6 +17,20 @@
 
 namespace ls {
 
+class Scene;
+class Style;
+class Image;
+
+Matrix ComputeTransform(Scene* scene, Style* style, const Rect& box) noexcept;
+Rect ComputeObjectFit(Scene* scene, Style* style, const Rect& box, Image* image) noexcept;
+
+struct ImageRect {
+    Rect dest{};
+    Rect src{};
+};
+
+ImageRect ClipImage(const Rect& bounds, const Rect& imageDest, Image* image) noexcept;
+
 template<typename S /* Scene */, int32_t P = 50>
 float ComputeObjectPosition(const StyleValueNumber& objectPosition, const float boxDimension,
                             const float fitDimension, const S* scene) {
@@ -222,50 +236,6 @@ Rect ComputeBackgroundImageRect(const StyleValueNumber& backgroundX, const Style
         width,
         height
     };
-}
-
-template<typename S /* Scene */>
-float ComputeTransformOrigin(const StyleValueNumber& transformOrigin, const float dimension, const S* scene) {
-    switch (transformOrigin.unit) {
-        case StyleNumberUnitPoint:
-            return transformOrigin.value;
-        case StyleNumberUnitPercent:
-            return transformOrigin.AsPercent() * dimension;
-        case StyleNumberUnitAnchor:
-        {
-            switch (transformOrigin.AsInt32()) {
-                case StyleAnchorRight:
-                case StyleAnchorBottom:
-                    return dimension;
-                case StyleAnchorCenter:
-                    return dimension * .5f;
-                default:
-                    return 0;
-            }
-        }
-        case StyleNumberUnitViewportWidth:
-            return transformOrigin.AsPercent() * scene->GetWidth();
-        case StyleNumberUnitViewportHeight:
-            return transformOrigin.AsPercent() * scene->GetHeight();
-        case StyleNumberUnitViewportMin:
-            return transformOrigin.AsPercent() * scene->GetViewportMin();
-        case StyleNumberUnitViewportMax:
-            return transformOrigin.AsPercent() * scene->GetViewportMax();
-        case StyleNumberUnitRootEm:
-            return transformOrigin.AsPercent() * scene->GetRootFontSize();
-        default:
-            return dimension * .5f;
-    }
-}
-
-template<typename S /* Scene */>
-Matrix ComputeTransform(const Matrix& base, const StyleValueTransform& transform,
-        const StyleValueNumber& transformOriginX, const StyleValueNumber& transformOriginY,
-        const Rect& bounds, const S* scene) {
-    const auto x{ ComputeTransformOrigin(transformOriginX, bounds.width, scene) };
-    const auto y{ ComputeTransformOrigin(transformOriginY, bounds.height, scene) };
-
-    return base * Matrix::Translate(x, y) * transform.ToMatrix(bounds.width, bounds.height) * Matrix::Translate(-x, -y);
 }
 
 template<typename S /* Scene */>

@@ -28,6 +28,8 @@ class RefRenderer : public Renderer {
     void DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) override;
     void DrawImage(const Texture& texture, const Rect& rect, const Matrix& transform,
             color_t tintColor) override;
+    void DrawImage(const Texture& texture, const Rect& srcRect, const Rect& destRect,
+            const Matrix& transform, color_t tintColor) override;
     void DrawImage(const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
             const Matrix& transform, color_t tintColor) override;
 

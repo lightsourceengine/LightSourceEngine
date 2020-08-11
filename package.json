@@ -5,7 +5,8 @@
     "packages/light-source",
     "packages/light-source-reconciler",
     "packages/light-source-react",
-    "packages/light-source-node"
+    "packages/light-source-node",
+    "packages/light-source-examples"
   ],
   "license": "MIT",
   "repository": {

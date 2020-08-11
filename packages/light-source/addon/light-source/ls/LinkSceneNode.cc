@@ -108,30 +108,7 @@ void LinkSceneNode::ResourceListener(Res::Owner owner, Res* res) {
         return;
     }
 
-    Napi::HandleScope scope(this->Env());
-
-    switch (res->GetState()) {
-        case Res::Ready:
-            if (!this->onLoadCallback.IsEmpty()) {
-                try {
-                    this->onLoadCallback.Call({this->Value(), res->GetSummary(this->Env())});
-                } catch (std::exception& e) {
-                    LOG_WARN("onLoad unhandled exception: %s", e);
-                }
-            }
-            break;
-        case Res::Error:
-            if (!this->onErrorCallback.IsEmpty()) {
-                try {
-                    this->onErrorCallback.Call({this->Value(), res->GetErrorMessage(this->Env())});
-                } catch (std::exception& e) {
-                    LOG_WARN("onError unhandled exception: %s", e);
-                }
-            }
-            break;
-        default:
-            break;
-    }
+    this->resourceProgress.Dispatch(this, this->resource);
 
     res->RemoveListener(owner);
 }
@@ -216,28 +193,23 @@ void LinkSceneNode::SetHref(const Napi::CallbackInfo& info, const Napi::Value& v
 }
 
 Napi::Value LinkSceneNode::GetOnLoadCallback(const Napi::CallbackInfo& info) {
-    return this->onLoadCallback.Value();
+    return this->resourceProgress.GetOnLoad(info.Env());
 }
 
 void LinkSceneNode::SetOnLoadCallback(const Napi::CallbackInfo& info, const Napi::Value& value) {
-    if (!Napi::AssignFunctionReference(this->onLoadCallback, value)) {
-        throw Error::New(info.Env(), "Invalid assignment of onLoad.");
-    }
+    this->resourceProgress.SetOnLoad(info.Env(), value);
 }
 
 Napi::Value LinkSceneNode::GetOnErrorCallback(const Napi::CallbackInfo& info) {
-    return this->onErrorCallback.Value();
+    return this->resourceProgress.GetOnError(info.Env());
 }
 
 void LinkSceneNode::SetOnErrorCallback(const Napi::CallbackInfo& info, const Napi::Value& value) {
-    if (!Napi::AssignFunctionReference(this->onErrorCallback, value)) {
-        throw Error::New(info.Env(), "Invalid assignment of onError.");
-    }
+    this->resourceProgress.SetOnError(info.Env(), value);
 }
 
 void LinkSceneNode::DestroyRecursive() {
-    this->onLoadCallback.Reset();
-    this->onErrorCallback.Reset();
+    this->resourceProgress.Reset();
     this->ClearResource();
 
     SceneNode::DestroyRecursive();

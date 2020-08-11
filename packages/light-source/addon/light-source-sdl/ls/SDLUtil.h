@@ -29,6 +29,8 @@ void SetTextureTintColor(SDL_Texture* texture, color_t color) noexcept;
 
 void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const Rect& rect, const Matrix& transform,
         color_t tintColor) noexcept;
+void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const Rect& srcRect, const Rect& destRect,
+        const Matrix& transform, color_t tintColor) noexcept;
 void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const EdgeRect& capInsets, const Rect& rect,
         const Matrix& transform, color_t tintColor) noexcept;
 void DrawBorder(SDL_Renderer* renderer, SDL_Texture* fillRectTexture, const Rect& rect, const EdgeRect& border,

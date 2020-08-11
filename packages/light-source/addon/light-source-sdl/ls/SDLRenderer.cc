@@ -64,6 +64,11 @@ void SDLRenderer::DrawImage(const Texture& texture, const Rect& rect,
     ls::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), rect, transform, tintColor);
 }
 
+void SDLRenderer::DrawImage(const Texture& texture, const Rect& srcRect, const Rect& destRect,
+        const Matrix& transform, color_t tintColor) {
+    ls::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), srcRect, destRect, transform, tintColor);
+}
+
 void SDLRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) {
     ls::DrawBorder(this->renderer, this->fillRectTexture.Cast<SDL_Texture>(), rect, border, transform, fillColor);
 }

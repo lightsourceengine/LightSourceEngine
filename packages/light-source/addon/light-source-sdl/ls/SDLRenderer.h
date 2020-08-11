@@ -32,6 +32,8 @@ class SDLRenderer : public Renderer {
     void DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) override;
     void DrawImage(const Texture& texture, const Rect& rect, const Matrix& transform,
             color_t tintColor) override;
+    void DrawImage(const Texture& texture, const Rect& destRect, const Rect& srcRect,
+            const Matrix& transform, color_t tintColor) override;
     void DrawImage(const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
             const Matrix& transform, color_t tintColor) override;
 

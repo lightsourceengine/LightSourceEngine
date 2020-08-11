@@ -23,13 +23,15 @@ class SceneNode;
 //       node.
 class Style : public Napi::SafeObjectWrap<Style> {
  public:
-    explicit Style(const Napi::CallbackInfo& info);
-    virtual ~Style() = default;
+    Style(const Napi::CallbackInfo& info);
+    ~Style() override = default;
 
     static void Init(Napi::Env env);
     static Napi::Function GetClass(Napi::Env env);
     static Style* New(Napi::Env env);
     static Style* Empty() noexcept;
+    static Style* OrEmpty(Style* style) noexcept;
+
     void Assign(const Style* other) noexcept;
     void Bind(SceneNode* node) noexcept;
     bool IsLayoutOnly() const noexcept;
@@ -170,8 +172,6 @@ class Style : public Napi::SafeObjectWrap<Style> {
     static Style* sEmptyStyle;
     static Napi::FunctionReference sConstructor;
     SceneNode* node{};
-
-    friend Napi::SafeObjectWrap<Style>;
 };
 
 template<typename T>
