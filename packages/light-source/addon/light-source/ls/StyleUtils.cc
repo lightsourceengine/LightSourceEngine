@@ -121,6 +121,65 @@ ImageRect ClipImage(const Rect& bounds, const Rect& imageDest, Image* image) noe
     return result;
 }
 
+Rect ComputeBackgroundFit(Scene* scene, Style* style, const Rect& box, Image* image) noexcept {
+    auto computeDimension = [scene](
+            const StyleValueNumber& backgroundDimension, float boundsDimension, float imageDimension) {
+      switch (backgroundDimension.unit) {
+          case StyleNumberUnitPercent:
+              return backgroundDimension.AsPercent() * boundsDimension;
+          case StyleNumberUnitPoint:
+              return backgroundDimension.value;
+          case StyleNumberUnitViewportWidth:
+              return backgroundDimension.AsPercent() * scene->GetWidth();
+          case StyleNumberUnitViewportHeight:
+              return backgroundDimension.AsPercent() * scene->GetHeight();
+          case StyleNumberUnitViewportMin:
+              return backgroundDimension.AsPercent() * scene->GetViewportMin();
+          case StyleNumberUnitViewportMax:
+              return backgroundDimension.AsPercent() * scene->GetViewportMax();
+          case StyleNumberUnitRootEm:
+              return backgroundDimension.value * scene->GetRootFontSize();
+          default: // StyleNumberUnitAuto
+              return imageDimension;
+      }
+    };
+    float width;
+    float height;
+    auto backgroundStyle{ Style::OrEmpty(style) };
+
+    switch (backgroundStyle->backgroundSize) {
+        case StyleBackgroundSizeContain:
+            if (image->AspectRatio() > (box.width / box.height)) {
+                width = box.width;
+                height = box.width / image->AspectRatio();
+            } else {
+                width = box.height * image->AspectRatio();
+                height = box.height;
+            }
+            break;
+        case StyleBackgroundSizeCover:
+            if (image->AspectRatio() > (box.width / box.height)) {
+                width = box.height * image->AspectRatio();
+                height = box.height;
+            } else {
+                width = box.width;
+                height = box.width / image->AspectRatio();
+            }
+            break;
+        default:
+            width = computeDimension(backgroundStyle->backgroundWidth, box.width, image->WidthF());
+            height = computeDimension(backgroundStyle->backgroundHeight, box.height, image->HeightF());
+            break;
+    }
+
+    return {
+        box.x + ComputeObjectFitCoordinate(scene, backgroundStyle->backgroundPositionX, box.width, width, 0),
+        box.y + ComputeObjectFitCoordinate(scene, backgroundStyle->backgroundPositionY, box.height, height, 0),
+        width,
+        height
+    };
+}
+
 static float ComputeObjectFitCoordinate(Scene* scene, const StyleValueNumber& coordinate, float boxDimension,
         float fitDimension, float defaultPercent) noexcept {
     switch (coordinate.unit) {

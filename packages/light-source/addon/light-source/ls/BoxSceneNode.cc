@@ -72,8 +72,22 @@ void BoxSceneNode::OnStylePropertyChanged(StyleProperty property) {
 }
 
 void BoxSceneNode::OnStyleLayout() {
-    // TODO: compute background image position, if necessary
-    // TODO: mark pre-render, if necessary
+    if (this->backgroundImage && this->backgroundImage->HasDimensions()) {
+        auto bounds{
+            Style::OrEmpty(this->style)->backgroundClip == StyleBackgroundClipBorderBox ?
+                YGNodeLayoutGetRect(this->ygNode, 0, 0) : YGNodeLayoutGetInnerRect(this->ygNode)
+        };
+
+        if (!IsEmpty(bounds)) {
+            auto fit{ComputeObjectFit(this->scene, this->style, bounds, this->backgroundImage)};
+
+            this->backgroundImageRect = ClipImage(bounds, fit, this->backgroundImage);
+        }
+    }
+
+    // TODO: if background repeat -> paint
+    // TODO: if border radius -> paint
+
     this->RequestComposite();
 }
 
@@ -93,6 +107,12 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
     }
 
     const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
+
+    if (IsEmpty(rect)) {
+        SceneNode::Composite(composite);
+        return;
+    }
+
     const auto transform{ composite->CurrentMatrix() * ComputeTransform(this->scene, boxStyle, rect) };
 
     if (!boxStyle->backgroundColor.empty()) {
@@ -107,11 +127,11 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
             this->backgroundImage->LoadTexture(composite->renderer);
         }
 
-        // TODO: use background position
+        if (this->backgroundImage->HasTexture() && !IsEmpty(this->backgroundImageRect.dest)) {
+            const auto backgroundImageDestRect{Translate(this->backgroundImageRect.dest, rect.x, rect.y)};
 
-        if (this->backgroundImage->HasTexture()) {
-            composite->renderer->DrawImage(this->backgroundImage->GetTexture(), rect, transform,
-                ColorWhite.MixAlpha(composite->CurrentOpacity()));
+            composite->renderer->DrawImage(this->backgroundImage->GetTexture(), this->backgroundImageRect.src,
+                backgroundImageDestRect, transform, boxStyle->tintColor.ValueOr(ColorWhite).MixAlpha(opacity));
         }
     }
 
@@ -181,7 +201,7 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
 //    }
 //}
 
-void BoxSceneNode::PaintBackgroundImage(Renderer* renderer, Style* boxStyle) {
+//void BoxSceneNode::PaintBackgroundImage(Renderer* renderer, Style* boxStyle) {
 //    const auto dest{
 //        boxStyle->backgroundClip == StyleBackgroundClipBorderBox ?
 //            YGNodeLayoutGetRect(this->ygNode, 0, 0) : YGNodeLayoutGetInnerRect(this->ygNode)
@@ -247,7 +267,7 @@ void BoxSceneNode::PaintBackgroundImage(Renderer* renderer, Style* boxStyle) {
 //
 //    renderer->ClearClipRect();
 //    renderer->SetRenderTarget(nullptr);
-}
+//}
 
 void BoxSceneNode::UpdateBackgroundImage(const std::string& backgroundUri) {
     auto clearBackgroundImageResource = [](BoxSceneNode* node) {

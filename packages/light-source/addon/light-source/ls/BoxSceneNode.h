@@ -30,14 +30,11 @@ class BoxSceneNode : public Napi::SafeObjectWrap<BoxSceneNode>, public SceneNode
  private:
     void DestroyRecursive() override;
     void UpdateBackgroundImage(const std::string& backgroundUri);
-    // TODO: void PaintRoundedRect(PaintContext* paint, Style* boxStyle);
-    void PaintBackgroundImage(Renderer* renderer, Style* boxStyle);
-    void PaintBackgroundStack(Renderer* renderer, Style* boxStyle);
-    bool IsBackgroundOnly(Style* boxStyle) const noexcept;
     void ClearBackgroundImageResource();
 
  private:
     Image* backgroundImage{};
+    ImageRect backgroundImageRect{};
 };
 
 } // namespace ls

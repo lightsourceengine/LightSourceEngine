@@ -76,19 +76,15 @@ void ImageSceneNode::OnBoundingBoxChanged() {
 }
 
 void ImageSceneNode::OnStyleLayout() {
-    if (!this->image || !this->image->HasDimensions()) {
-        return;
+    if (this->image && this->image->HasDimensions()) {
+        auto bounds{YGNodeLayoutGetInnerRect(this->ygNode)};
+
+        if (!IsEmpty(bounds)) {
+            auto fit{ComputeObjectFit(this->scene, this->style, bounds, this->image)};
+
+            this->imageRect = ClipImage(bounds, fit, this->image);
+        }
     }
-
-    auto bounds{ YGNodeLayoutGetInnerRect(this->ygNode) };
-
-    if (IsEmpty(bounds)) {
-        return;
-    }
-
-    auto fit{ ComputeObjectFit(this->scene, this->style, bounds, this->image) };
-
-    this->imageRect = ClipImage(bounds, fit, this->image);
 
     this->RequestComposite();
 }

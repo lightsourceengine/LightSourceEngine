@@ -23,6 +23,7 @@ class Image;
 
 Matrix ComputeTransform(Scene* scene, Style* style, const Rect& box) noexcept;
 Rect ComputeObjectFit(Scene* scene, Style* style, const Rect& box, Image* image) noexcept;
+Rect ComputeBackgroundFit(Scene* scene, Style* style, const Rect& box, Image* image) noexcept;
 
 struct ImageRect {
     Rect dest{};
