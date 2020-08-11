@@ -30,7 +30,7 @@ using Napi::Value;
 namespace ls {
 
 void ImageSceneNode::Constructor(const Napi::CallbackInfo& info) {
-    this->SceneNodeConstructor(info, SceneNodeTypeImage);
+    this->SceneNodeConstructor(info);
     YGNodeSetMeasureFunc(this->ygNode, SceneNode::YogaMeasureCallback);
 }
 

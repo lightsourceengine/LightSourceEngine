@@ -35,14 +35,12 @@ namespace ls {
 
 int32_t SceneNode::instanceCount{0};
 
-void SceneNode::SceneNodeConstructor(const Napi::CallbackInfo& info, SceneNodeType type) {
+void SceneNode::SceneNodeConstructor(const Napi::CallbackInfo& info) {
     this->scene = Scene::CastRef(info[0]);
 
     if (!this->scene) {
         throw Error::New(info.Env(), "Expected scene reference as arg.");
     }
-
-    SetType(info.This(), type);
 
     this->ygNode = YGNodeNew();
     YGNodeSetContext(this->ygNode, this);
@@ -435,34 +433,28 @@ const std::vector<SceneNode*>& SceneNode::SortChildrenByStackingOrder() {
 }
 
 SceneNode* SceneNode::QueryInterface(Napi::Value value) {
-    if (value.IsObject()) {
-        auto typeValue{ value.As<Object>().Get(0u) };
+    if (!value.IsObject()) {
+        return nullptr;
+    }
 
-        if (typeValue.IsNumber()) {
-            switch (typeValue.As<Number>().Int32Value()) {
-                case SceneNodeTypeRoot:
-                    return RootSceneNode::Cast(value);
-                case SceneNodeTypeBox:
-                    return BoxSceneNode::Cast(value);
-                case SceneNodeTypeImage:
-                    return ImageSceneNode::Cast(value);
-                case SceneNodeTypeText:
-                    return TextSceneNode::Cast(value);
-                case SceneNodeTypeLink:
-                    return LinkSceneNode::Cast(value);
-                default:
-                    break;
-            }
-        }
+    auto env{ value.Env() };
+    HandleScope scope(env);
+    auto object{ value.As<Object>() };
+
+    // This is probably expensive, but instanceOf appears to be the cleanest way of getting the SceneNode instance.
+    if (object.InstanceOf(BoxSceneNode::GetClass(env))) {
+        return BoxSceneNode::Cast(value);
+    } else if (object.InstanceOf(ImageSceneNode::GetClass(env))) {
+        return ImageSceneNode::Cast(value);
+    } else if (object.InstanceOf(TextSceneNode::GetClass(env))) {
+        return TextSceneNode::Cast(value);
+    } else if (object.InstanceOf(LinkSceneNode::GetClass(env))) {
+        return LinkSceneNode::Cast(value);
+    } else if (object.InstanceOf(RootSceneNode::GetClass(env))) {
+        return RootSceneNode::Cast(value);
     }
 
     return nullptr;
-}
-
-void SceneNode::SetType(Napi::Value value, SceneNodeType type) {
-    if (value.IsObject()) {
-        value.As<Object>().Set(0u, Number::New(value.Env(), type));
-    }
 }
 
 YGSize SceneNode::YogaMeasureCallback(

@@ -23,14 +23,6 @@ class CompositeContext;
 class GraphicsContext;
 class Texture;
 
-enum SceneNodeType {
-    SceneNodeTypeRoot,
-    SceneNodeTypeBox,
-    SceneNodeTypeImage,
-    SceneNodeTypeText,
-    SceneNodeTypeLink
-};
-
 class SceneNode : public virtual Napi::SafeObjectWrapReference {
  public:
     ~SceneNode() override = default;
@@ -67,7 +59,6 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     virtual bool IsLeaf() const noexcept { return true; }
 
     static SceneNode* QueryInterface(Napi::Value value);
-    static void SetType(Napi::Value value, SceneNodeType type);
 
     template<typename Callable>
     static void Visit(SceneNode* node, const Callable& func);
@@ -85,7 +76,7 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     static std::vector<napi_property_descriptor> Extend(const Napi::Env& env,
         const std::initializer_list<napi_property_descriptor>& subClassProperties);
 
-    void SceneNodeConstructor(const Napi::CallbackInfo& info, SceneNodeType type);
+    void SceneNodeConstructor(const Napi::CallbackInfo& info);
     void SetParent(SceneNode* newParent);
     void InsertBefore(const Napi::Env& env, SceneNode* child, SceneNode* before);
     void RemoveChild(SceneNode* child);

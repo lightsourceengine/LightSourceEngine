@@ -11,6 +11,7 @@ using Napi::Array;
 using Napi::Assert;
 using Napi::CallbackInfo;
 using Napi::Error;
+using Napi::Function;
 using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Number;
@@ -24,13 +25,49 @@ using Napi::Value;
 
 namespace ls {
 
+constexpr const auto STATIC_VALUE = 10;
+constexpr const auto INSTANCE_VALUE = 20;
+
 class A : public SafeObjectWrap<A> {
  public:
+    static FunctionReference sClassA;
+
     A(const CallbackInfo& info) : SafeObjectWrap<A>(info) {
     }
 
     void Constructor(const CallbackInfo &info) override {
         this->constructorCalled = true;
+    }
+
+    static Function GetClass(const Napi::Env& env) {
+        if (sClassA.IsEmpty()) {
+            sClassA = A::DefineClass(
+                env, "A", false,
+                {
+                    // static bindings
+                    A::StaticMethod("staticFunc", &A::StaticFunc),
+                    A::StaticMethod("staticFuncThrows", &A::StaticFuncThrows),
+                    A::StaticMethod("staticFuncVoid", &A::StaticFuncVoid),
+                    A::StaticMethod("staticFuncVoidThrows", &A::StaticFuncVoidThrows),
+                    A::StaticAccessor("staticPropertyReadOnly", &A::GetStaticPropertyReadOnly),
+                    A::StaticAccessor("staticPropertyReadOnlyThrows", &A::GetStaticPropertyReadOnlyThrows),
+                    A::StaticAccessor("staticProperty", &A::GetStaticProperty, &A::SetStaticProperty),
+                    A::StaticAccessor("staticPropertyThrows", &A::GetStaticPropertyThrows, &A::SetStaticPropertyThrows),
+                    A::StaticValue("staticValue", Number::New(env, STATIC_VALUE)),
+                    // instance bindings
+                    A::InstanceMethod("func", &A::Func),
+                    A::InstanceMethod("funcThrows", &A::FuncThrows),
+                    A::InstanceMethod("funcVoid", &A::FuncVoid),
+                    A::InstanceMethod("funcVoidThrows", &A::FuncVoidThrows),
+                    A::InstanceAccessor("propertyReadOnly", &A::GetPropertyReadOnly),
+                    A::InstanceAccessor("propertyReadOnlyThrows", &A::GetPropertyReadOnlyThrows),
+                    A::InstanceAccessor("property", &A::GetProperty, &A::SetProperty),
+                    A::InstanceAccessor("propertyThrows", &A::GetPropertyThrows, &A::SetPropertyThrows),
+                    A::InstanceValue("value", Number::New(env, INSTANCE_VALUE)),
+                });
+        }
+
+        return sClassA.Value();
     }
 
     static void StaticFuncVoid(const CallbackInfo &info) {
@@ -139,8 +176,6 @@ class A : public SafeObjectWrap<A> {
     bool getPropertyReadOnlyCalled{false};
     bool getPropertyCalled{false};
     bool setPropertyCalled{false};
-
-    friend SafeObjectWrap<A>;
 };
 
 bool A::staticFuncVoidCalled{false};
@@ -154,7 +189,17 @@ class B : public SafeObjectWrap<B> {
     B(const CallbackInfo& info) : SafeObjectWrap<B>(info) {
     }
 
-    friend SafeObjectWrap<B>;
+    static FunctionReference sClassB;
+
+    static Function GetClass(const Napi::Env& env) {
+        if (sClassB.IsEmpty()) {
+            HandleScope scope(env);
+
+            sClassB = B::DefineClass(env, "B", true, {});
+        }
+
+        return sClassB.Value();
+    }
 };
 
 class C : public SafeObjectWrap<C> {
@@ -166,15 +211,26 @@ class C : public SafeObjectWrap<C> {
         throw Error::New(info.Env(), "from C");
     }
 
-    friend SafeObjectWrap<C>;
+    static FunctionReference sClassC;
+
+    static Function GetClass(const Napi::Env& env) {
+        if (sClassC.IsEmpty()) {
+            HandleScope scope(env);
+
+            sClassC = C::DefineClass(env, "C", true, {});
+        }
+
+        return sClassC.Value();
+    }
 };
 
-constexpr auto STATIC_VALUE = 10;
-constexpr auto INSTANCE_VALUE = 20;
-FunctionReference sClassA;
-FunctionReference sClassB;
-FunctionReference sClassC;
-ObjectReference sContext;
+FunctionReference A::sClassA;
+FunctionReference B::sClassB;
+FunctionReference C::sClassC;
+
+static Napi::Value GetGlobalInstanceA(const Napi::Env& env) {
+    return env.Global().Get("SafeObjectWrapSpec").As<Object>().Get("a");
+}
 
 void SafeObjectWrapSpec(TestSuite* parent) {
     auto spec{ parent->Describe("SafeObjectWrap") };
@@ -182,56 +238,19 @@ void SafeObjectWrapSpec(TestSuite* parent) {
     spec->before = [](const Napi::Env& env) {
         HandleScope scope(env);
 
-        sClassA = A::DefineClass(env, "A", false, {
-            // static bindings
-            A::StaticMethod("staticFunc", &A::StaticFunc),
-            A::StaticMethod("staticFuncThrows", &A::StaticFuncThrows),
-            A::StaticMethod("staticFuncVoid", &A::StaticFuncVoid),
-            A::StaticMethod("staticFuncVoidThrows", &A::StaticFuncVoidThrows),
-            A::StaticAccessor("staticPropertyReadOnly", &A::GetStaticPropertyReadOnly),
-            A::StaticAccessor("staticPropertyReadOnlyThrows", &A::GetStaticPropertyReadOnlyThrows),
-            A::StaticAccessor("staticProperty", &A::GetStaticProperty, &A::SetStaticProperty),
-            A::StaticAccessor("staticPropertyThrows", &A::GetStaticPropertyThrows, &A::SetStaticPropertyThrows),
-            A::StaticValue("staticValue", Number::New(env, STATIC_VALUE)),
-            // instance bindings
-            A::InstanceMethod("func", &A::Func),
-            A::InstanceMethod("funcThrows", &A::FuncThrows),
-            A::InstanceMethod("funcVoid", &A::FuncVoid),
-            A::InstanceMethod("funcVoidThrows", &A::FuncVoidThrows),
-            A::InstanceAccessor("propertyReadOnly", &A::GetPropertyReadOnly),
-            A::InstanceAccessor("propertyReadOnlyThrows", &A::GetPropertyReadOnlyThrows),
-            A::InstanceAccessor("property", &A::GetProperty, &A::SetProperty),
-            A::InstanceAccessor("propertyThrows", &A::GetPropertyThrows, &A::SetPropertyThrows),
-            A::InstanceValue("value", Number::New(env, INSTANCE_VALUE)),
-        });
-        sClassB = B::DefineClass(env, "B", false, {});
-        sClassC = C::DefineClass(env, "C", false, {});
-
-        sClassA.Ref();
-        sClassB.Ref();
-        sClassC.Ref();
-
         // Expose to js context so tests can create these classes via RunScript.
-        sContext.Reset(Object::New(env), 1);
+        auto context{ Object::New(env) };
 
-        sContext.Set("A", sClassA.Value());
-        sContext.Set("B", sClassB.Value());
-        sContext.Set("C", sClassC.Value());
+        context.Set("A", A::GetClass(env));
+        context.Set("B", B::GetClass(env));
+        context.Set("C", C::GetClass(env));
+        context.Set("a", A::GetClass(env).New({}));
 
-        sContext.Set("a", sClassA.New({}));
-
-        env.Global().Set("SafeObjectWrapSpec", sContext.Value());
+        env.Global().Set("SafeObjectWrapSpec", context);
     };
 
     spec->after = [](const Napi::Env& env) {
-        HandleScope scope(env);
-
         env.Global().Delete("SafeObjectWrapSpec");
-
-        sClassA.Reset();
-        sClassB.Reset();
-        sClassC.Reset();
-        sContext.Reset();
     };
 
     spec->beforeEach = [](const Napi::Env& env) {
@@ -242,7 +261,7 @@ void SafeObjectWrapSpec(TestSuite* parent) {
         {
             "should call overridden Constructor()",
             [](const TestInfo& info) {
-                auto jsObject{ sClassA.New({}) };
+                auto jsObject{ A::GetClass(info.Env()).New({}) };
 
                 Assert::IsTrue(A::Cast(jsObject)->constructorCalled);
             }
@@ -250,7 +269,7 @@ void SafeObjectWrapSpec(TestSuite* parent) {
         {
             "should throw Error from Constructor()",
             [](const TestInfo& info) {
-                Assert::Throws([&](){ sClassC.New({}); });
+                Assert::Throws([&](){ C::GetClass(info.Env()).New({}); });
             }
         },
         {
@@ -356,18 +375,14 @@ void SafeObjectWrapSpec(TestSuite* parent) {
             "should call func()",
             [](const TestInfo& info) {
                 RunScript(info.Env(), "SafeObjectWrapSpec.a.func()");
-                auto instance{ sContext.Get("a") };
-
-                Assert::IsTrue(A::Cast(instance)->funcCalled);
+                Assert::IsTrue(A::Cast(GetGlobalInstanceA(info.Env()))->funcCalled);
             }
         },
         {
             "should call funcVoid()",
             [](const TestInfo& info) {
                 RunScript(info.Env(), "SafeObjectWrapSpec.a.funcVoid()");
-                auto instance{ sContext.Get("a") };
-
-                Assert::IsTrue(A::Cast(instance)->funcVoidCalled);
+                Assert::IsTrue(A::Cast(GetGlobalInstanceA(info.Env()))->funcVoidCalled);
             }
         },
         {
@@ -405,15 +420,13 @@ void SafeObjectWrapSpec(TestSuite* parent) {
             "should call propertyReadOnly",
             [](const TestInfo &info) {
                 RunScript(info.Env(), "SafeObjectWrapSpec.a.propertyReadOnly");
-                auto instance{ sContext.Get("a") };
-
-                Assert::IsTrue(A::Cast(instance)->getPropertyReadOnlyCalled);
+                Assert::IsTrue(A::Cast(GetGlobalInstanceA(info.Env()))->getPropertyReadOnlyCalled);
             }
         },
         {
             "should get and set property",
             [](const TestInfo &info) {
-                auto instance{ sContext.Get("a") };
+                auto instance{ GetGlobalInstanceA(info.Env()) };
 
                 RunScript(info.Env(), "SafeObjectWrapSpec.a.property");
                 Assert::IsTrue(A::Cast(instance)->getPropertyCalled);
@@ -444,11 +457,11 @@ void SafeObjectWrapSpec(TestSuite* parent) {
         },
     };
 
-    spec->Describe("QueryInterface()")->tests = {
+    spec->Describe("Cast()")->tests = {
         {
             "should get derived interface",
             [](const TestInfo& info) {
-                auto jsObject{ sClassA.New({}) };
+                auto jsObject{ A::GetClass(info.Env()).New({}) };
 
                 Assert::IsNotNull(A::Cast(jsObject));
             }
@@ -456,7 +469,7 @@ void SafeObjectWrapSpec(TestSuite* parent) {
         {
             "should return null for non-derived interface",
             [](const TestInfo& info) {
-                auto jsObject{ sClassB.New({}) };
+                auto jsObject{ B::GetClass(info.Env()).New({}) };
 
                 Assert::IsNull(A::Cast(jsObject));
             }

@@ -28,7 +28,7 @@ using Napi::SafeObjectWrap;
 namespace ls {
 
 void BoxSceneNode::Constructor(const Napi::CallbackInfo& info) {
-    this->SceneNodeConstructor(info, SceneNodeTypeBox);
+    this->SceneNodeConstructor(info);
 }
 
 Function BoxSceneNode::GetClass(Napi::Env env) {

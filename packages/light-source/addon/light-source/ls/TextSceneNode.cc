@@ -36,7 +36,7 @@ namespace ls {
 //static std::string TextTransform(const Napi::Env& env, const StyleTextTransform transform, const std::string& text);
 
 void TextSceneNode::Constructor(const Napi::CallbackInfo& info) {
-    this->SceneNodeConstructor(info, SceneNodeTypeText);
+    this->SceneNodeConstructor(info);
     YGNodeSetMeasureFunc(this->ygNode, SceneNode::YogaMeasureCallback);
     YGNodeSetNodeType(this->ygNode, YGNodeTypeText);
 }

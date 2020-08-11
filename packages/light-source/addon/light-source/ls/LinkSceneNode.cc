@@ -59,7 +59,7 @@ Function LinkSceneNode::GetClass(Napi::Env env) {
 }
 
 void LinkSceneNode::Constructor(const Napi::CallbackInfo& info) {
-    this->SceneNodeConstructor(info, SceneNodeTypeLink);
+    this->SceneNodeConstructor(info);
 }
 
 void LinkSceneNode::Fetch(const Napi::CallbackInfo& info) {

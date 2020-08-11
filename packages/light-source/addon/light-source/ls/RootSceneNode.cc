@@ -24,7 +24,7 @@ using Napi::Value;
 namespace ls {
 
 void RootSceneNode::Constructor(const Napi::CallbackInfo& info) {
-    this->SceneNodeConstructor(info, SceneNodeTypeRoot);
+    this->SceneNodeConstructor(info);
 }
 
 Function RootSceneNode::GetClass(Napi::Env env) {

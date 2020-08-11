@@ -29,8 +29,14 @@ template <typename T>
 T* SafeObjectWrap<T>::Cast(const Napi::Value& value) noexcept {
     void* instance;
 
-    if (value.IsObject() && napi_unwrap(value.Env(), value, &instance) == napi_ok) {
-        return static_cast<T*>(instance);
+    if (value.IsObject()) {
+        auto env{ value.Env() };
+        HandleScope scope(env);
+        auto object{ value.As<Object>() };
+
+        if (object.InstanceOf(T::GetClass(env)) && napi_unwrap(value.Env(), value, &instance) == napi_ok) {
+            return static_cast<T*>(instance);
+        }
     }
 
     return nullptr;
