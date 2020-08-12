@@ -9,7 +9,6 @@
 #include <ls/Scene.h>
 #include <ls/Stage.h>
 #include <ls/Style.h>
-#include <ls/StyleUtils.h>
 #include <ls/CompositeContext.h>
 #include <ls/Math.h>
 #include <ls/Renderer.h>
@@ -79,9 +78,10 @@ void BoxSceneNode::OnStyleLayout() {
         };
 
         if (!IsEmpty(bounds)) {
-            auto fit{ComputeObjectFit(this->scene, this->style, bounds, this->backgroundImage)};
+            auto fit{this->scene->GetStyleResolver().ResolveBackgroundFit(this->style, bounds, this->backgroundImage)};
 
-            this->backgroundImageRect = ClipImage(bounds, fit, this->backgroundImage);
+            this->backgroundImageRect = ClipImage(bounds, fit,
+                    this->backgroundImage->WidthF(), this->backgroundImage->HeightF());
         }
     }
 
@@ -113,7 +113,9 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
         return;
     }
 
-    const auto transform{ composite->CurrentMatrix() * ComputeTransform(this->scene, boxStyle, rect) };
+    const auto transform{
+        composite->CurrentMatrix() * this->scene->GetStyleResolver().ResolveTransform(boxStyle, rect)
+    };
 
     if (!boxStyle->backgroundColor.empty()) {
         composite->renderer->DrawFillRect(

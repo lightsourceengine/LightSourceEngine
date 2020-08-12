@@ -9,7 +9,6 @@
 #include <ls/Stage.h>
 #include <ls/Scene.h>
 #include <ls/Font.h>
-#include <ls/StyleUtils.h>
 #include <ls/yoga-ext.h>
 #include <ls/Style.h>
 #include <ls/CompositeContext.h>

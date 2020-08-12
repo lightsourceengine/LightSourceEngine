@@ -180,7 +180,7 @@ describe('Style', () => {
   })
   describe('fontStyle property', () => {
     const property = 'fontStyle'
-    const enums = ['normal', 'italic']
+    const enums = ['normal', 'italic', 'oblique']
     it('should set values', () => {
       testEnumProperty(property, enums)
     })
@@ -190,7 +190,7 @@ describe('Style', () => {
   })
   describe('fontWeight property', () => {
     const property = 'fontWeight'
-    const enums = ['normal', 'bold']
+    const enums = ['normal', 'bold', 'oblique']
     it('should set values', () => {
       testEnumProperty(property, enums)
     })

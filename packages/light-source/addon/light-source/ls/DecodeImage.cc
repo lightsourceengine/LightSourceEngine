@@ -7,9 +7,7 @@
 
 #include <ls/DecodeImage.h>
 
-#include <blend2d.h>
 #include <ls/Format.h>
-#include <ls/PixelConversion.h>
 #include <stb_image.h>
 #include <nanosvg.h>
 #include <nanosvgrast.h>
@@ -147,19 +145,9 @@ ImageBytes DecodeImageFromFile(const std17::filesystem::path& path, int32_t resi
         bytes = LoadSvg(path.c_str(), resizeWidth, resizeHeight, &width, &height);
         deleter = [](uint8_t* p) noexcept { delete [] p; };
     } else {
-        // Use stb_image for loading all images. blend2d has an image decoder, but it has a smaller set of
-        // supported formats.
-        constexpr auto readFlags{ BL_FILE_READ_MMAP_ENABLED | BL_FILE_READ_MMAP_AVOID_SMALL };
         int32_t components{};
-        BLArray<uint8_t> fileBytes;
 
-        BLResult result = BLFileSystem::readFile(path.c_str(), fileBytes, 0, readFlags);
-
-        if (result) {
-            throw std::runtime_error(Format("Image file not found: %s", path.c_str()));
-        }
-
-        bytes = stbi_load_from_memory(fileBytes.data(), fileBytes.size(), &width, &height, &components, kNumChannels);
+        bytes = stbi_load(path.c_str(), &width, &height, &components, kNumChannels);
         deleter = [](uint8_t* p) noexcept { stbi_image_free(p); };
     }
 

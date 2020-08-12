@@ -14,7 +14,6 @@
 #include <ls/Math.h>
 #include <ls/Style.h>
 #include <ls/RootSceneNode.h>
-#include <ls/StyleUtils.h>
 #include <YGNode.h>
 
 using Napi::Boolean;
@@ -100,8 +99,16 @@ void Scene::Attach(const CallbackInfo& info) {
         this->isViewportSizeDirty = true;
     }
 
+    // TODO: remove
     this->viewportMin = std::min(this->width, this->height);
     this->viewportMax = std::max(this->width, this->height);
+
+    this->styleResolver = {
+        static_cast<float>(this->width),
+        static_cast<float>(this->height),
+        this->rootFontSize
+    };
+
     this->isAttached = true;
 
     this->RequestComposite();
@@ -155,7 +162,13 @@ void Scene::SetActiveNode(Napi::Value node) {
     }
 }
 
-void Scene::OnRootFontSizeChange(float newRootFontSize) noexcept {
+void Scene::OnRootFontSizeChange() noexcept {
+    if (!this->root || !this->root->style) {
+        return;
+    }
+
+    auto newRootFontSize{ this->styleResolver.Update(this->root->style->fontSize, this->width, this->height) };
+
     if (!Equals(this->rootFontSize, newRootFontSize)) {
         this->isRootFontSizeDirty = true;
     }
@@ -187,9 +200,7 @@ void Scene::PropagateViewportAndRootFontSizeChanges() {
         return;
     }
 
-    if (this->isRootFontSizeDirty) {
-        this->rootFontSize = ComputeFontSize(this->root->style->fontSize, this, DEFAULT_REM_FONT_SIZE);
-    }
+    this->rootFontSize = this->styleResolver.Update(this->root->style->fontSize, this->width, this->height);
 
     SceneNode::Visit(this->root, [this](SceneNode* node) {
       if (node->style != nullptr) {

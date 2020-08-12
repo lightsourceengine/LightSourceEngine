@@ -7,7 +7,6 @@
 #include <ls/RootSceneNode.h>
 
 #include <ls/Scene.h>
-#include <ls/StyleUtils.h>
 #include <ls/Style.h>
 #include <ls/Renderer.h>
 #include <ls/CompositeContext.h>
@@ -46,8 +45,7 @@ void RootSceneNode::OnStylePropertyChanged(StyleProperty property) {
             this->RequestComposite();
             break;
         case StyleProperty::fontSize:
-            this->scene->OnRootFontSizeChange(ComputeFontSize(
-                this->style->fontSize, this->scene, DEFAULT_REM_FONT_SIZE));
+            this->scene->OnRootFontSizeChange();
             break;
         default:
             break;

@@ -20,6 +20,7 @@
         "ls/PixelConversion.cc",
         "ls/Surface.cc",
         "ls/Texture.cc",
+        "ls/Rect.cc",
       ]
     }
   ],

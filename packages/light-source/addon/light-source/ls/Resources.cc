@@ -175,6 +175,15 @@ float Image::AspectRatio() const noexcept {
     return this->height > 0 ? this->WidthF() / this->HeightF() : 0;
 }
 
+Image Image::Mock(const std::string& id, int32_t width, int32_t height) {
+    auto image{ Image(id) };
+
+    image.width = width;
+    image.height = height;
+
+    return image;
+}
+
 bool FontFace::Equals(FontFace* fontFace, const std::string& family,
                    StyleFontStyle style, StyleFontWeight weight) noexcept {
     if (fontFace) {

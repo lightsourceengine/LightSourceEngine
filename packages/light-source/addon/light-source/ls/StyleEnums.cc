@@ -58,18 +58,14 @@ const char* StyleFontStyleToString(const StyleFontStyle value) noexcept {
             return "normal";
         case StyleFontStyleItalic:
             return "italic";
+        case StyleFontStyleOblique:
+            return "oblique";
     }
     return "unknown";
 }
 
 const char* ToString(const StyleFontStyle value) noexcept {
-    switch (value) {
-        case StyleFontStyleNormal:
-            return "normal";
-        case StyleFontStyleItalic:
-            return "italic";
-    }
-    return "unknown";
+    return StyleFontStyleToString(value);
 }
 
 const char* StyleTextOverflowToString(const StyleTextOverflow value) noexcept {

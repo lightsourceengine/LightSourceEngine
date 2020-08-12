@@ -17,17 +17,17 @@ using Napi::TestSuite;
 namespace ls {
 
 const auto TIMEOUT = std::chrono::milliseconds(100);
-static std::unique_ptr<ThreadPool> executor;
+static std::unique_ptr<ThreadPool> sThreadPool;
 
-void ExecutorSpec(TestSuite* parent) {
+void ThreadPoolSpec(TestSuite* parent) {
     auto spec{ parent->Describe("ThreadPool") };
 
     spec->beforeEach = [](Napi::Env env) {
-        executor = std::make_unique<ThreadPool>();
+        sThreadPool = std::make_unique<ThreadPool>();
     };
 
     spec->afterEach = [](Napi::Env env) {
-        executor.reset();
+        sThreadPool.reset();
     };
 
     spec->Describe("Execute()")->tests = {
@@ -36,7 +36,7 @@ void ExecutorSpec(TestSuite* parent) {
             [](const TestInfo&) {
                 std::promise<void> p;
 
-                executor->Execute([&p]() {
+                sThreadPool->Execute([&p]() {
                     p.set_value();
                 });
 
@@ -51,7 +51,7 @@ void ExecutorSpec(TestSuite* parent) {
         {
             "should call function with int return",
             [](const TestInfo&) {
-                auto future = executor->Submit<int32_t>([&]() -> int32_t {
+                auto future = sThreadPool->Submit<int32_t>([&]() -> int32_t {
                     return 5;
                 });
 
@@ -61,7 +61,7 @@ void ExecutorSpec(TestSuite* parent) {
         {
             "should call function with void return",
             [](const TestInfo&) {
-                auto future = executor->Submit<void>([&]() {
+                auto future = sThreadPool->Submit<void>([&]() {
                 });
 
                 auto result{ future.wait_for(TIMEOUT) };
@@ -72,7 +72,7 @@ void ExecutorSpec(TestSuite* parent) {
         {
             "should catch async exceptions",
             [](const TestInfo&) {
-                auto future = executor->Submit<void>([&]() {
+                auto future = sThreadPool->Submit<void>([&]() {
                     throw std::runtime_error("error");
                 });
 
@@ -92,11 +92,11 @@ void ExecutorSpec(TestSuite* parent) {
         {
             "should be idempotent",
             [](const TestInfo&) {
-                Assert::IsTrue(executor->IsRunning());
-                executor->ShutdownNow();
-                Assert::IsFalse(executor->IsRunning());
-                executor->ShutdownNow();
-                Assert::IsFalse(executor->IsRunning());
+                Assert::IsTrue(sThreadPool->IsRunning());
+                sThreadPool->ShutdownNow();
+                Assert::IsFalse(sThreadPool->IsRunning());
+                sThreadPool->ShutdownNow();
+                Assert::IsFalse(sThreadPool->IsRunning());
             }
         },
     };
@@ -105,7 +105,7 @@ void ExecutorSpec(TestSuite* parent) {
         {
             "should be running",
             [](const TestInfo&) {
-                Assert::IsTrue(executor->IsRunning());
+                Assert::IsTrue(sThreadPool->IsRunning());
             }
         },
     };

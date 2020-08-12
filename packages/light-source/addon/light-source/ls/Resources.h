@@ -17,8 +17,6 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include "StyleUtils.h"
-
 
 namespace ls {
 
@@ -85,10 +83,13 @@ class Image : public Res {
     float HeightF() const noexcept;
     float AspectRatio() const noexcept;
 
+    // Test-only method.
+    static Image Mock(const std::string& id, int32_t width, int32_t height);
+
  private:
     AsyncWork<ImageBytes> work;
-    ImageBytes resource;
-    Texture texture;
+    ImageBytes resource{};
+    Texture texture{};
     int32_t width{};
     int32_t height{};
 };

@@ -43,8 +43,8 @@
         "ls/CompositeContext.cc",
         "ls/Style.cc",
         "ls/StyleEnums.cc",
-        "ls/StyleUtils.cc",
         "ls/StyleValue.cc",
+        "ls/StyleResolver.cc",
         "ls/Font.cc",
         "ls/Resource.cc",
         "ls/Resources.cc",
@@ -74,7 +74,7 @@
             ],
             "sources": [
               "test/ThreadPoolSpec.cc",
-              "test/StyleUtilsSpec.cc",
+              "test/StyleResolverSpec.cc",
             ]
           }
         ]

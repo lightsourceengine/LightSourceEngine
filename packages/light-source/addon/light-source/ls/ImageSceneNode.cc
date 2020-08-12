@@ -9,7 +9,6 @@
 #include <ls/Style.h>
 #include <ls/Scene.h>
 #include <ls/Stage.h>
-#include <ls/StyleUtils.h>
 #include <ls/Renderer.h>
 #include <ls/Color.h>
 #include <ls/CompositeContext.h>
@@ -80,9 +79,9 @@ void ImageSceneNode::OnStyleLayout() {
         auto bounds{YGNodeLayoutGetInnerRect(this->ygNode)};
 
         if (!IsEmpty(bounds)) {
-            auto fit{ComputeObjectFit(this->scene, this->style, bounds, this->image)};
+            auto fit{this->scene->GetStyleResolver().ResolveObjectFit(this->style, bounds, this->image)};
 
-            this->imageRect = ClipImage(bounds, fit, this->image);
+            this->imageRect = ClipImage(bounds, fit, this->image->WidthF(), this->image->HeightF());
         }
     }
 
@@ -105,7 +104,9 @@ void ImageSceneNode::Composite(CompositeContext* composite) {
         return;
     }
 
-    const auto transform{ composite->CurrentMatrix() * ComputeTransform(this->scene, this->style, rect) };
+    const auto transform{
+        composite->CurrentMatrix() * this->scene->GetStyleResolver().ResolveTransform(this->style, rect)
+    };
     const auto opacity{ composite->CurrentOpacity() };
     const auto imageStyle{ Style::OrEmpty(this->style) };
 

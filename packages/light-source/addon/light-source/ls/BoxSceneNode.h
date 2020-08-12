@@ -7,6 +7,7 @@
 #pragma once
 
 #include <napi-ext.h>
+#include <ls/Rect.h>
 #include <ls/Resources.h>
 #include <ls/SceneNode.h>
 

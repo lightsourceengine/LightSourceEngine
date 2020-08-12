@@ -6,19 +6,21 @@
 
 #pragma once
 
-#include <napi-ext.h>
-#include <memory>
-#include <algorithm>
-#include <unordered_set>
 #include <ls/CompositeContext.h>
 #include <ls/StyleEnums.h>
+#include <ls/StyleResolver.h>
+#include <napi-ext.h>
+
+#include <algorithm>
+#include <memory>
+#include <unordered_set>
 
 namespace ls {
 
-class SceneNode;
-class Stage;
 class Renderer;
 class GraphicsContext;
+class SceneNode;
+class Stage;
 
 class Scene : public Napi::SafeObjectWrap<Scene> {
  public:
@@ -44,8 +46,9 @@ class Scene : public Napi::SafeObjectWrap<Scene> {
     int32_t GetViewportMin() const noexcept { return this->viewportMin; }
     int32_t GetViewportMax() const noexcept { return this->viewportMax; }
     float GetRootFontSize() const noexcept { return this->rootFontSize; }
+    const StyleResolver& GetStyleResolver() const noexcept { return this->styleResolver; }
 
-    void OnRootFontSizeChange(float newRootFontSize) noexcept;
+    void OnRootFontSizeChange() noexcept;
 
     Renderer* GetRenderer() const noexcept;
     Stage* GetStage() const noexcept { return this->stage; }
@@ -72,6 +75,7 @@ class Scene : public Napi::SafeObjectWrap<Scene> {
     int32_t height{};
     int32_t viewportMin{};
     int32_t viewportMax{};
+    StyleResolver styleResolver{};
     float rootFontSize{DEFAULT_REM_FONT_SIZE};
     bool isViewportSizeDirty{true};
     bool isRootFontSizeDirty{false};

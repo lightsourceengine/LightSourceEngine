@@ -20,7 +20,8 @@ LS_ENUM_SEQ_DECL(
 LS_ENUM_SEQ_DECL(
     StyleFontStyle,
     StyleFontStyleNormal,
-    StyleFontStyleItalic
+    StyleFontStyleItalic,
+    StyleFontStyleOblique
 )
 
 LS_ENUM_SEQ_DECL(
