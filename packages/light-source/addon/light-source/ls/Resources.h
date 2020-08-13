@@ -64,7 +64,7 @@ class Res {
     friend class Resources;
 };
 
-class Image : public Res {
+class Image final : public Res {
  public:
     explicit Image(const std::string& id) : Res(id) {}
     ~Image() override = default;
@@ -94,7 +94,7 @@ class Image : public Res {
     int32_t height{};
 };
 
-class FontFace : public Res {
+class FontFace final : public Res {
  public:
     explicit FontFace(const std::string& id) : Res(id) {}
     ~FontFace() override = default;

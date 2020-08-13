@@ -236,7 +236,7 @@ void Scene::ExecutePaintRequests() {
     }
 
     for (auto& node : this->paintRequests) {
-        node->Paint(this->graphicsContext);
+        node->Paint(&this->renderingContext2D);
     }
 
     this->paintRequests.clear();

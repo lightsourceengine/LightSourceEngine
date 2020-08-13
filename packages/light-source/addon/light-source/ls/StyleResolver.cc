@@ -5,13 +5,13 @@
  * tree.
  */
 
+#include <ls/StyleResolver.h>
+
+#include <algorithm>
 #include <Yoga.h>
 #include <ls/Resources.h>
 #include <ls/Style.h>
-#include <ls/StyleResolver.h>
 #include <ls/StyleValue.h>
-
-#include <algorithm>
 
 namespace ls {
 
@@ -300,6 +300,48 @@ float StyleResolver::Update(const StyleValueNumber& value, float newWidth, float
     this->rootFontSize = newRootFontSize;
 
     return newRootFontSize;
+}
+
+float StyleResolver::ResolveBorder(Style* style) const noexcept {
+    return this->ResolveBorderProperty(Style::OrEmpty(style)->border, 0);
+}
+
+bool StyleResolver::HasBorderRadius(Style* style) const noexcept {
+    auto borderRadius{ this->ResolveBorderRadius(Style::OrEmpty(style)) };
+
+    return (borderRadius.topLeft > 0 || borderRadius.topRight > 0
+        || borderRadius.bottomLeft > 0 || borderRadius.bottomRight);
+}
+
+BorderRadius StyleResolver::ResolveBorderRadius(Style* style) const noexcept {
+    const auto p{ Style::OrEmpty(style) };
+    const auto borderRadius{ this->ResolveBorderProperty(p->borderRadius, 0) };
+
+    return {
+        this->ResolveBorderProperty(p->borderRadiusTopLeft, borderRadius),
+        this->ResolveBorderProperty(p->borderRadiusBottomLeft, borderRadius),
+        this->ResolveBorderProperty(p->borderRadiusTopRight, borderRadius),
+        this->ResolveBorderProperty(p->borderRadiusBottomRight, borderRadius)
+    };
+}
+
+float StyleResolver::ResolveBorderProperty(const StyleValueNumber& value, float defaultValue) const noexcept {
+    switch (value.unit) {
+        case StyleNumberUnitPoint:
+            return value.value;
+        case StyleNumberUnitViewportWidth:
+            return value.AsPercent() * this->width;
+        case StyleNumberUnitViewportHeight:
+            return value.AsPercent() * this->height;
+        case StyleNumberUnitViewportMin:
+            return value.AsPercent() * this->viewportMin;
+        case StyleNumberUnitViewportMax:
+            return value.AsPercent() * this->viewportMax;
+        case StyleNumberUnitRootEm:
+            return value.AsPercent() * this->rootFontSize;
+        default:
+            return defaultValue;
+    }
 }
 
 } // namespace ls

@@ -11,7 +11,7 @@
 
 namespace ls {
 
-class RefGraphicsContextImpl : public GraphicsContextInterface {
+class RefGraphicsContextImpl final : public GraphicsContextInterface {
  public:
     explicit RefGraphicsContextImpl(const Napi::CallbackInfo& info);
     virtual ~RefGraphicsContextImpl() = default;

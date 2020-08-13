@@ -314,6 +314,8 @@ static StyleValueColor ParseHexHashColor(const std::string& str) {
     constexpr std::size_t BUFFER_SIZE{11};
     char buffer[BUFFER_SIZE];
 
+    // TODO: should be #RGBA, rather than #ARGB
+
     switch (str.size()) {
         case 4: // #RGB
             snprintf(buffer, BUFFER_SIZE, "0xFF%c%c%c%c%c%c", str[1], str[1], str[2], str[2], str[3], str[3]);

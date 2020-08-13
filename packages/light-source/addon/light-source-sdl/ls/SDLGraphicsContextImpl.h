@@ -12,7 +12,7 @@
 
 namespace ls {
 
-class SDLGraphicsContextImpl : public GraphicsContextInterface {
+class SDLGraphicsContextImpl final : public GraphicsContextInterface {
  public:
     explicit SDLGraphicsContextImpl(const Napi::CallbackInfo& info);
     virtual ~SDLGraphicsContextImpl() = default;

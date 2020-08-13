@@ -36,6 +36,7 @@ namespace ls {
 
 void TextSceneNode::Constructor(const Napi::CallbackInfo& info) {
     this->SceneNodeConstructor(info);
+    this->SetFlag(FlagLeaf, true);
     YGNodeSetMeasureFunc(this->ygNode, SceneNode::YogaMeasureCallback);
     YGNodeSetNodeType(this->ygNode, YGNodeTypeText);
 }
@@ -121,7 +122,7 @@ YGSize TextSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float heig
 //    this->QueuePaint();
 //}
 
-void TextSceneNode::Paint(GraphicsContext* graphicsContext) {
+void TextSceneNode::Paint(RenderingContext2D* context) {
 //    const auto boxStyle{ this->GetStyleOrEmpty() };
 //
 //    if (!this->font || !this->font->IsReady() || this->layout.IsEmpty() || boxStyle->color.empty()) {
@@ -317,10 +318,10 @@ void TextSceneNode::ClearFontFaceResource() {
     }
 }
 
-void TextSceneNode::DestroyRecursive() {
+void TextSceneNode::Destroy() {
     this->ClearFontFaceResource();
 
-    SceneNode::DestroyRecursive();
+    SceneNode::Destroy();
 }
 
 YGSize TextSceneNode::Measure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {

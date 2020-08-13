@@ -11,16 +11,19 @@
 #include <napi-ext.h>
 #include <ls/StyleEnums.h>
 #include <ls/Resources.h>
+#include <bitset>
+#include <YGNode.h>
 
 namespace ls {
 
+class CompositeContext;
+class GraphicsContext;
+class Renderer;
+class RenderingContext2D;
 class Scene;
 class SceneNode;
 class Stage;
 class Style;
-class Renderer;
-class CompositeContext;
-class GraphicsContext;
 class Texture;
 
 class SceneNode : public virtual Napi::SafeObjectWrapReference {
@@ -46,17 +49,20 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     void Focus(const Napi::CallbackInfo& info);
     void Blur(const Napi::CallbackInfo& info);
 
-    Stage* GetStage() const noexcept;
-    void Destroy();
-
     virtual void OnStylePropertyChanged(StyleProperty property);
     virtual void OnBoundingBoxChanged() {}
     virtual void OnStyleLayout() {}
 
     virtual YGSize OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode);
-    virtual void Paint(GraphicsContext* graphicsContext) = 0;
+    virtual void Paint(RenderingContext2D* context) = 0;
     virtual void Composite(CompositeContext* composite);
-    virtual bool IsLeaf() const noexcept { return true; }
+    virtual void Destroy();
+
+    Stage* GetStage() const noexcept;
+    SceneNode* GetParent() const noexcept;
+    bool IsLeaf() const noexcept;
+    bool IsHidden() const noexcept;
+    bool IsLayoutOnly() const noexcept;
 
     static SceneNode* QueryInterface(Napi::Value value);
 
@@ -72,36 +78,35 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     static Napi::Value GetInstanceCount(const Napi::CallbackInfo& info);
 
  protected:
+    enum Flag : uint32_t {
+        FlagHidden,
+        FlagLayoutOnly,
+        FlagLeaf
+    };
+
     template<typename T>
     static std::vector<napi_property_descriptor> Extend(const Napi::Env& env,
         const std::initializer_list<napi_property_descriptor>& subClassProperties);
 
     void SceneNodeConstructor(const Napi::CallbackInfo& info);
-    void SetParent(SceneNode* newParent);
-    void InsertBefore(const Napi::Env& env, SceneNode* child, SceneNode* before);
-    void RemoveChild(SceneNode* child);
-    void CanAddChild(const Napi::Env& env, SceneNode* child);
-    virtual void DestroyRecursive();
-    void AppendChild(SceneNode* child);
-    Style* GetStyleOrEmpty() const noexcept;
-    bool InitLayerRenderTarget(Renderer* renderer, int32_t width, int32_t height);
-    bool InitLayerSoftwareRenderTarget(Renderer* renderer, int32_t width, int32_t height);
     void RequestPaint();
     void RequestStyleLayout();
     void RequestComposite();
     const std::vector<SceneNode*>& SortChildrenByStackingOrder();
-    bool HasTransform() const noexcept;
-    int32_t GetZIndex() const noexcept;
+    void SetFlag(Flag flag, bool value) noexcept;
+
+ private:
+    void RemoveChild(SceneNode* child) noexcept;
+    int32_t GetChildIndex(SceneNode* node) const noexcept;
+    const std::vector<YGNodeRef>& Children() const noexcept;
 
  protected:
     static int instanceCount;
-    std::vector<SceneNode*> children;
-    std::vector<SceneNode*> sortedChildren;
     YGNodeRef ygNode{};
     Scene* scene{};
-    SceneNode* parent{};
     Style* style{};
-    bool isHidden{false};
+    std::vector<SceneNode*> sortedChildren;
+    std::bitset<8> flags;
 
     friend Style;
     friend Scene;
@@ -111,8 +116,8 @@ template<typename Callable>
 void SceneNode::Visit(SceneNode* node, const Callable& func) {
     func(node);
 
-    for (auto child : node->children) {
-        Visit(child, func);
+    for (const auto& child : node->Children()) {
+        Visit(static_cast<SceneNode*>(child->getContext()), func);
     }
 }
 

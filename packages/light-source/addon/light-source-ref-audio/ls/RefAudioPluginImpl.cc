@@ -22,7 +22,7 @@ using Napi::Value;
 
 namespace ls {
 
-class RefAudioSourceImpl : public AudioSourceInterface {
+class RefAudioSourceImpl final : public AudioSourceInterface {
  public:
     explicit RefAudioSourceImpl(const CallbackInfo& info) {}
     virtual ~RefAudioSourceImpl() = default;
@@ -37,7 +37,7 @@ class RefAudioSourceImpl : public AudioSourceInterface {
     void Finalize() override { delete this; }
 };
 
-class RefAudioDestinationImpl : public AudioDestinationInterface {
+class RefAudioDestinationImpl final : public AudioDestinationInterface {
  public:
     explicit RefAudioDestinationImpl(const CallbackInfo& info) {}
     virtual ~RefAudioDestinationImpl() = default;

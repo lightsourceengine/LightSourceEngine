@@ -13,7 +13,7 @@ namespace ls {
 
 class Style;
 
-class RootSceneNode : public Napi::SafeObjectWrap<RootSceneNode>, public SceneNode {
+class RootSceneNode final : public Napi::SafeObjectWrap<RootSceneNode>, public SceneNode {
  public:
     explicit RootSceneNode(const Napi::CallbackInfo& info) : SafeObjectWrap<RootSceneNode>(info) {}
     ~RootSceneNode() override = default;
@@ -21,9 +21,8 @@ class RootSceneNode : public Napi::SafeObjectWrap<RootSceneNode>, public SceneNo
     static Napi::Function GetClass(Napi::Env env);
     void Constructor(const Napi::CallbackInfo& info) override;
 
-    bool IsLeaf() const noexcept override { return false; }
     void OnStylePropertyChanged(StyleProperty property) override;
-    void Paint(GraphicsContext* graphicsContext) override {}
+    void Paint(RenderingContext2D* context) override {}
     void Composite(CompositeContext* composite) override;
 };
 

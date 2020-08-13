@@ -30,6 +30,7 @@ namespace ls {
 
 void ImageSceneNode::Constructor(const Napi::CallbackInfo& info) {
     this->SceneNodeConstructor(info);
+    this->SetFlag(FlagLeaf, true);
     YGNodeSetMeasureFunc(this->ygNode, SceneNode::YogaMeasureCallback);
 }
 
@@ -88,7 +89,7 @@ void ImageSceneNode::OnStyleLayout() {
     this->RequestComposite();
 }
 
-void ImageSceneNode::Paint(GraphicsContext* graphicsContext) {
+void ImageSceneNode::Paint(RenderingContext2D* context) {
 }
 
 void ImageSceneNode::Composite(CompositeContext* composite) {
@@ -234,11 +235,11 @@ void ImageSceneNode::SetOnErrorCallback(const CallbackInfo& info, const Napi::Va
     return this->resourceProgress.SetOnLoad(info.Env(), value);
 }
 
-void ImageSceneNode::DestroyRecursive() {
+void ImageSceneNode::Destroy() {
     this->ClearResource();
     this->resourceProgress.Reset();
 
-    SceneNode::DestroyRecursive();
+    SceneNode::Destroy();
 }
 
 void ImageSceneNode::ClearResource() {

@@ -11,7 +11,7 @@
 
 namespace ls {
 
-class SDLKeyboard : public Napi::SafeObjectWrap<SDLKeyboard>, public InputDevice {
+class SDLKeyboard final : public Napi::SafeObjectWrap<SDLKeyboard>, public InputDevice {
  public:
     SDLKeyboard(const Napi::CallbackInfo& info);
     ~SDLKeyboard() override = default;

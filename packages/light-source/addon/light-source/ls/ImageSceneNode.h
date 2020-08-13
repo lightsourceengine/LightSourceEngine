@@ -14,7 +14,7 @@
 
 namespace ls {
 
-class ImageSceneNode : public Napi::SafeObjectWrap<ImageSceneNode>, public SceneNode {
+class ImageSceneNode final : public Napi::SafeObjectWrap<ImageSceneNode>, public SceneNode {
  public:
     ImageSceneNode(const Napi::CallbackInfo& info) : Napi::SafeObjectWrap<ImageSceneNode>(info) {}
     ~ImageSceneNode() override = default;
@@ -33,11 +33,11 @@ class ImageSceneNode : public Napi::SafeObjectWrap<ImageSceneNode>, public Scene
     void OnStyleLayout() override;
     YGSize OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) override;
 
-    void Paint(GraphicsContext* graphicsContext) override;
+    void Paint(RenderingContext2D* context) override;
     void Composite(CompositeContext* composite) override;
+    void Destroy() override;
 
  private:
-    void DestroyRecursive() override;
     void ClearResource();
 
  private:

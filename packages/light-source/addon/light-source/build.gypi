@@ -41,6 +41,7 @@
         "ls/yoga-ext.cc",
         "ls/ThreadPool.cc",
         "ls/CompositeContext.cc",
+        "ls/RenderingContext2D.cc",
         "ls/Style.cc",
         "ls/StyleEnums.cc",
         "ls/StyleValue.cc",

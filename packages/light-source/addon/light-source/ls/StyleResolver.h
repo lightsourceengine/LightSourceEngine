@@ -17,6 +17,16 @@ class Image;
 class Style;
 
 /**
+ * Border radius corners in screen pixel space.
+ */
+struct BorderRadius {
+    float topLeft;
+    float bottomLeft;
+    float topRight;
+    float bottomRight;
+};
+
+/**
  * Converts raw style properties into screen pixel values.
  *
  * The operations are isolated here for easier testing.
@@ -35,9 +45,14 @@ class StyleResolver {
     Rect ResolveBackgroundFit(Style* style, const Rect& box, const Image* image) const noexcept;
     float ResolveLineHeight(const StyleValueNumber& value, float fontLineHeight) const noexcept;
     float ResolveFontSize(const StyleValueNumber& value) const noexcept;
+    float ResolveBorder(Style* style) const noexcept;
+    BorderRadius ResolveBorderRadius(Style* style) const noexcept;
+
+    bool HasBorderRadius(Style* style) const noexcept;
 
  private:
     float Update(const StyleValueNumber& value, float newWidth, float newHeight) noexcept;
+    float ResolveBorderProperty(const StyleValueNumber& value, float defaultValue) const noexcept;
 
  private:
     float width{};

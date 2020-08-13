@@ -22,7 +22,7 @@ using Napi::Value;
 
 namespace ls {
 
-class SDLAudioSourceImpl : public AudioSourceInterface {
+class SDLAudioSourceImpl final : public AudioSourceInterface {
  public:
     explicit SDLAudioSourceImpl(const CallbackInfo& info) {
         this->deviceId = info[1].As<Number>().Int32Value();
@@ -101,7 +101,7 @@ class SDLAudioSourceImpl : public AudioSourceInterface {
     int32_t deviceId{-1};
 };
 
-class SDLAudioSampleAudioDestinationImpl : public AudioDestinationInterface {
+class SDLAudioSampleAudioDestinationImpl final : public AudioDestinationInterface {
  public:
     explicit SDLAudioSampleAudioDestinationImpl(const CallbackInfo& info) {
         this->deviceId = info[1].As<Number>().Int32Value();

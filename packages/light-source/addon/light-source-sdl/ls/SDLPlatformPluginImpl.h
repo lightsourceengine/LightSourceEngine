@@ -17,7 +17,7 @@ namespace ls {
 class SDLKeyboard;
 class SDLGamepad;
 
-class SDLPlatformPluginImpl : public PlatformPluginInterface {
+class SDLPlatformPluginImpl final : public PlatformPluginInterface {
  public:
     explicit SDLPlatformPluginImpl(const Napi::CallbackInfo& info);
     virtual ~SDLPlatformPluginImpl();

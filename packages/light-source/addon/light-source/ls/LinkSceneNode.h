@@ -23,7 +23,7 @@ enum LinkCategory {
     LinkCategoryFont
 };
 
-class LinkSceneNode : public Napi::SafeObjectWrap<LinkSceneNode>, public SceneNode {
+class LinkSceneNode final : public Napi::SafeObjectWrap<LinkSceneNode>, public SceneNode {
  public:
     LinkSceneNode(const Napi::CallbackInfo& info) : Napi::SafeObjectWrap<LinkSceneNode>(info) {}
     ~LinkSceneNode() override = default;
@@ -42,11 +42,11 @@ class LinkSceneNode : public Napi::SafeObjectWrap<LinkSceneNode>, public SceneNo
     Napi::Value GetOnErrorCallback(const Napi::CallbackInfo& info);
     void SetOnErrorCallback(const Napi::CallbackInfo& info, const Napi::Value& value);
 
-    void Paint(GraphicsContext* graphicsContext) override {}
+    void Paint(RenderingContext2D* context) override {}
     void Composite(CompositeContext* composite) override {}
+    void Destroy() override;
 
  private:
-    void DestroyRecursive() override;
     void ClearResource();
     void ResourceListener(Res::Owner owner, Res* res);
 

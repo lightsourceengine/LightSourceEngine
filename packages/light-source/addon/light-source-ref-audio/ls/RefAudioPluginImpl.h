@@ -11,7 +11,7 @@
 
 namespace ls {
 
-class RefAudioPluginImpl : public AudioPluginInterface {
+class RefAudioPluginImpl final : public AudioPluginInterface {
  public:
     RefAudioPluginImpl(const Napi::CallbackInfo& info);
     virtual ~RefAudioPluginImpl() = default;

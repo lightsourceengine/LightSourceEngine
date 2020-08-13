@@ -13,7 +13,7 @@
 
 namespace ls {
 
-class SDLGamepad : public Napi::SafeObjectWrap<SDLGamepad>, public InputDevice {
+class SDLGamepad final : public Napi::SafeObjectWrap<SDLGamepad>, public InputDevice {
  public:
     SDLGamepad(const Napi::CallbackInfo& info);
     ~SDLGamepad() override;

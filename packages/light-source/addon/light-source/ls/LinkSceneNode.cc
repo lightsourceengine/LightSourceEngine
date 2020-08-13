@@ -60,6 +60,7 @@ Function LinkSceneNode::GetClass(Napi::Env env) {
 
 void LinkSceneNode::Constructor(const Napi::CallbackInfo& info) {
     this->SceneNodeConstructor(info);
+    this->SetFlag(FlagLeaf, true);
 }
 
 void LinkSceneNode::Fetch(const Napi::CallbackInfo& info) {
@@ -208,11 +209,11 @@ void LinkSceneNode::SetOnErrorCallback(const Napi::CallbackInfo& info, const Nap
     this->resourceProgress.SetOnError(info.Env(), value);
 }
 
-void LinkSceneNode::DestroyRecursive() {
+void LinkSceneNode::Destroy() {
     this->resourceProgress.Reset();
     this->ClearResource();
 
-    SceneNode::DestroyRecursive();
+    SceneNode::Destroy();
 }
 
 void LinkSceneNode::ClearResource() {

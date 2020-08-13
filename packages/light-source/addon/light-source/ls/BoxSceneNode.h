@@ -10,10 +10,11 @@
 #include <ls/Rect.h>
 #include <ls/Resources.h>
 #include <ls/SceneNode.h>
+#include <ls/Texture.h>
 
 namespace ls {
 
-class BoxSceneNode : public Napi::SafeObjectWrap<BoxSceneNode>, public SceneNode {
+class BoxSceneNode final : public Napi::SafeObjectWrap<BoxSceneNode>, public SceneNode {
  public:
     BoxSceneNode(const Napi::CallbackInfo& info) : SafeObjectWrap<BoxSceneNode>(info) {}
     ~BoxSceneNode() override = default;
@@ -21,21 +22,21 @@ class BoxSceneNode : public Napi::SafeObjectWrap<BoxSceneNode>, public SceneNode
     static Napi::Function GetClass(Napi::Env env);
     void Constructor(const Napi::CallbackInfo& info) override;
 
-    bool IsLeaf() const noexcept override { return false; }
     void OnStylePropertyChanged(StyleProperty property) override;
     void OnBoundingBoxChanged() override;
     void OnStyleLayout() override;
-    void Paint(GraphicsContext* graphicsContext) override;
+    void Paint(RenderingContext2D* context) override;
     void Composite(CompositeContext* composite) override;
+    void Destroy() override;
 
  private:
-    void DestroyRecursive() override;
     void UpdateBackgroundImage(const std::string& backgroundUri);
     void ClearBackgroundImageResource();
 
  private:
     Image* backgroundImage{};
     ImageRect backgroundImageRect{};
+    Texture paintTarget{};
 };
 
 } // namespace ls

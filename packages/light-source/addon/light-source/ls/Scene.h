@@ -9,6 +9,7 @@
 #include <ls/CompositeContext.h>
 #include <ls/StyleEnums.h>
 #include <ls/StyleResolver.h>
+#include <ls/RenderingContext2D.h>
 #include <napi-ext.h>
 
 #include <algorithm>
@@ -84,6 +85,7 @@ class Scene : public Napi::SafeObjectWrap<Scene> {
     std::unordered_set<SceneNode*> paintRequests;
     std::unordered_set<SceneNode*> styleLayoutRequests;
     CompositeContext compositeContext;
+    RenderingContext2D renderingContext2D{};
 };
 
 } // namespace ls

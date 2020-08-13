@@ -13,7 +13,7 @@
 
 namespace ls {
 
-class TextSceneNode : public Napi::SafeObjectWrap<TextSceneNode>, public SceneNode {
+class TextSceneNode final : public Napi::SafeObjectWrap<TextSceneNode>, public SceneNode {
  public:
     TextSceneNode(const Napi::CallbackInfo& info) : Napi::SafeObjectWrap<TextSceneNode>(info) {}
     ~TextSceneNode() override = default;
@@ -29,13 +29,13 @@ class TextSceneNode : public Napi::SafeObjectWrap<TextSceneNode>, public SceneNo
     void OnStyleLayout() override;
     YGSize OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) override;
 
-    void Paint(GraphicsContext* graphicsContext) override;
+    void Paint(RenderingContext2D* context) override;
     void Composite(CompositeContext* composite) override;
+    void Destroy() override;
 
  private:
     bool SetFont(Style* style);
     void ClearFontFaceResource();
-    void DestroyRecursive() override;
     YGSize Measure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode);
     void QueueTextLayout() noexcept;
 

@@ -35,7 +35,10 @@ namespace ls {
 
 int32_t SceneNode::instanceCount{0};
 
+static SceneNode* GetSceneNode(YGNodeRef ygNode) noexcept;
+
 void SceneNode::SceneNodeConstructor(const Napi::CallbackInfo& info) {
+    this->flags.set(FlagLayoutOnly, true);
     this->scene = Scene::CastRef(info[0]);
 
     if (!this->scene) {
@@ -68,7 +71,8 @@ Value SceneNode::GetHeight(const CallbackInfo& info) {
 }
 
 Value SceneNode::GetParent(const CallbackInfo& info) {
-    return this->parent ? this->parent->Value() : info.Env().Null();
+    auto parent{ this->GetParent() };
+    return parent ? parent->Value() : info.Env().Null();
 }
 
 Value SceneNode::GetScene(const CallbackInfo& info) {
@@ -78,11 +82,12 @@ Value SceneNode::GetScene(const CallbackInfo& info) {
 Napi::Value SceneNode::GetChildren(const Napi::CallbackInfo& info) {
     auto env{ info.Env() };
     EscapableHandleScope scope(env);
-    auto childArray{ Array::New(env, this->children.size() )};
+    const auto& children{ this->Children() };
+    auto childArray{ Array::New(env, children.size() )};
     auto i{ 0u };
 
-    for (auto& child : this->children) {
-        childArray[i++] = child->Value();
+    for (const auto& child : children) {
+        childArray[i++] = GetSceneNode(child)->Value();
     }
 
     return scope.Escape(childArray);
@@ -127,24 +132,11 @@ void SceneNode::SetStyle(const CallbackInfo& info, const Napi::Value& value) {
 }
 
 Napi::Value SceneNode::GetHidden(const CallbackInfo& info) {
-    return Boolean::New(info.Env(), this->isHidden);
+    return Boolean::New(info.Env(), this->IsHidden());
 }
 
 void SceneNode::SetHidden(const CallbackInfo& info, const Napi::Value& value) {
-    this->isHidden = value.ToBoolean();
-}
-
-void SceneNode::SetParent(SceneNode* newParent) {
-    if (newParent == this->parent) {
-        return;
-    }
-
-    Napi::SafeObjectWrap<SceneNode>::RemoveRef(this->parent);
-    this->parent = newParent;
-
-    if (this->parent) {
-        this->parent->Ref();
-    }
+    this->flags.set(FlagHidden, value.ToBoolean());
 }
 
 Stage* SceneNode::GetStage() const noexcept {
@@ -152,88 +144,91 @@ Stage* SceneNode::GetStage() const noexcept {
     return this->scene->GetStage();
 }
 
+SceneNode* SceneNode::GetParent() const noexcept {
+    auto parent{ this->ygNode->getParent() };
+
+    return parent ? GetSceneNode(parent) : nullptr;
+}
+
 void SceneNode::AppendChild(const CallbackInfo& info) {
+    auto env{ info.Env() };
+
+    if (this->IsLeaf()) {
+        throw Error::New(env, "appendChild: leaf nodes cannot have children");
+    }
+
+    HandleScope scope(env);
     auto child{ SceneNode::QueryInterface(info[0]) };
 
-    this->CanAddChild(info.Env(), child);
-    this->AppendChild(child);
+    if (child == nullptr) {
+        throw Error::New(env, "appendChild: invalid child argument");
+    }
+
+    if (child->GetParent() != nullptr) {
+        throw Error::New(env, "appendChild: child already has a parent");
+    }
+
+    YGNodeInsertChild(this->ygNode, child->ygNode, YGNodeGetChildCount(this->ygNode));
+    this->sortedChildren.clear();
+
+    // Add reference for the added child.
+    child->Ref();
+    // Add reference for the parent.
+    this->Ref();
 }
 
 void SceneNode::InsertBefore(const CallbackInfo& info) {
     auto env{ info.Env() };
-    auto child{ SceneNode::QueryInterface(info[0]) };
 
-    this->CanAddChild(env, child);
-
-    auto before{ SceneNode::QueryInterface(info[1]) };
-
-    if (before == nullptr || before->parent != this) {
-        throw Error::New(env, "before must be a child of this SceneNode");
+    if (this->IsLeaf()) {
+        throw Error::New(env, "insertBefore: leaf nodes cannot have children");
     }
 
-    this->InsertBefore(env, child, before);
+    auto child{ SceneNode::QueryInterface(info[0]) };
+
+    if (child == nullptr) {
+        throw Error::New(env, "insertBefore: invalid child argument");
+    }
+
+    if (child->GetParent() != nullptr) {
+        throw Error::New(env, "insertBefore: child already has a parent");
+    }
+
+    auto before{ SceneNode::QueryInterface(info[1]) };
+    auto beforeIndex{ before ? this->GetChildIndex(before) : this->Children().size() };
+
+    if (beforeIndex < 0) {
+        throw Error::New(env, "insertBefore: before argument is not a child");
+    }
+
+    YGNodeInsertChild(this->ygNode, child->ygNode, beforeIndex);
+    this->sortedChildren.clear();
+
+    // Add reference for the added child.
+    child->Ref();
+    // Add reference for the parent.
+    this->Ref();
 }
 
 void SceneNode::RemoveChild(const CallbackInfo& info) {
-    auto env{ info.Env() };
-    auto childObject{ info[0].As<Object>() };
-    auto child{ SceneNode::QueryInterface(childObject) };
+    HandleScope scope(info.Env());
 
-    if (child == nullptr) {
-        throw Error::New(env, "Node to remove must be a SceneNode instance.");
-    }
-
-    if (child->parent != this) {
-        throw Error::New(env, "Node to remove is not a child of this SceneNode.");
-    }
-
-    this->RemoveChild(child);
+    this->RemoveChild(SceneNode::QueryInterface(info[0]));
 }
 
-void SceneNode::AppendChild(SceneNode* child) {
-    this->children.push_back(child);
-    this->sortedChildren.clear();
-    child->Ref();
-    child->SetParent(this);
-
-    YGNodeInsertChild(this->ygNode, child->ygNode, YGNodeGetChildCount(this->ygNode));
-}
-
-void SceneNode::InsertBefore(const Napi::Env& env, SceneNode* child, SceneNode* before) {
-    auto beforeIndex{ -1 };
-    const auto childrenLen{ static_cast<int32_t>(this->children.size()) };
-
-    for (auto i{ 0 }; i < childrenLen; i++) {
-        if (this->children[i] == before) {
-            beforeIndex = i;
-            break;
-        }
-    }
-
-    if (beforeIndex < 0) {
-        throw Error::New(env, "before is not a child of SceneNode.");
-    }
-
-    this->children.insert(this->children.begin() + beforeIndex, child);
-    this->sortedChildren.clear();
-
-    child->Ref();
-    child->SetParent(this);
-
-    YGNodeInsertChild(this->ygNode, child->ygNode, beforeIndex);
-}
-
-void SceneNode::RemoveChild(SceneNode* child) {
-    if (!child || child->parent != this) {
+void SceneNode::RemoveChild(SceneNode* child) noexcept {
+    if (GetChildIndex(child) < 0) {
         return;
     }
 
     YGNodeRemoveChild(this->ygNode, child->ygNode);
-    // TODO: remove from scene queues?
-    this->children.erase(std::remove(this->children.begin(), this->children.end(), child), this->children.end());
     this->sortedChildren.clear();
+
+    // Remove reference for the child.
     child->Unref();
-    child->SetParent(nullptr);
+
+    // Remove reference for the parent
+    this->Unref();
 }
 
 void SceneNode::Destroy(const Napi::CallbackInfo& info) {
@@ -241,14 +236,6 @@ void SceneNode::Destroy(const Napi::CallbackInfo& info) {
 }
 
 void SceneNode::Destroy() {
-    if (this->parent) {
-        this->parent->RemoveChild(this);
-    }
-
-    this->DestroyRecursive();
-}
-
-void SceneNode::DestroyRecursive() {
     if (this->scene == nullptr) {
         return;
     }
@@ -257,28 +244,33 @@ void SceneNode::DestroyRecursive() {
 
     this->scene->Remove(this);
 
-    for (auto child : this->children) {
-        child->DestroyRecursive();
-        child->Unref();
+    const auto& children{ this->Children() };
+
+    while (!children.empty()) {
+        const auto& node{ GetSceneNode(children.back()) };
+
+        node->Destroy();
     }
 
-    this->children.clear();
-    this->sortedChildren.clear();
-    this->SetParent(nullptr);
+    auto parent{ this->GetParent() };
 
-    YGNodeFree(this->ygNode);
-    this->ygNode = nullptr;
+    if (parent) {
+        parent->RemoveChild(this);
+    }
 
     this->scene = Scene::RemoveRef(this->scene);
     this->style = Style::RemoveRef(this->style, [](Style* ref) { ref->Bind(nullptr); });
+    this->sortedChildren.clear();
+    YGNodeFree(this->ygNode);
+    this->ygNode = nullptr;
 }
 
 void SceneNode::Composite(CompositeContext* context) {
-    if (this->isHidden || this->children.empty()) {
+    if (this->IsHidden() || this->Children().empty()) {
         return;
     }
 
-    const auto boxStyle{ this->GetStyleOrEmpty() };
+    const auto boxStyle{ Style::OrEmpty(this->style) };
     const auto bounds{ YGNodeLayoutGetRect(this->ygNode) };
     const auto clip{ boxStyle->overflow == YGOverflowHidden };
 
@@ -312,8 +304,8 @@ void SceneNode::OnStylePropertyChanged(StyleProperty property) {
             break;
         case StyleProperty::transform:
         case StyleProperty::zIndex:
-            if (this->parent) {
-                this->parent->sortedChildren.clear();
+            if (this->GetParent()) {
+                this->GetParent()->sortedChildren.clear();
             }
             this->RequestComposite();
             break;
@@ -326,26 +318,21 @@ YGSize SceneNode::OnMeasure(float width, YGMeasureMode widthMode, float height, 
     return {};
 }
 
-void SceneNode::CanAddChild(const Napi::Env& env, SceneNode* child) {
-    if (this->IsLeaf()) {
-        throw Error::New(env, "leaf nodes cannot have children");
+int32_t SceneNode::GetChildIndex(SceneNode* node) const noexcept {
+    int32_t index{0};
+
+    for (const auto& child : this->ygNode->getChildren()) {
+        if (GetSceneNode(child) == node) {
+            return index;
+        }
+        index++;
     }
 
-    if (child == nullptr) {
-        throw Error::New(env, "child must be a SceneNode instance.");
-    }
-
-    if (child == this) {
-        throw Error::New(env, "child cannot equal this");
-    }
-
-    if (child->parent != nullptr) {
-        throw Error::New(env, "child already has a parent.");
-    }
+    return -1;
 }
 
-Style* SceneNode::GetStyleOrEmpty() const noexcept {
-    return this->style ? this->style : Style::Empty();
+const std::vector<YGNodeRef>& SceneNode::Children() const noexcept {
+    return this->ygNode->getChildren();
 }
 
 void SceneNode::RequestPaint() {
@@ -360,30 +347,6 @@ void SceneNode::RequestComposite() {
     this->scene->RequestComposite();
 }
 
-bool SceneNode::InitLayerRenderTarget(Renderer* renderer, int32_t width, int32_t height) {
-//    if (this->layer && this->layer->IsAttached() && this->layer->GetWidth() == width
-//            && this->layer->GetHeight() == height) {
-//        return renderer->SetRenderTarget(this->layer);
-//    }
-//
-//    this->layer = renderer->CreateRenderTarget(width, height);
-//
-//    return this->layer && renderer->SetRenderTarget(this->layer);
-    return false;
-}
-
-bool SceneNode::InitLayerSoftwareRenderTarget(Renderer* renderer, int32_t width, int32_t height) {
-//    if (this->layer && this->layer->IsAttached() && this->layer->GetWidth() == width
-//            && this->layer->GetHeight() == height) {
-//        return true;
-//    }
-//
-//    this->layer = renderer->CreateTexture(width, height);
-//
-//    return static_cast<bool>(this->layer);
-    return false;
-}
-
 void SceneNode::Focus(const CallbackInfo& info) {
     HandleScope scope(info.Env());
 
@@ -396,28 +359,18 @@ void SceneNode::Blur(const CallbackInfo& info) {
     this->scene->SetActiveNode(info.Env().Null());
 }
 
-bool SceneNode::HasTransform() const noexcept {
-    return this->style && !this->style->transform.empty();
-}
-
-int32_t SceneNode::GetZIndex() const noexcept {
-    return this->style ? this->style->zIndex.AsInt32(0) : 0;
-}
-
 const std::vector<SceneNode*>& SceneNode::SortChildrenByStackingOrder() {
-    if (!this->sortedChildren.empty()) {
-        // already sorted
-        return this->sortedChildren;
-    }
+    const auto compare = [](SceneNode* a, SceneNode* b) {
+        const auto hasTransform {
+            [](SceneNode* node) ->bool { return node->style && !node->style->transform.empty();
+            }
+        };
+        const auto zIndex {
+            [](SceneNode* node) -> int { return Style::OrEmpty(node->style)->zIndex.AsInt32(0); }
+        };
+        const auto aHasTransform{ hasTransform(a) };
 
-    this->sortedChildren.reserve(this->children.size());
-    std::copy(this->children.begin(), this->children.end(), std::back_inserter(this->sortedChildren));
-
-    // use stable_sort to preserve the original order of nodes when z-indexes are the same
-    std::stable_sort(this->sortedChildren.begin(), this->sortedChildren.end(), [](SceneNode* a, SceneNode* b) {
-        const auto aHasTransform{ a->HasTransform() };
-
-        if (aHasTransform != b->HasTransform()) {
+        if (aHasTransform != hasTransform(b)) {
             // nodes with transform always drawn above nodes with no transform
             //
             // if a has transform and b has no transform, then a is less than b
@@ -426,10 +379,42 @@ const std::vector<SceneNode*>& SceneNode::SortChildrenByStackingOrder() {
         }
 
         // by default, nodes have a z-index of 0
-        return a->GetZIndex() < b->GetZIndex();
-    });
+        return zIndex(a) < zIndex(b);
+    };
+
+    if (!this->sortedChildren.empty()) {
+        // already sorted
+        return this->sortedChildren;
+    }
+
+    const auto& children{ this->Children() };
+
+    this->sortedChildren.reserve(children.size());
+
+    for (const auto& child : children) {
+        this->sortedChildren.push_back(GetSceneNode(child));
+    }
+
+    // use stable_sort to preserve the original order of nodes when z-indexes are the same
+    std::stable_sort(this->sortedChildren.begin(), this->sortedChildren.end(), compare);
 
     return this->sortedChildren;
+}
+
+bool SceneNode::IsLeaf() const noexcept {
+    return this->flags.test(FlagLeaf);
+}
+
+bool SceneNode::IsHidden() const noexcept {
+    return this->flags.test(FlagHidden);
+}
+
+bool SceneNode::IsLayoutOnly() const noexcept {
+    return this->flags.test(FlagLayoutOnly);
+}
+
+void SceneNode::SetFlag(Flag flag, bool value) noexcept {
+    this->flags.set(flag, value);
 }
 
 SceneNode* SceneNode::QueryInterface(Napi::Value value) {
@@ -474,6 +459,11 @@ void SceneNode::YogaNodeLayoutEvent(
     if (node.getHasNewLayout()) {
         static_cast<ls::SceneNode*>(node.getContext())->OnBoundingBoxChanged();
     }
+}
+
+static SceneNode* GetSceneNode(YGNodeRef ygNode) noexcept {
+    assert(ygNode != nullptr);
+    return static_cast<SceneNode*>(ygNode->getContext());
 }
 
 } // namespace ls

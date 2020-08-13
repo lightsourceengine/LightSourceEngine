@@ -11,7 +11,7 @@
 
 namespace ls {
 
-class SDLMixerAudioPluginImpl : public AudioPluginInterface {
+class SDLMixerAudioPluginImpl final : public AudioPluginInterface {
  public:
     SDLMixerAudioPluginImpl(const Napi::CallbackInfo& info);
     virtual ~SDLMixerAudioPluginImpl() = default;

@@ -12,7 +12,7 @@
 
 namespace ls {
 
-class SDLAudioPluginImpl : public AudioPluginInterface {
+class SDLAudioPluginImpl final : public AudioPluginInterface {
  public:
     SDLAudioPluginImpl(const Napi::CallbackInfo& info);
     virtual ~SDLAudioPluginImpl() = default;

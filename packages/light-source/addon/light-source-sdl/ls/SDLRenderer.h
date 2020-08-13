@@ -12,7 +12,7 @@
 
 namespace ls {
 
-class SDLRenderer : public Renderer {
+class SDLRenderer final : public Renderer {
  public:
     SDLRenderer();
     ~SDLRenderer() override;

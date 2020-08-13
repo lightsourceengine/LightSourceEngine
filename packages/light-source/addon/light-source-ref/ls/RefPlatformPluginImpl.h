@@ -10,7 +10,7 @@
 
 namespace ls {
 
-class RefPlatformPluginImpl : public PlatformPluginInterface {
+class RefPlatformPluginImpl final : public PlatformPluginInterface {
  public:
     explicit RefPlatformPluginImpl(const Napi::CallbackInfo& info);
     virtual ~RefPlatformPluginImpl() = default;

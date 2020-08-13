@@ -40,7 +40,7 @@ int32_t GetLoops(const CallbackInfo& info);
 
 constexpr auto MIX_MAX_VOLUME_F{ static_cast<float>(MIX_MAX_VOLUME) };
 
-class SDLMixerSampleAudioSourceImpl : public AudioSourceInterface {
+class SDLMixerSampleAudioSourceImpl final : public AudioSourceInterface {
  public:
     explicit SDLMixerSampleAudioSourceImpl(const CallbackInfo& info) {}
     virtual ~SDLMixerSampleAudioSourceImpl() = default;
@@ -124,7 +124,7 @@ class SDLMixerSampleAudioSourceImpl : public AudioSourceInterface {
     Mix_Chunk* chunk{nullptr};
 };
 
-class SDLMixerSampleAudioDestinationImpl : public AudioDestinationInterface {
+class SDLMixerSampleAudioDestinationImpl final : public AudioDestinationInterface {
  public:
     explicit SDLMixerSampleAudioDestinationImpl(const CallbackInfo& info) {
         FillVector(&this->decoders, &Mix_GetChunkDecoder, Mix_GetNumChunkDecoders());
@@ -185,7 +185,7 @@ class SDLMixerSampleAudioDestinationImpl : public AudioDestinationInterface {
     std::vector<std::string> decoders{};
 };
 
-class SDLMixerStreamAudioSourceImpl : public AudioSourceInterface {
+class SDLMixerStreamAudioSourceImpl final : public AudioSourceInterface {
  public:
     explicit SDLMixerStreamAudioSourceImpl(const CallbackInfo& info) {}
     virtual ~SDLMixerStreamAudioSourceImpl() = default;
@@ -258,7 +258,7 @@ class SDLMixerStreamAudioSourceImpl : public AudioSourceInterface {
     Mix_Music* music{nullptr};
 };
 
-class SDLMixerStreamAudioDestinationImpl : public AudioDestinationInterface {
+class SDLMixerStreamAudioDestinationImpl final : public AudioDestinationInterface {
  public:
     explicit SDLMixerStreamAudioDestinationImpl(const CallbackInfo& info) {
         FillVector(&this->decoders, &Mix_GetMusicDecoder, Mix_GetNumMusicDecoders());
