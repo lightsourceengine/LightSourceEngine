@@ -12,6 +12,7 @@
 #include <ls/StyleResolver.h>
 #include <ls/TextBlock.h>
 #include <ls/Timer.h>
+#include <math.h>
 
 namespace ls {
 
@@ -47,9 +48,9 @@ void TextBlock::Shape(const std::string& utf8, FontFace* fontFace, Style* style,
         return;
     }
 
-    this->calculatedWidth = std::ceilf(tm.advance.x);
+    this->calculatedWidth = ::ceilf(tm.advance.x);
     this->calculatedHeight
-        = std::ceilf(this->font.metrics().ascent + this->font.metrics().descent + this->font.metrics().lineGap);
+        = ::ceilf(this->font.metrics().ascent + this->font.metrics().descent + this->font.metrics().lineGap);
 }
 
 void TextBlock::Paint(RenderingContext2D* context, Renderer* renderer) {
