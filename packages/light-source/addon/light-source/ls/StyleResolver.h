@@ -19,7 +19,7 @@ class Style;
 /**
  * Border radius corners in screen pixel space.
  */
-struct BorderRadius {
+struct BorderRadiusCorners {
     float topLeft;
     float bottomLeft;
     float topRight;
@@ -47,7 +47,7 @@ class StyleResolver {
     float ResolveFontSize(const StyleValueNumber& value) const noexcept;
     int32_t ResolveMaxLines(Style* style) const noexcept;
     float ResolveBorder(Style* style) const noexcept;
-    BorderRadius ResolveBorderRadius(Style* style) const noexcept;
+    BorderRadiusCorners ResolveBorderRadius(Style* style) const noexcept;
 
     bool HasBorderRadius(Style* style) const noexcept;
 

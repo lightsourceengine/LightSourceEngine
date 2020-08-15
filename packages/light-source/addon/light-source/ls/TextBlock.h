@@ -23,7 +23,7 @@ class TextBlock final : public Paintable {
  public:
     ~TextBlock() override = default;
 
-    void Paint(RenderingContext2D* context, Renderer* renderer) override;
+    void Paint(RenderingContext2D* context) override;
 
     /**
      * Layout the text according to the style policy and dimensions.

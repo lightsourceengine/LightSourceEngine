@@ -313,7 +313,7 @@ bool StyleResolver::HasBorderRadius(Style* style) const noexcept {
         || borderRadius.bottomLeft > 0 || borderRadius.bottomRight);
 }
 
-BorderRadius StyleResolver::ResolveBorderRadius(Style* style) const noexcept {
+BorderRadiusCorners StyleResolver::ResolveBorderRadius(Style* style) const noexcept {
     const auto p{ Style::OrEmpty(style) };
     const auto borderRadius{ this->ResolveBorderProperty(p->borderRadius, 0) };
 

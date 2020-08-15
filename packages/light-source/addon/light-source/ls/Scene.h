@@ -66,6 +66,7 @@ class Scene : public Napi::SafeObjectWrap<Scene> {
     void ExecuteStyleLayoutRequests();
     void ExecutePaintRequests();
     void Composite();
+    void CompositePreorder(SceneNode* node, CompositeContext* context);
     void RemoveInternalReferences() noexcept;
 
  private:

@@ -55,7 +55,7 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
 
     virtual YGSize OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode);
     virtual void Paint(RenderingContext2D* context) = 0;
-    virtual void Composite(CompositeContext* composite);
+    virtual void Composite(CompositeContext* composite) = 0;
     virtual void Destroy();
 
     Stage* GetStage() const noexcept;

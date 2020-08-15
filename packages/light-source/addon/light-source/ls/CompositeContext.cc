@@ -19,9 +19,9 @@ CompositeContext::CompositeContext() {
     this->opacity.push_back(1.0f);
 }
 
-void CompositeContext::Reset(Renderer* renderer) {
-    this->renderer = renderer;
+void CompositeContext::Reset() {
     this->matrix.resize(1);
+    this->opacity.resize(1);
     this->clipRect.clear();
 }
 
@@ -33,7 +33,7 @@ void CompositeContext::PopMatrix() {
     this->matrix.pop_back();
 }
 
-const Matrix& CompositeContext::CurrentMatrix() {
+const Matrix& CompositeContext::CurrentMatrix() const noexcept {
     return this->matrix.back();
 }
 
@@ -56,23 +56,23 @@ void CompositeContext::PopClipRect() {
     this->clipRect.pop_back();
 }
 
-const Rect& CompositeContext::CurrentClipRect() {
+const Rect& CompositeContext::CurrentClipRect() const noexcept {
     return this->clipRect.back();
 }
 
-void CompositeContext::PushOpacity(float opacity) {
-    this->opacity.push_back(this->opacity.back() * std17::clamp(opacity, 0.f, 1.f));
+void CompositeContext::PushOpacity(float value) {
+    this->opacity.push_back(this->opacity.back() * std17::clamp(value, 0.f, 1.f));
 }
 
 void CompositeContext::PopOpacity() {
     this->opacity.pop_back();
 }
 
-uint8_t CompositeContext::CurrentOpacityAlpha() const {
+uint8_t CompositeContext::CurrentOpacityAlpha() const noexcept {
     return static_cast<uint8_t>(this->opacity.back() * 255.f);
 }
 
-float CompositeContext::CurrentOpacity() const {
+float CompositeContext::CurrentOpacity() const noexcept {
     return this->opacity.back();
 }
 

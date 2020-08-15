@@ -160,14 +160,12 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
     const auto boxStyle{ this->style };
 
     if (boxStyle == nullptr || boxStyle->IsLayoutOnly()) {
-        SceneNode::Composite(composite);
         return;
     }
 
-    const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
+    const auto rect{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
 
     if (IsEmpty(rect)) {
-        SceneNode::Composite(composite);
         return;
     }
 
@@ -178,7 +176,6 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
     if (this->paintTarget) {
         composite->renderer->DrawImage(this->paintTarget, rect, transform,
                 ColorWhite.MixAlpha(composite->CurrentOpacity()));
-        SceneNode::Composite(composite);
         return;
     }
 
@@ -218,8 +215,6 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
             transform,
             boxStyle->borderColor.value.MixAlpha(composite->CurrentOpacity()));
     }
-
-    SceneNode::Composite(composite);
 }
 
 //void BoxSceneNode::PaintBackgroundImage(Renderer* renderer, Style* boxStyle) {

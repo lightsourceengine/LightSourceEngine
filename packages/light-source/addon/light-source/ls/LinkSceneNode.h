@@ -19,6 +19,7 @@ enum LinkRelationship {
 };
 
 enum LinkCategory {
+    LinkCategoryAuto,
     LinkCategoryImage,
     LinkCategoryFont
 };
@@ -49,6 +50,7 @@ class LinkSceneNode final : public Napi::SafeObjectWrap<LinkSceneNode>, public S
  private:
     void ClearResource();
     void ResourceListener(Res::Owner owner, Res* res);
+    bool HasFontFileExtension(const std::string& path) const noexcept;
 
  private:
     static Napi::FunctionReference constructor;
@@ -56,7 +58,7 @@ class LinkSceneNode final : public Napi::SafeObjectWrap<LinkSceneNode>, public S
     static Napi::ObjectReference categoryMap;
 
     LinkRelationship relationship{ LinkRelationshipPreload };
-    LinkCategory category{ LinkCategoryImage };
+    LinkCategory category{ LinkCategoryAuto };
     std::string href{};
     Res* resource{};
     ResourceProgress resourceProgress;

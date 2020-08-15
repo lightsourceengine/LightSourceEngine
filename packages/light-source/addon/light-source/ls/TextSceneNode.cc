@@ -98,7 +98,7 @@ YGSize TextSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float heig
 }
 
 void TextSceneNode::Paint(RenderingContext2D* context) {
-    this->block.Paint(context, this->scene->GetRenderer());
+    this->block.Paint(context);
     this->RequestComposite();
 }
 
@@ -106,14 +106,12 @@ void TextSceneNode::Composite(CompositeContext* composite) {
     const auto boxStyle{ this->style };
 
 //    if (boxStyle == nullptr || boxStyle->IsLayoutOnly()) {
-//        SceneNode::Composite(composite);
 //        return;
 //    }
 
-    const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
+    const auto rect{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
 
     if (IsEmpty(rect)) {
-        SceneNode::Composite(composite);
         return;
     }
 
@@ -126,7 +124,6 @@ void TextSceneNode::Composite(CompositeContext* composite) {
 
         composite->renderer->DrawImage(this->block.GetTexture(), pos, transform,
                boxStyle->color.ValueOr(ColorBlack).MixAlpha(composite->CurrentOpacity()));
-        SceneNode::Composite(composite);
         return;
     }
 
@@ -137,8 +134,6 @@ void TextSceneNode::Composite(CompositeContext* composite) {
             transform,
             boxStyle->borderColor.value.MixAlpha(composite->CurrentOpacity()));
     }
-
-    SceneNode::Composite(composite);
 }
 
 Value TextSceneNode::GetText(const CallbackInfo& info) {

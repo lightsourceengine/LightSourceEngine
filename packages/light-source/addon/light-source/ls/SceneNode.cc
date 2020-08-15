@@ -265,36 +265,6 @@ void SceneNode::Destroy() {
     this->ygNode = nullptr;
 }
 
-void SceneNode::Composite(CompositeContext* context) {
-    if (this->IsHidden() || this->Children().empty()) {
-        return;
-    }
-
-    const auto boxStyle{ Style::OrEmpty(this->style) };
-    const auto bounds{ YGNodeLayoutGetRect(this->ygNode) };
-    const auto clip{ boxStyle->overflow == YGOverflowHidden };
-
-    context->PushMatrix(Matrix::Translate(bounds.x, bounds.y));
-    context->PushOpacity(boxStyle->opacity.AsFloat(1.f));
-
-    if (clip) {
-        context->PushClipRect(bounds);
-        context->renderer->EnabledClipping(context->CurrentClipRect());
-    }
-
-    for (auto& child : this->SortChildrenByStackingOrder()) {
-        child->Composite(context);
-    }
-
-    if (clip) {
-        context->renderer->DisableClipping();
-        context->PopClipRect();
-    }
-
-    context->PopOpacity();
-    context->PopMatrix();
-}
-
 void SceneNode::OnStylePropertyChanged(StyleProperty property) {
     switch (property) {
         case StyleProperty::transformOriginX:

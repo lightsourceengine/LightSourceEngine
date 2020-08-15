@@ -12,6 +12,8 @@
 
 namespace ls {
 
+class Renderer;
+
 /**
  * Vector drawing operations.
  *
@@ -40,6 +42,9 @@ class RenderingContext2D {
     void StrokePath() noexcept;
     void FillText(float x, float y, const BLGlyphRun& text) noexcept;
     void FillAll() noexcept;
+
+ public:
+    Renderer* renderer{};
 
  private:
     BLContext context{};

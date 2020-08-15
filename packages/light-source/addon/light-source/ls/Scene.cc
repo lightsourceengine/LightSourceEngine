@@ -10,11 +10,10 @@
 #include <ls/Renderer.h>
 #include <ls/GraphicsContext.h>
 #include <ls/Log.h>
-#include <ls/Format.h>
 #include <ls/Math.h>
 #include <ls/Style.h>
 #include <ls/RootSceneNode.h>
-#include <YGNode.h>
+#include <ls/yoga-ext.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -109,6 +108,7 @@ void Scene::Attach(const CallbackInfo& info) {
         this->rootFontSize
     };
 
+    this->renderingContext2D.renderer = this->graphicsContext->GetRenderer();
     this->isAttached = true;
 
     this->RequestComposite();
@@ -119,6 +119,7 @@ void Scene::Attach(const CallbackInfo& info) {
 void Scene::Detach(const CallbackInfo& info) {
     // TODO: detach graphics context?
 
+    this->renderingContext2D.renderer = nullptr;
     this->isAttached = false;
 }
 
@@ -252,9 +253,44 @@ void Scene::Composite() {
     auto renderer{ this->GetRenderer() };
 
     renderer->Reset();
-    this->compositeContext.Reset(renderer);
-    this->root->Composite(&this->compositeContext);
+    this->compositeContext.renderer = this->GetRenderer();
+    this->compositeContext.Reset();
+    this->CompositePreorder(this->root, &this->compositeContext);
     renderer->Present();
+}
+
+void Scene::CompositePreorder(SceneNode* node, CompositeContext* context) {
+    if (node->IsHidden()) {
+        return;
+    }
+
+    const auto boxStyle{ Style::OrEmpty(node->style) };
+    const auto bounds{ YGNodeLayoutGetRect(node->ygNode) };
+    const auto clip{ boxStyle->overflow == YGOverflowHidden };
+
+    context->PushMatrix(Matrix::Translate(bounds.x, bounds.y));
+    context->PushOpacity(boxStyle->opacity.AsFloat(1.f));
+
+    if (clip) {
+        context->PushClipRect(bounds);
+        context->renderer->EnabledClipping(context->CurrentClipRect());
+    }
+
+    node->Composite(context);
+
+    if (!node->Children().empty()) {
+        for (auto child : node->SortChildrenByStackingOrder()) {
+            CompositePreorder(child, context);
+        }
+    }
+
+    if (clip) {
+        context->renderer->DisableClipping();
+        context->PopClipRect();
+    }
+
+    context->PopOpacity();
+    context->PopMatrix();
 }
 
 void Scene::RemoveInternalReferences() noexcept {

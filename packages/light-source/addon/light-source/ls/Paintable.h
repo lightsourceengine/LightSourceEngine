@@ -24,7 +24,7 @@ class Paintable {
     /**
      * Write paintable contents to the underlying texture.
      */
-    virtual void Paint(RenderingContext2D* context, Renderer* renderer) = 0;
+    virtual void Paint(RenderingContext2D* context) = 0;
 
     /**
      * Clean up texture resources used by this object.

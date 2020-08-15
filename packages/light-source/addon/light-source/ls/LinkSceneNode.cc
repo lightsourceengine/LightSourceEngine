@@ -5,11 +5,14 @@
  * tree.
  */
 
-#include "LinkSceneNode.h"
+#include <ls/LinkSceneNode.h>
+
+#include <unordered_map>
+#include <cctype>
+#include <algorithm>
 #include <ls/Scene.h>
 #include <ls/Stage.h>
 #include <ls/Log.h>
-#include <unordered_map>
 
 using Napi::Error;
 using Napi::Function;
@@ -50,6 +53,7 @@ Function LinkSceneNode::GetClass(Napi::Env env) {
         });
 
         LinkSceneNode::categoryMap = CreateMap(env, {
+            {LinkCategoryAuto, "auto" },
             {LinkCategoryImage, "image" },
             {LinkCategoryFont, "font" },
         });
@@ -72,6 +76,13 @@ void LinkSceneNode::Fetch(const Napi::CallbackInfo& info) {
     auto resources{ this->GetStage()->GetResources() };
 
     switch (this->category) {
+        case LinkCategoryAuto:
+            if (this->HasFontFileExtension(this->href)) {
+                this->resource = resources->AcquireFontFace(this->href);
+            } else {
+                this->resource = resources->AcquireImage(this->href);
+            }
+            break;
         case LinkCategoryImage:
             this->resource = resources->AcquireImage(this->href);
             break;
@@ -112,6 +123,25 @@ void LinkSceneNode::ResourceListener(Res::Owner owner, Res* res) {
     this->resourceProgress.Dispatch(this, this->resource);
 
     res->RemoveListener(owner);
+}
+
+bool LinkSceneNode::HasFontFileExtension(const std::string& path) const noexcept {
+    static const std::array<std::string, 4> fontExtensions{
+        { ".ttf", ".ttc", ".otf", ".otc" }
+    };
+
+    const auto dot{ path.find_last_of('.') };
+
+    if (dot != std::string::npos) {
+        for (const auto& ext : fontExtensions) {
+            if (std::equal(path.begin() + dot, path.end(), ext.begin(), ext.end(),
+                    [](char a, char b) noexcept { return tolower(a) == tolower(b); })) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 Napi::Value LinkSceneNode::GetRel(const Napi::CallbackInfo& info) {

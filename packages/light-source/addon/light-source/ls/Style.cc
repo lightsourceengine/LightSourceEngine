@@ -23,18 +23,6 @@ using Napi::SymbolFor;
 
 namespace ls {
 
-template<
-    void (*SetPoint)(YGNodeRef, YGEdge, float),
-    void (*SetPercent)(YGNodeRef, YGEdge, float) = nullptr,
-    void (*SetAuto)(YGNodeRef, YGEdge) = nullptr>
-static void YGNodeSetNumber(YGNodeRef ygNode, StyleValueNumber& value, YGEdge edge, Scene* scene) noexcept;
-
-template<
-    void (*SetPoint)(YGNodeRef, float),
-    void (*SetPercent)(YGNodeRef, float) = nullptr,
-    void (*SetAuto)(YGNodeRef) = nullptr>
-static void YGNodeSetNumber(YGNodeRef ygNode, StyleValueNumber& value, Scene* scene) noexcept;
-
 Style* Style::sEmptyStyle{};
 FunctionReference Style::sConstructor;
 
@@ -189,15 +177,6 @@ void Style::Bind(SceneNode* sceneNode) noexcept {
 
 bool Style::IsLayoutOnly() const noexcept {
     return this->borderColor.empty() && this->backgroundColor.empty() && this->backgroundImage.empty();
-}
-
-bool Style::HasBorderRadius() const noexcept {
-    return !this->border.empty()
-        || !this->borderRadius.empty()
-        || !this->borderRadiusTopLeft.empty()
-        || !this->borderRadiusTopRight.empty()
-        || !this->borderRadiusBottomLeft.empty()
-        || !this->borderRadiusBottomRight.empty();
 }
 
 void Style::UpdateDependentProperties(bool rem, bool viewport) noexcept {
@@ -365,7 +344,7 @@ void Style::NotifyPropertyChanged(StyleProperty property) {
     }
 }
 
-void Style::SyncYogaProperty(StyleProperty property) {
+void Style::SyncYogaProperty(StyleProperty property) noexcept {
     switch (property) {
         case StyleProperty::alignItems:
             YGNodeStyleSetAlignItems(this->node->ygNode, this->alignItems);
@@ -377,144 +356,127 @@ void Style::SyncYogaProperty(StyleProperty property) {
             YGNodeStyleSetAlignSelf(this->node->ygNode, this->alignSelf);
             break;
         case StyleProperty::border:
-            YGNodeSetNumber<YGNodeStyleSetBorder>(
-                this->node->ygNode, this->border, YGEdgeAll, this->node->scene);
+            this->SetYogaValue(this->border, YGEdgeAll, YGNodeStyleSetBorder);
             break;
         case StyleProperty::borderBottom:
-            YGNodeSetNumber<YGNodeStyleSetBorder>(
-                this->node->ygNode, this->borderBottom, YGEdgeBottom, this->node->scene);
+            this->SetYogaValue(this->borderBottom, YGEdgeBottom, YGNodeStyleSetBorder);
             break;
         case StyleProperty::borderLeft:
-            YGNodeSetNumber<YGNodeStyleSetBorder>(
-                this->node->ygNode, this->borderLeft, YGEdgeLeft, this->node->scene);
+            this->SetYogaValue(this->borderLeft, YGEdgeLeft, YGNodeStyleSetBorder);
             break;
         case StyleProperty::borderRight:
-            YGNodeSetNumber<YGNodeStyleSetBorder>(
-                this->node->ygNode, this->borderRight, YGEdgeRight, this->node->scene);
+            this->SetYogaValue(this->borderRight, YGEdgeRight, YGNodeStyleSetBorder);
             break;
         case StyleProperty::borderTop:
-            YGNodeSetNumber<YGNodeStyleSetBorder>(
-                this->node->ygNode, this->borderTop, YGEdgeTop, this->node->scene);
+            this->SetYogaValue(this->borderTop, YGEdgeTop, YGNodeStyleSetBorder);
             break;
         case StyleProperty::bottom:
-            YGNodeSetNumber<YGNodeStyleSetPosition, YGNodeStyleSetPositionPercent>(
-                this->node->ygNode, this->bottom, YGEdgeBottom, this->node->scene);
+            this->SetYogaValue(this->bottom, YGEdgeBottom, YGNodeStyleSetPosition, YGNodeStyleSetPositionPercent);
             break;
         case StyleProperty::display:
             YGNodeStyleSetDisplay(this->node->ygNode, this->display);
             break;
         case StyleProperty::flex:
-            YGNodeSetNumber<YGNodeStyleSetFlex>(this->node->ygNode, this->bottom, this->node->scene);
+            this->SetYogaValue(this->bottom, YGNodeStyleSetFlex);
             break;
         case StyleProperty::flexBasis:
-            YGNodeSetNumber<YGNodeStyleSetFlexBasis, YGNodeStyleSetFlexBasisPercent, YGNodeStyleSetFlexBasisAuto>(
-                this->node->ygNode, this->flexBasis, this->node->scene);
+            this->SetYogaValue(this->flexBasis,
+                    YGNodeStyleSetFlexBasis, YGNodeStyleSetFlexBasisPercent, YGNodeStyleSetFlexBasisAuto);
             break;
         case StyleProperty::flexDirection:
             YGNodeStyleSetFlexDirection(this->node->ygNode, this->flexDirection);
             break;
         case StyleProperty::flexGrow:
-            YGNodeSetNumber<YGNodeStyleSetFlexGrow>(this->node->ygNode, this->flexGrow, this->node->scene);
+            this->SetYogaValue(this->flexGrow, YGNodeStyleSetFlexGrow);
             break;
         case StyleProperty::flexShrink:
-            YGNodeSetNumber<YGNodeStyleSetFlexShrink>(this->node->ygNode, this->flexShrink, this->node->scene);
+            this->SetYogaValue(this->flexShrink, YGNodeStyleSetFlexShrink);
             break;
         case StyleProperty::flexWrap:
             YGNodeStyleSetFlexWrap(this->node->ygNode, this->flexWrap);
             break;
         case StyleProperty::height:
-            YGNodeSetNumber<YGNodeStyleSetHeight, YGNodeStyleSetHeightPercent, YGNodeStyleSetHeightAuto>(
-                this->node->ygNode, this->height, this->node->scene);
+            this->SetYogaValue(this->height,
+                    YGNodeStyleSetHeight, YGNodeStyleSetHeightPercent, YGNodeStyleSetHeightAuto);
             break;
         case StyleProperty::justifyContent:
             YGNodeStyleSetJustifyContent(this->node->ygNode, this->justifyContent);
             break;
         case StyleProperty::left:
-            YGNodeSetNumber<YGNodeStyleSetPosition, YGNodeStyleSetPositionPercent>(
-                this->node->ygNode, this->left, YGEdgeLeft, this->node->scene);
+            this->SetYogaValue(this->left, YGEdgeLeft, YGNodeStyleSetPosition, YGNodeStyleSetPositionPercent);
             break;
         case StyleProperty::margin:
-            YGNodeSetNumber<YGNodeStyleSetMargin, YGNodeStyleSetMarginPercent, YGNodeStyleSetMarginAuto>(
-                this->node->ygNode, this->margin, YGEdgeAll, this->node->scene);
+            this->SetYogaValue(this->margin, YGEdgeAll, YGNodeStyleSetMargin, YGNodeStyleSetMarginPercent,
+                    YGNodeStyleSetMarginAuto);
             break;
         case StyleProperty::marginBottom:
-            YGNodeSetNumber<YGNodeStyleSetMargin, YGNodeStyleSetMarginPercent, YGNodeStyleSetMarginAuto>(
-                this->node->ygNode, this->marginBottom, YGEdgeBottom, this->node->scene);
+            this->SetYogaValue(this->marginBottom, YGEdgeBottom, YGNodeStyleSetMargin,
+                    YGNodeStyleSetMarginPercent, YGNodeStyleSetMarginAuto);
             break;
         case StyleProperty::marginLeft:
-            YGNodeSetNumber<YGNodeStyleSetMargin, YGNodeStyleSetMarginPercent, YGNodeStyleSetMarginAuto>(
-                this->node->ygNode, this->marginLeft, YGEdgeLeft, this->node->scene);
+            this->SetYogaValue(this->marginLeft, YGEdgeLeft, YGNodeStyleSetMargin, YGNodeStyleSetMarginPercent,
+                    YGNodeStyleSetMarginAuto);
             break;
         case StyleProperty::marginRight:
-            YGNodeSetNumber<YGNodeStyleSetMargin, YGNodeStyleSetMarginPercent, YGNodeStyleSetMarginAuto>(
-                this->node->ygNode, this->marginRight, YGEdgeRight, this->node->scene);
+            this->SetYogaValue(this->marginRight, YGEdgeRight, YGNodeStyleSetMargin,
+                    YGNodeStyleSetMarginPercent, YGNodeStyleSetMarginAuto);
             break;
         case StyleProperty::marginTop:
-            YGNodeSetNumber<YGNodeStyleSetMargin, YGNodeStyleSetMarginPercent, YGNodeStyleSetMarginAuto>(
-                this->node->ygNode, this->marginTop, YGEdgeTop, this->node->scene);
+            this->SetYogaValue(this->marginTop, YGEdgeTop, YGNodeStyleSetMargin, YGNodeStyleSetMarginPercent,
+                    YGNodeStyleSetMarginAuto);
             break;
         case StyleProperty::maxHeight:
-            YGNodeSetNumber<YGNodeStyleSetMaxHeight, YGNodeStyleSetMaxHeightPercent>(
-                this->node->ygNode, this->maxHeight, this->node->scene);
+            this->SetYogaValue(this->maxHeight, YGNodeStyleSetMaxHeight, YGNodeStyleSetMaxHeightPercent);
             break;
         case StyleProperty::maxWidth:
-            YGNodeSetNumber<YGNodeStyleSetMaxWidth, YGNodeStyleSetMaxWidthPercent>(
-                this->node->ygNode, this->maxWidth, this->node->scene);
+            this->SetYogaValue(this->maxWidth, YGNodeStyleSetMaxWidth, YGNodeStyleSetMaxWidthPercent);
             break;
         case StyleProperty::minHeight:
-            YGNodeSetNumber<YGNodeStyleSetMinHeight, YGNodeStyleSetMinHeightPercent>(
-                this->node->ygNode, this->minHeight, this->node->scene);
+            this->SetYogaValue(this->minHeight, YGNodeStyleSetMinHeight, YGNodeStyleSetMinHeightPercent);
             break;
         case StyleProperty::minWidth:
-            YGNodeSetNumber<YGNodeStyleSetMinWidth, YGNodeStyleSetMinWidthPercent>(
-                this->node->ygNode, this->minWidth, this->node->scene);
+            this->SetYogaValue(this->minWidth, YGNodeStyleSetMinWidth, YGNodeStyleSetMinWidthPercent);
             break;
         case StyleProperty::overflow:
             YGNodeStyleSetOverflow(this->node->ygNode, this->overflow);
             break;
         case StyleProperty::padding:
-            YGNodeSetNumber<YGNodeStyleSetPadding, YGNodeStyleSetPaddingPercent>(
-                this->node->ygNode, this->padding, YGEdgeAll, this->node->scene);
+            this->SetYogaValue(this->padding, YGEdgeAll, YGNodeStyleSetPadding, YGNodeStyleSetPaddingPercent);
             break;
         case StyleProperty::paddingBottom:
-            YGNodeSetNumber<YGNodeStyleSetPadding, YGNodeStyleSetPaddingPercent>(
-                this->node->ygNode, this->paddingBottom, YGEdgeBottom, this->node->scene);
+            this->SetYogaValue(this->paddingBottom, YGEdgeBottom, YGNodeStyleSetPadding, YGNodeStyleSetPaddingPercent);
             break;
         case StyleProperty::paddingLeft:
-            YGNodeSetNumber<YGNodeStyleSetPadding, YGNodeStyleSetPaddingPercent>(
-                this->node->ygNode, this->paddingLeft, YGEdgeLeft, this->node->scene);
+            this->SetYogaValue(this->paddingLeft, YGEdgeLeft, YGNodeStyleSetPadding, YGNodeStyleSetPaddingPercent);
             break;
         case StyleProperty::paddingRight:
-            YGNodeSetNumber<YGNodeStyleSetPadding, YGNodeStyleSetPaddingPercent>(
-                this->node->ygNode, this->paddingRight, YGEdgeRight, this->node->scene);
+            this->SetYogaValue(this->paddingRight, YGEdgeRight, YGNodeStyleSetPadding, YGNodeStyleSetPaddingPercent);
             break;
         case StyleProperty::paddingTop:
-            YGNodeSetNumber<YGNodeStyleSetPadding, YGNodeStyleSetPaddingPercent>(
-                this->node->ygNode, this->paddingTop, YGEdgeTop, this->node->scene);
+            this->SetYogaValue(this->paddingTop, YGEdgeTop, YGNodeStyleSetPadding, YGNodeStyleSetPaddingPercent);
             break;
         case StyleProperty::position:
             YGNodeStyleSetPositionType(this->node->ygNode, this->position);
             break;
         case StyleProperty::right:
-            YGNodeSetNumber<YGNodeStyleSetPosition, YGNodeStyleSetPositionPercent>(
-                this->node->ygNode, this->right, YGEdgeRight, this->node->scene);
+            this->SetYogaValue(this->right, YGEdgeRight, YGNodeStyleSetPosition, YGNodeStyleSetPositionPercent);
             break;
         case StyleProperty::top:
-            YGNodeSetNumber<YGNodeStyleSetPosition, YGNodeStyleSetPositionPercent>(
-                this->node->ygNode, this->top, YGEdgeTop, this->node->scene);
+            this->SetYogaValue(this->top, YGEdgeTop, YGNodeStyleSetPosition, YGNodeStyleSetPositionPercent);
             break;
         case StyleProperty::width:
-            YGNodeSetNumber<YGNodeStyleSetWidth, YGNodeStyleSetWidthPercent, YGNodeStyleSetWidthAuto>(
-                this->node->ygNode, this->width, this->node->scene);
+            this->SetYogaValue(this->width, YGNodeStyleSetWidth, YGNodeStyleSetWidthPercent,
+                    YGNodeStyleSetWidthAuto);
             break;
         default:
             break;
     }
 }
 
-template<void (*SetPoint)(YGNodeRef, YGEdge, float), void (*SetPercent)(YGNodeRef, YGEdge, float),
-    void (*SetAuto)(YGNodeRef, YGEdge)>
-static void YGNodeSetNumber(YGNodeRef ygNode, StyleValueNumber& value, YGEdge edge, Scene* scene) noexcept {
+void Style::SetYogaValue(StyleValueNumber& value, YGEdge edge, void (*SetPoint)(YGNodeRef, YGEdge, float),
+        void (*SetPercent)(YGNodeRef, YGEdge, float), void (*SetAuto)(YGNodeRef, YGEdge)) noexcept {
+    auto ygNode{ this->node->ygNode };
+
     switch (value.unit) {
         case StyleNumberUnitAuto:
             if (SetAuto != nullptr) {
@@ -530,19 +492,19 @@ static void YGNodeSetNumber(YGNodeRef ygNode, StyleValueNumber& value, YGEdge ed
             SetPoint(ygNode, edge, value.value);
             break;
         case StyleNumberUnitViewportWidth:
-            SetPoint(ygNode, edge, value.AsPercent() * scene->GetWidth());
+            SetPoint(ygNode, edge, value.AsPercent() * node->scene->GetWidth());
             break;
         case StyleNumberUnitViewportHeight:
-            SetPoint(ygNode, edge, value.AsPercent() * scene->GetHeight());
+            SetPoint(ygNode, edge, value.AsPercent() * node->scene->GetHeight());
             break;
         case StyleNumberUnitViewportMin:
-            SetPoint(ygNode, edge, value.AsPercent() * scene->GetViewportMin());
+            SetPoint(ygNode, edge, value.AsPercent() * node->scene->GetViewportMin());
             break;
         case StyleNumberUnitViewportMax:
-            SetPoint(ygNode, edge, value.AsPercent() * scene->GetViewportMax());
+            SetPoint(ygNode, edge, value.AsPercent() * node->scene->GetViewportMax());
             break;
         case StyleNumberUnitRootEm:
-            SetPoint(ygNode, edge, value.value * scene->GetRootFontSize());
+            SetPoint(ygNode, edge, value.value * node->scene->GetRootFontSize());
             break;
         default:
             SetPoint(ygNode, edge, YGUndefined);
@@ -550,8 +512,10 @@ static void YGNodeSetNumber(YGNodeRef ygNode, StyleValueNumber& value, YGEdge ed
     }
 }
 
-template<void (*SetPoint)(YGNodeRef, float), void (*SetPercent)(YGNodeRef, float), void (*SetAuto)(YGNodeRef)>
-static void YGNodeSetNumber(YGNodeRef ygNode, StyleValueNumber& value, Scene* scene) noexcept {
+void Style::SetYogaValue(StyleValueNumber& value, void (*SetPoint)(YGNodeRef, float),
+        void (*SetPercent)(YGNodeRef, float), void (*SetAuto)(YGNodeRef)) noexcept {
+    auto ygNode{ this->node->ygNode };
+
     switch (value.unit) {
         case StyleNumberUnitAuto:
             if (SetAuto != nullptr) {
@@ -567,19 +531,19 @@ static void YGNodeSetNumber(YGNodeRef ygNode, StyleValueNumber& value, Scene* sc
             SetPoint(ygNode, value.value);
             break;
         case StyleNumberUnitViewportWidth:
-            SetPoint(ygNode, value.AsPercent() * scene->GetWidth());
+            SetPoint(ygNode, value.AsPercent() * node->scene->GetWidth());
             break;
         case StyleNumberUnitViewportHeight:
-            SetPoint(ygNode, value.AsPercent() * scene->GetHeight());
+            SetPoint(ygNode, value.AsPercent() * node->scene->GetHeight());
             break;
         case StyleNumberUnitViewportMin:
-            SetPoint(ygNode, value.AsPercent() * scene->GetViewportMin());
+            SetPoint(ygNode, value.AsPercent() * node->scene->GetViewportMin());
             break;
         case StyleNumberUnitViewportMax:
-            SetPoint(ygNode, value.AsPercent() * scene->GetViewportMax());
+            SetPoint(ygNode, value.AsPercent() * node->scene->GetViewportMax());
             break;
         case StyleNumberUnitRootEm:
-            SetPoint(ygNode, value.value * scene->GetRootFontSize());
+            SetPoint(ygNode, value.value * node->scene->GetRootFontSize());
             break;
         default:
             SetPoint(ygNode, YGUndefined);

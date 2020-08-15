@@ -21,7 +21,7 @@ class SceneNode;
 // TODO: this design does not work well (too much memory and too much code to manage properties). consider
 //       splitting this class into an immutable style class and a mutable hash map of style properties owned by the
 //       node.
-class Style : public Napi::SafeObjectWrap<Style> {
+class Style final : public Napi::SafeObjectWrap<Style> {
  public:
     Style(const Napi::CallbackInfo& info);
     ~Style() override = default;
@@ -35,7 +35,6 @@ class Style : public Napi::SafeObjectWrap<Style> {
     void Assign(const Style* other) noexcept;
     void Bind(SceneNode* node) noexcept;
     bool IsLayoutOnly() const noexcept;
-    bool HasBorderRadius() const noexcept;
     void UpdateDependentProperties(bool rem, bool viewport) noexcept;
 
  public:
@@ -157,7 +156,7 @@ class Style : public Napi::SafeObjectWrap<Style> {
 
  private:
     void NotifyPropertyChanged(StyleProperty property);
-    void SyncYogaProperty(StyleProperty property);
+    void SyncYogaProperty(StyleProperty property) noexcept;
 
     template<typename T>
     void Set(StyleProperty name, T& property, const T& value);
@@ -168,9 +167,17 @@ class Style : public Napi::SafeObjectWrap<Style> {
     template<typename Constraint>
     void SetWithConstraint(StyleProperty name, StyleValueNumber& property, const StyleValueNumber& value);
 
+    void SetYogaValue(StyleValueNumber& value, void (*SetPoint)(YGNodeRef, float),
+            void (*SetPercent)(YGNodeRef, float) = nullptr, void (*SetAuto)(YGNodeRef) = nullptr) noexcept;
+
+    void SetYogaValue(StyleValueNumber& value, YGEdge edge,
+                      void (*SetPoint)(YGNodeRef, YGEdge, float),
+                      void (*SetPercent)(YGNodeRef, YGEdge, float) = nullptr,
+                      void (*SetAuto)(YGNodeRef, YGEdge) = nullptr) noexcept;
  private:
     static Style* sEmptyStyle;
     static Napi::FunctionReference sConstructor;
+
     SceneNode* node{};
 };
 

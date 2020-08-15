@@ -53,12 +53,12 @@ void TextBlock::Shape(const std::string& utf8, FontFace* fontFace, Style* style,
         = ::ceilf(this->font.metrics().ascent + this->font.metrics().descent + this->font.metrics().lineGap);
 }
 
-void TextBlock::Paint(RenderingContext2D* context, Renderer* renderer) {
+void TextBlock::Paint(RenderingContext2D* context) {
     if (this->IsEmpty()) {
         return;
     }
 
-    auto target{ this->EnsureLockableTexture(renderer, this->calculatedWidth, this->calculatedHeight) };
+    auto target{ this->EnsureLockableTexture(context->renderer, this->calculatedWidth, this->calculatedHeight) };
 
     if (!target) {
         LOG_ERROR("Failed to create paint texture.");

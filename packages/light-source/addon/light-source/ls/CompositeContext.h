@@ -18,23 +18,23 @@ class CompositeContext {
  public:
     CompositeContext();
 
-    void Reset(Renderer* renderer);
+    void Reset();
 
     void PushMatrix(const Matrix& m);
     void PopMatrix();
-    const Matrix& CurrentMatrix();
+    const Matrix& CurrentMatrix() const noexcept;
 
     void PushClipRect(const Rect& rect);
     void PopClipRect();
-    const Rect& CurrentClipRect();
+    const Rect& CurrentClipRect() const noexcept;
 
     void PushOpacity(float opacity);
     void PopOpacity();
-    float CurrentOpacity() const;
-    uint8_t CurrentOpacityAlpha() const;
+    float CurrentOpacity() const noexcept;
+    uint8_t CurrentOpacityAlpha() const noexcept;
 
  public:
-    Renderer* renderer;
+    Renderer* renderer{};
 
  private:
     std::vector<Matrix> matrix;
