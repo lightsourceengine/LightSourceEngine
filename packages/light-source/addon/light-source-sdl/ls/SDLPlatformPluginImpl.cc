@@ -204,6 +204,8 @@ void SDLPlatformPluginImpl::Init(Napi::Env env) {
         throw Error::New(env, Format("Failed to init SDL video. SDL Error: %s", SDL_GetError()));
     }
 
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+
     t.Log();
 
     if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0 && SDL_Init(SDL_INIT_JOYSTICK) != 0) {

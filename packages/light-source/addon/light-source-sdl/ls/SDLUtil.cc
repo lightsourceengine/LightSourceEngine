@@ -9,10 +9,22 @@
 
 namespace ls {
 
-static Texture::Bridge CreateTextureBridge() noexcept;
+class SDLTextureBridge final : public Texture::Bridge {
+ public:
+    ~SDLTextureBridge() override = default;
+
+    int32_t GetWidth(void* platformTextureRef) const noexcept override;
+    int32_t GetHeight(void* platformTextureRef) const noexcept override;
+    bool Lock(void* platformTextureRef, void** buffer, int32_t* pitch) noexcept override;
+    void Unlock(void* platformTextureRef) noexcept override;
+    bool Update(void* platformTextureRef, const uint8_t* buffer, int32_t length) override;
+    PixelFormat GetPixelFormat(void* platformTextureRef) const noexcept override;
+    Texture::Type GetType(void* platformTextureRef) const noexcept override;
+    void Destroy(void* platformTextureRef) noexcept override;
+};
 
 static const SDL_Point kCenterPoint{ 0, 0 };
-static Texture::Bridge sTextureBridge = CreateTextureBridge();
+static SDLTextureBridge sTextureBridge{};
 
 Texture CreateTexture(SDL_Renderer* renderer, int32_t width, int32_t height, Texture::Type type,
         PixelFormat format) noexcept {
@@ -246,71 +258,66 @@ void DrawBorder(SDL_Renderer* renderer, SDL_Texture* fillRectTexture, const Rect
     }
 }
 
-static Texture::Bridge CreateTextureBridge() noexcept {
-    return {
-        // GetWidth()
-        [](void* p) -> int32_t {
-            int32_t width{0};
+int32_t SDLTextureBridge::GetWidth(void* platformTextureRef) const noexcept {
+    int32_t width{0};
 
-            if (p) {
-                SDL_QueryTexture(static_cast<SDL_Texture*>(p), nullptr, nullptr, &width, nullptr);
-            }
+    if (platformTextureRef) {
+        SDL_QueryTexture(static_cast<SDL_Texture*>(platformTextureRef), nullptr, nullptr, &width, nullptr);
+    }
 
-            return width;
-        },
-        // GetHeight()
-        [](void* p) -> int32_t {
-            int32_t height{0};
+    return width;
+}
 
-            if (p) {
-                SDL_QueryTexture(static_cast<SDL_Texture*>(p), nullptr, nullptr, nullptr, &height);
-            }
+int32_t SDLTextureBridge::GetHeight(void* platformTextureRef) const noexcept {
+    int32_t height{0};
 
-            return height;
-        },
-        // Lock()
-        [](void* p, void** data, int32_t* pitch) -> bool {
-            if (p) {
-                return SDL_LockTexture(static_cast<SDL_Texture*>(p), nullptr, data, pitch) == 0;
-            }
+    if (platformTextureRef) {
+        SDL_QueryTexture(static_cast<SDL_Texture*>(platformTextureRef), nullptr, nullptr, nullptr, &height);
+    }
 
-            return false;
-        },
-        // Unlock()
-        [](void* p) {
-            if (p) {
-                SDL_UnlockTexture(static_cast<SDL_Texture*>(p));
-            }
-        },
-        // Update()
-        [](void* p, const uint8_t* pixels, int32_t pitch) -> bool {
-            return p ? SDL_UpdateTexture(static_cast<SDL_Texture*>(p), nullptr, pixels, pitch) == 0 : false;
-        },
-        // GetPixelFormat()
-        [](void* p) -> PixelFormat {
-            uint32_t format{ SDL_PIXELFORMAT_UNKNOWN };
+    return height;
+}
 
-            if (p) {
-                SDL_QueryTexture(static_cast<SDL_Texture*>(p), &format, nullptr, nullptr, nullptr);
-            }
+bool SDLTextureBridge::Lock(void* platformTextureRef, void** buffer, int32_t* pitch) noexcept {
+    auto p{ static_cast<SDL_Texture*>(platformTextureRef) };
 
-            return ToPixelFormat(format);
-        },
-        // GetType()
-        [](void* p) -> Texture::Type {
-            int32_t access{ SDL_TextureAccess::SDL_TEXTUREACCESS_STATIC };
+    return p ? SDL_LockTexture(p, nullptr, buffer, pitch) == 0 : false;
+}
 
-            if (p) {
-                SDL_QueryTexture(static_cast<SDL_Texture*>(p), nullptr, &access, nullptr, nullptr);
-            }
+void SDLTextureBridge::Unlock(void* platformTextureRef) noexcept {
+    if (platformTextureRef) {
+        SDL_UnlockTexture(static_cast<SDL_Texture*>(platformTextureRef));
+    }
+}
 
-            return ToTextureType(access);
-        },
-        // Destroy()
-        [](void* p) {
-            DestroyTexture(static_cast<SDL_Texture*>(p));
-        }
-    };
+bool SDLTextureBridge::Update(void* platformTextureRef, const uint8_t* buffer, int32_t length) {
+    auto p{ static_cast<SDL_Texture*>(platformTextureRef) };
+
+    return p ? SDL_UpdateTexture(static_cast<SDL_Texture*>(p), nullptr, buffer, length) == 0 : false;
+}
+
+PixelFormat SDLTextureBridge::GetPixelFormat(void* platformTextureRef) const noexcept {
+    uint32_t format{ SDL_PIXELFORMAT_UNKNOWN };
+
+    if (platformTextureRef) {
+        SDL_QueryTexture(static_cast<SDL_Texture*>(platformTextureRef), &format, nullptr, nullptr, nullptr);
+    }
+
+    return ToPixelFormat(format);
+}
+
+Texture::Type SDLTextureBridge::GetType(void* platformTextureRef) const noexcept {
+    int32_t access{ SDL_TextureAccess::SDL_TEXTUREACCESS_STATIC };
+
+    if (platformTextureRef) {
+        SDL_QueryTexture(static_cast<SDL_Texture*>(platformTextureRef), nullptr, &access, nullptr, nullptr);
+    }
+
+    return ToTextureType(access);
+}
+
+void SDLTextureBridge::Destroy(void* platformTextureRef) noexcept {
+    DestroyTexture(static_cast<SDL_Texture*>(platformTextureRef));
 }
 
 } // namespace ls

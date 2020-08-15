@@ -8,8 +8,21 @@
 
 namespace ls {
 
-static Texture::Bridge CreateTextureBridge() noexcept;
-static Texture::Bridge sTextureBridge = CreateTextureBridge();
+class RefTextureBridge final : public Texture::Bridge {
+ public:
+    ~RefTextureBridge() override = default;
+
+    int32_t GetWidth(void* platformTextureRef) const noexcept override;
+    int32_t GetHeight(void* platformTextureRef) const noexcept override;
+    bool Lock(void* platformTextureRef, void** buffer, int32_t* pitch) noexcept override;
+    void Unlock(void* platformTextureRef) noexcept override;
+    bool Update(void* platformTextureRef, const uint8_t* buffer, int32_t length) override;
+    PixelFormat GetPixelFormat(void* platformTextureRef) const noexcept override;
+    Texture::Type GetType(void* platformTextureRef) const noexcept override;
+    void Destroy(void* platformTextureRef) noexcept override;
+};
+
+static RefTextureBridge sTextureBridge{};
 
 struct RefTexture {
     int32_t width{};
@@ -70,58 +83,56 @@ Texture RefRenderer::CreateTexture(int32_t width, int32_t height, Texture::Type 
     };
 }
 
-static Texture::Bridge CreateTextureBridge() noexcept {
-    return {
-        // GetWidth()
-        [](void* p) -> int32_t {
-            return p ? static_cast<RefTexture*>(p)->width : 0;
-        },
-        // GetHeight()
-        [](void* p) -> int32_t {
-            return p ? static_cast<RefTexture*>(p)->height : 0;
-        },
-        // Lock()
-        [](void* p, void** data, int32_t* pitch) -> bool {
-            if (p) {
-                auto texture{ static_cast<RefTexture*>(p) };
-                auto actualPitch{ texture->width * 4 };
+int32_t RefTextureBridge::GetWidth(void* platformTextureRef) const noexcept {
+    return platformTextureRef ? static_cast<RefTexture*>(platformTextureRef)->width : 0;
+}
 
-                texture->pixels = new uint8_t[texture->height * actualPitch];
+int32_t RefTextureBridge::GetHeight(void* platformTextureRef) const noexcept {
+    return platformTextureRef ? static_cast<RefTexture*>(platformTextureRef)->height : 0;
+}
 
-                *data = texture->pixels;
-                *pitch = actualPitch;
+bool RefTextureBridge::Lock(void* platformTextureRef, void** buffer, int32_t* pitch) noexcept {
+    if (platformTextureRef) {
+        auto texture{ static_cast<RefTexture*>(platformTextureRef) };
+        auto actualPitch{ texture->width * 4 };
 
-                return true;
-            }
+        texture->pixels = new uint8_t[texture->height * actualPitch];
 
-            return false;
-        },
-        // Unlock
-        [](void* p) {
-            if (p) {
-                auto texture{ static_cast<RefTexture*>(p) };
+        *buffer = texture->pixels;
+        *pitch = actualPitch;
 
-                delete [] texture->pixels;
-                texture->pixels = nullptr;
-            }
-        },
-        // Update()
-        [](void* p, const uint8_t* pixels, int32_t pitch) -> bool {
-            return p != nullptr;
-        },
-        // GetPixelFormat()
-        [](void* p) -> PixelFormat {
-            return p ? static_cast<RefTexture*>(p)->format : PixelFormatUnknown;
-        },
-        // GetType()
-        [](void* p) -> Texture::Type {
-            return p ? static_cast<RefTexture*>(p)->type : Texture::Type::Updatable;
-        },
-        // Destroy()
-        [](void* p) {
-            delete static_cast<RefTexture*>(p);
-        }
-    };
+        return true;
+    }
+
+    *buffer = nullptr;
+    *pitch = 0;
+
+    return false;
+}
+
+void RefTextureBridge::Unlock(void* platformTextureRef) noexcept {
+    if (platformTextureRef) {
+        auto texture{ static_cast<RefTexture*>(platformTextureRef) };
+
+        delete [] texture->pixels;
+        texture->pixels = nullptr;
+    }
+}
+
+bool RefTextureBridge::Update(void* platformTextureRef, const uint8_t* buffer, int32_t length) {
+    return platformTextureRef != nullptr;
+}
+
+PixelFormat RefTextureBridge::GetPixelFormat(void* platformTextureRef) const noexcept {
+    return platformTextureRef ? static_cast<RefTexture*>(platformTextureRef)->format : PixelFormatUnknown;
+}
+
+Texture::Type RefTextureBridge::GetType(void* platformTextureRef) const noexcept {
+    return platformTextureRef ? static_cast<RefTexture*>(platformTextureRef)->type : Texture::Type::Updatable;
+}
+
+void RefTextureBridge::Destroy(void* platformTextureRef) noexcept {
+    delete static_cast<RefTexture*>(platformTextureRef);
 }
 
 } // namespace ls

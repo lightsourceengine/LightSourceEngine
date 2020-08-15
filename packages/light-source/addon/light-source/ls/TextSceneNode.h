@@ -8,7 +8,7 @@
 
 #include <napi-ext.h>
 #include <ls/SceneNode.h>
-#include <ls/TextLayout.h>
+#include <ls/TextBlock.h>
 #include <ls/Resources.h>
 
 namespace ls {
@@ -36,13 +36,11 @@ class TextSceneNode final : public Napi::SafeObjectWrap<TextSceneNode>, public S
  private:
     bool SetFont(Style* style);
     void ClearFontFaceResource();
-    YGSize Measure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode);
-    void QueueTextLayout() noexcept;
 
  private:
-    std::string text;
+    std::string text{};
     FontFace* fontFace{};
-    TextLayout layout;
+    TextBlock block{};
 };
 
 } // namespace ls

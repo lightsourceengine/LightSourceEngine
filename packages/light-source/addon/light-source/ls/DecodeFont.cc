@@ -14,7 +14,7 @@ using std17::filesystem::detail::equals_simple_insensitive;
 
 // TODO: this list should be user configurable.
 // List of font extensions to search when path contains the '.*' extension.
-constexpr std::array<const char*, 4> kFontExtensions {{
+constexpr const std::array<const char*, 4> kFontExtensions {{
     ".ttf",
     ".otf",
     ".ttc",

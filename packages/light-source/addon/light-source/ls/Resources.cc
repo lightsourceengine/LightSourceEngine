@@ -12,7 +12,7 @@
 #include <ls/DecodeFont.h>
 #include <ls/Log.h>
 #include <ls/Renderer.h>
-#include <ls/PixelConversion.h>
+#include <std17/filesystem>
 
 namespace ls {
 
@@ -112,7 +112,7 @@ void Image::Load(Napi::Env env) {
     this->work.Queue();
 }
 
-Napi::Value Image::GetSummary(const Napi::Env& env) const {
+Napi::Value Image::Summarize(const Napi::Env& env) const {
     auto summary{ Napi::Object::New(env) };
 
     summary.Set("width", Napi::Number::New(env, this->resource.Width()));
@@ -130,15 +130,15 @@ bool Image::LoadTexture(Renderer* renderer) {
         this->texture.Destroy();
     }
 
-    this->texture = renderer->CreateTexture(
-            this->resource.Width(), this->resource.Height(), Texture::Type::Updatable);
+    this->texture = renderer->CreateTexture(this->resource.Width(), this->resource.Height(),
+            Texture::Type::Updatable);
 
     if (!this->texture) {
         return false;
     }
 
-// TODO: ConvertToFormat(static_cast<Color*>(imageData.pixelData), imageData.size.w * imageData.size.h,
-// renderer->GetTextureFormat());
+    // TODO: convert to texture format?
+    // TODO: keep image pixels?
 
     return this->texture.Update(this->resource.Bytes(), this->resource.Pitch());
 }
@@ -184,13 +184,16 @@ Image Image::Mock(const std::string& id, int32_t width, int32_t height) {
     return image;
 }
 
-bool FontFace::Equals(FontFace* fontFace, const std::string& family,
-                   StyleFontStyle style, StyleFontWeight weight) noexcept {
-    if (fontFace) {
-        return false;
-    } else {
-        return family.empty();
-    }
+FontFace::FontFace(const std::string& id) : Res(id) {
+    // TODO: get family name from uri parameter
+    std17::filesystem::path p(id);
+
+    this->family = p.stem();
+}
+
+bool FontFace::Equals(FontFace* fontFace, const std::string& family, StyleFontStyle style,
+        StyleFontWeight weight) noexcept {
+    return fontFace && fontFace->family == family && fontFace->style == style && fontFace->weight == weight;
 }
 
 void FontFace::Load(Napi::Env env) {
@@ -226,7 +229,7 @@ void FontFace::Load(Napi::Env env) {
     this->work.Queue();
 }
 
-Napi::Value FontFace::GetSummary(const Napi::Env& env) const {
+Napi::Value FontFace::Summarize(const Napi::Env& env) const {
     auto summary{ Napi::Object::New(env) };
 
     if (!this->resource.empty()) {
@@ -241,12 +244,26 @@ Napi::Value FontFace::GetSummary(const Napi::Env& env) const {
     return summary;
 }
 
-std::string FontFace::GetFamilyName() const {
-    if (this->resource.empty() || this->resource.familyNameSize() == 0) {
-        return "";
-    } else {
-        return this->resource.familyName();
+const std::string& FontFace::GetFamily() const {
+    return this->family;
+}
+
+StyleFontStyle FontFace::GetStyle() const noexcept {
+    return this->style;
+}
+
+StyleFontWeight FontFace::GetWeight() const noexcept {
+    return this->weight;
+}
+
+BLFont FontFace::GetFont(float fontSize) {
+    BLFont font;
+
+    if (font.createFromFace(this->resource, fontSize) != BL_SUCCESS) {
+        LOG_WARN("Failed to load font %s for size %f", this->family, fontSize);
     }
+
+    return font;
 }
 
 bool Resources::HasImage(const std::string& path) const {
@@ -299,12 +316,13 @@ FontFace* Resources::AcquireFontFace(const std::string& path) {
 
 FontFace* Resources::AcquireFontFaceByStyle(const std::string& family, StyleFontStyle style, StyleFontWeight weight) {
     for (auto& entry : this->fonts) {
-        if (entry.second.resource->GetFamilyName() == family) {
+        if (FontFace::Equals(entry.second.ToPointer(), family, style, weight)) {
             entry.second.refs++;
             return entry.second.ToPointer();
         }
     }
 
+    // TODO: if exact match fails, find a substitute
     return nullptr;
 }
 

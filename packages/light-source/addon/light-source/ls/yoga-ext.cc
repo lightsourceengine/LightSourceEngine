@@ -35,10 +35,10 @@ EdgeRect YGNodeLayoutGetBorderRect(YGNodeConstRef node) noexcept {
     const auto& border{ layout.border };
 
     return {
-        static_cast<int32_t >(border[YGEdgeTop]),
-        static_cast<int32_t >(border[YGEdgeRight]),
-        static_cast<int32_t >(border[YGEdgeBottom]),
-        static_cast<int32_t >(border[YGEdgeLeft]),
+        static_cast<int32_t>(border[YGEdgeTop]),
+        static_cast<int32_t>(border[YGEdgeRight]),
+        static_cast<int32_t>(border[YGEdgeBottom]),
+        static_cast<int32_t>(border[YGEdgeLeft]),
     };
 }
 

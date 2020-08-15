@@ -45,6 +45,7 @@ class StyleResolver {
     Rect ResolveBackgroundFit(Style* style, const Rect& box, const Image* image) const noexcept;
     float ResolveLineHeight(const StyleValueNumber& value, float fontLineHeight) const noexcept;
     float ResolveFontSize(const StyleValueNumber& value) const noexcept;
+    int32_t ResolveMaxLines(Style* style) const noexcept;
     float ResolveBorder(Style* style) const noexcept;
     BorderRadius ResolveBorderRadius(Style* style) const noexcept;
 

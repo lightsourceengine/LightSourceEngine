@@ -344,4 +344,14 @@ float StyleResolver::ResolveBorderProperty(const StyleValueNumber& value, float 
     }
 }
 
+int32_t StyleResolver::ResolveMaxLines(Style* style) const noexcept {
+    const auto p{ Style::OrEmpty(style) };
+
+    if (p->maxLines.unit == StyleNumberUnitPoint) {
+        return p->maxLines.value;
+    }
+
+    return 0;
+}
+
 } // namespace ls

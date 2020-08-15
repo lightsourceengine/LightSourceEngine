@@ -37,6 +37,8 @@ class Texture {
         ~Pixels() noexcept;
 
         uint8_t* Data() const noexcept;
+        int32_t Width() const noexcept;
+        int32_t Height() const noexcept;
         int32_t Pitch() const noexcept;
 
         /**
@@ -45,11 +47,13 @@ class Texture {
         void Release() noexcept;
 
      private:
-        Pixels(Texture* lockedTexture, uint8_t* data, int32_t pitch) noexcept;
+        Pixels(Texture* lockedTexture, uint8_t* data, int32_t width, int32_t height, int32_t pitch) noexcept;
 
      private:
         Texture* lockedTexture{};
         uint8_t* data{};
+        int32_t width{};
+        int32_t height{};
         int32_t pitch{};
 
         friend class Texture;
@@ -58,20 +62,23 @@ class Texture {
     /**
      * Interface between Texture and the native rendering platform.
      */
-    struct Bridge {
-        int32_t (*GetWidth)(void*);
-        int32_t (*GetHeight)(void*);
-        bool (*Lock)(void*, void**, int32_t*);
-        void (*Unlock)(void*);
-        bool (*Update)(void*, const uint8_t*, int32_t);
-        PixelFormat (*GetPixelFormat)(void*);
-        Type (*GetType)(void*);
-        void (*Destroy)(void*);
+    class Bridge {
+     public:
+        virtual ~Bridge() = default;
+
+        virtual int32_t GetWidth(void* platformTextureRef) const noexcept = 0;
+        virtual int32_t GetHeight(void* platformTextureRef) const noexcept = 0;
+        virtual bool Lock(void* platformTextureRef, void** buffer, int32_t* pitch) noexcept = 0;
+        virtual void Unlock(void* platformTextureRef) noexcept = 0;
+        virtual bool Update(void* platformTextureRef, const uint8_t* buffer, int32_t length) = 0;
+        virtual PixelFormat GetPixelFormat(void* platformTextureRef) const noexcept = 0;
+        virtual Type GetType(void* platformTextureRef) const noexcept = 0;
+        virtual void Destroy(void* platformTextureRef) noexcept = 0;
     };
 
  public:
     Texture() noexcept;
-    Texture(void* nativeTexture, Bridge* bridge) noexcept;
+    Texture(void* platformTextureRef, Bridge* bridge) noexcept;
 
     int32_t Width() const noexcept;
     int32_t Height() const noexcept;
@@ -83,7 +90,7 @@ class Texture {
     bool Update(const uint8_t* pixels, int32_t pitch) const noexcept;
     Pixels Lock() noexcept;
     template<typename T>
-    T* Cast() const noexcept { return static_cast<T*>(this->nativeTexture); }
+    T* Cast() const noexcept { return static_cast<T*>(this->platformTextureRef); }
 
     bool Empty() const noexcept;
     operator bool() const noexcept;
@@ -91,7 +98,7 @@ class Texture {
     void Destroy() noexcept;
 
  private:
-    void* nativeTexture{};
+    void* platformTextureRef{};
     Bridge* bridge{};
 };
 

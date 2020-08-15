@@ -17,6 +17,7 @@
 #include <ls/Color.h>
 #include <ls/yoga-ext.h>
 #include <ls/GraphicsContext.h>
+#include <ls/Timer.h>
 
 using Napi::CallbackInfo;
 using Napi::Function;
@@ -104,15 +105,16 @@ void BoxSceneNode::OnBoundingBoxChanged() {
 void BoxSceneNode::Paint(RenderingContext2D* context) {
     const auto boxStyle{ Style::OrEmpty(this->style) };
     const auto dest{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
+    // TODO: limit radius to 50% bounds
     const auto borderRadius{ this->scene->GetStyleResolver().ResolveBorderRadius(boxStyle) };
     const auto x{ 0 };
     const auto y{ 0 };
-    const auto width{ dest.width - 1.f }; // XXX: shift by 1 to alleviate rendering artifacts
+    const auto width{ dest.width };
     const auto height{ dest.height };
 
     if (!this->paintTarget || !this->paintTarget.IsLockable()) {
         this->paintTarget.Destroy();
-        this->paintTarget = this->scene->GetRenderer()->CreateTexture(dest.width, dest.height, Texture::Lockable);
+        this->paintTarget = this->scene->GetRenderer()->CreateTexture(width, height, Texture::Lockable);
 
         if (!this->paintTarget) {
             LOG_ERROR("Failed to create paint texture.");
@@ -121,12 +123,13 @@ void BoxSceneNode::Paint(RenderingContext2D* context) {
     }
 
     auto pixels{ this->paintTarget.Lock() };
+    Timer t("border radius render");
 
-    // TODO: move to context or texture?
-    std::memset(pixels.Data(), 0, pixels.Pitch() * this->paintTarget.Height());
+    context->Begin(pixels.Data(), pixels.Width(), pixels.Height(), pixels.Pitch());
 
-    // TODO: pixels struct should have w/h
-    context->Reset(pixels.Data(), this->paintTarget.Width(), this->paintTarget.Height(), pixels.Pitch());
+    // Fill entire texture surface with transparent to start from a known state.
+    context->SetColor(0);
+    context->FillAll();
 
     context->SetColor(boxStyle->backgroundColor.value);
 
@@ -142,12 +145,15 @@ void BoxSceneNode::Paint(RenderingContext2D* context) {
     context->QuadTo(x, y, x + borderRadius.topLeft, y);
     context->ClosePath();
 
-    context->Fill();
+    context->FillPath();
+
+    context->End();
 
     pixels.Release();
-    context->Reset();
 
     // TODO: convert context pixels, if necessary
+
+    this->RequestComposite();
 }
 
 void BoxSceneNode::Composite(CompositeContext* composite) {
@@ -170,8 +176,8 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
     };
 
     if (this->paintTarget) {
-        Rect src{ 0, 0, this->paintTarget.Width() - 1.f, this->paintTarget.Height() - 0.f };
-        composite->renderer->DrawImage(this->paintTarget, src, rect, transform, ColorWhite.MixAlpha(opacity));
+        composite->renderer->DrawImage(this->paintTarget, rect, transform,
+                ColorWhite.MixAlpha(composite->CurrentOpacity()));
         SceneNode::Composite(composite);
         return;
     }
@@ -196,8 +202,12 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
         if (this->backgroundImage->HasTexture() && !IsEmpty(this->backgroundImageRect.dest)) {
             const auto backgroundImageDestRect{Translate(this->backgroundImageRect.dest, rect.x, rect.y)};
 
-            composite->renderer->DrawImage(this->backgroundImage->GetTexture(), this->backgroundImageRect.src,
-                backgroundImageDestRect, transform, boxStyle->tintColor.ValueOr(ColorWhite).MixAlpha(opacity));
+            composite->renderer->DrawImage(
+                this->backgroundImage->GetTexture(),
+                this->backgroundImageRect.src,
+                backgroundImageDestRect,
+                transform,
+                boxStyle->tintColor.ValueOr(ColorWhite).MixAlpha(composite->CurrentOpacity()));
         }
     }
 

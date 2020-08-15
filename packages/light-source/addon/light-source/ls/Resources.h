@@ -45,7 +45,7 @@ class Res {
     virtual void Load(Napi::Env env) = 0;
 
     Napi::String GetErrorMessage(const Napi::Env& env) const;
-    virtual Napi::Value GetSummary(const Napi::Env& env) const = 0;
+    virtual Napi::Value Summarize(const Napi::Env& env) const = 0;
 
  protected:
     void NotifyListeners();
@@ -66,11 +66,11 @@ class Res {
 
 class Image final : public Res {
  public:
-    explicit Image(const std::string& id) : Res(id) {}
+    Image(const std::string& id) : Res(id) {}
     ~Image() override = default;
 
     void Load(Napi::Env env) override;
-    Napi::Value GetSummary(const Napi::Env& env) const override;
+    Napi::Value Summarize(const Napi::Env& env) const override;
 
     bool LoadTexture(Renderer* renderer);
     bool HasTexture() const noexcept;
@@ -96,18 +96,27 @@ class Image final : public Res {
 
 class FontFace final : public Res {
  public:
-    explicit FontFace(const std::string& id) : Res(id) {}
+    FontFace(const std::string& id);
     ~FontFace() override = default;
 
     static bool Equals(FontFace* fontFace, const std::string& family,
                        StyleFontStyle style, StyleFontWeight weight) noexcept;
     void Load(Napi::Env env) override;
-    Napi::Value GetSummary(const Napi::Env& env) const override;
-    std::string GetFamilyName() const;
+
+    Napi::Value Summarize(const Napi::Env& env) const override;
+
+    const std::string& GetFamily() const;
+    StyleFontStyle GetStyle() const noexcept;
+    StyleFontWeight GetWeight() const noexcept;
+//    BLFontFace Get() const noexcept;
+    BLFont GetFont(float fontSize);
 
  private:
-    AsyncWork<BLFontFace> work;
-    BLFontFace resource;
+    AsyncWork<BLFontFace> work{};
+    BLFontFace resource{};
+    std::string family{};
+    StyleFontStyle style{StyleFontStyleNormal};
+    StyleFontWeight weight{StyleFontWeightNormal};
 };
 
 class Resources {
