@@ -265,27 +265,33 @@ void Scene::CompositePreorder(SceneNode* node, CompositeContext* context) {
     }
 
     const auto boxStyle{ Style::OrEmpty(node->style) };
-    const auto bounds{ YGNodeLayoutGetRect(node->ygNode) };
+    const auto box{ YGNodeGetBox(node->ygNode) };
     const auto clip{ boxStyle->overflow == YGOverflowHidden };
 
-    context->PushMatrix(Matrix::Translate(bounds.x, bounds.y));
+    if (boxStyle->transform.empty()) {
+        context->PushMatrix(Matrix::Translate(box.x, box.y));
+    } else {
+        context->PushMatrix(Matrix::Translate(box.x, box.y)
+            * this->GetStyleResolver().ResolveTransform(boxStyle, box));
+    }
+
     context->PushOpacity(boxStyle->opacity.AsFloat(1.f));
 
     if (clip) {
-        context->PushClipRect(bounds);
-        context->renderer->EnabledClipping(context->CurrentClipRect());
+        context->PushClipRect(box);
     }
 
-    node->Composite(context);
+    if (!IsEmpty(box)) {
+        node->Composite(context);
+    }
 
-    if (!node->Children().empty()) {
+    if (node->HasChildren()) {
         for (auto child : node->SortChildrenByStackingOrder()) {
             CompositePreorder(child, context);
         }
     }
 
     if (clip) {
-        context->renderer->DisableClipping();
         context->PopClipRect();
     }
 

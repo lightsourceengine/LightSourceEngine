@@ -50,7 +50,8 @@ LS_ENUM_SEQ_DECL(
 LS_ENUM_SEQ_DECL(
     StyleBackgroundClip,
     StyleBackgroundClipBorderBox,
-    StyleBackgroundClipPaddingBox
+    StyleBackgroundClipPaddingBox,
+    StyleBackgroundClipContentBox
 )
 
 LS_ENUM_SEQ_DECL(
@@ -71,10 +72,10 @@ LS_ENUM_SEQ_DECL(
 
 LS_ENUM_SEQ_DECL(
     StyleBackgroundRepeat,
+    StyleBackgroundRepeatOff,
     StyleBackgroundRepeatXY,
     StyleBackgroundRepeatX,
-    StyleBackgroundRepeatY,
-    StyleBackgroundRepeatOff
+    StyleBackgroundRepeatY
 )
 
 LS_ENUM_SEQ_DECL(

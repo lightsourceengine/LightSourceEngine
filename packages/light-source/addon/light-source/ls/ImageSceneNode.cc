@@ -76,13 +76,17 @@ void ImageSceneNode::OnBoundingBoxChanged() {
 }
 
 void ImageSceneNode::OnStyleLayout() {
+    // TODO: maybe check image rect size change to reduce unnecessary composites
+    // TODO: probably need to clear imageRect on src change
     if (this->image && this->image->HasDimensions()) {
-        auto bounds{YGNodeLayoutGetInnerRect(this->ygNode)};
+        const auto bounds{ YGNodeGetPaddingBox(this->ygNode) };
 
         if (!IsEmpty(bounds)) {
-            auto fit{this->scene->GetStyleResolver().ResolveObjectFit(this->style, bounds, this->image)};
-
-            this->imageRect = ClipImage(bounds, fit, this->image->WidthF(), this->image->HeightF());
+            this->imageRect = ClipImage(
+                bounds,
+                this->scene->GetStyleResolver().ResolveObjectFit(this->style, bounds, this->image),
+                this->image->WidthF(),
+                this->image->HeightF());
         }
     }
 
@@ -93,53 +97,37 @@ void ImageSceneNode::Paint(RenderingContext2D* context) {
 }
 
 void ImageSceneNode::Composite(CompositeContext* composite) {
-    if (this->style == nullptr && (!this->image || this->image->GetState() != Res::Ready)) {
-        SceneNode::Composite(composite);
-        return;
-    }
-
-    const auto rect{ YGNodeLayoutGetRect(this->ygNode) };
-
-    if (IsEmpty(rect)) {
-        SceneNode::Composite(composite);
-        return;
-    }
-
-    const auto transform{
-        composite->CurrentMatrix() * this->scene->GetStyleResolver().ResolveTransform(this->style, rect)
-    };
+    const auto& transform{ composite->CurrentMatrix() };
     const auto opacity{ composite->CurrentOpacity() };
     const auto imageStyle{ Style::OrEmpty(this->style) };
 
     if (!imageStyle->backgroundColor.empty()) {
         composite->renderer->DrawFillRect(
-            rect,
+            YGNodeGetBorderBox(this->ygNode),
             transform,
             imageStyle->backgroundColor.value.MixAlpha(opacity));
     }
 
-    if (this->image) {
+    if (this->image && this->image->GetState() == Res::Ready && !IsEmpty(this->imageRect.dest)) {
         if (!this->image->HasTexture()) {
             this->image->LoadTexture(composite->renderer);
         }
 
-        if (this->image->HasTexture() && !IsEmpty(this->imageRect.dest)) {
-            const auto imageDestRect{Translate(this->imageRect.dest, rect.x, rect.y)};
-
-            composite->renderer->DrawImage(this->image->GetTexture(), this->imageRect.src, imageDestRect,
-                    transform, imageStyle->tintColor.ValueOr(ColorWhite).MixAlpha(opacity));
-        }
+        composite->renderer->DrawImage(
+            this->image->GetTexture(),
+            this->imageRect.src,
+            this->imageRect.dest,
+            transform,
+            imageStyle->tintColor.ValueOr(ColorWhite).MixAlpha(opacity));
     }
 
     if (!imageStyle->borderColor.empty()) {
         composite->renderer->DrawBorder(
-            rect,
-            YGNodeLayoutGetBorderRect(this->ygNode),
+            YGNodeGetBox(this->ygNode, 0, 0),
+            YGNodeGetBorderEdges(this->ygNode),
             transform,
             imageStyle->borderColor.value.MixAlpha(opacity));
     }
-
-    SceneNode::Composite(composite);
 }
 
 YGSize ImageSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {

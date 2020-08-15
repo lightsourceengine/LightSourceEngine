@@ -79,18 +79,16 @@ void BoxSceneNode::OnStyleLayout() {
         return;
     }
 
+    // if repeat && background image
     // TODO: if background repeat -> paint
 
     if (this->backgroundImage && this->backgroundImage->HasDimensions()) {
-        auto bounds{
-            boxStyle->backgroundClip == StyleBackgroundClipBorderBox ?
-                YGNodeLayoutGetRect(this->ygNode, 0, 0) : YGNodeLayoutGetInnerRect(this->ygNode)
-        };
+        const auto box{ this->GetBackgroundClipBox(boxStyle->backgroundClip) };
 
-        if (!IsEmpty(bounds)) {
-            auto fit{this->scene->GetStyleResolver().ResolveBackgroundFit(this->style, bounds, this->backgroundImage)};
+        if (!IsEmpty(box)) {
+            auto fit{this->scene->GetStyleResolver().ResolveBackgroundFit(this->style, box, this->backgroundImage)};
 
-            this->backgroundImageRect = ClipImage(bounds, fit,
+            this->backgroundImageRect = ClipImage(box, fit,
                     this->backgroundImage->WidthF(), this->backgroundImage->HeightF());
         }
     }
@@ -104,17 +102,13 @@ void BoxSceneNode::OnBoundingBoxChanged() {
 
 void BoxSceneNode::Paint(RenderingContext2D* context) {
     const auto boxStyle{ Style::OrEmpty(this->style) };
-    const auto dest{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
-    // TODO: limit radius to 50% bounds
-    const auto borderRadius{ this->scene->GetStyleResolver().ResolveBorderRadius(boxStyle) };
-    const auto x{ 0 };
-    const auto y{ 0 };
-    const auto width{ dest.width };
-    const auto height{ dest.height };
+    // TODO: draw to background clip box
+    const auto box{ YGNodeGetBox(this->ygNode, 0, 0) };
+    const auto borderRadius{ this->scene->GetStyleResolver().ResolveBorderRadius(boxStyle, box) };
 
     if (!this->paintTarget || !this->paintTarget.IsLockable()) {
         this->paintTarget.Destroy();
-        this->paintTarget = this->scene->GetRenderer()->CreateTexture(width, height, Texture::Lockable);
+        this->paintTarget = this->scene->GetRenderer()->CreateTexture(box.width, box.height, Texture::Lockable);
 
         if (!this->paintTarget) {
             LOG_ERROR("Failed to create paint texture.");
@@ -134,15 +128,15 @@ void BoxSceneNode::Paint(RenderingContext2D* context) {
     context->SetColor(boxStyle->backgroundColor.value);
 
     context->BeginPath();
-    context->MoveTo(x + borderRadius.topLeft, y);
-    context->LineTo(x + width - borderRadius.topRight, y);
-    context->QuadTo(x + width, y, x + width, y + borderRadius.topRight);
-    context->LineTo(x + width, y + height - borderRadius.bottomRight);
-    context->QuadTo(x + width, y + height, x + width - borderRadius.bottomRight, y + height);
-    context->LineTo(x + borderRadius.bottomLeft, y + height);
-    context->QuadTo(x, y + height, x, y + height - borderRadius.bottomLeft);
-    context->LineTo(x, y + borderRadius.topLeft);
-    context->QuadTo(x, y, x + borderRadius.topLeft, y);
+    context->MoveTo(box.x + borderRadius.topLeft, box.y);
+    context->LineTo(box.x + box.width - borderRadius.topRight, box.y);
+    context->QuadTo(box.x + box.width, box.y, box.x + box.width, box.y + borderRadius.topRight);
+    context->LineTo(box.x + box.width, box.y + box.height - borderRadius.bottomRight);
+    context->QuadTo(box.x + box.width, box.y + box.height, box.x + box.width - borderRadius.bottomRight, box.y + box.height);
+    context->LineTo(box.x + borderRadius.bottomLeft, box.y + box.height);
+    context->QuadTo(box.x, box.y + box.height, box.x, box.y + box.height - borderRadius.bottomLeft);
+    context->LineTo(box.x, box.y + borderRadius.topLeft);
+    context->QuadTo(box.x, box.y, box.x + borderRadius.topLeft, box.y);
     context->ClosePath();
 
     context->FillPath();
@@ -163,25 +157,18 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
         return;
     }
 
-    const auto rect{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
-
-    if (IsEmpty(rect)) {
-        return;
-    }
-
-    const auto transform{
-        composite->CurrentMatrix() * this->scene->GetStyleResolver().ResolveTransform(boxStyle, rect)
-    };
+    const auto box{ YGNodeGetBox(this->ygNode, 0, 0) };
+    const auto& transform{ composite->CurrentMatrix() };
 
     if (this->paintTarget) {
-        composite->renderer->DrawImage(this->paintTarget, rect, transform,
+        composite->renderer->DrawImage(this->paintTarget, box, transform,
                 ColorWhite.MixAlpha(composite->CurrentOpacity()));
         return;
     }
 
     if (!boxStyle->backgroundColor.empty()) {
         composite->renderer->DrawFillRect(
-            rect,
+            box,
             transform,
             boxStyle->backgroundColor.value.MixAlpha(composite->CurrentOpacity()));
     }
@@ -197,7 +184,7 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
         }
 
         if (this->backgroundImage->HasTexture() && !IsEmpty(this->backgroundImageRect.dest)) {
-            const auto backgroundImageDestRect{Translate(this->backgroundImageRect.dest, rect.x, rect.y)};
+            const auto backgroundImageDestRect{Translate(this->backgroundImageRect.dest, box.x, box.y)};
 
             composite->renderer->DrawImage(
                 this->backgroundImage->GetTexture(),
@@ -209,9 +196,7 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
     }
 
     if (!boxStyle->borderColor.empty()) {
-        composite->renderer->DrawBorder(
-            rect,
-            YGNodeLayoutGetBorderRect(this->ygNode),
+        composite->renderer->DrawBorder(box, YGNodeGetBorderEdges(this->ygNode),
             transform,
             boxStyle->borderColor.value.MixAlpha(composite->CurrentOpacity()));
     }
@@ -331,6 +316,19 @@ void BoxSceneNode::ClearBackgroundImageResource() {
         this->GetStage()->GetResources()->ReleaseResource(this->backgroundImage);
         this->backgroundImage = nullptr;
     }
+}
+
+Rect BoxSceneNode::GetBackgroundClipBox(StyleBackgroundClip value) const noexcept {
+    switch (value) {
+        case StyleBackgroundClipBorderBox:
+            return YGNodeGetBox(this->ygNode, 0, 0);
+        case StyleBackgroundClipPaddingBox:
+            return YGNodeGetBorderBox(this->ygNode);
+        case StyleBackgroundClipContentBox:
+            return YGNodeGetPaddingBox(this->ygNode);
+    }
+
+    return {};
 }
 
 void BoxSceneNode::Destroy() {

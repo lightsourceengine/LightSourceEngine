@@ -17,10 +17,21 @@ class SceneNode;
 
 /**
  * Inline style declarations for a SceneNode.
+ *
+ * Style operates in two modes. Style can function as an immutable style "class" that can be assigned (copied) to
+ * multiple SceneNodes. Style can also function as a mutable instance, exclusively owned by a SceneNode. The SceneNode
+ * binds to the instance, listening for changes. In instance mode, the Style cannot be passed to or shared by another
+ * SceneNode.
+ *
+ * A SceneNode can listen for style changes, via Bind(), and update it's state accordingly.
+ *
+ * Style property validation is handled by the StyleValue classes.
+ *
+ * The underlying structure (box model) of the scene graph is managed by a Yoga node. Some style properties map
+ * directly to Yoga node style properties. In addition, there are extended properties and units that are managed
+ * by a SceneNode. The Style class merges these together and distributes style property get/set appropriately.
  */
-// TODO: this design does not work well (too much memory and too much code to manage properties). consider
-//       splitting this class into an immutable style class and a mutable hash map of style properties owned by the
-//       node.
+// TODO: this class uses too much memory. please fix.
 class Style final : public Napi::SafeObjectWrap<Style> {
  public:
     Style(const Napi::CallbackInfo& info);
@@ -174,6 +185,7 @@ class Style final : public Napi::SafeObjectWrap<Style> {
                       void (*SetPoint)(YGNodeRef, YGEdge, float),
                       void (*SetPercent)(YGNodeRef, YGEdge, float) = nullptr,
                       void (*SetAuto)(YGNodeRef, YGEdge) = nullptr) noexcept;
+
  private:
     static Style* sEmptyStyle;
     static Napi::FunctionReference sConstructor;
@@ -199,11 +211,7 @@ void Style::Set(StyleProperty name, T& property, T&& value) {
 
 template<typename Constraint>
 void Style::SetWithConstraint(StyleProperty name, StyleValueNumber& property, const StyleValueNumber& value) {
-    if (value.empty() || !Constraint()(value)) {
-        this->Set(name, property, {});
-    } else {
-        this->Set(name, property, value);
-    }
+    this->Set(name, property, (value.empty() || !Constraint()(value)) ? StyleValueNumber::OfUndefined() : value);
 }
 
 } // namespace ls

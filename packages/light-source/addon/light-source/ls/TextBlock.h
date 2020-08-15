@@ -19,6 +19,9 @@ class RenderingContext2D;
 class Style;
 class StyleResolver;
 
+/**
+ * Drawing and layout of text strings for the content area of text elements.
+ */
 class TextBlock final : public Paintable {
  public:
     ~TextBlock() override = default;
@@ -31,7 +34,7 @@ class TextBlock final : public Paintable {
     void Shape(const std::string& utf8, FontFace* fontFace, Style* style, const StyleResolver& resolver,
             float maxWidth, float maxHeight);
 
-    // Calculated bounds of the text. Set after call Shape().
+    // Calculated bounds of the text. Set after call to Shape().
 
     int32_t Width() const noexcept;
     int32_t Height() const noexcept;
@@ -50,7 +53,7 @@ class TextBlock final : public Paintable {
 
  private:
     std::string text;
-    StyleTextAlign textAlign;
+    StyleTextAlign textAlign{StyleTextAlignLeft};
     BLGlyphBuffer glyphBuffer{};
     int32_t calculatedWidth{0};
     int32_t calculatedHeight{0};

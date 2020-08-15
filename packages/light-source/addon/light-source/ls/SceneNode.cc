@@ -35,8 +35,6 @@ namespace ls {
 
 int32_t SceneNode::instanceCount{0};
 
-static SceneNode* GetSceneNode(YGNodeRef ygNode) noexcept;
-
 void SceneNode::SceneNodeConstructor(const Napi::CallbackInfo& info) {
     this->flags.set(FlagLayoutOnly, true);
     this->scene = Scene::CastRef(info[0]);
@@ -82,12 +80,11 @@ Value SceneNode::GetScene(const CallbackInfo& info) {
 Napi::Value SceneNode::GetChildren(const Napi::CallbackInfo& info) {
     auto env{ info.Env() };
     EscapableHandleScope scope(env);
-    const auto& children{ this->Children() };
-    auto childArray{ Array::New(env, children.size() )};
+    auto childArray{ Array::New(env, YGNodeGetChildCount(this->ygNode) )};
     auto i{ 0u };
 
-    for (const auto& child : children) {
-        childArray[i++] = GetSceneNode(child)->Value();
+    for (const auto& child : YGNodeGetChildren(this->ygNode)) {
+        childArray[i++] = YGNodeGetContextAs<SceneNode>(child)->Value();
     }
 
     return scope.Escape(childArray);
@@ -147,7 +144,7 @@ Stage* SceneNode::GetStage() const noexcept {
 SceneNode* SceneNode::GetParent() const noexcept {
     auto parent{ this->ygNode->getParent() };
 
-    return parent ? GetSceneNode(parent) : nullptr;
+    return parent ? YGNodeGetContextAs<SceneNode>(parent) : nullptr;
 }
 
 void SceneNode::AppendChild(const CallbackInfo& info) {
@@ -195,7 +192,7 @@ void SceneNode::InsertBefore(const CallbackInfo& info) {
     }
 
     auto before{ SceneNode::QueryInterface(info[1]) };
-    auto beforeIndex{ before ? this->GetChildIndex(before) : this->Children().size() };
+    auto beforeIndex{ before ? this->GetChildIndex(before) : YGNodeGetChildCount(this->ygNode) };
 
     if (beforeIndex < 0) {
         throw Error::New(env, "insertBefore: before argument is not a child");
@@ -244,12 +241,10 @@ void SceneNode::Destroy() {
 
     this->scene->Remove(this);
 
-    const auto& children{ this->Children() };
+    const auto& children{ YGNodeGetChildren(this->ygNode) };
 
     while (!children.empty()) {
-        const auto& node{ GetSceneNode(children.back()) };
-
-        node->Destroy();
+        YGNodeGetContextAs<SceneNode>(children.back())->Destroy();
     }
 
     auto parent{ this->GetParent() };
@@ -291,18 +286,14 @@ YGSize SceneNode::OnMeasure(float width, YGMeasureMode widthMode, float height, 
 int32_t SceneNode::GetChildIndex(SceneNode* node) const noexcept {
     int32_t index{0};
 
-    for (const auto& child : this->ygNode->getChildren()) {
-        if (GetSceneNode(child) == node) {
+    for (const auto& child : YGNodeGetChildren(this->ygNode)) {
+        if (YGNodeGetContextAs<SceneNode>(child) == node) {
             return index;
         }
         index++;
     }
 
     return -1;
-}
-
-const std::vector<YGNodeRef>& SceneNode::Children() const noexcept {
-    return this->ygNode->getChildren();
 }
 
 void SceneNode::RequestPaint() {
@@ -357,12 +348,10 @@ const std::vector<SceneNode*>& SceneNode::SortChildrenByStackingOrder() {
         return this->sortedChildren;
     }
 
-    const auto& children{ this->Children() };
+    this->sortedChildren.reserve(YGNodeGetChildCount(this->ygNode));
 
-    this->sortedChildren.reserve(children.size());
-
-    for (const auto& child : children) {
-        this->sortedChildren.push_back(GetSceneNode(child));
+    for (const auto& child : YGNodeGetChildren(this->ygNode)) {
+        this->sortedChildren.push_back(YGNodeGetContextAs<SceneNode>(child));
     }
 
     // use stable_sort to preserve the original order of nodes when z-indexes are the same
@@ -381,6 +370,10 @@ bool SceneNode::IsHidden() const noexcept {
 
 bool SceneNode::IsLayoutOnly() const noexcept {
     return this->flags.test(FlagLayoutOnly);
+}
+
+bool SceneNode::HasChildren() const noexcept {
+    return !YGNodeGetChildren(this->ygNode).empty();
 }
 
 void SceneNode::SetFlag(Flag flag, bool value) noexcept {
@@ -429,11 +422,6 @@ void SceneNode::YogaNodeLayoutEvent(
     if (node.getHasNewLayout()) {
         static_cast<ls::SceneNode*>(node.getContext())->OnBoundingBoxChanged();
     }
-}
-
-static SceneNode* GetSceneNode(YGNodeRef ygNode) noexcept {
-    assert(ygNode != nullptr);
-    return static_cast<SceneNode*>(ygNode->getContext());
 }
 
 } // namespace ls

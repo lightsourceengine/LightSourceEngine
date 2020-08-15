@@ -32,6 +32,7 @@ class BoxSceneNode final : public Napi::SafeObjectWrap<BoxSceneNode>, public Sce
  private:
     void UpdateBackgroundImage(const std::string& backgroundUri);
     void ClearBackgroundImageResource();
+    Rect GetBackgroundClipBox(StyleBackgroundClip value) const noexcept;
 
  private:
     Image* backgroundImage{};

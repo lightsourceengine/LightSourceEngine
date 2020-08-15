@@ -6,13 +6,12 @@
 
 #pragma once
 
-#include <Yoga.h>
+#include <ls/yoga-ext.h>
 #include <event/event.h>
 #include <napi-ext.h>
 #include <ls/StyleEnums.h>
 #include <ls/Resources.h>
 #include <bitset>
-#include <YGNode.h>
 
 namespace ls {
 
@@ -64,6 +63,8 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     bool IsHidden() const noexcept;
     bool IsLayoutOnly() const noexcept;
 
+    bool HasChildren() const noexcept;
+
     static SceneNode* QueryInterface(Napi::Value value);
 
     template<typename Callable>
@@ -98,7 +99,6 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
  private:
     void RemoveChild(SceneNode* child) noexcept;
     int32_t GetChildIndex(SceneNode* node) const noexcept;
-    const std::vector<YGNodeRef>& Children() const noexcept;
 
  protected:
     static int instanceCount;
@@ -116,8 +116,8 @@ template<typename Callable>
 void SceneNode::Visit(SceneNode* node, const Callable& func) {
     func(node);
 
-    for (const auto& child : node->Children()) {
-        Visit(static_cast<SceneNode*>(child->getContext()), func);
+    for (const auto& child : YGNodeGetChildren(node->ygNode)) {
+        Visit(YGNodeGetContextAs<SceneNode>(child), func);
     }
 }
 

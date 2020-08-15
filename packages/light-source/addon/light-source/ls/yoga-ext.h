@@ -6,34 +6,59 @@
 
 #pragma once
 
-#include <tuple>
+#include <cassert>
 #include <YGNode.h>
 #include <ls/Rect.h>
+#include <ls/Point.h>
 
 namespace ls {
 
 /**
- * Get the node's computed rectangle.
+ * Gets the bounding box of an element. The position is relative to the element's parent. The dimensions include
+ * the border, padding and content.
+ */
+Rect YGNodeGetBox(YGNodeConstRef node) noexcept;
+
+/**
+ * Gets the bounding box of an element. The position is forced to be set to the passed in x and y coordinates. The
+ * dimensions include the border, padding and content.
+ */
+Rect YGNodeGetBox(YGNodeConstRef node, float x, float y) noexcept;
+
+/**
  *
- * The position of the rectangle is relative to the parent node.
  */
-Rect YGNodeLayoutGetRect(YGNodeConstRef node) noexcept;
+Point YGNodeGetBoxPosition(YGNodeConstRef node) noexcept;
 
 /**
- * Get the node's computed rectangle with a custom position.
+ * Get the border box of an element. The position is relative to the bounding box. The dimensions include padding
+ * and content, which is the area of the bounding box excluding the border.
  */
-Rect YGNodeLayoutGetRect(YGNodeConstRef node, float x, float y) noexcept;
+Rect YGNodeGetBorderBox(YGNodeConstRef node) noexcept;
 
 /**
- * Get the node's computed border edges.
+ * Get the padding box of an element. The position is relative to the bounding box. The dimensions include the content,
+ * which is the area of the bounding box excluding border and padding.
  */
-EdgeRect YGNodeLayoutGetBorderRect(YGNodeConstRef node) noexcept;
+Rect YGNodeGetPaddingBox(YGNodeConstRef node) noexcept;
 
 /**
- * Get the node's innermost rectangle that takes border and padding into account.
- *
- * The position of the rectangle is relative to (0, 0).
+ * @return the top, right, bottom and left values of the element's border.
  */
-Rect YGNodeLayoutGetInnerRect(YGNodeConstRef node) noexcept;
+EdgeRect YGNodeGetBorderEdges(YGNodeConstRef node) noexcept;
+
+/**
+ * @return Array of child elements.
+ */
+const std::vector<YGNodeRef>& YGNodeGetChildren(YGNodeConstRef node) noexcept;
+
+/**
+ * @return Element's context object cast to T*.
+ */
+template<typename T>
+T* YGNodeGetContextAs(YGNodeConstRef node) noexcept {
+    assert(node != nullptr);
+    return static_cast<T*>(node->getContext());
+}
 
 } // namespace ls

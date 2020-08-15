@@ -47,13 +47,15 @@ class StyleResolver {
     float ResolveFontSize(const StyleValueNumber& value) const noexcept;
     int32_t ResolveMaxLines(Style* style) const noexcept;
     float ResolveBorder(Style* style) const noexcept;
-    BorderRadiusCorners ResolveBorderRadius(Style* style) const noexcept;
+    BorderRadiusCorners ResolveBorderRadius(Style* style, const Rect& box) const noexcept;
 
     bool HasBorderRadius(Style* style) const noexcept;
 
  private:
     float Update(const StyleValueNumber& value, float newWidth, float newHeight) noexcept;
     float ResolveBorderProperty(const StyleValueNumber& value, float defaultValue) const noexcept;
+    float ResolveBorderRadiusProperty(const StyleValueNumber& value, float dimension,
+            float defaultValue) const noexcept;
 
  private:
     float width{};

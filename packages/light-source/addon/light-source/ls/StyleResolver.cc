@@ -307,21 +307,20 @@ float StyleResolver::ResolveBorder(Style* style) const noexcept {
 }
 
 bool StyleResolver::HasBorderRadius(Style* style) const noexcept {
-    auto borderRadius{ this->ResolveBorderRadius(Style::OrEmpty(style)) };
-
-    return (borderRadius.topLeft > 0 || borderRadius.topRight > 0
-        || borderRadius.bottomLeft > 0 || borderRadius.bottomRight);
+    return !style->borderRadius.empty() || !style->borderRadiusTopLeft.empty() || !style->borderRadiusTopRight
+        || !style->borderRadiusBottomLeft.empty() || !style->borderRadiusBottomRight;
 }
 
-BorderRadiusCorners StyleResolver::ResolveBorderRadius(Style* style) const noexcept {
+BorderRadiusCorners StyleResolver::ResolveBorderRadius(Style* style, const Rect& box) const noexcept {
     const auto p{ Style::OrEmpty(style) };
-    const auto borderRadius{ this->ResolveBorderProperty(p->borderRadius, 0) };
+    const auto radiusLimit{ std::min(box.width, box.height) };
+    const auto borderRadius{ this->ResolveBorderRadiusProperty(p->borderRadius, radiusLimit, 0) };
 
     return {
-        this->ResolveBorderProperty(p->borderRadiusTopLeft, borderRadius),
-        this->ResolveBorderProperty(p->borderRadiusBottomLeft, borderRadius),
-        this->ResolveBorderProperty(p->borderRadiusTopRight, borderRadius),
-        this->ResolveBorderProperty(p->borderRadiusBottomRight, borderRadius)
+        this->ResolveBorderRadiusProperty(p->borderRadiusTopLeft, radiusLimit, borderRadius),
+        this->ResolveBorderRadiusProperty(p->borderRadiusBottomLeft, radiusLimit, borderRadius),
+        this->ResolveBorderRadiusProperty(p->borderRadiusTopRight, radiusLimit, borderRadius),
+        this->ResolveBorderRadiusProperty(p->borderRadiusBottomRight, radiusLimit, borderRadius)
     };
 }
 
@@ -342,6 +341,40 @@ float StyleResolver::ResolveBorderProperty(const StyleValueNumber& value, float 
         default:
             return defaultValue;
     }
+}
+
+float StyleResolver::ResolveBorderRadiusProperty(const StyleValueNumber& value, float dimension,
+        float defaultValue) const noexcept {
+    float result;
+
+    switch (value.unit) {
+        case StyleNumberUnitPoint:
+            result = value.value;
+            break;
+        case StyleNumberUnitPercent:
+            result = value.AsPercent() * dimension;
+            break;
+        case StyleNumberUnitViewportWidth:
+            result = value.AsPercent() * this->width;
+            break;
+        case StyleNumberUnitViewportHeight:
+            result = value.AsPercent() * this->height;
+            break;
+        case StyleNumberUnitViewportMin:
+            result = value.AsPercent() * this->viewportMin;
+            break;
+        case StyleNumberUnitViewportMax:
+            result = value.AsPercent() * this->viewportMax;
+            break;
+        case StyleNumberUnitRootEm:
+            result = value.AsPercent() * this->rootFontSize;
+            break;
+        default:
+            result = defaultValue;
+            break;
+    }
+
+    return std::min(result, dimension * .5f);
 }
 
 int32_t StyleResolver::ResolveMaxLines(Style* style) const noexcept {

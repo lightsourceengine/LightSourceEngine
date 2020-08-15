@@ -114,6 +114,8 @@ const char* StyleBackgroundClipToString(const StyleBackgroundClip value) noexcep
         return "border-box";
     case StyleBackgroundClipPaddingBox:
         return "padding-box";
+    case StyleBackgroundClipContentBox:
+        return "content-box";
   }
   return "unknown";
 }

@@ -109,18 +109,16 @@ void TextSceneNode::Composite(CompositeContext* composite) {
 //        return;
 //    }
 
-    const auto rect{ YGNodeLayoutGetRect(this->ygNode, 0, 0) };
+    const auto rect{ YGNodeGetPaddingBox(this->ygNode) };
 
     if (IsEmpty(rect)) {
         return;
     }
 
-    const auto transform{
-        composite->CurrentMatrix() * this->scene->GetStyleResolver().ResolveTransform(boxStyle, rect)
-    };
+    const auto& transform{ composite->CurrentMatrix() };
 
     if (!this->block.IsEmpty()) { // TODO: has texture?, check color
-        Rect pos{ rect.x, rect.y, this->block.WidthF(), this->block.HeightF() };
+        const Rect pos{ rect.x, rect.y, this->block.WidthF(), this->block.HeightF() };
 
         composite->renderer->DrawImage(this->block.GetTexture(), pos, transform,
                boxStyle->color.ValueOr(ColorBlack).MixAlpha(composite->CurrentOpacity()));
@@ -129,8 +127,7 @@ void TextSceneNode::Composite(CompositeContext* composite) {
 
     if (!boxStyle->borderColor.empty()) {
         composite->renderer->DrawBorder(
-            rect,
-            YGNodeLayoutGetBorderRect(this->ygNode),
+            rect, YGNodeGetBorderEdges(this->ygNode),
             transform,
             boxStyle->borderColor.value.MixAlpha(composite->CurrentOpacity()));
     }

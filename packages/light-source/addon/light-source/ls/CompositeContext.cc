@@ -7,6 +7,7 @@
 #include <ls/CompositeContext.h>
 
 #include <std17/algorithm>
+#include <ls/Renderer.h>
 
 namespace ls {
 
@@ -50,9 +51,12 @@ void CompositeContext::PushClipRect(const Rect& rect) {
     } else {
         this->clipRect.push_back(rect);
     }
+
+    this->renderer->EnabledClipping(this->clipRect.back());
 }
 
 void CompositeContext::PopClipRect() {
+    this->renderer->DisableClipping();
     this->clipRect.pop_back();
 }
 

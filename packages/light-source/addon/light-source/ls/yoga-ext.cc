@@ -8,18 +8,8 @@
 
 namespace ls {
 
-Rect YGNodeLayoutGetRect(YGNodeConstRef node, float x, float y) noexcept {
-    const auto& layout{ node->getLayout() };
-
-    return {
-        x,
-        y,
-        layout.dimensions[YGDimensionWidth],
-        layout.dimensions[YGDimensionHeight],
-    };
-}
-
-Rect YGNodeLayoutGetRect(YGNodeConstRef node) noexcept {
+Rect YGNodeGetBox(YGNodeConstRef node) noexcept {
+    assert(node != nullptr);
     const auto& layout{ node->getLayout() };
 
     return {
@@ -30,7 +20,56 @@ Rect YGNodeLayoutGetRect(YGNodeConstRef node) noexcept {
     };
 }
 
-EdgeRect YGNodeLayoutGetBorderRect(YGNodeConstRef node) noexcept {
+Rect YGNodeGetBox(YGNodeConstRef node, float x, float y) noexcept {
+    assert(node != nullptr);
+    const auto& layout{ node->getLayout() };
+
+    return {
+        x,
+        y,
+        layout.dimensions[YGDimensionWidth],
+        layout.dimensions[YGDimensionHeight],
+    };
+}
+
+Point YGNodeGetBoxPosition(YGNodeConstRef node) noexcept {
+    assert(node != nullptr);
+    const auto& layout{ node->getLayout() };
+
+    return {
+        layout.position[YGEdgeLeft],
+        layout.position[YGEdgeTop],
+    };
+}
+
+Rect YGNodeGetBorderBox(YGNodeConstRef node) noexcept {
+    assert(node != nullptr);
+    const auto& layout{ node->getLayout() };
+
+    return {
+        layout.border[YGEdgeLeft],
+        layout.border[YGEdgeTop],
+        layout.dimensions[YGDimensionWidth] - layout.border[YGEdgeLeft] - layout.border[YGEdgeRight],
+        layout.dimensions[YGDimensionHeight] - layout.border[YGEdgeTop] - layout.border[YGEdgeBottom],
+    };
+}
+
+Rect YGNodeGetPaddingBox(YGNodeConstRef node) noexcept {
+    assert(node != nullptr);
+    const auto& layout{ node->getLayout() };
+
+    return {
+        layout.border[YGEdgeLeft] + layout.padding[YGEdgeLeft],
+        layout.border[YGEdgeTop] + layout.padding[YGEdgeTop],
+        layout.dimensions[YGDimensionWidth] - layout.border[YGEdgeLeft] - layout.border[YGEdgeRight]
+            - layout.padding[YGEdgeLeft] - layout.padding[YGEdgeRight],
+        layout.dimensions[YGDimensionHeight] - layout.border[YGEdgeTop] - layout.border[YGEdgeBottom]
+            - layout.padding[YGEdgeTop] - layout.padding[YGEdgeBottom],
+    };
+}
+
+EdgeRect YGNodeGetBorderEdges(YGNodeConstRef node) noexcept {
+    assert(node != nullptr);
     const auto& layout{ node->getLayout() };
     const auto& border{ layout.border };
 
@@ -42,20 +81,9 @@ EdgeRect YGNodeLayoutGetBorderRect(YGNodeConstRef node) noexcept {
     };
 }
 
-Rect YGNodeLayoutGetInnerRect(YGNodeConstRef node) noexcept {
-    const auto& layout{ node->getLayout() };
-    const auto& border{ layout.border };
-    const auto& padding{ layout.padding };
-    const auto& dimensions{ layout.dimensions };
-
-    return {
-        border[YGEdgeLeft] + padding[YGEdgeLeft],
-        border[YGEdgeRight] + padding[YGEdgeRight],
-        dimensions[YGDimensionWidth]
-            - border[YGEdgeLeft] - padding[YGEdgeLeft] - border[YGEdgeRight] - padding[YGEdgeRight],
-        dimensions[YGDimensionHeight]
-            - border[YGEdgeLeft] - padding[YGEdgeLeft] - border[YGEdgeRight] - padding[YGEdgeRight],
-    };
+const std::vector<YGNodeRef>& YGNodeGetChildren(YGNodeConstRef node) noexcept {
+    assert(node != nullptr);
+    return node->getChildren();
 }
 
 } // namespace ls
