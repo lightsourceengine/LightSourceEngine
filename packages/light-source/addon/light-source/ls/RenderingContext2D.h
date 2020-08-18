@@ -40,6 +40,7 @@ class RenderingContext2D {
 
     void FillPath() noexcept;
     void StrokePath() noexcept;
+    void FillText(float x, float y, const char* text) noexcept;
     void FillText(float x, float y, const BLGlyphRun& text) noexcept;
     void FillAll() noexcept;
 

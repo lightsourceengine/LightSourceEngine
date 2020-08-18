@@ -229,7 +229,7 @@ Rect StyleResolver::ResolveBackgroundFit(Style* style, const Rect& box, const Im
 float StyleResolver::ResolveLineHeight(const StyleValueNumber& value, float fontLineHeight) const noexcept {
     switch (value.unit) {
         case StyleNumberUnitPoint:
-            return value.value;
+            return value.value * fontLineHeight;
         case StyleNumberUnitPercent:
             return value.AsPercent() * fontLineHeight;
         case StyleNumberUnitViewportWidth:

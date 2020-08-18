@@ -92,6 +92,14 @@ void TextSceneNode::OnStyleLayout() {
 }
 
 YGSize TextSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
+    if (widthMode == YGMeasureModeUndefined) {
+        width = this->scene->GetWidth();
+    }
+
+    if (heightMode == YGMeasureModeUndefined) {
+        height = this->scene->GetHeight();
+    }
+
     this->block.Shape(this->text, this->fontFace, this->style, this->scene->GetStyleResolver(), width, height);
 
     return { this->block.WidthF(), this->block.HeightF() };
@@ -103,31 +111,45 @@ void TextSceneNode::Paint(RenderingContext2D* context) {
 }
 
 void TextSceneNode::Composite(CompositeContext* composite) {
-    const auto boxStyle{ this->style };
+    const auto boxStyle{ Style::OrEmpty(this->style) };
 
 //    if (boxStyle == nullptr || boxStyle->IsLayoutOnly()) {
 //        return;
 //    }
 
-    const auto rect{ YGNodeGetPaddingBox(this->ygNode) };
+    const auto box{ YGNodeGetPaddingBox(this->ygNode) };
 
-    if (IsEmpty(rect)) {
+    if (IsEmpty(box)) {
         return;
     }
 
     const auto& transform{ composite->CurrentMatrix() };
 
-    if (!this->block.IsEmpty()) { // TODO: has texture?, check color
-        const Rect pos{ rect.x, rect.y, this->block.WidthF(), this->block.HeightF() };
+    if (!this->block.IsEmpty()) { // TODO: has texture?
+        Rect pos{ box.x, box.y, this->block.WidthF(), this->block.HeightF() };
+
+        switch (boxStyle->textAlign) {
+            case StyleTextAlignCenter:
+                  pos.x += ((box.width - pos.width) / 2.f);
+                break;
+            case StyleTextAlignRight:
+                  pos.x += (box.width - pos.width);
+                break;
+            case StyleTextAlignLeft:
+            default:
+                break;
+        }
+
+        // TODO: clip
 
         composite->renderer->DrawImage(this->block.GetTexture(), pos, transform,
                boxStyle->color.ValueOr(ColorBlack).MixAlpha(composite->CurrentOpacity()));
-        return;
     }
 
     if (!boxStyle->borderColor.empty()) {
         composite->renderer->DrawBorder(
-            rect, YGNodeGetBorderEdges(this->ygNode),
+            YGNodeGetBox(this->ygNode, 0, 0),
+            YGNodeGetBorderEdges(this->ygNode),
             transform,
             boxStyle->borderColor.value.MixAlpha(composite->CurrentOpacity()));
     }

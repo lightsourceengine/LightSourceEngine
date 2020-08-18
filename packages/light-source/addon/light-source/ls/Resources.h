@@ -15,7 +15,7 @@
 
 #include <memory>
 #include <string>
-#include <vector>
+#include <list>
 #include <unordered_map>
 
 namespace ls {
@@ -94,22 +94,34 @@ class Image final : public Res {
     int32_t height{};
 };
 
+struct Font {
+    BLFont blFont{};
+    float _ellipsisWidth{};
+
+    auto ellipsisWidth() const noexcept { return this->_ellipsisWidth; }
+    auto scaleX() const noexcept { return this->blFont.matrix().m00; }
+    auto ascent() const noexcept { return this->blFont.metrics().ascent; }
+    auto lineHeight() const noexcept {
+        return this->blFont.metrics().ascent + this->blFont.metrics().descent + this->blFont.metrics().lineGap;
+    }
+    bool empty() const noexcept { return this->blFont.empty(); }
+};
+
 class FontFace final : public Res {
  public:
     FontFace(const std::string& id);
     ~FontFace() override = default;
 
-    static bool Equals(FontFace* fontFace, const std::string& family,
-                       StyleFontStyle style, StyleFontWeight weight) noexcept;
-    void Load(Napi::Env env) override;
+    static bool Equals(FontFace* fontFace, const std::string& family, StyleFontStyle style,
+        StyleFontWeight weight) noexcept;
 
+    void Load(Napi::Env env) override;
     Napi::Value Summarize(const Napi::Env& env) const override;
 
     const std::string& GetFamily() const;
     StyleFontStyle GetStyle() const noexcept;
     StyleFontWeight GetWeight() const noexcept;
-//    BLFontFace Get() const noexcept;
-    BLFont GetFont(float fontSize);
+    Font GetFont(float fontSize);
 
  private:
     AsyncWork<BLFontFace> work{};
@@ -117,6 +129,9 @@ class FontFace final : public Res {
     std::string family{};
     StyleFontStyle style{StyleFontStyleNormal};
     StyleFontWeight weight{StyleFontWeightNormal};
+    BLGlyphBuffer ellipsis{};
+    // LRU cache of fonts by size
+    std::list<Font> fontsBySize{};
 };
 
 class Resources {

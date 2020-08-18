@@ -12,9 +12,12 @@
 #include <ls/DecodeFont.h>
 #include <ls/Log.h>
 #include <ls/Renderer.h>
+#include <ls/Math.h>
 #include <std17/filesystem>
 
 namespace ls {
+
+constexpr const std::size_t LS_MAX_FONTS = 9;
 
 Napi::String Res::GetErrorMessage(const Napi::Env& env) const {
     return Napi::String::New(env, this->errorMessage);
@@ -256,10 +259,38 @@ StyleFontWeight FontFace::GetWeight() const noexcept {
     return this->weight;
 }
 
-BLFont FontFace::GetFont(float fontSize) {
-    BLFont font;
+Font FontFace::GetFont(float fontSize) {
+    if (std::isnan(fontSize) || fontSize <= 0.f) {
+        return {};
+    }
 
-    if (font.createFromFace(this->resource, fontSize) != BL_SUCCESS) {
+    for (auto p = this->fontsBySize.begin(); p != this->fontsBySize.end(); p++) {
+        if (::Equals(fontSize, p->blFont.size())) {
+            Font font = *p;
+
+            this->fontsBySize.erase(p);
+            this->fontsBySize.push_back(font);
+
+            return font;
+        }
+    }
+
+    Font font{};
+
+    if (font.blFont.createFromFace(this->resource, fontSize) == BL_SUCCESS) {
+        BLTextMetrics ellipsisTextMetrics{};
+
+        this->ellipsis.setUtf8Text("...");
+        font.blFont.shape(this->ellipsis);
+        font.blFont.getTextMetrics(this->ellipsis, ellipsisTextMetrics);
+        font._ellipsisWidth = static_cast<float>(ellipsisTextMetrics.advance.x);
+
+        this->fontsBySize.push_front(font);
+
+        if (this->fontsBySize.size() > LS_MAX_FONTS) {
+            this->fontsBySize.pop_back();
+        }
+    } else {
         LOG_WARN("Failed to load font %s for size %f", this->family, fontSize);
     }
 

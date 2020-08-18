@@ -132,7 +132,8 @@ void BoxSceneNode::Paint(RenderingContext2D* context) {
     context->LineTo(box.x + box.width - borderRadius.topRight, box.y);
     context->QuadTo(box.x + box.width, box.y, box.x + box.width, box.y + borderRadius.topRight);
     context->LineTo(box.x + box.width, box.y + box.height - borderRadius.bottomRight);
-    context->QuadTo(box.x + box.width, box.y + box.height, box.x + box.width - borderRadius.bottomRight, box.y + box.height);
+    context->QuadTo(box.x + box.width, box.y + box.height,
+                    box.x + box.width - borderRadius.bottomRight, box.y + box.height);
     context->LineTo(box.x + borderRadius.bottomLeft, box.y + box.height);
     context->QuadTo(box.x, box.y + box.height, box.x, box.y + box.height - borderRadius.bottomLeft);
     context->LineTo(box.x, box.y + borderRadius.topLeft);

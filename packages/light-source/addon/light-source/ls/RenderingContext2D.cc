@@ -66,6 +66,10 @@ void RenderingContext2D::FillPath() noexcept {
     this->context.fillPath(this->path);
 }
 
+void RenderingContext2D::FillText(float x, float y, const char* text) noexcept {
+    this->context.fillUtf8Text(BLPoint(x, y), this->font, text);
+}
+
 void RenderingContext2D::FillText(float x, float y, const BLGlyphRun& text) noexcept {
     this->context.fillGlyphRun(BLPoint(x, y), this->font, text);
 }
