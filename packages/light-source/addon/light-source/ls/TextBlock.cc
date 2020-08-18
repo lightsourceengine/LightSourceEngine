@@ -308,7 +308,7 @@ static std::size_t StringLength(const std::string& utf8) noexcept {
 }
 
 static void ApplyTransform(uint32_t* codepoints, std::size_t size, StyleTextTransform transform) noexcept {
-    decltype(&std::tolower) op;
+    int (*op)(int);
 
     switch (transform) {
         case StyleTextTransformLowercase:
