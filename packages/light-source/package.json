@@ -28,7 +28,7 @@
     "install": "cross-env-shell node-gyp rebuild $npm_config_ls_install_opts",
     "bundle": "rimraf dist build/standalone && rollup -c",
     "coverage": "nyc --reporter=text run-s testOnly",
-    "cpplint": "tools/cpplint.py --recursive addon",
+    "cpplint": "tools/cpplint.py --quiet --recursive addon",
     "jsdoc": "rimraf docs && jsdoc -c jsdoc.json",
     "lint": "standard",
     "prepublishOnly": "run-s bundle test",

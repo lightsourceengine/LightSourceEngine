@@ -89,7 +89,7 @@ void Surface::Blit(const int32_t x, const int32_t y, const Surface& surface) con
             auto sourceRow{ &source[(sy * surface.pitch) + sx] };
 
             for (int32_t dx{ 0 }; dx < spitch; dx++) {
-                const auto component{ *sourceRow++ }; // NOLINT(readability/pointer_notation)
+                const auto component{ *sourceRow++ };
 
 //                for (int32_t i{ 0 }; i < componentCount; i++) {
 //                    *destRow++ = component;
