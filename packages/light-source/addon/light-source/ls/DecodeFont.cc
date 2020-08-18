@@ -33,7 +33,7 @@ BLFontFace DecodeFontFromFile(const std17::filesystem::path& path, uint32_t inde
         for (auto ext : kFontExtensions) {
             pathCopy.replace_extension(ext);
 
-            if (!std17::filesystem::exists(path, errorCode)) {
+            if (!std17::filesystem::exists(pathCopy, errorCode)) {
                 continue;
             }
 

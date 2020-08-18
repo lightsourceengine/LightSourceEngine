@@ -94,16 +94,7 @@ uint8_t* LoadSvg(const std17::filesystem::path& path, int32_t scaleWidth, int32_
     }
 
     const auto stride{ renderWidth * kNumChannels };
-    uint8_t* ptr;
-
-    try {
-        ptr = new uint8_t[renderHeight * stride];
-    } catch (std::exception& e) {
-        throw std::runtime_error(
-            Format("Error allocating byte buffer SVG: %s %ix%i", path.c_str(), renderWidth, renderHeight));
-    }
-
-    ByteBufferPtr data(ptr, [](uint8_t* p){ delete [] p; });
+    ByteBufferPtr data(new uint8_t[renderHeight * stride], [](uint8_t* p){ delete [] p; });
 
     nsvgRasterizeFull(
         rasterizer.get(), svg.get(), 0, 0, scaleX, scaleY, data.get(), renderWidth, renderHeight, stride);
@@ -128,7 +119,7 @@ ImageBytes DecodeImageFromFile(const std17::filesystem::path& path, int32_t resi
         for (auto ext : kImageExtensions) {
             pathCopy.replace_extension(ext);
 
-            if (!std17::filesystem::exists(path, errorCode)) {
+            if (!std17::filesystem::exists(pathCopy, errorCode)) {
                 continue;
             }
 
@@ -148,6 +139,11 @@ ImageBytes DecodeImageFromFile(const std17::filesystem::path& path, int32_t resi
         int32_t components{};
 
         bytes = stbi_load(path.c_str(), &width, &height, &components, kNumChannels);
+
+        if (!bytes) {
+            throw std::runtime_error(Format("Failed to load image %s", path.c_str()));
+        }
+
         deleter = [](uint8_t* p) noexcept { stbi_image_free(p); };
     }
 
