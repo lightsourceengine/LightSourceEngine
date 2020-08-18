@@ -35,7 +35,6 @@
         "light-source-graphics-lib",
         "logger-lib",
         "logger-bindings-lib",
-        "ls-ctx"
       ],
       "sources": [
         "ls/yoga-ext.cc",

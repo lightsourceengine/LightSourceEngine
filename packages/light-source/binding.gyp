@@ -41,7 +41,6 @@
     "addon/deps/asmjit/build.gypi",
     "addon/deps/blend2d/build.gypi",
     "addon/deps/yoga/build.gypi",
-    "addon/deps/ls-ctx/build.gypi",
 
     # static libraries
     "addon/napi-ext-lib/build.gypi",

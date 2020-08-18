@@ -181,15 +181,15 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
     auto listener{ [this](Res::Owner owner, Res* res) {
         constexpr auto LAMBDA_FUNCTION = "ImageResourceListener";
 
-      if (this != owner || this->image != res) {
-          LOG_WARN_LAMBDA("Invalid owner or resource: %s", this->src);
-          return;
-      }
+        if (this != owner || this->image != res) {
+            LOG_WARN_LAMBDA("Invalid owner or resource: %s", this->src);
+            return;
+        }
 
-      this->resourceProgress.Dispatch(this, this->image);
+        this->resourceProgress.Dispatch(this, this->image);
 
-      YGNodeMarkDirty(this->ygNode);
-      res->RemoveListener(owner);
+        YGNodeMarkDirty(this->ygNode);
+        res->RemoveListener(owner);
     }};
 
     switch (this->image->GetState()) {
@@ -202,6 +202,7 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
             break;
         case Res::State::Ready:
         case Res::State::Error:
+            // TODO: should Dispatch() run callbacks synchronously or through a microtask?
             listener(this, this->image);
             break;
     }
@@ -220,7 +221,7 @@ Value ImageSceneNode::GetOnErrorCallback(const CallbackInfo& info) {
 }
 
 void ImageSceneNode::SetOnErrorCallback(const CallbackInfo& info, const Napi::Value& value) {
-    return this->resourceProgress.SetOnLoad(info.Env(), value);
+    return this->resourceProgress.SetOnError(info.Env(), value);
 }
 
 void ImageSceneNode::Destroy() {

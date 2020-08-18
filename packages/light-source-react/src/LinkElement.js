@@ -7,11 +7,11 @@
 import { Element } from './Element'
 
 const kLinkProps = [
-  'onLoad',
-  'onError',
+  'href',
   'rel',
   'as',
-  'href'
+  'onLoad',
+  'onError'
 ]
 
 export class LinkElement extends Element {

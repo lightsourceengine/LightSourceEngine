@@ -7,9 +7,9 @@
 import { Element } from './Element'
 
 const kImageProps = [
-  'src',
   'onLoad',
-  'onError'
+  'onError',
+  'src'
 ]
 
 export class ImageElement extends Element {

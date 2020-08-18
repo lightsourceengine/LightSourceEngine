@@ -9,6 +9,7 @@ import { ReactRenderer } from '../src/ReactRenderer'
 import { shutdown } from 'light-source-reconciler'
 import { Reconciler } from '../src/Reconciler'
 import React from 'react'
+import { assert } from 'chai'
 
 before(() => {
   stage.loadPlugin('light-source-ref')
@@ -38,6 +39,18 @@ class Catch extends React.Component {
   }
 }
 
+export const rejects = async (subject) => {
+  let f = () => {}
+
+  try {
+    await (typeof subject === 'function' ? subject() : subject)
+  } catch (e) {
+    f = () => { throw e }
+  } finally {
+    assert.throws(f)
+  }
+}
+
 export const renderAsync = async (component) => {
   const context = { caught: null }
 
@@ -46,7 +59,7 @@ export const renderAsync = async (component) => {
   })
 
   if (context.caught !== null) {
-    throw context.caught.message
+    throw context.caught
   }
 }
 

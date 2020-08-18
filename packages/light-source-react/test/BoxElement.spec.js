@@ -7,7 +7,7 @@
 import { assert } from 'chai'
 import { Style } from 'light-source'
 import React from 'react'
-import { renderAsync, root, beforeSceneTest, afterSceneTest } from './test-env'
+import { renderAsync, root, beforeSceneTest, afterSceneTest, rejects } from './test-env'
 
 describe('BoxElement', () => {
   beforeEach(beforeSceneTest)
@@ -47,13 +47,7 @@ describe('BoxElement', () => {
       assert.strictEqual(root().children[0].waypoint, customWaypoint)
     })
     it('should throw error for an invalid waypoint tag', async () => {
-      try {
-        await renderAsync(<box waypoint='test' />)
-      } catch (e) {
-        return
-      }
-
-      assert.fail('expected exception')
+      await rejects(renderAsync(<box waypoint='test' />))
     })
   })
 })

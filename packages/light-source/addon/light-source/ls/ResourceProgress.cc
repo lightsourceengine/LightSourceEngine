@@ -25,7 +25,7 @@ void ResourceProgress::Dispatch(SceneNode* node, Res* resource) const {
                 HandleScope scope(env);
 
                 try {
-                    Call(this->onLoad, { node->Value(), resource->Summarize(env) });
+                    this->onLoad.Call({ node->Value(), resource->Summarize(env) });
                 } catch (std::exception& e) {
                     LOG_WARN("onLoad unhandled exception: %s", e);
                 }
