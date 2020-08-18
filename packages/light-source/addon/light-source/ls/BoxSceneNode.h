@@ -30,6 +30,8 @@ class BoxSceneNode final : public Napi::SafeObjectWrap<BoxSceneNode>, public Sce
     void Destroy() override;
 
  private:
+    void PaintBorderRadius(RenderingContext2D* context);
+    void PaintBackgroundRepeat(RenderingContext2D* context);
     void UpdateBackgroundImage(const std::string& backgroundUri);
     void ClearBackgroundImageResource();
     Rect GetBackgroundClipBox(StyleBackgroundClip value) const noexcept;

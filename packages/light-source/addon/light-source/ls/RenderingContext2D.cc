@@ -9,12 +9,6 @@
 
 namespace ls {
 
-RenderingContext2D::RenderingContext2D() noexcept {
-}
-
-RenderingContext2D::~RenderingContext2D() noexcept {
-}
-
 void RenderingContext2D::End() noexcept {
     this->context.end();
 }
@@ -24,8 +18,8 @@ void RenderingContext2D::Begin(uint8_t* buffer, int32_t width, int32_t height, i
         pitch = width * 4;
     }
 
-    this->target.createFromData(
-        width, height, BLFormat::BL_FORMAT_PRGB32, buffer, pitch, nullptr, nullptr);
+    this->target.createFromData(width, height, BLFormat::BL_FORMAT_PRGB32, buffer, pitch,
+            nullptr, nullptr);
     this->context.begin(this->target);
 }
 

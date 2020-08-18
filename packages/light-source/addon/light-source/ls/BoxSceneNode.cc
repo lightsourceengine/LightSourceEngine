@@ -11,7 +11,6 @@
 #include <ls/Stage.h>
 #include <ls/Style.h>
 #include <ls/CompositeContext.h>
-#include <ls/Math.h>
 #include <ls/Renderer.h>
 #include <ls/Log.h>
 #include <ls/Color.h>
@@ -79,6 +78,11 @@ void BoxSceneNode::OnStyleLayout() {
         return;
     }
 
+    if (!boxStyle->backgroundImage.empty() && boxStyle->backgroundRepeat != StyleBackgroundRepeatOff) {
+        this->RequestPaint();
+        return;
+    }
+
     // if repeat && background image
     // TODO: if background repeat -> paint
 
@@ -102,11 +106,24 @@ void BoxSceneNode::OnBoundingBoxChanged() {
 
 void BoxSceneNode::Paint(RenderingContext2D* context) {
     const auto boxStyle{ Style::OrEmpty(this->style) };
-    // TODO: draw to background clip box
-    const auto box{ YGNodeGetBox(this->ygNode, 0, 0) };
+
+    if (!boxStyle->backgroundColor.empty() && this->scene->GetStyleResolver().HasBorderRadius(boxStyle)) {
+        this->PaintBorderRadius(context);
+    } else if (this->backgroundImage && this->backgroundImage->HasDimensions()
+            && !boxStyle->backgroundImage.empty() && boxStyle->backgroundRepeat != StyleBackgroundRepeatOff) {
+        this->PaintBackgroundRepeat(context);
+    }
+}
+
+void BoxSceneNode::PaintBorderRadius(RenderingContext2D* context) {
+    const auto boxStyle{ Style::OrEmpty(this->style) };
+    const auto box{ this->GetBackgroundClipBox(boxStyle->backgroundClip) };
     const auto borderRadius{ this->scene->GetStyleResolver().ResolveBorderRadius(boxStyle, box) };
 
-    if (!this->paintTarget || !this->paintTarget.IsLockable()) {
+    if (!this->paintTarget
+            || !this->paintTarget.IsLockable()
+            || this->paintTarget.Width() != static_cast<int32_t>(box.width)
+            || this->paintTarget.Height() != static_cast<int32_t>(box.height)) {
         this->paintTarget.Destroy();
         this->paintTarget = this->scene->GetRenderer()->CreateTexture(box.width, box.height, Texture::Lockable);
 
@@ -147,6 +164,74 @@ void BoxSceneNode::Paint(RenderingContext2D* context) {
     pixels.Release();
 
     // TODO: convert context pixels, if necessary
+
+    this->RequestComposite();
+}
+
+void BoxSceneNode::PaintBackgroundRepeat(RenderingContext2D* context) {
+    const auto boxStyle{ Style::OrEmpty(this->style) };
+    const auto box{ this->GetBackgroundClipBox(boxStyle->backgroundClip) };
+    const auto boxWidthI{ static_cast<int32_t>(box.width) };
+    const auto boxHeightI{ static_cast<int32_t>(box.height) };
+
+    if (!this->paintTarget || !this->paintTarget.IsLockable()
+            || this->paintTarget.Width() != boxWidthI || this->paintTarget.Height() != boxHeightI) {
+        this->paintTarget.Destroy();
+        this->paintTarget = this->scene->GetRenderer()->CreateTexture(
+                boxWidthI, boxHeightI, Texture::RenderTarget);
+
+        if (!this->paintTarget) {
+            LOG_ERROR("Failed to create paint texture.");
+            return;
+        }
+    }
+
+    auto x{ box.x };
+    auto y{ box.y };
+    const auto x2{ box.x + box.width };
+    const auto y2{ box.y + box.height };
+    Rect imageRect{ 0, 0, this->backgroundImage->WidthF(), this->backgroundImage->HeightF() };
+
+    context->renderer->SetRenderTarget(this->paintTarget);
+    context->renderer->FillRenderTarget(0);
+
+    if (!this->backgroundImage->HasTexture() && this->backgroundImage->GetState() == Res::Ready) {
+        this->backgroundImage->LoadTexture(context->renderer);
+    }
+
+    switch (boxStyle->backgroundRepeat) {
+        case StyleBackgroundRepeatXY:
+            while (y < y2) {
+                x = 0;
+
+                while (x < x2) {
+                    context->renderer->DrawImage(this->backgroundImage->GetTexture(),
+                            Translate(imageRect, x, y), Matrix::Identity(), ColorWhite);
+                    x += imageRect.width;
+                }
+
+                y += imageRect.height;
+            }
+            break;
+        case StyleBackgroundRepeatX:
+            while (x < x2) {
+                context->renderer->DrawImage(
+                    this->backgroundImage->GetTexture(), Translate(imageRect, x, y), Matrix::Identity(), ColorWhite);
+                x += imageRect.width;
+            }
+            break;
+        case StyleBackgroundRepeatY:
+            while (y < y2) {
+                context->renderer->DrawImage(
+                    this->backgroundImage->GetTexture(), Translate(imageRect, x, y), Matrix::Identity(), ColorWhite);
+                y += imageRect.height;
+            }
+            break;
+        default:
+            break;
+    }
+
+    context->renderer->Reset();
 
     this->RequestComposite();
 }
@@ -202,74 +287,6 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
             boxStyle->borderColor.value.MixAlpha(composite->CurrentOpacity()));
     }
 }
-
-//void BoxSceneNode::PaintBackgroundImage(Renderer* renderer, Style* boxStyle) {
-//    const auto dest{
-//        boxStyle->backgroundClip == StyleBackgroundClipBorderBox ?
-//            YGNodeLayoutGetRect(this->ygNode, 0, 0) : YGNodeLayoutGetInnerRect(this->ygNode)
-//    };
-//
-//    if (!this->InitLayerRenderTarget(renderer, static_cast<int32_t>(dest.width), static_cast<int32_t>(dest.height))) {
-//        return;
-//    }
-//
-//    const auto imageRect{
-//        ComputeBackgroundImageRect(
-//            boxStyle->backgroundPositionX,
-//            boxStyle->backgroundPositionY,
-//            boxStyle->backgroundWidth,
-//            boxStyle->backgroundHeight,
-//            boxStyle->backgroundSize,
-//            dest,
-//            this->backgroundImage.Get(),
-//            this->scene)
-//    };
-//    auto drawBackgroundImage = [&](float x, float y) {
-//        renderer->DrawImage(this->backgroundImage->GetTexture(),
-//            { x + imageRect.x, y + imageRect.y, imageRect.width, imageRect.height }, ColorWhite);
-//    };
-//    float x{ dest.x };
-//    float y{ dest.y };
-//    const float x2{ x + dest.width };
-//    const float y2{ y + dest.height };
-//
-//    renderer->SetClipRect(dest);
-//
-//    switch (boxStyle->backgroundRepeat) {
-//        case StyleBackgroundRepeatXY:
-//            while (y < y2) {
-//                x = 0;
-//
-//                while (x < x2) {
-//                    drawBackgroundImage(x, y);
-//                    x+=imageRect.width;
-//                }
-//
-//                y+=imageRect.height;
-//            }
-//            break;
-//        case StyleBackgroundRepeatX:
-//            while (x < x2) {
-//                drawBackgroundImage(x, y);
-//                x+=imageRect.width;
-//            }
-//            break;
-//        case StyleBackgroundRepeatY:
-//            while (y < y2) {
-//                drawBackgroundImage(x, y);
-//                y+=imageRect.height;
-//            }
-//            break;
-//        case StyleBackgroundRepeatOff:
-//            drawBackgroundImage(x, y);
-//            break;
-//        default:
-//            break;
-//    }
-//
-//    renderer->ClearClipRect();
-//    renderer->SetRenderTarget(nullptr);
-//}
 
 void BoxSceneNode::UpdateBackgroundImage(const std::string& backgroundUri) {
     auto clearBackgroundImageResource = [](BoxSceneNode* node) {

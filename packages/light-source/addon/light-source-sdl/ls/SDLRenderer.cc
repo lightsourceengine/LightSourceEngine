@@ -103,6 +103,10 @@ bool SDLRenderer::SetRenderTarget(const Texture& newRenderTarget) {
 
 
 void SDLRenderer::Reset() {
+    if (this->renderer) {
+        SDL_SetRenderTarget(this->renderer, nullptr);
+    }
+
     this->ResetInternal({});
 }
 

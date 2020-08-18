@@ -15,3 +15,8 @@ Roboto-Regular.ttf
 
 Source: https://fonts.google.com/specimen/Roboto
 License: http://www.apache.org/licenses/LICENSE-2.0
+
+pattern-1004855.jpg
+
+License: https://pixabay.com/service/license/
+Source: https://pixabay.com/illustrations/pattern-curve-design-seamless-1004855/

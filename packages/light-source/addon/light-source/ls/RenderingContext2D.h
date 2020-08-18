@@ -22,8 +22,7 @@ class Renderer;
  */
 class RenderingContext2D {
  public:
-    RenderingContext2D() noexcept;
-    virtual ~RenderingContext2D() noexcept;
+    virtual ~RenderingContext2D() noexcept = default;
 
     void Begin(uint8_t* buffer, int32_t width, int32_t height, int32_t pitch = 0) noexcept;
     void End() noexcept;
