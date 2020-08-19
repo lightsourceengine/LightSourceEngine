@@ -5,7 +5,7 @@
  */
 
 import { stage, absoluteFill } from 'light-source'
-import { renderer } from 'light-source-react'
+import { render } from 'light-source-react'
 import React from 'react'
 
 // Demonstrates borderRadius style property on div/box elements.
@@ -31,6 +31,6 @@ const BorderRadiusApp = () => (
 
 const scene = stage.createScene({ fullscreen: false })
 
-renderer(scene).render(<BorderRadiusApp />)
+render(scene, <BorderRadiusApp />)
 
 stage.start()

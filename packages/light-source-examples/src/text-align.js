@@ -5,7 +5,7 @@
  */
 
 import { stage, absoluteFill } from 'light-source'
-import { renderer } from 'light-source-react'
+import { render } from 'light-source-react'
 import React from 'react'
 
 const label = {
@@ -45,6 +45,6 @@ const TextAlignApp = () => (
 
 const scene = stage.createScene({ fullscreen: false })
 
-renderer(scene).render(<TextAlignApp />)
+render(scene, <TextAlignApp />)
 
 stage.start()

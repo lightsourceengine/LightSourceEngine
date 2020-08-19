@@ -6,21 +6,29 @@
 
 import { assert } from 'chai'
 import React from 'react'
-import { renderAsync, root, beforeSceneTest, afterSceneTest } from './test-env'
+import { renderAsync, container, afterEachTestCase, beforeEachTestCase } from './test-env'
+
+let root
 
 describe('TextElement', () => {
-  beforeEach(beforeSceneTest)
-  afterEach(afterSceneTest)
+  beforeEach(() => {
+    beforeEachTestCase()
+    root = container()
+  })
+  afterEach(async () => {
+    root = null
+    await afterEachTestCase()
+  })
   describe('prop: text', () => {
     it('should set text', async () => {
       await renderAsync(<text>Hello</text>)
 
-      assert.equal(root().children[0].text, 'Hello')
+      assert.equal(root.children[0].text, 'Hello')
     })
     it('should set empty text', async () => {
       await renderAsync(<text />)
 
-      assert.equal(root().children[0].text, '')
+      assert.equal(root.children[0].text, '')
     })
   })
 })

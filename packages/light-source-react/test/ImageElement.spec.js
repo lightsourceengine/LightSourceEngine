@@ -6,27 +6,29 @@
 
 import { assert } from 'chai'
 import React from 'react'
-import { root, container, beforeSceneTest, afterSceneTest, rejects, renderAsync } from './test-env'
+import { container, beforeEachTestCase, afterEachTestCase, rejects, renderAsync } from './test-env'
+import { render } from '../src'
 
 const kImage720 = 'test/resource/image-1280x720.png'
 const kImage720SearchExt = 'test/resource/image-1280x720.*'
 const kImage1080 = 'test/resource/image-1920x1080.png'
 const kSoundFile = 'test/resource/move.wav'
+let root
 
 describe('ImageElement', () => {
-  beforeEach(beforeSceneTest)
-  afterEach(afterSceneTest)
+  beforeEach(() => { beforeEachTestCase(); root = container() })
+  afterEach(async () => { root = null; await afterEachTestCase() })
   describe('prop: src', () => {
     it('should call onLoad when image loaded', async () => {
       const summary = await renderImage(kImage720)
 
-      assert.equal(root().children[0].src, kImage720)
+      assert.equal(root.children[0].src, kImage720)
       assert.deepStrictEqual(summary, { width: 1280, height: 720 })
     })
     it('should call onLoad when image loaded by search extension', async () => {
       const summary = await renderImage(kImage720SearchExt)
 
-      assert.equal(root().children[0].src, kImage720SearchExt)
+      assert.equal(root.children[0].src, kImage720SearchExt)
       assert.deepStrictEqual(summary, { width: 1280, height: 720 })
     })
     it('should call onError when file loaded by search extension fails', async () => {
@@ -34,32 +36,32 @@ describe('ImageElement', () => {
 
       await rejects(renderImage(file))
 
-      assert.equal(root().children[0].src, file)
+      assert.equal(root.children[0].src, file)
     })
     it('should call onError when file not found', async () => {
       const file = 'unknown.jpg'
 
       await rejects(renderImage(file))
 
-      assert.equal(root().children[0].src, file)
+      assert.equal(root.children[0].src, file)
     })
     it('should call onError when file exists, but file is not an image', async () => {
       const file = kSoundFile
 
       await rejects(renderImage(file))
 
-      assert.equal(root().children[0].src, file)
+      assert.equal(root.children[0].src, file)
     })
     it('should not call callbacks when src not specified', async () => {
       await renderImageNoSrc()
 
-      assert.equal(root().children[0].src, '')
+      assert.equal(root.children[0].src, '')
     })
     it('should call onLoad when replacing an image', async () => {
       // 1. Set <img> src to an image.
       let summary = await renderImage(kImage720)
 
-      const img = root().children[0]
+      const img = root.children[0]
 
       assert.equal(img.src, kImage720)
       assert.deepStrictEqual(summary, { width: 1280, height: 720 })
@@ -84,7 +86,8 @@ describe('ImageElement', () => {
 
 const renderImage = async (src) => {
   return await new Promise((resolve, reject) => {
-    container().render(
+    render(
+      root,
       <img
         src={src}
         onLoad={(...args) => resolve(args[1])}
@@ -96,7 +99,8 @@ const renderImage = async (src) => {
 
 const renderImageNoSrc = async () => {
   return await new Promise((resolve, reject) => {
-    container().render(
+    render(
+      root,
       <img
         onLoad={(...args) => reject(Error(args[1]))}
         onError={(...args) => reject(Error(args[1]))}

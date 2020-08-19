@@ -5,7 +5,7 @@
  */
 
 import { stage } from 'light-source'
-import { renderer } from 'light-source-react'
+import { render } from 'light-source-react'
 import React from 'react'
 
 const background = 'resource/pexels-emiliano-arano-1295138.jpg'
@@ -40,6 +40,6 @@ const ObjectFitApp = () => (
 
 const scene = stage.createScene({ fullscreen: false })
 
-renderer(scene).render(<ObjectFitApp />)
+render(scene, <ObjectFitApp />)
 
 stage.start()

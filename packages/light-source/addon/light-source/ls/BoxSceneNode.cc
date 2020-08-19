@@ -186,6 +186,12 @@ void BoxSceneNode::PaintBackgroundRepeat(RenderingContext2D* context) {
         }
     }
 
+    if (!this->backgroundImage->HasTexture() && this->backgroundImage->GetState() == Res::Ready) {
+        if (!this->backgroundImage->LoadTexture(context->renderer)) {
+            return;
+        }
+    }
+
     auto x{ box.x };
     auto y{ box.y };
     const auto x2{ box.x + box.width };
@@ -194,10 +200,6 @@ void BoxSceneNode::PaintBackgroundRepeat(RenderingContext2D* context) {
 
     context->renderer->SetRenderTarget(this->paintTarget);
     context->renderer->FillRenderTarget(0);
-
-    if (!this->backgroundImage->HasTexture() && this->backgroundImage->GetState() == Res::Ready) {
-        this->backgroundImage->LoadTexture(context->renderer);
-    }
 
     switch (boxStyle->backgroundRepeat) {
         case StyleBackgroundRepeatXY:

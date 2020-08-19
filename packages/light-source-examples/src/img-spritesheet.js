@@ -5,7 +5,7 @@
  */
 
 import { stage, absoluteFill } from 'light-source'
-import { renderer } from 'light-source-react'
+import { render } from 'light-source-react'
 import React, { useEffect, useRef } from 'react'
 
 // sprite sheet, containing 21 rows of animations. each animation is 64x64.
@@ -83,6 +83,6 @@ const SpritesApp = () => {
 
 const scene = stage.createScene({ fullscreen: false })
 
-renderer(scene).render(<SpritesApp />)
+render(scene, <SpritesApp />)
 
 stage.start()

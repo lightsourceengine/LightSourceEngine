@@ -6,123 +6,112 @@
 
 import { assert } from 'chai'
 import React from 'react'
-import { Element } from '../src/Element'
-import { renderAsync, root, container, beforeSceneTest, afterSceneTest } from './test-env'
+import { TextElement } from '../src/TextElement'
+import { stage } from 'light-source'
+import { ReactRenderer } from '../src/ReactRenderer'
+import './test-env'
 
 const assertClassName = (obj, expectedClassName) => {
   assert.equal(Object.getPrototypeOf(obj).constructor.name, expectedClassName)
 }
 
-const TestComponent = () => <div />
-
-class TestComponentClass extends React.Component {
-  static instance
-
-  render () {
-    TestComponentClass.instance = this
-
-    return <div />
-  }
-}
+let root
+let reactRenderer
 
 describe('ReactRenderer', () => {
-  beforeEach(beforeSceneTest)
+  beforeEach(() => {
+    root = stage.getScene().root
+    reactRenderer = new ReactRenderer(root)
+  })
   afterEach(async () => {
-    await afterSceneTest()
-    TestComponentClass.instance = null
+    await reactRendererRender(null)
+    root = null
+    reactRenderer = null
   })
   describe('render()', () => {
     it('should render a single div element', async () => {
-      assert.lengthOf(root().children, 0)
+      assert.lengthOf(root.children, 0)
 
-      await renderAsync(<div />)
+      await reactRendererRender(<div />)
 
-      assert.lengthOf(root().children, 1)
-      assertClassName(root().children[0], 'BoxSceneNode')
+      assert.lengthOf(root.children, 1)
+      assertClassName(root.children[0], 'BoxSceneNode')
     })
     it('should render a single box element', async () => {
-      assert.lengthOf(root().children, 0)
+      assert.lengthOf(root.children, 0)
 
-      await renderAsync(<box />)
+      await reactRendererRender(<box />)
 
-      assert.lengthOf(root().children, 1)
-      assertClassName(root().children[0], 'BoxSceneNode')
+      assert.lengthOf(root.children, 1)
+      assertClassName(root.children[0], 'BoxSceneNode')
     })
     it('should a Component with a single div element', async () => {
-      assert.lengthOf(root().children, 0)
+      assert.lengthOf(root.children, 0)
 
-      await renderAsync(<TestComponent />)
+      const TestComponent = () => <div />
 
-      assert.lengthOf(root().children, 1)
-      assertClassName(root().children[0], 'BoxSceneNode')
+      await reactRendererRender(<TestComponent />)
+
+      assert.lengthOf(root.children, 1)
+      assertClassName(root.children[0], 'BoxSceneNode')
     })
     it('should render a single img element', async () => {
-      assert.lengthOf(root().children, 0)
+      assert.lengthOf(root.children, 0)
 
-      await renderAsync(<img />)
+      await reactRendererRender(<img />)
 
-      assert.lengthOf(root().children, 1)
-      assertClassName(root().children[0], 'ImageSceneNode')
+      assert.lengthOf(root.children, 1)
+      assertClassName(root.children[0], 'ImageSceneNode')
     })
     it('should render a single text element', async () => {
-      assert.lengthOf(root().children, 0)
+      assert.lengthOf(root.children, 0)
 
-      await renderAsync(<text>Test</text>)
+      await reactRendererRender(<text>Test</text>)
 
-      assert.lengthOf(root().children, 1)
-      assertClassName(root().children[0], 'TextSceneNode')
+      assert.lengthOf(root.children, 1)
+      assertClassName(root.children[0], 'TextSceneNode')
     })
     it('should clear all root children when null is rendered', async () => {
-      assert.lengthOf(root().children, 0)
+      assert.lengthOf(root.children, 0)
 
-      await renderAsync(<div />)
+      await reactRendererRender(<div />)
 
-      assert.lengthOf(root().children, 1)
+      assert.lengthOf(root.children, 1)
 
-      await renderAsync(null)
+      await reactRendererRender(null)
 
-      assert.lengthOf(root().children, 0)
+      assert.lengthOf(root.children, 0)
     })
   })
   describe('findElement()', () => {
     it('should find an Element given a Component instance', async () => {
-      await renderAsync(<TestComponentClass />)
+      let capture
+      const TestComponent = class extends React.Component { render () { capture = this; return <text>it's me</text> }}
 
-      const element = container().findElement(TestComponentClass.instance)
+      await reactRendererRender(<TestComponent />)
 
-      assert.instanceOf(element, Element)
-      assert.strictEqual(element.node, root().children[0])
+      const element = reactRenderer.findElement(capture)
+
+      assert.instanceOf(element, TextElement)
+      assert.strictEqual(element.node, root.children[0])
+      assert.strictEqual(element.node.text, 'it\'s me')
     })
   })
   describe('findNode()', () => {
     it('should find a SceneNode given a Component instance', async () => {
-      await renderAsync(<TestComponentClass />)
+      let capture
+      const TestComponent = class extends React.Component { render () { capture = this; return <text>it's me</text> }}
 
-      assert.strictEqual(container().findSceneNode(TestComponentClass.instance), root().children[0])
-    })
-  })
-  describe('disconnect()', () => {
-    it('should remove all associated nodes asynchronously', async () => {
-      assert.lengthOf(root().children, 0)
+      await reactRendererRender(<TestComponent />)
 
-      await renderAsync(<div />)
+      const sceneNode = reactRenderer.findSceneNode(capture)
 
-      assert.lengthOf(root().children, 1)
-
-      await new Promise(resolve => container().disconnect(() => resolve()))
-
-      assert.lengthOf(root().children, 0)
-    })
-    it('should remove all associated nodes synchronously', async () => {
-      assert.lengthOf(root().children, 0)
-
-      await renderAsync(<div />)
-
-      assert.lengthOf(root().children, 1)
-
-      container().disconnect()
-
-      assert.lengthOf(root().children, 0)
+      assert.strictEqual(sceneNode, root.children[0])
+      assert.strictEqual(sceneNode.text, 'it\'s me')
     })
   })
 })
+
+const reactRendererRender = async (element) => {
+  return new Promise((resolve) => reactRenderer.render(element, resolve))
+}

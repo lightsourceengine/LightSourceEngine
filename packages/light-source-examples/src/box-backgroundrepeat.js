@@ -5,7 +5,7 @@
  */
 
 import { stage, absoluteFill } from 'light-source'
-import { renderer } from 'light-source-react'
+import { render } from 'light-source-react'
 import React from 'react'
 
 // Demonstrates backgroundRepeat style property on div/box elements.
@@ -15,6 +15,6 @@ const BackgroundRepeatApp = () => (
 
 const scene = stage.createScene({ fullscreen: false })
 
-renderer(scene).render(<BackgroundRepeatApp />)
+render(scene, <BackgroundRepeatApp />)
 
 stage.start()

@@ -5,29 +5,22 @@
  */
 
 import { stage } from 'light-source'
-import { ReactRenderer } from '../src/ReactRenderer'
 import { shutdown } from 'light-source-reconciler'
-import { Reconciler } from '../src/Reconciler'
 import React from 'react'
 import { assert } from 'chai'
+import { getActiveContainers, render } from '../src'
 
 before(() => {
   stage.loadPlugin('light-source-ref')
   stage.loadPlugin('light-source-ref-audio')
-  state.scene = stage.createScene()
+  stage.createScene()
   stage.start()
 })
 
-// After all tests have run, remove all node event loop references held by the React Reconciler so mocha can close.
-after(() => {
+after(async () => {
+  stage.stop()
   shutdown()
-  stage.quit()
 })
-
-const state = {
-  scene: null,
-  container: null
-}
 
 class Catch extends React.Component {
   componentDidCatch (error, info) {
@@ -55,7 +48,7 @@ export const renderAsync = async (component) => {
   const context = { caught: null }
 
   await new Promise(resolve => {
-    container().render(<Catch context={context}>{component}</Catch>, () => resolve())
+    render(container(), <Catch context={context}>{component}</Catch>, () => resolve())
   })
 
   if (context.caught !== null) {
@@ -63,18 +56,17 @@ export const renderAsync = async (component) => {
   }
 }
 
-export const beforeSceneTest = () => {
-  state.container = new ReactRenderer(Reconciler(state.scene), state.scene.root)
+export const beforeEachTestCase = () => {
 }
 
-export const afterSceneTest = async () => {
-  await new Promise((resolve) => container().disconnect(() => resolve()) || resolve())
-  state.container = null
+export const afterEachTestCase = async () => {
+  const promises = []
+
+  for (const container of getActiveContainers()) {
+    promises.push(new Promise((resolve) => render(container, null, resolve())))
+  }
+
+  await Promise.allSettled(promises)
 }
 
-export const container = () => {
-  return state.container
-}
-
-export const scene = () => state.scene
-export const root = () => state.scene.root
+export const container = () => stage.getScene().root
