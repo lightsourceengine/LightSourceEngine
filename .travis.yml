@@ -24,7 +24,7 @@ matrix:
         - sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
         - sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
       install: yarn --force
-      script: yarn test
+      script: skip
     - name: "darwin-x64 [Release]"
       os: osx
       env: npm_config_ls_with_tests=true

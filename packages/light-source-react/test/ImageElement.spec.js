@@ -78,8 +78,11 @@ describe('ImageElement', () => {
       assert.equal(img.src, kImage1080)
       assert.deepStrictEqual(summary, { width: 1920, height: 1080 })
     })
-    it('should throw Error for invalid src type', async () => {
-      await rejects(renderAsync(<img src={1234} />))
+    it('should set src to empty string for invalid values', async () => {
+      for (const invalidSrc of [1234, {}, true, [], null, undefined, '']) {
+        await renderAsync(<img src={1234}/>)
+        assert.isEmpty(root.children[0].src)
+      }
     })
   })
 })
