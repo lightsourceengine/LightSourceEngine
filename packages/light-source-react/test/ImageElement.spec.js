@@ -80,7 +80,7 @@ describe('ImageElement', () => {
     })
     it('should set src to empty string for invalid values', async () => {
       for (const invalidSrc of [1234, {}, true, [], null, undefined, '']) {
-        await renderAsync(<img src={1234}/>)
+        await renderAsync(<img src={invalidSrc} />)
         assert.isEmpty(root.children[0].src)
       }
     })
