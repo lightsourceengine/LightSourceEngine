@@ -139,7 +139,7 @@ Transform UnboxTransform(const Napi::Value& value) {
         throw std::invalid_argument("Expected transform value to be Float32Array.");
     }
 
-    Transform result;
+    Transform result{};
 
     switch (GetEnum<StyleTransform>(float32Array[0u])) {
         case StyleTransformRotate:
@@ -178,6 +178,7 @@ Transform UnboxTransform(const Napi::Value& value) {
                 0,
                 StyleNumberUnitUndefined
             };
+            break;
         default:
             // unreachable..
             throw std::runtime_error("");
