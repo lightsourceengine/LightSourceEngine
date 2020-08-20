@@ -157,7 +157,7 @@ void SceneNode::AppendChild(const CallbackInfo& info) {
     HandleScope scope(env);
     auto child{ SceneNode::QueryInterface(info[0]) };
 
-    if (child == nullptr) {
+    if (child == nullptr || child == this) {
         throw Error::New(env, "appendChild: invalid child argument");
     }
 
@@ -183,7 +183,7 @@ void SceneNode::InsertBefore(const CallbackInfo& info) {
 
     auto child{ SceneNode::QueryInterface(info[0]) };
 
-    if (child == nullptr) {
+    if (child == nullptr || child == this) {
         throw Error::New(env, "insertBefore: invalid child argument");
     }
 

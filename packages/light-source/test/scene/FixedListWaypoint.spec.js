@@ -6,7 +6,7 @@
 
 import { assert } from 'chai'
 import { FixedListWaypoint } from '../../src/scene/FixedListWaypoint'
-import { afterSceneTest, beforeSceneTest } from '../index'
+import { afterSceneTest, beforeSceneTest } from '../test-env'
 import { $sendKeyEvent } from '../../src/util/InternalSymbols'
 import { Key } from '../../src/input/Key'
 import { Mapping } from '../../src/input/Mapping'

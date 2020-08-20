@@ -7,6 +7,7 @@
 import { assert } from 'chai'
 import { $destroy, $init } from '../../src/util/InternalSymbols'
 import { AudioManager } from '../../src/audio/AudioManager'
+import bindings from 'bindings'
 
 const testWavFile = 'test/resources/test.wav'
 
@@ -14,7 +15,7 @@ describe('AudioManager', () => {
   let audio
   beforeEach(() => {
     audio = new AudioManager({ resourcePath: '' })
-    audio[$init]('light-source-ref')
+    audio[$init](bindings('light-source-ref-audio').createInstance())
   })
   afterEach(() => {
     audio[$destroy]()

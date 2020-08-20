@@ -154,7 +154,8 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
         case napi_undefined:
             break;
         default:
-            throw Error::New(env, "src must be a string");
+            LOG_WARN("src must be a string")
+            return;
     }
 
     if (newSrc == this->src) {

@@ -7,20 +7,16 @@
 import { assert } from 'chai'
 import sinon from 'sinon'
 import { BoxSceneNode, TextSceneNode, ImageSceneNode, Style } from '../../src/addon'
-import { afterSceneTest, beforeSceneTest, createNode } from '..'
+import { afterSceneTest, beforeSceneTest } from '../test-env'
 import { $attach } from '../../src/util/InternalSymbols'
 
 describe('Scene', () => {
   let scene
-  beforeEach(() => {
-    scene = beforeSceneTest()
-  })
-  afterEach(() => {
-    scene = afterSceneTest()
-  })
+  beforeEach(() => { scene = beforeSceneTest() })
+  afterEach(() => { scene = afterSceneTest() })
   describe('constructor', () => {
     it('should set root style', () => {
-      assert.sameOrderedMembers(scene.root.style.fontSize, [16, Style.UnitPoint])
+      assert.sameOrderedMembers(scene.root.style.fontSize, [undefined, Style.UnitUndefined])
       assert.equal(scene.root.style.backgroundColor, 0xFF000000)
     })
   })
@@ -34,12 +30,12 @@ describe('Scene', () => {
       ]
 
       for (const input of inputs) {
-        assert.instanceOf(createNode(input[0]), input[1])
+        assert.instanceOf(scene.createNode(input[0]), input[1])
       }
     })
     it('should throw Error for unsupported tag name', () => {
       for (const tag of ['', 'body', null, undefined]) {
-        assert.throws(() => createNode(tag))
+        assert.throws(() => scene.createNode(tag))
       }
     })
   })
@@ -116,13 +112,11 @@ describe('Scene', () => {
     })
     it('should call callback on the next frame', (done) => {
       scene.requestAnimationFrame(() => done())
-      scene.stage.start()
     })
     it('should be schedulable in callback', (done) => {
       scene.requestAnimationFrame(() => {
         scene.requestAnimationFrame(() => done())
       })
-      scene.stage.start()
     })
   })
   describe('cancelAnimationFrame()', () => {
@@ -141,8 +135,6 @@ describe('Scene', () => {
       })
 
       scene.requestAnimationFrame(() => done())
-
-      scene.stage.start()
     })
   })
 })

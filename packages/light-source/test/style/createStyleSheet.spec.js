@@ -29,11 +29,12 @@ describe('createStyleSheet()', () => {
     assert.instanceOf(sheet.style1, Style)
     assert.instanceOf(sheet.style2, Style)
   })
-  it('should throw Error for invalid argument', () => {
+  it('should throw Error when no argument passed', () => {
     assert.throws(() => createStyleSheet())
-    assert.throws(() => createStyleSheet([]))
-    assert.throws(() => createStyleSheet(Buffer.from('')))
-    assert.throws(() => createStyleSheet(1))
-    assert.throws(() => createStyleSheet(''))
+  })
+  it('should throw Error when invalid argument passed', () => {
+    for (const invalidSpec of ['', 1, Buffer.from('xyz'), null, undefined]) {
+      assert.throws(() => createStyleSheet(invalidSpec))
+    }
   })
 })

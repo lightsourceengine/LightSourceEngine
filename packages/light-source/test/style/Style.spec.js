@@ -18,8 +18,8 @@ const testStyleValueEmpty = (name, value) => {
   assert.sameOrderedMembers(style({ [name]: value })[name], [undefined, Style.UnitUndefined])
 }
 
-const testStyleValueNull = (name, value) => {
-  assert.isNull(style({ [name]: value })[name])
+const testStyleValueEmptyString = (name, value) => {
+  assert.equal(style({ [name]: value })[name], '')
 }
 
 const testStyleUnitValue = (name, value, expectedUnit, expectedValue) => {
@@ -101,7 +101,7 @@ describe('Style', () => {
       testEnumProperty(property, enums)
     })
     it('should use default enum value when given invalid input', () => {
-      testInvalidEnumProperty(property, enums[0])
+      testInvalidEnumProperty(property, 'no-repeat')
     })
   })
   describe('backgroundWidth property', () => {
@@ -190,7 +190,7 @@ describe('Style', () => {
   })
   describe('fontWeight property', () => {
     const property = 'fontWeight'
-    const enums = ['normal', 'bold', 'oblique']
+    const enums = ['normal', 'bold']
     it('should set values', () => {
       testEnumProperty(property, enums)
     })
@@ -362,28 +362,25 @@ describe('Style', () => {
   describe('backgroundImage property', () => {
     const property = 'backgroundImage'
     const testUri = 'test.jpg'
-    const testId = 'test-id'
     it('should be assignable to a string uri', () => {
-      testStyleValue(property, testUri, { id: testUri, uri: testUri })
+      testStyleValue(property, testUri, testUri)
     })
-    it('should set from uri property', () => {
+    // TODO: support file uri with parameters
+    xit('should set from uri property', () => {
       testStyleValue(property, { uri: testUri }, { id: testUri, uri: testUri })
     })
-    it('should set from uri property and override id', () => {
-      testStyleValue(property, { id: testId, uri: testUri }, { id: testId, uri: testUri })
-    })
-    it('should set from uri property and reject invalid id', () => {
+    xit('should set from uri property and reject invalid id', () => {
       testStyleValue(property, { id: 3, uri: testUri }, { id: testUri, uri: testUri })
     })
-    it('should set from uri property and use width & height', () => {
+    xit('should set from uri property and use width & height', () => {
       testStyleValue(property, { uri: testUri, width: 10, height: 20 },
         { id: testUri, uri: testUri, width: 10, height: 20 })
     })
-    it('should  set from uri property and use int capInsets', () => {
+    xit('should  set from uri property and use int capInsets', () => {
       testStyleValue(property, { uri: testUri, capInsets: 10 },
         { id: testUri, uri: testUri, capInsets: { top: 10, right: 10, bottom: 10, left: 10 } })
     })
-    it('should  set from uri property and use full capInsets', () => {
+    xit('should  set from uri property and use full capInsets', () => {
       const capInsets = { top: 1, right: 2, bottom: 3, left: 4 }
       testStyleValue(property, { uri: testUri, capInsets }, { id: testUri, uri: testUri, capInsets })
     })
@@ -399,7 +396,7 @@ describe('Style', () => {
         { uri: 3 }
       ]
 
-      inputs.forEach(input => testStyleValueNull(property, input))
+      inputs.forEach(input => testStyleValueEmptyString(property, input))
     })
   })
   describe('zIndex property', () => {

@@ -5,7 +5,7 @@
  */
 
 import {
-  $adapter, $asyncId, $audioSourceMap,
+  $plugin, $asyncId, $audioSourceMap,
   $buffer,
   $destination,
   $options,
@@ -150,7 +150,7 @@ export class AudioSource {
 
 const AudioSource$applyBuffer = (self, buffer) => {
   const audio = self[$owner]
-  const adapter = audio[$adapter]
+  const adapter = audio[$plugin]
 
   self[$buffer] = buffer
 

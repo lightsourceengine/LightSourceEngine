@@ -10,19 +10,15 @@ import {
   $destroy,
   $detach,
   $init,
-  $setResourcePath,
-  $adapter,
+  $plugin,
   $audioSourceMap
 } from '../util/InternalSymbols'
-import bindings from 'bindings'
-import { SDLMixerModuleId, SDLModuleId } from '../addon'
 import { logexcept } from '../util'
 import { AudioSource, AudioSource$load, AudioSource$reset } from './AudioSource'
 import { AudioDestination } from './AudioDestination'
 import { AudioSourceTypeStream, AudioSourceTypeSample } from './constants'
 
 const $stage = Symbol('stage')
-const $resourcePath = Symbol('resourcePath')
 const $sample = Symbol('sample')
 const $stream = Symbol('stream')
 
@@ -32,9 +28,8 @@ const $stream = Symbol('stream')
 export class AudioManager {
   constructor (stage) {
     this[$stage] = stage
-    this[$adapter] = null
+    this[$plugin] = null
     this[$audioSourceMap] = new Map()
-    this[$resourcePath] = stage.resourcePath
     this[$sample] = new AudioDestination()
     this[$stream] = new AudioDestination()
   }
@@ -46,7 +41,7 @@ export class AudioManager {
    */
   get devices () {
     // Note: names are purely informational right now
-    return this[$adapter] ? this[$adapter].devices : []
+    return this[$plugin] ? this[$plugin].devices : []
   }
 
   /**
@@ -129,8 +124,8 @@ export class AudioManager {
    * @ignore
    */
   [$attach] () {
-    if (!this[$adapter].attached) {
-      this[$adapter].attach()
+    if (!this[$plugin].attached) {
+      this[$plugin].attach()
       for (const audioSource of this[$audioSourceMap].values()) {
         AudioSource$load(audioSource, false)
       }
@@ -141,103 +136,36 @@ export class AudioManager {
    * @ignore
    */
   [$detach] () {
-    if (this[$adapter].attached) {
+    if (this[$plugin].attached) {
       for (const audioSource of this[$audioSourceMap].values()) {
         AudioSource$reset(audioSource)
       }
-      logexcept(() => this[$adapter].detach(), 'AudioAdapter detach error: ')
+      logexcept(() => this[$plugin].detach(), 'AudioAdapter detach error: ')
     }
   }
 
   /**
    * @ignore
    */
-  [$init] (audioAdapter) {
-    if (this[$adapter]) {
+  [$init] (audioPluginInstance) {
+    if (this[$plugin]) {
       throw Error('AudioAdapter has already been initialized.')
     }
 
-    this[$adapter] = createAudioAdapter(validateAudioAdapterConfig(audioAdapter))
-    this[$sample][$destination] = this[$adapter].createSampleAudioDestination()
-    this[$stream][$destination] = this[$adapter].createStreamAudioDestination()
+    this[$plugin] = audioPluginInstance
+    this[$sample][$destination] = audioPluginInstance.createSampleAudioDestination()
+    this[$stream][$destination] = audioPluginInstance.createStreamAudioDestination()
   }
 
   /**
    * @ignore
    */
   [$destroy] () {
-    if (this[$adapter]) {
+    if (this[$plugin]) {
       this[$detach]()
-      logexcept(() => this[$adapter].detach(), 'AudioAdapter destroy error: ')
       this[$audioSourceMap].clear()
       this[$sample][$destination] = this[$stream][$destination] = null
-      this[$adapter] = null
-    }
-  }
-
-  /**
-   * @ignore
-   */
-  [$setResourcePath] (value) {
-    this[$resourcePath] = value
-  }
-}
-
-const validateAudioAdapterConfig = (audioAdapter) => {
-  if (typeof audioAdapter === 'function' || typeof audioAdapter === 'string') {
-    return [audioAdapter]
-  } else if (!audioAdapter) {
-    return [SDLMixerModuleId, SDLModuleId]
-  }
-
-  throw Error('audioAdapter must be a module name string or an AudioAdapter class.')
-}
-
-const createAudioAdapterInternal = (adapter) => {
-  let AudioAdapter = null
-
-  if (typeof adapter === 'string') {
-    try {
-      AudioAdapter = bindings(adapter).AudioAdapter
-    } catch (e) {
-      console.log(`Module ${adapter} failed to load. Error: ${e.message}`)
-      return null
-    }
-
-    if (typeof AudioAdapter !== 'function') {
-      console.log(`Module ${adapter} does not contain an AudioAdapter class.`)
-      return null
-    }
-  } else {
-    AudioAdapter = adapter
-  }
-
-  let adapterInstance
-
-  try {
-    adapterInstance = new AudioAdapter()
-  } catch (e) {
-    console.log(`Failed to construct the AudioAdapter instance. Error: ${e.message}`)
-    return null
-  }
-
-  try {
-    adapterInstance.attach()
-  } catch (e) {
-    logexcept(() => adapterInstance.destroy())
-    console.log(`Failed to initialize the AudioAdapter instance. Error: ${e.message}`)
-    return null
-  }
-
-  return adapterInstance
-}
-
-const createAudioAdapter = (adapters) => {
-  for (const adapter of adapters) {
-    const audioAdapterInstance = createAudioAdapterInternal(adapter)
-
-    if (audioAdapterInstance) {
-      return audioAdapterInstance
+      this[$plugin] = null
     }
   }
 }

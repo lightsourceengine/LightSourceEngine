@@ -5,30 +5,17 @@
  */
 
 import { assert } from 'chai'
-import { Stage } from '../../src/stage/Stage'
+import { test } from '../test-env'
 
 let stage
 
 describe('Stage', () => {
   beforeEach(() => {
-    stage = new Stage()
-    stage.init({ adapter: 'light-source-ref', audioAdapter: 'light-source-ref' })
+    stage = test.stage
   })
   afterEach(() => {
-    stage[Symbol.for('destroy')]()
+    stage.fps = 0
     stage = null
-  })
-  describe('constructor', () => {
-    it('should create a Stage object', () => {
-      const testStage = new Stage()
-
-      assert.isOk(testStage.input)
-      assert.isOk(testStage.audio)
-      assert.isOk(testStage.font)
-      assert.lengthOf(testStage.displays, 0)
-      assert.equal(testStage.resourcePath, '')
-      assert.equal(stage.fps, 60)
-    })
   })
   describe('fps', () => {
     it('should set fps', () => {

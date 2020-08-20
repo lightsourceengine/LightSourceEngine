@@ -11,18 +11,16 @@ import { KeyEvent } from '../../src/event/KeyEvent'
 import { Direction } from '../../src/input/Direction'
 import { Key } from '../../src/input/Key'
 import { Mapping } from '../../src/input/Mapping'
-import { afterSceneTest, beforeSceneTest } from '../index'
+import { afterSceneTest, beforeSceneTest } from '../test-env'
 import { waypoint } from '../../src/scene/waypoint'
 
 describe('eventCapturePhase()', () => {
   let scene
-  beforeEach(() => {
+  before(() => {
     scene = beforeSceneTest()
     setupSceneRoot(scene)
   })
-  afterEach(() => {
-    scene = afterSceneTest()
-  })
+  after(() => { scene = afterSceneTest() })
   it('should stop propagation after move right', () => {
     const event = rightKeyEvent()
 

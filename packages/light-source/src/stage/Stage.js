@@ -23,7 +23,8 @@ import {
   $events,
   $scene,
   $audio,
-  $emit
+  $emit,
+  $init
 } from '../util/InternalSymbols'
 import { AudioManager } from '../audio/AudioManager'
 import { isNumber, logexcept } from '../util'
@@ -152,7 +153,7 @@ export class Stage extends StageBase {
         break
       case kPluginTypeAudio:
         this[$audioPlugin] = instance
-        // this[$audio][$init](audioAdapter)
+        this[$audio][$init](instance)
         break
     }
   }
