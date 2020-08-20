@@ -265,7 +265,7 @@ Font FontFace::GetFont(float fontSize) {
     }
 
     for (auto p = this->fontsBySize.begin(); p != this->fontsBySize.end(); p++) {
-        if (::Equals(fontSize, p->blFont.size())) {
+        if (ls::Equals(fontSize, p->blFont.size())) {
             Font font = *p;
 
             this->fontsBySize.erase(p);

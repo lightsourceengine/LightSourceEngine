@@ -18,7 +18,6 @@
       ],
       "sources": [
         "ls/PixelConversion.cc",
-        "ls/Surface.cc",
         "ls/Texture.cc",
         "ls/Rect.cc",
       ]
@@ -45,7 +44,6 @@
             "light-source-util-lib"
           ],
           "sources": [
-            "test/SurfaceSpec.cc",
             "test/MatrixSpec.cc",
             "test/RectSpec.cc",
             "test/LightSourceGraphicsTestSuite.cc",

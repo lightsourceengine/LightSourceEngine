@@ -13,7 +13,6 @@
         "../deps/filesystem/include",
       ],
       "sources": [
-        "ls/FileSystem.cc",
         "ls/Format.cc",
         "ls/Timer.cc",
       ]
@@ -40,7 +39,6 @@
           ],
           "sources": [
             "test/FormatSpec.cc",
-            "test/FileSystemSpec.cc",
             "test/LightSourceUtilTestSuite.cc",
           ]
         }]

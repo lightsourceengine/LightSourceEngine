@@ -11,7 +11,6 @@ using Napi::HandleScope;
 using Napi::Object;
 
 namespace ls {
-    void SurfaceSpec(Napi::TestSuite* parent);
     void MatrixSpec(Napi::TestSuite* parent);
     void RectSpec(Napi::TestSuite* parent);
 }
@@ -20,7 +19,6 @@ Object Init(Env env, Object exports) {
     HandleScope scope(env);
 
     exports["test"] = Napi::TestSuite::Build(env, "light-source-graphics-lib native tests", {
-        &ls::SurfaceSpec,
         &ls::MatrixSpec,
         &ls::RectSpec,
     });

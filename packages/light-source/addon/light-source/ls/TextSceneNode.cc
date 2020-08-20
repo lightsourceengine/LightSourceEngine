@@ -12,7 +12,6 @@
 #include <ls/Style.h>
 #include <ls/CompositeContext.h>
 #include <ls/Timer.h>
-#include <ls/Surface.h>
 #include <ls/Renderer.h>
 #include <ls/PixelConversion.h>
 
