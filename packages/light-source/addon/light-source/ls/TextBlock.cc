@@ -404,7 +404,7 @@ void TextBlock::EllipsizeIfNecessary(Style* style, float maxWidth) noexcept {
     lastLine.ellipsis = true;
 
     // Pop characters until there is enough space.
-    for (std::size_t i = lastLine.glyphRun.size - 1u; i >= 0u; i--) {
+    for (int32_t i = static_cast<int32_t>(lastLine.glyphRun.size) - 1; i >= 0; i--) {
         if (newWidth + ellipsisWidth <= maxWidth) {
             lastLine.width = (newWidth + ellipsisWidth);
             lastLine.glyphRun.size = i + 1;

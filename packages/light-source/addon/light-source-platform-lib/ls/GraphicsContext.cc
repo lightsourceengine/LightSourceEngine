@@ -32,27 +32,6 @@ void GraphicsContext::Constructor(const CallbackInfo& info) {
         info, "GraphicsContext");
 }
 
-Function GraphicsContext::GetClass(Napi::Env env) {
-    static FunctionReference constructor;
-
-    if (constructor.IsEmpty()) {
-        HandleScope scope(env);
-
-        constructor = DefineClass(env, "GraphicsContext", true, {
-            InstanceAccessor("width", &GraphicsContext::GetWidth, nullptr),
-            InstanceAccessor("height", &GraphicsContext::GetHeight, nullptr),
-            InstanceAccessor("displayIndex", &GraphicsContext::GetDisplayIndex, nullptr),
-            InstanceAccessor("fullscreen", &GraphicsContext::GetFullscreen, nullptr),
-            InstanceAccessor("title", &GraphicsContext::GetTitle, &GraphicsContext::SetTitle),
-            InstanceMethod("attach", &GraphicsContext::Attach),
-            InstanceMethod("detach", &GraphicsContext::Detach),
-            InstanceMethod("resize", &GraphicsContext::Resize),
-        });
-    }
-
-    return constructor.Value();
-}
-
 void GraphicsContext::Attach(const CallbackInfo& info) {
     CHECK_IMPL(this->impl);
     this->impl->Attach(info);

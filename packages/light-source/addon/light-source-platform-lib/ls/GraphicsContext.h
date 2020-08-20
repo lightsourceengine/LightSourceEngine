@@ -54,12 +54,40 @@ class GraphicsContext : public Napi::SafeObjectWrap<GraphicsContext>, public Gra
     void Finalize() override;
 
     static Napi::Function GetClass(Napi::Env env);
+
     template<typename T>
     static Napi::Value Create(Napi::Env env, Napi::Value config);
 
  private:
     GraphicsContextInterface* impl{};
 };
+
+// XXX: The class is needed to do safe casting with instanceof. The GetClass symbol is in light-source-sdl.node or
+//      light-source-ref.node, but GetClass is accessed in light-source.node. On Mac, the .node files are loaded with
+//      RTLD_GLOBAL and the GetClass symbol can be found. On Linux, RTLD_LOCAL is used, so the symbol cannot be found.
+//      require() does not provide a way to change dlopen() options. inline-ing works for this case, but a custom
+//      .node loader might be required if there are too many symbols that are affected.
+
+inline Napi::Function GraphicsContext::GetClass(Napi::Env env) {
+    static Napi::FunctionReference constructor;
+
+    if (constructor.IsEmpty()) {
+        Napi::HandleScope scope(env);
+
+        constructor = DefineClass(env, "GraphicsContext", true, {
+            InstanceAccessor("width", &GraphicsContext::GetWidth, nullptr),
+            InstanceAccessor("height", &GraphicsContext::GetHeight, nullptr),
+            InstanceAccessor("displayIndex", &GraphicsContext::GetDisplayIndex, nullptr),
+            InstanceAccessor("fullscreen", &GraphicsContext::GetFullscreen, nullptr),
+            InstanceAccessor("title", &GraphicsContext::GetTitle, &GraphicsContext::SetTitle),
+            InstanceMethod("attach", &GraphicsContext::Attach),
+            InstanceMethod("detach", &GraphicsContext::Detach),
+            InstanceMethod("resize", &GraphicsContext::Resize),
+        });
+    }
+
+    return constructor.Value();
+}
 
 template<typename T>
 Napi::Value GraphicsContext::Create(Napi::Env env, Napi::Value config) {
