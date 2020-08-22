@@ -11,8 +11,10 @@
         "../napi-ext-lib",
         "../logger-lib",
         "../deps/filesystem/include",
+        "../deps/cpp17_headers/include",
       ],
       "sources": [
+        "ls/Uri.cc",
         "ls/Format.cc",
         "ls/Timer.cc",
       ]
@@ -32,6 +34,7 @@
             "../logger-lib",
             "../cpp-compat",
             "../deps/filesystem/include",
+            "../deps/cpp17_headers/include",
             "<!@(node -p \"require('napi-unit').include\")"
           ],
           "dependencies": [
@@ -39,6 +42,7 @@
           ],
           "sources": [
             "test/FormatSpec.cc",
+            "test/UriSpec.cc",
             "test/LightSourceUtilTestSuite.cc",
           ]
         }]

@@ -21,7 +21,6 @@
         "../deps/cpp17_headers/include",
         "../deps/utfcpp/repo/source",
         "../deps/concurrentqueue/repo",
-        "../deps/ls-ctx/repo/include",
         "../deps/filesystem/include",
       ],
       "dependencies": [

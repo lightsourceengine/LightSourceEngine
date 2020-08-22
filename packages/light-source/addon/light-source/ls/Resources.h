@@ -17,6 +17,7 @@
 #include <string>
 #include <list>
 #include <unordered_map>
+#include <std17/filesystem>
 
 namespace ls {
 
@@ -35,7 +36,7 @@ class Res {
     };
 
  public:
-    Res(const std::string& id) : id(id) {}
+    Res(const std::string& id);
     virtual ~Res() = default;
 
     void AddListener(Owner owner, Listener&& listener);
@@ -57,6 +58,7 @@ class Res {
     };
 
     std::string id;
+    std17::filesystem::path path;
     std::vector<ListenerEntry> listeners;
     State state{ Init };
     std::string errorMessage;
@@ -129,6 +131,7 @@ class FontFace final : public Res {
     std::string family{};
     StyleFontStyle style{StyleFontStyleNormal};
     StyleFontWeight weight{StyleFontWeightNormal};
+    int32_t index{0};
     BLGlyphBuffer ellipsis{};
     // LRU cache of fonts by size
     std::list<Font> fontsBySize{};

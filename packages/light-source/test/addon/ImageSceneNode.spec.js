@@ -74,14 +74,13 @@ describe('ImageSceneNode', () => {
 
       await Promise.all(promises)
     })
-    xit('should be assignable to a resource uri', async () => {
+    it('should be assignable to a resource uri', async () => {
       scene.stage.start()
-      scene.stage.resourcePath = 'test/resources'
       const promises = []
 
       for (const input of images) {
         const node = scene.createNode('img')
-        const uri = 'file://resource/' + input
+        const uri = `file:test/resources/${input}`
 
         node.src = uri
         assert.equal(node.src, uri)

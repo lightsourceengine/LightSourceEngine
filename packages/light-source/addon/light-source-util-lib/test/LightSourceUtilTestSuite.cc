@@ -12,6 +12,7 @@ using Napi::Object;
 
 namespace ls {
     void FormatSpec(Napi::TestSuite* parent);
+    void UriSpec(Napi::TestSuite* parent);
 }
 
 Object Init(Env env, Object exports) {
@@ -19,6 +20,7 @@ Object Init(Env env, Object exports) {
 
     exports["test"] = Napi::TestSuite::Build(env, "light-source-util-lib native tests", {
         &ls::FormatSpec,
+        &ls::UriSpec,
     });
 
     return exports;

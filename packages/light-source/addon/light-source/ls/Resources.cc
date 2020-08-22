@@ -13,11 +13,23 @@
 #include <ls/Log.h>
 #include <ls/Renderer.h>
 #include <ls/Math.h>
-#include <std17/filesystem>
+#include <ls/Uri.h>
 
 namespace ls {
 
 constexpr const std::size_t LS_MAX_FONTS = 9;
+
+Res::Res(const std::string& id) : id(id) {
+    const auto t{GetUriScheme(id) };
+
+    if (t == UriSchemeFile) {
+        this->path = GetPathFromFileUri(id);
+    }
+
+    if (this->path.empty()) {
+        this->path = id;
+    }
+}
 
 Napi::String Res::GetErrorMessage(const Napi::Env& env) const {
     return Napi::String::New(env, this->errorMessage);
@@ -79,10 +91,19 @@ void Res::RemoveListener(Owner owner) {
 }
 
 void Image::Load(Napi::Env env) {
+    const auto t{GetUriScheme(id) };
+    int32_t resizedWidth{};
+    int32_t resizedHeight{};
+
+    if (t == UriSchemeFile) {
+        resizedWidth = GetQueryParamInteger(this->id, "width", 0);
+        resizedHeight = GetQueryParamInteger(this->id, "height", 0);
+    }
+
     this->work.Reset(
         env,
-        [id = this->id]() {
-            return DecodeImageFromFile(id, 0, 0);
+        [path = this->path, resizedWidth, resizedHeight]() {
+            return DecodeImageFromFile(path, resizedWidth, resizedHeight);
         },
         [this](Napi::Env env, AsyncWorkResult<ImageBytes>* result) {
             constexpr auto LAMBDA_FUNCTION = "ResourceLoadComplete";
@@ -188,10 +209,36 @@ Image Image::Mock(const std::string& id, int32_t width, int32_t height) {
 }
 
 FontFace::FontFace(const std::string& id) : Res(id) {
-    // TODO: get family name from uri parameter
-    std17::filesystem::path p(id);
+    const auto t{GetUriScheme(id) };
 
-    this->family = p.stem();
+    if (t == UriSchemeFile) {
+        this->family = GetQueryParam(id, "family");
+        this->index = GetQueryParamInteger(id, "index", 0);
+
+        auto value{ GetQueryParam(id, "style") };
+
+        if (!value.empty()) {
+            try {
+                this->style = FromString<StyleFontStyle>(value.c_str());
+            } catch (std::exception& e) {
+                LOG_WARN("Invalid font style parameter: %s", value);
+            }
+        }
+
+        value = GetQueryParam(id, "weight");
+
+        if (!value.empty()) {
+            try {
+                this->weight = FromString<StyleFontWeight>(value.c_str());
+            } catch (std::exception& e) {
+                LOG_WARN("Invalid font weight parameter: %s", value);
+            }
+        }
+    }
+
+    if (this->family.empty()) {
+        this->family = this->path.stem();
+    }
 }
 
 bool FontFace::Equals(FontFace* fontFace, const std::string& family, StyleFontStyle style,
@@ -202,8 +249,8 @@ bool FontFace::Equals(FontFace* fontFace, const std::string& family, StyleFontSt
 void FontFace::Load(Napi::Env env) {
     this->work.Reset(
         env,
-        [id = this->id]() {
-          return DecodeFontFromFile(id, 0);
+        [path = this->path, index = this->index]() {
+          return DecodeFontFromFile(path, index);
         },
         [this](Napi::Env env, AsyncWorkResult<BLFontFace>* result) {
           constexpr auto LAMBDA_FUNCTION = "ResourceLoadComplete";
@@ -235,13 +282,10 @@ void FontFace::Load(Napi::Env env) {
 Napi::Value FontFace::Summarize(const Napi::Env& env) const {
     auto summary{ Napi::Object::New(env) };
 
-    if (!this->resource.empty()) {
-        if (this->resource.familyNameSize() > 0) {
-            summary.Set("family", Napi::String::New(env, this->resource.familyName()));
-            // TODO: convert to string
-            summary.Set("style", Napi::Number::New(env, this->resource.style()));
-            summary.Set("weight", Napi::Number::New(env, this->resource.weight()));
-        }
+    if (!this->resource.empty() && this->resource.familyNameSize() > 0) {
+        summary.Set("family", Napi::String::New(env, this->family));
+        summary.Set("style", Napi::String::New(env, ToString(this->style)));
+        summary.Set("weight", Napi::String::New(env, ToString(this->weight)));
     }
 
     return summary;
