@@ -10,8 +10,8 @@ import { TextSceneNode } from '../../src/addon'
 
 describe('TextSceneNode', () => {
   let scene
-  before(() => scene = beforeSceneTest())
-  after(() => scene = afterSceneTest())
+  beforeEach(() => scene = beforeSceneTest())
+  afterEach(() => scene = afterSceneTest())
   describe('constructor()', () => {
     it('should create uninitialized node when passed an invalid Scene', () => {
       for (const input of [null, undefined, {}]) {

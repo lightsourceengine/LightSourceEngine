@@ -10,8 +10,8 @@ import { BoxSceneNode } from '../../src/addon'
 
 describe('BoxSceneNode', () => {
   let scene
-  before(() => scene = beforeSceneTest())
-  after(() => scene = afterSceneTest())
+  beforeEach(() => scene = beforeSceneTest())
+  afterEach(() => scene = afterSceneTest())
   describe('constructor()', () => {
     it('should create uninitialized node when passed an invalid Scene', () => {
       for (const input of [null, undefined, {}]) {

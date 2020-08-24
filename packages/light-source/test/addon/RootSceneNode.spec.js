@@ -12,8 +12,8 @@ import { Style } from '../../src/addon'
 describe('RootSceneNode', () => {
   let node
   let scene
-  before(() => scene = beforeSceneTest())
-  after(() => {
+  beforeEach(() => scene = beforeSceneTest())
+  afterEach(() => {
     node && node.destroy()
     scene = afterSceneTest()
   })

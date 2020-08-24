@@ -14,8 +14,8 @@ const kFont = 'test/resources/arrow.ttf'
 
 describe('LinkSceneNode', () => {
   let scene
-  before(() => scene = beforeSceneTest())
-  after(() => scene = afterSceneTest())
+  beforeEach(() => scene = beforeSceneTest())
+  afterEach(() => scene = afterSceneTest())
   describe('fetch()', () => {
     it('should get raster image file', async () => {
       const node = scene.createNode('link')
