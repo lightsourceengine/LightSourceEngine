@@ -1,8 +1,5 @@
 {
   "presets": [
-    [ "@babel/preset-env", { "targets": { "node": "14" } } ]
-  ],
-  "plugins": [
-    [ "@babel/plugin-proposal-class-properties", { "loose": true } ]
+    [ "@babel/preset-env", { "targets": { "node": "14" }, "shippedProposals": true, "loose": true } ]
   ]
 }
