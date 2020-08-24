@@ -9,7 +9,7 @@
   },
   "author": "Daniel Anderson <dan.anderson.oss@gmail.com>",
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "main": "dist/cjs/light-source.js",
   "module": "dist/esm/light-source.mjs",
