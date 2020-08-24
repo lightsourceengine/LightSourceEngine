@@ -23,8 +23,7 @@ import {
   $events,
   $scene,
   $audio,
-  $emit,
-  $init
+  $emit
 } from '../util/InternalSymbols'
 import { AudioManager } from '../audio/AudioManager'
 import { isNumber, logexcept } from '../util'
@@ -33,6 +32,7 @@ const { now } = performance
 
 const $platformPlugin = Symbol.for('platformPlugin')
 const $audioPlugin = Symbol.for('audioPlugin')
+const $plugin = Symbol.for('plugin')
 
 const kEmptyPlatformPlugin = { capabilities: { displays: [] } }
 const kPluginTypeAudio = 'audio'
@@ -148,12 +148,15 @@ export class Stage extends StageBase {
 
     switch (type) {
       case kPluginTypePlatform:
-        this[$platformPlugin] = instance
-        // this[$input][$init](stageAdapter, gameControllerDb)
+        try {
+          instance.attach()
+        } catch (e) {
+          throw Error(`Failed to attach Plugin instance. Error: ${e.message}`)
+        }
+        setupPluginInstance(this, $platformPlugin, this.input, instance)
         break
       case kPluginTypeAudio:
-        this[$audioPlugin] = instance
-        this[$audio][$init](instance)
+        setupPluginInstance(this, $audioPlugin, this.audio, instance)
         break
     }
   }
@@ -264,27 +267,39 @@ export class Stage extends StageBase {
   [$attach] () {
     this[$platformPlugin].attach()
 
-    // TODO: attach managers
+    this[$input][$attach]()
     this[$audio][$attach]()
     this[$scene][$attach]()
   }
 
   [$detach] () {
-    // TODO: detach managers
     this[$scene] && this[$scene][$detach]()
     this[$audio][$detach]()
+    this[$input][$detach]()
 
     this[$platformPlugin] && this[$platformPlugin].detach()
   }
 
   [$destroy] () {
-    // TODO: destroy managers
     super[$destroy]()
 
     this[$scene] && this[$scene][$destroy]()
     this[$audio] && this[$audio][$destroy]()
+    this[$input] && this[$input][$destroy]()
     this[$audioPlugin] && this[$audioPlugin].destroy()
     this[$platformPlugin] && this[$platformPlugin].destroy()
+  }
+}
+
+const setupPluginInstance = (stage, pluginSymbol, manager, pluginInstance) => {
+  stage[pluginSymbol] = manager[$plugin] = pluginInstance
+
+  try {
+    manager[$attach]()
+  } catch (e) {
+    stage[pluginSymbol] = manager[$plugin] = null
+
+    throw Error(`Failed to attach Plugin instance. Error: ${e.message}`)
   }
 }
 

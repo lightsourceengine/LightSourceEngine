@@ -165,7 +165,6 @@ class SDLAudioSampleAudioDestinationImpl final : public AudioDestinationInterfac
 };
 
 SDLAudioPluginImpl::SDLAudioPluginImpl(const CallbackInfo& info) {
-    this->Attach(info);
 }
 
 Value SDLAudioPluginImpl::IsAttached(const CallbackInfo& info) {

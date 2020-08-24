@@ -6,21 +6,13 @@
 
 import { assert } from 'chai'
 import { InputManager } from '../../src/input/InputManager'
-import {
-  $adapter,
-  $attach,
-  $detach,
-  $emit,
-  $init,
-  $scene
-} from '../../src/util/InternalSymbols'
+import { $attach, $detach, $emit, $plugin, $scene } from '../../src/util/InternalSymbols'
 import sinon from 'sinon'
 import { Mapping } from '../../src/input/Mapping'
 import { Keyboard } from '../../src/input/Keyboard'
 
-const gameControllerDb = 'gamecontrollerdb.txt'
 const createMockStage = () => {
-  const adapter = {
+  const plugin = {
     keyboard: {},
     gamepads: [],
     callbacks: new Map(),
@@ -42,9 +34,9 @@ const createMockStage = () => {
   }
 
   return {
-    adapter,
+    plugin,
     scene,
-    [$adapter]: adapter,
+    [$plugin]: plugin,
     [$emit]: sinon.stub(),
     [$scene]: scene
   }
@@ -69,49 +61,38 @@ describe('InputManager', () => {
   beforeEach(() => {
     stage = createMockStage()
     inputManager = new InputManager(stage)
+    inputManager[$plugin] = stage.plugin
+    inputManager[$attach]()
   })
   afterEach(() => {
-    stage = null
+    inputManager[$detach]()
     inputManager = null
-  })
-  describe('$init()', () => {
-    it('should initialize the InputManager', () => {
-      inputManager[$init](stage.adapter, gameControllerDb)
-      assert.isTrue(inputManager.enabled)
-      assert.isOk(inputManager.keyboard)
-      assertCallbacksRegistered(stage.adapter)
-    })
+    stage = null
   })
   describe('$attach()', () => {
-    it('should ', () => {
-      inputManager[$init](stage.adapter, gameControllerDb)
-      inputManager[$detach]()
-      inputManager[$attach]()
+    it('should attach to platform plugin', () => {
       assert.isTrue(inputManager.enabled)
       assert.isOk(inputManager.keyboard)
-      assertCallbacksRegistered(stage.adapter)
+      assertCallbacksRegistered(stage.plugin)
     })
   })
   describe('$detach()', () => {
-    it('should unregister callbacks', () => {
-      inputManager[$init](stage.adapter, gameControllerDb)
+    it('should detach from the platform plugin', () => {
       inputManager[$detach]()
       assert.isTrue(inputManager.enabled)
       assert.isOk(inputManager.keyboard)
-      assert.lengthOf(stage.adapter.callbacks, 0)
+      assert.lengthOf(stage.plugin.callbacks, 0)
     })
   })
   describe('keyboard', () => {
     it('should return input manager keyboard instance', () => {
-      inputManager[$init](stage.adapter, gameControllerDb)
-      assert.notStrictEqual(inputManager.keyboard, stage.adapter.keyboard)
+      assert.notStrictEqual(inputManager.keyboard, stage.plugin.keyboard)
     })
   })
   describe('gamepads', () => {
     it('should return gamepads retrieved from adapter', () => {
       assert.lengthOf(inputManager.gamepads, 0)
-      stage.adapter.gamepads = [{}]
-      inputManager[$init](stage.adapter, gameControllerDb)
+      stage.plugin.gamepads = [{}]
       assert.lengthOf(inputManager.gamepads, 1)
     })
   })
@@ -165,38 +146,33 @@ describe('InputManager', () => {
   })
   describe('axismotion callback', () => {
     it('should bubble unmapped event', () => {
-      inputManager[$init](stage.adapter, gameControllerDb)
-      stage.adapter.callbacks.get('axismotion')({}, 0, 1)
+      stage.plugin.callbacks.get('axismotion')({}, 0, 1)
       // assert.isTrue(stage.scene[$bubble].calledOnce)
       // assert.isTrue(stage.scene[$capture].notCalled)
     })
   })
   describe('buttondown callback', () => {
     it('should bubble unwrapped event', () => {
-      inputManager[$init](stage.adapter, gameControllerDb)
-      stage.adapter.callbacks.get('buttondown')({}, 0)
+      stage.plugin.callbacks.get('buttondown')({}, 0)
       // assert.isTrue(stage.scene[$bubble].calledOnce)
       // assert.isTrue(stage.scene[$capture].notCalled)
     })
   })
   describe('buttonup callback', () => {
     it('should bubble unwrapped event', () => {
-      inputManager[$init](stage.adapter, gameControllerDb)
-      stage.adapter.callbacks.get('buttonup')({}, 0)
+      stage.plugin.callbacks.get('buttonup')({}, 0)
       // assert.isTrue(stage.scene[$bubble].calledOnce)
     })
   })
   describe('connected callback', () => {
     it('should emit connected event', () => {
-      inputManager[$init](stage.adapter, gameControllerDb)
-      stage.adapter.callbacks.get('connected')({})
+      stage.plugin.callbacks.get('connected')({})
       assert.isTrue(stage[$emit].calledOnce)
     })
   })
   describe('disconnected callback', () => {
     it('should emit disconnected event', () => {
-      inputManager[$init](stage.adapter, gameControllerDb)
-      stage.adapter.callbacks.get('disconnected')({})
+      stage.plugin.callbacks.get('disconnected')({})
       // assert.isTrue(stage[$emit].calledOnce)
     })
   })
@@ -205,8 +181,7 @@ describe('InputManager', () => {
       // disable keyboard input mapping
       inputManager.setMapping(inputManager.keyboard.uuid, null)
 
-      inputManager[$init](stage.adapter, gameControllerDb)
-      stage.adapter.callbacks.get('keydown')(new Keyboard(), 1, false)
+      stage.plugin.callbacks.get('keydown')(new Keyboard(), 1, false)
       // assert.isTrue(stage.scene[$bubble].calledOnce)
       // must return the input manager keyboard instance, not the native keyboard
       // assert.strictEqual(stage.scene[$bubble].getCall(0).args[0].device, inputManager.keyboard)
@@ -218,8 +193,7 @@ describe('InputManager', () => {
       // disable keyboard input mapping
       inputManager.setMapping(inputManager.keyboard.uuid, null)
 
-      inputManager[$init](stage.adapter, gameControllerDb)
-      stage.adapter.callbacks.get('keyup')(new Keyboard(), 1)
+      stage.plugin.callbacks.get('keyup')(new Keyboard(), 1)
       // assert.isTrue(stage.scene[$bubble].calledOnce)
       // must return the input manager keyboard instance, not the native keyboard
       // assert.strictEqual(stage.scene[$bubble].getCall(0).args[0].device, inputManager.keyboard)

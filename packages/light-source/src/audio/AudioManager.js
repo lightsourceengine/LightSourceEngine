@@ -4,12 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import {
-  $attach,
-  $destroy,
-  $detach,
-  $init
-} from '../util/InternalSymbols'
+import { $attach, $destroy, $detach } from '../util/InternalSymbols'
 import { NullAudioSource, SampleAudioSource, StreamAudioSource } from './AudioSource'
 import { AudioDestination } from './AudioDestination'
 import { EventEmitter } from 'events'
@@ -19,12 +14,12 @@ const $stage = Symbol('stage')
 const $sample = Symbol('sample')
 const $stream = Symbol('stream')
 const $emitter = Symbol('emitter')
-const $nullAudioSource = Symbol('nullAudioSource', '')
+const $nullAudioSource = Symbol('nullAudioSource')
 const $add = Symbol('add')
 const $audioSourceMap = Symbol('audioSourceMap')
 const $unloadAudioSources = Symbol('unloadAudioSources')
-const $plugin = Symbol('plugin')
 
+const $plugin = Symbol.for('plugin')
 const $load = Symbol.for('load')
 const $unload = Symbol.for('unload')
 const $setNativeDestination = Symbol.for('setNativeDestination')
@@ -176,6 +171,8 @@ export class AudioManager {
     }
 
     this[$plugin].attach()
+    this[$sample][$setNativeDestination](this[$plugin].createSampleAudioDestination())
+    this[$stream][$setNativeDestination](this[$plugin].createStreamAudioDestination())
     this[$audioSourceMap].forEach(as => as[$load]())
     this[$emitter].emit('attached')
   }
@@ -189,21 +186,10 @@ export class AudioManager {
     }
 
     this[$unloadAudioSources]()
-    this[$emitter].emit('detached')
+    this[$sample][$setNativeDestination](null)
+    this[$stream][$setNativeDestination](null)
     this[$plugin].detach()
-  }
-
-  /**
-   * @ignore
-   */
-  [$init] (audioPluginInstance) {
-    if (this[$plugin]) {
-      throw Error('AudioAdapter has already been initialized.')
-    }
-
-    this[$plugin] = audioPluginInstance
-    this[$sample][$setNativeDestination](audioPluginInstance.createSampleAudioDestination())
-    this[$stream][$setNativeDestination](audioPluginInstance.createStreamAudioDestination())
+    this[$emitter].emit('detached')
   }
 
   /**

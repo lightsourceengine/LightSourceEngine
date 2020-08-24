@@ -14,7 +14,6 @@ import {
   $attach,
   $detach,
   $emit,
-  $init,
   $scene,
   $destroy,
   $setNativeKeyboard,
@@ -34,7 +33,6 @@ const emptyMapping = new Mapping([])
 
 // InputManager private properties
 const $stage = Symbol('stage')
-const $stageAdapter = Symbol('stageAdapter')
 const $systemMappings = Symbol('systemMappings')
 const $userMappings = Symbol('nativeMappings')
 const $gameControllerDb = Symbol('gameControllerDb')
@@ -42,6 +40,8 @@ const $keyToDirection = Symbol('keyToDirection')
 const $enabled = Symbol('enabled')
 const $attached = Symbol('attached')
 const $keyboard = Symbol('keyboard')
+
+const $plugin = Symbol.for('plugin')
 
 /**
  *
@@ -61,7 +61,7 @@ export class InputManager {
     this[$keyboard] = new Keyboard()
 
     // adapter passed in by stage on init
-    this[$stageAdapter] = null
+    this[$plugin] = null
 
     // user defined map of device UUID to key Mapping
     this[$userMappings] = new Map()
@@ -74,7 +74,7 @@ export class InputManager {
     this[$keyToDirection] = new Map()
 
     // gamecontrollerdb.txt file name
-    // note: only used if the stageAdapter supports Game Controller mappings
+    // note: only used if the plugin supports Game Controller mappings
     this[$gameControllerDb] = null
 
     // add a keyToDirection entry for standard mapping
@@ -101,7 +101,7 @@ export class InputManager {
         if (value) {
           registerDeviceInputCallbacks(this)
         } else {
-          this[$stageAdapter].resetCallbacks()
+          this[$plugin].resetCallbacks()
           registerDeviceConnectionCallbacks(this)
         }
       }
@@ -123,7 +123,7 @@ export class InputManager {
    * @returns {Gamepad[]}
    */
   get gamepads () {
-    return this[$stageAdapter] ? this[$stageAdapter].getGamepads() : []
+    return this[$plugin] ? this[$plugin].getGamepads() : []
   }
 
   /**
@@ -184,23 +184,13 @@ export class InputManager {
     keyToDirectionMap.set(mappingName, new Map(keyToDirectionEntries))
   }
 
-  [$init] (stageAdapter, gameControllerDb) {
-    this[$gameControllerDb] = (gameControllerDb && typeof gameControllerDb === 'string') ? gameControllerDb : null
-    this[$stageAdapter] = stageAdapter
-    this[$attach]()
-  }
-
-  [$destroy] () {
-    this[$detach]()
-  }
-
   [$attach] () {
     if (this[$attached]) {
       return
     }
 
-    const stageAdapter = this[$stageAdapter]
-    const systemMappings = loadSystemMappings(stageAdapter, this[$gameControllerDb])
+    const plugin = this[$plugin]
+    const systemMappings = loadSystemMappings(plugin, this[$gameControllerDb])
 
     this[$systemMappings] = systemMappings
     updateSystemMapping(systemMappings, this[$keyboard])
@@ -212,7 +202,7 @@ export class InputManager {
       registerDeviceInputCallbacks(this)
     }
 
-    this[$keyboard][$setNativeKeyboard](stageAdapter.getKeyboard())
+    this[$keyboard][$setNativeKeyboard](plugin.getKeyboard())
     this[$attached] = true
   }
 
@@ -222,8 +212,13 @@ export class InputManager {
     }
 
     this[$keyboard][$setNativeKeyboard](null)
-    this[$stageAdapter].resetCallbacks()
+    this[$plugin].resetCallbacks()
     this[$attached] = false
+  }
+
+  [$destroy] () {
+    // TODO: don't call detach
+    this[$detach]()
   }
 
   // Test API. May need to promote this to public, as it may be useful.
@@ -238,12 +233,12 @@ export class InputManager {
   }
 }
 
-const loadSystemMappings = (stageAdapter, gameControllerDb) => {
+const loadSystemMappings = (plugin, gameControllerDb) => {
   const systemMappings = new Map()
 
-  if (gameControllerDb && stageAdapter.addGameControllerMappings) {
+  if (gameControllerDb && plugin.addGameControllerMappings) {
     try {
-      stageAdapter.addGameControllerMappings(gameControllerDb)
+      plugin.addGameControllerMappings(gameControllerDb)
     } catch (e) {
       console.log(`Failed to load ${gameControllerDb}: ${e.message}`)
     }
@@ -288,17 +283,17 @@ const createKeyEvent = (inputManager, key, pressed, repeat, mappingName, source)
 
 const registerDeviceConnectionCallbacks = (inputManager) => {
   const stage = inputManager[$stage]
-  const stageAdapter = inputManager[$stageAdapter]
+  const plugin = inputManager[$plugin]
   const systemMappings = inputManager[$systemMappings]
 
-  stageAdapter.setCallback('connected', (gamepad) => {
+  plugin.setCallback('connected', (gamepad) => {
     updateSystemMapping(systemMappings, gamepad)
     if (inputManager[$enabled]) {
       stage[$emit](new DeviceEvent(gamepad, true, now()))
     }
   })
 
-  stageAdapter.setCallback('disconnected', (gamepad) => {
+  plugin.setCallback('disconnected', (gamepad) => {
     if (inputManager[$enabled]) {
       stage[$emit](new DeviceEvent(gamepad, false, now()))
     }
@@ -307,7 +302,7 @@ const registerDeviceConnectionCallbacks = (inputManager) => {
 
 const registerDeviceInputCallbacks = (inputManager) => {
   const stage = inputManager[$stage]
-  const stageAdapter = inputManager[$stageAdapter]
+  const plugin = inputManager[$plugin]
   const buttonUp = (device, button) => {
     if (device.type === Keyboard.TYPE) {
       device = inputManager.keyboard
@@ -390,20 +385,20 @@ const registerDeviceInputCallbacks = (inputManager) => {
 
   // Keyboard Key Callbacks
 
-  stageAdapter.setCallback('keyup', buttonUp)
-  stageAdapter.setCallback('keydown', buttonDown)
+  plugin.setCallback('keyup', buttonUp)
+  plugin.setCallback('keydown', buttonDown)
 
   // Joystick Button Callbacks
 
-  stageAdapter.setCallback('buttonup', buttonUp)
-  stageAdapter.setCallback('buttondown', buttonDown)
+  plugin.setCallback('buttonup', buttonUp)
+  plugin.setCallback('buttondown', buttonDown)
 
   // Joystick Hat Callbacks
 
-  stageAdapter.setCallback('hatup', hatUp)
-  stageAdapter.setCallback('hatdown', hatDown)
+  plugin.setCallback('hatup', hatUp)
+  plugin.setCallback('hatdown', hatDown)
 
   // Joystick Axis Motion Callbacks
 
-  stageAdapter.setCallback('axismotion', axisMotion)
+  plugin.setCallback('axismotion', axisMotion)
 }

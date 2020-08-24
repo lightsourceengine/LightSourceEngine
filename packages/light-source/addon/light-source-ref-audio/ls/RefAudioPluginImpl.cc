@@ -63,7 +63,6 @@ class RefAudioDestinationImpl final : public AudioDestinationInterface {
 
 RefAudioPluginImpl::RefAudioPluginImpl(const Napi::CallbackInfo& info) {
     this->audioDevices = { "Reference" };
-    this->Attach(info);
 }
 
 void RefAudioPluginImpl::Attach(const Napi::CallbackInfo& info) {

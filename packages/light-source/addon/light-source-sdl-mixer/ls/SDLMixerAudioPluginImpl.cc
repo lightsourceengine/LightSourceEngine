@@ -320,7 +320,6 @@ class SDLMixerStreamAudioDestinationImpl final : public AudioDestinationInterfac
 };
 
 SDLMixerAudioPluginImpl::SDLMixerAudioPluginImpl(const CallbackInfo& info) {
-    this->Attach(info);
 }
 
 void SDLMixerAudioPluginImpl::Attach(const CallbackInfo& info) {

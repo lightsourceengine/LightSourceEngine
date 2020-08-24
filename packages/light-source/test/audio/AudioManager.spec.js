@@ -5,7 +5,7 @@
  */
 
 import { assert } from 'chai'
-import { $attach, $destroy, $detach, $init } from '../../src/util/InternalSymbols'
+import { $attach, $destroy, $detach, $plugin } from '../../src/util/InternalSymbols'
 import { AudioManager } from '../../src/audio/AudioManager'
 import bindings from 'bindings'
 import { AudioSourceType } from '../../src/audio/AudioSourceType'
@@ -16,7 +16,7 @@ describe('AudioManager', () => {
   let audio
   beforeEach(() => {
     audio = new AudioManager({ resourcePath: '' })
-    audio[$init](bindings('light-source-ref-audio').createInstance())
+    audio[$plugin] = bindings('light-source-ref-audio').createInstance()
     audio[$attach]()
   })
   afterEach(() => {
