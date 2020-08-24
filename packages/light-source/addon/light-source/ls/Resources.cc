@@ -342,10 +342,14 @@ Font FontFace::GetFont(float fontSize) {
 }
 
 bool Resources::HasImage(const std::string& path) const {
-    return this->images.find(path) != this->images.end();
+    return !path.empty() && this->images.find(path) != this->images.end();
 }
 
 Image* Resources::AcquireImage(const std::string& path) {
+    if (path.empty()) {
+        return nullptr;
+    }
+
     auto it{ this->images.find(path) };
 
     if (it != this->images.end()) {
@@ -360,6 +364,10 @@ Image* Resources::AcquireImage(const std::string& path) {
 }
 
 void Resources::ReleaseImage(const std::string& path, bool immediateDelete) {
+    if (path.empty()) {
+        return;
+    }
+
     auto it{ this->images.find(path) };
 
     if (it != this->images.end()) {
@@ -376,6 +384,10 @@ bool Resources::HasFontFace(const std::string& path) const {
 }
 
 FontFace* Resources::AcquireFontFace(const std::string& path) {
+    if (path.empty()) {
+        return nullptr;
+    }
+
     auto it{ this->fonts.find(path) };
 
     if (it != this->fonts.end()) {
@@ -402,6 +414,10 @@ FontFace* Resources::AcquireFontFaceByStyle(const std::string& family, StyleFont
 }
 
 void Resources::ReleaseFontFace(const std::string& path, bool immediateDelete) {
+    if (path.empty()) {
+        return;
+    }
+
     auto it{ this->fonts.find(path) };
 
     if (it != this->fonts.end()) {

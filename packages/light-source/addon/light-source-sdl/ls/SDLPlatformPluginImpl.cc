@@ -198,7 +198,7 @@ void SDLPlatformPluginImpl::ResetCallbacks(const CallbackInfo& info) {
 }
 
 void SDLPlatformPluginImpl::Init(Napi::Env env) {
-    Timer t("StageAdapter.attach()");
+    Timer t("SDLPlatformPluginImpl.Init()");
 
     if (SDL_WasInit(SDL_INIT_VIDEO) == 0 && SDL_Init(SDL_INIT_VIDEO) != 0) {
         throw Error::New(env, Format("Failed to init SDL video. SDL Error: %s", SDL_GetError()));

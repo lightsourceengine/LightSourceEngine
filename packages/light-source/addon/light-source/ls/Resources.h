@@ -57,11 +57,11 @@ class Res {
         Listener listener;
     };
 
-    std::string id;
-    std17::filesystem::path path;
-    std::vector<ListenerEntry> listeners;
+    std::string id{};
+    std17::filesystem::path path{};
+    std::vector<ListenerEntry> listeners{};
     State state{ Init };
-    std::string errorMessage;
+    std::string errorMessage{};
 
     friend class Resources;
 };
