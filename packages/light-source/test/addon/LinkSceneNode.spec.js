@@ -63,7 +63,7 @@ describe('LinkSceneNode', () => {
       assert.equal(summary.style, 'normal')
       assert.equal(summary.weight, 'normal')
     })
-    it('should get font with custom family, style and weight', async () => {
+    it('should get font with custom family, style and weight (as = font)', async () => {
       const font = `file:${kFont}?family=ARROW&style=oblique&weight=bold`
       const node = scene.createNode('link')
 
@@ -75,6 +75,46 @@ describe('LinkSceneNode', () => {
       assert.equal(summary.family, 'ARROW')
       assert.equal(summary.style, 'oblique')
       assert.equal(summary.weight, 'bold')
+    })
+    it('should get font with custom family, style and weight (as = auto)', async () => {
+      const font = `file:${kFont}?family=ARROW&style=oblique&weight=bold`
+      const node = scene.createNode('link')
+      const summary = await linkOnLoadAsync(node, font)
+
+      assert.equal(node.href, font)
+      assert.equal(summary.family, 'ARROW')
+      assert.equal(summary.style, 'oblique')
+      assert.equal(summary.weight, 'bold')
+    })
+    it('should fallback to filename for missing family param', async () => {
+      for (const familyValue of [ '&', '' ]) {
+        const font = `file:${kFont}?family=` + familyValue
+        const node = scene.createNode('link')
+        const summary = await linkOnLoadAsync(node, font)
+
+        assert.equal(node.href, font)
+        assert.equal(summary.family, 'arrow')
+      }
+    })
+    it('should fallback to normal for invalid style param', async () => {
+      for (const styleValue of [ '&', '', 'garbage', 123 ]) {
+        const font = `file:${kFont}?style=` + styleValue
+        const node = scene.createNode('link')
+        const summary = await linkOnLoadAsync(node, font)
+
+        assert.equal(node.href, font)
+        assert.equal(summary.style, 'normal')
+      }
+    })
+    it('should fallback to normal for invalid weight param', async () => {
+      for (const weightValue of [ '&', '', 'garbage', 123 ]) {
+        const font = `file:${kFont}?weight=` + weightValue
+        const node = scene.createNode('link')
+        const summary = await linkOnLoadAsync(node, font)
+
+        assert.equal(node.href, font)
+        assert.equal(summary.weight, 'normal')
+      }
     })
     it('should call onError for invalid filename', async () => {
       const node = scene.createNode('link')

@@ -263,17 +263,17 @@ export class Stage extends StageBase {
 
   [$attach] () {
     this[$platformPlugin].attach()
-    this[$audioPlugin] && this[$audioPlugin].attach()
 
     // TODO: attach managers
+    this[$audio][$attach]()
     this[$scene][$attach]()
   }
 
   [$detach] () {
     // TODO: detach managers
     this[$scene] && this[$scene][$detach]()
+    this[$audio][$detach]()
 
-    this[$audioPlugin] && this[$audioPlugin].detach()
     this[$platformPlugin] && this[$platformPlugin].detach()
   }
 
@@ -282,6 +282,7 @@ export class Stage extends StageBase {
     super[$destroy]()
 
     this[$scene] && this[$scene][$destroy]()
+    this[$audio] && this[$audio][$destroy]()
     this[$audioPlugin] && this[$audioPlugin].destroy()
     this[$platformPlugin] && this[$platformPlugin].destroy()
   }

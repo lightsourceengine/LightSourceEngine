@@ -5,7 +5,7 @@
  */
 
 import { assert } from 'chai'
-import { AudioSource } from '../../src/audio/AudioSource'
+import { StreamAudioSource } from '../../src/audio/AudioSource'
 import {
   AudioSourceCapabilityFadeIn,
   AudioSourceCapabilityLoop,
@@ -16,92 +16,97 @@ import {
 } from '../../src/audio/constants'
 import { $source, $state } from '../../src/util/InternalSymbols'
 import sinon from 'sinon'
+import { AudioSourceType } from '../../src/audio/AudioSourceType'
+import { test } from 'light-source/test/test-env'
 
-const testOptions = { id: 'test', type: 'stream' }
+const testWavFile = 'test/resources/test.wav'
 
 describe('AudioSource', () => {
   let audioSource
   beforeEach(() => {
-    audioSource = new AudioSource({}, testOptions)
+    audioSource = new StreamAudioSource({}, 'test')
   })
   afterEach(() => {
+    for (const as of test.stage.audio.all()) {
+      test.stage.audio.delete(as.getId())
+    }
     audioSource = null
   })
   describe('constructor', () => {
     it('should initialize a new AudioSource', () => {
-      assert.isFalse(audioSource.loading)
-      assert.isFalse(audioSource.ready)
-      assert.isFalse(audioSource.error)
-      assert.equal(audioSource.id, 'test')
-      assert.equal(audioSource.type, 'stream')
+      assert.isFalse(audioSource.isLoading())
+      assert.isFalse(audioSource.isReady())
+      assert.isFalse(audioSource.isError())
+      assert.equal(audioSource.getId(), 'test')
+      assert.equal(audioSource.getType(), AudioSourceType.Stream)
     })
   })
-  describe('id', () => {
+  describe('getId()', () => {
     it('should return audio source id', () => {
-      assert.equal(audioSource.id, 'test')
+      assert.equal(audioSource.getId(), 'test')
     })
   })
-  describe('type', () => {
+  describe('getType()', () => {
     it('should return audio source type', () => {
-      assert.equal(audioSource.type, 'stream')
+      assert.equal(audioSource.getType(), AudioSourceType.Stream)
     })
   })
-  describe('ready', () => {
+  describe('isReady()', () => {
     it('should return true when in ready state', () => {
       audioSource[$state] = AudioSourceStateReady
-      assert.isTrue(audioSource.ready)
+      assert.isTrue(audioSource.isReady())
     })
   })
-  describe('loading', () => {
+  describe('isLoading()', () => {
     it('should return true when in loading state', () => {
       audioSource[$state] = AudioSourceStateLoading
-      assert.isTrue(audioSource.loading)
+      assert.isTrue(audioSource.isLoading())
     })
   })
-  describe('error', () => {
+  describe('isError()', () => {
     it('should return true when in error state', () => {
       audioSource[$state] = AudioSourceStateError
-      assert.isTrue(audioSource.error)
+      assert.isTrue(audioSource.isError())
     })
   })
   describe('volume', () => {
     it('should get volume from native source', () => {
       audioSource[$source] = { volume: 1 }
-      assert.equal(audioSource.volume, 1)
+      assert.equal(audioSource.getVolume(), 1)
     })
     it('should set volume of native source', () => {
       audioSource[$source] = { volume: 0 }
-      assert.equal(audioSource.volume, 0)
-      audioSource.volume = 1
-      assert.equal(audioSource.volume, 1)
+      assert.equal(audioSource.getVolume(), 0)
+      audioSource.setVolume(1)
+      assert.equal(audioSource.getVolume(), 1)
     })
     it('should constrain value to 0-1 range (upper bound)', () => {
       audioSource[$source] = { volume: 0 }
-      audioSource.volume = 1.5
-      assert.equal(audioSource.volume, 1)
+      audioSource.setVolume(1.5)
+      assert.equal(audioSource.getVolume(), 1)
     })
     it('should constrain value to 0-1 range (lower bound)', () => {
       audioSource[$source] = { volume: 0 }
-      audioSource.volume = -1
-      assert.equal(audioSource.volume, 0)
+      audioSource.setVolume(-1)
+      assert.equal(audioSource.getVolume(), 0)
     })
   })
-  describe('canLoop', () => {
+  describe('canLoop()', () => {
     it('should return native dest capability state', () => {
       audioSource[$source] = { hasCapability (which) { return which === AudioSourceCapabilityLoop } }
-      assert.isTrue(audioSource.canLoop)
+      assert.isTrue(audioSource.canLoop())
     })
   })
-  describe('canFadeIn', () => {
+  describe('canFadeIn()', () => {
     it('should return native dest capability state', () => {
       audioSource[$source] = { hasCapability (which) { return which === AudioSourceCapabilityFadeIn } }
-      assert.isTrue(audioSource.canFadeIn)
+      assert.isTrue(audioSource.canFadeIn())
     })
   })
-  describe('hasVolume', () => {
+  describe('hasVolume()', () => {
     it('should return native dest capability state', () => {
       audioSource[$source] = { hasCapability (which) { return which === AudioSourceCapabilityVolume } }
-      assert.isTrue(audioSource.hasVolume)
+      assert.isTrue(audioSource.hasVolume())
     })
   })
   describe('play()', () => {
@@ -111,4 +116,62 @@ describe('AudioSource', () => {
       assert.isTrue(mock.play.called)
     })
   })
+  describe('status event', () => {
+    it('should dispatch isReady() status event for async load', async () => {
+      const as = test.stage.audio.addSample(testWavFile)
+
+      await isReadyPromise(as)
+
+      assert.isTrue(as.isReady())
+    })
+    it('should dispatch isError() status event for async load', async () => {
+      const as = test.stage.audio.addSample('invalid')
+
+      await isErrorPromise(as)
+
+      assert.isTrue(as.isError())
+    })
+    it('should dispatch isReady() status event for sync load', async () => {
+      const as = test.stage.audio.addSample(testWavFile, { sync: true })
+
+      assert.isTrue(as.isReady())
+
+      await isReadyPromise(as)
+
+      assert.isTrue(as.isReady())
+    })
+    it('should dispatch isError() status event for sync load', async () => {
+      const as = test.stage.audio.addSample('invalid', { sync: true })
+
+      assert.isTrue(as.isError())
+
+      await isErrorPromise(as)
+
+      assert.isTrue(as.isError())
+    })
+  })
 })
+
+const isReadyPromise = (as) => {
+  return new Promise((resolve, reject) => {
+    as.once('status', (as) => {
+      if (as.isReady()) {
+        resolve()
+      } else {
+        reject(Error('expected isReady() change event'))
+      }
+    })
+  })
+}
+
+const isErrorPromise = (as) => {
+  return new Promise((resolve, reject) => {
+    as.once('status', (as) => {
+      if (as.isError()) {
+        resolve()
+      } else {
+        reject(Error('expected isError() change event'))
+      }
+    })
+  })
+}

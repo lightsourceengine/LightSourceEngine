@@ -307,8 +307,8 @@ float StyleResolver::ResolveBorder(Style* style) const noexcept {
 }
 
 bool StyleResolver::HasBorderRadius(Style* style) const noexcept {
-    return !style->borderRadius.empty() || !style->borderRadiusTopLeft.empty() || !style->borderRadiusTopRight
-        || !style->borderRadiusBottomLeft.empty() || !style->borderRadiusBottomRight;
+    return !style->borderRadius.empty() || !style->borderRadiusTopLeft.empty() || !style->borderRadiusTopRight.empty()
+        || !style->borderRadiusBottomLeft.empty() || !style->borderRadiusBottomRight.empty();
 }
 
 BorderRadiusCorners StyleResolver::ResolveBorderRadius(Style* style, const Rect& box) const noexcept {

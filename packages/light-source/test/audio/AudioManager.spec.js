@@ -5,9 +5,10 @@
  */
 
 import { assert } from 'chai'
-import { $destroy, $init } from '../../src/util/InternalSymbols'
+import { $attach, $destroy, $detach, $init } from '../../src/util/InternalSymbols'
 import { AudioManager } from '../../src/audio/AudioManager'
 import bindings from 'bindings'
+import { AudioSourceType } from '../../src/audio/AudioSourceType'
 
 const testWavFile = 'test/resources/test.wav'
 
@@ -16,24 +17,55 @@ describe('AudioManager', () => {
   beforeEach(() => {
     audio = new AudioManager({ resourcePath: '' })
     audio[$init](bindings('light-source-ref-audio').createInstance())
+    audio[$attach]()
   })
   afterEach(() => {
     audio[$destroy]()
+    audio = null
+  })
+  describe('attached event', () => {
+    it('should emit attached event', async () => {
+      audio[$detach]()
+
+      const p = attachedEventPromise(audio)
+
+      audio[$attach]()
+
+      await p
+    })
+  })
+  describe('detached event', () => {
+    it('should emit detached event', async () => {
+      const p = detachedEventPromise(audio)
+
+      audio[$detach]()
+
+      await p
+    })
+  })
+  describe('isAttached()', () => {
+    it('should be attached', () => {
+      assert.isTrue(audio.isAttached())
+    })
+    it('should be detached', () => {
+      audio[$detach]()
+      assert.isFalse(audio.isAttached())
+    })
   })
   describe('sample', () => {
     it('should be available', () => {
-      assert.isTrue(audio.sample.available)
+      assert.isTrue(audio.sample.isAvailable())
     })
   })
   describe('stream', () => {
     it('should be available', () => {
-      assert.isTrue(audio.stream.available)
+      assert.isTrue(audio.stream.isAvailable())
     })
   })
-  describe('devices', () => {
+  describe('getDevices()', () => {
     it('should return Reference audio device name', () => {
-      assert.lengthOf(audio.devices, 1)
-      assert.include(audio.devices, 'Reference')
+      assert.lengthOf(audio.getDevices(), 1)
+      assert.include(audio.getDevices(), 'Reference')
     })
   })
   describe('all()', () => {
@@ -41,40 +73,89 @@ describe('AudioManager', () => {
       assert.lengthOf(audio.all(), 0)
     })
     it('should return all loaded audio sources', () => {
-      const audioSource = audio.addAudioSource({ uri: testWavFile, sync: true })
+      const audioSource = audio.addSample(testWavFile, { sync: true })
       assert.lengthOf(audio.all(), 1)
       assert.include(audio.all(), audioSource)
     })
-    it('should update when audio source removes itself', () => {
-      const audioSource = audio.addAudioSource({ uri: testWavFile, sync: true })
+    it('should update when audio source is removed', () => {
+      const audioSource = audio.addSample(testWavFile, { sync: true })
       assert.lengthOf(audio.all(), 1)
-      audioSource.remove()
+      audio.delete(audioSource.getId())
       assert.lengthOf(audio.all(), 0)
     })
   })
-  describe('addAudioSource()', () => {
+  describe('addSample()', () => {
     it('should create a new sample audio source synchronously', () => {
-      const audioSource = audio.addAudioSource({ uri: testWavFile, sync: true })
-      assert.equal(audioSource.id, testWavFile)
-      assert.equal(audioSource.type, 'sample')
-      assert.isTrue(audioSource.ready)
+      const audioSource = audio.addSample(testWavFile, { sync: true })
+      assert.equal(audioSource.getId(), testWavFile)
+      assert.equal(audioSource.getType(), AudioSourceType.Sample)
+      assert.isTrue(audioSource.isReady())
     })
-    it('should create a new stream audio source synchronously', () => {
-      const audioSource = audio.addAudioSource({ uri: testWavFile, type: 'stream', sync: true })
-      assert.equal(audioSource.id, testWavFile)
-      assert.equal(audioSource.type, 'stream')
-      assert.isTrue(audioSource.ready)
+    it('should create a new sample audio source asynchronously', () => {
+      const audioSource = audio.addSample(testWavFile)
+      assert.equal(audioSource.getId(), testWavFile)
+      assert.equal(audioSource.getType(), AudioSourceType.Sample)
+      assert.isTrue(audioSource.isLoading())
     })
-    // TODO: add async tests
   })
-  describe('getAudioSource()', () => {
-    it('should return null if id does not exist', () => {
-      assert.isNull(audio.getAudioSource('unknown'))
+  describe('addStream()', () => {
+    it('should create a new stream audio source synchronously', () => {
+      const audioSource = audio.addStream(testWavFile, { sync: true })
+      assert.equal(audioSource.getId(), testWavFile)
+      assert.equal(audioSource.getType(), AudioSourceType.Stream)
+      assert.isTrue(audioSource.isReady())
+    })
+    it('should create a new stream audio source asynchronously', () => {
+      const audioSource = audio.addStream(testWavFile)
+      assert.equal(audioSource.getId(), testWavFile)
+      assert.equal(audioSource.getType(), AudioSourceType.Stream)
+      assert.isTrue(audioSource.isLoading())
+    })
+  })
+  describe('get()', () => {
+    it('should return Null-type AudioSource if id does not exist', () => {
+      assert.equal(audio.get('unknown').getType(), AudioSourceType.Null)
     })
     it('should return audio source matching id', () => {
-      const audioSource = audio.addAudioSource({ uri: testWavFile, sync: true })
+      const audioSource = audio.addSample(testWavFile, { sync: true })
 
-      assert.equal(audio.getAudioSource(testWavFile), audioSource)
+      assert.equal(audio.get(testWavFile), audioSource)
+    })
+  })
+  describe('has()', () => {
+    it('should return true for registered audio source', () => {
+      const audioSource = audio.addSample(testWavFile, { sync: true })
+
+      assert.isTrue(audio.has(audioSource.getId()))
+    })
+    it('should return false for unregistered audio source', () => {
+      assert.isFalse(audio.has('unknown'))
+    })
+  })
+  describe('delete()', () => {
+    it('should remove audio source', () => {
+      const audioSource = audio.addSample(testWavFile, { sync: true })
+
+      assert.strictEqual(audio.get(audioSource.getId()), audioSource)
+
+      audio.delete(audioSource.getId())
+
+      assert.equal(audio.get(audioSource.getId()).getType(), AudioSourceType.Null)
+    })
+    it('should be a no-op for unregistered id', () => {
+      audio.delete('unknown')
     })
   })
 })
+
+const attachedEventPromise = (audio) => {
+  return new Promise((resolve, reject) => {
+    audio.on('attached', () => resolve())
+  })
+}
+
+const detachedEventPromise = (audio) => {
+  return new Promise((resolve, reject) => {
+    audio.on('detached', () => resolve())
+  })
+}

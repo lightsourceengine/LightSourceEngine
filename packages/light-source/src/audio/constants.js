@@ -18,6 +18,3 @@ export const AudioSourceStateInit = 0
 export const AudioSourceStateLoading = 1
 export const AudioSourceStateReady = 2
 export const AudioSourceStateError = 3
-
-export const AudioSourceTypeStream = 'stream'
-export const AudioSourceTypeSample = 'sample'

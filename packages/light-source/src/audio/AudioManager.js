@@ -6,21 +6,28 @@
 
 import {
   $attach,
-  $destination,
   $destroy,
   $detach,
-  $init,
-  $plugin,
-  $audioSourceMap
+  $init
 } from '../util/InternalSymbols'
-import { logexcept } from '../util'
-import { AudioSource, AudioSource$load, AudioSource$reset } from './AudioSource'
+import { NullAudioSource, SampleAudioSource, StreamAudioSource } from './AudioSource'
 import { AudioDestination } from './AudioDestination'
-import { AudioSourceTypeStream, AudioSourceTypeSample } from './constants'
+import { EventEmitter } from 'events'
+import { emptyArray } from '../util'
 
 const $stage = Symbol('stage')
 const $sample = Symbol('sample')
 const $stream = Symbol('stream')
+const $emitter = Symbol('emitter')
+const $nullAudioSource = Symbol('nullAudioSource', '')
+const $add = Symbol('add')
+const $audioSourceMap = Symbol('audioSourceMap')
+const $unloadAudioSources = Symbol('unloadAudioSources')
+const $plugin = Symbol('plugin')
+
+const $load = Symbol.for('load')
+const $unload = Symbol.for('unload')
+const $setNativeDestination = Symbol.for('setNativeDestination')
 
 /**
  * Audio API.
@@ -32,89 +39,129 @@ export class AudioManager {
     this[$audioSourceMap] = new Map()
     this[$sample] = new AudioDestination()
     this[$stream] = new AudioDestination()
+    this[$emitter] = new EventEmitter()
+    this[$nullAudioSource] = Object.freeze(new NullAudioSource(this))
+  }
+
+  // TODO: document events ('status')
+
+  on (name, callback) {
+    this[$emitter].on(name, callback)
+  }
+
+  once (name, callback) {
+    this[$emitter].once(name, callback)
+  }
+
+  off (name, callback) {
+    this[$emitter].off(name, callback)
   }
 
   /**
-   * Get the names of audio devices available on this system.
+   * Checks if the audio manager is attached to the platform audio subsystem. If not attached, audio playback will
+   * not function.
    *
-   * @returns {string[]}
+   * @returns true if attached to platform audio subsystem; otherwise, false
    */
-  get devices () {
-    // Note: names are purely informational right now
-    return this[$plugin] ? this[$plugin].devices : []
+  isAttached () {
+    return this[$plugin] && this[$plugin].attached
   }
 
   /**
-   * Sound effect output buffer API.
-   *
-   * @returns {AudioDestination}
+   * @returns {string[]} List of audio device names available on this system.
+   */
+  getDevices () {
+    // Note: names are purely informational right now
+    return this[$plugin] ? this[$plugin].devices : emptyArray
+  }
+
+  /**
+   * @returns {AudioDestination} The sound effect output buffer.
    */
   get sample () {
     return this[$sample]
   }
 
   /**
-   * Background music output buffer API.
-   *
-   * @returns {AudioDestination}
+   * @returns {AudioDestination} The background music output buffer.
    */
   get stream () {
     return this[$stream]
   }
 
   /**
-   * Get an audio resource.
+   * Get an AudioSource by id.
    *
-   * @param id Resource ID.
-   * @returns {AudioSource} if a resource does not exist for the given ID, null is returned.
+   * @param id {string} The id used when the AudioSource was added with addSample() or addStream().
+   * @returns {AudioSource} AudioSource object matching the id; otherwise, a null-type AudioSource object is returned.
    */
-  getAudioSource (id) {
-    return this[$audioSourceMap].get(id) || null
+  get (id) {
+    return this[$audioSourceMap].get(id) || this[$nullAudioSource]
   }
 
   /**
-   * Add a new sound effect or background music file as an AudioResource.
+   * Checks if an AudioSource has been added.
    *
-   * Resource loading is performed asynchronously (unless options.sync is set). The resource is returned in a
-   * 'loading' state while file IO and audio decoding are performed in the background. When the background work
-   * finishes, the resource is placed in the 'ready' state and is then playable. If an error occurred asynchronously,
-   * the resource will be put into the 'error' state.
+   * @param id {string} AudioSource id
+   * @returns {boolean} true if AudioSource with id exists; otherwise, false
+   */
+  has (id) {
+    return this[$audioSourceMap].has(id)
+  }
+
+  /**
+   * Delete an AudioSource by id.
    *
-   * @param {Object|string} options Loading options. If string, the options are assumed to be a URI.
-   * @param {string} options.uri The audio file to load. URI can be a file name (local or absolute) or a file URI with
-   * a resource host name (file://resource/path_to_audio_file.wav).
-   * @param {string} [options.id=null] Unique resource ID. If not set, the URI will be used as the resource ID.
-   * @param {boolean} [options.sync=false] If true, the resource will loaded synchronously.
-   * @param {('sample'|'stream')} [options.type='sample'] The type describes how the audio file will be decoded and
-   * rendered to sound hardware. 'stream' is for background music that will be decoded as needed and play continuously.
-   * 'sample' is for sound effects that are completely decoded into memory and usually played once. If selected type
-   * is unavailable (see this.stream and this.type), the resource will fail to load.
-   * @throws Error if options are malformed or an AudioResource already exists with the same ID
+   * If no AudioSource exists with the given id, the call is a no-op.
+   *
+   * @param id {string} AudioSource id
+   */
+  delete (id) {
+    this[$audioSourceMap].delete(id)
+  }
+
+  /**
+   * Adds a new audio sample (sound effect).
+   *
+   * If id has already been added, this call is equivalent to get(id).
+   *
+   * The sync flag will load the audio file from disk immediately. If the audio plugin is not attached, the returned
+   * AudioSource will not be in the ready state. When the audio plugin is attached, the AudioSource will finish
+   * loading. Additionally, the status of the AudioSource object is updated immediately, but the status event will
+   * be dispatched on the microtask queue.
+   *
+   * @param id {string} the path or file uri for an audio file
+   * @param opts {Object} AudioSource loading options
+   * @param {boolean} [opts.sync=false] if true, the AudioSource is loaded synchronously; otherwise, the AudioSource
+   * is loaded asynchronously.
    * @returns {AudioSource}
    */
-  addAudioSource (options) {
-    options = parseAudioSourceOpts(options)
-
-    const { id } = options
-    const audioSourceMap = this[$audioSourceMap]
-
-    if (audioSourceMap.has(id)) {
-      throw Error(`AudioSource with id=${id} already exists.`)
-    }
-
-    const audioSource = new AudioSource(this, options)
-
-    audioSourceMap.set(id, audioSource)
-
-    AudioSource$load(audioSource, true)
-
-    return audioSource
+  addSample (id, opts = {}) {
+    return this[$add](id, opts, SampleAudioSource)
   }
 
   /**
-   * Get a List of AudioSource objects added to the AudioManager.
+   * Adds a new audio stream (background music).
    *
-   * @returns {AudioSource[]}
+   * If id has already been added, this call is equivalent to get(id).
+   *
+   * The sync flag will load the audio file from disk immediately. If the audio plugin is not attached, the returned
+   * AudioSource will not be in the ready state. When the audio plugin is attached, the AudioSource will finish
+   * loading. Additionally, the status of the AudioSource object is updated immediately, but the status event will
+   * be dispatched on the microtask queue.
+   *
+   * @param id {string} the path or file uri for an audio file
+   * @param opts {Object} AudioSource loading options
+   * @param {boolean} [opts.sync=false] if true, the AudioSource is loaded synchronously; otherwise, the AudioSource
+   * is loaded asynchronously.
+   * @returns {AudioSource}
+   */
+  addStream (id, opts = {}) {
+    return this[$add](id, opts, StreamAudioSource)
+  }
+
+  /**
+   * @returns {AudioSource[]} Array of AudioSource objects that have been added to the AudioManager
    */
   all () {
     return Array.from(this[$audioSourceMap].values())
@@ -124,24 +171,26 @@ export class AudioManager {
    * @ignore
    */
   [$attach] () {
-    if (!this[$plugin].attached) {
-      this[$plugin].attach()
-      for (const audioSource of this[$audioSourceMap].values()) {
-        AudioSource$load(audioSource, false)
-      }
+    if (!this[$plugin] || this[$plugin].attached) {
+      return
     }
+
+    this[$plugin].attach()
+    this[$audioSourceMap].forEach(as => as[$load]())
+    this[$emitter].emit('attached')
   }
 
   /**
    * @ignore
    */
   [$detach] () {
-    if (this[$plugin].attached) {
-      for (const audioSource of this[$audioSourceMap].values()) {
-        AudioSource$reset(audioSource)
-      }
-      logexcept(() => this[$plugin].detach(), 'AudioAdapter detach error: ')
+    if (!this[$plugin] || !this[$plugin].attached) {
+      return
     }
+
+    this[$unloadAudioSources]()
+    this[$emitter].emit('detached')
+    this[$plugin].detach()
   }
 
   /**
@@ -153,8 +202,8 @@ export class AudioManager {
     }
 
     this[$plugin] = audioPluginInstance
-    this[$sample][$destination] = audioPluginInstance.createSampleAudioDestination()
-    this[$stream][$destination] = audioPluginInstance.createStreamAudioDestination()
+    this[$sample][$setNativeDestination](audioPluginInstance.createSampleAudioDestination())
+    this[$stream][$setNativeDestination](audioPluginInstance.createStreamAudioDestination())
   }
 
   /**
@@ -162,40 +211,35 @@ export class AudioManager {
    */
   [$destroy] () {
     if (this[$plugin]) {
-      this[$detach]()
+      this[$unloadAudioSources]()
       this[$audioSourceMap].clear()
-      this[$sample][$destination] = this[$stream][$destination] = null
+      this[$sample][$setNativeDestination](null)
+      this[$stream][$setNativeDestination](null)
       this[$plugin] = null
     }
   }
-}
 
-const parseAudioSourceOpts = (opts) => {
-  // Make a copy of opts and normalize to an object.
-  if (opts && typeof opts === 'string') {
-    opts = { uri: opts }
-  } else if (typeof opts === 'object') {
-    opts = { ...opts }
-  } else {
-    throw Error('AudioSource options must be a string or object.')
+  /**
+   * @ignore
+   */
+  [$add] (id, opts, AudioSourceClass) {
+    if (this.has(id)) {
+      return this.get(id)
+    }
+
+    const as = new AudioSourceClass(this, id)
+
+    this[$audioSourceMap].set(id, as)
+
+    as[$load](!!opts.sync)
+
+    return as
   }
 
-  // uri must be a string
-  if (!opts.uri || typeof opts.uri !== 'string') {
-    throw Error(`Invalid AudioSource uri: ${opts.uri}`)
+  /**
+   * @ignore
+   */
+  [$unloadAudioSources] () {
+    this[$audioSourceMap].forEach(as => as[$unload]())
   }
-
-  // If id is not explicitly set, use uri.
-  if (!opts.id) {
-    opts.id = opts.uri
-  }
-
-  if (!opts.type) {
-    // if type not set, default value is sample
-    opts.type = AudioSourceTypeSample
-  } else if (opts.type !== AudioSourceTypeStream && opts.type !== AudioSourceTypeSample) {
-    throw Error(`Invalid AudioSource type: ${opts.type}`)
-  }
-
-  return opts
 }

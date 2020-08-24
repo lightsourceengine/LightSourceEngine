@@ -13,6 +13,7 @@
 #include <ls/Scene.h>
 #include <ls/Stage.h>
 #include <ls/Log.h>
+#include <ls/Uri.h>
 
 using Napi::Error;
 using Napi::Function;
@@ -125,11 +126,18 @@ void LinkSceneNode::ResourceListener(Res::Owner owner, Res* res) {
     res->RemoveListener(owner);
 }
 
-bool LinkSceneNode::HasFontFileExtension(const std::string& path) const noexcept {
+bool LinkSceneNode::HasFontFileExtension(const std::string& uri) const noexcept {
     static const std::array<std::string, 4> fontExtensions{
         { ".ttf", ".ttc", ".otf", ".otc" }
     };
 
+    std::string temp;
+
+    if (GetUriScheme(uri) == UriSchemeFile) {
+        temp = GetPathFromFileUri(uri);
+    }
+
+    const std::string& path = temp.empty() ? uri : temp;
     const auto dot{ path.find_last_of('.') };
 
     if (dot != std::string::npos) {

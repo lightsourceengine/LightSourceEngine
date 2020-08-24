@@ -15,6 +15,10 @@ import {
   AudioDestinationCapabilityVolume
 } from '../../src/audio/constants'
 import sinon from 'sinon'
+import { AudioDecoder } from '../../src/audio/AudioDecoder'
+
+const $setNativeDestination = Symbol.for('setNativeDestination')
+const kTestDecoders = [AudioDecoder.OGG, 'MOCK']
 
 describe('AudioDestination', () => {
   let dest
@@ -24,72 +28,88 @@ describe('AudioDestination', () => {
   afterEach(() => {
     dest = null
   })
-  describe('available', () => {
+  describe('isAvailable()', () => {
     it('should be false with no native destination', () => {
-      assert.isFalse(dest.available)
+      assert.isFalse(dest.isAvailable())
     })
     it('should be true with native destination', () => {
       dest[$destination] = {}
-      assert.isTrue(dest.available)
+      assert.isTrue(dest.isAvailable())
     })
   })
   describe('volume', () => {
     it('should get volume from native destination', () => {
       dest[$destination] = { volume: 1 }
-      assert.equal(dest.volume, 1)
+      assert.equal(dest.getVolume(), 1)
     })
     it('should set volume of native destination', () => {
       dest[$destination] = { volume: 0 }
-      assert.equal(dest.volume, 0)
-      dest.volume = 1
-      assert.equal(dest.volume, 1)
+      assert.equal(dest.getVolume(), 0)
+      dest.setVolume(1)
+      assert.equal(dest.getVolume(), 1)
     })
     it('should constrain value to 0-1 range (upper bound)', () => {
       dest[$destination] = { volume: 0 }
-      dest.volume = 1.5
-      assert.equal(dest.volume, 1)
+      dest.setVolume(1.5)
+      assert.equal(dest.getVolume(), 1)
     })
     it('should constrain value to 0-1 range (lower bound)', () => {
       dest[$destination] = { volume: 0 }
-      dest.volume = -1
-      assert.equal(dest.volume, 0)
+      dest.setVolume(-1)
+      assert.equal(dest.getVolume(), 0)
     })
   })
-  describe('decoders', () => {
+  describe('getDecoders()', () => {
     it('should return decoders from native destination', () => {
-      dest[$destination] = { decoders: ['MOCK'] }
-      assert.lengthOf(dest.decoders, 1)
-      assert.include(dest.decoders, 'MOCK')
+      dest[$setNativeDestination]({ decoders: kTestDecoders })
+      assert.lengthOf(dest.getDecoders(), 1)
+      assert.include(dest.getDecoders(), AudioDecoder.OGG)
     })
   })
-  describe('canPause', () => {
+  describe('getRawDecoders()', () => {
+    it('should return raw decoders from native destination', () => {
+      dest[$setNativeDestination]({ decoders: kTestDecoders })
+      assert.lengthOf(dest.getRawDecoders(), 2)
+      assert.include(dest.getRawDecoders(), AudioDecoder.OGG)
+      assert.include(dest.getRawDecoders(), 'MOCK')
+    })
+  })
+  describe('hasDecoder()', () => {
+    it('should return true if decoder exists', () => {
+      dest[$setNativeDestination]({ decoders: kTestDecoders })
+
+      assert.isTrue(dest.hasDecoder(AudioDecoder.OGG))
+      assert.isTrue(dest.hasDecoder('MOCK'))
+    })
+  })
+  describe('canPause()', () => {
     it('should return native dest capability state', () => {
       dest[$destination] = { hasCapability (which) { return which === AudioDestinationCapabilityPause } }
-      assert.isTrue(dest.canPause)
+      assert.isTrue(dest.canPause())
     })
   })
-  describe('canResume', () => {
+  describe('canResume()', () => {
     it('should return native dest capability state', () => {
       dest[$destination] = { hasCapability (which) { return which === AudioDestinationCapabilityResume } }
-      assert.isTrue(dest.canResume)
+      assert.isTrue(dest.canResume())
     })
   })
-  describe('canStop', () => {
+  describe('canStop()', () => {
     it('should return native dest capability state', () => {
       dest[$destination] = { hasCapability (which) { return which === AudioDestinationCapabilityStop } }
-      assert.isTrue(dest.canStop)
+      assert.isTrue(dest.canStop())
     })
   })
-  describe('canFadeOut', () => {
+  describe('canFadeOut()', () => {
     it('should return native dest capability state', () => {
       dest[$destination] = { hasCapability (which) { return which === AudioDestinationCapabilityFadeOut } }
-      assert.isTrue(dest.canFadeOut)
+      assert.isTrue(dest.canFadeOut())
     })
   })
-  describe('hasVolume', () => {
+  describe('hasVolume()', () => {
     it('should return native dest capability state', () => {
       dest[$destination] = { hasCapability (which) { return which === AudioDestinationCapabilityVolume } }
-      assert.isTrue(dest.hasVolume)
+      assert.isTrue(dest.hasVolume())
     })
   })
   describe('pause()', () => {

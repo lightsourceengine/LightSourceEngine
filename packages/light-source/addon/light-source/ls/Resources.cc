@@ -209,7 +209,7 @@ Image Image::Mock(const std::string& id, int32_t width, int32_t height) {
 }
 
 FontFace::FontFace(const std::string& id) : Res(id) {
-    const auto t{GetUriScheme(id) };
+    const auto t{ GetUriScheme(id) };
 
     if (t == UriSchemeFile) {
         this->family = GetQueryParam(id, "family");
@@ -220,7 +220,7 @@ FontFace::FontFace(const std::string& id) : Res(id) {
         if (!value.empty()) {
             try {
                 this->style = FromString<StyleFontStyle>(value.c_str());
-            } catch (std::exception& e) {
+            } catch (const std::invalid_argument& e) {
                 LOG_WARN("Invalid font style parameter: %s", value);
             }
         }
@@ -230,7 +230,7 @@ FontFace::FontFace(const std::string& id) : Res(id) {
         if (!value.empty()) {
             try {
                 this->weight = FromString<StyleFontWeight>(value.c_str());
-            } catch (std::exception& e) {
+            } catch (const std::invalid_argument& e) {
                 LOG_WARN("Invalid font weight parameter: %s", value);
             }
         }

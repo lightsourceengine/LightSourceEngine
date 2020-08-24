@@ -20,3 +20,9 @@ pattern-1004855.jpg
 
 License: https://pixabay.com/service/license/
 Source: https://pixabay.com/illustrations/pattern-curve-design-seamless-1004855/
+
+bensound-ukulele.ogg
+bensound-ukulele.mp3
+
+Music: www.bensound.com
+Source: https://www.bensound.com/royalty-free-music/track/ukulele

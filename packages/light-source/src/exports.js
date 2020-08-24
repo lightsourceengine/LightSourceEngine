@@ -14,8 +14,10 @@ import { waypoint } from './scene/waypoint'
 import { Mapping } from './input/Mapping'
 import { Direction } from './input/Direction'
 import { Key } from './input/Key'
-import { Style } from './addon'
+import { Style, logger } from './addon'
 import { absoluteFill } from './style/absoluteFill'
+import { AudioDecoder } from './audio/AudioDecoder'
+import { AudioSourceType } from './audio/AudioSourceType'
 import {
   translate,
   scale,
@@ -79,5 +81,12 @@ export {
   // input
   Mapping,
   Key,
-  ScanCode
+  ScanCode,
+
+  // Logger
+  logger,
+
+  // Audio
+  AudioDecoder,
+  AudioSourceType
 }

@@ -4,17 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import {
-  $plugin, $asyncId, $audioSourceMap,
-  $buffer,
-  $destination,
-  $options,
-  $owner,
-  $resourcePath,
-  $source,
-  $state
-} from '../util/InternalSymbols'
-import { clamp, isNumber, resolveUri } from '../util'
+import { clamp, isNumber } from '../util'
 import { readFileSync, promises } from 'fs'
 import {
   AudioSourceCapabilityFadeIn,
@@ -25,76 +15,88 @@ import {
   AudioSourceStateLoading,
   AudioSourceStateReady
 } from './constants'
+import { EventEmitter } from 'events'
+import { AudioSourceType } from './AudioSourceType'
 
 let nextAsyncId = 1
 
 const { readFile } = promises
 
+const $id = Symbol('id')
+const $setBuffer = Symbol('setBuffer')
+const $setError = Symbol('setError')
+const $asyncId = Symbol('asyncId')
+const $buffer = Symbol('buffer')
+const $owner = Symbol('owner')
+const $emitter = Symbol('emitter')
+
+const $load = Symbol.for('load')
+const $unload = Symbol.for('unload')
+const $destination = Symbol.for('destination')
+
+// expose for tests
+const $state = Symbol.for('state')
+const $source = Symbol.for('source')
+
 /**
  * An audio resource that can be rendered to a destination output buffer.
  */
 export class AudioSource {
-  constructor (audio, options) {
-    this[$options] = options
+  constructor (audio, id) {
+    this[$owner] = audio
+    this[$id] = id
     this[$state] = AudioSourceStateInit
     this[$source] = null
     this[$buffer] = null
     this[$asyncId] = 0
-    this[$owner] = audio
+    this[$emitter] = new EventEmitter()
+  }
+
+  on (name, callback) {
+    this[$emitter].on(name, callback)
+  }
+
+  once (name, callback) {
+    this[$emitter].once(name, callback)
+  }
+
+  off (name, callback) {
+    this[$emitter].off(name, callback)
+  }
+
+  /**
+   * @returns {AudioSourceType}
+   */
+  getType () {
+    // sub-class will override
   }
 
   /**
    * @returns {string} AudioManager resource ID.
    */
-  get id () {
-    return this[$options].id
+  getId () {
+    return this[$id]
   }
 
   /**
-   * The destination type.
-   *
-   * @returns {('sample'|'stream')}
+   * @returns {boolean} true if the audio source is ready for use (playback, etc); otherwise, false
    */
-  get type () {
-    return this[$options].type
-  }
-
-  /**
-   * Is the audio resource ready to be played?
-   *
-   * @returns {boolean}
-   */
-  get ready () {
+  isReady () {
     return this[$state] === AudioSourceStateReady
   }
 
   /**
-   * Is this audio resource loading?
-   *
-   * If loading, play() should not be called.
-   *
-   * @returns {boolean}
+   * @returns {boolean} true if the audio source is currently being loaded; otherwise, false
    */
-  get loading () {
+  isLoading () {
     return this[$state] === AudioSourceStateLoading
   }
 
   /**
-   * Was there an error during audio resource loading?
-   *
-   * @returns {boolean}
+   * @returns {boolean} true if the audio source failed to load it's file; otherwise, false
    */
-  get error () {
+  isError () {
     return this[$state] === AudioSourceStateError
-  }
-
-  /**
-   * Remove the resource from the AudioManager.
-   */
-  remove () {
-    this[$owner][$audioSourceMap].delete(this.id)
-    AudioSource$reset(this)
-    this[$buffer] = null
   }
 
   /**
@@ -108,142 +110,192 @@ export class AudioSource {
   }
 
   /**
-   * The volume of the source.
-   *
-   * @property volume
+   * @returns volume {number} Current value [0-1] of the volume of the audio source.
    */
-  get volume () {
+  getVolume () {
     return this[$source].volume
   }
 
-  set volume (value) {
+  /**
+   * Sets the volume.
+   *
+   * @param value {number} A value between [0-1]. If the value is not a number, volume is set to 0. If the value is
+   * out of range, it is Math.clamp()'d to [0-1].
+   */
+  setVolume (value) {
     this[$source].volume = isNumber(value) ? clamp(value, 0, 1) : 0
   }
 
   /**
-   * Does this source support volume control?
-   *
-   * @returns {boolean}
+   * @returns {boolean} true if this audio source supports volume controls; otherwise, false
    */
-  get hasVolume () {
+  hasVolume () {
     return this[$source].hasCapability(AudioSourceCapabilityVolume)
   }
 
   /**
-   * Can playback loop?
-   *
-   * @returns {boolean}
+   * @returns {boolean} true if this audio source supports the loop option of play(); otherwise, false
    */
-  get canLoop () {
+  canLoop () {
     return this[$source].hasCapability(AudioSourceCapabilityLoop)
   }
 
   /**
-   * Can playback fade in?
-   *
-   * @returns {boolean}
+   * @returns {boolean} true if this audio source supports fadeIn; otherwise, false
    */
-  get canFadeIn () {
+  canFadeIn () {
     return this[$source].hasCapability(AudioSourceCapabilityFadeIn)
   }
-}
 
-const AudioSource$applyBuffer = (self, buffer) => {
-  const audio = self[$owner]
-  const adapter = audio[$plugin]
-
-  self[$buffer] = buffer
-
-  if (!self[$source]) {
-    if (!adapter.attached) {
-      return
-    }
-
-    const dest = audio[self[$options].type]
-
-    if (!dest || !dest.available) {
-      AudioSource$setErrorState(self, `AudioSource type ${self[$options].type} is unavailable.`)
-      return
-    }
-
-    try {
-      self[$source] = dest[$destination].createAudioSource()
-    } catch (e) {
-      AudioSource$setErrorState(self, `Failed to create native audio source. Error: ${e.message}`)
-      return
-    }
-  }
-
-  try {
-    self[$source].load(buffer)
-  } catch (e) {
-    AudioSource$setErrorState(self, e.message)
-    return
-  }
-
-  self[$state] = AudioSourceStateReady
-}
-
-export const AudioSource$setErrorState = (self, message) => {
-  message && console.log(message)
-  AudioSource$reset(self)
-  self[$state] = AudioSourceStateError
-  self[$buffer] = null
-}
-
-export const AudioSource$load = (self, canLoadSync) => {
-  switch (self[$state]) {
-    case AudioSourceStateReady:
-      return
-    case AudioSourceStateLoading:
-      self[$buffer] && AudioSource$applyBuffer(self, self[$buffer])
-      return
-    case AudioSourceStateInit:
-      if (self[$buffer]) {
-        AudioSource$applyBuffer(self, self[$buffer])
-        return
-      }
-      break
-  }
-
-  const { uri, sync } = self[$options]
-  const file = resolveUri(uri, self[$resourcePath])
-
-  self[$state] = AudioSourceStateLoading
-
-  if (canLoadSync && sync) {
-    let buffer
-
-    try {
-      buffer = readFileSync(file)
-    } catch (e) {
-      AudioSource$setErrorState(self, e.message)
-      return
-    }
-
-    AudioSource$applyBuffer(self, buffer)
-  } else {
-    const asyncId = self[$asyncId] = nextAsyncId++
-
-    readFile(file)
-      .then((buffer) => {
-        if (self[$asyncId] !== asyncId ||
-          self[$owner].getAudioSource(self.id) !== self ||
-          self[$state] !== AudioSourceStateLoading) {
+  /**
+   * @ignore
+   */
+  [$load] (sync) {
+    switch (this[$state]) {
+      case AudioSourceStateInit:
+        if (this[$buffer]) {
+          this[$setBuffer](this[$buffer], true)
           return
         }
+        break
+      case AudioSourceStateLoading:
+        this[$buffer] && this[$setBuffer](this[$buffer], true)
+        return
+      case AudioSourceStateError:
+        break
+      default:
+        throw Error('AudioSource must be in init or error state to load')
+    }
 
-        AudioSource$applyBuffer(self, buffer)
-      })
-      .catch((e) => {
-        AudioSource$setErrorState(self, e.message)
-      })
+    const path = parseUri(this[$id])
+
+    if (sync) {
+      let buffer
+
+      try {
+        buffer = readFileSync(path)
+      } catch (e) {
+        this[$setError](e, true)
+        return
+      }
+
+      this[$setBuffer](buffer, true)
+    } else {
+      const asyncId = this[$asyncId] = nextAsyncId++
+      const cancelled = () => this[$asyncId] !== asyncId || this[$state] !== AudioSourceStateLoading
+
+      this[$state] = AudioSourceStateLoading
+
+      readFile(path)
+        .then((buffer) => {
+          cancelled() || this[$setBuffer](buffer, false)
+        })
+        .catch((e) => {
+          cancelled() || this[$setError](e, false)
+        })
+    }
+  }
+
+  /**
+   * @ignore
+   */
+  [$unload] () {
+    this[$state] = AudioSourceStateInit
+    this[$asyncId] = 0
+    this[$source] && this[$source].destroy()
+    this[$source] = null
+  }
+
+  /**
+   * @ignore
+   */
+  [$setError] (error, deferred) {
+    const message = typeof error === 'string' ? error : error.message
+
+    this[$unload]()
+    this[$state] = AudioSourceStateError
+    this[$buffer] = null
+
+    if (deferred) {
+      queueMicrotask(() => this[$emitter].emit('status', this, message))
+    } else {
+      this[$emitter].emit('status', this, message)
+    }
+  }
+
+  /**
+   * @ignore
+   */
+  [$setBuffer] (buffer, deferred) {
+    const audio = this[$owner]
+
+    this[$buffer] = buffer
+
+    if (!this[$source]) {
+      if (!audio.isAttached()) {
+        return
+      }
+
+      const dest = audio[this.getType()]
+
+      if (!dest || !dest.isAvailable()) {
+        this[$setError](`${this.getType()} type is not loadable for this audio plugin.`, deferred)
+        return
+      }
+
+      try {
+        this[$source] = dest[$destination].createAudioSource()
+      } catch (e) {
+        this[$setError](e, deferred)
+        return
+      }
+    }
+
+    try {
+      this[$source].load(buffer)
+    } catch (e) {
+      this[$setError](e, deferred)
+      return
+    }
+
+    this[$state] = AudioSourceStateReady
+
+    if (deferred) {
+      queueMicrotask(() => this[$emitter].emit('status', this, null))
+    } else {
+      this[$emitter].emit('status', this, null)
+    }
   }
 }
 
-export const AudioSource$reset = (self) => {
-  self[$state] = AudioSourceStateInit
-  self[$asyncId] = 0
-  self[$source] && self[$source].destroy()
-  self[$source] = null
+/**
+ * @ignore
+ */
+export class SampleAudioSource extends AudioSource {
+  getType () {
+    return AudioSourceType.Sample
+  }
 }
+
+/**
+ * @ignore
+ */
+export class StreamAudioSource extends AudioSource {
+  getType () {
+    return AudioSourceType.Stream
+  }
+}
+
+/**
+ * @ignore
+ */
+export class NullAudioSource extends AudioSource {
+  getType () {
+    return AudioSourceType.Null
+  }
+}
+
+/**
+ * @ignore
+ */
+const parseUri = (uri) => uri.startsWith('file:') ? uri.substr(5, uri.length - uri.search('?')) : uri

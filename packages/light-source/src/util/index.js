@@ -19,6 +19,24 @@ export const logexcept = (func, prefix) => {
 
 export const resolveUri = (uri, resourcePath) => uri.startsWith(resourceHost) ? join(resourcePath, uri.substr(resourceHostLength)) : uri
 
+export const fileuri = (path, queryParams = {}) => {
+  if (!path || typeof path !== 'string') {
+    return ''
+  }
+
+  let queryString = ''
+
+  for (const param of Object.keys(queryParams)) {
+    queryString = `${queryString}${queryString ? '&' : ''}${param}=${encodeURIComponent(queryParams[param].toString())}`
+  }
+
+  if (path.search(/[+%]/) >= 0) {
+    path = encodeURIComponent(path)
+  }
+
+  return `file:${path}${queryString && '?'}${queryString}`
+}
+
 // Math.clamp()
 export const clamp = (val, min, max) => val > max ? max : val < min ? min : val
 
@@ -27,3 +45,5 @@ export const isNumber = (value) => ((typeof value === 'number') && (value - valu
 export const symbolFor = Symbol.for
 
 export const symbolKeyFor = Symbol.keyFor
+
+export const emptyArray = Object.freeze([])

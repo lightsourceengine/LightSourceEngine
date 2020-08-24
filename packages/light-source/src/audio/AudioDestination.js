@@ -5,6 +5,7 @@
  */
 
 import { $destination } from '../util/InternalSymbols'
+import { AudioDecoder } from './AudioDecoder'
 import {
   AudioDestinationCapabilityFadeOut,
   AudioDestinationCapabilityPause,
@@ -12,95 +13,103 @@ import {
   AudioDestinationCapabilityStop,
   AudioDestinationCapabilityVolume
 } from './constants'
-import { clamp, isNumber } from '../util'
+import { clamp, isNumber, emptyArray } from '../util'
+
+const $decoders = Symbol('decoders')
+const $rawDecoders = Symbol('rawDecoders')
+const $setNativeDestination = Symbol.for('setNativeDestination')
 
 /**
  * An audio output buffer.
  */
 export class AudioDestination {
   constructor () {
-    this[$destination] = null
+    this[$destination] = NullNativeAudioDestination.instance
+    this[$decoders] = emptyArray
+    this[$rawDecoders] = emptyArray
   }
 
   /**
-   * Is this destination available on this system?
-   *
-   * When a destination is unavailable, all other APIs will have undefined behavior.
-   *
-   * @returns {boolean} if native support is available for this destination
+   * @returns {boolean} true if audio sources can be rendered to this destination; false if no audio can
+   * be loaded or played with this destination.
    */
-  get available () {
-    return !!this[$destination]
+  isAvailable () {
+    return this[$destination] !== NullNativeAudioDestination.instance
   }
 
   /**
-   * List of decoders or AudioSource formats this destination supports.
-   *
-   * @returns {string[]}
+   * @returns {string[]} List of audio decoders this destination supports.
    */
-  get decoders () {
-    // TODO: the decoders are in SDL Mixer format. Need to translate them to a consistent enum.
-    return this[$destination].decoders
+  getDecoders () {
+    return this[$decoders]
   }
 
   /**
-   * Is the pause() API available?
-   *
-   * @returns {boolean}
+   * @ignore
    */
-  get canPause () {
+  getRawDecoders () {
+    return this[$rawDecoders]
+  }
+
+  /**
+   * Checks if an audio decoder, defined in AudioDecoder, is supported.
+   *
+   * @param decoder {string} Name of decoder to check. Should be a name from AudioDecoder.
+   * @returns {boolean} true if decoder is supported; otherwise, false
+   */
+  hasDecoder (decoder) {
+    return this[$rawDecoders].indexOf(decoder) >= 0
+  }
+
+  /**
+   * @returns {boolean} true if the audio destination can be pause()'d; otherwise, false
+   */
+  canPause () {
     return this[$destination].hasCapability(AudioDestinationCapabilityPause)
   }
 
   /**
-   * Is the resume() API available?
-   *
-   * @returns {boolean}
+   * @returns {boolean} true if the audio destination can be resume()'d; otherwise, false
    */
-  get canResume () {
+  canResume () {
     return this[$destination].hasCapability(AudioDestinationCapabilityResume)
   }
 
   /**
-   * Is the stop() API available?
-   *
-   * @returns {boolean}
+   * @returns {boolean} true if the audio destination can be stop()'d; otherwise, false
    */
-  get canStop () {
+  canStop () {
     return this[$destination].hasCapability(AudioDestinationCapabilityStop)
   }
 
   /**
-   * Is the stop({fadeOutMs: 100}) API available?
-   *
-   * @returns {boolean}
+   * @returns {boolean} true if the audio destination can be faded out; otherwise, false
    */
-  get canFadeOut () {
+  canFadeOut () {
     return this[$destination].hasCapability(AudioDestinationCapabilityFadeOut)
   }
 
   /**
-   * Is the volume API available?
-   *
-   * @returns {boolean}
+   * @returns {boolean} true if the audio destination has volume controls; otherwise, false
    */
-  get hasVolume () {
+  hasVolume () {
     return this[$destination].hasCapability(AudioDestinationCapabilityVolume)
   }
 
   /**
-   * Control the volume of the output buffer.
-   *
-   * Volume must be a floating point number between [0-1].
-   *
-   * @property volume
+   * @returns volume {number} Current value [0-1] of the volume of the audio destination.
    */
-
-  get volume () {
+  getVolume () {
     return this[$destination].volume
   }
 
-  set volume (value) {
+  /**
+   * Sets the volume.
+   *
+   * @param value {number} A value between [0-1]. If the value is not a number, volume is set to 0. If the value is
+   * out of range, it is Math.clamp()'d to [0-1].
+   */
+  setVolume (value) {
     this[$destination].volume = isNumber(value) ? clamp(value, 0, 1) : 0
   }
 
@@ -127,4 +136,34 @@ export class AudioDestination {
   stop (opts) {
     this[$destination].stop(opts)
   }
+
+  /**
+   * @ignore
+   */
+  [$setNativeDestination] (nativeDestination) {
+    this[$destination] = nativeDestination || NullNativeAudioDestination.instance
+    this[$rawDecoders] = [...this[$destination].decoders]
+    this[$decoders] = []
+
+    for (const rawDecoder of this[$rawDecoders]) {
+      if (rawDecoder in AudioDecoder) {
+        this[$decoders].push(rawDecoder)
+      }
+    }
+
+    Object.freeze(this[$rawDecoders])
+    Object.freeze(this[$decoders])
+  }
+}
+
+/**
+ * @ignore
+ */
+class NullNativeAudioDestination {
+  static instance = new NullNativeAudioDestination()
+  constructor () { this.volume = 0; this.decoders = emptyArray }
+  resume () {}
+  stop () {}
+  pause () {}
+  hasCapability () { return false }
 }
