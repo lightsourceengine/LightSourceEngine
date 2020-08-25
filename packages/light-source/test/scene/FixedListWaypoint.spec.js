@@ -7,7 +7,6 @@
 import { assert } from 'chai'
 import { FixedListWaypoint } from '../../src/scene/FixedListWaypoint'
 import { afterSceneTest, beforeSceneTest } from '../test-env'
-import { $sendKeyEvent } from '../../src/util/InternalSymbols'
 import { Key } from '../../src/input/Key'
 import { Mapping } from '../../src/input/Mapping'
 
@@ -67,7 +66,7 @@ describe('FixedListWaypoint', () => {
   })
 })
 
-const sendKey = (scene, key) => scene.stage.input[$sendKeyEvent](key, true, false, Mapping.STANDARD)
+const sendKey = (scene, key) => scene.stage.input.$sendKeyEvent(key, true, false, Mapping.STANDARD)
 
 const setupSceneRoot = (scene, waypoint) => {
   const group = scene.createNode('box')

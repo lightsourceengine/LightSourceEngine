@@ -13,7 +13,7 @@
  * @type {Readonly<{MODPLUG: string, MOD: string, MIDI: string, FLAC: string, TIMIDITY: string, VOC: string,
  * OGG: string, MP3: string, WAVE: string, AIFF: string, OPUS: string, CMD: string, MIKMOD: string}>}
  */
-export const AudioDecoder = Object.freeze({
+export const AudioDecoderType = Object.freeze({
   AIFF: 'AIFF',
   CMD: 'CMD',
   FLAC: 'FLAC',

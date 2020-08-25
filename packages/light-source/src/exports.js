@@ -12,12 +12,14 @@ import { rgb } from './style/rgb'
 import { ScanCode } from './input/ScanCode'
 import { waypoint } from './scene/waypoint'
 import { Mapping } from './input/Mapping'
+import { MappingType } from './input/MappingType'
 import { Direction } from './input/Direction'
 import { Key } from './input/Key'
 import { Style, logger } from './addon'
 import { absoluteFill } from './style/absoluteFill'
-import { AudioDecoder } from './audio/AudioDecoder'
+import { AudioDecoderType } from './audio/AudioDecoderType'
 import { AudioSourceType } from './audio/AudioSourceType'
+import { InputDeviceType } from './input/InputDeviceType'
 import {
   translate,
   scale,
@@ -80,13 +82,15 @@ export {
 
   // input
   Mapping,
+  MappingType,
   Key,
   ScanCode,
+  InputDeviceType,
 
   // Logger
   logger,
 
   // Audio
-  AudioDecoder,
+  AudioDecoderType,
   AudioSourceType
 }

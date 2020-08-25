@@ -14,7 +14,6 @@ import {
   AudioSourceStateLoading,
   AudioSourceStateReady
 } from '../../src/audio/constants'
-import { $source, $state } from '../../src/util/InternalSymbols'
 import sinon from 'sinon'
 import { AudioSourceType } from '../../src/audio/AudioSourceType'
 import { test } from 'light-source/test/test-env'
@@ -53,65 +52,67 @@ describe('AudioSource', () => {
   })
   describe('isReady()', () => {
     it('should return true when in ready state', () => {
-      audioSource[$state] = AudioSourceStateReady
+      audioSource.$setState(AudioSourceStateReady)
       assert.isTrue(audioSource.isReady())
     })
   })
   describe('isLoading()', () => {
     it('should return true when in loading state', () => {
-      audioSource[$state] = AudioSourceStateLoading
+      audioSource.$setState(AudioSourceStateLoading)
       assert.isTrue(audioSource.isLoading())
     })
   })
   describe('isError()', () => {
     it('should return true when in error state', () => {
-      audioSource[$state] = AudioSourceStateError
+      audioSource.$setState(AudioSourceStateError)
       assert.isTrue(audioSource.isError())
     })
   })
   describe('volume', () => {
     it('should get volume from native source', () => {
-      audioSource[$source] = { volume: 1 }
+      audioSource.$setNative({ volume: 1 })
       assert.equal(audioSource.getVolume(), 1)
     })
     it('should set volume of native source', () => {
-      audioSource[$source] = { volume: 0 }
+      audioSource.$setNative({ volume: 0 })
       assert.equal(audioSource.getVolume(), 0)
       audioSource.setVolume(1)
       assert.equal(audioSource.getVolume(), 1)
     })
     it('should constrain value to 0-1 range (upper bound)', () => {
-      audioSource[$source] = { volume: 0 }
+      audioSource.$setNative({ volume: 0 })
       audioSource.setVolume(1.5)
       assert.equal(audioSource.getVolume(), 1)
     })
     it('should constrain value to 0-1 range (lower bound)', () => {
-      audioSource[$source] = { volume: 0 }
+      audioSource.$setNative({ volume: 0 })
       audioSource.setVolume(-1)
       assert.equal(audioSource.getVolume(), 0)
     })
   })
   describe('canLoop()', () => {
     it('should return native dest capability state', () => {
-      audioSource[$source] = { hasCapability (which) { return which === AudioSourceCapabilityLoop } }
+      audioSource.$setNative({ hasCapability (which) { return which === AudioSourceCapabilityLoop } })
       assert.isTrue(audioSource.canLoop())
     })
   })
   describe('canFadeIn()', () => {
     it('should return native dest capability state', () => {
-      audioSource[$source] = { hasCapability (which) { return which === AudioSourceCapabilityFadeIn } }
+      audioSource.$setNative({ hasCapability (which) { return which === AudioSourceCapabilityFadeIn } })
       assert.isTrue(audioSource.canFadeIn())
     })
   })
   describe('hasVolume()', () => {
     it('should return native dest capability state', () => {
-      audioSource[$source] = { hasCapability (which) { return which === AudioSourceCapabilityVolume } }
+      audioSource.$setNative({ hasCapability (which) { return which === AudioSourceCapabilityVolume } })
       assert.isTrue(audioSource.hasVolume())
     })
   })
   describe('play()', () => {
     it('should call native destination play', () => {
-      const mock = audioSource[$source] = { play: sinon.stub() }
+      const mock = { play: sinon.stub() }
+
+      audioSource.$setNative(mock)
       audioSource.play()
       assert.isTrue(mock.play.called)
     })

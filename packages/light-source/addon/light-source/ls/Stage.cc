@@ -20,7 +20,7 @@ Function Stage::GetClass(Napi::Env env) {
         HandleScope scope(env);
 
         constructor = DefineClass(env, "StageBase", true, {
-            InstanceMethod(SymbolFor(env, "destroy"), &Stage::Destroy),
+            InstanceMethod("$destroy", &Stage::Destroy),
         });
     }
 

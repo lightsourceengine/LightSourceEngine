@@ -8,10 +8,6 @@ import { Element } from './Element'
 import { RootElement } from './RootElement'
 import { Reconciler } from './Reconciler'
 
-const $reconciler = Symbol.for('reconciler')
-const $container = Symbol.for('container')
-const $node = Symbol.for('node')
-
 const throwDisconnected = () => {
   throw Error('ReactRenderer has been disconnected and should no longer be in use.')
 }
@@ -38,26 +34,26 @@ export class ReactRenderer {
       reconcilers.set(scene, reconciler = Reconciler(scene))
     }
 
-    this[$node] = node
-    this[$reconciler] = reconciler
-    this[$container] = reconciler.createContainer(new RootElement(node))
+    this._node = node
+    this._reconciler = reconciler
+    this._container = reconciler.createContainer(new RootElement(node))
   }
 
   render (component, callback) {
-    this[$container] || throwDisconnected()
+    this._container || throwDisconnected()
 
-    this[$reconciler].unbatchedUpdates(
-      () => this[$reconciler].updateContainer(component, this[$container], null, callback))
+    this._reconciler.unbatchedUpdates(
+      () => this._reconciler.updateContainer(component, this._container, null, callback))
   }
 
   findElement (component) {
-    this[$container] || throwDisconnected()
+    this._container || throwDisconnected()
 
     if (!component || component.nodeType === /* ELEMENT_NODE */1) {
       return component
     }
 
-    const element = this[$reconciler].findHostInstance(component)
+    const element = this._reconciler.findHostInstance(component)
 
     if (element instanceof Element) {
       return element
@@ -67,7 +63,7 @@ export class ReactRenderer {
   }
 
   findSceneNode (component) {
-    this[$container] || throwDisconnected()
+    this._container || throwDisconnected()
 
     const element = this.findElement(component)
 

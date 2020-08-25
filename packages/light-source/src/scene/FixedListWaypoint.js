@@ -5,12 +5,10 @@
  */
 
 import { Direction } from '../input/Direction'
-import { $hasFocus } from '../util/InternalSymbols'
 
 const { UP, DOWN, LEFT, RIGHT } = Direction
 
-const $navigation = Symbol('navigation')
-const $focalPathIndex = Symbol('focalPathIndex')
+const $hasFocus = Symbol.for('hasFocus')
 
 const horizontalTag = 'horizontal'
 const verticalTag = 'vertical'
@@ -30,45 +28,45 @@ OFFSET[VERTICAL][DOWN] = 1
 export class FixedListWaypoint {
   constructor (tag) {
     if (tag === horizontalTag) {
-      this[$navigation] = HORIZONTAL
+      this._navigation = HORIZONTAL
       this.tag = horizontalTag
     } else if (tag === verticalTag) {
-      this[$navigation] = VERTICAL
+      this._navigation = VERTICAL
       this.tag = verticalTag
     } else {
       throw Error(`FixedListWaypoint expected tag ${horizontalTag} or ${verticalTag}. Got ${tag}`)
     }
 
-    this[$focalPathIndex] = -1
+    this._focalPathIndex = -1
   }
 
   navigate (context) {
     const { owner, direction } = context
-    const offset = OFFSET[this[$navigation]][direction]
+    const offset = OFFSET[this._navigation][direction]
 
     if (!offset) {
       return context.pass()
     }
 
-    const nextFocalPathIndex = this[$focalPathIndex] + offset
+    const nextFocalPathIndex = this._focalPathIndex + offset
     const focalPath = createFocalPath(owner)
 
     if (nextFocalPathIndex < 0) {
-      this[$focalPathIndex] = 0
+      this._focalPathIndex = 0
       return context.defer(focalPath[0])
     } else if (nextFocalPathIndex >= focalPath.length) {
-      this[$focalPathIndex] = focalPath.length - 1
+      this._focalPathIndex = focalPath.length - 1
       return context.defer(focalPath[focalPath.length - 1])
     } else {
-      this[$focalPathIndex] = nextFocalPathIndex
+      this._focalPathIndex = nextFocalPathIndex
       return context.move(focalPath[nextFocalPathIndex])
     }
   }
 
   resolve (context) {
     const { owner, pending, direction } = context
-    let focalPathIndex = this[$focalPathIndex]
-    const navigation = this[$navigation]
+    let focalPathIndex = this._focalPathIndex
+    const navigation = this._navigation
     const focalPath = createFocalPath(owner)
 
     if (pending && !isDescendent(pending, owner)) {
@@ -104,7 +102,7 @@ export class FixedListWaypoint {
       focalPathIndex = 0
     }
 
-    return focalPath[(this[$focalPathIndex] = focalPathIndex)]
+    return focalPath[(this._focalPathIndex = focalPathIndex)]
   }
 
   sync (owner) {
@@ -112,13 +110,13 @@ export class FixedListWaypoint {
 
     for (const node of createFocalPath(owner)) {
       if (node[$hasFocus]) {
-        this[$focalPathIndex] = i
+        this._focalPathIndex = i
         return
       }
       i++
     }
 
-    // this[$focalPathIndex] = -1
+    // this._focalPathIndex = -1
   }
 }
 

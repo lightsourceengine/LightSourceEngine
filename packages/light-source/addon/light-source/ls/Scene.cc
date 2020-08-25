@@ -77,11 +77,11 @@ Function Scene::GetClass(Napi::Env env) {
         constructor = DefineClass(env, "SceneBase", true, {
             InstanceAccessor("root", &Scene::GetRoot, nullptr),
             InstanceAccessor("stage", &Scene::GetStage, nullptr),
-            InstanceAccessor(SymbolFor(env, "graphicsContext"), &Scene::GetGraphicsContext, nullptr),
-            InstanceMethod(SymbolFor(env, "attach"), &Scene::Attach),
-            InstanceMethod(SymbolFor(env, "detach"), &Scene::Detach),
-            InstanceMethod(SymbolFor(env, "destroy"), &Scene::Destroy),
-            InstanceMethod(SymbolFor(env, "frame"), &Scene::Frame),
+            InstanceAccessor("_graphicsContext", &Scene::GetGraphicsContext, nullptr),
+            InstanceMethod("$attach", &Scene::Attach),
+            InstanceMethod("$detach", &Scene::Detach),
+            InstanceMethod("$destroy", &Scene::Destroy),
+            InstanceMethod("$frame", &Scene::Frame),
         });
     }
 

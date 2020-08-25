@@ -5,6 +5,7 @@
  */
 
 import { isNumber } from '../util'
+import { MappingType } from './MappingType'
 
 const buttonRegEx = /^b(\d+)$/
 const hatRegEx = /^h(\d+)\.([1248])$/
@@ -14,8 +15,6 @@ const $buttonMap = Symbol('buttonMap')
 const $hatMap = Symbol('hatMap')
 
 export class Mapping {
-  static STANDARD = 'standard'
-
   /**
    *
    * @param args
@@ -25,7 +24,7 @@ export class Mapping {
     let entries
 
     if (args.length === 1) {
-      name = Mapping.STANDARD
+      name = MappingType.Standard
       entries = args[0]
     } else if (args.length === 2) {
       name = args[0]

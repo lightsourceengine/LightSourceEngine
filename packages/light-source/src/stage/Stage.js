@@ -8,31 +8,12 @@ import { Scene } from '../scene/Scene'
 import bindings from 'bindings'
 import { StageBase, SDLModuleId, SDLMixerModuleId, SDLAudioModuleId } from '../addon'
 import { performance } from 'perf_hooks'
-
 import { InputManager } from '../input/InputManager'
 import { EventEmitter } from '../util/EventEmitter'
-import {
-  $mainLoopHandle,
-  $fps,
-  $attach,
-  $detach,
-  $destroy,
-  $frame,
-  $quitRequested,
-  $input,
-  $events,
-  $scene,
-  $audio,
-  $emit
-} from '../util/InternalSymbols'
 import { AudioManager } from '../audio/AudioManager'
 import { isNumber, logexcept } from '../util'
 
 const { now } = performance
-
-const $platformPlugin = Symbol.for('platformPlugin')
-const $audioPlugin = Symbol.for('audioPlugin')
-const $plugin = Symbol.for('plugin')
 
 const kEmptyPlatformPlugin = { capabilities: { displays: [] } }
 const kPluginTypeAudio = 'audio'
@@ -40,30 +21,31 @@ const kPluginTypePlatform = 'platform'
 const kPluginTypes = new Set([kPluginTypeAudio, kPluginTypePlatform])
 
 export class Stage extends StageBase {
+  _mainLoopHandle = null
+  _fps = 60
+  _scene = null
+  _platformPlugin = null
+  _audioPlugin = null
+  _inputManager = new InputManager(this)
+  _audioManager = new AudioManager(this)
+  _emitter = new EventEmitter()
+  _quitRequested = false
+
   constructor () {
     super()
 
-    this[$mainLoopHandle] = null
-    this[$fps] = 60
-    this[$scene] = null
-    this[$platformPlugin] = null
-    this[$audioPlugin] = null
-    this[$input] = new InputManager(this)
-    this[$audio] = new AudioManager(this)
-    this[$events] = new EventEmitter()
-
     process.on('exit', () => {
-      logexcept(() => this[$destroy](), 'exit: Stage destroy exception: ')
+      logexcept(() => this.$destroy(), 'exit: Stage destroy exception: ')
       global.gc && global.gc()
     })
   }
 
   get capabilities () {
-    return (this[$platformPlugin] || kEmptyPlatformPlugin).capabilities
+    return (this._platformPlugin || kEmptyPlatformPlugin).capabilities
   }
 
   get fps () {
-    return this[$fps]
+    return this._fps
   }
 
   set fps (value) {
@@ -71,11 +53,11 @@ export class Stage extends StageBase {
       throw Error()
     }
 
-    this[$fps] = value || 60
+    this._fps = value || 60
   }
 
   get input () {
-    return this[$input]
+    return this._inputManager
   }
 
   /**
@@ -87,7 +69,7 @@ export class Stage extends StageBase {
    * @returns {AudioManager}
    */
   get audio () {
-    return this[$audio]
+    return this._audioManager
   }
 
   /**
@@ -95,7 +77,7 @@ export class Stage extends StageBase {
    */
   init () {
     // TODO: need init check? if so, better check?
-    if (this[$platformPlugin] || this[$audioPlugin]) {
+    if (this._platformPlugin || this._audioPlugin) {
       throw Error('Stage has already been initialized.')
     }
 
@@ -153,10 +135,17 @@ export class Stage extends StageBase {
         } catch (e) {
           throw Error(`Failed to attach Plugin instance. Error: ${e.message}`)
         }
-        setupPluginInstance(this, $platformPlugin, this.input, instance)
+        setupPluginInstance(this.input, instance, (instance) => {
+          this._platformPlugin = instance
+          this.input.$setPlugin(instance)
+        })
         break
       case kPluginTypeAudio:
-        setupPluginInstance(this, $audioPlugin, this.audio, instance)
+        setupPluginInstance(this.audio, instance,
+          (instance) => {
+            this._audioPlugin = instance
+            this.audio.$setPlugin(instance)
+          })
         break
     }
   }
@@ -164,24 +153,24 @@ export class Stage extends StageBase {
   hasPlugin (pluginType) {
     switch (pluginType) {
       case kPluginTypeAudio:
-        return !!this[$audioPlugin]
+        return !!this._audioPlugin
       case kPluginTypePlatform:
-        return !!this[$platformPlugin]
+        return !!this._platformPlugin
       default:
         return false
     }
   }
 
   on (id, listener) {
-    this[$events].on(id, listener)
+    this._emitter.on(id, listener)
   }
 
   off (id, listener) {
-    this[$events].off(id, listener)
+    this._emitter.off(id, listener)
   }
 
   once (id, listener) {
-    this[$events].once(id, listener)
+    this._emitter.once(id, listener)
   }
 
   createScene (config = {}) {
@@ -189,116 +178,127 @@ export class Stage extends StageBase {
       this.init()
     }
 
-    if (this[$scene]) {
+    if (this._scene) {
       throw Error('Stage can only manage 1 scene at a time.')
     }
 
     let scene
 
     try {
-      scene = new Scene(this, this[$platformPlugin], config)
+      scene = new Scene(this, this._platformPlugin, config)
     } catch (e) {
       throw Error(e.message)
     }
 
-    this[$scene] = scene
+    this._scene = scene
 
     return scene
   }
 
   getScene (displayIndex = 0) {
     // TODO: validate displayIndex?
-    return this[$scene]
+    return this._scene
   }
 
   start () {
     // TODO: initialized?
     // TODO: check already started
-    if (this[$mainLoopHandle]) {
+    if (this._mainLoopHandle) {
       return
     }
 
-    const platform = this[$platformPlugin]
-    const scene = this[$scene]
+    const platform = this._platformPlugin
+    const scene = this._scene
     let lastTick = now()
 
-    this[$attach]()
+    this._attach()
 
     const mainLoop = () => {
       const tick = now()
 
-      if (!platform.processEvents() || this[$quitRequested]) {
+      if (!platform.processEvents() || this._quitRequested) {
         // TODO: revisit stage lifecycle...
         process.exit()
       }
 
       // TODO: check suspended
 
-      scene[$frame](tick, lastTick)
+      scene.$frame(tick, lastTick)
       lastTick = tick
 
-      this[$mainLoopHandle] = setTimeout(mainLoop, 1000 / this[$fps])
+      this._mainLoopHandle = setTimeout(mainLoop, 1000 / this._fps)
     }
 
-    this[$mainLoopHandle] = setTimeout(mainLoop, 0)
+    this._mainLoopHandle = setTimeout(mainLoop, 0)
   }
 
   stop () {
     // TODO: stopped?
-    if (this[$mainLoopHandle]) {
+    if (this._mainLoopHandle) {
       // TODO: handle exceptions...
-      this[$detach]()
+      this._detach()
 
-      clearTimeout(this[$mainLoopHandle])
-      this[$mainLoopHandle] = null
+      clearTimeout(this._mainLoopHandle)
+      this._mainLoopHandle = null
     }
   }
 
   // TODO: running flag? or state?
 
   quit () {
-    this[$quitRequested] = true
+    this._quitRequested = true
   }
 
-  [$emit] (event) {
-    this[$events].emit(event)
+  /**
+   * @ignore
+   */
+  $emit (event) {
+    this._emitter.emit(event)
   }
 
-  [$attach] () {
-    this[$platformPlugin].attach()
+  /**
+   * @ignore
+   */
+  $destroy () {
+    super.$destroy()
 
-    this[$input][$attach]()
-    this[$audio][$attach]()
-    this[$scene][$attach]()
+    this._scene && this._scene.$destroy()
+    this.audio && this.audio.$destroy()
+    this.input && this.input.$destroy()
+    this._audioPlugin && this._audioPlugin.destroy()
+    this._platformPlugin && this._platformPlugin.destroy()
   }
 
-  [$detach] () {
-    this[$scene] && this[$scene][$detach]()
-    this[$audio][$detach]()
-    this[$input][$detach]()
+  /**
+   * @ignore
+   */
+  _attach () {
+    this._platformPlugin.attach()
 
-    this[$platformPlugin] && this[$platformPlugin].detach()
+    this.input.$attach()
+    this.audio.$attach()
+    this._scene.$attach()
   }
 
-  [$destroy] () {
-    super[$destroy]()
+  /**
+   * @ignore
+   */
+  _detach () {
+    this._scene && this._scene.$detach()
+    this.audio && this.audio.$detach()
+    this.input && this.input.$detach()
 
-    this[$scene] && this[$scene][$destroy]()
-    this[$audio] && this[$audio][$destroy]()
-    this[$input] && this[$input][$destroy]()
-    this[$audioPlugin] && this[$audioPlugin].destroy()
-    this[$platformPlugin] && this[$platformPlugin].destroy()
+    this._platformPlugin && this._platformPlugin.detach()
   }
 }
 
-const setupPluginInstance = (stage, pluginSymbol, manager, pluginInstance) => {
-  stage[pluginSymbol] = manager[$plugin] = pluginInstance
+const setupPluginInstance = (manager, pluginInstance, setPluginInstance) => {
+  setPluginInstance(pluginInstance)
 
   try {
-    manager[$attach]()
+    manager.$attach()
   } catch (e) {
-    stage[pluginSymbol] = manager[$plugin] = null
-
+    setPluginInstance(null)
     throw Error(`Failed to attach Plugin instance. Error: ${e.message}`)
   }
 }

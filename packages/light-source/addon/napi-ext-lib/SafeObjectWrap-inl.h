@@ -27,12 +27,11 @@ SafeObjectWrap<T>::SafeObjectWrap(const CallbackInfo &info) {
 
 template <typename T>
 T* SafeObjectWrap<T>::Cast(const Napi::Value& value) noexcept {
-    void* instance;
-
     if (value.IsObject()) {
         auto env{ value.Env() };
         HandleScope scope(env);
         auto object{ value.As<Object>() };
+        void* instance;
 
         if (object.InstanceOf(T::GetClass(env)) && napi_unwrap(value.Env(), value, &instance) == napi_ok) {
             return static_cast<T*>(instance);
@@ -45,6 +44,19 @@ T* SafeObjectWrap<T>::Cast(const Napi::Value& value) noexcept {
 template <typename T>
 T* SafeObjectWrap<T>::CastRef(const Napi::Value& value) noexcept {
     return AddRef(T::Cast(value));
+}
+
+template <typename T>
+T* SafeObjectWrap<T>::StaticCast(const Napi::Value& value) noexcept {
+    if (value.IsObject()) {
+        void* instance;
+
+        if (napi_unwrap(value.Env(), value, &instance) == napi_ok) {
+            return static_cast<T*>(instance);
+        }
+    }
+
+    return nullptr;
 }
 
 template <typename T>
@@ -162,7 +174,7 @@ template <typename T>
 napi_value SafeObjectWrap<T>::InstanceMethodOrGetterBridge(napi_env env, napi_callback_info info) {
     const CallbackInfo callbackInfo(env, info);
     auto vtableIndex{ UnwrapVTableIndex(callbackInfo.Data()) };
-    auto instance{ T::Cast(callbackInfo.This()) };
+    auto instance{ T::StaticCast(callbackInfo.This()) };
 
 #ifdef NAPI_CPP_EXCEPTIONS
     try {
@@ -181,7 +193,7 @@ template <typename T>
 napi_value SafeObjectWrap<T>::InstanceVoidMethodBridge(napi_env env, napi_callback_info info) {
     const CallbackInfo callbackInfo(env, info);
     auto vtableIndex{ UnwrapVTableIndex(callbackInfo.Data()) };
-    auto instance{ T::Cast(callbackInfo.This()) };
+    auto instance{ T::StaticCast(callbackInfo.This()) };
 
 #ifdef NAPI_CPP_EXCEPTIONS
     try {
@@ -201,7 +213,7 @@ template <typename T>
 napi_value SafeObjectWrap<T>::InstanceSetterBridge(napi_env env, napi_callback_info info) {
     const CallbackInfo callbackInfo(env, info);
     auto vtableIndex{ UnwrapVTableIndex(callbackInfo.Data()) + 1 };
-    auto instance{ T::Cast(callbackInfo.This()) };
+    auto instance{ T::StaticCast(callbackInfo.This()) };
 
 #ifdef NAPI_CPP_EXCEPTIONS
     try {

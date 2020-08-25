@@ -7,8 +7,9 @@
 import { assert } from 'chai'
 import { Mapping } from '../../src/input/Mapping'
 import { Key } from '../../src/input/Key'
+import { MappingType } from '../../src/input/MappingType'
 
-const standard = Mapping.STANDARD
+const standard = MappingType.Standard
 
 describe('Mapping', () => {
   describe('constructor', () => {

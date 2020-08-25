@@ -8,7 +8,6 @@ import { assert } from 'chai'
 import sinon from 'sinon'
 import { BoxSceneNode, TextSceneNode, ImageSceneNode, Style } from '../../src/addon'
 import { afterSceneTest, beforeSceneTest } from '../test-env'
-import { $attach } from '../../src/util/InternalSymbols'
 
 describe('Scene', () => {
   let scene
@@ -41,19 +40,19 @@ describe('Scene', () => {
   })
   describe('width', () => {
     it('should get renderable width', () => {
-      scene[$attach]()
+      scene.$attach()
       assert.equal(scene.width, 1280)
     })
   })
   describe('height', () => {
     it('should get renderable height', () => {
-      scene[$attach]()
+      scene.$attach()
       assert.equal(scene.height, 720)
     })
   })
   describe('fullscreen', () => {
     it('should get fullscreen state', () => {
-      scene[$attach]()
+      scene.$attach()
       assert.isTrue(scene.fullscreen)
     })
   })

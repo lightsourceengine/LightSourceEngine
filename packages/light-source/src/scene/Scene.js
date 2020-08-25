@@ -10,73 +10,60 @@ import { EventEmitter } from '../util/EventEmitter'
 import { BlurEvent } from '../event/BlurEvent'
 import { FocusEvent } from '../event/FocusEvent'
 import { eventBubblePhase } from '../event/eventBubblePhase'
-import {
-  $destroy,
-  $activeNode,
-  $destroying,
-  $events,
-  $hasFocus,
-  $emit,
-  $frame,
-  $attach,
-  $detach
-} from '../util/InternalSymbols'
 import { absoluteFill } from '../style/absoluteFill'
 
 const { now } = performance
-const $frameListenersForeground = Symbol.for('frameListenersForeground')
-const $frameListenersBackground = Symbol.for('frameListenersBackground')
-const $graphicsContext = Symbol.for('graphicsContext')
+const $hasFocus = Symbol.for('hasFocus')
+const $activeNode = Symbol.for('activeNode')
 const sEmptyRafEntry = Object.freeze([0, null])
 let sFrameRequestId = 0
 
 export class Scene extends SceneBase {
+  _emitter = new EventEmitter()
+  _frameListenersForeground = []
+  _frameListenersBackground = []
+
   constructor (stage, platform, config) {
     super(stage, createGraphicsContext(stage, platform, config))
 
-    this[$events] = new EventEmitter()
     this[$activeNode] = null
-    this[$frameListenersForeground] = []
-    this[$frameListenersBackground] = []
 
-    const { style } = this.root
-
-    Object.assign(style, {
+    Object.assign(this.root.style, {
       ...absoluteFill,
       backgroundColor: 'black'
     })
   }
 
   get fullscreen () {
-    return this[$graphicsContext].fullscreen
+    return this._graphicsContext.fullscreen
   }
 
   get width () {
-    return this[$graphicsContext].width
+    return this._graphicsContext.width
   }
 
   get height () {
-    return this[$graphicsContext].height
+    return this._graphicsContext.height
   }
 
   get displayIndex () {
-    return this[$graphicsContext].displayIndex
+    return this._graphicsContext.displayIndex
   }
 
   get title () {
-    return this[$graphicsContext].title
+    return this._graphicsContext.title
   }
 
   set title (value) {
-    this[$graphicsContext].title = value
+    this._graphicsContext.title = value
   }
 
   on (id, listener) {
-    this[$events].on(id, listener)
+    this._emitter.on(id, listener)
   }
 
   off (id, listener) {
-    this[$events].off(id, listener)
+    this._emitter.off(id, listener)
   }
 
   get activeNode () {
@@ -115,32 +102,33 @@ export class Scene extends SceneBase {
   }
 
   resize (width, height, fullscreen = true) {
-    this[$graphicsContext].resize(width, height, fullscreen)
+    this._graphicsContext.resize(width, height, fullscreen)
   }
 
   requestAnimationFrame (callback) {
-    this[$frameListenersForeground].push([++sFrameRequestId, callback])
+    this._frameListenersForeground.push([++sFrameRequestId, callback])
 
     return sFrameRequestId
   }
 
   cancelAnimationFrame (requestId) {
-    removeAnimationFrameListener(requestId, this[$frameListenersForeground])
+    removeAnimationFrameListener(requestId, this._frameListenersForeground)
 
     // use case: calling cancel in a raf() callback
-    removeAnimationFrameListener(requestId, this[$frameListenersBackground])
+    removeAnimationFrameListener(requestId, this._frameListenersBackground)
   }
 
-  [$frame] (tick, lastTick) {
-    if (this[$frameListenersForeground].length) {
+  $frame (tick, lastTick) {
+    if (this._frameListenersForeground.length) {
       // - background listener list should be empty here
       // - swap background and foreground -> background listeners will be processed right now. any listeners added
       //    during processing will be added to foreground and processed next frame (so user can call raf() in
       //    raf callbacks)
 
-      swapPropValues(this, $frameListenersForeground, $frameListenersBackground)
+      [this._frameListenersBackground, this._frameListenersForeground] =
+        [this._frameListenersForeground, this._frameListenersBackground]
 
-      for (const [/* handle */, callback] of this[$frameListenersBackground]) {
+      for (const [/* handle */, callback] of this._frameListenersBackground) {
         try {
           callback && callback(tick, lastTick)
         } catch (e) {
@@ -148,37 +136,32 @@ export class Scene extends SceneBase {
         }
       }
 
-      this[$frameListenersBackground].length = 0
+      this._frameListenersBackground.length = 0
     }
 
-    super[$frame](tick, lastTick)
+    super.$frame(tick, lastTick)
   }
 
-  [$emit] (event) {
-    this[$events].emit(event)
+  $emit (event) {
+    this._emitter.emit(event)
   }
 
-  [$attach] () {
-    this[$graphicsContext].attach()
+  $attach () {
+    this._graphicsContext.attach()
 
-    super[$attach]()
+    super.$attach()
   }
 
-  [$detach] () {
-    super[$detach]()
+  $detach () {
+    super.$detach()
 
-    this[$graphicsContext].detach()
+    this._graphicsContext.detach()
   }
 
-  [$destroy] () {
-    super[$destroy]()
+  $destroy () {
+    super.$destroy()
 
     this[$activeNode] = null
-
-    if (this[$events]) {
-      this[$emit]({ type: $destroying })
-      this[$events] = null
-    }
   }
 }
 
@@ -209,13 +192,6 @@ const removeAnimationFrameListener = (requestId, listeners) => {
     // Just clear the listener and preserve the array structure, as the frame may be processing this list right now
     listeners[index] = sEmptyRafEntry
   }
-}
-
-const swapPropValues = (obj, prop1, prop2) => {
-  const t = obj[prop1]
-
-  obj[prop1] = obj[prop2]
-  obj[prop2] = t
 }
 
 const createGraphicsContext = (stage, platform, { displayIndex, width, height, fullscreen }) => {

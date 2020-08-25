@@ -9,8 +9,7 @@ import { Keyboard } from '../../src/input/Keyboard'
 import { parseSystemMapping } from '../../src/input/parseSystemMapping'
 import { ScanCode } from '../../src/input/ScanCode'
 import { Key } from '../../src/input/Key'
-import { $setNativeKeyboard } from '../../src/util/InternalSymbols'
-import { Mapping } from '../../src/input/Mapping'
+import { MappingType } from '../../src/input/MappingType'
 
 describe('Keyboard', () => {
   let keyboard = null
@@ -25,7 +24,7 @@ describe('Keyboard', () => {
       const [uuid, mapping] = parseSystemMapping(keyboard.mapping)
 
       assert.equal(uuid, keyboard.uuid)
-      assert.equal(mapping.name, Mapping.STANDARD)
+      assert.equal(mapping.name, MappingType.Standard)
 
       assert.equal(mapping.getKeyForButton(ScanCode.RETURN), Key.START)
       assert.equal(mapping.getKeyForButton(ScanCode.RSHIFT), Key.SELECT)
@@ -47,7 +46,7 @@ describe('Keyboard', () => {
     })
     it('should consult native keyboard for key down status', () => {
       // set a mock native keyboard that has the X button down
-      keyboard[$setNativeKeyboard]({
+      keyboard.$setNative({
         isButtonDown (scanCode) {
           return scanCode === ScanCode.X
         }

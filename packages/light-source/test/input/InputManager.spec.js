@@ -6,12 +6,15 @@
 
 import { assert } from 'chai'
 import { InputManager } from '../../src/input/InputManager'
-import { $attach, $detach, $emit, $plugin, $scene } from '../../src/util/InternalSymbols'
 import sinon from 'sinon'
 import { Mapping } from '../../src/input/Mapping'
 import { Keyboard } from '../../src/input/Keyboard'
 
 const createMockStage = () => {
+  const scene = {
+    $emit: sinon.stub()
+  }
+
   const plugin = {
     keyboard: {},
     gamepads: [],
@@ -29,20 +32,18 @@ const createMockStage = () => {
       this.callbacks.clear()
     }
   }
-  const scene = {
-    [$emit]: sinon.stub()
-  }
 
   return {
     plugin,
     scene,
-    [$plugin]: plugin,
-    [$emit]: sinon.stub(),
-    [$scene]: scene
+    $emit: sinon.stub(),
+    getScene () {
+      return scene
+    }
   }
 }
-const assertCallbacksRegistered = (stageAdapter) => {
-  assert.containsAllKeys(stageAdapter.callbacks, [
+const assertCallbacksRegistered = (plugin) => {
+  assert.containsAllKeys(plugin.callbacks, [
     'axismotion',
     'buttondown',
     'buttonup',
@@ -61,25 +62,25 @@ describe('InputManager', () => {
   beforeEach(() => {
     stage = createMockStage()
     inputManager = new InputManager(stage)
-    inputManager[$plugin] = stage.plugin
-    inputManager[$attach]()
+    inputManager.$setPlugin(stage.plugin)
+    inputManager.$attach()
   })
   afterEach(() => {
-    inputManager[$detach]()
+    inputManager.$detach()
     inputManager = null
     stage = null
   })
   describe('$attach()', () => {
     it('should attach to platform plugin', () => {
-      assert.isTrue(inputManager.enabled)
+      assert.isTrue(inputManager.isEnabled())
       assert.isOk(inputManager.keyboard)
       assertCallbacksRegistered(stage.plugin)
     })
   })
   describe('$detach()', () => {
     it('should detach from the platform plugin', () => {
-      inputManager[$detach]()
-      assert.isTrue(inputManager.enabled)
+      inputManager.$detach()
+      assert.isTrue(inputManager.isEnabled())
       assert.isOk(inputManager.keyboard)
       assert.lengthOf(stage.plugin.callbacks, 0)
     })
@@ -167,13 +168,13 @@ describe('InputManager', () => {
   describe('connected callback', () => {
     it('should emit connected event', () => {
       stage.plugin.callbacks.get('connected')({})
-      assert.isTrue(stage[$emit].calledOnce)
+      assert.isTrue(stage.$emit.calledOnce)
     })
   })
   describe('disconnected callback', () => {
     it('should emit disconnected event', () => {
       stage.plugin.callbacks.get('disconnected')({})
-      // assert.isTrue(stage[$emit].calledOnce)
+      // assert.isTrue(stage.$emit.calledOnce)
     })
   })
   describe('keydown callback', () => {

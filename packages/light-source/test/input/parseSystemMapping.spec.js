@@ -6,7 +6,7 @@
 
 import { assert } from 'chai'
 import { parseSystemMapping } from '../../src/input/parseSystemMapping'
-import { Mapping } from '../../src/input/Mapping'
+import { MappingType } from '../../src/input/MappingType'
 
 const csv = '03000000c82d00002038000000000000,8bitdo,a:b1,b:b0,back:b10,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,' +
   'guide:b2,leftshoulder:b6,leftstick:b13,lefttrigger:b8,leftx:a0,lefty:a1,rightshoulder:b7,rightstick:b14,' +
@@ -17,7 +17,7 @@ describe('parseSystemMapping()', () => {
     const [uuid, mapping] = parseSystemMapping(csv)
 
     assert.equal(uuid, '03000000c82d00002038000000000000')
-    assert.equal(mapping.name, Mapping.STANDARD)
+    assert.equal(mapping.name, MappingType.Standard)
   })
   it('should reject invalid csv strings', () => {
     for (const input of ['', ',', '03000000c82d00002038000000000000,', '03000000c82d00002038000000000000,8bitdo']) {

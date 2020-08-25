@@ -116,6 +116,9 @@ class SafeObjectWrap : public virtual SafeObjectWrapReference {
     // Cast (or unwrap) a javascript object to it's C++ class instance. If cast successful, add a reference.
     static T* CastRef(const Napi::Value& value) noexcept;
 
+    // static_cast the wrap value of the given javascript object
+    static T* StaticCast(const Napi::Value& value) noexcept;
+
     /**
      * Safely add a reference on a SafeObjectWrap instance.
      *

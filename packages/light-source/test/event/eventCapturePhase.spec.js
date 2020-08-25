@@ -10,9 +10,9 @@ import { performance } from 'perf_hooks'
 import { KeyEvent } from '../../src/event/KeyEvent'
 import { Direction } from '../../src/input/Direction'
 import { Key } from '../../src/input/Key'
-import { Mapping } from '../../src/input/Mapping'
 import { afterSceneTest, beforeSceneTest } from '../test-env'
 import { waypoint } from '../../src/scene/waypoint'
+import { MappingType } from '../../src/input/MappingType'
 
 describe('eventCapturePhase()', () => {
   let scene
@@ -60,6 +60,6 @@ const setupSceneRoot = (scene) => {
   scene.activeNode = child1
 }
 
-const rightKeyEvent = () => new KeyEvent(Key.RIGHT, true, false, Mapping.STANDARD, Direction.RIGHT, {}, performance.now())
+const rightKeyEvent = () => new KeyEvent(Key.RIGHT, true, false, MappingType.Standard, Direction.RIGHT, {}, performance.now())
 
-const leftKeyEvent = () => new KeyEvent(Key.LEFT, true, false, Mapping.STANDARD, Direction.LEFT, {}, performance.now())
+const leftKeyEvent = () => new KeyEvent(Key.LEFT, true, false, MappingType.Standard, Direction.LEFT, {}, performance.now())

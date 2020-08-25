@@ -19,84 +19,70 @@ import { EventEmitter } from 'events'
 import { AudioSourceType } from './AudioSourceType'
 
 let nextAsyncId = 1
-
 const { readFile } = promises
-
-const $id = Symbol('id')
-const $setBuffer = Symbol('setBuffer')
-const $setError = Symbol('setError')
-const $asyncId = Symbol('asyncId')
-const $buffer = Symbol('buffer')
-const $owner = Symbol('owner')
-const $emitter = Symbol('emitter')
-
-const $load = Symbol.for('load')
-const $unload = Symbol.for('unload')
-const $destination = Symbol.for('destination')
-
-// expose for tests
-const $state = Symbol.for('state')
-const $source = Symbol.for('source')
 
 /**
  * An audio resource that can be rendered to a destination output buffer.
  */
 export class AudioSource {
+  _audioManager = null
+  _id = ''
+  _state = AudioSourceStateInit
+  _native = null
+  _buffer = null
+  _asyncId = 0
+  _emitter = new EventEmitter()
+
   constructor (audio, id) {
-    this[$owner] = audio
-    this[$id] = id
-    this[$state] = AudioSourceStateInit
-    this[$source] = null
-    this[$buffer] = null
-    this[$asyncId] = 0
-    this[$emitter] = new EventEmitter()
+    this._audioManager = audio
+    this._id = id
   }
 
   on (name, callback) {
-    this[$emitter].on(name, callback)
+    this._emitter.on(name, callback)
   }
 
   once (name, callback) {
-    this[$emitter].once(name, callback)
+    this._emitter.once(name, callback)
   }
 
   off (name, callback) {
-    this[$emitter].off(name, callback)
+    this._emitter.off(name, callback)
   }
 
   /**
-   * @returns {AudioSourceType}
+   * @returns {string}
    */
   getType () {
-    // sub-class will override
+    return ''
   }
 
   /**
    * @returns {string} AudioManager resource ID.
    */
   getId () {
-    return this[$id]
+    return this._id
   }
 
   /**
    * @returns {boolean} true if the audio source is ready for use (playback, etc); otherwise, false
    */
   isReady () {
-    return this[$state] === AudioSourceStateReady
+    return this._state === AudioSourceStateReady
   }
 
   /**
    * @returns {boolean} true if the audio source is currently being loaded; otherwise, false
    */
   isLoading () {
-    return this[$state] === AudioSourceStateLoading
+    return this._state === AudioSourceStateLoading
   }
 
   /**
    * @returns {boolean} true if the audio source failed to load it's file; otherwise, false
    */
   isError () {
-    return this[$state] === AudioSourceStateError
+    return this._state === AudioSourceStateError
   }
 
   /**
@@ -106,14 +92,14 @@ export class AudioSource {
    * @param {Number} [opts.fadeInMs=0] The time in milliseconds to fade in (volume) playback.
    */
   play (opts = {}) {
-    this[$source].play(opts)
+    this._native.play(opts)
   }
 
   /**
    * @returns volume {number} Current value [0-1] of the volume of the audio source.
    */
   getVolume () {
-    return this[$source].volume
+    return this._native.volume
   }
 
   /**
@@ -123,43 +109,43 @@ export class AudioSource {
    * out of range, it is Math.clamp()'d to [0-1].
    */
   setVolume (value) {
-    this[$source].volume = isNumber(value) ? clamp(value, 0, 1) : 0
+    this._native.volume = isNumber(value) ? clamp(value, 0, 1) : 0
   }
 
   /**
    * @returns {boolean} true if this audio source supports volume controls; otherwise, false
    */
   hasVolume () {
-    return this[$source].hasCapability(AudioSourceCapabilityVolume)
+    return this._native.hasCapability(AudioSourceCapabilityVolume)
   }
 
   /**
    * @returns {boolean} true if this audio source supports the loop option of play(); otherwise, false
    */
   canLoop () {
-    return this[$source].hasCapability(AudioSourceCapabilityLoop)
+    return this._native.hasCapability(AudioSourceCapabilityLoop)
   }
 
   /**
    * @returns {boolean} true if this audio source supports fadeIn; otherwise, false
    */
   canFadeIn () {
-    return this[$source].hasCapability(AudioSourceCapabilityFadeIn)
+    return this._native.hasCapability(AudioSourceCapabilityFadeIn)
   }
 
   /**
    * @ignore
    */
-  [$load] (sync) {
-    switch (this[$state]) {
+  $load (sync) {
+    switch (this._state) {
       case AudioSourceStateInit:
-        if (this[$buffer]) {
-          this[$setBuffer](this[$buffer], true)
+        if (this._buffer) {
+          this._setBuffer(this._buffer, true)
           return
         }
         break
       case AudioSourceStateLoading:
-        this[$buffer] && this[$setBuffer](this[$buffer], true)
+        this._buffer && this._setBuffer(this._buffer, true)
         return
       case AudioSourceStateError:
         break
@@ -167,7 +153,7 @@ export class AudioSource {
         throw Error('AudioSource must be in init or error state to load')
     }
 
-    const path = parseUri(this[$id])
+    const path = parseUri(this._id)
 
     if (sync) {
       let buffer
@@ -175,23 +161,23 @@ export class AudioSource {
       try {
         buffer = readFileSync(path)
       } catch (e) {
-        this[$setError](e, true)
+        this._setError(e, true)
         return
       }
 
-      this[$setBuffer](buffer, true)
+      this._setBuffer(buffer, true)
     } else {
-      const asyncId = this[$asyncId] = nextAsyncId++
-      const cancelled = () => this[$asyncId] !== asyncId || this[$state] !== AudioSourceStateLoading
+      const asyncId = this._asyncId = nextAsyncId++
+      const cancelled = () => this._asyncId !== asyncId || this._state !== AudioSourceStateLoading
 
-      this[$state] = AudioSourceStateLoading
+      this._state = AudioSourceStateLoading
 
       readFile(path)
         .then((buffer) => {
-          cancelled() || this[$setBuffer](buffer, false)
+          cancelled() || this._setBuffer(buffer, false)
         })
         .catch((e) => {
-          cancelled() || this[$setError](e, false)
+          cancelled() || this._setError(e, false)
         })
     }
   }
@@ -199,71 +185,85 @@ export class AudioSource {
   /**
    * @ignore
    */
-  [$unload] () {
-    this[$state] = AudioSourceStateInit
-    this[$asyncId] = 0
-    this[$source] && this[$source].destroy()
-    this[$source] = null
+  $unload () {
+    this._state = AudioSourceStateInit
+    this._asyncId = 0
+    this._native && this._native.destroy()
+    this._native = null
   }
 
   /**
    * @ignore
    */
-  [$setError] (error, deferred) {
+  $setNative (nativeAudioSource) {
+    this._native = nativeAudioSource
+  }
+
+  /**
+   * @ignore
+   */
+  $setState (state) {
+    this._state = state
+  }
+
+  /**
+   * @ignore
+   */
+  _setError (error, deferred) {
     const message = typeof error === 'string' ? error : error.message
 
-    this[$unload]()
-    this[$state] = AudioSourceStateError
-    this[$buffer] = null
+    this.$unload()
+    this._state = AudioSourceStateError
+    this._buffer = null
 
     if (deferred) {
-      queueMicrotask(() => this[$emitter].emit('status', this, message))
+      queueMicrotask(() => this._emitter.emit('status', this, message))
     } else {
-      this[$emitter].emit('status', this, message)
+      this._emitter.emit('status', this, message)
     }
   }
 
   /**
    * @ignore
    */
-  [$setBuffer] (buffer, deferred) {
-    const audio = this[$owner]
+  _setBuffer (buffer, deferred) {
+    const audioManager = this._audioManager
 
-    this[$buffer] = buffer
+    this._buffer = buffer
 
-    if (!this[$source]) {
-      if (!audio.isAttached()) {
+    if (!this._native) {
+      if (!audioManager.isAttached()) {
         return
       }
 
-      const dest = audio[this.getType()]
+      const dest = audioManager[this.getType()]
 
       if (!dest || !dest.isAvailable()) {
-        this[$setError](`${this.getType()} type is not loadable for this audio plugin.`, deferred)
+        this._setError(`${this.getType()} type is not loadable for this audio plugin.`, deferred)
         return
       }
 
       try {
-        this[$source] = dest[$destination].createAudioSource()
+        this._native = dest.$createNativeAudioSource()
       } catch (e) {
-        this[$setError](e, deferred)
+        this._setError(e, deferred)
         return
       }
     }
 
     try {
-      this[$source].load(buffer)
+      this._native.load(buffer)
     } catch (e) {
-      this[$setError](e, deferred)
+      this._setError(e, deferred)
       return
     }
 
-    this[$state] = AudioSourceStateReady
+    this._state = AudioSourceStateReady
 
     if (deferred) {
-      queueMicrotask(() => this[$emitter].emit('status', this, null))
+      queueMicrotask(() => this._emitter.emit('status', this, null))
     } else {
-      this[$emitter].emit('status', this, null)
+      this._emitter.emit('status', this, null)
     }
   }
 }

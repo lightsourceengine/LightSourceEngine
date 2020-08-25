@@ -4,7 +4,6 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { $emit } from '../util/InternalSymbols'
 import { BUBBLE } from './EventPhase'
 
 const bubble = (stage, scene, event) => {
@@ -17,12 +16,11 @@ const bubble = (stage, scene, event) => {
     walker = walker.parent
   }
 
-  event.cancelled || scene[$emit](event)
-  event.cancelled || stage[$emit](event)
+  event.cancelled || scene.$emit(event)
+  event.cancelled || stage.$emit(event)
 }
 
 /**
- *
  * @ignore
  */
 export const eventBubblePhase = (stage, scene, event) => {

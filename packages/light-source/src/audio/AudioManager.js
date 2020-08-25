@@ -4,52 +4,39 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { $attach, $destroy, $detach } from '../util/InternalSymbols'
 import { NullAudioSource, SampleAudioSource, StreamAudioSource } from './AudioSource'
 import { AudioDestination } from './AudioDestination'
 import { EventEmitter } from 'events'
 import { emptyArray } from '../util'
 
-const $stage = Symbol('stage')
-const $sample = Symbol('sample')
-const $stream = Symbol('stream')
-const $emitter = Symbol('emitter')
-const $nullAudioSource = Symbol('nullAudioSource')
-const $add = Symbol('add')
-const $audioSourceMap = Symbol('audioSourceMap')
-const $unloadAudioSources = Symbol('unloadAudioSources')
-
-const $plugin = Symbol.for('plugin')
-const $load = Symbol.for('load')
-const $unload = Symbol.for('unload')
-const $setNativeDestination = Symbol.for('setNativeDestination')
-
 /**
  * Audio API.
  */
 export class AudioManager {
+  _stage = null
+  _plugin = null
+  _audioSourceMap = new Map()
+  _sampleAudioDestination = new AudioDestination()
+  _streamAudioDestination = new AudioDestination()
+  _emitter = new EventEmitter()
+  _nullAudioSource = Object.freeze(new NullAudioSource(this, ''))
+
   constructor (stage) {
-    this[$stage] = stage
-    this[$plugin] = null
-    this[$audioSourceMap] = new Map()
-    this[$sample] = new AudioDestination()
-    this[$stream] = new AudioDestination()
-    this[$emitter] = new EventEmitter()
-    this[$nullAudioSource] = Object.freeze(new NullAudioSource(this))
+    this._stage = stage
   }
 
   // TODO: document events ('status')
 
   on (name, callback) {
-    this[$emitter].on(name, callback)
+    this._emitter.on(name, callback)
   }
 
   once (name, callback) {
-    this[$emitter].once(name, callback)
+    this._emitter.once(name, callback)
   }
 
   off (name, callback) {
-    this[$emitter].off(name, callback)
+    this._emitter.off(name, callback)
   }
 
   /**
@@ -59,7 +46,7 @@ export class AudioManager {
    * @returns true if attached to platform audio subsystem; otherwise, false
    */
   isAttached () {
-    return this[$plugin] && this[$plugin].attached
+    return this._plugin && this._plugin.attached
   }
 
   /**
@@ -67,21 +54,21 @@ export class AudioManager {
    */
   getDevices () {
     // Note: names are purely informational right now
-    return this[$plugin] ? this[$plugin].devices : emptyArray
+    return this._plugin ? this._plugin.devices : emptyArray
   }
 
   /**
    * @returns {AudioDestination} The sound effect output buffer.
    */
   get sample () {
-    return this[$sample]
+    return this._sampleAudioDestination
   }
 
   /**
    * @returns {AudioDestination} The background music output buffer.
    */
   get stream () {
-    return this[$stream]
+    return this._streamAudioDestination
   }
 
   /**
@@ -91,7 +78,7 @@ export class AudioManager {
    * @returns {AudioSource} AudioSource object matching the id; otherwise, a null-type AudioSource object is returned.
    */
   get (id) {
-    return this[$audioSourceMap].get(id) || this[$nullAudioSource]
+    return this._audioSourceMap.get(id) || this._nullAudioSource
   }
 
   /**
@@ -101,7 +88,7 @@ export class AudioManager {
    * @returns {boolean} true if AudioSource with id exists; otherwise, false
    */
   has (id) {
-    return this[$audioSourceMap].has(id)
+    return this._audioSourceMap.has(id)
   }
 
   /**
@@ -112,7 +99,7 @@ export class AudioManager {
    * @param id {string} AudioSource id
    */
   delete (id) {
-    this[$audioSourceMap].delete(id)
+    this._audioSourceMap.delete(id)
   }
 
   /**
@@ -132,7 +119,7 @@ export class AudioManager {
    * @returns {AudioSource}
    */
   addSample (id, opts = {}) {
-    return this[$add](id, opts, SampleAudioSource)
+    return this._add(id, opts, SampleAudioSource)
   }
 
   /**
@@ -152,72 +139,79 @@ export class AudioManager {
    * @returns {AudioSource}
    */
   addStream (id, opts = {}) {
-    return this[$add](id, opts, StreamAudioSource)
+    return this._add(id, opts, StreamAudioSource)
   }
 
   /**
    * @returns {AudioSource[]} Array of AudioSource objects that have been added to the AudioManager
    */
   all () {
-    return Array.from(this[$audioSourceMap].values())
+    return Array.from(this._audioSourceMap.values())
   }
 
   /**
    * @ignore
    */
-  [$attach] () {
-    if (!this[$plugin] || this[$plugin].attached) {
+  $attach () {
+    if (!this._plugin || this._plugin.attached) {
       return
     }
 
-    this[$plugin].attach()
-    this[$sample][$setNativeDestination](this[$plugin].createSampleAudioDestination())
-    this[$stream][$setNativeDestination](this[$plugin].createStreamAudioDestination())
-    this[$audioSourceMap].forEach(as => as[$load]())
-    this[$emitter].emit('attached')
+    this._plugin.attach()
+    this._sampleAudioDestination.$setNative(this._plugin.createSampleAudioDestination())
+    this._streamAudioDestination.$setNative(this._plugin.createStreamAudioDestination())
+    this._audioSourceMap.forEach(as => as.$load())
+    this._emitter.emit('attached')
   }
 
   /**
    * @ignore
    */
-  [$detach] () {
-    if (!this[$plugin] || !this[$plugin].attached) {
+  $detach () {
+    if (!this._plugin || !this._plugin.attached) {
       return
     }
 
-    this[$unloadAudioSources]()
-    this[$sample][$setNativeDestination](null)
-    this[$stream][$setNativeDestination](null)
-    this[$plugin].detach()
-    this[$emitter].emit('detached')
+    this._unloadAudioSources()
+    this._sampleAudioDestination.$setNative(null)
+    this._streamAudioDestination.$setNative(null)
+    this._plugin.detach()
+    this._emitter.emit('detached')
   }
 
   /**
    * @ignore
    */
-  [$destroy] () {
-    if (this[$plugin]) {
-      this[$unloadAudioSources]()
-      this[$audioSourceMap].clear()
-      this[$sample][$setNativeDestination](null)
-      this[$stream][$setNativeDestination](null)
-      this[$plugin] = null
+  $destroy () {
+    if (this._plugin) {
+      this._unloadAudioSources()
+      this._audioSourceMap.clear()
+      this._sampleAudioDestination.$setNative(null)
+      this._streamAudioDestination.$setNative(null)
+      this._plugin = null
     }
   }
 
   /**
    * @ignore
    */
-  [$add] (id, opts, AudioSourceClass) {
+  $setPlugin (instance) {
+    this._plugin = instance
+  }
+
+  /**
+   * @ignore
+   */
+  _add (id, opts, AudioSourceClass) {
     if (this.has(id)) {
       return this.get(id)
     }
 
     const as = new AudioSourceClass(this, id)
 
-    this[$audioSourceMap].set(id, as)
+    this._audioSourceMap.set(id, as)
 
-    as[$load](!!opts.sync)
+    as.$load(!!opts.sync)
 
     return as
   }
@@ -225,7 +219,7 @@ export class AudioManager {
   /**
    * @ignore
    */
-  [$unloadAudioSources] () {
-    this[$audioSourceMap].forEach(as => as[$unload]())
+  _unloadAudioSources () {
+    this._audioSourceMap.forEach(as => as.$unload())
   }
 }

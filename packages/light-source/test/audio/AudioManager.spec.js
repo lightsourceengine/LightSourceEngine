@@ -5,7 +5,6 @@
  */
 
 import { assert } from 'chai'
-import { $attach, $destroy, $detach, $plugin } from '../../src/util/InternalSymbols'
 import { AudioManager } from '../../src/audio/AudioManager'
 import bindings from 'bindings'
 import { AudioSourceType } from '../../src/audio/AudioSourceType'
@@ -15,21 +14,22 @@ const testWavFile = 'test/resources/test.wav'
 describe('AudioManager', () => {
   let audio
   beforeEach(() => {
-    audio = new AudioManager({ resourcePath: '' })
-    audio[$plugin] = bindings('light-source-ref-audio').createInstance()
-    audio[$attach]()
+    const mockStage = {}
+    audio = new AudioManager(mockStage)
+    audio.$setPlugin(bindings('light-source-ref-audio').createInstance())
+    audio.$attach()
   })
   afterEach(() => {
-    audio[$destroy]()
+    audio.$destroy()
     audio = null
   })
   describe('attached event', () => {
     it('should emit attached event', async () => {
-      audio[$detach]()
+      audio.$detach()
 
       const p = attachedEventPromise(audio)
 
-      audio[$attach]()
+      audio.$attach()
 
       await p
     })
@@ -38,7 +38,7 @@ describe('AudioManager', () => {
     it('should emit detached event', async () => {
       const p = detachedEventPromise(audio)
 
-      audio[$detach]()
+      audio.$detach()
 
       await p
     })
@@ -48,7 +48,7 @@ describe('AudioManager', () => {
       assert.isTrue(audio.isAttached())
     })
     it('should be detached', () => {
-      audio[$detach]()
+      audio.$detach()
       assert.isFalse(audio.isAttached())
     })
   })

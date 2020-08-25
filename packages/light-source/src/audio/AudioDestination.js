@@ -4,8 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { $destination } from '../util/InternalSymbols'
-import { AudioDecoder } from './AudioDecoder'
+import { AudioDecoderType } from './AudioDecoderType'
 import {
   AudioDestinationCapabilityFadeOut,
   AudioDestinationCapabilityPause,
@@ -15,40 +14,34 @@ import {
 } from './constants'
 import { clamp, isNumber, emptyArray } from '../util'
 
-const $decoders = Symbol('decoders')
-const $rawDecoders = Symbol('rawDecoders')
-const $setNativeDestination = Symbol.for('setNativeDestination')
-
 /**
  * An audio output buffer.
  */
 export class AudioDestination {
-  constructor () {
-    this[$destination] = NullNativeAudioDestination.instance
-    this[$decoders] = emptyArray
-    this[$rawDecoders] = emptyArray
-  }
+  _native = NullNativeAudioDestination.instance // eslint-disable-line
+  _decoders = emptyArray
+  _rawDecoders = emptyArray
 
   /**
    * @returns {boolean} true if audio sources can be rendered to this destination; false if no audio can
    * be loaded or played with this destination.
    */
   isAvailable () {
-    return this[$destination] !== NullNativeAudioDestination.instance
+    return this._native !== NullNativeAudioDestination.instance
   }
 
   /**
    * @returns {string[]} List of audio decoders this destination supports.
    */
   getDecoders () {
-    return this[$decoders]
+    return this._decoders
   }
 
   /**
    * @ignore
    */
   getRawDecoders () {
-    return this[$rawDecoders]
+    return this._rawDecoders
   }
 
   /**
@@ -58,49 +51,49 @@ export class AudioDestination {
    * @returns {boolean} true if decoder is supported; otherwise, false
    */
   hasDecoder (decoder) {
-    return this[$rawDecoders].indexOf(decoder) >= 0
+    return this._rawDecoders.indexOf(decoder) >= 0
   }
 
   /**
    * @returns {boolean} true if the audio destination can be pause()'d; otherwise, false
    */
   canPause () {
-    return this[$destination].hasCapability(AudioDestinationCapabilityPause)
+    return this._native.hasCapability(AudioDestinationCapabilityPause)
   }
 
   /**
    * @returns {boolean} true if the audio destination can be resume()'d; otherwise, false
    */
   canResume () {
-    return this[$destination].hasCapability(AudioDestinationCapabilityResume)
+    return this._native.hasCapability(AudioDestinationCapabilityResume)
   }
 
   /**
    * @returns {boolean} true if the audio destination can be stop()'d; otherwise, false
    */
   canStop () {
-    return this[$destination].hasCapability(AudioDestinationCapabilityStop)
+    return this._native.hasCapability(AudioDestinationCapabilityStop)
   }
 
   /**
    * @returns {boolean} true if the audio destination can be faded out; otherwise, false
    */
   canFadeOut () {
-    return this[$destination].hasCapability(AudioDestinationCapabilityFadeOut)
+    return this._native.hasCapability(AudioDestinationCapabilityFadeOut)
   }
 
   /**
    * @returns {boolean} true if the audio destination has volume controls; otherwise, false
    */
   hasVolume () {
-    return this[$destination].hasCapability(AudioDestinationCapabilityVolume)
+    return this._native.hasCapability(AudioDestinationCapabilityVolume)
   }
 
   /**
    * @returns volume {number} Current value [0-1] of the volume of the audio destination.
    */
   getVolume () {
-    return this[$destination].volume
+    return this._native.volume
   }
 
   /**
@@ -110,21 +103,21 @@ export class AudioDestination {
    * out of range, it is Math.clamp()'d to [0-1].
    */
   setVolume (value) {
-    this[$destination].volume = isNumber(value) ? clamp(value, 0, 1) : 0
+    this._native.volume = isNumber(value) ? clamp(value, 0, 1) : 0
   }
 
   /**
    * Pause playback of the output buffer.
    */
   pause () {
-    this[$destination].pause()
+    this._native.pause()
   }
 
   /**
    * Resume playback of the output buffer.
    */
   resume () {
-    this[$destination].resume()
+    this._native.resume()
   }
 
   /**
@@ -134,25 +127,33 @@ export class AudioDestination {
    * canFadeOut is true.
    */
   stop (opts) {
-    this[$destination].stop(opts)
+    this._native.stop(opts)
   }
 
   /**
    * @ignore
    */
-  [$setNativeDestination] (nativeDestination) {
-    this[$destination] = nativeDestination || NullNativeAudioDestination.instance
-    this[$rawDecoders] = [...this[$destination].decoders]
-    this[$decoders] = []
+  $createNativeAudioSource () {
+    return this._native.createAudioSource()
+  }
 
-    for (const rawDecoder of this[$rawDecoders]) {
-      if (rawDecoder in AudioDecoder) {
-        this[$decoders].push(rawDecoder)
+  /**
+   * @ignore
+   */
+  $setNative (nativeDestination) {
+    this._native = nativeDestination || NullNativeAudioDestination.instance
+    this._decoders = []
+
+    for (const rawDecoder of this._native.decoders) {
+      if (rawDecoder in AudioDecoderType) {
+        this._decoders.push(rawDecoder)
       }
     }
 
-    Object.freeze(this[$rawDecoders])
-    Object.freeze(this[$decoders])
+    this._rawDecoders = [...this._native.decoders]
+
+    Object.freeze(this._rawDecoders)
+    Object.freeze(this._decoders)
   }
 }
 
@@ -161,8 +162,10 @@ export class AudioDestination {
  */
 class NullNativeAudioDestination {
   static instance = new NullNativeAudioDestination()
-  constructor () { this.volume = 0; this.decoders = emptyArray }
+  decoders = emptyArray
   resume () {}
+  setVolume (value) {}
+  getVolume () { return 0 }
   stop () {}
   pause () {}
   hasCapability () { return false }
