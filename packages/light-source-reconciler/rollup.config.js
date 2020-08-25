@@ -35,7 +35,6 @@ export default [
         setTimeout: [resolve('lib/timeout-scope.js'), 'setTimeout'],
         clearTimeout: [resolve('lib/timeout-scope.js'), 'clearTimeout']
       }),
-      inlineObjectAssign(),
       nodeResolve(),
       minify()
     ]
