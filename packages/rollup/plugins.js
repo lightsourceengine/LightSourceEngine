@@ -18,8 +18,8 @@ const preamble = '// Light Source Engine\n' +
 export const beautify = () => terser({
   compress: false,
   mangle: false,
+  ecma: 2020,
   output: {
-    ecma: 8,
     quote_style: 1,
     semicolons: false,
     beautify: true,
@@ -93,7 +93,7 @@ export const minify = (options = {}) => terser({
     semicolons: false,
     preamble
   },
-  ecma: 8,
+  ecma: 2020,
   module: true
 })
 
