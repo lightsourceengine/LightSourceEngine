@@ -44,7 +44,7 @@
       "docs/",
       "tools/"
     ],
-    "parser": "babel-eslint",
+    "parser": "@babel/eslint-parser",
     "env": {
       "mocha": true,
       "node": true

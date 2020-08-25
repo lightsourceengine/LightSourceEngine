@@ -9,7 +9,7 @@ import nodeResolve from '@rollup/plugin-node-resolve'
 import inject from '@rollup/plugin-inject'
 import commonjs from '@rollup/plugin-commonjs'
 import { resolve } from 'path'
-import { onwarn, minify, nodeEnv, inlineObjectAssign } from '../rollup/plugins'
+import { onwarn, minify, nodeEnv } from '../rollup/plugins'
 
 export default [
   {

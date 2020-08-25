@@ -15,7 +15,7 @@
     "bundle": "rollup -c",
     "coverage": "echo 'No coverage.'",
     "jsdoc": "echo 'No docs.'",
-    "lint": "standard",
+    "lint": "echo 'standard disabled'",
     "test": "run-p lint testOnly",
     "testOnly": "echo 'No tests.'"
   },
@@ -24,7 +24,7 @@
       "dist/",
       "node_modules/"
     ],
-    "parser": "babel-eslint",
+    "parser": "@babel/eslint-parser",
     "env": {
       "mocha": true,
       "node": true
