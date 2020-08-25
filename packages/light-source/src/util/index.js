@@ -4,11 +4,13 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-export const logexcept = (func, prefix) => {
+import { logger } from '../addon'
+
+export const logexcept = (func, site) => {
   try {
     func()
   } catch (e) {
-    console.log(prefix ? prefix + e.message : e.message)
+    logger.warn(e.message, site)
   }
 }
 

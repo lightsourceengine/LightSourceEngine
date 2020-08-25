@@ -13,6 +13,7 @@ import { ScanCode } from './input/ScanCode'
 import { waypoint } from './scene/waypoint'
 import { Mapping } from './input/Mapping'
 import { MappingType } from './input/MappingType'
+import { PluginType } from './stage/PluginType'
 import { Direction } from './input/Direction'
 import { Key } from './input/Key'
 import { Style, logger } from './addon'
@@ -79,6 +80,7 @@ export {
   stage,
   waypoint,
   Direction,
+  PluginType,
 
   // input
   Mapping,

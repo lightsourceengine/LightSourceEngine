@@ -7,7 +7,6 @@
 import { performance } from 'perf_hooks'
 import { Key } from './Key'
 import { KeyEvent } from '../event/KeyEvent'
-import { DeviceEvent } from '../event/DeviceEvent'
 import { DeviceAxisEvent } from '../event/DeviceAxisEvent'
 import { DeviceButtonEvent } from '../event/DeviceButtonEvent'
 import { Mapping } from './Mapping'
@@ -239,20 +238,19 @@ export class InputManager {
    * @ignore
    */
   _registerDeviceConnectionCallbacks () {
-    const stage = this._stage
     const plugin = this._plugin
     const systemMappings = this._systemMappings
 
     plugin.setCallback('connected', (gamepad) => {
       updateSystemMapping(systemMappings, gamepad)
       if (this._isEnabled) {
-        stage.$emit(new DeviceEvent(gamepad, true, now()))
+        // TODO: stage.$emit(new DeviceEvent(gamepad, true, now()))
       }
     })
 
     plugin.setCallback('disconnected', (gamepad) => {
       if (this._isEnabled) {
-        stage.$emit(new DeviceEvent(gamepad, false, now()))
+        // TODO: stage.$emit(new DeviceEvent(gamepad, false, now()))
       }
     })
   }

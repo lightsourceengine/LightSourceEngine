@@ -33,10 +33,6 @@ export const getSceneNodeInstanceCount = lib.getSceneNodeInstanceCount || emptyF
 export const parseColor = lib.parseColor || emptyFunction
 export const addonError = error
 
-export const SDLModuleId = 'light-source-sdl'
-export const SDLAudioModuleId = 'light-source-sdl-audio'
-export const SDLMixerModuleId = 'light-source-sdl-mixer'
-
 /**
  * @class SceneNode
  */

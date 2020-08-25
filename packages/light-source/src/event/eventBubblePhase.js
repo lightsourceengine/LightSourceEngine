@@ -17,7 +17,7 @@ const bubble = (stage, scene, event) => {
   }
 
   event.cancelled || scene.$emit(event)
-  event.cancelled || stage.$emit(event)
+  // TODO: event.cancelled || stage.$emit(event)
 }
 
 /**

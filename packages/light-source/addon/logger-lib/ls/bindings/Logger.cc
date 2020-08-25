@@ -4,8 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "Logger.h"
-#include <ls/Log.h>
+#include <ls/bindings/Logger.h>
 
 using Napi::CallbackInfo;
 using Napi::Error;
@@ -30,7 +29,10 @@ Function Logger::GetClass(Napi::Env env) {
         HandleScope scope(env);
 
         constructor = DefineClass(env, "Logger", true, {
-            StaticMethod("log", &Logger::Log),
+            StaticMethod("info", &Logger::LogInfo),
+            StaticMethod("warn", &Logger::LogWarn),
+            StaticMethod("debug", &Logger::LogDebug),
+            StaticMethod("error", &Logger::LogError),
             StaticMethod("getLogLevel", &Logger::GetLogLevel),
             StaticMethod("setLogLevel", &Logger::SetLogLevel),
             StaticValue("LogLevelError", Number::New(env, LogLevelError)),
@@ -49,7 +51,23 @@ Function Logger::GetClass(Napi::Env env) {
     return constructor.Value();
 }
 
-void Logger::Log(const CallbackInfo& info) {
+void Logger::LogInfo(const Napi::CallbackInfo &info) {
+    Log(LogLevelInfo, info);
+}
+
+void Logger::LogError(const Napi::CallbackInfo &info) {
+    Log(LogLevelError, info);
+}
+
+void Logger::LogDebug(const Napi::CallbackInfo &info) {
+    Log(LogLevelDebug, info);
+}
+
+void Logger::LogWarn(const Napi::CallbackInfo &info) {
+    Log(LogLevelWarn, info);
+}
+
+void Logger::Log(LogLevel logLevel, const CallbackInfo& info) {
     auto env{ info.Env() };
     HandleScope scope(env);
 
@@ -58,23 +76,15 @@ void Logger::Log(const CallbackInfo& info) {
 
     switch (info.Length()) {
         case 2:
+            message = info[0].ToString();
             site = info[1].As<String>();
             break;
-        case 3:
-            site = info[1].As<String>();
-            message = info[2].ToString();
-            break;
+        case 1:
         default:
-            throw Error::New(env, "Expected 2 [level, message] or 3 [site, level, message] args.");
-    }
-
-    LogLevel logLevel;
-    auto value{ info[0].As<Number>().Int32Value() };
-
-    if (IsLogLevel(value)) {
-        logLevel = static_cast<LogLevel>(value);
-    } else {
-        logLevel = LogLevelInfo;
+            if (info.Length() > 0) {
+                message = info[0].ToString();
+            }
+            break;
     }
 
     internal::LogCustomSite(logLevel, site.empty() ? "js" : site.c_str(), message.c_str());

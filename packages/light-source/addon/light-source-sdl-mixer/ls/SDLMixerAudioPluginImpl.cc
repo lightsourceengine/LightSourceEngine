@@ -328,19 +328,14 @@ void SDLMixerAudioPluginImpl::Attach(const CallbackInfo& info) {
     }
 
     auto env{ info.Env() };
-    Timer t("mixer init");
 
     if (SDL_WasInit(SDL_INIT_AUDIO) == 0 && SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
         throw Error::New(env, Format("Failed to init SDL audio. SDL Error: %s", SDL_GetError()));
     }
 
-    t.Log();
-
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 512) < 0) {
         throw Error::New(env, Format("Cannot open mixer. Error: %s", Mix_GetError()));
     }
-
-    t.Log();
 
     Mix_Init(MIX_INIT_FLAC | MIX_INIT_MOD | MIX_INIT_MP3 | MIX_INIT_OGG
         // TODO: MIX_INIT_OPUS and MIX_INIT_MID not available in 2.0.0 headers.. ok to patch it in

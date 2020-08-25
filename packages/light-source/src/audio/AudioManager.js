@@ -39,6 +39,10 @@ export class AudioManager {
     this._emitter.off(name, callback)
   }
 
+  isAvailable () {
+    return !!this._plugin
+  }
+
   /**
    * Checks if the audio manager is attached to the platform audio subsystem. If not attached, audio playback will
    * not function.
@@ -188,6 +192,7 @@ export class AudioManager {
       this._audioSourceMap.clear()
       this._sampleAudioDestination.$setNative(null)
       this._streamAudioDestination.$setNative(null)
+      this._plugin.destroy()
       this._plugin = null
     }
   }

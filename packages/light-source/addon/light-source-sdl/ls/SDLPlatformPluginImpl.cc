@@ -120,46 +120,52 @@ Capabilities SDLPlatformPluginImpl::DetermineCapabilities(Napi::Env env) {
     auto numVideoDisplays{ SDL_GetNumVideoDisplays() };
 
     if (numVideoDisplays < 0) {
-        throw Error::New(env, Format("Failed to get display count. SDL Error: %s", SDL_GetError()));
+        LOG_ERROR("SDL_GetNumVideoDisplays: %s", SDL_GetError());
+        return caps;
     }
 
+    std::unordered_set<SDL_DisplayMode, SDL_DisplayModeHash> uniqueDisplayModes;
+
     for (auto i{ 0 }; i < numVideoDisplays; i++) {
-      Display display{};
-      auto name{ SDL_GetDisplayName(i) };
+        Display display{};
+        auto name{ SDL_GetDisplayName(i) };
 
-      display.name = name ? name : "";
+        display.name = name ? name : "";
 
-      auto numDisplayModes{ SDL_GetNumDisplayModes(i) };
+        auto numDisplayModes{ SDL_GetNumDisplayModes(i) };
 
-      if (numDisplayModes < 0) {
-        throw Error::New(env, Format("Failed to get display count. SDL Error: %s", SDL_GetError()));
-      }
-
-      SDL_DisplayMode desktopDisplayMode;
-
-      if (SDL_GetDesktopDisplayMode(i, &desktopDisplayMode) != 0) {
-        throw Error::New(env, Format("Failed to get default display mode. SDL Error: %s", SDL_GetError()));
-      }
-
-      display.defaultMode = { desktopDisplayMode.w, desktopDisplayMode.h };
-
-      std::unordered_set<SDL_DisplayMode, SDL_DisplayModeHash> uniqueDisplayModes(numDisplayModes);
-
-      for (auto j{ 0 }; j < numDisplayModes; j++) {
-        SDL_DisplayMode displayMode;
-
-        if (SDL_GetDisplayMode(i, j, &displayMode) != 0) {
-          throw Error::New(env, Format("Failed to get display mode. SDL Error: %s", SDL_GetError()));
+        if (numDisplayModes < 0) {
+            LOG_ERROR("SDL_GetNumDisplayModes(%i: %s", i, SDL_GetError());
+            continue;
         }
 
-        uniqueDisplayModes.insert(displayMode);
-      }
+        SDL_DisplayMode desktopDisplayMode;
 
-      for (auto& p : uniqueDisplayModes) {
-        display.modes.push_back({ p.w, p.h });
-      }
+        if (SDL_GetDesktopDisplayMode(i, &desktopDisplayMode) != 0) {
+            LOG_ERROR("SDL_GetDesktopDisplayMode(%i): %s", i, SDL_GetError());
+            continue;
+        }
 
-      caps.displays.emplace_back(display);
+        SDL_DisplayMode displayMode;
+
+        display.defaultMode = { desktopDisplayMode.w, desktopDisplayMode.h };
+        uniqueDisplayModes.clear();
+
+        for (auto j{ 0 }; j < numDisplayModes; j++) {
+            if (SDL_GetDisplayMode(i, j, &displayMode) != 0) {
+                LOG_ERROR("SDL_GetDisplayMode(%i, %i): %s", i, j, SDL_GetError());
+                uniqueDisplayModes.clear();
+                break;
+            }
+
+            uniqueDisplayModes.insert(displayMode);
+        }
+
+        for (auto& p : uniqueDisplayModes) {
+            display.modes.push_back({ p.w, p.h });
+        }
+
+        caps.displays.emplace_back(display);
     }
 
     return caps;
@@ -198,48 +204,36 @@ void SDLPlatformPluginImpl::ResetCallbacks(const CallbackInfo& info) {
 }
 
 void SDLPlatformPluginImpl::Init(Napi::Env env) {
-    Timer t("SDLPlatformPluginImpl.Init()");
-
     if (SDL_WasInit(SDL_INIT_VIDEO) == 0 && SDL_Init(SDL_INIT_VIDEO) != 0) {
         throw Error::New(env, Format("Failed to init SDL video. SDL Error: %s", SDL_GetError()));
     }
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
-    t.Log();
-
     if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0 && SDL_Init(SDL_INIT_JOYSTICK) != 0) {
         throw Error::New(env, Format("Failed to init SDL joystick. SDL Error: %s", SDL_GetError()));
     }
-
-    t.Log();
 
     if (SDL_WasInit(SDL_INIT_GAMECONTROLLER) == 0 && SDL_Init(SDL_INIT_GAMECONTROLLER) != 0) {
         throw Error::New(env, Format("Failed to init SDL gamecontroller. SDL Error: %s", SDL_GetError()));
     }
 
     SDL_GameControllerEventState(SDL_IGNORE);
-
-    t.Log();
 }
 
 void SDLPlatformPluginImpl::Attach(const CallbackInfo& info) {
-    auto env{ info.Env() };
-    HandleScope scope(env);
-
     if (this->isAttached) {
         return;
     }
 
-    this->isAttached = false;
+    auto env{ info.Env() };
+    HandleScope scope(env);
 
     this->Init(env);
-
     this->SyncGamepads(env);
 
     if (!this->keyboard) {
-        this->keyboard = SDLKeyboard::Cast(SDLKeyboard::GetClass(env).New({}));
-        this->keyboard->Ref();
+        this->keyboard = SDLKeyboard::CastRef(SDLKeyboard::GetClass(env).New({}));
     }
 
     this->isAttached = true;
@@ -259,6 +253,7 @@ void SDLPlatformPluginImpl::Detach(const CallbackInfo& info) {
 
 void SDLPlatformPluginImpl::Destroy(const CallbackInfo& info) {
     this->ResetCallbacks(info);
+    this->capabilitiesRef.Reset();
 
     if (this->keyboard) {
         this->keyboard->Unref();
