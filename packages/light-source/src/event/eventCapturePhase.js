@@ -5,7 +5,6 @@
  */
 
 import { Direction } from '../input/Direction'
-import { CAPTURE } from './EventPhase'
 
 const $reset = Symbol.for('reset')
 const NavigateOpNotSet = 0
@@ -53,15 +52,13 @@ class NavigateContext {
   }
 }
 
-const waypointCapture = (scene, event) => {
-  const { direction } = event
-
+const waypointCapture = (start, direction, event) => {
   if (direction === Direction.NONE) {
     return
   }
 
   const navigateContext = new NavigateContext()
-  let walker = scene.activeNode
+  let walker = start
   let wasForwarded = false
   let candidate = null
 
@@ -74,13 +71,13 @@ const waypointCapture = (scene, event) => {
       switch (navigateContext.op) {
         case NavigateOpMove:
           candidate = navigateContext.selected
-          event.stop()
+          event.stopPropagation()
           break
         case NavigateOpPass:
           break
         case NavigateOpStop:
           candidate = null
-          event.stop()
+          event.stopPropagation()
           break
         case NavigateOpDefer:
           candidate = navigateContext.selected
@@ -90,7 +87,7 @@ const waypointCapture = (scene, event) => {
           throw Error(`Invalid op: ${navigateContext.op}`)
       }
 
-      if (event.cancelled) {
+      if (event.hasStopPropagation()) {
         break
       }
     }
@@ -99,7 +96,7 @@ const waypointCapture = (scene, event) => {
   }
 
   if (wasForwarded) {
-    event.stop()
+    event.stopPropagation()
   }
 
   if (candidate) {
@@ -123,19 +120,17 @@ const waypointCapture = (scene, event) => {
       throw Error()
     }
 
-    // TODO: candidate.focus()
-    scene.activeNode = candidate
+    candidate.focus()
   }
 }
 
 /**
  * @ignore
  */
-export const eventCapturePhase = (stage, scene, event) => {
-  if (event.cancelled || !scene) {
+export const eventCapturePhase = (start, direction, event) => {
+  if (direction === Direction.NONE) {
     return
   }
 
-  event.phase = CAPTURE
-  waypointCapture(scene, event)
+  waypointCapture(start, direction, event)
 }

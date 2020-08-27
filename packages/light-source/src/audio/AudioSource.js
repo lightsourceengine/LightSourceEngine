@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { clamp, isNumber } from '../util'
+import { clamp, isNumber, EventEmitter } from '../util'
 import { readFileSync, promises } from 'fs'
 import {
   AudioSourceCapabilityFadeIn,
@@ -15,8 +15,8 @@ import {
   AudioSourceStateLoading,
   AudioSourceStateReady
 } from './constants'
-import { EventEmitter } from 'events'
 import { AudioSourceType } from './AudioSourceType'
+import { ReadyStatusEvent, ErrorStatusEvent, EventNames } from '../event'
 
 let nextAsyncId = 1
 const { readFile } = promises
@@ -31,7 +31,7 @@ export class AudioSource {
   _native = null
   _buffer = null
   _asyncId = 0
-  _emitter = new EventEmitter()
+  _emitter = new EventEmitter([EventNames.status])
 
   constructor (audio, id) {
     this._audioManager = audio
@@ -216,11 +216,7 @@ export class AudioSource {
     this._state = AudioSourceStateError
     this._buffer = null
 
-    if (deferred) {
-      queueMicrotask(() => this._emitter.emit('status', this, message))
-    } else {
-      this._emitter.emit('status', this, message)
-    }
+    this._emitter.emitEvent(ErrorStatusEvent(this, message), deferred)
   }
 
   /**
@@ -260,11 +256,7 @@ export class AudioSource {
 
     this._state = AudioSourceStateReady
 
-    if (deferred) {
-      queueMicrotask(() => this._emitter.emit('status', this, null))
-    } else {
-      this._emitter.emit('status', this, null)
-    }
+    this._emitter.emitEvent(ReadyStatusEvent(this), deferred)
   }
 }
 

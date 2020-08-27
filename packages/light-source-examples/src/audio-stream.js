@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { stage, absoluteFill, createStyleSheet, AudioDecoder } from 'light-source'
+import { stage, absoluteFill, createStyleSheet, AudioDecoderType } from 'light-source'
 import { render } from 'light-source-react'
 import React, { useEffect, useState } from 'react'
 
@@ -27,22 +27,22 @@ const StreamingAudioApp = () => {
   useEffect(() => {
     let path
 
-    if (stage.audio.stream.hasDecoder(AudioDecoder.OGG)) {
+    if (stage.audio.stream.hasDecoder(AudioDecoderType.OGG)) {
       path = 'resource/bensound-ukulele.ogg'
-    } else if (stage.audio.stream.hasDecoder(AudioDecoder.MP3)) {
+    } else if (stage.audio.stream.hasDecoder(AudioDecoderType.MP3)) {
       path = 'resource/bensound-ukulele.mp3'
     } else {
       setLoadingStatus('not ready')
       return
     }
 
-    stage.audio.addStream(path).once('status', (as, err) => {
-      if (as.isReady()) {
-        as.play()
+    stage.audio.addStream(path).once('status', (event) => {
+      if (event.target.isReady()) {
+        event.target.play()
         setLoadingStatus('ready')
       } else {
         setLoadingStatus('not ready')
-        console.log(err)
+        console.log(event.error)
       }
     })
   })

@@ -5,12 +5,16 @@
  */
 
 import { logger } from '../addon'
+import { EventEmitter } from './EventEmitter'
+import { performance } from 'perf_hooks'
+
+export const { now } = performance
 
 export const logexcept = (func, site) => {
   try {
     func()
   } catch (e) {
-    logger.warn(e.message, site)
+    logger.error(e.message, site)
   }
 }
 
@@ -42,3 +46,5 @@ export const symbolFor = Symbol.for
 export const symbolKeyFor = Symbol.keyFor
 
 export const emptyArray = Object.freeze([])
+
+export { EventEmitter }

@@ -6,8 +6,8 @@
 
 import { NullAudioSource, SampleAudioSource, StreamAudioSource } from './AudioSource'
 import { AudioDestination } from './AudioDestination'
-import { EventEmitter } from 'events'
-import { emptyArray } from '../util'
+import { emptyArray, EventEmitter } from '../util'
+import { AttachedEvent, DetachedEvent, EventNames } from '../event'
 
 /**
  * Audio API.
@@ -18,7 +18,7 @@ export class AudioManager {
   _audioSourceMap = new Map()
   _sampleAudioDestination = new AudioDestination()
   _streamAudioDestination = new AudioDestination()
-  _emitter = new EventEmitter()
+  _emitter = new EventEmitter([EventNames.attached, EventNames.detached])
   _nullAudioSource = Object.freeze(new NullAudioSource(this, ''))
 
   constructor (stage) {
@@ -50,7 +50,7 @@ export class AudioManager {
    * @returns true if attached to platform audio subsystem; otherwise, false
    */
   isAttached () {
-    return this._plugin && this._plugin.attached
+    return !!this._plugin?.attached
   }
 
   /**
@@ -58,7 +58,7 @@ export class AudioManager {
    */
   getDevices () {
     // Note: names are purely informational right now
-    return this._plugin ? this._plugin.devices : emptyArray
+    return this._plugin?.devices ?? emptyArray
   }
 
   /**
@@ -165,7 +165,7 @@ export class AudioManager {
     this._sampleAudioDestination.$setNative(this._plugin.createSampleAudioDestination())
     this._streamAudioDestination.$setNative(this._plugin.createStreamAudioDestination())
     this._audioSourceMap.forEach(as => as.$load())
-    this._emitter.emit('attached')
+    this._emitter.emitEvent(AttachedEvent(this))
   }
 
   /**
@@ -180,7 +180,7 @@ export class AudioManager {
     this._sampleAudioDestination.$setNative(null)
     this._streamAudioDestination.$setNative(null)
     this._plugin.detach()
-    this._emitter.emit('detached')
+    this._emitter.emitEvent(DetachedEvent(this))
   }
 
   /**

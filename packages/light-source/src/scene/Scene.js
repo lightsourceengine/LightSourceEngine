@@ -4,93 +4,74 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { performance } from 'perf_hooks'
 import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode, LinkSceneNode } from '../addon'
-import { EventEmitter } from '../util/EventEmitter'
-import { BlurEvent } from '../event/BlurEvent'
-import { FocusEvent } from '../event/FocusEvent'
-import { eventBubblePhase } from '../event/eventBubblePhase'
+import { EventEmitter } from '../util'
 import { absoluteFill } from '../style/absoluteFill'
+import { SceneNodeMixin } from './SceneNodeMixin'
+import { AttachedEvent, DetachedEvent, EventNames } from '../event'
 
-const { now } = performance
-const $hasFocus = Symbol.for('hasFocus')
-const $activeNode = Symbol.for('activeNode')
-const sEmptyRafEntry = Object.freeze([0, null])
+const kEmptyFrameListener = Object.freeze([0, null])
 let sFrameRequestId = 0
 
 export class Scene extends SceneBase {
-  _emitter = new EventEmitter()
-  _frameListenersForeground = []
-  _frameListenersBackground = []
+  _activeNode = null
+  _emitter = new EventEmitter([EventNames.attached, EventNames.detached])
+  _fgFrameListeners = []
+  _bgFrameListeners = []
+  _attached = false
 
   constructor (stage, platform, config) {
     super(stage, createGraphicsContext(stage, platform, config))
 
-    this[$activeNode] = null
-
-    Object.assign(this.root.style, {
-      ...absoluteFill,
-      backgroundColor: 'black'
-    })
-  }
-
-  get fullscreen () {
-    return this._graphicsContext.fullscreen
-  }
-
-  get width () {
-    return this._graphicsContext.width
-  }
-
-  get height () {
-    return this._graphicsContext.height
-  }
-
-  get displayIndex () {
-    return this._graphicsContext.displayIndex
-  }
-
-  get title () {
-    return this._graphicsContext.title
-  }
-
-  set title (value) {
-    this._graphicsContext.title = value
+    Object.assign(this.root.style, absoluteFill, { backgroundColor: 'black' })
   }
 
   on (id, listener) {
     this._emitter.on(id, listener)
   }
 
+  once (id, listener) {
+    this._emitter.once(id, listener)
+  }
+
   off (id, listener) {
     this._emitter.off(id, listener)
   }
 
-  get activeNode () {
-    return this[$activeNode]
+  isAttached () {
+    return this._attached
   }
 
-  set activeNode (value) {
-    let activeNode = this[$activeNode]
+  getFullscreen () {
+    return this._graphicsContext.fullscreen
+  }
 
-    if ((activeNode === value) || (!activeNode && !value)) {
-      return
-    }
+  getWidth () {
+    return this._graphicsContext.width
+  }
 
-    const timestamp = now()
-    const { stage } = this
+  getHeight () {
+    return this._graphicsContext.height
+  }
 
-    if (activeNode) {
-      setHasFocus(activeNode, false)
-      eventBubblePhase(stage, this, new BlurEvent(timestamp))
-    }
+  getDisplayIndex () {
+    return this._graphicsContext.displayIndex
+  }
 
-    this[$activeNode] = activeNode = value || null
+  getTitle () {
+    return this._graphicsContext.title
+  }
 
-    if (activeNode) {
-      setHasFocus(activeNode, true)
-      eventBubblePhase(stage, this, new FocusEvent(timestamp))
-    }
+  setTitle (value) {
+    this._graphicsContext.title = value
+  }
+
+  get activeNode () {
+    return this._activeNode
+  }
+
+  $setActiveNode (node) {
+    this._activeNode = node
   }
 
   // TODO: add refreshRate
@@ -106,29 +87,29 @@ export class Scene extends SceneBase {
   }
 
   requestAnimationFrame (callback) {
-    this._frameListenersForeground.push([++sFrameRequestId, callback])
+    this._fgFrameListeners.push([++sFrameRequestId, callback])
 
     return sFrameRequestId
   }
 
   cancelAnimationFrame (requestId) {
-    removeAnimationFrameListener(requestId, this._frameListenersForeground)
+    removeAnimationFrameListener(requestId, this._fgFrameListeners)
 
     // use case: calling cancel in a raf() callback
-    removeAnimationFrameListener(requestId, this._frameListenersBackground)
+    removeAnimationFrameListener(requestId, this._bgFrameListeners)
   }
 
   $frame (tick, lastTick) {
-    if (this._frameListenersForeground.length) {
+    if (this._fgFrameListeners.length) {
       // - background listener list should be empty here
       // - swap background and foreground -> background listeners will be processed right now. any listeners added
       //    during processing will be added to foreground and processed next frame (so user can call raf() in
       //    raf callbacks)
 
-      [this._frameListenersBackground, this._frameListenersForeground] =
-        [this._frameListenersForeground, this._frameListenersBackground]
+      [this._bgFrameListeners, this._fgFrameListeners] =
+        [this._fgFrameListeners, this._bgFrameListeners]
 
-      for (const [/* handle */, callback] of this._frameListenersBackground) {
+      for (const [/* handle */, callback] of this._bgFrameListeners) {
         try {
           callback && callback(tick, lastTick)
         } catch (e) {
@@ -136,53 +117,58 @@ export class Scene extends SceneBase {
         }
       }
 
-      this._frameListenersBackground.length = 0
+      this._bgFrameListeners.length = 0
     }
 
     super.$frame(tick, lastTick)
   }
 
   $emit (event) {
-    this._emitter.emit(event)
+    // this._emitter.emitEvent(event)
   }
 
   $attach () {
-    this._graphicsContext.attach()
+    if (this._attached) {
+      return
+    }
 
+    this._graphicsContext.attach()
     super.$attach()
+
+    this._attached = true
+    this._emitter.emitEvent(AttachedEvent(this))
   }
 
   $detach () {
-    super.$detach()
+    if (!this._attached) {
+      return
+    }
 
+    super.$detach()
     this._graphicsContext.detach()
+
+    this._attached = false
+    this._emitter.emitEvent(DetachedEvent(this))
   }
 
   $destroy () {
     super.$destroy()
 
-    this[$activeNode] = null
+    this.$setActiveNode(null)
+    // TODO: graphics context destroy() ?
   }
 }
 
 const nodeClass = new Map([
-  ['box', BoxSceneNode],
-  ['div', BoxSceneNode],
-  ['img', ImageSceneNode],
-  ['link', LinkSceneNode],
-  ['text', TextSceneNode]
+  ['box', SceneNodeMixin(BoxSceneNode)],
+  ['div', SceneNodeMixin(BoxSceneNode)],
+  ['img', SceneNodeMixin(ImageSceneNode)],
+  ['link', SceneNodeMixin(LinkSceneNode)],
+  ['text', SceneNodeMixin(TextSceneNode)]
 ])
 
 const throwNodeClassNotFound = tag => {
   throw new Error(`'${tag}' is not a valid scene node tag.`)
-}
-
-const setHasFocus = (node, value) => {
-  while (node) {
-    node[$hasFocus] = value
-    node.waypoint && node.waypoint.sync(node)
-    node = node.parent
-  }
 }
 
 const removeAnimationFrameListener = (requestId, listeners) => {
@@ -190,7 +176,7 @@ const removeAnimationFrameListener = (requestId, listeners) => {
 
   if (index >= 0) {
     // Just clear the listener and preserve the array structure, as the frame may be processing this list right now
-    listeners[index] = sEmptyRafEntry
+    listeners[index] = kEmptyFrameListener
   }
 }
 

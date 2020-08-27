@@ -151,18 +151,6 @@ void Scene::Destroy(const Napi::CallbackInfo &info) {
     this->RemoveInternalReferences();
 }
 
-void Scene::SetActiveNode(Napi::Value node) {
-    auto env{ this->Env() };
-    HandleScope scope(env);
-    auto self{ this->Value() };
-
-    try {
-        self["activeNode"] = node;
-    } catch (const Error& e) {
-        LOG_ERROR(e);
-    }
-}
-
 void Scene::OnRootFontSizeChange() noexcept {
     if (!this->root || !this->root->style) {
         return;

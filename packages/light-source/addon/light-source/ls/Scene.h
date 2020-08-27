@@ -53,7 +53,6 @@ class Scene : public Napi::SafeObjectWrap<Scene> {
 
     Renderer* GetRenderer() const noexcept;
     Stage* GetStage() const noexcept { return this->stage; }
-    void SetActiveNode(Napi::Value node);
 
     void RequestPaint(SceneNode* node);
     void RequestStyleLayout(SceneNode* node);

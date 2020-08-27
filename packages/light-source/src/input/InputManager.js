@@ -4,25 +4,28 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { performance } from 'perf_hooks'
 import { Key } from './Key'
 import { KeyEvent } from '../event/KeyEvent'
-import { DeviceAxisEvent } from '../event/DeviceAxisEvent'
-import { DeviceButtonEvent } from '../event/DeviceButtonEvent'
 import { Mapping } from './Mapping'
 import { Direction } from './Direction'
 import { parseSystemMapping } from './parseSystemMapping'
-import { DeviceHatEvent } from '../event/DeviceHatEvent'
 import { Keyboard } from './Keyboard'
 import { eventBubblePhase } from '../event/eventBubblePhase'
 import { eventCapturePhase } from '../event/eventCapturePhase'
 import { MappingType } from './MappingType'
-import { emptyArray } from '../util'
+import { emptyArray, EventEmitter, now } from '../util'
 import { InputDeviceType } from './InputDeviceType'
-
-const { now } = performance
-
-const emptyMapping = new Mapping([])
+import {
+  AttachedEvent,
+  DetachedEvent,
+  EventNames,
+  GamepadConnectedEvent,
+  GamepadDisconnectedEvent,
+  KeyDownEvent,
+  KeyUpEvent, RawAxisMotionEvent, RawHatDownEvent, RawHatUpEvent,
+  RawKeyDownEvent,
+  RawKeyUpEvent
+} from '../event'
 
 /**
  *
@@ -44,6 +47,18 @@ export class InputManager {
   _systemMappings = new Map()
   _keyToDirection = new Map()
   _gameControllerDbFile = null
+  _emitter = new EventEmitter([
+    EventNames.attached,
+    EventNames.detached,
+    EventNames.connected,
+    EventNames.disconnected,
+    EventNames.rawkeyup,
+    EventNames.rawkeydown,
+    EventNames.rawaxismotion,
+    EventNames.keyup,
+    EventNames.keydown,
+    EventNames.axismotion
+  ])
 
   constructor (stage) {
     this._stage = stage
@@ -91,7 +106,7 @@ export class InputManager {
    * @returns {Gamepad[]}
    */
   get gamepads () {
-    return this._plugin ? this._plugin.getGamepads() : emptyArray
+    return this._plugin?.getGamepads() ?? emptyArray
   }
 
   /**
@@ -134,7 +149,7 @@ export class InputManager {
    * @returns {*}
    */
   resolveMapping (uuid) {
-    return this._userMappings.has(uuid) ? this._userMappings.get(uuid) : this._systemMappings.get(uuid)
+    return this._userMappings.get(uuid) ?? this._systemMappings.get(uuid)
   }
 
   /**
@@ -181,7 +196,10 @@ export class InputManager {
     }
 
     this._keyboard.$setNative(plugin.getKeyboard())
+    this.lastActivity = now()
     this._isAttached = true
+
+    this._emitter.emitEvent(AttachedEvent(this))
   }
 
   /**
@@ -195,6 +213,8 @@ export class InputManager {
     this._keyboard.$setNative(null)
     this._plugin.resetCallbacks()
     this._isAttached = false
+
+    this._emitter.emitEvent(DetachedEvent(this))
   }
 
   /**
@@ -239,18 +259,17 @@ export class InputManager {
    */
   _registerDeviceConnectionCallbacks () {
     const plugin = this._plugin
-    const systemMappings = this._systemMappings
 
     plugin.setCallback('connected', (gamepad) => {
-      updateSystemMapping(systemMappings, gamepad)
+      updateSystemMapping(this._systemMappings, gamepad)
       if (this._isEnabled) {
-        // TODO: stage.$emit(new DeviceEvent(gamepad, true, now()))
+        this._emitter.emitEvent(GamepadConnectedEvent(this, gamepad))
       }
     })
 
     plugin.setCallback('disconnected', (gamepad) => {
       if (this._isEnabled) {
-        // TODO: stage.$emit(new DeviceEvent(gamepad, false, now()))
+        this._emitter.emitEvent(GamepadDisconnectedEvent(this, gamepad))
       }
     })
   }
@@ -258,87 +277,213 @@ export class InputManager {
   /**
    * @ignore
    */
+  _mapButtonToKey (button, uuid) {
+    const mapping = this.resolveMapping(uuid)
+
+    return [mapping?.getKeyForButton(button), mapping?.name ?? '']
+  }
+
+  /**
+   * @ignore
+   */
+  _mapHatToKey (hat, value, uuid) {
+    const mapping = this.resolveMapping(uuid)
+
+    return [mapping?.getKeyForHat(hat, value), mapping?.name ?? '']
+  }
+
+  /**
+   * @ignore
+   */
   _registerDeviceInputCallbacks () {
-    const stage = this._stage
     const plugin = this._plugin
     const buttonUp = (device, button) => {
+      this.lastActivity = now()
+
       if (device.type === InputDeviceType.Keyboard) {
         device = this.keyboard
       }
 
-      const timestamp = now()
-      const deviceEvent = new DeviceButtonEvent(device, button, false, false, timestamp)
+      // Phase: Dispatch raw key event
 
-      this.lastActivity = timestamp
-      eventBubblePhase(stage, stage.getScene(), deviceEvent)
+      const rawKeyDown = RawKeyUpEvent(this, device, button)
 
-      const mapping = this.resolveMapping(device.uuid) || emptyMapping
-      const key = mapping.getKeyForButton(button)
+      this._emitter.emitEvent(rawKeyDown)
 
-      if (key >= 0) {
-        eventBubblePhase(stage, stage.getScene(), this._createKeyEvent(key, false, false, mapping.name, deviceEvent))
+      if (rawKeyDown.hasStopPropagation()) {
+        return
       }
+
+      // Phase: Dispatch mapped key event
+
+      const [key, mapping] = this._mapButtonToKey(button, device.uuid)
+
+      if (key < 0) {
+        return
+      }
+
+      const keyUp = KeyUpEvent(this, mapping, key)
+
+      this._emitter.emitEvent(keyUp)
+
+      if (keyUp.hasStopPropagation()) {
+        return
+      }
+
+      const { activeNode } = this._stage.getScene()
+
+      // Phase: Bubble
+
+      activeNode?.$bubble(keyUp, 'onKeyUp')
     }
     const buttonDown = (device, button, repeat) => {
+      this.lastActivity = now()
+
       if (device.type === InputDeviceType.Keyboard) {
         device = this.keyboard
       }
 
-      const timestamp = now()
-      const deviceEvent = new DeviceButtonEvent(device, button, true, repeat, timestamp)
+      // Phase: Dispatch raw key event
 
-      this.lastActivity = timestamp
-      eventBubblePhase(stage, stage.getScene(), deviceEvent)
+      const rawKeyDown = RawKeyDownEvent(this, device, button, repeat)
 
-      const mapping = this.resolveMapping(device.uuid) || emptyMapping
-      const key = mapping.getKeyForButton(button)
+      this._emitter.emitEvent(rawKeyDown)
 
-      if (key >= 0) {
-        const keyEvent = this._createKeyEvent(key, true, repeat, mapping.name, deviceEvent)
-
-        eventCapturePhase(stage, stage.getScene(), keyEvent)
-        eventBubblePhase(stage, stage.getScene(), keyEvent)
+      if (rawKeyDown.hasStopPropagation()) {
+        return
       }
+
+      // Phase: Dispatch mapped key event
+
+      const [key, mapping] = this._mapButtonToKey(button, device.uuid)
+
+      if (key < 0) {
+        return
+      }
+
+      const keyDown = KeyDownEvent(this, mapping, key, repeat)
+
+      this._emitter.emitEvent(keyDown)
+
+      if (keyDown.hasStopPropagation()) {
+        return
+      }
+
+      const { activeNode } = this._stage.getScene()
+
+      // Phase: Navigate
+
+      eventCapturePhase(activeNode, this._keyToDirection.get(mapping)?.get(key) || Direction.NONE, keyDown)
+
+      if (keyDown.hasStopPropagation()) {
+        return
+      }
+
+      // Phase: Bubble
+
+      activeNode?.$bubble(keyDown, 'onKeyDown')
     }
     const hatUp = (device, hat, value) => {
-      const timestamp = now()
-      const deviceEvent = new DeviceHatEvent(device, hat, value, false, false, timestamp)
+      this.lastActivity = now()
 
-      this.lastActivity = timestamp
-      eventBubblePhase(stage, stage.getScene(), deviceEvent)
+      // Phase: Dispatch raw key event
 
-      const mapping = this.resolveMapping(device.uuid) || emptyMapping
-      const key = mapping.getKeyForHat(hat, value)
+      const rawHatUp = RawHatUpEvent(this, device, hat, value)
 
-      if (key >= 0) {
-        eventBubblePhase(stage, stage.getScene(), this._createKeyEvent(key, false, false, mapping.name, deviceEvent))
+      this._emitter.emitEvent(rawHatUp)
+
+      if (rawHatUp.hasStopPropagation()) {
+        return
       }
+
+      // Phase: Dispatch mapped key event
+
+      const [key, mapping] = this._mapHatToKey(hat, value, device.uuid)
+
+      if (key < 0) {
+        return
+      }
+
+      const keyUp = KeyUpEvent(this, mapping, key)
+
+      this._emitter.emitEvent(keyUp)
+
+      if (keyUp.hasStopPropagation()) {
+        return
+      }
+
+      const { activeNode } = this._stage.getScene()
+
+      // Phase: Bubble
+
+      activeNode?.$bubble(keyUp, 'onKeyUp')
     }
     const hatDown = (device, hat, value, repeat) => {
-      const timestamp = now()
-      const deviceEvent = new DeviceHatEvent(device, hat, value, true, repeat, timestamp)
+      // const timestamp = now()
+      // const deviceEvent = new DeviceHatEvent(device, hat, value, true, repeat, timestamp)
+      //
+      // this.lastActivity = timestamp
+      // eventBubblePhase(stage, stage.getScene(), deviceEvent)
+      //
+      // const mapping = this.resolveMapping(device.uuid) || emptyMapping
+      // const key = mapping.getKeyForHat(hat, value)
+      //
+      // if (key >= 0) {
+      //   const keyEvent = this._createKeyEvent(key, true, repeat, mapping.name, deviceEvent)
+      //
+      //   eventCapturePhase(stage, stage.getScene(), keyEvent)
+      //   eventBubblePhase(stage, stage.getScene(), keyEvent)
+      // }
+      this.lastActivity = now()
 
-      this.lastActivity = timestamp
-      eventBubblePhase(stage, stage.getScene(), deviceEvent)
+      // Phase: Dispatch raw key event
 
-      const mapping = this.resolveMapping(device.uuid) || emptyMapping
-      const key = mapping.getKeyForHat(hat, value)
+      const rawHatDown = RawHatDownEvent(this, device, hat, value, repeat)
 
-      if (key >= 0) {
-        const keyEvent = this._createKeyEvent(key, true, repeat, mapping.name, deviceEvent)
+      this._emitter.emitEvent(rawHatDown)
 
-        eventCapturePhase(stage, stage.getScene(), keyEvent)
-        eventBubblePhase(stage, stage.getScene(), keyEvent)
+      if (rawHatDown.hasStopPropagation()) {
+        return
       }
+
+      // Phase: Dispatch mapped key event
+
+      const [key, mapping] = this._mapHatToKey(hat, value, device.uuid)
+
+      if (key < 0) {
+        return
+      }
+
+      const keyDown = KeyDownEvent(this, mapping, key, repeat)
+
+      this._emitter.emitEvent(keyDown)
+
+      if (keyDown.hasStopPropagation()) {
+        return
+      }
+
+      const { activeNode } = this._stage.getScene()
+
+      // Phase: Navigate
+
+      eventCapturePhase(activeNode, this._keyToDirection.get(mapping)?.get(key) || Direction.NONE, keyDown)
+
+      if (keyDown.hasStopPropagation()) {
+        return
+      }
+
+      // Phase: Bubble
+
+      activeNode?.$bubble(keyDown, 'onKeyDown')
     }
     const axisMotion = (device, axis, value) => {
-      const timestamp = now()
-      const hardwareEvent = new DeviceAxisEvent(device, axis, value, timestamp)
+      this.lastActivity = now()
 
-      this.lastActivity = timestamp
-      eventBubblePhase(stage, stage.getScene(), hardwareEvent)
+      const rawAxisMotionEvent = RawAxisMotionEvent(this, device, axis, value)
 
-      // TODO: map axis to buttons
+      this._emitter.emitEvent(rawAxisMotionEvent)
+
+      // TODO: raw axis motion to mapped keys/axis
     }
 
     // Keyboard Key Callbacks

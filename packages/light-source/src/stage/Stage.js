@@ -7,14 +7,11 @@
 import { Scene } from '../scene/Scene'
 import bindings from 'bindings'
 import { logger, StageBase } from '../addon'
-import { performance } from 'perf_hooks'
 import { InputManager } from '../input/InputManager'
-import { EventEmitter } from 'events'
 import { AudioManager } from '../audio/AudioManager'
-import { isNumber, logexcept } from '../util'
+import { isNumber, logexcept, EventEmitter, now } from '../util'
 import { PluginType } from './PluginType'
-
-const { now } = performance
+import { AttachedEvent, DetachedEvent, EventNames, StartedEvent, StoppedEvent } from '../event'
 
 const kEmptyPlatformPlugin = { capabilities: { displays: [] } }
 
@@ -26,7 +23,13 @@ export class Stage extends StageBase {
   _audioPlugin = null
   _inputManager = new InputManager(this)
   _audioManager = new AudioManager(this)
-  _emitter = new EventEmitter()
+  _emitter = new EventEmitter([
+    EventNames.attached,
+    EventNames.detached,
+    EventNames.started,
+    EventNames.stopped
+  ])
+
   _quitRequested = false
   _attached = false
   _running = false
@@ -247,7 +250,7 @@ export class Stage extends StageBase {
 
     this._running = true
     this._mainLoopHandle = setTimeout(mainLoop, 0)
-    this._emitter.emit('started', this)
+    this._emitter.emitEvent(StartedEvent(this))
   }
 
   stop () {
@@ -259,7 +262,7 @@ export class Stage extends StageBase {
     clearTimeout(this._mainLoopHandle)
     this._mainLoopHandle = null
 
-    this._emitter.emit('stopped', this)
+    this._emitter.emitEvent(StoppedEvent(this))
   }
 
   quit () {
@@ -284,11 +287,11 @@ export class Stage extends StageBase {
   $destroy () {
     super.$destroy()
 
-    this._scene && this._scene.$destroy()
-    this._audioManager && this._audioManager.$destroy()
-    this._inputManager && this._inputManager.$destroy()
+    this._scene?.$destroy()
+    this._audioManager?.$destroy()
+    this._inputManager?.$destroy()
 
-    this._platformPlugin && this._platformPlugin.destroy()
+    this._platformPlugin?.destroy()
   }
 
   /**
@@ -306,7 +309,7 @@ export class Stage extends StageBase {
     this._scene.$attach()
 
     this._attached = true
-    this._emitter.emit('attached', this)
+    this._emitter.emitEvent(AttachedEvent(this))
   }
 
   /**
@@ -317,14 +320,14 @@ export class Stage extends StageBase {
       return
     }
 
-    this._scene && this._scene.$detach()
-    this._audioManager && this._audioManager.$detach()
-    this._inputManager && this._inputManager.$detach()
+    this._scene?.$detach()
+    this?._audioManager.$detach()
+    this?._inputManager.$detach()
 
-    this._platformPlugin && this._platformPlugin.detach()
+    this?._platformPlugin.detach()
 
     this._attached = false
-    this._emitter.emit('detached', this)
+    this._emitter.emitEvent(DetachedEvent(this))
   }
 }
 

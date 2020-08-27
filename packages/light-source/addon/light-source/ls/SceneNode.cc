@@ -308,18 +308,6 @@ void SceneNode::RequestComposite() {
     this->scene->RequestComposite();
 }
 
-void SceneNode::Focus(const CallbackInfo& info) {
-    HandleScope scope(info.Env());
-
-    this->scene->SetActiveNode(this->Value());
-}
-
-void SceneNode::Blur(const CallbackInfo& info) {
-    HandleScope scope(info.Env());
-
-    this->scene->SetActiveNode(info.Env().Null());
-}
-
 const std::vector<SceneNode*>& SceneNode::SortChildrenByStackingOrder() {
     const auto compare = [](SceneNode* a, SceneNode* b) {
         const auto hasTransform {

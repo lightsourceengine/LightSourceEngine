@@ -45,8 +45,6 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     void InsertBefore(const Napi::CallbackInfo& info);
     void RemoveChild(const Napi::CallbackInfo& info);
     void Destroy(const Napi::CallbackInfo& info);
-    void Focus(const Napi::CallbackInfo& info);
-    void Blur(const Napi::CallbackInfo& info);
 
     virtual void OnStylePropertyChanged(StyleProperty property);
     virtual void OnBoundingBoxChanged() {}
@@ -125,16 +123,6 @@ template<typename T>
 std::vector<napi_property_descriptor> SceneNode::Extend(const Napi::Env& env,
         const std::initializer_list<napi_property_descriptor>& subClassProperties) {
     std::vector<napi_property_descriptor> result = {
-        T::InstanceValue("focusable", Napi::Boolean::New(env, false), napi_writable),
-        T::InstanceValue("onKeyUp", env.Null(), napi_writable),
-        T::InstanceValue("onKeyDown", env.Null(), napi_writable),
-        T::InstanceValue("onAxisMotion", env.Null(), napi_writable),
-        T::InstanceValue("onDeviceButtonUp", env.Null(), napi_writable),
-        T::InstanceValue("onDeviceButtonDown", env.Null(), napi_writable),
-        T::InstanceValue("onDeviceAxisMotion", env.Null(), napi_writable),
-        T::InstanceValue("onFocus", env.Null(), napi_writable),
-        T::InstanceValue("onBlur", env.Null(), napi_writable),
-        T::InstanceValue(Napi::SymbolFor(env, "hasFocus"), Napi::Boolean::New(env, false), napi_writable),
         T::InstanceAccessor("x", &SceneNode::GetX),
         T::InstanceAccessor("y", &SceneNode::GetY),
         T::InstanceAccessor("width", &SceneNode::GetWidth),
@@ -147,9 +135,7 @@ std::vector<napi_property_descriptor> SceneNode::Extend(const Napi::Env& env,
         T::InstanceMethod("destroy", &SceneNode::Destroy),
         T::InstanceMethod("appendChild", &SceneNode::AppendChild),
         T::InstanceMethod("insertBefore", &SceneNode::InsertBefore),
-        T::InstanceMethod("removeChild", &SceneNode::RemoveChild),
-        T::InstanceMethod("focus", &SceneNode::Focus),
-        T::InstanceMethod("blur", &SceneNode::Blur),
+        T::InstanceMethod("removeChild", &SceneNode::RemoveChild)
     };
 
     for (auto& property : subClassProperties) {
