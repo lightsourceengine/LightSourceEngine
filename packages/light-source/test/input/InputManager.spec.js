@@ -167,14 +167,20 @@ describe('InputManager', () => {
   })
   describe('connected callback', () => {
     it('should emit connected event', () => {
+      const callback = sinon.stub()
+
+      inputManager.once('connected', callback)
       stage.plugin.callbacks.get('connected')({})
-      assert.isTrue(stage.$emit.calledOnce)
+      assert.isTrue(callback.called)
     })
   })
   describe('disconnected callback', () => {
     it('should emit disconnected event', () => {
+      const callback = sinon.stub()
+
+      inputManager.once('disconnected', callback)
       stage.plugin.callbacks.get('disconnected')({})
-      // assert.isTrue(stage.$emit.calledOnce)
+      assert.isTrue(callback.called)
     })
   })
   describe('keydown callback', () => {

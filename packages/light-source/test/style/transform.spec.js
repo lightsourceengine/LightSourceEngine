@@ -5,7 +5,7 @@
  */
 
 import { assert } from 'chai'
-import { Style } from '../../src/addon'
+import { StyleUnit, StyleTransform } from '../../src/addon'
 import {
   translate,
   scale,
@@ -28,17 +28,17 @@ describe('transform', () => {
   describe('translate()', () => {
     it('should Float32Array with translate data', () => {
       testTransform(translate(5, 10),
-        Style.TransformTranslate, 5, Style.UnitPoint, 10, Style.UnitPoint)
+        StyleTransform.Translate, 5, StyleUnit.Point, 10, StyleUnit.Point)
       testTransform(translate(-5, -10),
-        Style.TransformTranslate, -5, Style.UnitPoint, -10, Style.UnitPoint)
+        StyleTransform.Translate, -5, StyleUnit.Point, -10, StyleUnit.Point)
       testTransform(translate('5px', '10px'),
-        Style.TransformTranslate, 5, Style.UnitPoint, 10, Style.UnitPoint)
+        StyleTransform.Translate, 5, StyleUnit.Point, 10, StyleUnit.Point)
       testTransform(translate('-5px', '-10px'),
-        Style.TransformTranslate, -5, Style.UnitPoint, -10, Style.UnitPoint)
+        StyleTransform.Translate, -5, StyleUnit.Point, -10, StyleUnit.Point)
       testTransform(translate('50%', '100%'),
-        Style.TransformTranslate, 50, Style.UnitPercent, 100, Style.UnitPercent)
+        StyleTransform.Translate, 50, StyleUnit.Percent, 100, StyleUnit.Percent)
       testTransform(translate('-50%', '-100%'),
-        Style.TransformTranslate, -50, Style.UnitPercent, -100, Style.UnitPercent)
+        StyleTransform.Translate, -50, StyleUnit.Percent, -100, StyleUnit.Percent)
     })
     it('should return undefined for invalid x and y values', () => {
       assert.isUndefined(translate(false, false))
@@ -49,7 +49,7 @@ describe('transform', () => {
   describe('translateX()', () => {
     it('should Float32Array with translate data', () => {
       testTransform(translateX(5),
-        Style.TransformTranslate, 5, Style.UnitPoint, 0, Style.UnitPoint)
+        StyleTransform.Translate, 5, StyleUnit.Point, 0, StyleUnit.Point)
     })
     it('should return undefined for invalid x value', () => {
       assert.isUndefined(translateX(false))
@@ -58,7 +58,7 @@ describe('transform', () => {
   describe('translateY()', () => {
     it('should Float32Array with translate data', () => {
       testTransform(translateY(5),
-        Style.TransformTranslate, 0, Style.UnitPoint, 5, Style.UnitPoint)
+        StyleTransform.Translate, 0, StyleUnit.Point, 5, StyleUnit.Point)
     })
     it('should return undefined for invalid y value', () => {
       assert.isUndefined(translateY(false))
@@ -67,7 +67,7 @@ describe('transform', () => {
   describe('scale()', () => {
     it('should Float32Array with scale data', () => {
       testTransform(scale(5, 10),
-        Style.TransformScale, 5, Style.UnitPoint, 10, Style.UnitPoint)
+        StyleTransform.Scale, 5, StyleUnit.Point, 10, StyleUnit.Point)
     })
     it('should return undefined for invalid scale values', () => {
       assert.isUndefined(scale(false, false))
@@ -78,7 +78,7 @@ describe('transform', () => {
   describe('scaleX()', () => {
     it('should Float32Array with translate data', () => {
       testTransform(scaleX(5),
-        Style.TransformScale, 5, Style.UnitPoint, 1, Style.UnitPoint)
+        StyleTransform.Scale, 5, StyleUnit.Point, 1, StyleUnit.Point)
     })
     it('should return undefined for invalid x scale value', () => {
       assert.isUndefined(scaleX(false))
@@ -87,7 +87,7 @@ describe('transform', () => {
   describe('scaleX()', () => {
     it('should Float32Array with translate data', () => {
       testTransform(scaleY(5),
-        Style.TransformScale, 1, Style.UnitPoint, 5, Style.UnitPoint)
+        StyleTransform.Scale, 1, StyleUnit.Point, 5, StyleUnit.Point)
     })
     it('should return undefined for invalid y scale value', () => {
       assert.isUndefined(scaleY(false))
@@ -95,11 +95,11 @@ describe('transform', () => {
   })
   describe('rotate()', () => {
     it('should Float32Array with rotate data', () => {
-      testTransform(rotate(1), Style.TransformRotate, 1, Style.UnitRadian)
-      testTransform(rotate('1rad'), Style.TransformRotate, 1, Style.UnitRadian)
-      testTransform(rotate('2grad'), Style.TransformRotate, 2, Style.UnitGradian)
-      testTransform(rotate('90deg'), Style.TransformRotate, 90, Style.UnitDegree)
-      testTransform(rotate('2turn'), Style.TransformRotate, 2, Style.UnitTurn)
+      testTransform(rotate(1), StyleTransform.Rotate, 1, StyleUnit.Radian)
+      testTransform(rotate('1rad'), StyleTransform.Rotate, 1, StyleUnit.Radian)
+      testTransform(rotate('2grad'), StyleTransform.Rotate, 2, StyleUnit.Gradian)
+      testTransform(rotate('90deg'), StyleTransform.Rotate, 90, StyleUnit.Degree)
+      testTransform(rotate('2turn'), StyleTransform.Rotate, 2, StyleUnit.Turn)
     })
     it('should reutrn undefined for invalid angle value', () => {
       assert.isUndefined(rotate(false))
@@ -140,11 +140,11 @@ describe('transform', () => {
   })
   describe('getRotateAngle()', () => {
     it('should return an array pair containing the rotation angle value and unit', () => {
-      testStyleValue(getRotateAngle(rotate('90deg')), 90, Style.UnitDegree)
-      testStyleValue(getRotateAngle(rotate('2rad')), 2, Style.UnitRadian)
-      testStyleValue(getRotateAngle(rotate('2grad')), 2, Style.UnitGradian)
-      testStyleValue(getRotateAngle(rotate('1turn')), 1, Style.UnitTurn)
-      testStyleValue(getRotateAngle(rotate(3)), 3, Style.UnitRadian)
+      testStyleValue(getRotateAngle(rotate('90deg')), 90, StyleUnit.Degree)
+      testStyleValue(getRotateAngle(rotate('2rad')), 2, StyleUnit.Radian)
+      testStyleValue(getRotateAngle(rotate('2grad')), 2, StyleUnit.Gradian)
+      testStyleValue(getRotateAngle(rotate('1turn')), 1, StyleUnit.Turn)
+      testStyleValue(getRotateAngle(rotate(3)), 3, StyleUnit.Radian)
     })
     it('should return an empty array when passed an invalid argument', () => {
       assert.isEmpty(getRotateAngle(translateX(3)))
@@ -153,9 +153,9 @@ describe('transform', () => {
   })
   describe('getTranslateX()', () => {
     it('should return an array pair containing the x value and unit', () => {
-      testStyleValue(getTranslateX(translate(10, 10)), 10, Style.UnitPoint)
-      testStyleValue(getTranslateX(translateX(10)), 10, Style.UnitPoint)
-      testStyleValue(getTranslateX(translateY(10)), 0, Style.UnitPoint)
+      testStyleValue(getTranslateX(translate(10, 10)), 10, StyleUnit.Point)
+      testStyleValue(getTranslateX(translateX(10)), 10, StyleUnit.Point)
+      testStyleValue(getTranslateX(translateY(10)), 0, StyleUnit.Point)
     })
     it('should return an empty array when passed an invalid argument', () => {
       assert.isEmpty(getTranslateX(scaleX(3)))
@@ -164,9 +164,9 @@ describe('transform', () => {
   })
   describe('getTranslateY()', () => {
     it('should return an array pair containing the y value and unit', () => {
-      testStyleValue(getTranslateY(translate(10, 10)), 10, Style.UnitPoint)
-      testStyleValue(getTranslateY(translateY(10)), 10, Style.UnitPoint)
-      testStyleValue(getTranslateY(translateX(10)), 0, Style.UnitPoint)
+      testStyleValue(getTranslateY(translate(10, 10)), 10, StyleUnit.Point)
+      testStyleValue(getTranslateY(translateY(10)), 10, StyleUnit.Point)
+      testStyleValue(getTranslateY(translateX(10)), 0, StyleUnit.Point)
     })
     it('should return an empty array when passed an invalid argument', () => {
       assert.isEmpty(getTranslateY(scaleX(3)))
@@ -175,9 +175,9 @@ describe('transform', () => {
   })
   describe('getScaleX()', () => {
     it('should return an array pair containing the x value and unit', () => {
-      testStyleValue(getScaleX(scale(10, 10)), 10, Style.UnitPoint)
-      testStyleValue(getScaleX(scaleX(10)), 10, Style.UnitPoint)
-      testStyleValue(getScaleX(scaleY(10)), 1, Style.UnitPoint)
+      testStyleValue(getScaleX(scale(10, 10)), 10, StyleUnit.Point)
+      testStyleValue(getScaleX(scaleX(10)), 10, StyleUnit.Point)
+      testStyleValue(getScaleX(scaleY(10)), 1, StyleUnit.Point)
     })
     it('should return an empty array when passed an invalid argument', () => {
       assert.isEmpty(getScaleX(translateX(3)))
@@ -186,9 +186,9 @@ describe('transform', () => {
   })
   describe('getScaleY()', () => {
     it('should return an array pair containing the y value and unit', () => {
-      testStyleValue(getScaleY(scale(10, 10)), 10, Style.UnitPoint)
-      testStyleValue(getScaleY(scaleY(10)), 10, Style.UnitPoint)
-      testStyleValue(getScaleY(scaleX(10)), 1, Style.UnitPoint)
+      testStyleValue(getScaleY(scale(10, 10)), 10, StyleUnit.Point)
+      testStyleValue(getScaleY(scaleY(10)), 10, StyleUnit.Point)
+      testStyleValue(getScaleY(scaleX(10)), 1, StyleUnit.Point)
     })
     it('should return an empty array when passed an invalid argument', () => {
       assert.isEmpty(getScaleY(translateX(3)))

@@ -64,7 +64,7 @@ export const afterEachTestCase = async () => {
   const promises = []
 
   for (const container of getActiveContainers()) {
-    promises.push(new Promise((resolve) => render(container, null, resolve())))
+    promises.push(new Promise((resolve) => render(container, null, () => resolve())))
   }
 
   await Promise.allSettled(promises)

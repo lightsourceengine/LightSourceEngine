@@ -42,7 +42,7 @@ class A : public SafeObjectWrap<A> {
     static Function GetClass(const Napi::Env& env) {
         if (sClassA.IsEmpty()) {
             sClassA = A::DefineClass(
-                env, "A", false,
+                env, "A", true,
                 {
                     // static bindings
                     A::StaticMethod("staticFunc", &A::StaticFunc),

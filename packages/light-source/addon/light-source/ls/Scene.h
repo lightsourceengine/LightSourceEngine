@@ -37,6 +37,7 @@ class Scene : public Napi::SafeObjectWrap<Scene> {
     void Destroy(const Napi::CallbackInfo& info);
     void Frame(const Napi::CallbackInfo& info);
     Napi::Value GetRoot(const Napi::CallbackInfo& info);
+    void SetRoot(const Napi::CallbackInfo& info);
     Napi::Value GetStage(const Napi::CallbackInfo& info);
     Napi::Value GetGraphicsContext(const Napi::CallbackInfo& info);
 

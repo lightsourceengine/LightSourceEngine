@@ -42,19 +42,27 @@ Function NewLogLevelClass(Napi::Env env) {
 }
 
 void Logger::LogInfo(const Napi::CallbackInfo &info) {
-    Log(LogLevelInfo, info);
+    if (ls::GetLogLevel() >= LogLevelInfo) {
+        Log(LogLevelInfo, info);
+    }
 }
 
 void Logger::LogError(const Napi::CallbackInfo &info) {
-    Log(LogLevelError, info);
+    if (ls::GetLogLevel() >= LogLevelError) {
+        Log(LogLevelError, info);
+    }
 }
 
 void Logger::LogDebug(const Napi::CallbackInfo &info) {
-    Log(LogLevelDebug, info);
+    if (ls::GetLogLevel() >= LogLevelDebug) {
+        Log(LogLevelDebug, info);
+    }
 }
 
 void Logger::LogWarn(const Napi::CallbackInfo &info) {
-    Log(LogLevelWarn, info);
+    if (ls::GetLogLevel() >= LogLevelWarn) {
+        Log(LogLevelWarn, info);
+    }
 }
 
 void Logger::Log(LogLevel logLevel, const CallbackInfo& info) {

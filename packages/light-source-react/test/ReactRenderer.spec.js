@@ -11,10 +11,6 @@ import { stage } from 'light-source'
 import { ReactRenderer } from '../src/ReactRenderer'
 import './test-env'
 
-const assertClassName = (obj, expectedClassName) => {
-  assert.equal(Object.getPrototypeOf(obj).constructor.name, expectedClassName)
-}
-
 let root
 let reactRenderer
 
@@ -35,7 +31,6 @@ describe('ReactRenderer', () => {
       await reactRendererRender(<div />)
 
       assert.lengthOf(root.children, 1)
-      assertClassName(root.children[0], 'BoxSceneNode')
     })
     it('should render a single box element', async () => {
       assert.lengthOf(root.children, 0)
@@ -43,7 +38,6 @@ describe('ReactRenderer', () => {
       await reactRendererRender(<box />)
 
       assert.lengthOf(root.children, 1)
-      assertClassName(root.children[0], 'BoxSceneNode')
     })
     it('should a Component with a single div element', async () => {
       assert.lengthOf(root.children, 0)
@@ -53,7 +47,6 @@ describe('ReactRenderer', () => {
       await reactRendererRender(<TestComponent />)
 
       assert.lengthOf(root.children, 1)
-      assertClassName(root.children[0], 'BoxSceneNode')
     })
     it('should render a single img element', async () => {
       assert.lengthOf(root.children, 0)
@@ -61,7 +54,6 @@ describe('ReactRenderer', () => {
       await reactRendererRender(<img />)
 
       assert.lengthOf(root.children, 1)
-      assertClassName(root.children[0], 'ImageSceneNode')
     })
     it('should render a single text element', async () => {
       assert.lengthOf(root.children, 0)
@@ -69,7 +61,6 @@ describe('ReactRenderer', () => {
       await reactRendererRender(<text>Test</text>)
 
       assert.lengthOf(root.children, 1)
-      assertClassName(root.children[0], 'TextSceneNode')
     })
     it('should clear all root children when null is rendered', async () => {
       assert.lengthOf(root.children, 0)

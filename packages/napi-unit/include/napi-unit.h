@@ -61,7 +61,7 @@ class TestContext {
 class TestSuite : public Napi::ObjectWrap<TestSuite> {
  public:
     explicit TestSuite(const Napi::CallbackInfo& info);
-    virtual ~TestSuite();
+    ~TestSuite() override = default;
 
     static Napi::Object New(Napi::Env env, const std::string& description);
 
@@ -248,13 +248,6 @@ TestSuite::TestSuite(const CallbackInfo& info) : ObjectWrap<TestSuite>(info) {
 }
 
 inline
-TestSuite::~TestSuite() {
-    for (auto& child : this->children) {
-        child->Unref();
-    }
-}
-
-inline
 Object TestSuite::New(Napi::Env env, const std::string& description) {
     static FunctionReference constructor;
 
@@ -281,14 +274,14 @@ Object TestSuite::New(Napi::Env env, const std::string& description) {
 inline
 Object TestSuite::Build(Napi::Env env, const std::string& description,
         const std::initializer_list<TestBuilderFunction> testBuilders) {
-    auto TestSuite{ TestSuite::New(env, description) };
-    auto parent{ TestSuite::Unwrap(TestSuite) };
+    auto suite{ TestSuite::New(env, description) };
+    auto parent{ TestSuite::Unwrap(suite) };
 
     for (auto& testBuilder : testBuilders) {
         testBuilder(parent);
     }
 
-    return TestSuite;
+    return suite;
 }
 
 inline

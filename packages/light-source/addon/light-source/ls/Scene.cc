@@ -44,7 +44,6 @@ Scene::~Scene() {
 void Scene::Constructor(const CallbackInfo& info) {
     auto env{ info.Env() };
     HandleScope scope(env);
-    auto rootSceneNode{ RootSceneNode::GetClass(env).New({ info.This() }) };
 
     this->stage = Stage::CastRef(info[0]);
 
@@ -58,13 +57,6 @@ void Scene::Constructor(const CallbackInfo& info) {
     if (!this->graphicsContext) {
         RemoveInternalReferences();
         throw Error::New(env, "Invalid graphics context argument.");
-    }
-
-    this->root = RootSceneNode::CastRef(rootSceneNode);
-
-    if (!this->root) {
-        RemoveInternalReferences();
-        throw Error::New(env, "Error creating root scene node.");
     }
 }
 
@@ -82,6 +74,7 @@ Function Scene::GetClass(Napi::Env env) {
             InstanceMethod("$detach", &Scene::Detach),
             InstanceMethod("$destroy", &Scene::Destroy),
             InstanceMethod("$frame", &Scene::Frame),
+            InstanceMethod("$setRoot", &Scene::SetRoot),
         });
     }
 
@@ -137,6 +130,18 @@ void Scene::Frame(const CallbackInfo& info) {
 
 Napi::Value Scene::GetRoot(const Napi::CallbackInfo& info) {
     return this->root->Value();
+}
+
+void Scene::SetRoot(const Napi::CallbackInfo& info) {
+    if (this->root) {
+        throw Error::New(info.Env(), "root has already been set");
+    }
+
+    this->root = RootSceneNode::CastRef(info[0]);
+
+    if (!this->root) {
+        throw Error::New(info.Env(), "root must be a RootSceneNode instance.");
+    }
 }
 
 Napi::Value Scene::GetStage(const Napi::CallbackInfo& info) {

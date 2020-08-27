@@ -47,12 +47,12 @@ export class Stage extends StageBase {
     this._emitter.on(id, listener)
   }
 
-  off (id, listener) {
-    this._emitter.off(id, listener)
-  }
-
   once (id, listener) {
     this._emitter.once(id, listener)
+  }
+
+  off (id, listener) {
+    this._emitter.off(id, listener)
   }
 
   get capabilities () {

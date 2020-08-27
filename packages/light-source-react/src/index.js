@@ -105,7 +105,7 @@ const getClassName = obj => (typeof obj === 'object' ? Object.getPrototypeOf(obj
 const resolveContainer = (container) => {
   if (getClassName(container) === 'Scene') {
     return container.root
-  } else if (getClassName(container).endsWith('SceneNode')) {
+  } else if (getClassName(container?.scene) === 'Scene') {
     return container
   } else {
     throw Error('container must be of type Scene or SceneNode')

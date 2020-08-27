@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode, LinkSceneNode } from '../addon'
+import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode, LinkSceneNode, RootSceneNode } from '../addon'
 import { EventEmitter } from '../util'
 import { absoluteFill } from '../style/absoluteFill'
 import { SceneNodeMixin } from './SceneNodeMixin'
@@ -23,7 +23,11 @@ export class Scene extends SceneBase {
   constructor (stage, platform, config) {
     super(stage, createGraphicsContext(stage, platform, config))
 
-    Object.assign(this.root.style, absoluteFill, { backgroundColor: 'black' })
+    const root = new (SceneNodeMixin(RootSceneNode))(this)
+
+    Object.assign(root.style, absoluteFill, { backgroundColor: 'black' })
+
+    this.$setRoot(root)
   }
 
   on (id, listener) {
@@ -42,27 +46,27 @@ export class Scene extends SceneBase {
     return this._attached
   }
 
-  getFullscreen () {
+  get fullscreen () {
     return this._graphicsContext.fullscreen
   }
 
-  getWidth () {
+  get width () {
     return this._graphicsContext.width
   }
 
-  getHeight () {
+  get height () {
     return this._graphicsContext.height
   }
 
-  getDisplayIndex () {
+  get displayIndex () {
     return this._graphicsContext.displayIndex
   }
 
-  getTitle () {
+  get title () {
     return this._graphicsContext.title
   }
 
-  setTitle (value) {
+  set title (value) {
     this._graphicsContext.title = value
   }
 

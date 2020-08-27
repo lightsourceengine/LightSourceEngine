@@ -156,7 +156,7 @@ describe('AudioSource', () => {
 const isReadyPromise = (as) => {
   return new Promise((resolve, reject) => {
     as.once('status', (as) => {
-      if (as.isReady()) {
+      if (as.target.isReady()) {
         resolve()
       } else {
         reject(Error('expected isReady() change event'))
@@ -168,7 +168,7 @@ const isReadyPromise = (as) => {
 const isErrorPromise = (as) => {
   return new Promise((resolve, reject) => {
     as.once('status', (as) => {
-      if (as.isError()) {
+      if (as.target.isError()) {
         resolve()
       } else {
         reject(Error('expected isError() change event'))

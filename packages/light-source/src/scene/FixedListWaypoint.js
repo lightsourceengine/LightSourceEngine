@@ -8,8 +8,6 @@ import { Direction } from '../input/Direction'
 
 const { UP, DOWN, LEFT, RIGHT } = Direction
 
-const $hasFocus = Symbol.for('hasFocus')
-
 const horizontalTag = 'horizontal'
 const verticalTag = 'vertical'
 
@@ -46,6 +44,10 @@ export class FixedListWaypoint {
 
     if (!offset) {
       return context.pass()
+    }
+
+    if (this._focalPathIndex === -1) {
+      this.sync(owner)
     }
 
     const nextFocalPathIndex = this._focalPathIndex + offset
@@ -109,7 +111,7 @@ export class FixedListWaypoint {
     let i = 0
 
     for (const node of createFocalPath(owner)) {
-      if (node[$hasFocus]) {
+      if (node.hasFocus()) {
         this._focalPathIndex = i
         return
       }

@@ -187,7 +187,7 @@ export const StoppedEvent = (target) => new Event(EventSymbols.stopped, target)
 export const GamepadConnectedEvent =
   (target, gamepad) => new GamepadEvent(EventSymbols.connected, target, gamepad)
 export const GamepadDisconnectedEvent =
-  (target, gamepad) => new GamepadEvent(EventSymbols.stopped, target, gamepad)
+  (target, gamepad) => new GamepadEvent(EventSymbols.disconnected, target, gamepad)
 export const ReadyStatusEvent = (target) => new StatusEvent(target)
 export const ErrorStatusEvent = (target, error) => new StatusEvent(target, error)
 export const FocusEvent = (node) => new FocusChangeEvent(EventSymbols.focus, node)

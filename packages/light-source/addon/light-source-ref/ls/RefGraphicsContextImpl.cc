@@ -11,7 +11,6 @@
 using Napi::Boolean;
 using Napi::Error;
 using Napi::Function;
-using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Number;
 using Napi::Object;

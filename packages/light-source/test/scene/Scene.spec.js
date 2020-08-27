@@ -6,7 +6,7 @@
 
 import { assert } from 'chai'
 import sinon from 'sinon'
-import { BoxSceneNode, TextSceneNode, ImageSceneNode, Style } from '../../src/addon'
+import { BoxSceneNode, TextSceneNode, ImageSceneNode, StyleUnit, LinkSceneNode, RootSceneNode } from '../../src/addon'
 import { afterSceneTest, beforeSceneTest } from '../test-env'
 
 describe('Scene', () => {
@@ -15,7 +15,7 @@ describe('Scene', () => {
   afterEach(() => { scene = afterSceneTest() })
   describe('constructor', () => {
     it('should set root style', () => {
-      assert.sameOrderedMembers(scene.root.style.fontSize, [undefined, Style.UnitUndefined])
+      assert.sameOrderedMembers(scene.root.style.fontSize, [undefined, StyleUnit.Undefined])
       assert.equal(scene.root.style.backgroundColor, 0xFF000000)
     })
   })
@@ -25,11 +25,13 @@ describe('Scene', () => {
         ['div', BoxSceneNode],
         ['box', BoxSceneNode],
         ['text', TextSceneNode],
-        ['img', ImageSceneNode]
+        ['img', ImageSceneNode],
+        ['link', LinkSceneNode]
       ]
 
-      for (const input of inputs) {
-        assert.instanceOf(scene.createNode(input[0]), input[1])
+      for (const [tag, cls] of inputs) {
+        const node = scene.createNode(tag)
+        assert.instanceOf(node, cls)
       }
     })
     it('should throw Error for unsupported tag name', () => {
@@ -63,7 +65,7 @@ describe('Scene', () => {
   })
   describe('root', () => {
     it('should get root', () => {
-      assert.strictEqual(Object.getPrototypeOf(scene.root).constructor.name, 'RootSceneNode')
+      assert.instanceOf(scene.root, RootSceneNode)
     })
   })
   describe('title', () => {
@@ -76,15 +78,17 @@ describe('Scene', () => {
     it('should set active node and call onFocus on new focus', () => {
       const node = scene.createNode('box')
 
+      node.focusable = true
       node.onFocus = sinon.stub()
       scene.root.appendChild(node)
-      scene.activeNode = node
+      node.focus()
       assert.strictEqual(scene.activeNode, node)
       assert.isTrue(node.onFocus.called)
     })
     it('should update active node and call onFocus on new focus', () => {
       const node = scene.createNode('box')
 
+      node.focusable = true
       node.onFocus = sinon.stub()
       scene.root.appendChild(node)
       node.focus()
@@ -94,11 +98,12 @@ describe('Scene', () => {
     it('should set to null', () => {
       const node = scene.createNode('box')
 
+      node.focusable = true
       node.onBlur = sinon.stub()
       scene.root.appendChild(node)
       node.focus()
 
-      scene.activeNode = null
+      scene.activeNode.blur()
       assert.isNull(scene.activeNode)
       assert.isTrue(node.onBlur.called)
     })

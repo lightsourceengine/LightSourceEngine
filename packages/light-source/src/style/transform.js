@@ -4,13 +4,13 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { Style, StyleUnit, StyleTransform } from '../addon'
+import { StyleUnit, StyleTransform } from '../addon'
 import { isNumber } from '../util'
 
 const TRANSLATE_VALUE_REGEX = /^(-?\d+\.?\d*)(px|%)$/
 const TRANSLATE_UNIT_TO_ENUM = new Map([
-  ['px', Style.UnitPoint],
-  ['%', Style.UnitPercent]
+  ['px', StyleUnit.Point],
+  ['%', StyleUnit.Percent]
 ])
 const ROTATE_VALUE_REGEX = /^(-?\d+\.?\d*)(deg|rad|grad|turn)$/
 const ROTATE_UNIT_TO_ENUM = new Map([
@@ -31,18 +31,18 @@ const toStyleValue = (raw, numUnit, regex, toEnum) => {
     }
   }
 
-  return [undefined, Style.UnitUndefined]
+  return [undefined, StyleUnit.Undefined]
 }
 
 export const translate = (x, y) => {
-  const [xValue, xUnit] = toStyleValue(x, Style.UnitPoint, TRANSLATE_VALUE_REGEX, TRANSLATE_UNIT_TO_ENUM)
-  const [yValue, yUnit] = toStyleValue(y, Style.UnitPoint, TRANSLATE_VALUE_REGEX, TRANSLATE_UNIT_TO_ENUM)
+  const [xValue, xUnit] = toStyleValue(x, StyleUnit.Point, TRANSLATE_VALUE_REGEX, TRANSLATE_UNIT_TO_ENUM)
+  const [yValue, yUnit] = toStyleValue(y, StyleUnit.Point, TRANSLATE_VALUE_REGEX, TRANSLATE_UNIT_TO_ENUM)
 
   if (typeof xValue === 'undefined' || typeof yValue === 'undefined') {
     return
   }
 
-  return Float32Array.of(Style.TransformTranslate, xValue, xUnit, yValue, yUnit)
+  return Float32Array.of(StyleTransform.Translate, xValue, xUnit, yValue, yUnit)
 }
 
 export const translateX = (x) => translate(x, 0)
@@ -53,20 +53,20 @@ export const scale = (sx, sy) => {
     return
   }
 
-  return Float32Array.of(Style.TransformScale, sx, Style.UnitPoint, sy, Style.UnitPoint)
+  return Float32Array.of(StyleTransform.Scale, sx, StyleUnit.Point, sy, StyleUnit.Point)
 }
 
 export const scaleX = (sx) => scale(sx, 1)
 export const scaleY = (sy) => scale(1, sy)
 
 export const rotate = (angle) => {
-  const [aValue, aUnit] = toStyleValue(angle, Style.UnitRadian, ROTATE_VALUE_REGEX, ROTATE_UNIT_TO_ENUM)
+  const [aValue, aUnit] = toStyleValue(angle, StyleUnit.Radian, ROTATE_VALUE_REGEX, ROTATE_UNIT_TO_ENUM)
 
   if (typeof aValue === 'undefined') {
     return
   }
 
-  return Float32Array.of(Style.TransformRotate, aValue, aUnit)
+  return Float32Array.of(StyleTransform.Rotate, aValue, aUnit)
 }
 
 export const isRotate = (transform) => transform instanceof Float32Array && transform[0] === StyleTransform.Rotate

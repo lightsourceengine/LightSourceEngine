@@ -115,26 +115,6 @@ Function Style::GetClass(Napi::Env env) {
             LS_ADD_PROPERTY(transformOriginY),
             LS_ADD_PROPERTY(zIndex),
 #undef LS_ADD_PROPERTY
-
-            StaticValue("UnitUndefined", Number::New(env, StyleNumberUnitUndefined)),
-            StaticValue("UnitPoint", Number::New(env, StyleNumberUnitPoint)),
-            StaticValue("UnitPercent", Number::New(env, StyleNumberUnitPercent)),
-            StaticValue("UnitViewportWidth", Number::New(env, StyleNumberUnitViewportWidth)),
-            StaticValue("UnitViewportHeight", Number::New(env, StyleNumberUnitViewportHeight)),
-            StaticValue("UnitViewportMin", Number::New(env, StyleNumberUnitViewportMin)),
-            StaticValue("UnitViewportMax", Number::New(env, StyleNumberUnitViewportMax)),
-            StaticValue("UnitAuto", Number::New(env, StyleNumberUnitAuto)),
-            StaticValue("UnitAnchor", Number::New(env, StyleNumberUnitAnchor)),
-            StaticValue("UnitRootEm", Number::New(env, StyleNumberUnitRootEm)),
-            StaticValue("UnitRadian", Number::New(env, StyleNumberUnitRadian)),
-            StaticValue("UnitDegree", Number::New(env, StyleNumberUnitDegree)),
-            StaticValue("UnitGradian", Number::New(env, StyleNumberUnitGradian)),
-            StaticValue("UnitTurn", Number::New(env, StyleNumberUnitTurn)),
-
-            StaticValue("TransformIdentity", Number::New(env, StyleTransformIdentity)),
-            StaticValue("TransformTranslate", Number::New(env, StyleTransformTranslate)),
-            StaticValue("TransformRotate", Number::New(env, StyleTransformRotate)),
-            StaticValue("TransformScale", Number::New(env, StyleTransformScale))
         });
     }
 

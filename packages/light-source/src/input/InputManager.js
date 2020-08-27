@@ -70,6 +70,18 @@ export class InputManager {
     ])
   }
 
+  on (id, listener) {
+    this._emitter.on(id, listener)
+  }
+
+  once (id, listener) {
+    this._emitter.once(id, listener)
+  }
+
+  off (id, listener) {
+    this._emitter.off(id, listener)
+  }
+
   isEnabled () {
     return this._isEnabled
   }
