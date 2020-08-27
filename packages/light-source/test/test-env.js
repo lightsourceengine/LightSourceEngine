@@ -47,7 +47,7 @@ export const beforeSceneTest = () => {
 }
 
 export const afterSceneTest = () => {
-  test.scene.activeNode = null
+  test.scene.$setActiveNode(null)
   for (const n of test.root.children) {
     test.root.removeChild(n)
   }

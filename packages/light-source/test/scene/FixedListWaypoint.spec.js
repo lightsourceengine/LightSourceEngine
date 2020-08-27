@@ -8,7 +8,8 @@ import { assert } from 'chai'
 import { FixedListWaypoint } from '../../src/scene/FixedListWaypoint'
 import { afterSceneTest, beforeSceneTest } from '../test-env'
 import { Key } from '../../src/input/Key'
-import { Mapping } from '../../src/input/Mapping'
+import { KeyDownEvent } from '../../src/event'
+import { MappingType } from '../../src/input/MappingType'
 
 describe('FixedListWaypoint', () => {
   let scene
@@ -66,7 +67,7 @@ describe('FixedListWaypoint', () => {
   })
 })
 
-const sendKey = (scene, key) => scene.stage.input.$sendKeyEvent(key, true, false, Mapping.STANDARD)
+const sendKey = (scene, key) => scene.activeNode?.$bubble(KeyDownEvent(scene.activeNode, MappingType.Standard, key, false))
 
 const setupSceneRoot = (scene, waypoint) => {
   const group = scene.createNode('box')
@@ -81,5 +82,5 @@ const setupSceneRoot = (scene, waypoint) => {
   group.appendChild(child2)
   scene.root.appendChild(group)
 
-  scene.activeNode = child1
+  child1.focus()
 }

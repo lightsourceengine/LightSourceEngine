@@ -5,12 +5,10 @@
  */
 
 import { Key } from './Key'
-import { KeyEvent } from '../event/KeyEvent'
 import { Mapping } from './Mapping'
 import { Direction } from './Direction'
 import { parseSystemMapping } from './parseSystemMapping'
 import { Keyboard } from './Keyboard'
-import { eventBubblePhase } from '../event/eventBubblePhase'
 import { eventCapturePhase } from '../event/eventCapturePhase'
 import { MappingType } from './MappingType'
 import { emptyArray, EventEmitter, now } from '../util'
@@ -228,35 +226,6 @@ export class InputManager {
   /**
    * @ignore
    */
-  // Test API. May need to promote this to public, as it may be useful.
-  $sendKeyEvent (key, pressed, repeat, mapping) {
-    if (key >= 0 && this._keyToDirection.has(mapping)) {
-      const keyEvent = this._createKeyEvent(key, true, repeat, mapping, { timestamp: now() })
-      const stage = this._stage
-
-      eventCapturePhase(stage, stage.getScene(), keyEvent)
-      eventBubblePhase(stage, stage.getScene(), keyEvent)
-    }
-  }
-
-  /**
-   * @ignore
-   */
-  _createKeyEvent (key, pressed, repeat, mappingName, source) {
-    return new KeyEvent(
-      key,
-      pressed,
-      repeat,
-      mappingName,
-      this._keyToDirection.get(mappingName).get(key) || Direction.NONE,
-      source,
-      source.timestamp
-    )
-  }
-
-  /**
-   * @ignore
-   */
   _registerDeviceConnectionCallbacks () {
     const plugin = this._plugin
 
@@ -419,21 +388,6 @@ export class InputManager {
       activeNode?.$bubble(keyUp, 'onKeyUp')
     }
     const hatDown = (device, hat, value, repeat) => {
-      // const timestamp = now()
-      // const deviceEvent = new DeviceHatEvent(device, hat, value, true, repeat, timestamp)
-      //
-      // this.lastActivity = timestamp
-      // eventBubblePhase(stage, stage.getScene(), deviceEvent)
-      //
-      // const mapping = this.resolveMapping(device.uuid) || emptyMapping
-      // const key = mapping.getKeyForHat(hat, value)
-      //
-      // if (key >= 0) {
-      //   const keyEvent = this._createKeyEvent(key, true, repeat, mapping.name, deviceEvent)
-      //
-      //   eventCapturePhase(stage, stage.getScene(), keyEvent)
-      //   eventBubblePhase(stage, stage.getScene(), keyEvent)
-      // }
       this.lastActivity = now()
 
       // Phase: Dispatch raw key event

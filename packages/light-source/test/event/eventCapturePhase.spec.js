@@ -6,13 +6,12 @@
 
 import { assert } from 'chai'
 import { eventCapturePhase } from '../../src/event/eventCapturePhase'
-import { performance } from 'perf_hooks'
-import { KeyEvent } from '../../src/event/KeyEvent'
-import { Direction } from '../../src/input/Direction'
 import { Key } from '../../src/input/Key'
 import { afterSceneTest, beforeSceneTest } from '../test-env'
 import { waypoint } from '../../src/scene/waypoint'
 import { MappingType } from '../../src/input/MappingType'
+import { KeyDownEvent } from '../../src/event'
+import { Direction } from '../../src/input/Direction'
 
 describe('eventCapturePhase()', () => {
   let scene
@@ -24,23 +23,24 @@ describe('eventCapturePhase()', () => {
   it('should stop propagation after move right', () => {
     const event = rightKeyEvent()
 
-    eventCapturePhase(scene.stage, scene, event)
-    assert.isTrue(event.cancelled)
+    eventCapturePhase(scene.activeNode, Direction.RIGHT, event)
+    assert.isTrue(event.hasStopPropagation())
     assert.strictEqual(scene.root.children[0].children[1], scene.activeNode)
   })
   it('should stop propagation after failed move left', () => {
     const event = leftKeyEvent()
 
-    eventCapturePhase(scene.stage, scene, event)
-    assert.isTrue(event.cancelled)
+    eventCapturePhase(scene.activeNode, Direction.LEFT, event)
+    assert.isTrue(event.hasStopPropagation())
     assert.strictEqual(scene.root.children[0].children[0], scene.activeNode)
   })
   it('should be a noop if scene has not active node', () => {
     const event = rightKeyEvent()
 
-    scene.activeNode = null
-    eventCapturePhase(scene.stage, scene, event)
-    assert.isFalse(event.cancelled)
+    scene.activeNode.blur()
+    assert.isNull(scene.activeNode)
+    eventCapturePhase(scene.activeNode, Direction.RIGHT, event)
+    assert.isFalse(event.hasStopPropagation())
   })
 })
 
@@ -57,9 +57,9 @@ const setupSceneRoot = (scene) => {
   group.appendChild(child2)
   scene.root.appendChild(group)
 
-  scene.activeNode = child1
+  child1.focus()
 }
 
-const rightKeyEvent = () => new KeyEvent(Key.RIGHT, true, false, MappingType.Standard, Direction.RIGHT, {}, performance.now())
+const rightKeyEvent = () => KeyDownEvent(null, MappingType.Standard, Key.RIGHT, false)
 
-const leftKeyEvent = () => new KeyEvent(Key.LEFT, true, false, MappingType.Standard, Direction.LEFT, {}, performance.now())
+const leftKeyEvent = () => KeyDownEvent(null, MappingType.Standard, Key.LEFT, false)
