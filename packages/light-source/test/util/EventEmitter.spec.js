@@ -126,7 +126,7 @@ describe('EventEmitter', () => {
       }
     })
     it('should continue if listener throws exception', () => {
-      let callback = sinon.fake()
+      const callback = sinon.fake()
 
       emitter.once(test, () => { throw Error() })
       emitter.once(test, callback)
@@ -135,7 +135,7 @@ describe('EventEmitter', () => {
       assert.isTrue(callback.called)
     })
     it('should call listeners late when defer = true', (done) => {
-      let callback = sinon.fake()
+      const callback = sinon.fake()
 
       emitter.once(test, callback)
       emitter.once(test, () => { assert.isTrue(callback.called); done() })
@@ -144,7 +144,7 @@ describe('EventEmitter', () => {
       assert.isFalse(callback.called)
     })
     it('should call listeners when defer = false', () => {
-      let callback = sinon.fake()
+      const callback = sinon.fake()
 
       emitter.once(test, callback)
       emitter.emitEvent(event, false)
