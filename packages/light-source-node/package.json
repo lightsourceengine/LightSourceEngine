@@ -15,7 +15,7 @@
     "bundle": "rollup -c",
     "coverage": "echo 'No coverage.'",
     "jsdoc": "echo 'No docs.'",
-    "lint": "echo 'standard disabled'",
+    "lint": "standard",
     "test": "run-p lint testOnly",
     "testOnly": "echo 'No tests.'"
   },
