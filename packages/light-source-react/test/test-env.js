@@ -4,14 +4,14 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { stage, logger } from 'light-source'
+import { stage, logger, LogLevel } from 'light-source'
 import { shutdown } from 'light-source-reconciler'
 import React from 'react'
 import { assert } from 'chai'
 import { getActiveContainers, render } from '../src'
 
 before(() => {
-  logger.setLogLevel(logger.LogLevelOff)
+  logger.setLogLevel(LogLevel.Off)
   stage.loadPlugin('light-source-ref')
   stage.loadPlugin('light-source-ref-audio')
   stage.createScene()

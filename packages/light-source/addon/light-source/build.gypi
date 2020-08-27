@@ -59,6 +59,7 @@
         "ls/Scene.cc",
         "ls/Stage.cc",
         "ls/bindings/GlobalFunctions.cc",
+        "ls/bindings/Enums.cc",
         "ls/bindings/Init.cc",
       ],
       "conditions": [

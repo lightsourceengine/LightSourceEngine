@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { getSceneNodeInstanceCount, logger } from '../src/addon'
+import { getSceneNodeInstanceCount, logger, LogLevel } from '../src/addon'
 import { Stage } from '../src/stage/Stage'
 import { assert } from 'chai'
 
@@ -12,7 +12,7 @@ const nodes = []
 let stage = null
 
 before(() => {
-  logger.setLogLevel(logger.LogLevelOff)
+  logger.setLogLevel(LogLevel.Off)
 
   stage = new Stage()
   stage.loadPlugin('light-source-ref')

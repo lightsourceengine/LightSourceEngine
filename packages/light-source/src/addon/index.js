@@ -21,6 +21,8 @@ const EmptyClass = class {}
 const emptyFunction = () => 0
 
 export const Style = lib.Style || EmptyClass
+export const StyleUnit = lib.StyleUnit || {}
+export const StyleTransform = lib.StyleTransform || {}
 export const SceneBase = lib.SceneBase || EmptyClass
 export const StageBase = lib.StageBase || EmptyClass
 export const BoxSceneNode = lib.BoxSceneNode || EmptyClass
@@ -29,6 +31,7 @@ export const LinkSceneNode = lib.LinkSceneNode || EmptyClass
 export const RootSceneNode = lib.RootSceneNode || EmptyClass
 export const TextSceneNode = lib.TextSceneNode || EmptyClass
 export const logger = lib.Logger || {}
+export const LogLevel  = lib.LogLevel || {}
 export const getSceneNodeInstanceCount = lib.getSceneNodeInstanceCount || emptyFunction
 export const parseColor = lib.parseColor || emptyFunction
 export const addonError = error

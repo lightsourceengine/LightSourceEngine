@@ -6,6 +6,7 @@
 
 #include <napi.h>
 #include <ls/bindings/Logger.h>
+#include <ls/bindings/Enums.h>
 #include <ls/bindings/GlobalFunctions.h>
 #include <ls/Scene.h>
 #include <ls/Stage.h>
@@ -37,10 +38,14 @@ Object Init(Env env, Object exports) {
 
     Event::subscribe(ls::SceneNode::YogaNodeLayoutEvent);
 
-    ls::Style::Init(env);
+    ExportClass(&exports, ls::bindings::NewLoggerClass(env));
+    ExportClass(&exports, ls::bindings::NewLogLevelClass(env));
+    ExportClass(&exports, ls::bindings::NewStyleTransformClass(env));
+    ExportClass(&exports, ls::bindings::NewStyleUnitClass(env));
 
-    ExportClass(&exports, ls::bindings::Logger::GetClass(env));
+    ls::Style::Init(env);
     ExportClass(&exports, ls::Style::GetClass(env));
+
     ExportClass(&exports, ls::Scene::GetClass(env));
     ExportClass(&exports, ls::Stage::GetClass(env));
     ExportClass(&exports, ls::BoxSceneNode::GetClass(env));

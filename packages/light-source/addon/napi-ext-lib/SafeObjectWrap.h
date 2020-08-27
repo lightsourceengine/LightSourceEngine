@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <iterator>
 #include <vector>
+#include "Property.h"
 
 namespace Napi {
 
@@ -28,17 +29,6 @@ template <typename T>
 using ObjectWrapInstanceSetter = void (T::*)(const CallbackInfo& info, const Napi::Value& value);
 template <typename T>
 using ObjectWrapRemoveRefCallback = void (*)(T*);
-
-/**
- * Helper wrapper for passing property names to the SafeObjectWrap binding methods.
- */
-struct PropertyName {
-    const char* utf8Name;
-    napi_value name;
-
-    PropertyName(const char* utf8Name) noexcept : utf8Name(utf8Name), name(nullptr) {}
-    PropertyName(const Symbol& value) noexcept : utf8Name(nullptr), name(value) {}
-};
 
 /**
  * SafeObjectWrap reference methods.

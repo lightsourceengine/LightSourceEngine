@@ -8,6 +8,7 @@
 
 #include <napi.h>
 #include "SafeObjectWrap.h"
+#include "ClassBuilder.h"
 
 namespace Napi {
 

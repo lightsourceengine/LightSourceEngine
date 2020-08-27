@@ -15,14 +15,8 @@ namespace bindings {
 /**
  * Log API exposed to javascript as static methods on a Logger class.
  */
-class Logger : public Napi::SafeObjectWrap<Logger> {
+class Logger {
  public:
-    explicit Logger(const Napi::CallbackInfo &info);
-    virtual ~Logger() = default;
-
- public:
-    static Napi::Function GetClass(Napi::Env env);
-
     static void LogInfo(const Napi::CallbackInfo &info);
     static void LogError(const Napi::CallbackInfo &info);
     static void LogDebug(const Napi::CallbackInfo &info);
@@ -36,6 +30,11 @@ class Logger : public Napi::SafeObjectWrap<Logger> {
  private:
     static void Log(LogLevel logLevel, const Napi::CallbackInfo &info);
 };
+
+// logger js class creators
+
+Napi::Function NewLoggerClass(Napi::Env env);
+Napi::Function NewLogLevelClass(Napi::Env env);
 
 } // namespace bindings
 } // namespace ls

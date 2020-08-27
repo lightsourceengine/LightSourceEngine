@@ -16,7 +16,7 @@ import { MappingType } from './input/MappingType'
 import { PluginType } from './stage/PluginType'
 import { Direction } from './input/Direction'
 import { Key } from './input/Key'
-import { Style, logger } from './addon'
+import { Style, StyleUnit, StyleTransform, LogLevel, logger } from './addon'
 import { absoluteFill } from './style/absoluteFill'
 import { AudioDecoderType } from './audio/AudioDecoderType'
 import { AudioSourceType } from './audio/AudioSourceType'
@@ -55,6 +55,8 @@ const stage = new Stage()
 export {
   // style
   Style,
+  StyleUnit,
+  StyleTransform,
   style,
   rgb,
   rgba,
@@ -91,6 +93,7 @@ export {
 
   // Logger
   logger,
+  LogLevel,
 
   // Audio
   AudioDecoderType,

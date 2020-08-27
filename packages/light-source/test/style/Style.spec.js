@@ -5,7 +5,7 @@
  */
 
 import { assert } from 'chai'
-import { Style } from '../../src/addon'
+import { Style, StyleUnit } from '../../src/addon'
 import { getRotateAngle, isRotate, rotate } from '../../src/style/transform'
 
 const style = (obj) => Object.assign(new Style(), obj)
@@ -15,7 +15,7 @@ const testStyleValue = (name, value, expectedValue) => {
 }
 
 const testStyleValueEmpty = (name, value) => {
-  assert.sameOrderedMembers(style({ [name]: value })[name], [undefined, Style.UnitUndefined])
+  assert.sameOrderedMembers(style({ [name]: value })[name], [undefined, StyleUnit.Undefined])
 }
 
 const testStyleValueEmptyString = (name, value) => {
@@ -35,14 +35,14 @@ describe('Style', () => {
   describe('border properties', () => {
     it('should set point and viewport values', () => {
       for (const property of borderProperties) {
-        testStyleUnitValue(property, 5, Style.UnitPoint, 5)
-        testStyleUnitValue(property, '5px', Style.UnitPoint, 5)
-        testStyleUnitValue(property, 0, Style.UnitPoint, 0)
-        testStyleUnitValue(property, '0px', Style.UnitPoint, 0)
-        testStyleUnitValue(property, '5vw', Style.UnitViewportWidth, 5)
-        testStyleUnitValue(property, '5vh', Style.UnitViewportHeight, 5)
-        testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
-        testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
+        testStyleUnitValue(property, 5, StyleUnit.Point, 5)
+        testStyleUnitValue(property, '5px', StyleUnit.Point, 5)
+        testStyleUnitValue(property, 0, StyleUnit.Point, 0)
+        testStyleUnitValue(property, '0px', StyleUnit.Point, 0)
+        testStyleUnitValue(property, '5vw', StyleUnit.ViewportWidth, 5)
+        testStyleUnitValue(property, '5vh', StyleUnit.ViewportHeight, 5)
+        testStyleUnitValue(property, '5vmin', StyleUnit.ViewportMin, 5)
+        testStyleUnitValue(property, '5vmax', StyleUnit.ViewportMax, 5)
       }
     })
     it('should reject %, auto, anchors and negative values', () => {
@@ -143,14 +143,14 @@ describe('Style', () => {
   describe('borderRadius properties', () => {
     it('should set point and viewport values', () => {
       for (const property of borderRadiusProperties) {
-        testStyleUnitValue(property, 5, Style.UnitPoint, 5)
-        testStyleUnitValue(property, '5px', Style.UnitPoint, 5)
-        testStyleUnitValue(property, 0, Style.UnitPoint, 0)
-        testStyleUnitValue(property, '0px', Style.UnitPoint, 0)
-        testStyleUnitValue(property, '5vw', Style.UnitViewportWidth, 5)
-        testStyleUnitValue(property, '5vh', Style.UnitViewportHeight, 5)
-        testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
-        testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
+        testStyleUnitValue(property, 5, StyleUnit.Point, 5)
+        testStyleUnitValue(property, '5px', StyleUnit.Point, 5)
+        testStyleUnitValue(property, 0, StyleUnit.Point, 0)
+        testStyleUnitValue(property, '0px', StyleUnit.Point, 0)
+        testStyleUnitValue(property, '5vw', StyleUnit.ViewportWidth, 5)
+        testStyleUnitValue(property, '5vh', StyleUnit.ViewportHeight, 5)
+        testStyleUnitValue(property, '5vmin', StyleUnit.ViewportMin, 5)
+        testStyleUnitValue(property, '5vmax', StyleUnit.ViewportMax, 5)
       }
     })
     it('should reject %, auto, anchors and negative values', () => {
@@ -164,13 +164,13 @@ describe('Style', () => {
   describe('fontSize property', () => {
     const property = 'fontSize'
     it('should set values', () => {
-      testStyleUnitValue(property, 1, Style.UnitPoint, 1)
-      testStyleUnitValue(property, '50px', Style.UnitPoint, 50)
-      testStyleUnitValue(property, '5vw', Style.UnitViewportWidth, 5)
-      testStyleUnitValue(property, '5vh', Style.UnitViewportHeight, 5)
-      testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
-      testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
-      testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
+      testStyleUnitValue(property, 1, StyleUnit.Point, 1)
+      testStyleUnitValue(property, '50px', StyleUnit.Point, 50)
+      testStyleUnitValue(property, '5vw', StyleUnit.ViewportWidth, 5)
+      testStyleUnitValue(property, '5vh', StyleUnit.ViewportHeight, 5)
+      testStyleUnitValue(property, '5vmin', StyleUnit.ViewportMin, 5)
+      testStyleUnitValue(property, '5vmax', StyleUnit.ViewportMax, 5)
+      testStyleUnitValue(property, '5rem', StyleUnit.RootEm, 5)
     })
     it('should reject invalid values', () => {
       for (const input of [-1, '10', null, {}, [], undefined, NaN]) {
@@ -201,15 +201,15 @@ describe('Style', () => {
   describe('lineHeight property', () => {
     const property = 'lineHeight'
     it('should set values', () => {
-      testStyleUnitValue(property, 100, Style.UnitPoint, 100)
-      testStyleUnitValue(property, '100%', Style.UnitPercent, 100)
-      testStyleUnitValue(property, '50px', Style.UnitPoint, 50)
-      testStyleUnitValue(property, '0px', Style.UnitPoint, 0)
-      testStyleUnitValue(property, '5vw', Style.UnitViewportWidth, 5)
-      testStyleUnitValue(property, '5vh', Style.UnitViewportHeight, 5)
-      testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
-      testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
-      testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
+      testStyleUnitValue(property, 100, StyleUnit.Point, 100)
+      testStyleUnitValue(property, '100%', StyleUnit.Percent, 100)
+      testStyleUnitValue(property, '50px', StyleUnit.Point, 50)
+      testStyleUnitValue(property, '0px', StyleUnit.Point, 0)
+      testStyleUnitValue(property, '5vw', StyleUnit.ViewportWidth, 5)
+      testStyleUnitValue(property, '5vh', StyleUnit.ViewportHeight, 5)
+      testStyleUnitValue(property, '5vmin', StyleUnit.ViewportMin, 5)
+      testStyleUnitValue(property, '5vmax', StyleUnit.ViewportMax, 5)
+      testStyleUnitValue(property, '5rem', StyleUnit.RootEm, 5)
     })
     it('should reject invalid values', () => {
       for (const input of [-1, null, {}, [], undefined, NaN]) {
@@ -220,8 +220,8 @@ describe('Style', () => {
   describe('maxLines property', () => {
     const property = 'maxLines'
     it('should set values', () => {
-      testStyleUnitValue(property, 0, Style.UnitPoint, 0)
-      testStyleUnitValue(property, 1, Style.UnitPoint, 1)
+      testStyleUnitValue(property, 0, StyleUnit.Point, 0)
+      testStyleUnitValue(property, 1, StyleUnit.Point, 1)
     })
     it('should reject invalid values', () => {
       for (const input of [-1, '10', null, {}, [], undefined, NaN]) {
@@ -260,8 +260,8 @@ describe('Style', () => {
   describe('opacity property', () => {
     const property = 'opacity'
     it('should set value', () => {
-      testStyleUnitValue(property, 0, Style.UnitPoint, 0)
-      testStyleUnitValue(property, 1, Style.UnitPoint, 1)
+      testStyleUnitValue(property, 0, StyleUnit.Point, 0)
+      testStyleUnitValue(property, 1, StyleUnit.Point, 1)
     })
     it('should reject value outside of range [0,1]', () => {
       testStyleValueEmpty(property, -1)
@@ -324,7 +324,7 @@ describe('Style', () => {
       const transformValue = s.transform[0]
 
       assert.isTrue(isRotate(transformValue))
-      assert.sameOrderedMembers(getRotateAngle(transformValue), [90, Style.UnitDegree])
+      assert.sameOrderedMembers(getRotateAngle(transformValue), [90, StyleUnit.Degree])
     })
     it('should assignable to transform value', () => {
       const s = style({ transform: rotate('90deg') })
@@ -334,7 +334,7 @@ describe('Style', () => {
       const transformValue = s.transform[0]
 
       assert.isTrue(isRotate(transformValue))
-      assert.sameOrderedMembers(getRotateAngle(transformValue), [90, Style.UnitDegree])
+      assert.sameOrderedMembers(getRotateAngle(transformValue), [90, StyleUnit.Degree])
     })
     it('should reject invalid values', () => {
       const s = style({ transform: 'invalid' })
@@ -402,10 +402,10 @@ describe('Style', () => {
   describe('zIndex property', () => {
     const property = 'zIndex'
     it('should set positive value', () => {
-      testStyleUnitValue(property, 1, Style.UnitPoint, 1)
+      testStyleUnitValue(property, 1, StyleUnit.Point, 1)
     })
     it('should set negative value', () => {
-      testStyleUnitValue(property, -1, Style.UnitPoint, -1)
+      testStyleUnitValue(property, -1, StyleUnit.Point, -1)
     })
     it('should reject invalid value', () => {
       const inputs = [
@@ -426,23 +426,23 @@ const xDirection = 1
 const yDirection = 2
 
 const testPositionProperty = (property, direction) => {
-  testStyleUnitValue(property, 50, Style.UnitPoint, 50)
-  testStyleUnitValue(property, -50, Style.UnitPoint, -50)
-  testStyleUnitValue(property, '100%', Style.UnitPercent, 100)
-  testStyleUnitValue(property, '50px', Style.UnitPoint, 50)
-  testStyleUnitValue(property, '0px', Style.UnitPoint, 0)
-  testStyleUnitValue(property, '5vw', Style.UnitViewportWidth, 5)
-  testStyleUnitValue(property, '5vh', Style.UnitViewportHeight, 5)
-  testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
-  testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
-  testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
+  testStyleUnitValue(property, 50, StyleUnit.Point, 50)
+  testStyleUnitValue(property, -50, StyleUnit.Point, -50)
+  testStyleUnitValue(property, '100%', StyleUnit.Percent, 100)
+  testStyleUnitValue(property, '50px', StyleUnit.Point, 50)
+  testStyleUnitValue(property, '0px', StyleUnit.Point, 0)
+  testStyleUnitValue(property, '5vw', StyleUnit.ViewportWidth, 5)
+  testStyleUnitValue(property, '5vh', StyleUnit.ViewportHeight, 5)
+  testStyleUnitValue(property, '5vmin', StyleUnit.ViewportMin, 5)
+  testStyleUnitValue(property, '5vmax', StyleUnit.ViewportMax, 5)
+  testStyleUnitValue(property, '5rem', StyleUnit.RootEm, 5)
 
   if (direction === xDirection) {
-    testStyleUnitValue(property, 'left', Style.UnitAnchor, 'left')
-    testStyleUnitValue(property, 'right', Style.UnitAnchor, 'right')
+    testStyleUnitValue(property, 'left', StyleUnit.Anchor, 'left')
+    testStyleUnitValue(property, 'right', StyleUnit.Anchor, 'right')
   } else if (direction === yDirection) {
-    testStyleUnitValue(property, 'top', Style.UnitAnchor, 'top')
-    testStyleUnitValue(property, 'bottom', Style.UnitAnchor, 'bottom')
+    testStyleUnitValue(property, 'top', StyleUnit.Anchor, 'top')
+    testStyleUnitValue(property, 'bottom', StyleUnit.Anchor, 'bottom')
   } else {
     assert.fail()
   }
@@ -455,15 +455,15 @@ const testInvalidPositionProperty = (property) => {
 }
 
 const testDimensionProperty = (property) => {
-  testStyleUnitValue(property, 50, Style.UnitPoint, 50)
-  testStyleUnitValue(property, '100%', Style.UnitPercent, 100)
-  testStyleUnitValue(property, '50px', Style.UnitPoint, 50)
-  testStyleUnitValue(property, '0px', Style.UnitPoint, 0)
-  testStyleUnitValue(property, '5vw', Style.UnitViewportWidth, 5)
-  testStyleUnitValue(property, '5vh', Style.UnitViewportHeight, 5)
-  testStyleUnitValue(property, '5vmin', Style.UnitViewportMin, 5)
-  testStyleUnitValue(property, '5vmax', Style.UnitViewportMax, 5)
-  testStyleUnitValue(property, '5rem', Style.UnitRootEm, 5)
+  testStyleUnitValue(property, 50, StyleUnit.Point, 50)
+  testStyleUnitValue(property, '100%', StyleUnit.Percent, 100)
+  testStyleUnitValue(property, '50px', StyleUnit.Point, 50)
+  testStyleUnitValue(property, '0px', StyleUnit.Point, 0)
+  testStyleUnitValue(property, '5vw', StyleUnit.ViewportWidth, 5)
+  testStyleUnitValue(property, '5vh', StyleUnit.ViewportHeight, 5)
+  testStyleUnitValue(property, '5vmin', StyleUnit.ViewportMin, 5)
+  testStyleUnitValue(property, '5vmax', StyleUnit.ViewportMax, 5)
+  testStyleUnitValue(property, '5rem', StyleUnit.RootEm, 5)
 }
 
 const testInvalidDimensionProperty = (property) => {

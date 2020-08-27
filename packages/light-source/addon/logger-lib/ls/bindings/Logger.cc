@@ -7,48 +7,38 @@
 #include <ls/bindings/Logger.h>
 
 using Napi::CallbackInfo;
+using Napi::ClassBuilder;
 using Napi::Error;
 using Napi::Function;
 using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Number;
-using Napi::SafeObjectWrap;
 using Napi::String;
 using Napi::Value;
 
 namespace ls {
 namespace bindings {
 
-Logger::Logger(const CallbackInfo& info) : SafeObjectWrap<Logger>(info) {
+Function NewLoggerClass(Napi::Env env) {
+    return ClassBuilder(env, "Logger")
+        .WithStaticMethod("info", &Logger::LogInfo)
+        .WithStaticMethod("warn", &Logger::LogWarn)
+        .WithStaticMethod("debug", &Logger::LogDebug)
+        .WithStaticMethod("error", &Logger::LogError)
+        .WithStaticMethod("getLogLevel", &Logger::GetLogLevel)
+        .WithStaticMethod("setLogLevel", &Logger::SetLogLevel)
+        .ToConstructor();
 }
 
-Function Logger::GetClass(Napi::Env env) {
-    static FunctionReference constructor;
-
-    if (constructor.IsEmpty()) {
-        HandleScope scope(env);
-
-        constructor = DefineClass(env, "Logger", true, {
-            StaticMethod("info", &Logger::LogInfo),
-            StaticMethod("warn", &Logger::LogWarn),
-            StaticMethod("debug", &Logger::LogDebug),
-            StaticMethod("error", &Logger::LogError),
-            StaticMethod("getLogLevel", &Logger::GetLogLevel),
-            StaticMethod("setLogLevel", &Logger::SetLogLevel),
-            StaticValue("LogLevelError", Number::New(env, LogLevelError)),
-            StaticValue("LogLevelWarn", Number::New(env, LogLevelWarn)),
-            StaticValue("LogLevelInfo", Number::New(env, LogLevelInfo)),
-            StaticValue("LogLevelDebug", Number::New(env, LogLevelDebug)),
-            StaticValue("LogLevelAll", Number::New(env, LogLevelAll)),
-            StaticValue("LogLevelOff", Number::New(env, LogLevelOff)),
-// TODO: Expose when sink is fully implemented
-//            StaticMethod("close", &Logger::Close),
-//            StaticMethod("getSink", &Logger::GetSink),
-//            StaticMethod("setSink", &Logger::SetSink),
-        });
-    }
-
-    return constructor.Value();
+Function NewLogLevelClass(Napi::Env env) {
+    return ClassBuilder(env, "LogLevel")
+        .WithStaticValue("Off", ls::LogLevel::LogLevelOff)
+        .WithStaticValue("Error", ls::LogLevel::LogLevelError)
+        .WithStaticValue("Warn", ls::LogLevel::LogLevelWarn)
+        .WithStaticValue("Info", ls::LogLevel::LogLevelInfo)
+        .WithStaticValue("Debug", ls::LogLevel::LogLevelDebug)
+        .WithStaticValue("All", ls::LogLevel::LogLevelAll)
+        .ToConstructor();
 }
 
 void Logger::LogInfo(const Napi::CallbackInfo &info) {

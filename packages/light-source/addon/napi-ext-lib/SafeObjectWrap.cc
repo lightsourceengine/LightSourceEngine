@@ -59,7 +59,7 @@ FunctionReference DefineClass(Napi::Env env, const char* utf8name, bool permanen
     for (auto& prop : properties) {
         if (prop.method && (prop.attributes & napi_static)) {
             status = napi_create_function(env, prop.utf8name, NAPI_AUTO_LENGTH, prop.method, prop.data, &(prop.value));
-            NAPI_THROW_IF_FAILED(env, status, Function());
+            NAPI_THROW_IF_FAILED(env, status, FunctionReference());
             prop.method = nullptr;
             prop.data = nullptr;
         }
@@ -68,7 +68,7 @@ FunctionReference DefineClass(Napi::Env env, const char* utf8name, bool permanen
     napi_value constructor;
     status = napi_define_class(env, utf8name, NAPI_AUTO_LENGTH, constructorBridge, nullptr, properties.size(),
                                properties.data(), &constructor);
-    NAPI_THROW_IF_FAILED(env, status, Function());
+    NAPI_THROW_IF_FAILED(env, status, FunctionReference());
 
     FunctionReference ref;
 

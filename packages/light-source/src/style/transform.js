@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { Style } from '../addon'
+import { Style, StyleUnit, StyleTransform } from '../addon'
 import { isNumber } from '../util'
 
 const TRANSLATE_VALUE_REGEX = /^(-?\d+\.?\d*)(px|%)$/
@@ -14,10 +14,10 @@ const TRANSLATE_UNIT_TO_ENUM = new Map([
 ])
 const ROTATE_VALUE_REGEX = /^(-?\d+\.?\d*)(deg|rad|grad|turn)$/
 const ROTATE_UNIT_TO_ENUM = new Map([
-  ['deg', Style.UnitDegree],
-  ['rad', Style.UnitRadian],
-  ['grad', Style.UnitGradian],
-  ['turn', Style.UnitTurn]
+  ['deg', StyleUnit.Degree],
+  ['rad', StyleUnit.Radian],
+  ['grad', StyleUnit.Gradian],
+  ['turn', StyleUnit.Turn]
 ])
 
 const toStyleValue = (raw, numUnit, regex, toEnum) => {
@@ -69,9 +69,9 @@ export const rotate = (angle) => {
   return Float32Array.of(Style.TransformRotate, aValue, aUnit)
 }
 
-export const isRotate = (transform) => transform instanceof Float32Array && transform[0] === Style.TransformRotate
-export const isTranslate = (transform) => transform instanceof Float32Array && transform[0] === Style.TransformTranslate
-export const isScale = (transform) => transform instanceof Float32Array && transform[0] === Style.TransformScale
+export const isRotate = (transform) => transform instanceof Float32Array && transform[0] === StyleTransform.Rotate
+export const isTranslate = (transform) => transform instanceof Float32Array && transform[0] === StyleTransform.Translate
+export const isScale = (transform) => transform instanceof Float32Array && transform[0] === StyleTransform.Scale
 
 export const getRotateAngle = (transform) => isRotate(transform) ? [transform[1], transform[2]] : []
 export const getTranslateX = (transform) => isTranslate(transform) ? [transform[1], transform[2]] : []
