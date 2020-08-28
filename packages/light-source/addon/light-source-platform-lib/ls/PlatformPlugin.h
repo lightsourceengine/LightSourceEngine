@@ -23,7 +23,7 @@ class PlatformPluginInterface {
     virtual void Destroy(const Napi::CallbackInfo& info) = 0;
     virtual Napi::Value ProcessEvents(const Napi::CallbackInfo& info) = 0;
     virtual Napi::Value CreateGraphicsContext(const Napi::CallbackInfo& info) = 0;
-    virtual void AddGameControllerMappings(const Napi::CallbackInfo& info) = 0;
+    virtual Napi::Value LoadGameControllerMappings(const Napi::CallbackInfo& info) = 0;
 
     virtual void Finalize() = 0;
 };
@@ -46,7 +46,7 @@ class PlatformPlugin : public Napi::SafeObjectWrap<PlatformPlugin>, PlatformPlug
     void Destroy(const Napi::CallbackInfo& info) override;
     Napi::Value ProcessEvents(const Napi::CallbackInfo& info) override;
     Napi::Value CreateGraphicsContext(const Napi::CallbackInfo& info) override;
-    void AddGameControllerMappings(const Napi::CallbackInfo& info) override;
+    Napi::Value LoadGameControllerMappings(const Napi::CallbackInfo& info) override;
 
     void Finalize() override;
 

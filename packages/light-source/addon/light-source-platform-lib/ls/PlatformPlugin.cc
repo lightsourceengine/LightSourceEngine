@@ -86,9 +86,9 @@ Value PlatformPlugin::CreateGraphicsContext(const CallbackInfo& info) {
     return this->impl->CreateGraphicsContext(info);
 }
 
-void PlatformPlugin::AddGameControllerMappings(const CallbackInfo& info) {
+Value PlatformPlugin::LoadGameControllerMappings(const CallbackInfo& info) {
     CHECK_IMPL(this->impl);
-    this->impl->AddGameControllerMappings(info);
+    return this->impl->LoadGameControllerMappings(info);
 }
 
 void PlatformPlugin::Finalize() {
@@ -112,7 +112,7 @@ Function PlatformPlugin::GetClass(Napi::Env env) {
             InstanceMethod("setCallback", &PlatformPlugin::SetCallback),
             InstanceMethod("resetCallbacks", &PlatformPlugin::ResetCallbacks),
             InstanceMethod("createGraphicsContext", &PlatformPlugin::CreateGraphicsContext),
-            InstanceMethod("addGameControllerMappings", &PlatformPlugin::AddGameControllerMappings),
+            InstanceMethod("loadGameControllerMappings", &PlatformPlugin::LoadGameControllerMappings),
         });
     }
 

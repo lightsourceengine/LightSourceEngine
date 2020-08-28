@@ -65,12 +65,6 @@ void SDLGamepad::Constructor(const Napi::CallbackInfo& info) {
 //    this->product = SDL_JoystickGetProduct(this->joystick);
 //    this->productVersion = SDL_JoystickGetProductVersion(this->joystick);
 //    this->vendor = SDL_JoystickGetVendor(this->joystick);
-
-    auto value{ SDL_GameControllerMappingForGUID(joystickGUID) };
-
-    if (value) {
-        this->gameControllerMapping = value;
-    }
 }
 
 SDLGamepad* SDLGamepad::New(Napi::Env env, int32_t index) {
@@ -91,7 +85,6 @@ Function SDLGamepad::GetClass(Napi::Env env) {
             InstanceValue("type", String::New(env, "gamepad")),
             InstanceAccessor("id", &InputDevice::GetId, nullptr),
             InstanceAccessor("uuid", &InputDevice::GetUUID, nullptr),
-            InstanceAccessor("mapping", &InputDevice::GetMapping, nullptr),
             InstanceAccessor("name", &InputDevice::GetName, nullptr),
             InstanceAccessor("buttonCount", &SDLGamepad::GetButtonCount, nullptr),
             InstanceAccessor("hatCount", &SDLGamepad::GetHatCount, nullptr),
@@ -99,11 +92,11 @@ Function SDLGamepad::GetClass(Napi::Env env) {
 //            InstanceAccessor("product", &SDLGamepad::GetProduct, nullptr),
 //            InstanceAccessor("productVersion", &SDLGamepad::GetProductVersion, nullptr),
 //            InstanceAccessor("vendor", &SDLGamepad::GetVendor, nullptr),
-            InstanceAccessor("gameControllerMapping", &SDLGamepad::GetGameControllerMapping, nullptr),
             InstanceMethod("isButtonDown", &SDLGamepad::IsButtonDown),
             InstanceMethod("getHatValue", &SDLGamepad::GetHatValue),
             InstanceMethod("getAxisValue", &SDLGamepad::GetAxisValue),
             InstanceMethod("destroy", &SDLGamepad::Destroy),
+            InstanceMethod("$getGameControllerMapping", &SDLGamepad::GetGameControllerMapping),
         });
     }
 
@@ -163,7 +156,13 @@ Value SDLGamepad::GetProductVersion(const CallbackInfo& info) {
 }
 
 Value SDLGamepad::GetGameControllerMapping(const CallbackInfo& info) {
-    return String::New(info.Env(), this->gameControllerMapping);
+    auto value{ SDL_GameControllerMappingForGUID(SDL_JoystickGetGUID(this->joystick)) };
+
+    if (value) {
+        return String::New(info.Env(), value);
+    }
+
+    return info.Env().Null();
 }
 
 void SDLGamepad::Destroy(const CallbackInfo& info) {

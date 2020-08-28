@@ -9,6 +9,8 @@ import { InputManager } from '../../src/input/InputManager'
 import sinon from 'sinon'
 import { Mapping } from '../../src/input/Mapping'
 import { Keyboard } from '../../src/input/Keyboard'
+import { existsSync } from 'fs'
+import { rejects } from '../test-env'
 
 const createMockStage = () => {
   const scene = {
@@ -30,6 +32,14 @@ const createMockStage = () => {
     },
     resetCallbacks () {
       this.callbacks.clear()
+    },
+    loadGameControllerMappings (file) {
+      try {
+        // Simulate the SDL api that would read the file.
+        return existsSync(file)
+      } catch (e) {
+        return false
+      }
     }
   }
 
@@ -148,21 +158,16 @@ describe('InputManager', () => {
   describe('axismotion callback', () => {
     it('should bubble unmapped event', () => {
       stage.plugin.callbacks.get('axismotion')({}, 0, 1)
-      // assert.isTrue(stage.scene[$bubble].calledOnce)
-      // assert.isTrue(stage.scene[$capture].notCalled)
     })
   })
   describe('buttondown callback', () => {
     it('should bubble unwrapped event', () => {
       stage.plugin.callbacks.get('buttondown')({}, 0)
-      // assert.isTrue(stage.scene[$bubble].calledOnce)
-      // assert.isTrue(stage.scene[$capture].notCalled)
     })
   })
   describe('buttonup callback', () => {
     it('should bubble unwrapped event', () => {
       stage.plugin.callbacks.get('buttonup')({}, 0)
-      // assert.isTrue(stage.scene[$bubble].calledOnce)
     })
   })
   describe('connected callback', () => {
@@ -189,10 +194,6 @@ describe('InputManager', () => {
       inputManager.setMapping(inputManager.keyboard.uuid, null)
 
       stage.plugin.callbacks.get('keydown')(new Keyboard(), 1, false)
-      // assert.isTrue(stage.scene[$bubble].calledOnce)
-      // must return the input manager keyboard instance, not the native keyboard
-      // assert.strictEqual(stage.scene[$bubble].getCall(0).args[0].device, inputManager.keyboard)
-      // assert.isTrue(stage.scene[$capture].notCalled)
     })
   })
   describe('keyup callback', () => {
@@ -201,9 +202,14 @@ describe('InputManager', () => {
       inputManager.setMapping(inputManager.keyboard.uuid, null)
 
       stage.plugin.callbacks.get('keyup')(new Keyboard(), 1)
-      // assert.isTrue(stage.scene[$bubble].calledOnce)
-      // must return the input manager keyboard instance, not the native keyboard
-      // assert.strictEqual(stage.scene[$bubble].getCall(0).args[0].device, inputManager.keyboard)
+    })
+  })
+  describe('loadGameControllerDb()', () => {
+    it('should load gamecontrollerdb.txt', async () => {
+      await inputManager.loadGameControllerDb('test/resources/gamecontrollerdb.txt')
+    })
+    it('should throw if file not found', async () => {
+      await rejects(inputManager.loadGameControllerDb('unknown'))
     })
   })
 })

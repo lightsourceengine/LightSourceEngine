@@ -14,7 +14,7 @@ const csv = '03000000c82d00002038000000000000,8bitdo,a:b1,b:b0,back:b10,dpdown:h
 
 describe('parseSystemMapping()', () => {
   it('should parse game controller csv', () => {
-    const [uuid, mapping] = parseSystemMapping(csv)
+    const [mapping, uuid] = parseSystemMapping(csv)
 
     assert.equal(uuid, '03000000c82d00002038000000000000')
     assert.equal(mapping.name, MappingType.Standard)

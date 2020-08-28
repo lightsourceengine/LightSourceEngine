@@ -31,7 +31,7 @@ class SDLPlatformPluginImpl final : public PlatformPluginInterface {
     void Attach(const Napi::CallbackInfo& info) override;
     void Detach(const Napi::CallbackInfo& info) override;
     void Destroy(const Napi::CallbackInfo& info) override;
-    void AddGameControllerMappings(const Napi::CallbackInfo& info) override;
+    Napi::Value LoadGameControllerMappings(const Napi::CallbackInfo& info) override;
     Napi::Value ProcessEvents(const Napi::CallbackInfo& info) override;
     Napi::Value CreateGraphicsContext(const Napi::CallbackInfo& info) override;
 

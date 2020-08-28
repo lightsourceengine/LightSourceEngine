@@ -7,18 +7,13 @@
 import { ScanCode } from './ScanCode'
 import { InputDeviceType } from './InputDeviceType'
 
-const keyboardId = 0
-const keyboardUUID = 'keyboard'
-const keyboardName = 'SystemKeyboard'
-const keyboardMappingString =
-`${keyboardUUID},${keyboardName},b:b${ScanCode.Z},a:b${ScanCode.X},x:b${ScanCode.S},y:b${ScanCode.A},\
-start:b${ScanCode.RETURN},back:b${ScanCode.RSHIFT},leftshoulder:b${ScanCode.Q},rightshoulder:b${ScanCode.W},\
-dpup:b${ScanCode.UP},dpdown:b${ScanCode.DOWN},dpleft:b${ScanCode.LEFT},dpright:b${ScanCode.RIGHT},platform:Linux,`
-
 /**
  *
  */
 export class Keyboard {
+  static UUID = '00000000-00000000-00000000-00000001'
+  static Name = 'SystemKeyboard'
+
   _nativeKeyboard = null
 
   /**
@@ -34,7 +29,7 @@ export class Keyboard {
    * @returns {number}
    */
   get id () {
-    return keyboardId
+    return 0
   }
 
   /**
@@ -42,7 +37,7 @@ export class Keyboard {
    * @returns {string}
    */
   get uuid () {
-    return keyboardUUID
+    return Keyboard.UUID
   }
 
   /**
@@ -50,15 +45,7 @@ export class Keyboard {
    * @returns {string}
    */
   get name () {
-    return keyboardName
-  }
-
-  /**
-   *
-   * @returns {string}
-   */
-  get mapping () {
-    return keyboardMappingString
+    return Keyboard.Name
   }
 
   /**
@@ -70,7 +57,22 @@ export class Keyboard {
     return this._nativeKeyboard ? this._nativeKeyboard.isButtonDown(scanCode) : false
   }
 
+  /**
+   * @ignore
+   */
   $setNative (nativeKeyboard) {
     this._nativeKeyboard = nativeKeyboard
   }
+
+  /**
+   * @ignore
+   */
+  $getGameControllerMapping () {
+    return kKeyboardGameControllerCsv
+  }
 }
+
+const kKeyboardGameControllerCsv =
+  `${Keyboard.UUID},${Keyboard.Name},b:b${ScanCode.Z},a:b${ScanCode.X},x:b${ScanCode.S},y:b${ScanCode.A},\
+start:b${ScanCode.RETURN},back:b${ScanCode.RSHIFT},leftshoulder:b${ScanCode.Q},rightshoulder:b${ScanCode.W},\
+dpup:b${ScanCode.UP},dpdown:b${ScanCode.DOWN},dpleft:b${ScanCode.LEFT},dpright:b${ScanCode.RIGHT},platform:Linux,`

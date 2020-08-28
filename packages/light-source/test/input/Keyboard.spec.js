@@ -21,7 +21,7 @@ describe('Keyboard', () => {
   })
   describe('mapping', () => {
     it('should return a valid native mapping string', () => {
-      const [uuid, mapping] = parseSystemMapping(keyboard.mapping)
+      const [mapping, uuid] = parseSystemMapping(keyboard.$getGameControllerMapping())
 
       assert.equal(uuid, keyboard.uuid)
       assert.equal(mapping.name, MappingType.Standard)

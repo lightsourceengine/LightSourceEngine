@@ -57,3 +57,15 @@ export const afterSceneTest = () => {
 
   assert.equal(getSceneNodeInstanceCount(), 1, 'test has leaked SceneNode instances')
 }
+
+export const rejects = async (subject) => {
+  let f = () => {}
+
+  try {
+    await (typeof subject === 'function' ? subject() : subject)
+  } catch (e) {
+    f = () => { throw e }
+  } finally {
+    assert.throws(f)
+  }
+}

@@ -60,5 +60,5 @@ export const parseSystemMapping = (csv) => {
     mappedEntries.push([hardwareKey, gameControllerKeyToStandardKey.get(key)])
   }
 
-  return [uuid, new Mapping(mappedEntries)]
+  return [new Mapping(mappedEntries), uuid]
 }

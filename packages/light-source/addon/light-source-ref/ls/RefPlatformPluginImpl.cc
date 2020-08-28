@@ -71,7 +71,8 @@ Value RefPlatformPluginImpl::CreateGraphicsContext(const CallbackInfo& info) {
     return GraphicsContext::Create<RefGraphicsContextImpl>(info.Env(), info[0]);
 }
 
-void RefPlatformPluginImpl::AddGameControllerMappings(const CallbackInfo& info) {
+Napi::Value RefPlatformPluginImpl::LoadGameControllerMappings(const Napi::CallbackInfo& info) {
+    return Boolean::New(info.Env(), true);
 }
 
 void RefPlatformPluginImpl::Finalize() {

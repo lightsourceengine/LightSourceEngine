@@ -24,6 +24,7 @@ import {
   RawKeyDownEvent,
   RawKeyUpEvent
 } from '../event'
+import { logger } from '../addon'
 
 /**
  *
@@ -44,7 +45,6 @@ export class InputManager {
   _userMappings = new Map()
   _systemMappings = new Map()
   _keyToDirection = new Map()
-  _gameControllerDbFile = null
   _emitter = new EventEmitter([
     EventNames.attached,
     EventNames.detached,
@@ -62,7 +62,7 @@ export class InputManager {
     this._stage = stage
 
     // add a keyToDirection entry for standard mapping
-    this.registerMapping(MappingType.Standard, [
+    this.setNavigationMapping(MappingType.Standard, [
       [Key.UP, Direction.UP],
       [Key.RIGHT, Direction.RIGHT],
       [Key.DOWN, Direction.DOWN],
@@ -153,13 +153,46 @@ export class InputManager {
     this._userMappings.delete(uuid)
   }
 
+  getSystemMapping (uuid) {
+    // get from cache (cleared on loadGameControllerDb and $attach)
+    if (this._systemMappings.has(uuid)) {
+      return this._systemMappings.get(uuid)
+    }
+
+    // lookup device
+    let device
+
+    if (uuid === Keyboard.UUID) {
+      device = this._keyboard
+    } else {
+      device = this.gamepads.find((value) => value.uuid === uuid)
+    }
+
+    // parse game controller csv, if found
+    const gameControllerMapping = device?.$getGameControllerMapping()
+    let mapping = null
+
+    if (gameControllerMapping) {
+      try {
+        [mapping] = parseSystemMapping(gameControllerMapping)
+      } catch (e) {
+        logger.warn(`Failed to parse mapping from gamepad ${uuid}: ${e.message}`)
+      }
+    }
+
+    // cache mapping, even if null
+    this._systemMappings.set(uuid, mapping)
+
+    return mapping
+  }
+
   /**
    *
    * @param uuid
    * @returns {*}
    */
   resolveMapping (uuid) {
-    return this._userMappings.get(uuid) ?? this._systemMappings.get(uuid)
+    return this._userMappings.get(uuid) ?? this.getSystemMapping(uuid)
   }
 
   /**
@@ -167,7 +200,7 @@ export class InputManager {
    * @param mappingName
    * @param keyToDirectionEntries
    */
-  registerMapping (mappingName, keyToDirectionEntries) {
+  setNavigationMapping (mappingName, keyToDirectionEntries) {
     const keyToDirectionMap = this._keyToDirection
 
     if (!mappingName || typeof mappingName !== 'string') {
@@ -175,6 +208,21 @@ export class InputManager {
     }
 
     keyToDirectionMap.set(mappingName, new Map(keyToDirectionEntries))
+  }
+
+  async loadGameControllerDb (path) {
+    if (!this._plugin) {
+      throw Error('InputManager not initialized.')
+    }
+
+    // TODO: make this call asynchronous..
+    if (!this._plugin.loadGameControllerMappings(path)) {
+      throw Error(`Failed to parse game controller mappings from file ${path}`)
+    }
+
+    this._systemMappings.clear()
+
+    return Promise.resolve()
   }
 
   /**
@@ -193,11 +241,8 @@ export class InputManager {
     }
 
     const plugin = this._plugin
-    const systemMappings = loadSystemMappings(plugin, this._gameControllerDbFile)
 
-    this._systemMappings = systemMappings
-    updateSystemMapping(systemMappings, this._keyboard)
-    this.gamepads.forEach((gamepad) => updateSystemMapping(systemMappings, gamepad))
+    this._systemMappings.clear()
 
     this._registerDeviceConnectionCallbacks()
 
@@ -242,7 +287,6 @@ export class InputManager {
     const plugin = this._plugin
 
     plugin.setCallback('connected', (gamepad) => {
-      updateSystemMapping(this._systemMappings, gamepad)
       if (this._isEnabled) {
         this._emitter.emitEvent(GamepadConnectedEvent(this, gamepad))
       }
@@ -471,47 +515,4 @@ export class InputManager {
 
     plugin.setCallback('axismotion', axisMotion)
   }
-}
-
-/**
- * @ignore
- */
-const loadSystemMappings = (plugin, gameControllerDb) => {
-  const systemMappings = new Map()
-
-  if (gameControllerDb && plugin.addGameControllerMappings) {
-    try {
-      plugin.addGameControllerMappings(gameControllerDb)
-    } catch (e) {
-      console.log(`Failed to load ${gameControllerDb}: ${e.message}`)
-    }
-  }
-
-  return systemMappings
-}
-
-/**
- * @ignore
- */
-const updateSystemMapping = (systemMappings, { uuid, mapping }) => {
-  if (mapping) {
-    if (systemMappings.has(uuid)) {
-      return
-    }
-
-    try {
-      const [systemUUID, systemMapping] = parseSystemMapping(mapping)
-
-      if (uuid === systemUUID) {
-        systemMappings.set(uuid, systemMapping)
-        return
-      }
-
-      console.log(`System mapping uuid mismatch: device=${uuid} system=${systemUUID}`)
-    } catch (e) {
-      console.log(`Failure reading system mapping: ${mapping}. Error: ${e.message}`)
-    }
-  }
-
-  systemMappings.delete(uuid)
 }

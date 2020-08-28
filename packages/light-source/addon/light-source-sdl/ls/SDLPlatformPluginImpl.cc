@@ -171,14 +171,15 @@ Capabilities SDLPlatformPluginImpl::DetermineCapabilities(Napi::Env env) {
     return caps;
 }
 
-void SDLPlatformPluginImpl::AddGameControllerMappings(const CallbackInfo& info) {
+Napi::Value SDLPlatformPluginImpl::LoadGameControllerMappings(const Napi::CallbackInfo& info) {
     auto env{ info.Env() };
-    auto file{ info[0].As<String>().Utf8Value() };
-    auto result{ SDL_GameControllerAddMapping(file.c_str()) };
 
-    if (result == -1) {
-        throw Error::New(env, Format("addGameControllerMappings(): %s", SDL_GetError()));
+    if (!info[0].IsString()) {
+        return Boolean::New(env, false);
     }
+
+    return Boolean::New(
+        env, SDL_GameControllerAddMappingsFromFile(info[0].As<String>().Utf8Value().c_str()) >= 0);
 }
 
 void SDLPlatformPluginImpl::SetCallback(const CallbackInfo& info) {
