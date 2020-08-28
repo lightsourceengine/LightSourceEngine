@@ -18,7 +18,7 @@ class TestComponent extends React.Component {
   }
 }
 
-describe('index.js', () => {
+describe('renderer.js', () => {
   beforeEach(() => {
     beforeEachTestCase()
   })
