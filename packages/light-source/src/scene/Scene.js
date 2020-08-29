@@ -6,16 +6,22 @@
 
 import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode, LinkSceneNode, RootSceneNode } from '../addon'
 import { EventEmitter } from '../util'
-import { absoluteFill } from '../style/absoluteFill'
 import { SceneNodeMixin } from './SceneNodeMixin'
-import { AttachedEvent, DetachedEvent, EventNames } from '../event'
+import { AttachedEvent, DestroyedEvent, DestroyingEvent, DetachedEvent, EventNames } from '../event'
+import { createStyle } from '../style/createStyle'
 
 const kEmptyFrameListener = Object.freeze([0, null])
 let sFrameRequestId = 0
 
 export class Scene extends SceneBase {
   _activeNode = null
-  _emitter = new EventEmitter([EventNames.attached, EventNames.detached])
+  _emitter = new EventEmitter([
+    EventNames.attached,
+    EventNames.detached,
+    EventNames.destroying,
+    EventNames.destroyed
+  ])
+
   _fgFrameListeners = []
   _bgFrameListeners = []
   _attached = false
@@ -25,7 +31,10 @@ export class Scene extends SceneBase {
 
     const root = new (SceneNodeMixin(RootSceneNode))(this)
 
-    Object.assign(root.style, absoluteFill, { backgroundColor: 'black' })
+    root.style = createStyle({
+      backgroundColor: 'black',
+      '@extend': '%absoluteFill'
+    })
 
     this.$setRoot(root)
   }
@@ -156,10 +165,14 @@ export class Scene extends SceneBase {
   }
 
   $destroy () {
+    this._emitter.emitEvent(DestroyingEvent(this))
+
     super.$destroy()
 
     this.$setActiveNode(null)
     // TODO: graphics context destroy() ?
+
+    this._emitter.emitEvent(DestroyedEvent(this))
   }
 }
 

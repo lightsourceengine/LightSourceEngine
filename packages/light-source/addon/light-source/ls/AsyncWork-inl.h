@@ -20,9 +20,9 @@ template<typename T>
 AsyncWorkState<T>::AsyncWorkState(Napi::Env env, AsyncWorkCreate<T>&& create, AsyncWorkComplete<T>&& complete)
 : env(env), create(std::move(create)), complete(std::move(complete)) {
     const auto executeCallback = [](napi_env env, void* data) {
-      auto state{ static_cast<AsyncWorkState<T>*>(data) };
+      auto state{ GetState(static_cast<AsyncWorkState<T>*>(data)) };
 
-      if (!HasState(state)) {
+      if (!state) {
           return;
       }
 
@@ -35,9 +35,9 @@ AsyncWorkState<T>::AsyncWorkState(Napi::Env env, AsyncWorkCreate<T>&& create, As
 
     const auto completeCallback = [](napi_env env, napi_status status, void* data) {
       constexpr auto LAMBDA_FUNCTION = "AsyncWorkComplete";
-      auto state{ static_cast<AsyncWorkState<T>*>(data) };
+      auto state{ GetState(static_cast<AsyncWorkState<T>*>(data)) };
 
-      if (!HasState(state)) {
+      if (!state) {
           LOG_WARN_LAMBDA("Unregistered work state");
           return;
       }
@@ -89,6 +89,8 @@ template<typename T>
 void AsyncWorkState<T>::Cancel() {
     if (this->work) {
         if (this->isQueued) {
+            AsyncWorkState<T>::EraseState(this);
+
             auto status{ napi_cancel_async_work(this->env, this->work) };
 
             // napi_generic_failure means the work is inflight and cannot be destroyed until the
@@ -123,10 +125,15 @@ bool AsyncWorkState<T>::IsQueued() const {
 }
 
 template<typename T>
-bool AsyncWorkState<T>::HasState(const AsyncWorkState<T>* state) {
+std::shared_ptr<AsyncWorkState<T>> AsyncWorkState<T>::GetState(const AsyncWorkState<T>* state) {
     std::lock_guard<std::mutex> guard(sAsyncWorkStateMapMutex);
+    auto i{ sAsyncWorkStateMap.find(state) };
 
-    return sAsyncWorkStateMap.find(state) != sAsyncWorkStateMap.cend();
+    if (i != sAsyncWorkStateMap.end()) {
+        return i->second;
+    }
+
+    return nullptr;
 }
 
 template<typename T>

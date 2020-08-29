@@ -103,7 +103,12 @@ export class AudioManager {
    * @param id {string} AudioSource id
    */
   delete (id) {
-    this._audioSourceMap.delete(id)
+    const audioSource = this._audioSourceMap.get(id)
+
+    if (audioSource) {
+      audioSource.$unload()
+      this._audioSourceMap.delete(id)
+    }
   }
 
   /**

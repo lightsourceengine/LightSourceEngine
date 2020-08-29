@@ -37,6 +37,7 @@ before(() => {
 after(async () => {
   test.stage = test.scene = test.root = null
   stage.stop()
+  stage.$destroy()
   stage = null
 })
 
@@ -47,14 +48,13 @@ export const beforeSceneTest = () => {
 }
 
 export const afterSceneTest = () => {
+  // TODO: active node should be cleaned up automatically
   test.scene.$setActiveNode(null)
-  for (const n of test.root.children) {
-    test.root.removeChild(n)
-  }
 
   nodes.forEach(n => n.destroy())
   nodes.length = 0
 
+  assert.lengthOf(test.scene.root.children, 0)
   assert.equal(getSceneNodeInstanceCount(), 1, 'test has leaked SceneNode instances')
 }
 

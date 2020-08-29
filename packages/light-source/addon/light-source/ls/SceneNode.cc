@@ -253,8 +253,8 @@ void SceneNode::Destroy() {
         parent->RemoveChild(this);
     }
 
-    this->scene = Scene::RemoveRef(this->scene);
     this->style = Style::RemoveRef(this->style, [](Style* ref) { ref->Bind(nullptr); });
+    this->scene = Scene::RemoveRef(this->scene);
     this->sortedChildren.clear();
     YGNodeFree(this->ygNode);
     this->ygNode = nullptr;

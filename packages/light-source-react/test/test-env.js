@@ -12,6 +12,11 @@ import { getActiveContainers, render } from '../src/renderer'
 
 before(() => {
   logger.setLogLevel(LogLevel.Off)
+
+  stage.on('destroying', (event) => {
+    shutdown()
+  })
+
   stage.loadPlugin('light-source-ref')
   stage.loadPlugin('light-source-ref-audio')
   stage.createScene()
@@ -20,7 +25,7 @@ before(() => {
 
 after(async () => {
   stage.stop()
-  shutdown()
+  stage.$destroy()
 })
 
 class Catch extends React.Component {
@@ -68,6 +73,12 @@ export const afterEachTestCase = async () => {
   }
 
   await Promise.allSettled(promises)
+
+  if (stage.scene) {
+    // TODO: active node should be cleaned up automatically
+    stage.scene.$setActiveNode(null)
+    assert.lengthOf(stage.scene.root.children, 0)
+  }
 }
 
 export const container = () => stage.getScene().root

@@ -91,7 +91,7 @@ void Res::RemoveListener(Owner owner) {
 }
 
 void Image::Load(Napi::Env env) {
-    const auto t{GetUriScheme(id) };
+    const auto t{ GetUriScheme(id) };
     int32_t resizedWidth{};
     int32_t resizedHeight{};
 
@@ -431,8 +431,11 @@ void Resources::ReleaseFontFace(const std::string& path, bool immediateDelete) {
 
 void Resources::ReleaseResource(Res* resource, bool immediateDelete) {
     if (resource) {
-        this->ReleaseFontFace(resource->id, immediateDelete);
-        this->ReleaseImage(resource->id, immediateDelete);
+        if (HasFontFace(resource->id)) {
+            this->ReleaseFontFace(resource->id, immediateDelete);
+        } else if (HasImage(resource->id)) {
+            this->ReleaseImage(resource->id, immediateDelete);
+        }
     }
 }
 

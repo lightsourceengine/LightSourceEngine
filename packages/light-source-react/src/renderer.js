@@ -38,7 +38,10 @@ export const render = (container, element, callback) => {
 
       renderersByContainer.delete(node)
       renderer.render(null, callback)
-    } else {
+
+      node.scene.off('destroying', renderer.sceneListener)
+      renderer.sceneListener = null
+    } else if (callback) {
       queueMicrotask(callback)
     }
   } else {
@@ -46,6 +49,9 @@ export const render = (container, element, callback) => {
 
     if (!renderer) {
       renderersByContainer.set(node, renderer = new ReactRenderer(node))
+
+      // TODO: this renderer clean up should be scoped to the node, rather than the scene
+      node.scene.on('destroying', renderer.sceneListener = (event) => renderer.render(null))
     }
 
     renderer.render(element, callback)

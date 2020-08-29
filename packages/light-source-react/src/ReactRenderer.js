@@ -24,6 +24,8 @@ const reconcilers = new Map()
  * to a Scene. The container is bound to the a SceneNode. All render operations target the container.</p>
  */
 export class ReactRenderer {
+  sceneListener = null
+
   constructor (node) {
     let reconciler
     const { scene } = node

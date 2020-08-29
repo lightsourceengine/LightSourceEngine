@@ -37,8 +37,6 @@ Scene::~Scene() {
     if (isAttached) {
         LOG_WARN("scene is still attached");
     }
-
-    this->RemoveInternalReferences();
 }
 
 void Scene::Constructor(const CallbackInfo& info) {
@@ -294,8 +292,8 @@ void Scene::CompositePreorder(SceneNode* node, CompositeContext* context) {
 
 void Scene::RemoveInternalReferences() noexcept {
     // TODO: destroy graphics context?
-    this->graphicsContext = GraphicsContext::RemoveRef(this->graphicsContext);
     this->root = SafeObjectWrap<SceneNode>::RemoveRef(this->root, [](SceneNode* node) { node->Destroy(); });
+    this->graphicsContext = GraphicsContext::RemoveRef(this->graphicsContext);
     this->stage = Stage::RemoveRef(this->stage);
 }
 

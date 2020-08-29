@@ -4,8 +4,6 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { absoluteFill } from './absoluteFill'
-
 const kMixinMap = new Map()
 
 export class MixinRegistry {
@@ -40,7 +38,13 @@ export class MixinRegistry {
 
 export const resetMixinRegistry = () => {
   kMixinMap.clear()
-  kMixinMap.set('%absoluteFill', absoluteFill)
+  kMixinMap.set('%absoluteFill', {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    right: 0,
+    bottom: 0
+  })
 }
 
 resetMixinRegistry()

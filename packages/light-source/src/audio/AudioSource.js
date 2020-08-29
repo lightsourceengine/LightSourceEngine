@@ -188,7 +188,7 @@ export class AudioSource {
   $unload () {
     this._state = AudioSourceStateInit
     this._asyncId = 0
-    this._native && this._native.destroy()
+    this._native?.destroy()
     this._native = null
   }
 

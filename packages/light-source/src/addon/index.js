@@ -20,17 +20,35 @@ try {
 const EmptyClass = class {}
 const emptyFunction = () => 0
 
-export const Style = lib.Style || EmptyClass
+const StubStageBaseClass = () =>
+  class StubStageBase {
+    $destroy() {}
+  }
+
+const StubStyleClass = () =>
+  class StubStyle {
+  }
+
+const StubLogger = () => ({
+  warn(message, site) {},
+  info(message, site) {},
+  error(message, site) {},
+  debug(message, site) {},
+  setLogLevel(logLevel) {},
+  getLogLevel() { return -1 }
+})
+
+export const Style = lib.Style || StubStyleClass()
 export const StyleUnit = lib.StyleUnit || {}
 export const StyleTransform = lib.StyleTransform || {}
 export const SceneBase = lib.SceneBase || EmptyClass
-export const StageBase = lib.StageBase || EmptyClass
+export const StageBase = lib.StageBase || StubStageBaseClass()
 export const BoxSceneNode = lib.BoxSceneNode || EmptyClass
 export const ImageSceneNode = lib.ImageSceneNode || EmptyClass
 export const LinkSceneNode = lib.LinkSceneNode || EmptyClass
 export const RootSceneNode = lib.RootSceneNode || EmptyClass
 export const TextSceneNode = lib.TextSceneNode || EmptyClass
-export const logger = lib.Logger || {}
+export const logger = lib.Logger || StubLogger()
 export const LogLevel  = lib.LogLevel || {}
 export const getSceneNodeInstanceCount = lib.getSceneNodeInstanceCount || emptyFunction
 export const parseColor = lib.parseColor || emptyFunction

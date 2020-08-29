@@ -6,14 +6,22 @@
 
 import { Scene } from '../scene/Scene'
 import bindings from 'bindings'
-import { logger, StageBase } from '../addon'
+import { addonError, logger, StageBase } from '../addon'
 import { InputManager } from '../input/InputManager'
 import { AudioManager } from '../audio/AudioManager'
 import { isNumber, logexcept, EventEmitter, now } from '../util'
 import { PluginType } from './PluginType'
-import { AttachedEvent, DetachedEvent, EventNames, StartedEvent, StoppedEvent } from '../event'
+import {
+  AttachedEvent,
+  DestroyedEvent,
+  DestroyingEvent,
+  DetachedEvent,
+  EventNames,
+  StartedEvent,
+  StoppedEvent
+} from '../event'
 
-const kEmptyPlatformPlugin = { capabilities: { displays: [] } }
+const kEmptyCapabilities = { displays: [] }
 
 export class Stage extends StageBase {
   _mainLoopHandle = null
@@ -27,21 +35,14 @@ export class Stage extends StageBase {
     EventNames.attached,
     EventNames.detached,
     EventNames.started,
-    EventNames.stopped
+    EventNames.stopped,
+    EventNames.destroying,
+    EventNames.destroyed
   ])
 
   _quitRequested = false
   _attached = false
   _running = false
-
-  constructor () {
-    super()
-
-    process.on('exit', () => {
-      logexcept(() => this.$destroy(), 'stage exit listener')
-      global.gc && global.gc()
-    })
-  }
 
   on (id, listener) {
     this._emitter.on(id, listener)
@@ -56,7 +57,7 @@ export class Stage extends StageBase {
   }
 
   get capabilities () {
-    return (this._platformPlugin || kEmptyPlatformPlugin).capabilities
+    return this._platformPlugin?.capabilities ?? kEmptyCapabilities
   }
 
   get input () {
@@ -121,6 +122,10 @@ export class Stage extends StageBase {
    * @param config
    */
   loadPlugin (plugin, config = {}) {
+    if (addonError) {
+      throw Error(`Failed to load light-source.node: ${addonError.message}`)
+    }
+
     const site = 'loadPlugin()'
     let Plugin
 
@@ -242,7 +247,8 @@ export class Stage extends StageBase {
       const tick = now()
 
       if (!this._platformPlugin.processEvents() || this._quitRequested) {
-        // TODO: revisit stage lifecycle...
+        // TODO: something is open (timer?) that is preventing node from exiting
+        logexcept(() => this.$destroy(), 'mainLoopExit')
         process.exit()
       }
 
@@ -251,7 +257,9 @@ export class Stage extends StageBase {
       this._scene?.$frame(tick, lastTick)
       lastTick = tick
 
-      this._mainLoopHandle = setTimeout(mainLoop, 1000 / this._frameRate)
+      if (this._running) {
+        this._mainLoopHandle = setTimeout(mainLoop, 1000 / this._frameRate)
+      }
     }
 
     this._running = true
@@ -272,7 +280,15 @@ export class Stage extends StageBase {
   }
 
   quit () {
-    this._quitRequested = true
+    if (this._running) {
+      this._quitRequested = true
+    } else {
+      queueMicrotask(() => {
+        logexcept(() => this.$destroy(), 'quit()')
+        // TODO: something is open (timer?) that is preventing node from exiting
+        process.exit()
+      })
+    }
   }
 
   isRunning () {
@@ -291,13 +307,18 @@ export class Stage extends StageBase {
    * @ignore
    */
   $destroy () {
+    this._emitter.emitEvent(DestroyingEvent(this))
+
     super.$destroy()
 
-    this._scene?.$destroy()
     this._audioManager?.$destroy()
     this._inputManager?.$destroy()
-
+    this._scene?.$destroy()
+    this._scene = null
     this._platformPlugin?.destroy()
+    this._platformPlugin = null
+
+    this._emitter.emitEvent(DestroyedEvent(this))
   }
 
   /**
@@ -327,10 +348,10 @@ export class Stage extends StageBase {
     }
 
     this._scene?.$detach()
-    this?._audioManager.$detach()
-    this?._inputManager.$detach()
+    this._audioManager?.$detach()
+    this._inputManager?.$detach()
 
-    this?._platformPlugin.detach()
+    this._platformPlugin?.detach()
 
     this._attached = false
     this._emitter.emitEvent(DetachedEvent(this))

@@ -11,6 +11,8 @@ export const EventNames = {
   detached: 'detached',
   started: 'started',
   stopped: 'stopped',
+  destroying: 'destroying',
+  destroyed: 'destroyed',
   status: 'status',
   connected: 'connected',
   disconnected: 'disconnected',
@@ -35,6 +37,8 @@ const EventSymbols = {
   detached: Symbol.for(EventNames.detached),
   started: Symbol.for(EventNames.started),
   stopped: Symbol.for(EventNames.stopped),
+  destroying: Symbol.for(EventNames.destroying),
+  destroyed: Symbol.for(EventNames.destroyed),
   status: Symbol.for(EventNames.status),
   connected: Symbol.for(EventNames.connected),
   disconnected: Symbol.for(EventNames.disconnected),
@@ -184,6 +188,8 @@ export const AttachedEvent = (target) => new Event(EventSymbols.attached, target
 export const DetachedEvent = (target) => new Event(EventSymbols.detached, target)
 export const StartedEvent = (target) => new Event(EventSymbols.started, target)
 export const StoppedEvent = (target) => new Event(EventSymbols.stopped, target)
+export const DestroyedEvent = (target) => new Event(EventSymbols.destroyed, target)
+export const DestroyingEvent = (target) => new Event(EventSymbols.destroying, target)
 export const GamepadConnectedEvent =
   (target, gamepad) => new GamepadEvent(EventSymbols.connected, target, gamepad)
 export const GamepadDisconnectedEvent =

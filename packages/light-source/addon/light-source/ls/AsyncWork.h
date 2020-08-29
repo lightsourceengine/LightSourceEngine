@@ -89,7 +89,7 @@ class AsyncWorkState : public std::enable_shared_from_this<AsyncWorkState<T>> {
  private:
     using AsyncWorkStateMap = std::unordered_map<const AsyncWorkState<T>*, std::shared_ptr<AsyncWorkState<T>>>;
 
-    static bool HasState(const AsyncWorkState<T>* state);
+    static std::shared_ptr<AsyncWorkState<T>> GetState(const AsyncWorkState<T>* state);
     static void EraseState(AsyncWorkState<T>* state);
     static void InsertState(AsyncWorkState<T>* state);
 
