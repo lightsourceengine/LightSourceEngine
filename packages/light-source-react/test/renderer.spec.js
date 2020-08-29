@@ -7,7 +7,7 @@
 import { assert } from 'chai'
 import React from 'react'
 import { afterEachTestCase, beforeEachTestCase, container, renderAsync } from './test-env'
-import { findElement, findSceneNode, render } from '../src'
+import { findElement, findSceneNode, render } from '../src/renderer'
 import { TextElement } from '../src/TextElement'
 
 class TestComponent extends React.Component {

@@ -4,47 +4,91 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { stage, absoluteFill } from 'light-source'
-import { render } from 'light-source-react'
+import { createStyleSheet } from 'light-source'
+import { letThereBeLight } from 'light-source-react'
 import React from 'react'
 
-const label = {
-  fontFamily: 'Roboto-Bold',
-  fontSize: 24,
-  color: 'lightgray',
-  width: '50vh',
-  border: 2,
-  borderColor: 'white',
-  padding: 20,
-  marginRight: 10,
-  marginBottom: 10
-}
+// Demonstrates textAlign style property on text elements.
+
+const sheet = createStyleSheet({
+  body: {
+    padding: '10vh',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    backgroundColor: '#264653',
+    '@extend': '%absoluteFill'
+  },
+  textAlignLeft: {
+    textAlign: 'left',
+    '@extend': '%label'
+  },
+  textAlignCenter: {
+    textAlign: 'center',
+    '@extend': '%label'
+  },
+  textAlignRight: {
+    textAlign: 'right',
+    '@extend': '%label'
+  },
+  ellipsisTextAlignLeft: {
+    '@extend': ['textAlignLeft', '%ellipsis']
+  },
+  ellipsisTextAlignCenter: {
+    '@extend': ['textAlignCenter', '%ellipsis']
+  },
+  ellipsisTextAlignRight: {
+    '@extend': ['textAlignRight', '%ellipsis']
+  },
+  maxLinesTextAlignLeft: {
+    maxLines: 1,
+    '@extend': 'textAlignLeft'
+  },
+  maxLinesTextAlignCenter: {
+    maxLines: 1,
+    '@extend': 'textAlignCenter'
+  },
+  maxLinesTextAlignRight: {
+    maxLines: 1,
+    '@extend': 'textAlignRight'
+  },
+  '%ellipsis': {
+    maxLines: 1,
+    textOverflow: 'ellipsis'
+  },
+  '%label': {
+    fontFamily: 'Roboto-Bold',
+    fontSize: 24,
+    color: 'lightgray',
+    width: '50vh',
+    border: 2,
+    borderColor: 'white',
+    padding: 20,
+    marginRight: 10,
+    marginBottom: 10
+  }
+})
 
 const sampleText = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam dignissim at metus in finibus. Duis pharetra lobortis ultrices. Donec ullamcorper elementum ultricies.'
 const sampleTextSmall = '   Hello, world!   '
 const sampleTextNewline = '1) Eat\n2) Sleep\n3) Conquer\n4) Repeat'
 
-// Demonstrates textAlign style property on text elements.
 const TextAlignApp = () => (
-  <div style={{ padding: '10vh', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', backgroundColor: '#264653', ...absoluteFill }}>
+  <box style={sheet.body}>
     <link href='resource/Roboto-Bold.ttf' />
-    <text style={{ textAlign: 'left', maxLines: 1, ...label }}>{sampleTextSmall}</text>
-    <text style={{ textAlign: 'center', maxLines: 1, ...label }}>{sampleTextSmall}</text>
-    <text style={{ textAlign: 'right', maxLines: 1, ...label }}>{sampleTextSmall}</text>
-    <text style={{ textAlign: 'left', ...label }}>{sampleText}</text>
-    <text style={{ textAlign: 'center', ...label }}>{sampleText}</text>
-    <text style={{ textAlign: 'right', ...label }}>{sampleText}</text>
-    <text style={{ textAlign: 'left', maxLines: 1, textOverflow: 'ellipsis', ...label }}>{sampleText}</text>
-    <text style={{ textAlign: 'center', maxLines: 1, textOverflow: 'ellipsis', ...label }}>{sampleText}</text>
-    <text style={{ textAlign: 'right', maxLines: 1, textOverflow: 'ellipsis', ...label }}>{sampleText}</text>
-    <text style={{ textAlign: 'left', ...label }}>{sampleTextNewline}</text>
-    <text style={{ textAlign: 'center', ...label }}>{sampleTextNewline}</text>
-    <text style={{ textAlign: 'right', ...label }}>{sampleTextNewline}</text>
-  </div>
+    <text style={sheet.maxLinesTextAlignLeft}>{sampleTextSmall}</text>
+    <text style={sheet.maxLinesTextAlignCenter}>{sampleTextSmall}</text>
+    <text style={sheet.maxLinesTextAlignRight}>{sampleTextSmall}</text>
+    <text style={sheet.textAlignLeft}>{sampleText}</text>
+    <text style={sheet.textAlignCenter}>{sampleText}</text>
+    <text style={sheet.textAlignRight}>{sampleText}</text>
+    <text style={sheet.ellipsisTextAlignLeft}>{sampleText}</text>
+    <text style={sheet.ellipsisTextAlignCenter}>{sampleText}</text>
+    <text style={sheet.ellipsisTextAlignRight}>{sampleText}</text>
+    <text style={sheet.textAlignLeft}>{sampleTextNewline}</text>
+    <text style={sheet.textAlignCenter}>{sampleTextNewline}</text>
+    <text style={sheet.textAlignRight}>{sampleTextNewline}</text>
+  </box>
 )
 
-const scene = stage.createScene({ fullscreen: false })
-
-render(scene, <TextAlignApp />)
-
-stage.start()
+letThereBeLight(<TextAlignApp />, { fullscreen: false })

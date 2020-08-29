@@ -5,7 +5,7 @@
  */
 
 import { emptyObject } from './emptyObject'
-import { style as StyleFactory, Style } from 'light-source'
+import { createStyle } from 'light-source'
 
 const kCommentElementProps = [
   'focusable',
@@ -49,7 +49,8 @@ export class Element {
     const { style } = newProps
 
     if (oldProps.style !== style) {
-      node.style = (style && style instanceof Style) ? style : StyleFactory(style)
+      // createStyle returns style if already a Style instance
+      node.style = createStyle(style)
     }
 
     for (const name of kCommentElementProps) {

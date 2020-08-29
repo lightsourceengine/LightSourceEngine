@@ -47,4 +47,6 @@ export const symbolKeyFor = Symbol.keyFor
 
 export const emptyArray = Object.freeze([])
 
+export const emptyObject = Object.freeze({})
+
 export { EventEmitter }

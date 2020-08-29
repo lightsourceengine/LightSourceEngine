@@ -7,7 +7,7 @@
 import { assert } from 'chai'
 import React from 'react'
 import { renderAsync, container, afterEachTestCase, beforeEachTestCase } from './test-env'
-import { render } from '../src'
+import { render } from '../src/renderer'
 
 const kImage = 'test/resource/image-1280x720.png'
 let root

@@ -6,7 +6,9 @@
 
 import { Stage } from './stage/Stage'
 import { createStyleSheet } from './style/createStyleSheet'
-import { style } from './style/style'
+import { ShorthandRegistry } from './style/ShorthandRegistry'
+import { MixinRegistry } from './style/MixinRegistry'
+import { createStyle } from './style/createStyle'
 import { rgba } from './style/rgba'
 import { rgb } from './style/rgb'
 import { ScanCode } from './input/ScanCode'
@@ -16,8 +18,7 @@ import { MappingType } from './input/MappingType'
 import { PluginType } from './stage/PluginType'
 import { Direction } from './input/Direction'
 import { Key } from './input/Key'
-import { Style, StyleUnit, StyleTransform, LogLevel, logger } from './addon'
-import { absoluteFill } from './style/absoluteFill'
+import { StyleUnit, StyleTransform, LogLevel, logger } from './addon'
 import { AudioDecoderType } from './audio/AudioDecoderType'
 import { AudioSourceType } from './audio/AudioSourceType'
 import { InputDeviceType } from './input/InputDeviceType'
@@ -53,14 +54,13 @@ const errorHandler = obj => {
 const stage = new Stage()
 
 export {
-  // style
-  Style,
+  // Style
   StyleUnit,
   StyleTransform,
-  style,
+  ShorthandRegistry,
+  createStyle,
   rgb,
   rgba,
-  createStyleSheet,
   translate,
   scale,
   rotate,
@@ -76,20 +76,23 @@ export {
   getTranslateY,
   getScaleX,
   getScaleY,
-  absoluteFill,
 
-  // stage/scene
+  // StyleSheet
+  createStyleSheet,
+  MixinRegistry,
+
+  // Stage
   stage,
   waypoint,
   Direction,
   PluginType,
 
-  // input
-  Mapping,
+  // Input
   MappingType,
+  InputDeviceType,
   Key,
   ScanCode,
-  InputDeviceType,
+  Mapping,
 
   // Logger
   logger,

@@ -4,9 +4,30 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { stage, absoluteFill } from 'light-source'
-import { render } from 'light-source-react'
+import { createStyleSheet } from 'light-source'
+import { letThereBeLight } from 'light-source-react'
 import React, { useEffect, useRef } from 'react'
+
+// Demonstrates objectPosition on img elements and manual animations.
+
+const sheet = createStyleSheet({
+  body: {
+    padding: '10vh',
+    flexWrap: 'wrap',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    backgroundColor: 'lightgray',
+    '@extend': '%absoluteFill'
+  },
+  sprite: {
+    flex: 1,
+    objectFit: 'none',
+    marginBottom: 20,
+    marginRight: 20,
+    '@size': 64,
+    '@objectPosition': 0
+  }
+})
 
 // sprite sheet, containing 21 rows of animations. each animation is 64x64.
 const spritesheet = 'resource/universal-lpc-sprite_male_01_full.png'
@@ -18,11 +39,16 @@ const millisPerFrame = 1000 / 9
 // Sprite animation component.
 // Uses requestAnimationFrame() and objectPositionX/Y to do sprite animation.
 const AnimatedSprite = ({ spriteSheetRow }) => {
-  const element = useRef(null)
+  const ref = useRef(null)
 
   useEffect(() => {
+    const { node } = ref.current
+    const { scene } = node
     let currentFrame = 0
     let millisUntilNextFrame = millisPerFrame
+
+    node.style = sheet.sprite
+    node.style.objectPositionY = spriteSheetRow * -64
 
     // Note, Light Source Engine does not have an animation API at the moment, but animations
     // are possible through rAF and manually changing styles.
@@ -35,7 +61,7 @@ const AnimatedSprite = ({ spriteSheetRow }) => {
         }
 
         millisUntilNextFrame = millisPerFrame
-        element.current.node.style.objectPositionX = currentFrame * -64
+        node.style.objectPositionX = currentFrame * -64
       }
 
       scene.requestAnimationFrame(onAnimationFrame)
@@ -44,45 +70,13 @@ const AnimatedSprite = ({ spriteSheetRow }) => {
     scene.requestAnimationFrame(onAnimationFrame)
   })
 
-  return (
-    <img
-      ref={element}
-      src={spritesheet}
-      style={{
-        flex: 1,
-        width: 64,
-        height: 64,
-        objectFit: 'none',
-        objectPositionX: 0,
-        objectPositionY: spriteSheetRow * -64,
-        marginBottom: 20,
-        marginRight: 20
-      }}
-    />
-  )
+  return (<img ref={ref} src={spritesheet} />)
 }
 
-// Demonstrates objectPosition on img elements and manual animations.
 const SpritesApp = () => {
-  return (
-    <div style={{
-      padding: '10vh',
-      flexWrap: 'wrap',
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
-      backgroundColor: 'lightgray',
-      ...absoluteFill
-    }}
-    >
-      {
-        frameCount.map((value, index) => <AnimatedSprite spriteSheetRow={index} key={index.toString()} />)
-      }
-    </div>
-  )
+  const sprites = frameCount.map((value, index) => <AnimatedSprite spriteSheetRow={index} key={index.toString()} />)
+
+  return (<box style={sheet.body}>{sprites}</box>)
 }
 
-const scene = stage.createScene({ fullscreen: false })
-
-render(scene, <SpritesApp />)
-
-stage.start()
+letThereBeLight(<SpritesApp />, { fullscreen: false })

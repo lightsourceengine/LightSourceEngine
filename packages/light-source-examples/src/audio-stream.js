@@ -4,19 +4,21 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { stage, absoluteFill, createStyleSheet, AudioDecoderType } from 'light-source'
-import { render } from 'light-source-react'
+import { stage, createStyleSheet, AudioDecoderType } from 'light-source'
+import { letThereBeLight } from 'light-source-react'
 import React, { useEffect, useState } from 'react'
 
-const styles = createStyleSheet({
+// Demonstrates playing an mp3 or ogg file.
+
+const sheet = createStyleSheet({
   body: {
-    backgroundColor: 'dodgerblue',
+    backgroundColor: '#8d99ae',
     padding: 20,
-    ...absoluteFill
+    '@extend': '%absoluteFill'
   },
   label: {
     fontFamily: 'Roboto',
-    color: 'white',
+    color: '#2b2d42',
     fontSize: 24
   }
 })
@@ -48,15 +50,11 @@ const StreamingAudioApp = () => {
   })
 
   return (
-    <box style={styles.body}>
+    <box style={sheet.body}>
       <link href='file:resource/Roboto-Bold.ttf?family=Roboto' />
-      <text style={styles.label}>{`Background music is ${loadingStatus}.`}</text>
+      <text style={sheet.label}>{`Background music is ${loadingStatus}.`}</text>
     </box>
   )
 }
 
-const scene = stage.createScene({ fullscreen: false })
-
-render(scene, <StreamingAudioApp />)
-
-stage.start()
+letThereBeLight(<StreamingAudioApp />, { fullscreen: false })

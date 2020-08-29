@@ -209,7 +209,15 @@ export class Stage extends StageBase {
 
     this._scene = scene
 
+    if (this.isAttached()) {
+      scene.$attach()
+    }
+
     return scene
+  }
+
+  get scene () {
+    return this._scene
   }
 
   getScene (displayIndex = 0) {
@@ -226,8 +234,6 @@ export class Stage extends StageBase {
       throw Error()
     }
 
-    const platform = this._platformPlugin
-    const scene = this._scene
     let lastTick = now()
 
     this._attach()
@@ -235,14 +241,14 @@ export class Stage extends StageBase {
     const mainLoop = () => {
       const tick = now()
 
-      if (!platform.processEvents() || this._quitRequested) {
+      if (!this._platformPlugin.processEvents() || this._quitRequested) {
         // TODO: revisit stage lifecycle...
         process.exit()
       }
 
       // TODO: check suspended
 
-      scene.$frame(tick, lastTick)
+      this._scene?.$frame(tick, lastTick)
       lastTick = tick
 
       this._mainLoopHandle = setTimeout(mainLoop, 1000 / this._frameRate)
@@ -306,7 +312,7 @@ export class Stage extends StageBase {
 
     this._inputManager.$attach()
     this._audioManager.$attach()
-    this._scene.$attach()
+    this._scene?.$attach()
 
     this._attached = true
     this._emitter.emitEvent(AttachedEvent(this))

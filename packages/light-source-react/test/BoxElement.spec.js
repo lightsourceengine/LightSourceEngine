@@ -5,7 +5,7 @@
  */
 
 import { assert } from 'chai'
-import { Style } from 'light-source'
+import { createStyle } from 'light-source'
 import React from 'react'
 import { renderAsync, rejects, beforeEachTestCase, container, afterEachTestCase } from './test-env'
 
@@ -22,7 +22,7 @@ describe('BoxElement', () => {
   })
   describe('prop: style', () => {
     it('should set style with Style object', async () => {
-      const style = new Style()
+      const style = createStyle({})
 
       style.backgroundColor = 'red'
 
