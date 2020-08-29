@@ -194,7 +194,7 @@ bool TextSceneNode::SetFont(Style* style) {
     }
 
     this->ClearFontFaceResource();
-    this->fontFace = this->GetStage()->GetResources()->AcquireFontFaceByStyle(
+    this->fontFace = this->GetResources()->AcquireFontFaceByStyle(
         style->fontFamily, style->fontStyle, style->fontWeight);
 
     if (!this->fontFace) {
@@ -232,7 +232,7 @@ bool TextSceneNode::SetFont(Style* style) {
 void TextSceneNode::ClearFontFaceResource() {
     if (this->fontFace) {
         this->fontFace->RemoveListener(this);
-        this->GetStage()->GetResources()->ReleaseResource(this->fontFace);
+        this->GetResources()->ReleaseResource(this->fontFace);
         this->fontFace = nullptr;
     }
 }

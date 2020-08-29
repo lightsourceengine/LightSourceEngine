@@ -55,7 +55,7 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     virtual void Composite(CompositeContext* composite) = 0;
     virtual void Destroy();
 
-    Stage* GetStage() const noexcept;
+    Resources* GetResources() const noexcept;
     SceneNode* GetParent() const noexcept;
     bool IsLeaf() const noexcept;
     bool IsHidden() const noexcept;

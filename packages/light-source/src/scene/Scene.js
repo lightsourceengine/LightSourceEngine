@@ -22,12 +22,18 @@ export class Scene extends SceneBase {
     EventNames.destroyed
   ])
 
+  _stage = null
+  _root = null
+  _graphicsContext = null
   _fgFrameListeners = []
   _bgFrameListeners = []
   _attached = false
 
   constructor (stage, platform, config) {
-    super(stage, createGraphicsContext(stage, platform, config))
+    super()
+
+    this._stage = this.$setStage(stage)
+    this._graphicsContext = this.$setGraphicsContext(createGraphicsContext(stage, platform, config))
 
     const root = new (SceneNodeMixin(RootSceneNode))(this)
 
@@ -36,7 +42,7 @@ export class Scene extends SceneBase {
       '@extend': '%absoluteFill'
     })
 
-    this.$setRoot(root)
+    this._root = this.$setRoot(root)
   }
 
   on (id, listener) {
@@ -49,6 +55,14 @@ export class Scene extends SceneBase {
 
   off (id, listener) {
     this._emitter.off(id, listener)
+  }
+
+  get stage () {
+    return this._stage
+  }
+
+  get root () {
+    return this._root
   }
 
   isAttached () {

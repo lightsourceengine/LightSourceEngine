@@ -304,7 +304,7 @@ void BoxSceneNode::UpdateBackgroundImage(const std::string& backgroundUri) {
         return;
     }
 
-    this->backgroundImage = this->GetStage()->GetResources()->AcquireImage(backgroundUri);
+    this->backgroundImage = this->GetResources()->AcquireImage(backgroundUri);
 
     auto listener{ [this](Res::Owner owner, Res* res) {
         if (this != owner || this->backgroundImage != res) {
@@ -333,7 +333,7 @@ void BoxSceneNode::UpdateBackgroundImage(const std::string& backgroundUri) {
 void BoxSceneNode::ClearBackgroundImageResource() {
     if (this->backgroundImage) {
         this->backgroundImage->RemoveListener(this);
-        this->GetStage()->GetResources()->ReleaseResource(this->backgroundImage);
+        this->GetResources()->ReleaseResource(this->backgroundImage);
         this->backgroundImage = nullptr;
     }
 }

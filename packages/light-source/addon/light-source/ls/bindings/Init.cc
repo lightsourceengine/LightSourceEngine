@@ -4,20 +4,20 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <napi.h>
-#include <ls/bindings/Logger.h>
-#include <ls/bindings/Enums.h>
-#include <ls/bindings/GlobalFunctions.h>
-#include <ls/Scene.h>
-#include <ls/Stage.h>
-#include <ls/Style.h>
+#include <YGNode.h>
+#include <event/event.h>
 #include <ls/BoxSceneNode.h>
 #include <ls/ImageSceneNode.h>
 #include <ls/LinkSceneNode.h>
 #include <ls/RootSceneNode.h>
+#include <ls/Scene.h>
+#include <ls/Style.h>
 #include <ls/TextSceneNode.h>
-#include <YGNode.h>
-#include <event/event.h>
+#include <ls/bindings/GlobalFunctions.h>
+#include <ls/bindings/JSEnums.h>
+#include <ls/bindings/JSStage.h>
+#include <ls/bindings/Logger.h>
+#include <napi.h>
 
 #ifdef LIGHT_SOURCE_NATIVE_TESTS
 #include <test/LightSourceTestSuite.h>
@@ -43,11 +43,12 @@ Object Init(Env env, Object exports) {
     ExportClass(&exports, ls::bindings::NewStyleTransformClass(env));
     ExportClass(&exports, ls::bindings::NewStyleUnitClass(env));
 
+    ExportClass(&exports, ls::bindings::JSStage::GetClass(env));
+
     ls::Style::Init(env);
     ExportClass(&exports, ls::Style::GetClass(env));
 
     ExportClass(&exports, ls::Scene::GetClass(env));
-    ExportClass(&exports, ls::Stage::GetClass(env));
     ExportClass(&exports, ls::BoxSceneNode::GetClass(env));
     ExportClass(&exports, ls::ImageSceneNode::GetClass(env));
     ExportClass(&exports, ls::LinkSceneNode::GetClass(env));

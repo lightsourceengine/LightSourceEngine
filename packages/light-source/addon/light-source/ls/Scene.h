@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <ls/types.h>
 #include <ls/CompositeContext.h>
 #include <ls/StyleEnums.h>
 #include <ls/StyleResolver.h>
@@ -21,7 +22,6 @@ namespace ls {
 class Renderer;
 class GraphicsContext;
 class SceneNode;
-class Stage;
 
 class Scene : public Napi::SafeObjectWrap<Scene> {
  public:
@@ -31,15 +31,13 @@ class Scene : public Napi::SafeObjectWrap<Scene> {
     // javascript bindings
 
     static Napi::Function GetClass(Napi::Env env);
-    void Constructor(const Napi::CallbackInfo& info) override;
     void Attach(const Napi::CallbackInfo& info);
     void Detach(const Napi::CallbackInfo& info);
     void Destroy(const Napi::CallbackInfo& info);
     void Frame(const Napi::CallbackInfo& info);
-    Napi::Value GetRoot(const Napi::CallbackInfo& info);
-    void SetRoot(const Napi::CallbackInfo& info);
-    Napi::Value GetStage(const Napi::CallbackInfo& info);
-    Napi::Value GetGraphicsContext(const Napi::CallbackInfo& info);
+    Napi::Value SetRoot(const Napi::CallbackInfo& info);
+    Napi::Value SetStage(const Napi::CallbackInfo& info);
+    Napi::Value SetGraphicsContext(const Napi::CallbackInfo& info);
 
     // native interface
 
@@ -49,11 +47,11 @@ class Scene : public Napi::SafeObjectWrap<Scene> {
     int32_t GetViewportMax() const noexcept { return this->viewportMax; }
     float GetRootFontSize() const noexcept { return this->rootFontSize; }
     const StyleResolver& GetStyleResolver() const noexcept { return this->styleResolver; }
+    StageRef GetStage() const noexcept { return this->stage; }
 
     void OnRootFontSizeChange() noexcept;
 
     Renderer* GetRenderer() const noexcept;
-    Stage* GetStage() const noexcept { return this->stage; }
 
     void RequestPaint(SceneNode* node);
     void RequestStyleLayout(SceneNode* node);
@@ -71,7 +69,7 @@ class Scene : public Napi::SafeObjectWrap<Scene> {
 
  private:
     SceneNode* root{};
-    Stage* stage{};
+    StageRef stage{};
     GraphicsContext* graphicsContext{};
     int32_t width{};
     int32_t height{};

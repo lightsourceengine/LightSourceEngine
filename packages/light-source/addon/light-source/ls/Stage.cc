@@ -13,21 +13,7 @@ using Napi::HandleScope;
 
 namespace ls {
 
-Function Stage::GetClass(Napi::Env env) {
-    static FunctionReference constructor;
-
-    if (constructor.IsEmpty()) {
-        HandleScope scope(env);
-
-        constructor = DefineClass(env, "StageBase", true, {
-            InstanceMethod("$destroy", &Stage::Destroy),
-        });
-    }
-
-    return constructor.Value();
-}
-
-void Stage::Destroy(const CallbackInfo& info) {
+void Stage::Destroy() {
     // TODO: cleanup resources
     this->threadPool.ShutdownNow();
 }

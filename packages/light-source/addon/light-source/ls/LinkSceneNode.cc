@@ -74,7 +74,7 @@ void LinkSceneNode::Fetch(const Napi::CallbackInfo& info) {
     }
 
     auto env{ info.Env() };
-    auto resources{ this->GetStage()->GetResources() };
+    auto resources{ this->GetResources() };
 
     switch (this->category) {
         case LinkCategoryAuto:
@@ -257,7 +257,7 @@ void LinkSceneNode::Destroy() {
 void LinkSceneNode::ClearResource() {
     if (this->resource) {
         this->resource->RemoveListener(this);
-        this->GetStage()->GetResources()->ReleaseResource(this->resource, true);
+        this->GetResources()->ReleaseResource(this->resource, true);
         this->resource = nullptr;
     }
 }

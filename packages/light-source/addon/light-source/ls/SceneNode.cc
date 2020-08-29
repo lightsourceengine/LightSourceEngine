@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <ls/Style.h>
 #include <ls/Scene.h>
+#include <ls/Stage.h>
 #include <ls/CompositeContext.h>
 #include <ls/Renderer.h>
 #include <ls/Log.h>
@@ -136,9 +137,9 @@ void SceneNode::SetHidden(const CallbackInfo& info, const Napi::Value& value) {
     this->flags.set(FlagHidden, value.ToBoolean());
 }
 
-Stage* SceneNode::GetStage() const noexcept {
+Resources* SceneNode::GetResources() const noexcept {
     assert(this->scene);
-    return this->scene->GetStage();
+    return this->scene->GetStage()->GetResources();
 }
 
 SceneNode* SceneNode::GetParent() const noexcept {

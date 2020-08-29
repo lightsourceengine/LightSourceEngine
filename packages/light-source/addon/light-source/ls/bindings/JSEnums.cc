@@ -5,8 +5,8 @@
  * tree.
  */
 
-#include <ls/bindings/Enums.h>
 #include <ls/StyleEnums.h>
+#include <ls/bindings/JSEnums.h>
 
 using Napi::ClassBuilder;
 

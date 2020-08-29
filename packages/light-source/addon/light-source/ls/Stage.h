@@ -6,20 +6,24 @@
 
 #pragma once
 
-#include <napi-ext.h>
 #include <ls/Resources.h>
 #include <ls/ThreadPool.h>
 
 namespace ls {
 
-class Stage : public Napi::SafeObjectWrap<Stage> {
+/**
+ * Application instance for a Light Source Engine app.
+ *
+ * Stage is analogous to a desktop and a Scene is analogous to a window owned by desktop. The Stage API is split
+ * between native (this class) and javascript (Stage.js). This class contains the API required by the native
+ * layer, including the functionality to expose to javascript. The javascript bindings can be found in JSStage.
+ *
+ * The Stage abject can be instanced, but in practice Light Source Engine has a single instance of a Stage. The
+ * instance is controlled by a shared_ptr that is owned by JSStage and Scene.
+ */
+class Stage {
  public:
-    explicit Stage(const Napi::CallbackInfo& info) : Napi::SafeObjectWrap<Stage>(info) {}
-    ~Stage() override = default;
-
-    static Napi::Function GetClass(Napi::Env env);
-    void Destroy(const Napi::CallbackInfo& info);
-
+    void Destroy();
     ThreadPool* GetThreadPool() const noexcept { return &this->threadPool; }
     Resources* GetResources() const noexcept { return &this->resources; }
 

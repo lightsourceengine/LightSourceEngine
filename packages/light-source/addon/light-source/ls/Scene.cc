@@ -15,6 +15,8 @@
 #include <ls/RootSceneNode.h>
 #include <ls/yoga-ext.h>
 
+#include <ls/bindings/JSStage.h>
+
 using Napi::Boolean;
 using Napi::CallbackInfo;
 using Napi::Env;
@@ -39,25 +41,6 @@ Scene::~Scene() {
     }
 }
 
-void Scene::Constructor(const CallbackInfo& info) {
-    auto env{ info.Env() };
-    HandleScope scope(env);
-
-    this->stage = Stage::CastRef(info[0]);
-
-    if (!this->stage) {
-        RemoveInternalReferences();
-        throw Error::New(env, "Invalid stage argument.");
-    }
-
-    this->graphicsContext = GraphicsContext::CastRef(info[1]);
-
-    if (!this->graphicsContext) {
-        RemoveInternalReferences();
-        throw Error::New(env, "Invalid graphics context argument.");
-    }
-}
-
 Function Scene::GetClass(Napi::Env env) {
     static FunctionReference constructor;
 
@@ -65,14 +48,13 @@ Function Scene::GetClass(Napi::Env env) {
         HandleScope scope(env);
 
         constructor = DefineClass(env, "SceneBase", true, {
-            InstanceAccessor("root", &Scene::GetRoot, nullptr),
-            InstanceAccessor("stage", &Scene::GetStage, nullptr),
-            InstanceAccessor("_graphicsContext", &Scene::GetGraphicsContext, nullptr),
             InstanceMethod("$attach", &Scene::Attach),
             InstanceMethod("$detach", &Scene::Detach),
             InstanceMethod("$destroy", &Scene::Destroy),
             InstanceMethod("$frame", &Scene::Frame),
             InstanceMethod("$setRoot", &Scene::SetRoot),
+            InstanceMethod("$setStage", &Scene::SetStage),
+            InstanceMethod("$setGraphicsContext", &Scene::SetGraphicsContext),
         });
     }
 
@@ -126,11 +108,7 @@ void Scene::Frame(const CallbackInfo& info) {
     this->Composite();
 }
 
-Napi::Value Scene::GetRoot(const Napi::CallbackInfo& info) {
-    return this->root->Value();
-}
-
-void Scene::SetRoot(const Napi::CallbackInfo& info) {
+Napi::Value Scene::SetRoot(const Napi::CallbackInfo& info) {
     if (this->root) {
         throw Error::New(info.Env(), "root has already been set");
     }
@@ -140,14 +118,30 @@ void Scene::SetRoot(const Napi::CallbackInfo& info) {
     if (!this->root) {
         throw Error::New(info.Env(), "root must be a RootSceneNode instance.");
     }
+
+    return info[0];
 }
 
-Napi::Value Scene::GetStage(const Napi::CallbackInfo& info) {
-    return this->stage->Value();
+Napi::Value Scene::SetStage(const Napi::CallbackInfo& info) {
+    auto jsStage{ bindings::JSStage::Cast(info[0]) };
+
+    if (!jsStage) {
+        throw Error::New(info.Env(), "expected a JSStage object");
+    }
+
+    this->stage = jsStage->GetNative();
+
+    return info[0];
 }
 
-Napi::Value Scene::GetGraphicsContext(const Napi::CallbackInfo &info) {
-    return this->graphicsContext->Value();
+Napi::Value Scene::SetGraphicsContext(const Napi::CallbackInfo& info) {
+    this->graphicsContext = GraphicsContext::CastRef(info[0]);
+
+    if (!this->graphicsContext) {
+        throw Error::New(info.Env(), "expected a GraphicsContext object.");
+    }
+
+    return info[0];
 }
 
 void Scene::Destroy(const Napi::CallbackInfo &info) {
@@ -294,7 +288,6 @@ void Scene::RemoveInternalReferences() noexcept {
     // TODO: destroy graphics context?
     this->root = SafeObjectWrap<SceneNode>::RemoveRef(this->root, [](SceneNode* node) { node->Destroy(); });
     this->graphicsContext = GraphicsContext::RemoveRef(this->graphicsContext);
-    this->stage = Stage::RemoveRef(this->stage);
 }
 
 } // namespace ls

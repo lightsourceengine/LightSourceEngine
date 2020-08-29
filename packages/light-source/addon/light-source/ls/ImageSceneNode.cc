@@ -177,7 +177,7 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
 
     this->ClearResource();
     this->src = newSrc;
-    this->image = this->GetStage()->GetResources()->AcquireImage(this->src);
+    this->image = this->GetResources()->AcquireImage(this->src);
 
     auto listener{ [this](Res::Owner owner, Res* res) {
         constexpr auto LAMBDA_FUNCTION = "ImageResourceListener";
@@ -235,7 +235,7 @@ void ImageSceneNode::Destroy() {
 void ImageSceneNode::ClearResource() {
     if (this->image) {
         this->image->RemoveListener(this);
-        this->GetStage()->GetResources()->ReleaseResource(this->image);
+        this->GetResources()->ReleaseResource(this->image);
         this->image = nullptr;
     }
 }
