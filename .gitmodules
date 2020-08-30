@@ -19,3 +19,6 @@
 [submodule "packages/light-source/addon/deps/blend2d/repo"]
 	path = packages/light-source/addon/deps/blend2d/repo
 	url = https://github.com/blend2d/blend2d.git
+[submodule "packages/light-source/addon/deps/parallel-hashmap/repo"]
+	path = packages/light-source/addon/deps/parallel-hashmap/repo
+	url = https://github.com/greg7mdp/parallel-hashmap.git
