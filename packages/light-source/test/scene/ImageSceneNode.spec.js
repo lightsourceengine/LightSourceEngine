@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2019 Daniel Anderson
+ * Copyright (C) 2020 Daniel Anderson
  *
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
 import { afterSceneTest, beforeSceneTest } from '../test-env'
-import { ImageSceneNode } from '../../src/addon'
+import { ImageSceneNode } from '../../src/scene/SceneNode'
 import { assert } from 'chai'
 import { join } from 'path'
 
@@ -23,8 +23,8 @@ const expectOnError = (node) => new Promise((resolve, reject) => {
 
 describe('ImageSceneNode', () => {
   let scene
-  beforeEach(() => scene = beforeSceneTest())
-  afterEach(() => scene = afterSceneTest())
+  beforeEach(() => { scene = beforeSceneTest() })
+  afterEach(() => { scene = afterSceneTest() })
   describe('constructor()', () => {
     it('should create uninitialized node when passed an invalid Scene', () => {
       for (const input of [null, undefined, {}]) {

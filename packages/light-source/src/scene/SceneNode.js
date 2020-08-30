@@ -5,15 +5,9 @@
  */
 
 import { BlurEvent, FocusEvent } from '../event'
+import { addon } from '../addon'
 
-/**
- * Mixin that adds javascript specific behavior to native SceneNode classes.
- *
- * @param SceneNodeClass SceneNode native class to mix
- * @returns {*} SceneNode class
- * @constructor
- */
-export const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
+const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
   focusable = false
   onKeyUp = null
   onKeyDown = null
@@ -27,8 +21,8 @@ export const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
   _scene = null
 
   constructor (scene) {
-    super()
-    this._scene = this.$setScene(scene)
+    super(scene)
+    this._scene = scene
   }
 
   get scene () {
@@ -118,3 +112,9 @@ export const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
     }
   }
 }
+
+export const BoxSceneNode = SceneNodeMixin(addon.BoxSceneNode || class {})
+export const ImageSceneNode = SceneNodeMixin(addon.ImageSceneNode || class {})
+export const LinkSceneNode = SceneNodeMixin(addon.LinkSceneNode || class {})
+export const RootSceneNode = SceneNodeMixin(addon.RootSceneNode || class {})
+export const TextSceneNode = SceneNodeMixin(addon.TextSceneNode || class {})

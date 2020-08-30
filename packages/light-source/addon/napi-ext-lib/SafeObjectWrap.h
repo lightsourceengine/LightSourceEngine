@@ -69,6 +69,7 @@ template <typename T>
 class SafeObjectWrap : public virtual SafeObjectWrapReference {
  public:
     SafeObjectWrap(const CallbackInfo& info);
+    ~SafeObjectWrap() override;
 
     // Create a constructor. The returned FunctionReference is persistent.
     static FunctionReference DefineClass(Napi::Env env, const char* utf8name, bool permanent,

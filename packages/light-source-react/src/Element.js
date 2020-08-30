@@ -11,13 +11,12 @@ const kCommentElementProps = [
   'focusable',
   'hidden',
   'onFocus',
+  'onFocusIn',
+  'onFocusOut',
   'onBlur',
   'onKeyUp',
   'onKeyDown',
-  'onAxisMotion',
-  'onDeviceButtonUp',
-  'onDeviceButtonDown',
-  'onDeviceAxisMotion'
+  'onAxisMotion'
 ]
 
 /**

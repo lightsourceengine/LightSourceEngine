@@ -58,12 +58,9 @@ class TestContext {
  * Maps to Mocha's describe declaration. TestSuite specifies the describe description, test cases (it) and
  * lifecycle hooks (before, after, beforeEach, afterEach).
  */
-class TestSuite : public Napi::ObjectWrap<TestSuite> {
+class TestSuite {
  public:
-    explicit TestSuite(const Napi::CallbackInfo& info);
-    ~TestSuite() override = default;
-
-    static Napi::Object New(Napi::Env env, const std::string& description);
+    explicit TestSuite(const std::string& description);
 
     /**
      * Create a new TestSuite and populate it with tests using a list TestBuilderFunctions.
@@ -101,18 +98,19 @@ class TestSuite : public Napi::ObjectWrap<TestSuite> {
     std::shared_ptr<TestContext> context;
 
  private:
-    Napi::Value GetDescription(const Napi::CallbackInfo& info);
-    Napi::Value GetTests(const Napi::CallbackInfo& info);
-    Napi::Value GetChildren(const Napi::CallbackInfo& info);
-    Napi::Value GetBefore(const Napi::CallbackInfo& info);
-    Napi::Value GetAfter(const Napi::CallbackInfo& info);
-    Napi::Value GetBeforeEach(const Napi::CallbackInfo& info);
-    Napi::Value GetAfterEach(const Napi::CallbackInfo& info);
+    Napi::Object ToObject(const Napi::Env& env);
+    Napi::Value GetDescription(const Napi::Env& env);
+    Napi::Value GetTests(const Napi::Env& env);
+    Napi::Value GetChildren(const Napi::Env& env);
+    Napi::Value GetBefore(const Napi::Env& env);
+    Napi::Value GetAfter(const Napi::Env& env);
+    Napi::Value GetBeforeEach(const Napi::Env& env);
+    Napi::Value GetAfterEach(const Napi::Env& env);
     Napi::Value TestSuiteFunctionOrUndefined(const Napi::Env& env, TestSuiteFunction func);
 
  private:
     std::string description;
-    std::vector<TestSuite*> children;
+    std::vector<TestSuite> children;
 };
 
 /**
@@ -241,58 +239,43 @@ AssertionError::AssertionError(const std::string& failure, const std::string& me
 }
 
 inline
-TestSuite::TestSuite(const CallbackInfo& info) : ObjectWrap<TestSuite>(info) {
-    if (info[0].IsString()) {
-        this->description = info[0].As<String>();
-    }
-}
-
-inline
-Object TestSuite::New(Napi::Env env, const std::string& description) {
-    static FunctionReference constructor;
-
-    if (constructor.IsEmpty()) {
-        HandleScope scope(env);
-
-        auto func = DefineClass(env, "TestSuite", {
-            InstanceAccessor("description", &TestSuite::GetDescription, nullptr),
-            InstanceAccessor("tests", &TestSuite::GetTests, nullptr),
-            InstanceAccessor("children", &TestSuite::GetChildren, nullptr),
-            InstanceAccessor("before", &TestSuite::GetBefore, nullptr),
-            InstanceAccessor("after", &TestSuite::GetAfter, nullptr),
-            InstanceAccessor("beforeEach", &TestSuite::GetBeforeEach, nullptr),
-            InstanceAccessor("afterEach", &TestSuite::GetAfterEach, nullptr),
-        });
-
-        constructor.Reset(func, 1);
-        constructor.SuppressDestruct();
-    }
-
-    return constructor.New({ String::New(env, description) });
+TestSuite::TestSuite(const std::string& description) : description(description) {
 }
 
 inline
 Object TestSuite::Build(Napi::Env env, const std::string& description,
         const std::initializer_list<TestBuilderFunction> testBuilders) {
-    auto suite{ TestSuite::New(env, description) };
-    auto parent{ TestSuite::Unwrap(suite) };
+    TestSuite parent(description);
 
     for (auto& testBuilder : testBuilders) {
-        testBuilder(parent);
+        testBuilder(&parent);
     }
 
-    return suite;
+    return parent.ToObject(env);
 }
 
 inline
-Napi::Value TestSuite::GetDescription(const CallbackInfo& info) {
-    return String::New(info.Env(), this->description);
+Napi::Object TestSuite::ToObject(const Napi::Env& env) {
+    auto obj{ Object::New(env) };
+
+    obj.Set("description", this->GetDescription(env));
+    obj.Set("before", this->GetBefore(env));
+    obj.Set("after", this->GetAfter(env));
+    obj.Set("beforeEach", this->GetBeforeEach(env));
+    obj.Set("afterEach", this->GetAfterEach(env));
+    obj.Set("tests", this->GetTests(env));
+    obj.Set("children", this->GetChildren(env));
+
+    return obj;
 }
 
 inline
-Napi::Value TestSuite::GetTests(const CallbackInfo& info) {
-    auto env{ info.Env() };
-    EscapableHandleScope scope(env);
+Napi::Value TestSuite::GetDescription(const Napi::Env& env) {
+    return String::New(env, this->description);
+}
+
+inline
+Napi::Value TestSuite::GetTests(const Napi::Env& env) {
     auto result{ Array::New(env, this->tests.size()) };
     auto i{ 0u };
 
@@ -323,51 +306,46 @@ Napi::Value TestSuite::GetTests(const CallbackInfo& info) {
         result[i++] = object;
     }
 
-    return scope.Escape(result);
+    return result;
 }
 
 inline
-Napi::Value TestSuite::GetChildren(const CallbackInfo& info) {
-    auto env{ info.Env() };
-    EscapableHandleScope scope(env);
+Napi::Value TestSuite::GetChildren(const Napi::Env& env) {
     auto result{ Array::New(env, this->children.size()) };
     auto i{ 0u };
 
     for (auto& child : this->children) {
-        result[i++] = child->Value();
+        result[i++] = child.ToObject(env);
     }
 
-    return scope.Escape(result);
+    return result;
 }
 
 inline
-Napi::Value TestSuite::GetBefore(const CallbackInfo& info) {
-    return TestSuiteFunctionOrUndefined(info.Env(), this->before);
+Napi::Value TestSuite::GetBefore(const Napi::Env& env) {
+    return TestSuiteFunctionOrUndefined(env, this->before);
 }
 
 inline
-Napi::Value TestSuite::GetAfter(const CallbackInfo& info) {
-    return TestSuiteFunctionOrUndefined(info.Env(), this->after);
+Napi::Value TestSuite::GetAfter(const Napi::Env& env) {
+    return TestSuiteFunctionOrUndefined(env, this->after);
 }
 
 inline
-Napi::Value TestSuite::GetBeforeEach(const CallbackInfo& info) {
-    return TestSuiteFunctionOrUndefined(info.Env(), this->beforeEach);
+Napi::Value TestSuite::GetBeforeEach(const Napi::Env& env) {
+    return TestSuiteFunctionOrUndefined(env, this->beforeEach);
 }
 
 inline
-Napi::Value TestSuite::GetAfterEach(const CallbackInfo& info) {
-    return TestSuiteFunctionOrUndefined(info.Env(), this->afterEach);
+Napi::Value TestSuite::GetAfterEach(const Napi::Env& env) {
+    return TestSuiteFunctionOrUndefined(env, this->afterEach);
 }
 
 inline
 TestSuite* TestSuite::Describe(const std::string& description) {
-    auto child{ TestSuite::Unwrap(TestSuite::New(this->Env(), description)) };
+    this->children.emplace_back(description);
 
-    child->Ref();
-    this->children.push_back(child);
-
-    return child;
+    return &this->children.back();
 }
 
 inline

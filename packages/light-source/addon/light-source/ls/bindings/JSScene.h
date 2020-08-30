@@ -30,9 +30,7 @@ class JSScene : public Napi::SafeObjectWrap<JSScene> {
     void Detach(const Napi::CallbackInfo& info);
     void Destroy(const Napi::CallbackInfo& info);
     void Frame(const Napi::CallbackInfo& info);
-    Napi::Value SetRoot(const Napi::CallbackInfo& info);
-    Napi::Value SetStage(const Napi::CallbackInfo& info);
-    Napi::Value SetGraphicsContext(const Napi::CallbackInfo& info);
+    void Setup(const Napi::CallbackInfo& info);
 
  private:
     SceneRef native{};

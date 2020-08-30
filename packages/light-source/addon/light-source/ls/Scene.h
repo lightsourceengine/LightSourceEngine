@@ -37,9 +37,9 @@ class Scene {
     void Frame();
 
     void SetRoot(RootSceneNode* root);
-    Stage* GetStage() const noexcept { return this->stage.get(); }
     void SetStage(const StageRef& stage);
     void SetGraphicsContext(GraphicsContext* graphicsContext);
+    Stage* GetStage() const noexcept { return this->stage.get(); }
     int32_t GetWidth() const noexcept { return this->width; }
     int32_t GetHeight() const noexcept { return this->height; }
     int32_t GetViewportMin() const noexcept { return this->viewportMin; }

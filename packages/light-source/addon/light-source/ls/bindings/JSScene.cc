@@ -39,9 +39,7 @@ Function JSScene::GetClass(Napi::Env env) {
             InstanceMethod("$detach", &JSScene::Detach),
             InstanceMethod("$destroy", &JSScene::Destroy),
             InstanceMethod("$frame", &JSScene::Frame),
-            InstanceMethod("$setRoot", &JSScene::SetRoot),
-            InstanceMethod("$setStage", &JSScene::SetStage),
-            InstanceMethod("$setGraphicsContext", &JSScene::SetGraphicsContext),
+            InstanceMethod("$setup", &JSScene::Setup),
         });
     }
 
@@ -60,35 +58,26 @@ void JSScene::Detach(const Napi::CallbackInfo& info) {
     this->native->Detach();
 }
 
-void JSScene::Frame(const Napi::CallbackInfo& info) { NAPI_TRY(info.Env(), this->native->Frame());
+void JSScene::Frame(const Napi::CallbackInfo& info) {
+    NAPI_TRY(info.Env(), this->native->Frame());
 }
 
-Napi::Value JSScene::SetRoot(const Napi::CallbackInfo& info) {
-    auto root{ RootSceneNode::Cast(info[0]) };
-
-    NAPI_EXPECT_NOT_NULL(info.Env(), root, "root arg must be a RootSceneNode instance");
-    NAPI_TRY(info.Env(), this->native->SetRoot(root));
-
-    return info[0];
-}
-
-Napi::Value JSScene::SetStage(const Napi::CallbackInfo& info) {
+void JSScene::Setup(const Napi::CallbackInfo& info) {
     auto stage{ ToNative<Stage, JSStage>(info[0]) };
 
     NAPI_EXPECT_NOT_NULL(info.Env(), stage, "stage arg must be a Stage instance");
     NAPI_TRY(info.Env(), this->native->SetStage(stage));
 
-    return info[0];
-}
+    auto root{ RootSceneNode::Cast(info[1]) };
 
-Napi::Value JSScene::SetGraphicsContext(const Napi::CallbackInfo& info) {
-    auto graphicsContext{ GraphicsContext::Cast(info[0]) };
+    NAPI_EXPECT_NOT_NULL(info.Env(), root, "root arg must be a RootSceneNode instance");
+    NAPI_TRY(info.Env(), this->native->SetRoot(root));
+
+    auto graphicsContext{ GraphicsContext::Cast(info[2]) };
 
     NAPI_EXPECT_NOT_NULL(
         info.Env(), graphicsContext, "graphicsContext arg must be a GraphicsContext instance");
     NAPI_TRY(info.Env(), this->native->SetGraphicsContext(graphicsContext));
-
-    return info[0];
 }
 
 void JSScene::Destroy(const CallbackInfo& info) {

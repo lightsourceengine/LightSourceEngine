@@ -40,7 +40,6 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     void SetStyle(const Napi::CallbackInfo& info, const Napi::Value& value);
     Napi::Value GetHidden(const Napi::CallbackInfo& info);
     void SetHidden(const Napi::CallbackInfo& info, const Napi::Value& value);
-    Napi::Value SetScene(const Napi::CallbackInfo& info);
 
     void AppendChild(const Napi::CallbackInfo& info);
     void InsertBefore(const Napi::CallbackInfo& info);
@@ -136,7 +135,6 @@ std::vector<napi_property_descriptor> SceneNode::Extend(const Napi::Env& env,
         T::InstanceMethod("appendChild", &SceneNode::AppendChild),
         T::InstanceMethod("insertBefore", &SceneNode::InsertBefore),
         T::InstanceMethod("removeChild", &SceneNode::RemoveChild),
-        T::InstanceMethod("$setScene", &SceneNode::SetScene)
     };
 
     for (auto& property : subClassProperties) {

@@ -4,9 +4,9 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { SceneBase, BoxSceneNode, ImageSceneNode, TextSceneNode, LinkSceneNode, RootSceneNode } from '../addon'
+import { SceneBase } from '../addon'
+import { BoxSceneNode, ImageSceneNode, TextSceneNode, LinkSceneNode, RootSceneNode } from './SceneNode'
 import { EventEmitter } from '../util'
-import { SceneNodeMixin } from './SceneNodeMixin'
 import { AttachedEvent, DestroyedEvent, DestroyingEvent, DetachedEvent, EventNames } from '../event'
 import { createStyle } from '../style/createStyle'
 
@@ -31,18 +31,19 @@ export class Scene extends SceneBase {
 
   constructor (stage, platform, config) {
     super()
-
-    this._stage = this.$setStage(stage)
-    this._graphicsContext = this.$setGraphicsContext(createGraphicsContext(stage, platform, config))
-
-    const root = new (SceneNodeMixin(RootSceneNode))(this)
+    const graphicsContext = createGraphicsContext(stage, platform, config)
+    const root = new RootSceneNode(this)
 
     root.style = createStyle({
       backgroundColor: 'black',
       '@extend': '%absoluteFill'
     })
 
-    this._root = this.$setRoot(root)
+    super.$setup(stage, root, graphicsContext)
+
+    this._stage = stage
+    this._root = root
+    this._graphicsContext = graphicsContext
   }
 
   on (id, listener) {
@@ -191,11 +192,11 @@ export class Scene extends SceneBase {
 }
 
 const nodeClass = new Map([
-  ['box', SceneNodeMixin(BoxSceneNode)],
-  ['div', SceneNodeMixin(BoxSceneNode)],
-  ['img', SceneNodeMixin(ImageSceneNode)],
-  ['link', SceneNodeMixin(LinkSceneNode)],
-  ['text', SceneNodeMixin(TextSceneNode)]
+  ['box', BoxSceneNode],
+  ['div', BoxSceneNode],
+  ['img', ImageSceneNode],
+  ['link', LinkSceneNode],
+  ['text', TextSceneNode]
 ])
 
 const throwNodeClassNotFound = tag => {

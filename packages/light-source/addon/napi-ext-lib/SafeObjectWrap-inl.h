@@ -14,15 +14,10 @@ std::vector<typename SafeObjectWrap<T>::MethodEntry> SafeObjectWrap<T>::vtable =
 
 template <typename T>
 SafeObjectWrap<T>::SafeObjectWrap(const CallbackInfo &info) {
-    auto finalizer = [](napi_env /*env*/, void* data, void* /*hint*/) {
-      delete static_cast<T*>(data);
-    };
+}
 
-    napi_ref reference;
-    const auto status{ napi_wrap(info.Env(), info.This(), this, finalizer, nullptr, &reference) };
-    NAPI_THROW_IF_FAILED_VOID(info.Env(), status);
-
-    this->ref = Reference<Object>(info.Env(), reference);
+template <typename T>
+SafeObjectWrap<T>::~SafeObjectWrap() {
 }
 
 template <typename T>
@@ -108,7 +103,6 @@ napi_value SafeObjectWrap<T>::ConstructorBridge(napi_env env, napi_callback_info
         instance = new T(callbackInfo);
     } catch (const Error& e) {
         e.ThrowAsJavaScriptException();
-        return nullptr;
     } catch (...) {
         instance = nullptr;
     }
@@ -120,6 +114,16 @@ napi_value SafeObjectWrap<T>::ConstructorBridge(napi_env env, napi_callback_info
         return nullptr;
     }
 
+    auto finalizer = [](napi_env /*env*/, void* data, void* /*hint*/) {
+        delete static_cast<T*>(data);
+    };
+
+    napi_ref reference;
+    const auto status{ napi_wrap(callbackInfo.Env(), callbackInfo.This(), instance, finalizer, nullptr, &reference) };
+    NAPI_THROW_IF_FAILED_VOID(callbackInfo.Env(), status);
+
+    instance->ref = Reference<Object>(callbackInfo.Env(), reference);
+
 #ifdef NAPI_CPP_EXCEPTIONS
     try {
         instance->Constructor(callbackInfo);
@@ -127,7 +131,7 @@ napi_value SafeObjectWrap<T>::ConstructorBridge(napi_env env, napi_callback_info
         e.ThrowAsJavaScriptException();
     }
 #else
-    instance->Constuct(callbackInfo);
+    instance->Constructor(callbackInfo);
 #endif
 
     return callbackInfo.This();

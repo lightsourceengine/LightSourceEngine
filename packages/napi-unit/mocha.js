@@ -7,9 +7,7 @@
 const { describe, it, before, after, beforeEach, afterEach } = require('mocha')
 
 const isTestSuite = (obj) => {
-  const { constructor } = Object.getPrototypeOf(obj)
-
-  return constructor && constructor.name === 'TestSuite'
+  return obj && obj.hasOwnProperty('tests') && obj.hasOwnProperty('description')
 }
 
 const bind = (testSuite) => {

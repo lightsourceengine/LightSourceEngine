@@ -6,7 +6,6 @@
 
 import { afterSceneTest, beforeSceneTest } from '../test-env'
 import { assert } from 'chai'
-import { LinkSceneNode } from '../../src/addon'
 
 const kImage = 'test/resources/640x480.png'
 const kSvg = 'test/resources/300x300.svg'
@@ -14,8 +13,8 @@ const kFont = 'test/resources/arrow.ttf'
 
 describe('LinkSceneNode', () => {
   let scene
-  beforeEach(() => scene = beforeSceneTest())
-  afterEach(() => scene = afterSceneTest())
+  beforeEach(() => { scene = beforeSceneTest() })
+  afterEach(() => { scene = afterSceneTest() })
   describe('fetch()', () => {
     it('should get raster image file', async () => {
       const node = scene.createNode('link')
@@ -87,7 +86,7 @@ describe('LinkSceneNode', () => {
       assert.equal(summary.weight, 'bold')
     })
     it('should fallback to filename for missing family param', async () => {
-      for (const familyValue of [ '&', '' ]) {
+      for (const familyValue of ['&', '']) {
         const font = `file:${kFont}?family=` + familyValue
         const node = scene.createNode('link')
         const summary = await linkOnLoadAsync(node, font)
@@ -97,7 +96,7 @@ describe('LinkSceneNode', () => {
       }
     })
     it('should fallback to normal for invalid style param', async () => {
-      for (const styleValue of [ '&', '', 'garbage', 123 ]) {
+      for (const styleValue of ['&', '', 'garbage', 123]) {
         const font = `file:${kFont}?style=` + styleValue
         const node = scene.createNode('link')
         const summary = await linkOnLoadAsync(node, font)
@@ -107,7 +106,7 @@ describe('LinkSceneNode', () => {
       }
     })
     it('should fallback to normal for invalid weight param', async () => {
-      for (const weightValue of [ '&', '', 'garbage', 123 ]) {
+      for (const weightValue of ['&', '', 'garbage', 123]) {
         const font = `file:${kFont}?weight=` + weightValue
         const node = scene.createNode('link')
         const summary = await linkOnLoadAsync(node, font)
@@ -119,7 +118,7 @@ describe('LinkSceneNode', () => {
     it('should call onError for invalid filename', async () => {
       const node = scene.createNode('link')
 
-      for (const as of [ 'auto', 'image', 'font' ]) {
+      for (const as of ['auto', 'image', 'font']) {
         node.as = as
         await linkOnErrorAsync(node, 'invalid')
         assert.equal(node.href, 'invalid')

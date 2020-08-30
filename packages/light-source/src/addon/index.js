@@ -43,15 +43,12 @@ export const StyleUnit = lib.StyleUnit || {}
 export const StyleTransform = lib.StyleTransform || {}
 export const SceneBase = lib.SceneBase || EmptyClass
 export const StageBase = lib.StageBase || StubStageBaseClass()
-export const BoxSceneNode = lib.BoxSceneNode || EmptyClass
-export const ImageSceneNode = lib.ImageSceneNode || EmptyClass
-export const LinkSceneNode = lib.LinkSceneNode || EmptyClass
-export const RootSceneNode = lib.RootSceneNode || EmptyClass
-export const TextSceneNode = lib.TextSceneNode || EmptyClass
 export const logger = lib.Logger || StubLogger()
 export const LogLevel  = lib.LogLevel || {}
 export const getSceneNodeInstanceCount = lib.getSceneNodeInstanceCount || emptyFunction
 export const parseColor = lib.parseColor || emptyFunction
+
+export const addon = lib
 export const addonError = error
 
 /**

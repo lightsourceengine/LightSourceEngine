@@ -6,7 +6,8 @@
 
 import { assert } from 'chai'
 import sinon from 'sinon'
-import { BoxSceneNode, TextSceneNode, ImageSceneNode, StyleUnit, LinkSceneNode, RootSceneNode } from '../../src/addon'
+import { StyleUnit } from '../../src/addon'
+import { BoxSceneNode, TextSceneNode, ImageSceneNode, LinkSceneNode, RootSceneNode } from '../../src/scene/SceneNode'
 import { afterSceneTest, beforeSceneTest } from '../test-env'
 
 describe('Scene', () => {

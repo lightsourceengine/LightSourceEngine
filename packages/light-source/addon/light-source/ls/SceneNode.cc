@@ -39,6 +39,12 @@ namespace ls {
 int32_t SceneNode::instanceCount{0};
 
 void SceneNode::SceneNodeConstructor(const Napi::CallbackInfo& info) {
+    auto jsScene{ bindings::JSScene::Cast(info[0]) };
+
+    NAPI_EXPECT_NOT_NULL(info.Env(), jsScene, "scene arg must be a Scene instance");
+
+    this->scene = jsScene->GetNative();
+
     this->flags.set(FlagLayoutOnly, true);
     this->ygNode = YGNodeNew();
     YGNodeSetContext(this->ygNode, this);
@@ -68,18 +74,6 @@ Value SceneNode::GetHeight(const CallbackInfo& info) {
 Value SceneNode::GetParent(const CallbackInfo& info) {
     auto parent{ this->GetParent() };
     return parent ? parent->Value() : info.Env().Null();
-}
-
-Value SceneNode::SetScene(const Napi::CallbackInfo& info) {
-    LS_EXPECT_NULL(this->scene, "scene has already been set");
-
-    auto jsScene{ bindings::JSScene::Cast(info[0]) };
-
-    LS_EXPECT_NOT_NULL(jsScene, "scene arg must be a Scene instance");
-
-    this->scene = jsScene->GetNative();
-
-    return info[0];
 }
 
 Napi::Value SceneNode::GetChildren(const Napi::CallbackInfo& info) {
