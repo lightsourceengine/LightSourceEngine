@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <ls/types.h>
 #include <ls/yoga-ext.h>
 #include <event/event.h>
 #include <napi-ext.h>
@@ -34,12 +35,12 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     Napi::Value GetWidth(const Napi::CallbackInfo& info);
     Napi::Value GetHeight(const Napi::CallbackInfo& info);
     Napi::Value GetParent(const Napi::CallbackInfo& info);
-    Napi::Value GetScene(const Napi::CallbackInfo& info);
     Napi::Value GetChildren(const Napi::CallbackInfo& info);
     Napi::Value GetStyle(const Napi::CallbackInfo& info);
     void SetStyle(const Napi::CallbackInfo& info, const Napi::Value& value);
     Napi::Value GetHidden(const Napi::CallbackInfo& info);
     void SetHidden(const Napi::CallbackInfo& info, const Napi::Value& value);
+    Napi::Value SetScene(const Napi::CallbackInfo& info);
 
     void AppendChild(const Napi::CallbackInfo& info);
     void InsertBefore(const Napi::CallbackInfo& info);
@@ -101,7 +102,7 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
  protected:
     static int instanceCount;
     YGNodeRef ygNode{};
-    Scene* scene{};
+    SceneRef scene{};
     Style* style{};
     std::vector<SceneNode*> sortedChildren;
     std::bitset<8> flags;
@@ -129,13 +130,13 @@ std::vector<napi_property_descriptor> SceneNode::Extend(const Napi::Env& env,
         T::InstanceAccessor("height", &SceneNode::GetHeight),
         T::InstanceAccessor("parent", &SceneNode::GetParent),
         T::InstanceAccessor("children", &SceneNode::GetChildren),
-        T::InstanceAccessor("scene", &SceneNode::GetScene),
         T::InstanceAccessor("style", &SceneNode::GetStyle, &SceneNode::SetStyle),
         T::InstanceAccessor("hidden", &SceneNode::GetHidden, &SceneNode::SetHidden),
         T::InstanceMethod("destroy", &SceneNode::Destroy),
         T::InstanceMethod("appendChild", &SceneNode::AppendChild),
         T::InstanceMethod("insertBefore", &SceneNode::InsertBefore),
-        T::InstanceMethod("removeChild", &SceneNode::RemoveChild)
+        T::InstanceMethod("removeChild", &SceneNode::RemoveChild),
+        T::InstanceMethod("$setScene", &SceneNode::SetScene)
     };
 
     for (auto& property : subClassProperties) {

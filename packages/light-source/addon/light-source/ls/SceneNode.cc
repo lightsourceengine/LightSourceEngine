@@ -22,6 +22,8 @@
 #include <ls/Timer.h>
 #include <ls/yoga-ext.h>
 
+#include <ls/bindings/JSScene.h>
+
 using Napi::Array;
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -38,12 +40,6 @@ int32_t SceneNode::instanceCount{0};
 
 void SceneNode::SceneNodeConstructor(const Napi::CallbackInfo& info) {
     this->flags.set(FlagLayoutOnly, true);
-    this->scene = Scene::CastRef(info[0]);
-
-    if (!this->scene) {
-        throw Error::New(info.Env(), "Expected scene reference as arg.");
-    }
-
     this->ygNode = YGNodeNew();
     YGNodeSetContext(this->ygNode, this);
     instanceCount++;
@@ -74,8 +70,16 @@ Value SceneNode::GetParent(const CallbackInfo& info) {
     return parent ? parent->Value() : info.Env().Null();
 }
 
-Value SceneNode::GetScene(const CallbackInfo& info) {
-    return this->scene ? this->scene->Value() : info.Env().Null();
+Value SceneNode::SetScene(const Napi::CallbackInfo& info) {
+    LS_EXPECT_NULL(this->scene, "scene has already been set");
+
+    auto jsScene{ bindings::JSScene::Cast(info[0]) };
+
+    LS_EXPECT_NOT_NULL(jsScene, "scene arg must be a Scene instance");
+
+    this->scene = jsScene->GetNative();
+
+    return info[0];
 }
 
 Napi::Value SceneNode::GetChildren(const Napi::CallbackInfo& info) {
@@ -234,7 +238,7 @@ void SceneNode::Destroy(const Napi::CallbackInfo& info) {
 }
 
 void SceneNode::Destroy() {
-    if (this->scene == nullptr) {
+    if (this->ygNode == nullptr) {
         return;
     }
 
@@ -255,7 +259,6 @@ void SceneNode::Destroy() {
     }
 
     this->style = Style::RemoveRef(this->style, [](Style* ref) { ref->Bind(nullptr); });
-    this->scene = Scene::RemoveRef(this->scene);
     this->sortedChildren.clear();
     YGNodeFree(this->ygNode);
     this->ygNode = nullptr;

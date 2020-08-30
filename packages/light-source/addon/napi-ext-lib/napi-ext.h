@@ -10,6 +10,13 @@
 #include "SafeObjectWrap.h"
 #include "ClassBuilder.h"
 
+// Convert std::exception to Napi::Error
+#define NAPI_TRY(ENV, EXPR) try { EXPR; } catch (std::exception& e) { throw Napi::Error::New(ENV, e.what()); }
+// if expr is not null, throw a Napi::Error
+#define NAPI_EXPECT_NULL(ENV, EXPR, MESSAGE) if ((EXPR) != nullptr) { throw Napi::Error::New(ENV, MESSAGE); }
+// if expr is null, throw a Napi::Error
+#define NAPI_EXPECT_NOT_NULL(ENV, EXPR, MESSAGE) if ((EXPR) == nullptr) { throw Napi::Error::New(ENV, MESSAGE); }
+
 namespace Napi {
 
 /**

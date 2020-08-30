@@ -41,27 +41,7 @@ Scene::~Scene() {
     }
 }
 
-Function Scene::GetClass(Napi::Env env) {
-    static FunctionReference constructor;
-
-    if (constructor.IsEmpty()) {
-        HandleScope scope(env);
-
-        constructor = DefineClass(env, "SceneBase", true, {
-            InstanceMethod("$attach", &Scene::Attach),
-            InstanceMethod("$detach", &Scene::Detach),
-            InstanceMethod("$destroy", &Scene::Destroy),
-            InstanceMethod("$frame", &Scene::Frame),
-            InstanceMethod("$setRoot", &Scene::SetRoot),
-            InstanceMethod("$setStage", &Scene::SetStage),
-            InstanceMethod("$setGraphicsContext", &Scene::SetGraphicsContext),
-        });
-    }
-
-    return constructor.Value();
-}
-
-void Scene::Attach(const CallbackInfo& info) {
+void Scene::Attach() noexcept {
     const auto w{ this->graphicsContext->GetWidth() };
     const auto h{ this->graphicsContext->GetHeight() };
 
@@ -89,14 +69,14 @@ void Scene::Attach(const CallbackInfo& info) {
     // TODO: attach graphics context?
 }
 
-void Scene::Detach(const CallbackInfo& info) {
+void Scene::Detach() noexcept {
     // TODO: detach graphics context?
 
     this->renderingContext2D.renderer = nullptr;
     this->isAttached = false;
 }
 
-void Scene::Frame(const CallbackInfo& info) {
+void Scene::Frame() {
     if (!this->isAttached) {
         return;
     }
@@ -108,44 +88,31 @@ void Scene::Frame(const CallbackInfo& info) {
     this->Composite();
 }
 
-Napi::Value Scene::SetRoot(const Napi::CallbackInfo& info) {
-    if (this->root) {
-        throw Error::New(info.Env(), "root has already been set");
-    }
+void Scene::SetRoot(RootSceneNode* rootSceneNode) {
+    LS_EXPECT_NULL(this->root, "root has already been set");
 
-    this->root = RootSceneNode::CastRef(info[0]);
-
-    if (!this->root) {
-        throw Error::New(info.Env(), "root must be a RootSceneNode instance.");
-    }
-
-    return info[0];
+    this->root = rootSceneNode;
+    this->root->Ref();
 }
 
-Napi::Value Scene::SetStage(const Napi::CallbackInfo& info) {
-    auto jsStage{ bindings::JSStage::Cast(info[0]) };
+void Scene::SetStage(const StageRef& stageRef) {
+    LS_EXPECT_NULL(this->stage, "stage has already been set");
 
-    if (!jsStage) {
-        throw Error::New(info.Env(), "expected a JSStage object");
-    }
-
-    this->stage = jsStage->GetNative();
-
-    return info[0];
+    this->stage = stageRef;
 }
 
-Napi::Value Scene::SetGraphicsContext(const Napi::CallbackInfo& info) {
-    this->graphicsContext = GraphicsContext::CastRef(info[0]);
+void Scene::SetGraphicsContext(GraphicsContext* graphicsContext) {
+    LS_EXPECT_NULL(this->graphicsContext, "graphics context has already been set");
 
-    if (!this->graphicsContext) {
-        throw Error::New(info.Env(), "expected a GraphicsContext object.");
-    }
-
-    return info[0];
+    this->graphicsContext = graphicsContext;
+    this->graphicsContext->Ref();
 }
 
-void Scene::Destroy(const Napi::CallbackInfo &info) {
-    this->RemoveInternalReferences();
+void Scene::Destroy() noexcept {
+    // TODO: destroy graphics context?
+    this->root = SafeObjectWrap<SceneNode>::RemoveRef(this->root, [](SceneNode* node) { node->Destroy(); });
+    this->graphicsContext = GraphicsContext::RemoveRef(this->graphicsContext);
+    this->stage = nullptr;
 }
 
 void Scene::OnRootFontSizeChange() noexcept {
@@ -282,12 +249,6 @@ void Scene::CompositePreorder(SceneNode* node, CompositeContext* context) {
 
     context->PopOpacity();
     context->PopMatrix();
-}
-
-void Scene::RemoveInternalReferences() noexcept {
-    // TODO: destroy graphics context?
-    this->root = SafeObjectWrap<SceneNode>::RemoveRef(this->root, [](SceneNode* node) { node->Destroy(); });
-    this->graphicsContext = GraphicsContext::RemoveRef(this->graphicsContext);
 }
 
 } // namespace ls

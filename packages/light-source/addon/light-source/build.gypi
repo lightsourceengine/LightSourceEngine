@@ -59,9 +59,10 @@
         "ls/Scene.cc",
         "ls/Stage.cc",
         "ls/bindings/GlobalFunctions.cc",
-        "ls/bindings/JSStage.cc",
-        "ls/bindings/JSEnums.cc",
         "ls/bindings/Init.cc",
+        "ls/bindings/JSEnums.cc",
+        "ls/bindings/JSScene.cc",
+        "ls/bindings/JSStage.cc",
       ],
       "conditions": [
         [

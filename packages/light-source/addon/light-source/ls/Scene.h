@@ -11,7 +11,6 @@
 #include <ls/StyleEnums.h>
 #include <ls/StyleResolver.h>
 #include <ls/RenderingContext2D.h>
-#include <napi-ext.h>
 
 #include <algorithm>
 #include <memory>
@@ -19,40 +18,37 @@
 
 namespace ls {
 
-class Renderer;
 class GraphicsContext;
+class Renderer;
+class RootSceneNode;
 class SceneNode;
 
-class Scene : public Napi::SafeObjectWrap<Scene> {
+/**
+ * Manages the SceneNode graph and renders frames to the screen.
+ */
+class Scene {
  public:
-    explicit Scene(const Napi::CallbackInfo& info) : Napi::SafeObjectWrap<Scene>(info) {}
-    ~Scene() override;
+    ~Scene();
 
-    // javascript bindings
+    void Attach() noexcept;
+    void Detach() noexcept;
+    void Destroy() noexcept;
 
-    static Napi::Function GetClass(Napi::Env env);
-    void Attach(const Napi::CallbackInfo& info);
-    void Detach(const Napi::CallbackInfo& info);
-    void Destroy(const Napi::CallbackInfo& info);
-    void Frame(const Napi::CallbackInfo& info);
-    Napi::Value SetRoot(const Napi::CallbackInfo& info);
-    Napi::Value SetStage(const Napi::CallbackInfo& info);
-    Napi::Value SetGraphicsContext(const Napi::CallbackInfo& info);
+    void Frame();
 
-    // native interface
-
+    void SetRoot(RootSceneNode* root);
+    Stage* GetStage() const noexcept { return this->stage.get(); }
+    void SetStage(const StageRef& stage);
+    void SetGraphicsContext(GraphicsContext* graphicsContext);
     int32_t GetWidth() const noexcept { return this->width; }
     int32_t GetHeight() const noexcept { return this->height; }
     int32_t GetViewportMin() const noexcept { return this->viewportMin; }
     int32_t GetViewportMax() const noexcept { return this->viewportMax; }
     float GetRootFontSize() const noexcept { return this->rootFontSize; }
     const StyleResolver& GetStyleResolver() const noexcept { return this->styleResolver; }
-    StageRef GetStage() const noexcept { return this->stage; }
-
-    void OnRootFontSizeChange() noexcept;
-
     Renderer* GetRenderer() const noexcept;
 
+    void OnRootFontSizeChange() noexcept;
     void RequestPaint(SceneNode* node);
     void RequestStyleLayout(SceneNode* node);
     void RequestComposite();
@@ -65,7 +61,6 @@ class Scene : public Napi::SafeObjectWrap<Scene> {
     void ExecutePaintRequests();
     void Composite();
     void CompositePreorder(SceneNode* node, CompositeContext* context);
-    void RemoveInternalReferences() noexcept;
 
  private:
     SceneNode* root{};

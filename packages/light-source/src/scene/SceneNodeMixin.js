@@ -24,6 +24,16 @@ export const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
   onFocusOut = null
   waypoint = null
   _hasFocus = false
+  _scene = null
+
+  constructor (scene) {
+    super()
+    this._scene = this.$setScene(scene)
+  }
+
+  get scene () {
+    return this._scene
+  }
 
   /**
    * Sets focus to this node.

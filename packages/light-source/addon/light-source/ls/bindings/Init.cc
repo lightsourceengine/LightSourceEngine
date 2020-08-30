@@ -16,6 +16,7 @@
 #include <ls/bindings/GlobalFunctions.h>
 #include <ls/bindings/JSEnums.h>
 #include <ls/bindings/JSStage.h>
+#include <ls/bindings/JSScene.h>
 #include <ls/bindings/Logger.h>
 #include <napi.h>
 
@@ -44,11 +45,11 @@ Object Init(Env env, Object exports) {
     ExportClass(&exports, ls::bindings::NewStyleUnitClass(env));
 
     ExportClass(&exports, ls::bindings::JSStage::GetClass(env));
+    ExportClass(&exports, ls::bindings::JSScene::GetClass(env));
 
     ls::Style::Init(env);
     ExportClass(&exports, ls::Style::GetClass(env));
 
-    ExportClass(&exports, ls::Scene::GetClass(env));
     ExportClass(&exports, ls::BoxSceneNode::GetClass(env));
     ExportClass(&exports, ls::ImageSceneNode::GetClass(env));
     ExportClass(&exports, ls::LinkSceneNode::GetClass(env));
