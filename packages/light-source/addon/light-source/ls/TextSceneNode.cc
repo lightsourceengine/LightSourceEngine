@@ -202,16 +202,16 @@ bool TextSceneNode::SetFont(Style* style) {
     }
 
     switch (this->fontFace->GetState()) {
-        case Res::State::Ready:
+        case Resource::State::Ready:
             dirty = true;
             break;
-        case Res::State::Loading:
-            this->fontFace->AddListener(this, [this](Res::Owner owner, Res* res) {
+        case Resource::State::Loading:
+            this->fontFace->AddListener(this, [this](Resource::Owner owner, Resource* res) {
               if (this != owner || this->fontFace != res) {
                   return;
               }
 
-              if (this->fontFace->GetState() == Res::State::Ready) {
+              if (this->fontFace->GetState() == Resource::State::Ready) {
                   this->block.Invalidate();
                   YGNodeMarkDirty(this->ygNode);
                   this->fontFace->RemoveListener(owner);

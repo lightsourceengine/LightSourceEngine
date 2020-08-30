@@ -14,15 +14,17 @@
 
 namespace ls {
 
-enum LinkRelationship {
+LS_ENUM_SEQ_DECL(
+    LinkRelationship,
     LinkRelationshipPreload
-};
+)
 
-enum LinkCategory {
+LS_ENUM_SEQ_DECL(
+    LinkCategory,
     LinkCategoryAuto,
     LinkCategoryImage,
     LinkCategoryFont
-};
+)
 
 class LinkSceneNode final : public Napi::SafeObjectWrap<LinkSceneNode>, public SceneNode {
  public:
@@ -49,18 +51,16 @@ class LinkSceneNode final : public Napi::SafeObjectWrap<LinkSceneNode>, public S
 
  private:
     void ClearResource();
-    void ResourceListener(Res::Owner owner, Res* res);
+    void ResourceListener(Resource::Owner owner, Resource* res);
     bool HasFontFileExtension(const std::string& path) const noexcept;
 
  private:
     static Napi::FunctionReference constructor;
-    static Napi::ObjectReference relationshipMap;
-    static Napi::ObjectReference categoryMap;
 
     LinkRelationship relationship{ LinkRelationshipPreload };
     LinkCategory category{ LinkCategoryAuto };
     std::string href{};
-    Res* resource{};
+    Resource* resource{};
     ResourceProgress resourceProgress;
 };
 

@@ -49,7 +49,7 @@ void TextBlock::Shape(const std::string& utf8, FontFace* fontFace, Style* style,
 
     this->Invalidate();
 
-    if (utf8.empty() || !fontFace || !style || fontFace->GetState() != Res::Ready) {
+    if (utf8.empty() || !fontFace || !style || fontFace->GetState() != Resource::Ready) {
         return;
     }
 

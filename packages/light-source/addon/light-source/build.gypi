@@ -22,6 +22,7 @@
         "../deps/utfcpp/repo/source",
         "../deps/concurrentqueue/repo",
         "../deps/filesystem/include",
+        "../deps/parallel-hashmap/repo/parallel_hashmap",
       ],
       "dependencies": [
         "asmjit",

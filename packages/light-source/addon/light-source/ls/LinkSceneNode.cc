@@ -7,13 +7,13 @@
 
 #include <ls/LinkSceneNode.h>
 
-#include <unordered_map>
 #include <cctype>
 #include <algorithm>
 #include <ls/Scene.h>
 #include <ls/Stage.h>
 #include <ls/Log.h>
 #include <ls/Uri.h>
+#include <ls/Format.h>
 
 using Napi::Error;
 using Napi::Function;
@@ -26,11 +26,7 @@ using Napi::String;
 
 namespace ls {
 
-ObjectReference CreateMap(Napi::Env env, const std::unordered_map<uint32_t, std::string>& entries);
-
 Napi::FunctionReference LinkSceneNode::constructor;
-Napi::ObjectReference LinkSceneNode::relationshipMap;
-Napi::ObjectReference LinkSceneNode::categoryMap;
 
 Function LinkSceneNode::GetClass(Napi::Env env) {
     if (constructor.IsEmpty()) {
@@ -48,16 +44,6 @@ Function LinkSceneNode::GetClass(Napi::Env env) {
                 InstanceAccessor("onLoad", &LinkSceneNode::GetOnLoadCallback, &LinkSceneNode::SetOnLoadCallback),
                 InstanceAccessor("onError", &LinkSceneNode::GetOnErrorCallback, &LinkSceneNode::SetOnErrorCallback),
             }));
-
-        LinkSceneNode::relationshipMap = CreateMap(env, {
-            { LinkRelationshipPreload, "preload" }
-        });
-
-        LinkSceneNode::categoryMap = CreateMap(env, {
-            {LinkCategoryAuto, "auto" },
-            {LinkCategoryImage, "image" },
-            {LinkCategoryFont, "font" },
-        });
     }
 
     return constructor.Value();
@@ -98,24 +84,24 @@ void LinkSceneNode::Fetch(const Napi::CallbackInfo& info) {
         return;
     }
 
-    auto listener{ [this](Res::Owner owner, Res* res) { this->ResourceListener(owner, res); } };
+    auto listener{ [this](Resource::Owner owner, Resource* res) { this->ResourceListener(owner, res); } };
 
     switch (this->resource->GetState()) {
-        case Res::State::Init:
+        case Resource::State::Init:
             this->resource->AddListener(this, listener);
             this->resource->Load(env);
             break;
-        case Res::State::Loading:
+        case Resource::State::Loading:
             this->resource->AddListener(this, listener);
             break;
-        case Res::State::Ready:
-        case Res::State::Error:
+        case Resource::State::Ready:
+        case Resource::State::Error:
             listener(this, this->resource);
             break;
     }
 }
 
-void LinkSceneNode::ResourceListener(Res::Owner owner, Res* res) {
+void LinkSceneNode::ResourceListener(Resource::Owner owner, Resource* res) {
     if (this != owner || this->resource != res) {
         LOG_WARN("Invalid owner or resource: %s", this->href);
         return;
@@ -153,54 +139,42 @@ bool LinkSceneNode::HasFontFileExtension(const std::string& uri) const noexcept 
 }
 
 Napi::Value LinkSceneNode::GetRel(const Napi::CallbackInfo& info) {
-    return LinkSceneNode::relationshipMap.Get(this->relationship);
+    return String::New(info.Env(), ToString(this->relationship));
 }
 
 void LinkSceneNode::SetRel(const Napi::CallbackInfo& info, const Napi::Value& value) {
-    auto env{ info.Env() };
-
     if (value.IsString()) {
-        HandleScope scope(env);
-        auto enumValue{ LinkSceneNode::relationshipMap.Value().Get(value) };
+        auto stringValue{ value.As<String>().Utf8Value() };
 
-        if (enumValue.IsNumber()) {
-            this->relationship = static_cast<LinkRelationship>(enumValue.As<Number>().Int32Value());
-        } else {
-            throw Error::New(env, "Invalid 'rel' value.");
+        try {
+            this->relationship = FromString<LinkRelationship>(stringValue.c_str());
+        } catch (const std::invalid_argument& e) {
+            throw Error::New(info.Env(), Format("Invalid 'rel' value: %s", stringValue));
         }
     } else if (value.IsUndefined()) {
         this->relationship = LinkRelationshipPreload;
     } else {
-        throw Error::New(env, "Invalid 'rel' value type.");
+        throw Error::New(info.Env(), "Invalid 'rel' value type.");
     }
 }
 
 Napi::Value LinkSceneNode::GetAs(const Napi::CallbackInfo& info) {
-    return LinkSceneNode::categoryMap.Get(this->category);
+    return String::New(info.Env(), ToString(this->category));
 }
 
 void LinkSceneNode::SetAs(const Napi::CallbackInfo& info, const Napi::Value& value) {
-    auto env{ info.Env() };
-    LinkCategory newCategory;
-
     if (value.IsString()) {
-        HandleScope scope(env);
-        auto enumValue{ LinkSceneNode::categoryMap.Value().Get(value) };
+        auto stringValue{ value.As<String>().Utf8Value() };
 
-        if (enumValue.IsNumber()) {
-            newCategory = static_cast<LinkCategory>(enumValue.As<Number>().Int32Value());
-        } else {
-            throw Error::New(env, "Invalid 'as' value.");
+        try {
+            this->category = FromString<LinkCategory>(stringValue.c_str());
+        } catch (const std::invalid_argument& e) {
+            throw Error::New(info.Env(), Format("Invalid 'as' value: %s", stringValue));
         }
     } else if (value.IsUndefined()) {
-        newCategory = LinkCategoryImage;
+        this->category = LinkCategoryAuto;
     } else {
-        throw Error::New(env, "Invalid 'as' value type.");
-    }
-
-    if (newCategory != this->category) {
-        this->category = newCategory;
-        this->ClearResource();
+        throw Error::New(info.Env(), "Invalid 'as' value type.");
     }
 }
 
@@ -262,17 +236,50 @@ void LinkSceneNode::ClearResource() {
     }
 }
 
-ObjectReference CreateMap(Napi::Env env, const std::unordered_map<uint32_t, std::string>& entries) {
-    auto map{ Object::New(env) };
-
-    for (const auto &p : entries) {
-        auto stringValue{ String::New(env, p.second) };
-
-        map.Set(p.first, stringValue);
-        map.Set(stringValue, Number::New(env, p.first));
+const char* LinkRelationshipToString(LinkRelationship e) noexcept {
+    switch (e) {
+        case LinkRelationshipPreload:
+            return "preload";
     }
 
-    return Napi::Permanent(map);
+    return "unknown";
+}
+
+LinkRelationship LinkRelationshipFromString(const char* value) {
+    for (int32_t i = 0; i < Count<LinkRelationship>(); i++) {
+        auto e{ static_cast<LinkRelationship>(i) };
+
+        if (strcmp(value, ToString(e)) == 0) {
+            return e;
+        }
+    }
+
+    throw std::invalid_argument(value ? value : "null");
+}
+
+const char* LinkCategoryToString(LinkCategory e) noexcept {
+    switch (e) {
+        case LinkCategoryAuto:
+            return "auto";
+        case LinkCategoryFont:
+            return "font";
+        case LinkCategoryImage:
+            return "image";
+    }
+
+    return "unknown";
+}
+
+LinkCategory LinkCategoryFromString(const char* value) {
+    for (int32_t i = 0; i < Count<LinkCategory>(); i++) {
+        auto e{ static_cast<LinkCategory>(i) };
+
+        if (strcmp(value, ToString(e)) == 0) {
+            return e;
+        }
+    }
+
+    throw std::invalid_argument(value ? value : "null");
 }
 
 } // namespace ls

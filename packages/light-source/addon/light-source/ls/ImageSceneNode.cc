@@ -108,7 +108,7 @@ void ImageSceneNode::Composite(CompositeContext* composite) {
             imageStyle->backgroundColor.value.MixAlpha(opacity));
     }
 
-    if (this->image && this->image->GetState() == Res::Ready && !IsEmpty(this->imageRect.dest)) {
+    if (this->image && this->image->GetState() == Resource::Ready && !IsEmpty(this->imageRect.dest)) {
         if (!this->image->HasTexture()) {
             this->image->LoadTexture(composite->renderer);
         }
@@ -179,7 +179,7 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
     this->src = newSrc;
     this->image = this->GetResources()->AcquireImage(this->src);
 
-    auto listener{ [this](Res::Owner owner, Res* res) {
+    auto listener{ [this](Resource::Owner owner, Resource* res) {
         constexpr auto LAMBDA_FUNCTION = "ImageResourceListener";
 
         if (this != owner || this->image != res) {
@@ -194,15 +194,15 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
     }};
 
     switch (this->image->GetState()) {
-        case Res::State::Init:
+        case Resource::State::Init:
             this->image->AddListener(this, listener);
             this->image->Load(env);
             break;
-        case Res::State::Loading:
+        case Resource::State::Loading:
             this->image->AddListener(this, listener);
             break;
-        case Res::State::Ready:
-        case Res::State::Error:
+        case Resource::State::Ready:
+        case Resource::State::Error:
             // TODO: should Dispatch() run callbacks synchronously or through a microtask?
             listener(this, this->image);
             break;

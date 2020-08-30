@@ -12,7 +12,7 @@
 namespace ls {
 
 class SceneNode;
-class Res;
+class Resource;
 
 /**
  * Composite class that adds onLoad and onError resource properties to SceneNodes (img and link).
@@ -21,7 +21,7 @@ class ResourceProgress {
  public:
     virtual ~ResourceProgress() noexcept = default;
 
-    void Dispatch(SceneNode* owner, Res* resource) const;
+    void Dispatch(SceneNode* owner, Resource* resource) const;
     void Reset();
 
     void SetOnLoad(const Napi::Env& env, const Napi::Value& value);

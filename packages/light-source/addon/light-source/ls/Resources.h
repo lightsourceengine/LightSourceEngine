@@ -23,10 +23,10 @@ namespace ls {
 
 class Renderer;
 
-class Res {
+class Resource {
  public:
     using Owner = void*;
-    using Listener = std::function<void(Owner, Res*)>;
+    using Listener = std::function<void(Owner, Resource*)>;
 
     enum State {
         Init,
@@ -36,8 +36,8 @@ class Res {
     };
 
  public:
-    Res(const std::string& id);
-    virtual ~Res() = default;
+    Resource(const std::string& id);
+    virtual ~Resource() = default;
 
     void AddListener(Owner owner, Listener&& listener);
     void RemoveListener(Owner owner);
@@ -66,9 +66,9 @@ class Res {
     friend class Resources;
 };
 
-class Image final : public Res {
+class Image final : public Resource {
  public:
-    Image(const std::string& id) : Res(id) {}
+    Image(const std::string& id) : Resource(id) {}
     ~Image() override = default;
 
     void Load(Napi::Env env) override;
@@ -109,7 +109,7 @@ struct Font {
     bool empty() const noexcept { return this->blFont.empty(); }
 };
 
-class FontFace final : public Res {
+class FontFace final : public Resource {
  public:
     FontFace(const std::string& id);
     ~FontFace() override = default;
@@ -148,7 +148,7 @@ class Resources {
     FontFace* AcquireFontFaceByStyle(const std::string& family, StyleFontStyle style, StyleFontWeight weight);
     void ReleaseFontFace(const std::string& path, bool immediateDelete = false);
 
-    void ReleaseResource(Res* resource, bool immediateDelete = false);
+    void ReleaseResource(Resource* resource, bool immediateDelete = false);
 
     void Compact();
 

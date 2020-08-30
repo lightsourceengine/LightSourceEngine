@@ -19,7 +19,7 @@ namespace ls {
 
 constexpr const std::size_t LS_MAX_FONTS = 9;
 
-Res::Res(const std::string& id) : id(id) {
+Resource::Resource(const std::string& id) : id(id) {
     const auto t{GetUriScheme(id) };
 
     if (t == UriSchemeFile) {
@@ -31,11 +31,11 @@ Res::Res(const std::string& id) : id(id) {
     }
 }
 
-Napi::String Res::GetErrorMessage(const Napi::Env& env) const {
+Napi::String Resource::GetErrorMessage(const Napi::Env& env) const {
     return Napi::String::New(env, this->errorMessage);
 }
 
-void Res::NotifyListeners() {
+void Resource::NotifyListeners() {
     for (const auto& entry : this->listeners) {
         if (entry.owner) {
             try {
@@ -54,7 +54,7 @@ void Res::NotifyListeners() {
         this->listeners.end());
 }
 
-void Res::AddListener(Owner owner, Listener&& listener) {
+void Resource::AddListener(Owner owner, Listener&& listener) {
     assert(owner != nullptr);
     assert(listener != nullptr);
 
@@ -78,7 +78,7 @@ void Res::AddListener(Owner owner, Listener&& listener) {
     this->listeners.emplace_back(ListenerEntry{ owner, listener });
 }
 
-void Res::RemoveListener(Owner owner) {
+void Resource::RemoveListener(Owner owner) {
     if (owner == nullptr) {
         return;
     }
@@ -108,18 +108,18 @@ void Image::Load(Napi::Env env) {
         [this](Napi::Env env, AsyncWorkResult<ImageBytes>* result) {
             constexpr auto LAMBDA_FUNCTION = "ResourceLoadComplete";
 
-            if (this->state != Res::State::Loading) {
+            if (this->state != Resource::State::Loading) {
                 return;
             }
 
             if (result->HasError()) {
-                this->state = Res::State::Error;
+                this->state = Resource::State::Error;
                 this->errorMessage = result->TakeError();
                 this->width = 0;
                 this->height = 0;
                 LOG_ERROR_LAMBDA("%s", this->errorMessage);
             } else {
-                this->state = Res::State::Ready;
+                this->state = Resource::State::Ready;
                 this->resource = result->TakeValue();
                 this->width = this->resource.Width();
                 this->height = this->resource.Height();
@@ -129,7 +129,7 @@ void Image::Load(Napi::Env env) {
             this->NotifyListeners();
         });
 
-    this->state = Res::State::Loading;
+    this->state = Resource::State::Loading;
     this->errorMessage.clear();
     this->resource = {};
 
@@ -208,7 +208,7 @@ Image Image::Mock(const std::string& id, int32_t width, int32_t height) {
     return image;
 }
 
-FontFace::FontFace(const std::string& id) : Res(id) {
+FontFace::FontFace(const std::string& id) : Resource(id) {
     const auto t{ GetUriScheme(id) };
 
     if (t == UriSchemeFile) {
@@ -255,16 +255,16 @@ void FontFace::Load(Napi::Env env) {
         [this](Napi::Env env, AsyncWorkResult<BLFontFace>* result) {
           constexpr auto LAMBDA_FUNCTION = "ResourceLoadComplete";
 
-          if (this->state != Res::State::Loading) {
+          if (this->state != Resource::State::Loading) {
               return;
           }
 
           if (result->HasError()) {
-              this->state = Res::State::Error;
+              this->state = Resource::State::Error;
               this->errorMessage = result->TakeError();
               LOG_ERROR_LAMBDA("%s", this->errorMessage);
           } else {
-              this->state = Res::State::Ready;
+              this->state = Resource::State::Ready;
               this->resource = result->TakeValue();
               LOG_INFO_LAMBDA("%s", this->id);
           }
@@ -272,7 +272,7 @@ void FontFace::Load(Napi::Env env) {
           this->NotifyListeners();
         });
 
-    this->state = Res::State::Loading;
+    this->state = Resource::State::Loading;
     this->errorMessage.clear();
     this->resource.reset();
 
@@ -429,7 +429,7 @@ void Resources::ReleaseFontFace(const std::string& path, bool immediateDelete) {
     }
 }
 
-void Resources::ReleaseResource(Res* resource, bool immediateDelete) {
+void Resources::ReleaseResource(Resource* resource, bool immediateDelete) {
     if (resource) {
         if (HasFontFace(resource->id)) {
             this->ReleaseFontFace(resource->id, immediateDelete);

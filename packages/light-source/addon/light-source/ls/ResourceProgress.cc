@@ -17,9 +17,9 @@ using Napi::HandleScope;
 
 namespace ls {
 
-void ResourceProgress::Dispatch(SceneNode* node, Res* resource) const {
+void ResourceProgress::Dispatch(SceneNode* node, Resource* resource) const {
     switch (resource->GetState()) {
-        case Res::Ready:
+        case Resource::Ready:
             if (!this->onLoad.IsEmpty()) {
                 Env env(node->Env());
                 HandleScope scope(env);
@@ -31,7 +31,7 @@ void ResourceProgress::Dispatch(SceneNode* node, Res* resource) const {
                 }
             }
             break;
-        case Res::Error:
+        case Resource::Error:
             if (!this->onError.IsEmpty()) {
                 Env env(node->Env());
                 HandleScope scope(env);

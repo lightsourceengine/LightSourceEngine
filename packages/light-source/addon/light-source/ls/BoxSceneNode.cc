@@ -186,7 +186,7 @@ void BoxSceneNode::PaintBackgroundRepeat(RenderingContext2D* context) {
         }
     }
 
-    if (!this->backgroundImage->HasTexture() && this->backgroundImage->GetState() == Res::Ready) {
+    if (!this->backgroundImage->HasTexture() && this->backgroundImage->GetState() == Resource::Ready) {
         if (!this->backgroundImage->LoadTexture(context->renderer)) {
             return;
         }
@@ -306,7 +306,7 @@ void BoxSceneNode::UpdateBackgroundImage(const std::string& backgroundUri) {
 
     this->backgroundImage = this->GetResources()->AcquireImage(backgroundUri);
 
-    auto listener{ [this](Res::Owner owner, Res* res) {
+    auto listener{ [this](Resource::Owner owner, Resource* res) {
         if (this != owner || this->backgroundImage != res) {
             return;
         }
@@ -316,15 +316,15 @@ void BoxSceneNode::UpdateBackgroundImage(const std::string& backgroundUri) {
     }};
 
     switch (this->backgroundImage->GetState()) {
-        case Res::State::Init:
+        case Resource::State::Init:
             this->backgroundImage->AddListener(this, listener);
             this->backgroundImage->Load(this->Env());
             break;
-        case Res::State::Loading:
+        case Resource::State::Loading:
             this->backgroundImage->AddListener(this, listener);
             break;
-        case Res::State::Ready:
-        case Res::State::Error:
+        case Resource::State::Ready:
+        case Resource::State::Error:
             listener(this, this->backgroundImage);
             break;
     }
