@@ -13,9 +13,6 @@
 [submodule "packages/light-source/addon/deps/cpp17_headers/repo"]
 	path = packages/light-source/addon/deps/cpp17_headers/repo
 	url = https://github.com/lightsourceengine/cpp17_headers.git
-[submodule "packages/light-source/addon/deps/ls-ctx/repo"]
-	path = packages/light-source/addon/deps/ls-ctx/repo
-	url = https://github.com/lightsourceengine/ls-ctx.git
 [submodule "packages/light-source/addon/deps/asmjit/repo"]
 	path = packages/light-source/addon/deps/asmjit/repo
 	url = https://github.com/asmjit/asmjit.git
