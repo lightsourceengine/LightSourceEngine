@@ -7,6 +7,7 @@
 #pragma once
 
 #include <ls/EnumSequence.h>
+#include <ls/StyleProperty.h>
 #include <YGEnums.h>
 
 namespace ls {
@@ -111,89 +112,8 @@ LS_ENUM_SEQ_DECL(
     StyleTransformScale
 )
 
-LS_ENUM_SEQ_DECL(
-    StyleProperty,
-    // (Yoga) Layout Style Properties
-    alignItems,
-    alignContent,
-    alignSelf,
-    border,
-    borderBottom,
-    borderLeft,
-    borderRight,
-    borderTop,
-    bottom,
-    display,
-    flex,
-    flexBasis,
-    flexDirection,
-    flexGrow,
-    flexShrink,
-    flexWrap,
-    height,
-    justifyContent,
-    left,
-    margin,
-    marginBottom,
-    marginLeft,
-    marginRight,
-    marginTop,
-    maxHeight,
-    maxWidth,
-    minHeight,
-    minWidth,
-    overflow,
-    padding,
-    paddingBottom,
-    paddingLeft,
-    paddingRight,
-    paddingTop,
-    position,
-    right,
-    top,
-    width,
-    // Extended Style Properties
-    backgroundClip,
-    backgroundColor,
-    backgroundHeight,
-    backgroundImage,
-    backgroundPositionX,
-    backgroundPositionY,
-    backgroundRepeat,
-    backgroundSize,
-    backgroundWidth,
-    borderColor,
-    borderRadius,
-    borderRadiusTopLeft,
-    borderRadiusTopRight,
-    borderRadiusBottomLeft,
-    borderRadiusBottomRight,
-    color,
-    fontFamily,
-    fontSize,
-    fontStyle,
-    fontWeight,
-    lineHeight,
-    maxLines,
-    objectFit,
-    objectPositionX,
-    objectPositionY,
-    opacity,
-    textAlign,
-    textOverflow,
-    textTransform,
-    tintColor,
-    transform,
-    transformOriginX,
-    transformOriginY,
-    zIndex
-)
-
+// If root does not have a font size set, this value is used for rem calculation.
 constexpr const float DEFAULT_REM_FONT_SIZE = 16.f;
-
-constexpr bool IsYogaLayoutProperty(StyleProperty property) noexcept {
-    return property <= StyleProperty::width;
-}
 
 // Add ToString, FromString and Count to Yoga enum types for a consistent enum interface across style properties.
 
@@ -221,5 +141,24 @@ LS_GEN_ENUM_FUNCTIONS(YGPositionType)
 LS_GEN_ENUM_FUNCTIONS(YGWrap)
 
 #undef LS_GEN_ENUM_FUNCTIONS
+
+// Checks if an int32_t can be cast to an enum of type T. The enum must have been declared with LS_ENUM_SEQ_DECL to
+// be compatible with this function.
+template<typename T>
+constexpr bool IsValidEnum(int32_t value) {
+    return value >= 0 && value < Count<T>();
+}
+
+// type-erased version of ToString. if the value is out of range, "unknown" is returned.
+template<typename T>
+const char* StylePropertyIntToString(int32_t property) noexcept {
+    return IsValidEnum<T>(property) ? ToString<T>(static_cast<T>(property)) : "unknown";
+}
+
+// type-erased version of FromString. if the value is out of range, illegal_argument exception is thrown.
+template<typename T>
+int32_t StylePropertyIntFromString(const char* value) {
+    return FromString<T>(value);
+}
 
 } // namespace ls

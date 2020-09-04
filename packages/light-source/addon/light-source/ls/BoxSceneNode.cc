@@ -47,7 +47,7 @@ Function BoxSceneNode::GetClass(Napi::Env env) {
 void BoxSceneNode::OnStylePropertyChanged(StyleProperty property) {
     switch (property) {
         case StyleProperty::backgroundImage:
-            this->UpdateBackgroundImage(this->style->backgroundImage);
+            this->UpdateBackgroundImage(this->style->GetString(StyleProperty::backgroundImage));
             break;
         case StyleProperty::backgroundColor:
         case StyleProperty::borderColor:
@@ -70,15 +70,22 @@ void BoxSceneNode::OnStylePropertyChanged(StyleProperty property) {
     }
 }
 
-void BoxSceneNode::OnStyleLayout() {
-    auto boxStyle{ Style::OrEmpty(this->style) };
+void BoxSceneNode::OnStyleReset() {
+    this->UpdateBackgroundImage(this->style->GetString(StyleProperty::backgroundImage));
+    this->RequestStyleLayout();
+}
 
-    if (!boxStyle->backgroundColor.empty() && this->scene->GetStyleResolver().HasBorderRadius(boxStyle)) {
+void BoxSceneNode::OnStyleLayout() {
+    auto boxStyle{ Style::Or(this->style) };
+
+    if (boxStyle->Exists(StyleProperty::backgroundColor)
+            && this->GetStyleContext()->HasBorderRadius(boxStyle)) {
         this->RequestPaint();
         return;
     }
 
-    if (!boxStyle->backgroundImage.empty() && boxStyle->backgroundRepeat != StyleBackgroundRepeatOff) {
+    if (boxStyle->Exists(StyleProperty::backgroundImage)
+            && boxStyle->GetEnum(StyleProperty::backgroundRepeat) != StyleBackgroundRepeatOff) {
         this->RequestPaint();
         return;
     }
@@ -87,10 +94,11 @@ void BoxSceneNode::OnStyleLayout() {
     // TODO: if background repeat -> paint
 
     if (this->backgroundImage && this->backgroundImage->HasDimensions()) {
-        const auto box{ this->GetBackgroundClipBox(boxStyle->backgroundClip) };
+        const auto backgroundClip{ boxStyle->GetEnum<StyleBackgroundClip>(StyleProperty::backgroundClip) };
+        const auto box{ this->GetBackgroundClipBox(backgroundClip) };
 
         if (!IsEmpty(box)) {
-            auto fit{this->scene->GetStyleResolver().ResolveBackgroundFit(this->style, box, this->backgroundImage)};
+            auto fit{this->GetStyleContext()->ComputeBackgroundFit(this->style.get(), box, this->backgroundImage)};
 
             this->backgroundImageRect = ClipImage(box, fit,
                     this->backgroundImage->WidthF(), this->backgroundImage->HeightF());
@@ -105,20 +113,24 @@ void BoxSceneNode::OnBoundingBoxChanged() {
 }
 
 void BoxSceneNode::Paint(RenderingContext2D* context) {
-    const auto boxStyle{ Style::OrEmpty(this->style) };
+    const auto boxStyle{ Style::Or(this->style) };
 
-    if (!boxStyle->backgroundColor.empty() && this->scene->GetStyleResolver().HasBorderRadius(boxStyle)) {
+    if (boxStyle->Exists(StyleProperty::backgroundColor)
+            && this->GetStyleContext()->HasBorderRadius(boxStyle)) {
         this->PaintBorderRadius(context);
-    } else if (this->backgroundImage && this->backgroundImage->HasDimensions()
-            && !boxStyle->backgroundImage.empty() && boxStyle->backgroundRepeat != StyleBackgroundRepeatOff) {
+    } else if (this->backgroundImage
+            && this->backgroundImage->HasDimensions()
+            && boxStyle->Exists(StyleProperty::backgroundImage)
+            && boxStyle->GetEnum(StyleProperty::backgroundRepeat) != StyleBackgroundRepeatOff) {
         this->PaintBackgroundRepeat(context);
     }
 }
 
 void BoxSceneNode::PaintBorderRadius(RenderingContext2D* context) {
-    const auto boxStyle{ Style::OrEmpty(this->style) };
-    const auto box{ this->GetBackgroundClipBox(boxStyle->backgroundClip) };
-    const auto borderRadius{ this->scene->GetStyleResolver().ResolveBorderRadius(boxStyle, box) };
+    const auto boxStyle{Style::Or(this->style) };
+    const auto backgroundClip{ boxStyle->GetEnum<StyleBackgroundClip>(StyleProperty::backgroundClip) };
+    const auto box{ this->GetBackgroundClipBox(backgroundClip) };
+    const auto borderRadius{ this->GetStyleContext()->ComputeBorderRadius(boxStyle, box) };
 
     if (!this->paintTarget
             || !this->paintTarget.IsLockable()
@@ -142,7 +154,7 @@ void BoxSceneNode::PaintBorderRadius(RenderingContext2D* context) {
     context->SetColor(0);
     context->FillAll();
 
-    context->SetColor(boxStyle->backgroundColor.value);
+    context->SetColor(boxStyle->GetColor(StyleProperty::backgroundColor).value());
 
     context->BeginPath();
     context->MoveTo(box.x + borderRadius.topLeft, box.y);
@@ -169,8 +181,9 @@ void BoxSceneNode::PaintBorderRadius(RenderingContext2D* context) {
 }
 
 void BoxSceneNode::PaintBackgroundRepeat(RenderingContext2D* context) {
-    const auto boxStyle{ Style::OrEmpty(this->style) };
-    const auto box{ this->GetBackgroundClipBox(boxStyle->backgroundClip) };
+    const auto boxStyle{ Style::Or(this->style) };
+    const auto backgroundClip{ boxStyle->GetEnum<StyleBackgroundClip>(StyleProperty::backgroundClip) };
+    const auto box{ this->GetBackgroundClipBox(backgroundClip) };
     const auto boxWidthI{ static_cast<int32_t>(box.width) };
     const auto boxHeightI{ static_cast<int32_t>(box.height) };
 
@@ -201,7 +214,7 @@ void BoxSceneNode::PaintBackgroundRepeat(RenderingContext2D* context) {
     context->renderer->SetRenderTarget(this->paintTarget);
     context->renderer->FillRenderTarget(0);
 
-    switch (boxStyle->backgroundRepeat) {
+    switch (boxStyle->GetEnum(StyleProperty::backgroundRepeat)) {
         case StyleBackgroundRepeatXY:
             while (y < y2) {
                 x = 0;
@@ -241,7 +254,7 @@ void BoxSceneNode::PaintBackgroundRepeat(RenderingContext2D* context) {
 void BoxSceneNode::Composite(CompositeContext* composite) {
     const auto boxStyle{ this->style };
 
-    if (boxStyle == nullptr || boxStyle->IsLayoutOnly()) {
+    if (boxStyle == nullptr /* TODO: || boxStyle->IsLayoutOnly() */) {
         return;
     }
 
@@ -254,11 +267,13 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
         return;
     }
 
-    if (!boxStyle->backgroundColor.empty()) {
+    auto styleColor{ boxStyle->GetColor(StyleProperty::backgroundColor) };
+
+    if (styleColor.has_value()) {
         composite->renderer->DrawFillRect(
             box,
             transform,
-            boxStyle->backgroundColor.value.MixAlpha(composite->CurrentOpacity()));
+            styleColor->MixAlpha(composite->CurrentOpacity()));
     }
 
     if (this->backgroundImage) {
@@ -274,19 +289,22 @@ void BoxSceneNode::Composite(CompositeContext* composite) {
         if (this->backgroundImage->HasTexture() && !IsEmpty(this->backgroundImageRect.dest)) {
             const auto backgroundImageDestRect{Translate(this->backgroundImageRect.dest, box.x, box.y)};
 
+            styleColor = boxStyle->GetColor(StyleProperty::tintColor);
+
             composite->renderer->DrawImage(
                 this->backgroundImage->GetTexture(),
                 this->backgroundImageRect.src,
                 backgroundImageDestRect,
                 transform,
-                boxStyle->tintColor.ValueOr(ColorWhite).MixAlpha(composite->CurrentOpacity()));
+                styleColor.value_or(ColorWhite).MixAlpha(composite->CurrentOpacity()));
         }
     }
 
-    if (!boxStyle->borderColor.empty()) {
-        composite->renderer->DrawBorder(box, YGNodeGetBorderEdges(this->ygNode),
-            transform,
-            boxStyle->borderColor.value.MixAlpha(composite->CurrentOpacity()));
+    styleColor = boxStyle->GetColor(StyleProperty::borderColor);
+
+    if (styleColor.has_value()) {
+        composite->renderer->DrawBorder(box, YGNodeGetBorderEdges(this->ygNode), transform,
+            styleColor->MixAlpha(composite->CurrentOpacity()));
     }
 }
 

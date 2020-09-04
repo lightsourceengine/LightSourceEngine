@@ -25,6 +25,21 @@ T ObjectGetNumberOrDefault(const Object& object, const std::string& key, T defau
     return value.As<Number>();
 }
 
+template<typename T>
+T ObjectGetNumberOrDefault(const Object& object, uint32_t index, T defaultValue) {
+    if (!object.Has(index)) {
+        return defaultValue;
+    }
+
+    auto value{ object.Get(index) };
+
+    if (!value.IsNumber()) {
+        return defaultValue;
+    }
+
+    return value.As<Number>();
+}
+
 template<typename Iterable>
 Napi::Array NewStringArray(const Napi::Env& env, const Iterable& iterable) {
     auto result{ Array::New(env) };

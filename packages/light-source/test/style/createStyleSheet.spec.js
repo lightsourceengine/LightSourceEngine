@@ -6,7 +6,7 @@
 
 import { assert } from 'chai'
 import { createStyleSheet } from '../../src/style/createStyleSheet'
-import { Style, StyleUnit } from '../../src/addon'
+import { StyleClass, StyleValue } from '../../src/addon'
 import { rgb } from '../../src/exports'
 
 describe('createStyleSheet()', () => {
@@ -26,8 +26,8 @@ describe('createStyleSheet()', () => {
     })
 
     assert.lengthOf(Object.keys(sheet), 2)
-    assert.instanceOf(sheet.style1, Style)
-    assert.instanceOf(sheet.style2, Style)
+    assert.instanceOf(sheet.style1, StyleClass)
+    assert.instanceOf(sheet.style2, StyleClass)
   })
   it('should throw Error when no argument passed', () => {
     assert.throws(() => createStyleSheet())
@@ -51,8 +51,8 @@ describe('createStyleSheet()', () => {
 
     assert.lengthOf(Object.keys(sheet), 1)
     assert.deepInclude(sheet.test, {
-      width: [10, StyleUnit.Point],
-      height: [20, StyleUnit.Point],
+      width: StyleValue.of(10),
+      height: StyleValue.of(20),
       flexDirection: 'row'
     })
   })
@@ -70,8 +70,8 @@ describe('createStyleSheet()', () => {
 
     assert.lengthOf(Object.keys(sheet), 2)
     assert.deepInclude(sheet.test, {
-      width: [10, StyleUnit.Point],
-      height: [20, StyleUnit.Point],
+      width: StyleValue.of(10),
+      height: StyleValue.of(20),
       flexDirection: 'row'
     })
   })
@@ -85,10 +85,10 @@ describe('createStyleSheet()', () => {
 
     assert.lengthOf(Object.keys(sheet), 1)
     assert.deepInclude(sheet.test, {
-      top: [0, StyleUnit.Point],
-      right: [0, StyleUnit.Point],
-      bottom: [0, StyleUnit.Point],
-      left: [0, StyleUnit.Point],
+      top: StyleValue.of(0),
+      right: StyleValue.of(0),
+      bottom: StyleValue.of(0),
+      left: StyleValue.of(0),
       position: 'absolute'
     })
   })
@@ -104,12 +104,12 @@ describe('createStyleSheet()', () => {
 
     assert.lengthOf(Object.keys(sheet), 1)
     assert.deepInclude(sheet.test, {
-      top: [0, StyleUnit.Point],
-      right: [0, StyleUnit.Point],
-      bottom: [0, StyleUnit.Point],
-      left: [0, StyleUnit.Point],
+      top: StyleValue.of(0),
+      right: StyleValue.of(0),
+      bottom: StyleValue.of(0),
+      left: StyleValue.of(0),
       position: 'absolute',
-      margin: [10, StyleUnit.Point]
+      margin: StyleValue.of(10)
     })
   })
   it('should create style sheet with extend of local mixin', () => {
@@ -124,9 +124,7 @@ describe('createStyleSheet()', () => {
     })
 
     assert.lengthOf(Object.keys(sheet), 1)
-    assert.deepInclude(sheet.test, {
-      margin: [20, StyleUnit.Point]
-    })
+    assert.deepInclude(sheet.test, { margin: StyleValue.of(20) })
   })
   it('should create style sheet with extend of multiple local mixins', () => {
     const sheet = createStyleSheet({
@@ -143,8 +141,8 @@ describe('createStyleSheet()', () => {
 
     assert.lengthOf(Object.keys(sheet), 1)
     assert.deepInclude(sheet.test, {
-      paddingTop: [10, StyleUnit.Point],
-      paddingBottom: [20, StyleUnit.Point]
+      paddingTop: StyleValue.of(10),
+      paddingBottom: StyleValue.of(20)
     })
   })
   it('should create style sheet with nested extend', () => {
@@ -163,8 +161,8 @@ describe('createStyleSheet()', () => {
 
     assert.lengthOf(Object.keys(sheet), 1)
     assert.deepInclude(sheet.test, {
-      paddingTop: [10, StyleUnit.Point],
-      paddingBottom: [20, StyleUnit.Point]
+      paddingTop: StyleValue.of(10),
+      paddingBottom: StyleValue.of(20)
     })
   })
   it('should throw Error when a cycle is found in @extend chain', () => {

@@ -18,7 +18,7 @@ namespace bindings {
  */
 class JSStage : public Napi::SafeObjectWrap<JSStage> {
  public:
-    JSStage(const Napi::CallbackInfo& info);
+    using Napi::SafeObjectWrap<JSStage>::SafeObjectWrap;
     ~JSStage() override = default;
 
     static Napi::Function GetClass(Napi::Env env);

@@ -53,10 +53,11 @@ void RootSceneNode::OnStylePropertyChanged(StyleProperty property) {
 }
 
 void RootSceneNode::Composite(CompositeContext* composite) {
-    const auto& backgroundColor{ Style::OrEmpty(this->style)->backgroundColor };
+    const auto style = Style::Or(this->style);
+    const auto backgroundColor = style->GetColor(StyleProperty::backgroundColor);
 
-    if (!backgroundColor.empty()) {
-        composite->renderer->FillRenderTarget(backgroundColor.value);
+    if (backgroundColor.has_value()) {
+        composite->renderer->FillRenderTarget(backgroundColor.value());
     }
 }
 

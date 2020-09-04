@@ -19,9 +19,6 @@ static FunctionReference jsStageConstructor;
 namespace ls {
 namespace bindings {
 
-JSStage::JSStage(const Napi::CallbackInfo& info) : Napi::SafeObjectWrap<JSStage>(info) {
-}
-
 void JSStage::Constructor(const CallbackInfo& info) {
     this->native = std::make_shared<Stage>();
 }

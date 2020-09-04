@@ -8,14 +8,10 @@
 
 #include <cstdint>
 
-#define LS_ENUM_SEQ_DECL(NAME, ...)  \
-    enum NAME {__VA_ARGS__}; \
+// Generates ToString<T>() and FromString<T>() mapping functions for an enum.
+#define LS_ENUM_STRING_MAPPING(NAME) \
     const char* NAME##ToString(NAME) noexcept; \
     NAME NAME##FromString(const char*); \
-    template <> \
-    constexpr int32_t Count<NAME>() noexcept { \
-        return internal::CountMacroVariadicArgs<__VA_ARGS__>(); \
-    } \
     template <> \
     inline const char* ToString<NAME>(NAME value) noexcept { \
         return NAME##ToString(value); \
@@ -24,6 +20,15 @@
     inline NAME FromString<NAME>(const char* value) { \
         return NAME##FromString(value); \
     }
+
+// Generates an enum declaration with associates ToString<T>() and FromString<T>() mapping functions.
+#define LS_ENUM_SEQ_DECL(NAME, ...)  \
+    enum NAME {__VA_ARGS__};         \
+        template <> \
+    constexpr int32_t Count<NAME>() noexcept { \
+        return internal::CountMacroVariadicArgs<__VA_ARGS__>(); \
+    } \
+    LS_ENUM_STRING_MAPPING(NAME)
 
 namespace ls {
 

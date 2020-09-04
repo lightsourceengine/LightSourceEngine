@@ -8,6 +8,7 @@
 
 #include <napi.h>
 #include <string>
+#include <cstring>
 #include <vector>
 #include <functional>
 #include <initializer_list>
@@ -152,6 +153,20 @@ struct Assert {
 
             throw AssertionError(ss.str(), message);
         }
+    }
+
+    static void CStringEqual(const char* value, const char* expected, const std::string& message = "") {
+        if (value == nullptr && expected == nullptr) {
+            return;
+        } else if (value != nullptr && expected != nullptr && strcmp(value, expected) == 0) {
+            return;
+        }
+
+        std::stringstream ss;
+
+        ss << "Expected " << (value ? value : "null") << " to be equal to " << (expected ? expected : "null");
+
+        throw AssertionError(ss.str(), message);
     }
 
     /**

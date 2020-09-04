@@ -253,4 +253,16 @@ YGPositionType YGPositionTypeFromString(const char* value) {
     return StyleEnumFromString(sYGPositionTypeFromString, value);
 }
 
+const char* StylePropertyToString(StyleProperty property) noexcept {
+    #define TO_STRING(PROP) case StyleProperty::PROP: return #PROP;
+
+    switch (property) {
+        LS_FOR_EACH_STYLE_PROPERTY(TO_STRING)
+    }
+
+    #undef TO_STRING
+
+    return "unknown";
+}
+
 } // namespace ls

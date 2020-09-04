@@ -5,7 +5,7 @@
  */
 
 import { assert } from 'chai'
-import { StyleUnit, StyleTransform } from '../../src/addon'
+import { StyleUnit, StyleTransform, StyleTransformSpec } from '../../src/addon'
 import {
   translate,
   scale,
@@ -26,7 +26,7 @@ import {
 
 describe('transform', () => {
   describe('translate()', () => {
-    it('should Float32Array with translate data', () => {
+    it('should return a StyleTransformSpec of transform type Translate', () => {
       testTransform(translate(5, 10),
         StyleTransform.Translate, 5, StyleUnit.Point, 10, StyleUnit.Point)
       testTransform(translate(-5, -10),
@@ -47,7 +47,7 @@ describe('transform', () => {
     })
   })
   describe('translateX()', () => {
-    it('should Float32Array with translate data', () => {
+    it('should return a StyleTransformSpec of transform type Translate', () => {
       testTransform(translateX(5),
         StyleTransform.Translate, 5, StyleUnit.Point, 0, StyleUnit.Point)
     })
@@ -56,7 +56,7 @@ describe('transform', () => {
     })
   })
   describe('translateY()', () => {
-    it('should Float32Array with translate data', () => {
+    it('should return a StyleTransformSpec of transform type Translate', () => {
       testTransform(translateY(5),
         StyleTransform.Translate, 0, StyleUnit.Point, 5, StyleUnit.Point)
     })
@@ -65,18 +65,18 @@ describe('transform', () => {
     })
   })
   describe('scale()', () => {
-    it('should Float32Array with scale data', () => {
+    it('should return a StyleTransformSpec of transform type Scale', () => {
       testTransform(scale(5, 10),
         StyleTransform.Scale, 5, StyleUnit.Point, 10, StyleUnit.Point)
     })
     it('should return undefined for invalid scale values', () => {
       assert.isUndefined(scale(false, false))
-      assert.isUndefined(scale('100px', 10))
+      assert.isUndefined(scale('100deg', 10))
       assert.isUndefined(scale('100%', 10))
     })
   })
   describe('scaleX()', () => {
-    it('should Float32Array with translate data', () => {
+    it('should return a StyleTransformSpec of transform type Scale', () => {
       testTransform(scaleX(5),
         StyleTransform.Scale, 5, StyleUnit.Point, 1, StyleUnit.Point)
     })
@@ -85,7 +85,7 @@ describe('transform', () => {
     })
   })
   describe('scaleX()', () => {
-    it('should Float32Array with translate data', () => {
+    it('should return a StyleTransformSpec of transform type Scale', () => {
       testTransform(scaleY(5),
         StyleTransform.Scale, 1, StyleUnit.Point, 5, StyleUnit.Point)
     })
@@ -94,8 +94,8 @@ describe('transform', () => {
     })
   })
   describe('rotate()', () => {
-    it('should Float32Array with rotate data', () => {
-      testTransform(rotate(1), StyleTransform.Rotate, 1, StyleUnit.Radian)
+    it('should return a StyleTransformSpec of transform type Rotate', () => {
+      testTransform(rotate(1), StyleTransform.Rotate, 1, StyleUnit.Point)
       testTransform(rotate('1rad'), StyleTransform.Rotate, 1, StyleUnit.Radian)
       testTransform(rotate('2grad'), StyleTransform.Rotate, 2, StyleUnit.Gradian)
       testTransform(rotate('90deg'), StyleTransform.Rotate, 90, StyleUnit.Degree)
@@ -103,7 +103,7 @@ describe('transform', () => {
     })
     it('should reutrn undefined for invalid angle value', () => {
       assert.isUndefined(rotate(false))
-      assert.isUndefined(rotate('100px'))
+      assert.isUndefined(rotate('100vw'))
       assert.isUndefined(rotate({}))
     })
   })
@@ -139,75 +139,79 @@ describe('transform', () => {
     })
   })
   describe('getRotateAngle()', () => {
-    it('should return an array pair containing the rotation angle value and unit', () => {
+    it('should return a StyleValue containing the rotation angle value and unit', () => {
       testStyleValue(getRotateAngle(rotate('90deg')), 90, StyleUnit.Degree)
       testStyleValue(getRotateAngle(rotate('2rad')), 2, StyleUnit.Radian)
       testStyleValue(getRotateAngle(rotate('2grad')), 2, StyleUnit.Gradian)
       testStyleValue(getRotateAngle(rotate('1turn')), 1, StyleUnit.Turn)
-      testStyleValue(getRotateAngle(rotate(3)), 3, StyleUnit.Radian)
+      testStyleValue(getRotateAngle(rotate(3)), 3, StyleUnit.Point)
     })
-    it('should return an empty array when passed an invalid argument', () => {
-      assert.isEmpty(getRotateAngle(translateX(3)))
-      assert.isEmpty(getRotateAngle(100))
+    it('should return an empty StyleValue when passed an invalid argument', () => {
+      assert.isTrue(getRotateAngle(translateX(3)).isUndefined())
+      assert.isTrue(getRotateAngle(100).isUndefined())
     })
   })
   describe('getTranslateX()', () => {
-    it('should return an array pair containing the x value and unit', () => {
+    it('should return the translate x StyleValue', () => {
       testStyleValue(getTranslateX(translate(10, 10)), 10, StyleUnit.Point)
       testStyleValue(getTranslateX(translateX(10)), 10, StyleUnit.Point)
       testStyleValue(getTranslateX(translateY(10)), 0, StyleUnit.Point)
     })
-    it('should return an empty array when passed an invalid argument', () => {
-      assert.isEmpty(getTranslateX(scaleX(3)))
-      assert.isEmpty(getTranslateX(100))
+    it('should return an empty StyleValue when passed an invalid argument', () => {
+      assert.isTrue(getTranslateX(scaleX(3)).isUndefined())
+      assert.isTrue(getTranslateX(100).isUndefined())
     })
   })
   describe('getTranslateY()', () => {
-    it('should return an array pair containing the y value and unit', () => {
+    it('should return the translate y StyleValue', () => {
       testStyleValue(getTranslateY(translate(10, 10)), 10, StyleUnit.Point)
       testStyleValue(getTranslateY(translateY(10)), 10, StyleUnit.Point)
       testStyleValue(getTranslateY(translateX(10)), 0, StyleUnit.Point)
     })
-    it('should return an empty array when passed an invalid argument', () => {
-      assert.isEmpty(getTranslateY(scaleX(3)))
-      assert.isEmpty(getTranslateY(100))
+    it('should return an undefined StyleValue when passed an invalid argument', () => {
+      assert.isTrue(getTranslateY(scaleX(3)).isUndefined())
+      assert.isTrue(getTranslateY(100).isUndefined())
     })
   })
   describe('getScaleX()', () => {
-    it('should return an array pair containing the x value and unit', () => {
+    it('should return the scale x StyleValue', () => {
       testStyleValue(getScaleX(scale(10, 10)), 10, StyleUnit.Point)
       testStyleValue(getScaleX(scaleX(10)), 10, StyleUnit.Point)
       testStyleValue(getScaleX(scaleY(10)), 1, StyleUnit.Point)
     })
-    it('should return an empty array when passed an invalid argument', () => {
-      assert.isEmpty(getScaleX(translateX(3)))
-      assert.isEmpty(getScaleX(100))
+    it('should return an undefined StyleValue when passed an invalid argument', () => {
+      assert.isTrue(getScaleX(translateX(3)).isUndefined())
+      assert.isTrue(getScaleX(100).isUndefined())
     })
   })
   describe('getScaleY()', () => {
-    it('should return an array pair containing the y value and unit', () => {
+    it('should return the scale y StyleValue', () => {
       testStyleValue(getScaleY(scale(10, 10)), 10, StyleUnit.Point)
       testStyleValue(getScaleY(scaleY(10)), 10, StyleUnit.Point)
       testStyleValue(getScaleY(scaleX(10)), 1, StyleUnit.Point)
     })
-    it('should return an empty array when passed an invalid argument', () => {
-      assert.isEmpty(getScaleY(translateX(3)))
-      assert.isEmpty(getScaleY(100))
+    it('should return an undefined StyleValue when passed an invalid argument', () => {
+      assert.isTrue(getScaleY(translateX(3)).isUndefined())
+      assert.isTrue(getScaleY(100).isUndefined())
     })
   })
 })
 
-const testTransform = (transform, ...expected) => {
-  assert.instanceOf(transform, Float32Array)
-  assert.lengthOf(transform, expected.length)
+const testTransform = (result, ...expected) => {
+  assert.instanceOf(result, StyleTransformSpec)
+  assert.equal(result.transform, expected[0])
 
-  for (let i = 0; i < expected.length; i++) {
-    assert.equal(transform[i], expected[i])
+  if (expected.length === 3) {
+    testStyleValue(result.angle, expected[1], expected[2])
+  } else if (expected.length === 5) {
+    testStyleValue(result.x, expected[1], expected[2])
+    testStyleValue(result.y, expected[3], expected[4])
+  } else {
+    assert.fail('expected arg list is unreadable')
   }
 }
 
 const testStyleValue = (value, expectedValue, expectedUnit) => {
-  assert.lengthOf(value, 2)
-  assert.equal(value[0], expectedValue)
-  assert.equal(value[1], expectedUnit)
+  assert.equal(value.value, expectedValue)
+  assert.equal(value.unit, expectedUnit)
 }

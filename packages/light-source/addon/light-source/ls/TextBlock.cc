@@ -9,7 +9,7 @@
 #include <ls/RenderingContext2D.h>
 #include <ls/Resources.h>
 #include <ls/Style.h>
-#include <ls/StyleResolver.h>
+#include <ls/StyleContext.h>
 #include <ls/TextBlock.h>
 #include <ls/Timer.h>
 #include <math.h>
@@ -22,7 +22,7 @@ namespace ls {
 static std::size_t StringLength(const std::string& utf8) noexcept;
 static void ApplyTransform(uint32_t* codepoints, std::size_t size, StyleTextTransform transform) noexcept;
 
-void TextBlock::Shape(const std::string& utf8, FontFace* fontFace, Style* style, const StyleResolver& resolver,
+void TextBlock::Shape(const std::string& utf8, FontFace* fontFace, Style* style, StyleContext* context,
         float maxWidth, float maxHeight) {
     /*
      * Blend2D does not directly expose font metrics per character nor detailed glyph information. The context fill
@@ -53,9 +53,9 @@ void TextBlock::Shape(const std::string& utf8, FontFace* fontFace, Style* style,
         return;
     }
 
-    const auto fontSize = resolver.ResolveFontSize(style->fontSize);
+    const auto fontSize = context->ComputeFontSize(style);
 
-    if (fontSize <= 0 || style->fontFamily.empty()) {
+    if (fontSize <= 0 || style->IsEmpty(StyleProperty::fontFamily)) {
         return;
     }
 
@@ -72,7 +72,9 @@ void TextBlock::Shape(const std::string& utf8, FontFace* fontFace, Style* style,
         return;
     }
 
-    ApplyTransform(this->glyphBuffer.content(), this->glyphBuffer.size(), style->textTransform);
+    auto textTransform{ style->GetEnum<StyleTextTransform>(StyleProperty::textTransform) };
+
+    ApplyTransform(this->glyphBuffer.content(), this->glyphBuffer.size(), textTransform);
 
     if (this->font.blFont.shape(this->glyphBuffer) != BL_SUCCESS) {
         return;
@@ -105,7 +107,7 @@ void TextBlock::LayoutText(const std::string& utf8, Style* style, float maxWidth
     TextIterator walker = this->TrimLeft({ 0, utf8.begin() }, textIteratorEnd);
     TextIterator lineStart = walker;
     TextIterator lastSpace = textIteratorEnd;
-    const std::size_t maxLines = style->maxLines.AsInt32(0);
+    const std::size_t maxLines = style->GetInteger(StyleProperty::maxLines).value_or(0);
     double lineWidth{};
 
     while (walker != textIteratorEnd) {
@@ -174,7 +176,7 @@ void TextBlock::LayoutText(const std::string& utf8, Style* style, float maxWidth
 
     for (auto& line : this->lines) {
         width = std::max(width, line.width);
-        line.textAlign = style->textAlign;
+        line.textAlign = style->GetEnum<StyleTextAlign>(StyleProperty::textAlign);
     }
 
     // Round up so sub-pixels can be rendered to the int texture dimensions.
@@ -387,7 +389,7 @@ void TextBlock::EllipsizeIfNecessary(Style* style, float maxWidth) noexcept {
      * consecutive '.' characters, not the unicode ellipsis character.
      */
 
-    if (style->textOverflow != StyleTextOverflowEllipsis) {
+    if (style->GetEnum(StyleProperty::textOverflow) != StyleTextOverflowEllipsis) {
         return;
     }
 

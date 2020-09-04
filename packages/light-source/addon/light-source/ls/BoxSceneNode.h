@@ -23,6 +23,7 @@ class BoxSceneNode final : public Napi::SafeObjectWrap<BoxSceneNode>, public Sce
     void Constructor(const Napi::CallbackInfo& info) override;
 
     void OnStylePropertyChanged(StyleProperty property) override;
+    void OnStyleReset() override;
     void OnBoundingBoxChanged() override;
     void OnStyleLayout() override;
     void Paint(RenderingContext2D* context) override;

@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2019 Daniel Anderson
+ * Copyright (C) 2020 Daniel Anderson
  *
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
 #include <ls/Resources.h>
-#include <ls/StyleResolver.h>
+#include <ls/StyleContext.h>
 #include <ls/Style.h>
 #include <napi-unit.h>
 
@@ -15,31 +15,24 @@ using Napi::TestSuite;
 
 namespace ls {
 
-void ResolveObjectFitTest(Style* style, const Image& image, const Rect& bounds, const Rect& expected);
+void ComputeObjectFitTest(Style* style, const Image& image, const Rect& bounds, const Rect& expected);
 
-static Style* sTestStyle{nullptr};
+static Style sTestStyle{};
 
-void StyleResolverSpec(TestSuite* parent) {
-    auto spec{ parent->Describe("StyleResolver") };
-
-    spec->beforeEach = [](Napi::Env env) {
-        sTestStyle = Style::New(env);
-    };
+void StyleContextSpec(TestSuite* parent) {
+    auto spec{ parent->Describe("StyleContext") };
 
     spec->afterEach = [](Napi::Env env) {
-        if (sTestStyle) {
-            sTestStyle->Unref();
-            sTestStyle = nullptr;
-        }
+        sTestStyle = {};
     };
 
-    spec->Describe("ResolveObjectFit()")->tests = {
+    spec->Describe("ComputeObjectFit()")->tests = {
         {
             "should position image with 'contain'",
             [](const TestInfo&) {
-                sTestStyle->Set_objectFit(StyleObjectFitContain);
-                ResolveObjectFitTest(
-                    sTestStyle,
+                sTestStyle.SetEnum(StyleProperty::objectFit, "contain");
+                ComputeObjectFitTest(
+                    &sTestStyle,
                     Image::Mock("test", 200, 200),
                     { 0, 0, 40, 40 },
                     { 0, 0, 40, 40 });
@@ -48,9 +41,9 @@ void StyleResolverSpec(TestSuite* parent) {
         {
             "should position image with 'none'",
             [](const TestInfo&) {
-                sTestStyle->Set_objectFit(StyleObjectFitNone);
-                ResolveObjectFitTest(
-                    sTestStyle,
+              sTestStyle.SetEnum(StyleProperty::objectFit, "none");
+                ComputeObjectFitTest(
+                    &sTestStyle,
                     Image::Mock("test", 200, 200),
                     { 0, 0, 100, 100 },
                     { -50, -50, 200, 200 });
@@ -59,9 +52,9 @@ void StyleResolverSpec(TestSuite* parent) {
         {
             "should position image with 'cover'",
             [](const TestInfo&) {
-                sTestStyle->Set_objectFit(StyleObjectFitCover);
-                ResolveObjectFitTest(
-                    sTestStyle,
+              sTestStyle.SetEnum(StyleProperty::objectFit, "cover");
+                ComputeObjectFitTest(
+                    &sTestStyle,
                     Image::Mock("test", 100, 200),
                     { 0, 0, 100, 100 },
                     { 0, -50, 100, 200 });
@@ -70,9 +63,9 @@ void StyleResolverSpec(TestSuite* parent) {
         {
             "should position image with 'fill'",
             [](const TestInfo&) {
-                sTestStyle->Set_objectFit(StyleObjectFitFill);
-                ResolveObjectFitTest(
-                    sTestStyle,
+              sTestStyle.SetEnum(StyleProperty::objectFit, "fill");
+                ComputeObjectFitTest(
+                    &sTestStyle,
                     Image::Mock("test", 10, 10),
                     { 0, 0, 100, 100 },
                     { 0, 0, 100, 100 });
@@ -81,9 +74,9 @@ void StyleResolverSpec(TestSuite* parent) {
     };
 }
 
-void ResolveObjectFitTest(Style* style, const Image& image, const Rect& bounds, const Rect& expected) {
-    StyleResolver resolver{ 1280, 720, 16 };
-    auto fit{ resolver.ResolveObjectFit(style, bounds, &image) };
+void ComputeObjectFitTest(Style* style, const Image& image, const Rect& bounds, const Rect& expected) {
+    StyleContext context{ 1280, 720, 16 };
+    auto fit{ context.ComputeObjectFit(style, bounds, &image) };
 
     Assert::Equal(fit.x, expected.x);
     Assert::Equal(fit.y, expected.y);

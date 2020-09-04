@@ -20,13 +20,17 @@ using ObjectWrapStaticGetter = Napi::Value (*)(const CallbackInfo&);
 using ObjectWrapStaticSetter = void (*)(const CallbackInfo&, const Napi::Value&);
 
 template <typename T>
-using ObjectWrapInstanceVoidMethod = void (T::*)(const CallbackInfo& info);
+using ObjectWrapInstanceVoidMethod = void (T::*)(const CallbackInfo&);
 template <typename T>
-using ObjectWrapInstanceMethod = Napi::Value (T::*)(const CallbackInfo& info);
+using ObjectWrapInstanceMethod = Napi::Value (T::*)(const CallbackInfo&);
 template <typename T>
-using ObjectWrapInstanceGetter = Napi::Value (T::*)(const CallbackInfo& info);
+using ObjectWrapInstanceGetter = Napi::Value (T::*)(const CallbackInfo&);
 template <typename T>
-using ObjectWrapInstanceSetter = void (T::*)(const CallbackInfo& info, const Napi::Value& value);
+using ObjectWrapInstanceSetter = void (T::*)(const CallbackInfo&, const Napi::Value&);
+template <typename T>
+using ObjectWrapInstanceGetterFunction = Napi::Value (*)(T*, const CallbackInfo&);
+template <typename T>
+using ObjectWrapInstanceSetterFunction = void (*)(T*, const CallbackInfo&, const Napi::Value&);
 template <typename T>
 using ObjectWrapRemoveRefCallback = void (*)(T*);
 
@@ -96,10 +100,14 @@ class SafeObjectWrap : public virtual SafeObjectWrapReference {
         napi_property_attributes attributes = napi_default) noexcept;
     static napi_property_descriptor InstanceMethod(const PropertyName& id, ObjectWrapInstanceVoidMethod<T> method,
         napi_property_attributes attributes = napi_default) noexcept;
-    static napi_property_descriptor InstanceAccessor(const PropertyName& id, ObjectWrapInstanceMethod<T> getter,
+    static napi_property_descriptor InstanceAccessor(const PropertyName& id, ObjectWrapInstanceGetter<T> getter,
         napi_property_attributes attributes = napi_default) noexcept;
     static napi_property_descriptor InstanceAccessor(const PropertyName& id, ObjectWrapInstanceGetter<T> getter,
         ObjectWrapInstanceSetter<T> setter, napi_property_attributes attributes = napi_default) noexcept;
+    static napi_property_descriptor InstanceAccessor(const PropertyName& id, ObjectWrapInstanceGetterFunction<T> getter,
+        napi_property_attributes attributes = napi_default) noexcept;
+    static napi_property_descriptor InstanceAccessor(const PropertyName& id, ObjectWrapInstanceGetterFunction<T> getter,
+        ObjectWrapInstanceSetterFunction<T> setter, napi_property_attributes attributes = napi_default) noexcept;
 
     // Cast (or unwrap) a javascript object to it's C++ class instance.
     static T* Cast(const Napi::Value& value) noexcept;
@@ -139,6 +147,8 @@ class SafeObjectWrap : public virtual SafeObjectWrapReference {
         MethodEntry(ObjectWrapInstanceMethod<T> method) : instanceMethod(method) {}
         MethodEntry(ObjectWrapInstanceVoidMethod<T> method) : instanceVoidMethod(method) {}
         MethodEntry(ObjectWrapInstanceSetter<T> method) : instanceSetterMethod(method) {}
+        MethodEntry(ObjectWrapInstanceGetterFunction<T> method) : instanceGetterFunction(method) {}
+        MethodEntry(ObjectWrapInstanceSetterFunction<T> method) : instanceSetterFunction(method) {}
         MethodEntry(ObjectWrapStaticGetter method) : staticGetterMethod(method) {}
         MethodEntry(ObjectWrapStaticSetter method) : staticSetterMethod(method) {}
 
@@ -146,6 +156,8 @@ class SafeObjectWrap : public virtual SafeObjectWrapReference {
             ObjectWrapInstanceMethod<T> instanceMethod;
             ObjectWrapInstanceVoidMethod<T> instanceVoidMethod;
             ObjectWrapInstanceSetter<T> instanceSetterMethod;
+            ObjectWrapInstanceGetterFunction<T> instanceGetterFunction;
+            ObjectWrapInstanceSetterFunction<T> instanceSetterFunction;
 
             ObjectWrapStaticGetter staticGetterMethod;
             ObjectWrapStaticSetter staticSetterMethod;
@@ -157,6 +169,8 @@ class SafeObjectWrap : public virtual SafeObjectWrapReference {
     static napi_value InstanceMethodOrGetterBridge(napi_env env, napi_callback_info info);
     static napi_value InstanceVoidMethodBridge(napi_env env, napi_callback_info info);
     static napi_value InstanceSetterBridge(napi_env env, napi_callback_info info);
+    static napi_value InstanceGetterFunctionBridge(napi_env env, napi_callback_info info);
+    static napi_value InstanceSetterFunctionBridge(napi_env env, napi_callback_info info);
     static napi_value StaticGetterBridge(napi_env env, napi_callback_info info);
     static napi_value StaticSetterBridge(napi_env env, napi_callback_info info);
     static void* AppendVTableMethod(struct MethodEntry&& method);

@@ -84,7 +84,7 @@ void ImageSceneNode::OnStyleLayout() {
         if (!IsEmpty(bounds)) {
             this->imageRect = ClipImage(
                 bounds,
-                this->scene->GetStyleResolver().ResolveObjectFit(this->style, bounds, this->image),
+                this->GetStyleContext()->ComputeObjectFit(Style::Or(this->style), bounds, this->image),
                 this->image->WidthF(),
                 this->image->HeightF());
         }
@@ -99,13 +99,11 @@ void ImageSceneNode::Paint(RenderingContext2D* context) {
 void ImageSceneNode::Composite(CompositeContext* composite) {
     const auto& transform{ composite->CurrentMatrix() };
     const auto opacity{ composite->CurrentOpacity() };
-    const auto imageStyle{ Style::OrEmpty(this->style) };
+    const auto imageStyle{ Style::Or(this->style) };
+    auto styleColor{ imageStyle->GetColor(StyleProperty::backgroundColor) };
 
-    if (!imageStyle->backgroundColor.empty()) {
-        composite->renderer->DrawFillRect(
-            YGNodeGetBorderBox(this->ygNode),
-            transform,
-            imageStyle->backgroundColor.value.MixAlpha(opacity));
+    if (styleColor.has_value()) {
+        composite->renderer->DrawFillRect(YGNodeGetBorderBox(this->ygNode), transform, styleColor->MixAlpha(opacity));
     }
 
     if (this->image && this->image->GetState() == Resource::Ready && !IsEmpty(this->imageRect.dest)) {
@@ -113,20 +111,24 @@ void ImageSceneNode::Composite(CompositeContext* composite) {
             this->image->LoadTexture(composite->renderer);
         }
 
+        styleColor = imageStyle->GetColor(StyleProperty::tintColor);
+
         composite->renderer->DrawImage(
             this->image->GetTexture(),
             this->imageRect.src,
             this->imageRect.dest,
             transform,
-            imageStyle->tintColor.ValueOr(ColorWhite).MixAlpha(opacity));
+            styleColor.value_or(ColorWhite).MixAlpha(opacity));
     }
 
-    if (!imageStyle->borderColor.empty()) {
+    styleColor = imageStyle->GetColor(StyleProperty::borderColor);
+
+    if (styleColor.has_value()) {
         composite->renderer->DrawBorder(
             YGNodeGetBox(this->ygNode, 0, 0),
             YGNodeGetBorderEdges(this->ygNode),
             transform,
-            imageStyle->borderColor.value.MixAlpha(opacity));
+            styleColor->MixAlpha(opacity));
     }
 }
 

@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <limits>
 
 namespace ls {
 
@@ -28,5 +29,7 @@ template <>
 inline float SnapToPixelGrid(float f) noexcept {
     return SnapToPixelGrid<int32_t>(f);
 }
+
+constexpr auto kUndefined = std::numeric_limits<float>::quiet_NaN();
 
 } // namespace ls

@@ -8,6 +8,9 @@
 
 namespace Napi {
 
+static const size_t kCopyUtf8BufferSize = 256;
+static char sCopyUtf8Buffer[kCopyUtf8BufferSize]{};
+
 Symbol SymbolFor(const Napi::Env& env, const std::string& key) {
     static FunctionReference symbolFor;
 
@@ -156,6 +159,43 @@ Napi::Value RunScript(const Napi::Env& env, const String& script) {
 
 Napi::Value RunScript(const Napi::Env& env, const std::string& script) {
     return RunScript(env, String::New(env, script));
+}
+
+char* CopyUtf8(const Napi::Value& value, char* buffer, size_t bufferSize) noexcept {
+    if (value.IsString()) {
+        napi_status status = napi_get_value_string_utf8(value.Env(), value, buffer, bufferSize, nullptr);
+
+        if (status == napi_ok) {
+            return buffer;
+        }
+    }
+
+    if (buffer && bufferSize > 0) {
+        *buffer = '\0';
+    }
+
+    return buffer;
+}
+
+char* CopyUtf8(const Napi::Value& value) noexcept {
+    return CopyUtf8(value, &sCopyUtf8Buffer[0], kCopyUtf8BufferSize);
+}
+
+size_t SizeOfCopyUtf8Buffer() noexcept {
+    return kCopyUtf8BufferSize;
+}
+
+size_t StringByteLength(const Napi::Value& value) noexcept {
+    if (value.IsString()) {
+        size_t length{};
+        napi_status status = napi_get_value_string_utf8(value.Env(), value, nullptr, 0, &length);
+
+        if (status == napi_ok) {
+            return length;
+        }
+    }
+
+    return 0;
 }
 
 } // namespace Napi

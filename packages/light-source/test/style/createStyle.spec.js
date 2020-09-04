@@ -6,7 +6,7 @@
 
 import { assert } from 'chai'
 import { createStyle } from '../../src/style/createStyle'
-import { Style, StyleUnit } from '../../src/addon'
+import { StyleClass, StyleUnit, StyleValue } from '../../src/addon'
 
 describe('createStyle()', () => {
   it('should create a new style sheet', () => {
@@ -15,19 +15,21 @@ describe('createStyle()', () => {
       margin: 15
     })
 
-    assert.instanceOf(style, Style)
-    assert.deepInclude(style, { border: [10, StyleUnit.Point], margin: [15, StyleUnit.Point] })
+    assert.instanceOf(style, StyleClass)
+    assert.deepEqual(style.border, new StyleValue(10, StyleUnit.Point))
+    assert.deepEqual(style.margin, new StyleValue(15, StyleUnit.Point))
   })
   it('should process shorthand properties', () => {
     const style = createStyle({
       '@size': 50
     })
 
-    assert.instanceOf(style, Style)
-    assert.deepInclude(style, { width: [50, StyleUnit.Point], height: [50, StyleUnit.Point] })
+    assert.instanceOf(style, StyleClass)
+    assert.deepEqual(style.width, new StyleValue(50, StyleUnit.Point))
+    assert.deepEqual(style.height, new StyleValue(50, StyleUnit.Point))
   })
   it('should return spec if instanceof Style', () => {
-    const style = new Style()
+    const style = new StyleClass()
 
     assert.strictEqual(createStyle(style), style)
   })

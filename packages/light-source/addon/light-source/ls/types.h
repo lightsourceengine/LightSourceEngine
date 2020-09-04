@@ -20,4 +20,7 @@ using StageRef = std::shared_ptr<Stage>;
 class Scene;
 using SceneRef = std::shared_ptr<Scene>;
 
+class Style;
+using StyleRef = std::shared_ptr<Style>;
+
 } // namespace ls

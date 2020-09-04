@@ -8,7 +8,6 @@
 #include <ls/GraphicsContext.h>
 #include <ls/RootSceneNode.h>
 #include <ls/Scene.h>
-#include <ls/bindings/Bindings.h>
 #include <ls/bindings/JSScene.h>
 #include <ls/bindings/JSStage.h>
 
@@ -22,9 +21,6 @@ static FunctionReference jsSceneConstructor;
 
 namespace ls {
 namespace bindings {
-
-JSScene::JSScene(const Napi::CallbackInfo& info) : Napi::SafeObjectWrap<JSScene>(info) {
-}
 
 void JSScene::Constructor(const CallbackInfo& info) {
     this->native = std::make_shared<Scene>();
@@ -63,7 +59,12 @@ void JSScene::Frame(const Napi::CallbackInfo& info) {
 }
 
 void JSScene::Setup(const Napi::CallbackInfo& info) {
-    auto stage{ ToNative<Stage, JSStage>(info[0]) };
+    StageRef stage;
+    auto classInstance{ JSStage::Cast(info[0]) };
+
+    if (classInstance) {
+        stage = classInstance->GetNative();
+    }
 
     NAPI_EXPECT_NOT_NULL(info.Env(), stage, "stage arg must be a Stage instance");
     NAPI_TRY(info.Env(), this->native->SetStage(stage));

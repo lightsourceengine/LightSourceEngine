@@ -17,19 +17,39 @@ try {
   error = e
 }
 
-const EmptyClass = class {}
 const emptyFunction = () => 0
 
-const StubStageBaseClass = () =>
+const CreateStubStageBase = () =>
   class StubStageBase {
     $destroy() {}
   }
 
-const StubStyleClass = () =>
+const CreateStubStyle = () =>
   class StubStyle {
   }
 
-const StubLogger = () => ({
+const CreateStubStyleValue = () =>
+  class StubStyleValue {
+    unit = 0
+    value = 0
+    static of (value) { return new StubStyleValue() }
+  }
+
+const CreateStubStyleTransformSpec = () =>
+  class StubStyleTransformSpec {
+    transform = -1
+    static identity () {}
+    static rotate (angle) {}
+    static scale (x, y) {}
+    static translate (x, y) {}
+    static validate(spec) { return false }
+  }
+
+const CreateStubStyleClass = () =>
+  class StubStyleClass {
+  }
+
+const CreateStubLogger = () => ({
   warn(message, site) {},
   info(message, site) {},
   error(message, site) {},
@@ -38,15 +58,19 @@ const StubLogger = () => ({
   getLogLevel() { return -1 }
 })
 
-export const Style = lib.Style || StubStyleClass()
+export const Style = lib.Style || CreateStubStyle()
+export const StyleClass = lib.StyleClass || CreateStubStyleClass()
 export const StyleUnit = lib.StyleUnit || {}
 export const StyleTransform = lib.StyleTransform || {}
-export const SceneBase = lib.SceneBase || EmptyClass
-export const StageBase = lib.StageBase || StubStageBaseClass()
-export const logger = lib.Logger || StubLogger()
+export const StyleTransformSpec = lib.StyleTransformSpec || {}
+export const StyleValue = lib.StyleValue || CreateStubStyleValue()
+export const SceneBase = lib.SceneBase || class {}
+export const StageBase = lib.StageBase || CreateStubStageBase()
+export const logger = lib.logger || CreateStubLogger()
 export const LogLevel  = lib.LogLevel || {}
 export const getSceneNodeInstanceCount = lib.getSceneNodeInstanceCount || emptyFunction
 export const parseColor = lib.parseColor || emptyFunction
+export const styleProperties = lib.styleProperties || {}
 
 export const addon = lib
 export const addonError = error

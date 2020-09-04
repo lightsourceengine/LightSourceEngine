@@ -8,8 +8,7 @@
 
 #include <ls/types.h>
 #include <ls/CompositeContext.h>
-#include <ls/StyleEnums.h>
-#include <ls/StyleResolver.h>
+#include <ls/StyleContext.h>
 #include <ls/RenderingContext2D.h>
 
 #include <algorithm>
@@ -28,7 +27,7 @@ class SceneNode;
  */
 class Scene {
  public:
-    ~Scene();
+    ~Scene() noexcept;
 
     void Attach() noexcept;
     void Detach() noexcept;
@@ -42,10 +41,7 @@ class Scene {
     Stage* GetStage() const noexcept { return this->stage.get(); }
     int32_t GetWidth() const noexcept { return this->width; }
     int32_t GetHeight() const noexcept { return this->height; }
-    int32_t GetViewportMin() const noexcept { return this->viewportMin; }
-    int32_t GetViewportMax() const noexcept { return this->viewportMax; }
-    float GetRootFontSize() const noexcept { return this->rootFontSize; }
-    const StyleResolver& GetStyleResolver() const noexcept { return this->styleResolver; }
+    StyleContext* GetStyleContext() const noexcept { return &this->styleContext; }
     Renderer* GetRenderer() const noexcept;
 
     void OnRootFontSizeChange() noexcept;
@@ -61,17 +57,16 @@ class Scene {
     void ExecutePaintRequests();
     void Composite();
     void CompositePreorder(SceneNode* node, CompositeContext* context);
+    bool SyncStyleContext();
 
  private:
     SceneNode* root{};
     StageRef stage{};
     GraphicsContext* graphicsContext{};
+    mutable StyleContext styleContext{0, 0, 0};
     int32_t width{};
     int32_t height{};
-    int32_t viewportMin{};
-    int32_t viewportMax{};
-    StyleResolver styleResolver{};
-    float rootFontSize{DEFAULT_REM_FONT_SIZE};
+    float lastRootFontSize{DEFAULT_REM_FONT_SIZE};
     bool isViewportSizeDirty{true};
     bool isRootFontSizeDirty{false};
     bool isAttached{false};

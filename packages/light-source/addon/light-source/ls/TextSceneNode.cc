@@ -81,7 +81,7 @@ void TextSceneNode::OnBoundingBoxChanged() {
 
 void TextSceneNode::OnStyleLayout() {
     // TODO: review logic..
-    if (!this->SetFont(Style::OrEmpty(this->style))) {
+    if (!this->SetFont(this->style.get())) {
 //        this->block.Invalidate();
         // YGNodeMarkDirty(this->ygNode);
         // TODO: shape?
@@ -99,7 +99,7 @@ YGSize TextSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float heig
         height = this->scene->GetHeight();
     }
 
-    this->block.Shape(this->text, this->fontFace, this->style, this->scene->GetStyleResolver(), width, height);
+    this->block.Shape(this->text, this->fontFace, this->style.get(), this->GetStyleContext(), width, height);
 
     return { this->block.WidthF(), this->block.HeightF() };
 }
@@ -110,7 +110,7 @@ void TextSceneNode::Paint(RenderingContext2D* context) {
 }
 
 void TextSceneNode::Composite(CompositeContext* composite) {
-    const auto boxStyle{ Style::OrEmpty(this->style) };
+    const auto boxStyle{Style::Or(this->style) };
 
 //    if (boxStyle == nullptr || boxStyle->IsLayoutOnly()) {
 //        return;
@@ -127,7 +127,7 @@ void TextSceneNode::Composite(CompositeContext* composite) {
     if (!this->block.IsEmpty()) { // TODO: has texture?
         Rect pos{ box.x, box.y, this->block.WidthF(), this->block.HeightF() };
 
-        switch (boxStyle->textAlign) {
+        switch (boxStyle->GetEnum(StyleProperty::textAlign)) {
             case StyleTextAlignCenter:
                   pos.x += ((box.width - pos.width) / 2.f);
                 break;
@@ -141,16 +141,20 @@ void TextSceneNode::Composite(CompositeContext* composite) {
 
         // TODO: clip
 
+        auto textColor{ boxStyle->GetColor(StyleProperty::color).value_or(ColorBlack) };
+
         composite->renderer->DrawImage(this->block.GetTexture(), pos, transform,
-               boxStyle->color.ValueOr(ColorBlack).MixAlpha(composite->CurrentOpacity()));
+                textColor.MixAlpha(composite->CurrentOpacity()));
     }
 
-    if (!boxStyle->borderColor.empty()) {
+    auto styleColor{ boxStyle->GetColor(StyleProperty::borderColor) };
+
+    if (styleColor.has_value()) {
         composite->renderer->DrawBorder(
             YGNodeGetBox(this->ygNode, 0, 0),
             YGNodeGetBorderEdges(this->ygNode),
             transform,
-            boxStyle->borderColor.value.MixAlpha(composite->CurrentOpacity()));
+            styleColor->MixAlpha(composite->CurrentOpacity()));
     }
 }
 
@@ -179,7 +183,7 @@ void TextSceneNode::SetText(const CallbackInfo& info, const Napi::Value& value) 
 bool TextSceneNode::SetFont(Style* style) {
     auto dirty{ false };
 
-    if (!style || style->fontFamily.empty() || style->fontSize.empty()) {
+    if (!style || style->IsEmpty(StyleProperty::fontFamily) || style->IsEmpty(StyleProperty::fontSize)) {
         if (this->fontFace) {
             dirty = true;
         }
@@ -189,13 +193,16 @@ bool TextSceneNode::SetFont(Style* style) {
         return dirty;
     }
 
-    if (FontFace::Equals(this->fontFace, style->fontFamily, style->fontStyle, style->fontWeight)) {
+    const auto& fontFamily{ style->GetString(StyleProperty::fontFamily) };
+    const auto fontStyle{ style->GetEnum<StyleFontStyle>(StyleProperty::fontStyle) };
+    const auto fontWeight{ style->GetEnum<StyleFontWeight>(StyleProperty::fontWeight) };
+
+    if (FontFace::Equals(this->fontFace, fontFamily, fontStyle, fontWeight)) {
         return false;
     }
 
     this->ClearFontFaceResource();
-    this->fontFace = this->GetResources()->AcquireFontFaceByStyle(
-        style->fontFamily, style->fontStyle, style->fontWeight);
+    this->fontFace = this->GetResources()->AcquireFontFaceByStyle(fontFamily, fontStyle, fontWeight);
 
     if (!this->fontFace) {
         return true;

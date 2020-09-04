@@ -12,12 +12,8 @@
 namespace ls {
 namespace bindings {
 
-// returns: B::Cast(value)->GetNative() -> TRef
-template<typename T, typename B>
-std::shared_ptr<T> ToNative(const Napi::Value& value) noexcept {
-    auto bindingInstance{ B::Cast(value) };
-    return bindingInstance ? bindingInstance->GetNative() : nullptr;
-}
+Napi::Value ParseColor(const Napi::CallbackInfo& info);
+Napi::Object GetStyleProperties(Napi::Env env);
 
 } // namespace bindings
 } // namespace ls

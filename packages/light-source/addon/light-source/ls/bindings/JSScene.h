@@ -18,7 +18,7 @@ namespace bindings {
  */
 class JSScene : public Napi::SafeObjectWrap<JSScene> {
  public:
-    JSScene(const Napi::CallbackInfo& info);
+    using Napi::SafeObjectWrap<JSScene>::SafeObjectWrap;
     ~JSScene() override = default;
 
     static Napi::Function GetClass(Napi::Env env);

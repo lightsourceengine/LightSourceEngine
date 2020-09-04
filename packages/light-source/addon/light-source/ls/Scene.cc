@@ -14,6 +14,7 @@
 #include <ls/Style.h>
 #include <ls/RootSceneNode.h>
 #include <ls/yoga-ext.h>
+#include <ls/StyleContext.h>
 
 #include <ls/bindings/JSStage.h>
 
@@ -35,7 +36,7 @@ using Napi::Value;
 
 namespace ls {
 
-Scene::~Scene() {
+Scene::~Scene() noexcept {
     if (isAttached) {
         LOG_WARN("scene is still attached");
     }
@@ -51,15 +52,7 @@ void Scene::Attach() noexcept {
         this->isViewportSizeDirty = true;
     }
 
-    // TODO: remove
-    this->viewportMin = std::min(this->width, this->height);
-    this->viewportMax = std::max(this->width, this->height);
-
-    this->styleResolver = {
-        static_cast<float>(this->width),
-        static_cast<float>(this->height),
-        this->rootFontSize
-    };
+    this->SyncStyleContext();
 
     this->renderingContext2D.renderer = this->graphicsContext->GetRenderer();
     this->isAttached = true;
@@ -116,13 +109,11 @@ void Scene::Destroy() noexcept {
 }
 
 void Scene::OnRootFontSizeChange() noexcept {
-    if (!this->root || !this->root->style) {
+    if (!this->root) {
         return;
     }
 
-    auto newRootFontSize{ this->styleResolver.Update(this->root->style->fontSize, this->width, this->height) };
-
-    if (!Equals(this->rootFontSize, newRootFontSize)) {
+    if (this->SyncStyleContext()) {
         this->isRootFontSizeDirty = true;
     }
 }
@@ -153,11 +144,11 @@ void Scene::PropagateViewportAndRootFontSizeChanges() {
         return;
     }
 
-    this->rootFontSize = this->styleResolver.Update(this->root->style->fontSize, this->width, this->height);
+    this->SyncStyleContext();
 
     SceneNode::Visit(this->root, [this](SceneNode* node) {
       if (node->style != nullptr) {
-          node->style->UpdateDependentProperties(this->isRootFontSizeDirty, this->isViewportSizeDirty);
+          node->style->OnMediaChange(this->isRootFontSizeDirty, this->isViewportSizeDirty);
       }
     });
 
@@ -216,18 +207,18 @@ void Scene::CompositePreorder(SceneNode* node, CompositeContext* context) {
         return;
     }
 
-    const auto boxStyle{ Style::OrEmpty(node->style) };
+    const auto boxStyle{Style::Or(node->style) };
     const auto box{ YGNodeGetBox(node->ygNode) };
-    const auto clip{ boxStyle->overflow == YGOverflowHidden };
+    const auto clip{ boxStyle->GetEnum(StyleProperty::overflow) == YGOverflowHidden };
 
-    if (boxStyle->transform.empty()) {
+    if (boxStyle->IsEmpty(StyleProperty::transform)) {
         context->PushMatrix(Matrix::Translate(box.x, box.y));
     } else {
         context->PushMatrix(Matrix::Translate(box.x, box.y)
-            * this->GetStyleResolver().ResolveTransform(boxStyle, box));
+            * this->GetStyleContext()->ComputeTransform(boxStyle, box));
     }
 
-    context->PushOpacity(boxStyle->opacity.AsFloat(1.f));
+    context->PushOpacity(GetStyleContext()->ComputeOpacity(boxStyle));
 
     if (clip) {
         context->PushClipRect(box);
@@ -249,6 +240,21 @@ void Scene::CompositePreorder(SceneNode* node, CompositeContext* context) {
 
     context->PopOpacity();
     context->PopMatrix();
+}
+
+bool Scene::SyncStyleContext() {
+    this->styleContext.SetViewportSize(this->width, this->height);
+
+    const auto size = this->styleContext.ComputeFontSize(Style::Or(this->root->style), true);
+
+    if (!Equals(size, this->lastRootFontSize)) {
+        this->lastRootFontSize = size;
+        this->styleContext.SetRootFontSize(size);
+
+        return true;
+    }
+
+    return false;
 }
 
 } // namespace ls

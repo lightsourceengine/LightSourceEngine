@@ -8,210 +8,190 @@
 
 #include <napi-ext.h>
 #include <ls/StyleEnums.h>
-#include <ls/StyleValue.h>
+#include <ls/types.h>
+#include <ls/Color.h>
+#include <ls/Math.h>
 #include <Yoga.h>
+#include <phmap.h>
+#include <std17/optional>
 
 namespace ls {
 
-class SceneNode;
-
 /**
- * Inline style declarations for a SceneNode.
- *
- * Style operates in two modes. Style can function as an immutable style "class" that can be assigned (copied) to
- * multiple SceneNodes. Style can also function as a mutable instance, exclusively owned by a SceneNode. The SceneNode
- * binds to the instance, listening for changes. In instance mode, the Style cannot be passed to or shared by another
- * SceneNode.
- *
- * A SceneNode can listen for style changes, via Bind(), and update it's state accordingly.
- *
- * Style property validation is handled by the StyleValue classes.
- *
- * The underlying structure (box model) of the scene graph is managed by a Yoga node. Some style properties map
- * directly to Yoga node style properties. In addition, there are extended properties and units that are managed
- * by a SceneNode. The Style class merges these together and distributes style property get/set appropriately.
+ * Number Style property value. Wraps a float value with a unit type.
  */
-// TODO: this class uses too much memory. please fix.
-class Style final : public Napi::SafeObjectWrap<Style> {
- public:
-    Style(const Napi::CallbackInfo& info);
-    ~Style() override = default;
+struct StyleValue {
+    StyleNumberUnit unit{ StyleNumberUnitUndefined };
+    float value{ kUndefined };
 
-    static void Init(Napi::Env env);
-    static Napi::Function GetClass(Napi::Env env);
-    static Style* New(Napi::Env env);
-    static Style* Empty() noexcept;
-    static Style* OrEmpty(Style* style) noexcept;
+    bool IsUndefined() const noexcept {
+        return this->unit == StyleNumberUnitUndefined;
+    }
 
-    void Assign(const Style* other) noexcept;
-    void Bind(SceneNode* node) noexcept;
-    bool IsLayoutOnly() const noexcept;
-    void UpdateDependentProperties(bool rem, bool viewport) noexcept;
+    static StyleValue OfAuto() noexcept {
+        return { StyleNumberUnitAuto, 0 };
+    }
 
- public:
-    #define LS_PROPERTY_BINDINGS(PROP, BOX_FUNC, UNBOX_FUNC)                                  \
-        void Setter_##PROP(const Napi::CallbackInfo& info, const Napi::Value& value) {        \
-            Napi::HandleScope scope(info.Env());                                              \
-            this->Set_##PROP(UNBOX_FUNC(value));                                              \
-        }                                                                                     \
-        Napi::Value Getter_##PROP(const Napi::CallbackInfo& info) {                           \
-            Napi::HandleScope scope(info.Env());                                              \
-            return BOX_FUNC(info.Env(), this->PROP);                                          \
-        }
-    #define LS_PROPERTY(PROP, TYPE, DEFAULT, BOX_FUNC, UNBOX_FUNC)                            \
-        TYPE PROP DEFAULT;                                                                    \
-        void Set_##PROP(const TYPE& value) {                                                  \
-            this->Set(StyleProperty::PROP, this->PROP, value);                                \
-        }                                                                                     \
-        LS_PROPERTY_BINDINGS(PROP, BOX_FUNC, UNBOX_FUNC)
-    #define LS_PROPERTY_CONSTRAINT(PROP, TYPE, CONSTRAINT, DEFAULT, BOX_FUNC, UNBOX_FUNC)     \
-        TYPE PROP DEFAULT;                                                                    \
-        void Set_##PROP(const TYPE& value) {                                                  \
-            this->SetWithConstraint<CONSTRAINT>(StyleProperty::PROP, this->PROP, value);      \
-        }                                                                                     \
-        LS_PROPERTY_BINDINGS(PROP, BOX_FUNC, UNBOX_FUNC)
-    #define LS_ENUM_PROPERTY(PROP, TYPE)                                                      \
-        LS_PROPERTY(PROP, TYPE, {}, StyleValueEnum::Box<TYPE>, StyleValueEnum::Unbox<TYPE>)
-    #define LS_TRANSFORM_PROPERTY(PROP)                                                       \
-        LS_PROPERTY(PROP, StyleValueTransform, {},                                            \
-            StyleValueTransform::Box, StyleValueTransform::Unbox)
-    #define LS_STRING_PROPERTY(PROP)                                                          \
-        LS_PROPERTY(PROP, std::string, {}, StyleValueString::Box, StyleValueString::Unbox)
-    #define LS_COLOR_PROPERTY(PROP)                                                           \
-        LS_PROPERTY(PROP, StyleValueColor, {}, StyleValueColor::Box, StyleValueColor::Unbox)
-    #define LS_NUMBER_PROPERTY(PROP, CONSTRAINT, DEFAULT_VALUE)                               \
-        LS_PROPERTY_CONSTRAINT(PROP, StyleValueNumber, CONSTRAINT, DEFAULT_VALUE,             \
-        StyleValueNumber::Box, StyleValueNumber::Unbox)
-    #define LS_EDGE_PROPERTY(BASE, CONSTRAINT, DEFAULT_VALUE)                                 \
-        LS_NUMBER_PROPERTY(BASE, CONSTRAINT, DEFAULT_VALUE)                                   \
-        LS_NUMBER_PROPERTY(BASE##Top, CONSTRAINT, DEFAULT_VALUE)                              \
-        LS_NUMBER_PROPERTY(BASE##Right, CONSTRAINT, DEFAULT_VALUE)                            \
-        LS_NUMBER_PROPERTY(BASE##Bottom, CONSTRAINT, DEFAULT_VALUE)                           \
-        LS_NUMBER_PROPERTY(BASE##Left, CONSTRAINT, DEFAULT_VALUE)
+    static StyleValue OfUndefined() noexcept {
+        return {};
+    }
 
-    LS_STRING_PROPERTY(backgroundImage)
-    LS_STRING_PROPERTY(fontFamily)
+    static StyleValue OfPoint(float value) noexcept {
+        return { StyleNumberUnitPoint, value };
+    }
 
-    LS_COLOR_PROPERTY(backgroundColor)
-    LS_COLOR_PROPERTY(borderColor)
-    LS_COLOR_PROPERTY(color)
-    LS_COLOR_PROPERTY(tintColor)
-
-    LS_EDGE_PROPERTY(border, PointOnlyGTEZeroConstraint, {})
-    LS_EDGE_PROPERTY(margin, MarginConstraint, {})
-    LS_EDGE_PROPERTY(padding, PointPercentOnlyGTEZeroConstraint, {})
-    LS_NUMBER_PROPERTY(bottom, PointPercentOnlyConstraint, {})
-    LS_NUMBER_PROPERTY(flex, PointOnlyGTEZeroConstraint, {})
-    LS_NUMBER_PROPERTY(flexBasis, GTEZeroConstraint, {StyleNumberUnitAuto})
-    LS_NUMBER_PROPERTY(flexGrow, PointOnlyGTEZeroConstraint, {})
-    LS_NUMBER_PROPERTY(flexShrink, PointOnlyGTEZeroConstraint, {})
-    LS_NUMBER_PROPERTY(height, GTEZeroConstraint, {StyleNumberUnitAuto})
-    LS_NUMBER_PROPERTY(left, PointPercentOnlyConstraint, {})
-    LS_NUMBER_PROPERTY(maxHeight, PointPercentOnlyGTEZeroConstraint, {})
-    LS_NUMBER_PROPERTY(maxWidth, PointPercentOnlyGTEZeroConstraint, {})
-    LS_NUMBER_PROPERTY(minHeight, PointPercentOnlyGTEZeroConstraint, {})
-    LS_NUMBER_PROPERTY(minWidth, PointPercentOnlyGTEZeroConstraint, {})
-    LS_NUMBER_PROPERTY(right, PointPercentOnlyConstraint, {})
-    LS_NUMBER_PROPERTY(top, PointPercentOnlyConstraint, {})
-    LS_NUMBER_PROPERTY(width, GTEZeroConstraint, {StyleNumberUnitAuto})
-
-    LS_NUMBER_PROPERTY(backgroundHeight, PointPercentOnlyGTEZeroConstraint, {})
-    LS_NUMBER_PROPERTY(backgroundPositionX, ObjectPositionConstraint, {})
-    LS_NUMBER_PROPERTY(backgroundPositionY, ObjectPositionConstraint, {})
-    LS_NUMBER_PROPERTY(backgroundWidth, PointPercentOnlyGTEZeroConstraint, {})
-    LS_NUMBER_PROPERTY(borderRadius, PointOnlyGTEZeroConstraint, {})
-    LS_NUMBER_PROPERTY(borderRadiusTopLeft, PointOnlyGTEZeroConstraint, {})
-    LS_NUMBER_PROPERTY(borderRadiusTopRight, PointOnlyGTEZeroConstraint, {})
-    LS_NUMBER_PROPERTY(borderRadiusBottomLeft, PointOnlyGTEZeroConstraint, {})
-    LS_NUMBER_PROPERTY(borderRadiusBottomRight, PointOnlyGTEZeroConstraint, {})
-    LS_NUMBER_PROPERTY(fontSize, PointOnlyGTEZeroConstraint, {})
-    LS_NUMBER_PROPERTY(lineHeight, PointPercentOnlyGTEZeroConstraint, {})
-    LS_NUMBER_PROPERTY(maxLines, PointOnlyGTEZeroConstraint, {})
-    LS_NUMBER_PROPERTY(objectPositionX, ObjectPositionConstraint, {})
-    LS_NUMBER_PROPERTY(objectPositionY, ObjectPositionConstraint, {})
-    LS_NUMBER_PROPERTY(opacity, OpacityConstraint, {})
-    LS_NUMBER_PROPERTY(transformOriginX, ObjectPositionConstraint, {})
-    LS_NUMBER_PROPERTY(transformOriginY, ObjectPositionConstraint, {})
-    LS_NUMBER_PROPERTY(zIndex, ZIndexConstraint, {})
-
-    LS_TRANSFORM_PROPERTY(transform)
-
-    LS_ENUM_PROPERTY(alignContent, YGAlign)
-    LS_ENUM_PROPERTY(alignItems, YGAlign)
-    LS_ENUM_PROPERTY(alignSelf, YGAlign)
-    LS_ENUM_PROPERTY(display, YGDisplay)
-    LS_ENUM_PROPERTY(flexDirection, YGFlexDirection)
-    LS_ENUM_PROPERTY(flexWrap, YGWrap)
-    LS_ENUM_PROPERTY(justifyContent, YGJustify)
-    LS_ENUM_PROPERTY(overflow, YGOverflow)
-    LS_ENUM_PROPERTY(position, YGPositionType)
-
-    LS_ENUM_PROPERTY(backgroundClip, StyleBackgroundClip)
-    LS_ENUM_PROPERTY(backgroundRepeat, StyleBackgroundRepeat)
-    LS_ENUM_PROPERTY(backgroundSize, StyleBackgroundSize)
-    LS_ENUM_PROPERTY(fontStyle, StyleFontStyle)
-    LS_ENUM_PROPERTY(fontWeight, StyleFontWeight)
-    LS_ENUM_PROPERTY(objectFit, StyleObjectFit)
-    LS_ENUM_PROPERTY(textAlign, StyleTextAlign)
-    LS_ENUM_PROPERTY(textOverflow, StyleTextOverflow)
-    LS_ENUM_PROPERTY(textTransform, StyleTextTransform)
-
-    #undef LS_EDGE_PROPERTY
-    #undef LS_NUMBER_PROPERTY
-    #undef LS_COLOR_PROPERTY
-    #undef LS_STRING_PROPERTY
-    #undef LS_ENUM_PROPERTY
-    #undef LS_PROPERTY
-    #undef LS_PROPERTY_CONSTRAINT
-    #undef LS_PROPERTY_BINDINGS
-
- private:
-    void NotifyPropertyChanged(StyleProperty property);
-    void SyncYogaProperty(StyleProperty property) noexcept;
-
-    template<typename T>
-    void Set(StyleProperty name, T& property, const T& value);
-
-    template<typename T>
-    void Set(StyleProperty name, T& property, T&& value);
-
-    template<typename Constraint>
-    void SetWithConstraint(StyleProperty name, StyleValueNumber& property, const StyleValueNumber& value);
-
-    void SetYogaValue(StyleValueNumber& value, void (*SetPoint)(YGNodeRef, float),
-            void (*SetPercent)(YGNodeRef, float) = nullptr, void (*SetAuto)(YGNodeRef) = nullptr) noexcept;
-
-    void SetYogaValue(StyleValueNumber& value, YGEdge edge,
-                      void (*SetPoint)(YGNodeRef, YGEdge, float),
-                      void (*SetPercent)(YGNodeRef, YGEdge, float) = nullptr,
-                      void (*SetAuto)(YGNodeRef, YGEdge) = nullptr) noexcept;
-
- private:
-    static Style* sEmptyStyle;
-    static Napi::FunctionReference sConstructor;
-
-    SceneNode* node{};
+    static StyleValue OfAnchor(StyleAnchor anchor) noexcept {
+        return { StyleNumberUnitPoint, static_cast<float>(anchor) };
+    }
 };
 
-template<typename T>
-void Style::Set(StyleProperty name, T& property, const T& value) {
-    if (!(property == value)) {
-        property = value;
-        this->NotifyPropertyChanged(name);
+/**
+ * Entry in transform Style property array representing specific transforms of identity, rotate, scale and translate.
+ */
+struct StyleTransformSpec {
+    StyleTransform transform{};
+    StyleValue x{};
+    StyleValue y{};
+    StyleValue angle{};
+
+    static StyleTransformSpec OfIdentity() {
+        return { StyleTransformIdentity, {}, {}, {} };
     }
-}
 
-template<typename T>
-void Style::Set(StyleProperty name, T& property, T&& value) {
-    if (!(property == value)) {
-        property = std::forward<T>(value);
-        this->NotifyPropertyChanged(name);
+    static StyleTransformSpec OfScale(const StyleValue& x, const StyleValue& y) {
+        return { StyleTransformScale, x, y, {} };
     }
-}
 
-template<typename Constraint>
-void Style::SetWithConstraint(StyleProperty name, StyleValueNumber& property, const StyleValueNumber& value) {
-    this->Set(name, property, (value.empty() || !Constraint()(value)) ? StyleValueNumber::OfUndefined() : value);
-}
+    static StyleTransformSpec OfTranslate(const StyleValue& x, const StyleValue& y) {
+        return { StyleTransformTranslate, x, y, {} };
+    }
 
-} // namespace ls
+    static StyleTransformSpec OfRotate(const StyleValue& angle) {
+        return { StyleTransformRotate, {}, {}, angle };
+    }
+};
+
+/**
+ * Validator for Style property numbers.
+ *
+ * The isValueOk checks the value field of a StyleValue number. If isValueOk returns false, the StyleValue fails
+ * validation. If the value passes, each isUnitSupported function is called until at least 1 function returns true
+ * for the StyleValue unit field.
+ */
+struct StyleValueValidator {
+    static constexpr auto MAX_UNIT_CHECKS = 6;
+
+    using IsValueOkFunc = bool(*)(float);
+    using IsUnitSupportedFunc = bool(*)(StyleNumberUnit);
+
+    IsValueOkFunc isValueOk{};
+    IsUnitSupportedFunc isUnitSupported[MAX_UNIT_CHECKS]{};
+    int32_t isUnitSupportedSize{};
+
+    StyleValueValidator() noexcept = default;
+    StyleValueValidator(IsValueOkFunc isValueOk,
+        const std::initializer_list<IsUnitSupportedFunc>& isUnitSupportedChecks) noexcept;
+
+    bool IsValid(const StyleValue& styleValue) const noexcept;
+
+    explicit operator bool() const noexcept { return this->isValueOk; }
+};
+
+class Style {
+ public:
+    // enum based properties
+    void SetEnum(StyleProperty property, const char* value);
+    const char* GetEnumString(StyleProperty property);
+    int32_t GetEnum(StyleProperty property);
+    template<typename T>
+    T GetEnum(StyleProperty property) {
+        return static_cast<T>(this->GetEnum(property));
+    }
+
+    // color based properties
+    void SetColor(StyleProperty property, color_t color);
+    std17::optional<color_t> GetColor(StyleProperty property);
+
+    // string based properties
+    void SetString(StyleProperty property, std::string&& value);
+    const std::string& GetString(StyleProperty property);
+
+    // number or StyleValue based properties
+    void SetNumber(StyleProperty property, const StyleValue& value);
+    const StyleValue& GetNumber(StyleProperty property);
+
+    // integer based properties
+    std17::optional<int32_t> GetInteger(StyleProperty property);
+    void SetInteger(StyleProperty property, int32_t value);
+
+    // transform property
+    void SetTransform(std::vector<StyleTransformSpec>&& transform);
+    const std::vector<StyleTransformSpec>& GetTransform();
+
+    // property existence: these function will check the parent!
+    bool IsEmpty(StyleProperty property) const noexcept;
+    bool Exists(StyleProperty property) const noexcept { return !this->IsEmpty(property); }
+
+    // Clear a property.
+    void SetUndefined(StyleProperty property);
+
+    // Change listener. Called when a property value changes (set undefined or set to new value)
+    void SetChangeListener(std::function<void(StyleProperty)>&& changeListener) noexcept;
+    void ClearChangeListener() noexcept;
+
+    // Set the parent. If a value in this style is undefined, the parent will be queried.
+    void SetParent(const StyleRef& parent) noexcept;
+
+    // Handle root font size and viewport changes. The method will force a change on properties that use rem, vw, vmin,
+    // etc units.
+    void OnMediaChange(bool remChange, bool viewportChange) noexcept;
+
+    void ForEachYogaProperty(const std::function<void(StyleProperty)>& func);
+    void Reset();
+
+    static void Init();
+    static void InitValidators();
+    static Style* Or(Style* style) noexcept;
+    static Style* Or(const StyleRef& style) noexcept;
+
+ private:
+    // Structure that type-erases enum string mapping functions.
+    struct EnumOps {
+        using IsValid = bool(*)(int32_t);
+        using ToString = const char*(*)(int32_t);
+        using FromString = int32_t(*)(const char*);
+
+        IsValid isValid{};
+        ToString toString{};
+        FromString fromString{};
+
+        template<typename T>
+        static EnumOps Of() {
+            return { IsValidEnum<T>, StylePropertyIntToString<T>, StylePropertyIntFromString<T> };
+        }
+
+        explicit operator bool() const noexcept { return this->isValid && this->fromString && this->toString; }
+    };
+
+    // Property buckets
+
+    phmap::flat_hash_map<StyleProperty, color_t> colorMap;
+    phmap::flat_hash_map<StyleProperty, std::string> stringMap;
+    phmap::flat_hash_map<StyleProperty, StyleValue> numberMap;
+    phmap::flat_hash_map<StyleProperty, int32_t> enumMap;
+    std::vector<StyleTransformSpec> transform;
+
+    // Style state
+
+    StyleRef parent;
+    std::function<void(StyleProperty)> onChange;
+
+    // Static helpers
+
+    static Style empty;
+    static std::vector<StyleProperty> yogaProperties;
+    static EnumOps enumOps[];
+    static StyleValueValidator numberValidators[];
+};
+
+}; // namespace ls

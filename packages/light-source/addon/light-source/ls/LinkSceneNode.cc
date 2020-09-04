@@ -163,18 +163,25 @@ Napi::Value LinkSceneNode::GetAs(const Napi::CallbackInfo& info) {
 }
 
 void LinkSceneNode::SetAs(const Napi::CallbackInfo& info, const Napi::Value& value) {
+    LinkCategory newCategory;
+
     if (value.IsString()) {
         auto stringValue{ value.As<String>().Utf8Value() };
 
         try {
-            this->category = FromString<LinkCategory>(stringValue.c_str());
+            newCategory = LinkCategoryFromString(stringValue.c_str());
         } catch (const std::invalid_argument& e) {
             throw Error::New(info.Env(), Format("Invalid 'as' value: %s", stringValue));
         }
     } else if (value.IsUndefined()) {
-        this->category = LinkCategoryAuto;
+        newCategory = LinkCategoryAuto;
     } else {
         throw Error::New(info.Env(), "Invalid 'as' value type.");
+    }
+
+    if (newCategory != this->category) {
+        this->category = newCategory;
+        this->ClearResource();
     }
 }
 

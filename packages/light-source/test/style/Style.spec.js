@@ -5,7 +5,7 @@
  */
 
 import { assert } from 'chai'
-import { Style, StyleUnit } from '../../src/addon'
+import { Style, StyleUnit, StyleValue } from '../../src/addon'
 import { getRotateAngle, isRotate, rotate } from '../../src/style/transform'
 
 const style = (obj) => Object.assign(new Style(), obj)
@@ -23,7 +23,11 @@ const testStyleValueEmptyString = (name, value) => {
 }
 
 const testStyleUnitValue = (name, value, expectedUnit, expectedValue) => {
-  assert.sameOrderedMembers(style({ [name]: value })[name], [expectedValue, expectedUnit])
+  assert.deepEqual(style({ [name]: value })[name], new StyleValue(expectedValue, expectedUnit))
+}
+
+const testIntegerValue = (name, value, expectedValue) => {
+  assert.equal(style({ [name]: value })[name], expectedValue)
 }
 
 const invalidStringValues = ['', 3, null, undefined, {}]
@@ -64,7 +68,7 @@ describe('Style', () => {
         testStyleValue(property, '#ffebcd', 0xFFFFEBCD)
         testStyleValue(property, '#FFF', 0xFFFFFFFF)
         testStyleValue(property, '#fff', 0xFFFFFFFF)
-        testStyleValue(property, '#ffffebcd', 0xFFFFEBCD)
+        testStyleValue(property, '#ffebcdff', 0xFFFFEBCD)
         testStyleValue(property, '#ffff', 0xFFFFFFFF)
       }
     })
@@ -402,10 +406,10 @@ describe('Style', () => {
   describe('zIndex property', () => {
     const property = 'zIndex'
     it('should set positive value', () => {
-      testStyleUnitValue(property, 1, StyleUnit.Point, 1)
+      testIntegerValue(property, 1, 1)
     })
     it('should set negative value', () => {
-      testStyleUnitValue(property, -1, StyleUnit.Point, -1)
+      testIntegerValue(property, -1, -1)
     })
     it('should reject invalid value', () => {
       const inputs = [
@@ -417,7 +421,7 @@ describe('Style', () => {
         {}
       ]
 
-      inputs.forEach(i => testStyleValueEmpty(property, i))
+      inputs.forEach(i => testIntegerValue(property, i, 0))
     })
   })
 })

@@ -17,6 +17,7 @@
         "ls/Uri.cc",
         "ls/Format.cc",
         "ls/Timer.cc",
+        "ls/string-ext.cc",
       ]
     }
   ],
@@ -42,6 +43,7 @@
           ],
           "sources": [
             "test/FormatSpec.cc",
+            "test/StringExtSpec.cc",
             "test/UriSpec.cc",
             "test/LightSourceUtilTestSuite.cc",
           ]

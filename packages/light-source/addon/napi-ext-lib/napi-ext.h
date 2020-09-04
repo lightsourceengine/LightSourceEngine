@@ -12,6 +12,10 @@
 
 // Convert std::exception to Napi::Error
 #define NAPI_TRY(ENV, EXPR) try { EXPR; } catch (std::exception& e) { throw Napi::Error::New(ENV, e.what()); }
+// if expr == true, throw a Napi::Error
+#define NAPI_EXPECT_TRUE(ENV, EXPR, MESSAGE) if (!(EXPR)) { throw Napi::Error::New(ENV, MESSAGE); }
+// if expr == false, throw a Napi::Error
+#define NAPI_EXPECT_FALSE(ENV, EXPR, MESSAGE) if (EXPR) { throw Napi::Error::New(ENV, MESSAGE); }
 // if expr is not null, throw a Napi::Error
 #define NAPI_EXPECT_NULL(ENV, EXPR, MESSAGE) if ((EXPR) != nullptr) { throw Napi::Error::New(ENV, MESSAGE); }
 // if expr is null, throw a Napi::Error
@@ -49,6 +53,8 @@ std::string ObjectGetStringOrEmpty(const Object& object, const std::string& key)
  */
 template<typename T>
 T ObjectGetNumberOrDefault(const Object& object, const std::string& key, T defaultValue);
+template<typename T>
+T ObjectGetNumberOrDefault(const Object& object, uint32_t index, T defaultValue);
 
 /**
  * Get a Boolean property value from an Object. If no property exists for key, defaultValue
@@ -120,6 +126,48 @@ Napi::Value RunScript(const Napi::Env& env, const std::string& script);
  * Evaluate a javascript string.
  */
 Napi::Value RunScript(const Napi::Env& env, const Napi::String& script);
+
+/**
+ * Copies a javascript string's raw utf8 encoded bytes to a user supplied buffer.
+ *
+ * If the source string is longer than bufferSize, the length is truncated by bufferSize - 1 and copied into
+ * buffer. The truncation does not consider utf8 encoding, so the truncation could corrupt the string (caller should
+ * manage this case).
+ *
+ * @param value A javascript string.
+ * @param buffer Byte buffer to copy into
+ * @param bufferSize The size of buffer in bytes
+ * @return the buffer argument. If an error occurred or value is not a string, buffer is null terminated and returned.
+ */
+char* CopyUtf8(const Napi::Value& value, char* buffer, size_t bufferSize) noexcept;
+
+/**
+ * Copies a javascript string's raw bytes to an internal buffer.
+ *
+ * The function limits the copy of raw bytes to 255 bytes. If a larger copy is needed, use CopyUtf8() or
+ * String.Utf8Value().
+ *
+ * The returned char* is owned by the napi-ext library. The user should not delete this pointer. The pointer and it's
+ * data are  valid until the next call to CopyUtf8(), which can change the pointer or overwrite data.
+ *
+ * @param value A javascript string.
+ * @return pointer to the cstring buffer. If an error occurred or value is not a string, an empty string is returned.
+ */
+char* CopyUtf8(const Napi::Value& value) noexcept;
+
+/** @return the number of bytes in CopyUtf8()'s internal memory buffer (should be 256.. 255 + null terminator). */
+size_t SizeOfCopyUtf8Buffer() noexcept;
+
+/**
+ * Gets the number of utf8 bytes that make up the string.
+ *
+ * The number of bytes may not equal the number of characters in the string (if the string contains any non-ascii,
+ * utf8 characters). The byte length is intended to be used for string memory copy operations.
+ *
+ * @param value The string value.
+ * @return number of raw bytes in the string. If the value is not a string, 0 is returned.
+ */
+size_t StringByteLength(const Napi::Value& value) noexcept;
 
 /**
  * Common constructor pattern used by SafeObjectWrap subclasses.

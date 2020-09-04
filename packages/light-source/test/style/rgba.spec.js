@@ -8,13 +8,13 @@ import { assert } from 'chai'
 import { rgba } from '../../src/style/rgba'
 
 describe('rgba()', () => {
-  it('should return integer in 0xAARRGGBB color format', () => {
+  it('should return integer in 0xRRGGBBAA color format', () => {
     const values = [
       rgba(0x66, 0x33, 0x99, 0.5),
       rgba('#663399', 0.5),
-      rgba('#FF663399', 0.5),
+      rgba('#663399FF', 0.5),
       rgba('#639', 0.5),
-      rgba('#F639', 0.5),
+      rgba('#639F', 0.5),
       rgba(0x663399, 0.5),
       rgba('rebeccapurple', 0.5),
       rgba('REBECCAPURPLE', 0.5)

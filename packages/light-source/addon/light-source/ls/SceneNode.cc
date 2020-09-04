@@ -9,6 +9,7 @@
 #include <cassert>
 #include <algorithm>
 #include <ls/Style.h>
+#include <ls/StyleContext.h>
 #include <ls/Scene.h>
 #include <ls/Stage.h>
 #include <ls/CompositeContext.h>
@@ -22,7 +23,10 @@
 #include <ls/Timer.h>
 #include <ls/yoga-ext.h>
 
+// TODO: bindings should not be included here. scene nodes need to be refactored first
 #include <ls/bindings/JSScene.h>
+#include <ls/bindings/JSStyle.h>
+#include <ls/bindings/JSStyleClass.h>
 
 using Napi::Array;
 using Napi::Boolean;
@@ -44,7 +48,6 @@ void SceneNode::SceneNodeConstructor(const Napi::CallbackInfo& info) {
     NAPI_EXPECT_NOT_NULL(info.Env(), jsScene, "scene arg must be a Scene instance");
 
     this->scene = jsScene->GetNative();
-
     this->flags.set(FlagLayoutOnly, true);
     this->ygNode = YGNodeNew();
     YGNodeSetContext(this->ygNode, this);
@@ -89,42 +92,52 @@ Napi::Value SceneNode::GetChildren(const Napi::CallbackInfo& info) {
     return scope.Escape(childArray);
 }
 
-Value SceneNode::GetStyle(const CallbackInfo& info) {
-    if (this->style == nullptr) {
-        // New adds a Ref.
-        this->style = Style::New(info.Env());
-        this->style->Bind(this);
+Napi::Value SceneNode::BindStyle(const Napi::CallbackInfo& info) {
+    auto jsStyle = bindings::JSStyle::Cast(info[0]);
+
+    if (this->style) {
+        this->style->ClearChangeListener();
+        this->style->SetParent(nullptr);
     }
 
-    return this->style->Value();
+    if (jsStyle) {
+        this->style = jsStyle->GetNative();
+        this->style->SetChangeListener([this](StyleProperty property) {
+            if (IsYogaProperty(property)) {
+                this->GetStyleContext()->SetYogaPropertyValue(this->style.get(), property, this->ygNode);
+            } else {
+                this->OnStylePropertyChanged(property);
+            }
+        });
+    } else {
+        this->style = nullptr;
+    }
+
+    return jsStyle ? info[0] : info.Env().Null();
 }
 
-void SceneNode::SetStyle(const CallbackInfo& info, const Napi::Value& value) {
-    HandleScope scope(info.Env());
-
-    if (this->style == nullptr) {
-        // New adds a Ref.
-        this->style = Style::New(info.Env());
-        this->style->Bind(this);
-
-        if (value.IsNull() || value.IsUndefined()) {
-            return;
-        }
+void SceneNode::ApplyStyleClass(const Napi::CallbackInfo& info) {
+    if (!this->style) {
+        return;
     }
 
-    Style* other{};
+    auto jsStyleClass = bindings::JSStyleClass::Cast(info[0]);
 
-    if (value.IsNull() || value.IsUndefined()) {
-        other = Style::Empty();
-    } else if (value.IsObject()) {
-        other = Style::Cast(value.As<Object>());
+    if (jsStyleClass) {
+        this->style->SetParent(jsStyleClass->GetNative());
+    } else {
+        // TODO: clear parent
+        this->style->SetParent(nullptr);
     }
 
-    if (other == nullptr) {
-        throw Error::New(info.Env(), "style can only be assigned to a Style class instance");
-    }
+    this->ygNode->setStyle({});
+    this->style->Reset();
 
-    this->style->Assign(other);
+    this->style->ForEachYogaProperty([this](StyleProperty property) {
+        this->GetStyleContext()->SetYogaPropertyValue(this->style.get(), property, this->ygNode);
+    });
+
+    this->OnStyleReset();
 }
 
 Napi::Value SceneNode::GetHidden(const CallbackInfo& info) {
@@ -252,7 +265,7 @@ void SceneNode::Destroy() {
         parent->RemoveChild(this);
     }
 
-    this->style = Style::RemoveRef(this->style, [](Style* ref) { ref->Bind(nullptr); });
+    this->style = nullptr;
     this->sortedChildren.clear();
     YGNodeFree(this->ygNode);
     this->ygNode = nullptr;
@@ -308,16 +321,11 @@ void SceneNode::RequestComposite() {
 
 const std::vector<SceneNode*>& SceneNode::SortChildrenByStackingOrder() {
     const auto compare = [](SceneNode* a, SceneNode* b) {
-        const auto hasTransform {
-            [](SceneNode* node) ->bool { return node->style && !node->style->transform.empty();
-            }
-        };
-        const auto zIndex {
-            [](SceneNode* node) -> int { return Style::OrEmpty(node->style)->zIndex.AsInt32(0); }
-        };
-        const auto aHasTransform{ hasTransform(a) };
+        auto aStyle = Style::Or(a->style);
+        auto bStyle = Style::Or(b->style);
+        const auto aHasTransform{ aStyle->Exists(StyleProperty::transform) };
 
-        if (aHasTransform != hasTransform(b)) {
+        if (aHasTransform != bStyle->Exists(StyleProperty::transform)) {
             // nodes with transform always drawn above nodes with no transform
             //
             // if a has transform and b has no transform, then a is less than b
@@ -326,7 +334,8 @@ const std::vector<SceneNode*>& SceneNode::SortChildrenByStackingOrder() {
         }
 
         // by default, nodes have a z-index of 0
-        return zIndex(a) < zIndex(b);
+        return aStyle->GetInteger(StyleProperty::zIndex).value_or(0) <
+               bStyle->GetInteger(StyleProperty::zIndex).value_or(0);
     };
 
     if (!this->sortedChildren.empty()) {
@@ -364,6 +373,11 @@ bool SceneNode::HasChildren() const noexcept {
 
 void SceneNode::SetFlag(Flag flag, bool value) noexcept {
     this->flags.set(flag, value);
+}
+
+StyleContext* SceneNode::GetStyleContext() const noexcept {
+    assert(this->scene);
+    return this->scene->GetStyleContext();
 }
 
 SceneNode* SceneNode::QueryInterface(Napi::Value value) {

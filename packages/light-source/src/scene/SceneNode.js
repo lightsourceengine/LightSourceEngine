@@ -5,7 +5,7 @@
  */
 
 import { BlurEvent, FocusEvent } from '../event'
-import { addon } from '../addon'
+import { addon, Style } from '../addon'
 
 const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
   focusable = false
@@ -19,10 +19,27 @@ const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
   waypoint = null
   _hasFocus = false
   _scene = null
+  _style = null
 
   constructor (scene) {
     super(scene)
     this._scene = scene
+  }
+
+  get style () {
+    if (!this._style) {
+      this._style = this.$bindStyle(new Style())
+    }
+    return this._style
+  }
+
+  set style (styleClass) {
+    if (!this._style) {
+      this._style = this.$bindStyle(new Style())
+    }
+
+    // set: StyleClass, null/undefined, Style?
+    this.$applyStyleClass(styleClass)
   }
 
   get scene () {

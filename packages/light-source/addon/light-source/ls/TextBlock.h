@@ -18,7 +18,7 @@ class FontFace;
 class Renderer;
 class RenderingContext2D;
 class Style;
-class StyleResolver;
+class StyleContext;
 struct Font;
 
 /**
@@ -33,7 +33,7 @@ class TextBlock final : public Paintable {
     /**
      * Layout the text according to the style policy and dimensions.
      */
-    void Shape(const std::string& utf8, FontFace* fontFace, Style* style, const StyleResolver& resolver,
+    void Shape(const std::string& utf8, FontFace* fontFace, Style* style, StyleContext* context,
             float maxWidth, float maxHeight);
 
     // Calculated bounds of the text. Set after call to Shape().

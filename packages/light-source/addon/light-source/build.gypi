@@ -44,8 +44,7 @@
         "ls/RenderingContext2D.cc",
         "ls/Style.cc",
         "ls/StyleEnums.cc",
-        "ls/StyleValue.cc",
-        "ls/StyleResolver.cc",
+        "ls/StyleContext.cc",
         "ls/Resources.cc",
         "ls/ResourceProgress.cc",
         "ls/DecodeImage.cc",
@@ -59,11 +58,17 @@
         "ls/LinkSceneNode.cc",
         "ls/Scene.cc",
         "ls/Stage.cc",
-        "ls/bindings/GlobalFunctions.cc",
+        "ls/bindings/Bindings.cc",
+        "ls/bindings/Convert.cc",
         "ls/bindings/Init.cc",
         "ls/bindings/JSEnums.cc",
         "ls/bindings/JSScene.cc",
         "ls/bindings/JSStage.cc",
+        "ls/bindings/JSStyle.cc",
+        "ls/bindings/JSStyleClass.cc",
+        "ls/bindings/JSStyleValue.cc",
+        "ls/bindings/JSStyleTransformSpec.cc",
+        "ls/bindings/StyleOps.cc",
       ],
       "conditions": [
         [
@@ -76,7 +81,8 @@
             ],
             "sources": [
               "test/ThreadPoolSpec.cc",
-              "test/StyleResolverSpec.cc",
+              "test/StyleSpec.cc",
+              "test/StyleContextSpec.cc",
             ]
           }
         ]

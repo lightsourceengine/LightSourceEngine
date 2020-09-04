@@ -174,6 +174,67 @@ void NapiExtSpec(TestSuite* parent) {
             }
         }
     };
+
+    spec->Describe("CopyUtf8()")->tests = {
+        {
+            "should copy string to buffer",
+            [](const TestInfo& info) {
+                const char* input{ "my_string" };
+                static constexpr size_t kBufferSize{ 16 };
+                char buffer[kBufferSize];
+                auto value{ String::New(info.Env(), input) };
+
+                Assert::CStringEqual(Napi::CopyUtf8(value, buffer, kBufferSize), input);
+            }
+        },
+        {
+            "should copy string partial string if buffer is too small",
+            [](const TestInfo& info) {
+                const char* input{ "123456" };
+                static constexpr size_t kBufferSize{ 4 };
+                char buffer[kBufferSize];
+                auto value{ String::New(info.Env(), input) };
+
+                Assert::CStringEqual(Napi::CopyUtf8(value, buffer, kBufferSize), "123");
+            }
+        },
+        {
+            "should return fallback if buffer is null",
+            [](const TestInfo& info) {
+                const char* input{ "123456" };
+                auto value{ String::New(info.Env(), input) };
+
+                Assert::IsNull(Napi::CopyUtf8(value, nullptr, 0));
+            }
+        },
+        {
+            "should copy string to internal buffer",
+            [](const TestInfo& info) {
+              const char* input{ "123456" };
+              auto value{ String::New(info.Env(), input) };
+
+              Assert::CStringEqual(Napi::CopyUtf8(value), "123456");
+            }
+        }
+    };
+
+    spec->Describe("StringByteLength()")->tests = {
+        {
+            "should return the raw byte length of a javascript string",
+            [](const TestInfo& info) {
+                const char* input{"123456"};
+                auto value{String::New(info.Env(), input)};
+
+                Assert::Equal(Napi::StringByteLength(value), 6UL);
+            }
+        },
+        {
+            "should return 0 if value is not a string",
+            [](const TestInfo& info) {
+                Assert::Equal(Napi::StringByteLength(Napi::Value()), 0UL);
+            }
+        }
+    };
 }
 
 } // namespace ls

@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { Style } from '../addon'
+import { StyleClass, styleProperties } from '../addon'
 import { ShorthandRegistry } from './ShorthandRegistry'
 import { emptyObject } from '../util'
 import { MixinRegistry } from './MixinRegistry'
@@ -25,10 +25,10 @@ import { MixinRegistry } from './MixinRegistry'
  * to the instance.
  *
  * @param properties {Object} Plain Object containing style properties and values
- * @returns {Style} Immutable Style class object
+ * @returns {StyleClass} Immutable Style class object
  */
 export const createStyle = (properties) => {
-  if (properties instanceof Style) {
+  if (properties instanceof StyleClass) {
     return properties
   }
   return createStyleInternal(properties, '', emptyObject)
@@ -38,7 +38,7 @@ export const createStyle = (properties) => {
  * @ignore
  */
 export const createStyleInStyleSheet = (style, key, styleSheet) => {
-  if (style instanceof Style) {
+  if (style instanceof StyleClass) {
     throw Error('Style objects not allowed in style sheet creation spec')
   }
   return createStyleInternal(style, key, styleSheet)
@@ -51,21 +51,39 @@ const createStyleInternal = (style, key, styleSheet) => {
 
   if (kExtendKey in style) {
     style = processExtend(style, key, styleSheet)
+  } else {
+    style = expandShorthand(style)
   }
 
-  const instance = new Style()
+  const instance = new StyleClass()
 
   for (const prop in style) {
-    if (prop in Style.prototype) {
-      instance[prop] = style[prop]
-    } else if (ShorthandRegistry.has(prop)) {
-      ShorthandRegistry.get(prop)(instance, style[prop])
+    const propId = styleProperties[prop]
+
+    if (propId !== undefined) {
+      instance[kStyleClassSet](propId, style[prop])
     }
+
     // ignore unknown property
   }
 
-  // TODO: need to make style immutable at the native layer
   return instance
+}
+
+const expandShorthand = (style) => {
+  const shorthandKeys = Object.keys(style).filter(value => ShorthandRegistry.has(value))
+
+  if (shorthandKeys.length) {
+    const copy = Object.assign({}, style)
+
+    for (const key of shorthandKeys) {
+      ShorthandRegistry.get(key)(copy, copy[key])
+    }
+
+    return copy
+  }
+
+  return style
 }
 
 const processExtend = (style, key, styleSheet) => {
@@ -81,6 +99,8 @@ const processExtend = (style, key, styleSheet) => {
  * @ignore
  */
 const extend = (style, styleSheet) => {
+  style = expandShorthand(style)
+
   if (kExtendKey in style) {
     const extendValue = style[kExtendKey]
 
@@ -111,10 +131,10 @@ const extendSingle = (extendValue, styleSheet) => {
 
       return extend(styleSheet[extendValue], styleSheet)
     }
-  } else if (extendValue instanceof Style) {
+  } else if (extendValue instanceof StyleClass) {
     throw Error('cannot extend a Style, use a plain Object')
   } else if (typeof extendValue === 'object') {
-    return extendValue
+    return expandShorthand(extendValue)
   }
 
   throw Error('unsupported extend value')
@@ -177,3 +197,4 @@ const hasExtendCycle = (style, styleId, styleSheet) => {
 }
 
 const kExtendKey = '@extend'
+const kStyleClassSet = Symbol.for('set')

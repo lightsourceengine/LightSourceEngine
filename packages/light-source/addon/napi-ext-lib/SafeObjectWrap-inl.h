@@ -234,6 +234,45 @@ napi_value SafeObjectWrap<T>::InstanceSetterBridge(napi_env env, napi_callback_i
 }
 
 template <typename T>
+napi_value SafeObjectWrap<T>::InstanceGetterFunctionBridge(napi_env env, napi_callback_info info) {
+    const CallbackInfo callbackInfo(env, info);
+    auto vtableIndex{ UnwrapVTableIndex(callbackInfo.Data()) };
+    auto instance{ T::StaticCast(callbackInfo.This()) };
+
+#ifdef NAPI_CPP_EXCEPTIONS
+    try {
+#endif
+        return vtable[vtableIndex].instanceGetterFunction(instance, callbackInfo);
+
+#ifdef NAPI_CPP_EXCEPTIONS
+    } catch (const Error& e) {
+        e.ThrowAsJavaScriptException();
+        return nullptr;
+    }
+#endif
+}
+
+template <typename T>
+napi_value SafeObjectWrap<T>::InstanceSetterFunctionBridge(napi_env env, napi_callback_info info) {
+    const CallbackInfo callbackInfo(env, info);
+    auto vtableIndex{ UnwrapVTableIndex(callbackInfo.Data()) + 1 };
+    auto instance{ T::StaticCast(callbackInfo.This()) };
+
+#ifdef NAPI_CPP_EXCEPTIONS
+    try {
+#endif
+        vtable[vtableIndex].instanceSetterFunction(instance, callbackInfo, callbackInfo[0]);
+        return nullptr;
+
+#ifdef NAPI_CPP_EXCEPTIONS
+    } catch (const Error& e) {
+        e.ThrowAsJavaScriptException();
+        return nullptr;
+    }
+#endif
+}
+
+template <typename T>
 FunctionReference SafeObjectWrap<T>::DefineClass(Napi::Env env, const char* utf8name, bool permanent,
         const std::vector<napi_property_descriptor>& properties) {
     std::vector<napi_property_descriptor> props;
@@ -376,7 +415,7 @@ napi_property_descriptor SafeObjectWrap<T>::InstanceMethod(const PropertyName& i
 
 template <typename T>
 napi_property_descriptor SafeObjectWrap<T>::InstanceAccessor(const PropertyName& id,
-        ObjectWrapInstanceMethod<T> getter, napi_property_attributes attributes) noexcept {
+        ObjectWrapInstanceGetter<T> getter, napi_property_attributes attributes) noexcept {
     return {
         id.utf8Name,
         id.name,
@@ -404,6 +443,49 @@ napi_property_descriptor SafeObjectWrap<T>::InstanceAccessor(const PropertyName&
         nullptr,
         InstanceMethodOrGetterBridge,
         InstanceSetterBridge,
+        nullptr,
+        attributes,
+        index
+    };
+}
+
+template <typename T>
+napi_property_descriptor SafeObjectWrap<T>::InstanceAccessor(
+        const PropertyName& id,
+        ObjectWrapInstanceGetterFunction<T> getter,
+        napi_property_attributes attributes) noexcept {
+    return {
+        id.utf8Name,
+        id.name,
+        nullptr,
+        InstanceGetterFunctionBridge,
+        nullptr,
+        nullptr,
+        attributes,
+        AppendVTableMethod({ getter })
+    };
+}
+
+template <typename T>
+napi_property_descriptor SafeObjectWrap<T>::InstanceAccessor(
+        const PropertyName& id,
+        ObjectWrapInstanceGetterFunction<T> getter,
+        ObjectWrapInstanceSetterFunction<T> setter,
+        napi_property_attributes attributes) noexcept {
+    // Note: Setter stored immediately after getter. Store the index of the getter in data. InstanceSetterBridge
+    // will +1 on the stored index to access the setter method pointer.
+    auto index{ AppendVTableMethod({ getter }) };
+
+    if (setter) {
+        AppendVTableMethod({setter});
+    }
+
+    return {
+        id.utf8Name,
+        id.name,
+        nullptr,
+        InstanceGetterFunctionBridge,
+        setter ? InstanceSetterFunctionBridge : nullptr,
         nullptr,
         attributes,
         index

@@ -6,7 +6,6 @@
 
 import { assert } from 'chai'
 import sinon from 'sinon'
-import { StyleUnit } from '../../src/addon'
 import { BoxSceneNode, TextSceneNode, ImageSceneNode, LinkSceneNode, RootSceneNode } from '../../src/scene/SceneNode'
 import { afterSceneTest, beforeSceneTest } from '../test-env'
 
@@ -16,7 +15,7 @@ describe('Scene', () => {
   afterEach(() => { scene = afterSceneTest() })
   describe('constructor', () => {
     it('should set root style', () => {
-      assert.sameOrderedMembers(scene.root.style.fontSize, [undefined, StyleUnit.Undefined])
+      assert.isTrue(scene.root.style.fontSize.isUndefined())
       assert.equal(scene.root.style.backgroundColor, 0xFF000000)
     })
   })

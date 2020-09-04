@@ -23,7 +23,7 @@ class RenderingContext2D;
 class Scene;
 class SceneNode;
 class Stage;
-class Style;
+class StyleContext;
 class Texture;
 
 class SceneNode : public virtual Napi::SafeObjectWrapReference {
@@ -36,8 +36,8 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     Napi::Value GetHeight(const Napi::CallbackInfo& info);
     Napi::Value GetParent(const Napi::CallbackInfo& info);
     Napi::Value GetChildren(const Napi::CallbackInfo& info);
-    Napi::Value GetStyle(const Napi::CallbackInfo& info);
-    void SetStyle(const Napi::CallbackInfo& info, const Napi::Value& value);
+    Napi::Value BindStyle(const Napi::CallbackInfo& info);
+    void ApplyStyleClass(const Napi::CallbackInfo& info);
     Napi::Value GetHidden(const Napi::CallbackInfo& info);
     void SetHidden(const Napi::CallbackInfo& info, const Napi::Value& value);
 
@@ -47,6 +47,7 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     void Destroy(const Napi::CallbackInfo& info);
 
     virtual void OnStylePropertyChanged(StyleProperty property);
+    virtual void OnStyleReset() {}
     virtual void OnBoundingBoxChanged() {}
     virtual void OnStyleLayout() {}
 
@@ -93,6 +94,7 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     void RequestComposite();
     const std::vector<SceneNode*>& SortChildrenByStackingOrder();
     void SetFlag(Flag flag, bool value) noexcept;
+    StyleContext* GetStyleContext() const noexcept;
 
  private:
     void RemoveChild(SceneNode* child) noexcept;
@@ -102,11 +104,10 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     static int instanceCount;
     YGNodeRef ygNode{};
     SceneRef scene{};
-    Style* style{};
+    StyleRef style{};
     std::vector<SceneNode*> sortedChildren;
     std::bitset<8> flags;
 
-    friend Style;
     friend Scene;
 };
 
@@ -129,12 +130,13 @@ std::vector<napi_property_descriptor> SceneNode::Extend(const Napi::Env& env,
         T::InstanceAccessor("height", &SceneNode::GetHeight),
         T::InstanceAccessor("parent", &SceneNode::GetParent),
         T::InstanceAccessor("children", &SceneNode::GetChildren),
-        T::InstanceAccessor("style", &SceneNode::GetStyle, &SceneNode::SetStyle),
         T::InstanceAccessor("hidden", &SceneNode::GetHidden, &SceneNode::SetHidden),
         T::InstanceMethod("destroy", &SceneNode::Destroy),
         T::InstanceMethod("appendChild", &SceneNode::AppendChild),
         T::InstanceMethod("insertBefore", &SceneNode::InsertBefore),
         T::InstanceMethod("removeChild", &SceneNode::RemoveChild),
+        T::InstanceMethod("$bindStyle", &SceneNode::BindStyle),
+        T::InstanceMethod("$applyStyleClass", &SceneNode::ApplyStyleClass),
     };
 
     for (auto& property : subClassProperties) {
