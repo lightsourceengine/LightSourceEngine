@@ -214,7 +214,7 @@ bool TextSceneNode::SetFont(Style* style) {
             break;
         case Resource::State::Loading:
             this->fontFace->AddListener(this, [this](Resource::Owner owner, Resource* res) {
-              if (this != owner || this->fontFace != res) {
+              if (this != owner || this->fontFace.get() != res) {
                   return;
               }
 
@@ -223,11 +223,13 @@ bool TextSceneNode::SetFont(Style* style) {
                   YGNodeMarkDirty(this->ygNode);
                   this->fontFace->RemoveListener(owner);
               } else {
+                  // TODO: clear?
                   this->ClearFontFaceResource();
               }
             });
             break;
         default:
+            // TODO: clear?
             this->ClearFontFaceResource();
             dirty = true;
             break;
@@ -238,9 +240,11 @@ bool TextSceneNode::SetFont(Style* style) {
 
 void TextSceneNode::ClearFontFaceResource() {
     if (this->fontFace) {
+        auto resource = this->fontFace.get();
         this->fontFace->RemoveListener(this);
-        this->GetResources()->ReleaseResource(this->fontFace);
         this->fontFace = nullptr;
+
+        this->GetResources()->ReleaseResource(resource);
     }
 }
 

@@ -8,7 +8,7 @@
 
 #include <ls/Rect.h>
 #include <ls/ResourceProgress.h>
-#include <ls/Resources.h>
+#include <ls/types.h>
 #include <ls/SceneNode.h>
 #include <napi-ext.h>
 
@@ -42,7 +42,7 @@ class ImageSceneNode final : public Napi::SafeObjectWrap<ImageSceneNode>, public
 
  private:
     std::string src;
-    Image* image{};
+    ImageRef image{};
     ImageRect imageRect{};
     ResourceProgress resourceProgress;
 };

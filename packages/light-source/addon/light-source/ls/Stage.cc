@@ -13,6 +13,10 @@ using Napi::HandleScope;
 
 namespace ls {
 
+void Stage::Update() {
+    this->GetResources()->Compact();
+}
+
 void Stage::Destroy() {
     // TODO: cleanup resources
     this->threadPool.ShutdownNow();

@@ -13,6 +13,9 @@ namespace ls {
 void ThreadPoolSpec(Napi::TestSuite* parent);
 void StyleSpec(Napi::TestSuite* parent);
 void StyleContextSpec(Napi::TestSuite* parent);
+void FontFaceSpec(Napi::TestSuite* parent);
+void ImageSpec(Napi::TestSuite* parent);
+void ResourcesSpec(Napi::TestSuite* parent);
 
 inline
 Napi::Value LightSourceTestSuite(Napi::Env env) {
@@ -20,6 +23,9 @@ Napi::Value LightSourceTestSuite(Napi::Env env) {
         &ThreadPoolSpec,
         &StyleSpec,
         &StyleContextSpec,
+        &FontFaceSpec,
+        &ImageSpec,
+        &ResourcesSpec,
     });
 }
 

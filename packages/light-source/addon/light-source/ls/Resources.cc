@@ -17,17 +17,18 @@
 
 namespace ls {
 
+Resource::ResourceId Resource::nextResourceId{1};
 constexpr const std::size_t LS_MAX_FONTS = 9;
 
-Resource::Resource(const std::string& id) : id(id) {
-    const auto t{GetUriScheme(id) };
+Resource::Resource(const std::string& tag) : id(nextResourceId++), tag(tag) {
+    const auto t{ GetUriScheme(tag) };
 
     if (t == UriSchemeFile) {
-        this->path = GetPathFromFileUri(id);
+        this->path = GetPathFromFileUri(tag);
     }
 
     if (this->path.empty()) {
-        this->path = id;
+        this->path = tag;
     }
 }
 
@@ -91,19 +92,19 @@ void Resource::RemoveListener(Owner owner) {
 }
 
 void Image::Load(Napi::Env env) {
-    const auto t{ GetUriScheme(id) };
-    int32_t resizedWidth{};
-    int32_t resizedHeight{};
+    const auto t{ GetUriScheme(tag) };
+    int32_t resizeWidth{};
+    int32_t resizeHeight{};
 
     if (t == UriSchemeFile) {
-        resizedWidth = GetQueryParamInteger(this->id, "width", 0);
-        resizedHeight = GetQueryParamInteger(this->id, "height", 0);
+        resizeWidth = GetQueryParamInteger(this->tag, "width", 0);
+        resizeHeight = GetQueryParamInteger(this->tag, "height", 0);
     }
 
     this->work.Reset(
         env,
-        [path = this->path, resizedWidth, resizedHeight]() {
-            return DecodeImageFromFile(path, resizedWidth, resizedHeight);
+        [path = this->path, resizeWidth, resizeHeight]() {
+            return DecodeImageFromFile(path, resizeWidth, resizeHeight);
         },
         [this](Napi::Env env, AsyncWorkResult<ImageBytes>* result) {
             constexpr auto LAMBDA_FUNCTION = "ResourceLoadComplete";
@@ -123,7 +124,7 @@ void Image::Load(Napi::Env env) {
                 this->resource = result->TakeValue();
                 this->width = this->resource.Width();
                 this->height = this->resource.Height();
-                LOG_INFO_LAMBDA("%s", this->id);
+                LOG_INFO_LAMBDA("%s", this->tag);
             }
 
             this->NotifyListeners();
@@ -199,8 +200,8 @@ float Image::AspectRatio() const noexcept {
     return this->height > 0 ? this->WidthF() / this->HeightF() : 0;
 }
 
-Image Image::Mock(const std::string& id, int32_t width, int32_t height) {
-    auto image{ Image(id) };
+Image Image::Mock(const std::string& tag, int32_t width, int32_t height) {
+    auto image{ Image(tag) };
 
     image.width = width;
     image.height = height;
@@ -208,14 +209,14 @@ Image Image::Mock(const std::string& id, int32_t width, int32_t height) {
     return image;
 }
 
-FontFace::FontFace(const std::string& id) : Resource(id) {
-    const auto t{ GetUriScheme(id) };
+FontFace::FontFace(const std::string& tag) : Resource(tag) {
+    const auto t{ GetUriScheme(tag) };
 
     if (t == UriSchemeFile) {
-        this->family = GetQueryParam(id, "family");
-        this->index = GetQueryParamInteger(id, "index", 0);
+        this->family = GetQueryParam(tag, "family");
+        this->index = GetQueryParamInteger(tag, "index", 0);
 
-        auto value{ GetQueryParam(id, "style") };
+        auto value{ GetQueryParam(tag, "style") };
 
         if (!value.empty()) {
             try {
@@ -225,7 +226,7 @@ FontFace::FontFace(const std::string& id) : Resource(id) {
             }
         }
 
-        value = GetQueryParam(id, "weight");
+        value = GetQueryParam(tag, "weight");
 
         if (!value.empty()) {
             try {
@@ -241,7 +242,7 @@ FontFace::FontFace(const std::string& id) : Resource(id) {
     }
 }
 
-bool FontFace::Equals(FontFace* fontFace, const std::string& family, StyleFontStyle style,
+bool FontFace::Equals(const FontFaceRef& fontFace, const std::string& family, StyleFontStyle style,
         StyleFontWeight weight) noexcept {
     return fontFace && fontFace->family == family && fontFace->style == style && fontFace->weight == weight;
 }
@@ -266,7 +267,7 @@ void FontFace::Load(Napi::Env env) {
           } else {
               this->state = Resource::State::Ready;
               this->resource = result->TakeValue();
-              LOG_INFO_LAMBDA("%s", this->id);
+              LOG_INFO_LAMBDA("%s", this->tag);
           }
 
           this->NotifyListeners();
@@ -341,71 +342,50 @@ Font FontFace::GetFont(float fontSize) {
     return font;
 }
 
-bool Resources::HasImage(const std::string& path) const {
-    return !path.empty() && this->images.find(path) != this->images.end();
+bool Resources::HasImage(const std::string& tag) const {
+    return this->images.contains(tag);
 }
 
-Image* Resources::AcquireImage(const std::string& path) {
-    if (path.empty()) {
+ImageRef Resources::AcquireImage(const std::string& tag) {
+    if (tag.empty()) {
         return nullptr;
     }
 
-    auto it{ this->images.find(path) };
-
-    if (it != this->images.end()) {
-        it->second.refs++;
-
-        return it->second.ToPointer();
+    if (this->images.contains(tag)) {
+        return this->images[tag];
     }
 
-    auto result{ this->images.emplace(path, ImageDataRef(std::make_unique<Image>(path))) };
+    auto resource{ std::make_shared<Image>(tag) };
 
-    return result.first->second.ToPointer();
+    this->images[tag] = resource;
+
+    return resource;
 }
 
-void Resources::ReleaseImage(const std::string& path, bool immediateDelete) {
-    if (path.empty()) {
-        return;
-    }
-
-    auto it{ this->images.find(path) };
-
-    if (it != this->images.end()) {
-        it->second.refs--;
-
-        if (immediateDelete && it->second.refs <= 0) {
-            this->fonts.erase(path);
-        }
-    }
+bool Resources::HasFontFace(const std::string& tag) const {
+    return this->fonts.contains(tag);
 }
 
-bool Resources::HasFontFace(const std::string& path) const {
-    return this->fonts.find(path) != this->fonts.end();
-}
-
-FontFace* Resources::AcquireFontFace(const std::string& path) {
-    if (path.empty()) {
+FontFaceRef Resources::AcquireFontFace(const std::string& tag) {
+    if (tag.empty()) {
         return nullptr;
     }
 
-    auto it{ this->fonts.find(path) };
-
-    if (it != this->fonts.end()) {
-        it->second.refs++;
-
-        return it->second.ToPointer();
+    if (this->fonts.contains(tag)) {
+        return this->fonts[tag];
     }
 
-    auto result{ this->fonts.emplace(path, FontFaceRef(std::make_unique<FontFace>(path))) };
+    auto resource{ std::make_shared<FontFace>(tag) };
 
-    return result.first->second.ToPointer();
+    this->fonts[tag] = resource;
+
+    return resource;
 }
 
-FontFace* Resources::AcquireFontFaceByStyle(const std::string& family, StyleFontStyle style, StyleFontWeight weight) {
+FontFaceRef Resources::AcquireFontFaceByStyle(const std::string& family, StyleFontStyle style, StyleFontWeight weight) {
     for (auto& entry : this->fonts) {
-        if (FontFace::Equals(entry.second.ToPointer(), family, style, weight)) {
-            entry.second.refs++;
-            return entry.second.ToPointer();
+        if (FontFace::Equals(entry.second, family, style, weight)) {
+            return entry.second;
         }
     }
 
@@ -413,33 +393,50 @@ FontFace* Resources::AcquireFontFaceByStyle(const std::string& family, StyleFont
     return nullptr;
 }
 
-void Resources::ReleaseFontFace(const std::string& path, bool immediateDelete) {
-    if (path.empty()) {
+void Resources::ReleaseResource(Resource* resource, bool immediateDelete) {
+    if (!resource) {
         return;
     }
 
-    auto it{ this->fonts.find(path) };
-
-    if (it != this->fonts.end()) {
-        it->second.refs--;
-
-        if (immediateDelete && it->second.refs <= 0) {
-            this->fonts.erase(path);
+    if (HasFontFace(resource->tag)) {
+        if (this->fonts[resource->tag].use_count() == 1) {
+            if (immediateDelete) {
+                this->pendingDeletions.erase(resource);
+                this->fonts.erase(resource->tag);
+            } else {
+                this->pendingDeletions.insert(resource);
+            }
         }
-    }
-}
-
-void Resources::ReleaseResource(Resource* resource, bool immediateDelete) {
-    if (resource) {
-        if (HasFontFace(resource->id)) {
-            this->ReleaseFontFace(resource->id, immediateDelete);
-        } else if (HasImage(resource->id)) {
-            this->ReleaseImage(resource->id, immediateDelete);
+    } else if (HasImage(resource->tag)) {
+        if (this->images[resource->tag].use_count() == 1) {
+            if (immediateDelete) {
+                this->pendingDeletions.erase(resource);
+                this->images.erase(resource->tag);
+            } else {
+                this->pendingDeletions.insert(resource);
+            }
         }
     }
 }
 
 void Resources::Compact() {
+    if (this->pendingDeletions.empty()) {
+        return;
+    }
+
+    for (auto resource : this->pendingDeletions) {
+        if (this->images.contains(resource->tag)) {
+            if (this->images[resource->tag].use_count() == 1) {
+                this->images.erase(resource->tag);
+            }
+        } else if (this->fonts.contains(resource->tag)) {
+            if (this->fonts[resource->tag].use_count() == 1) {
+                this->fonts.erase(resource->tag);
+            }
+        }
+    }
+
+    this->pendingDeletions.clear();
 }
 
 } // namespace ls

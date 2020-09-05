@@ -8,7 +8,7 @@
 
 #include <napi-ext.h>
 #include <ls/Rect.h>
-#include <ls/Resources.h>
+#include <ls/types.h>
 #include <ls/SceneNode.h>
 #include <ls/Texture.h>
 
@@ -38,7 +38,7 @@ class BoxSceneNode final : public Napi::SafeObjectWrap<BoxSceneNode>, public Sce
     Rect GetBackgroundClipBox(StyleBackgroundClip value) const noexcept;
 
  private:
-    Image* backgroundImage{};
+    ImageRef backgroundImage{};
     ImageRect backgroundImageRect{};
     Texture paintTarget{};
 };

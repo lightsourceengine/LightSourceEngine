@@ -9,7 +9,7 @@
 #include <napi-ext.h>
 #include <ls/SceneNode.h>
 #include <ls/TextBlock.h>
-#include <ls/Resources.h>
+#include <ls/types.h>
 
 namespace ls {
 
@@ -39,7 +39,7 @@ class TextSceneNode final : public Napi::SafeObjectWrap<TextSceneNode>, public S
 
  private:
     std::string text{};
-    FontFace* fontFace{};
+    FontFaceRef fontFace{};
     TextBlock block{};
 };
 

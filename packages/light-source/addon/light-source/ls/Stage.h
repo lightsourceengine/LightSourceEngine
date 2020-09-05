@@ -23,6 +23,7 @@ namespace ls {
  */
 class Stage {
  public:
+    void Update();
     void Destroy();
     ThreadPool* GetThreadPool() const noexcept { return &this->threadPool; }
     Resources* GetResources() const noexcept { return &this->resources; }

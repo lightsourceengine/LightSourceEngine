@@ -84,7 +84,7 @@ void ImageSceneNode::OnStyleLayout() {
         if (!IsEmpty(bounds)) {
             this->imageRect = ClipImage(
                 bounds,
-                this->GetStyleContext()->ComputeObjectFit(Style::Or(this->style), bounds, this->image),
+                this->GetStyleContext()->ComputeObjectFit(Style::Or(this->style), bounds, this->image.get()),
                 this->image->WidthF(),
                 this->image->HeightF());
         }
@@ -184,12 +184,12 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
     auto listener{ [this](Resource::Owner owner, Resource* res) {
         constexpr auto LAMBDA_FUNCTION = "ImageResourceListener";
 
-        if (this != owner || this->image != res) {
+        if (this != owner || this->image.get() != res) {
             LOG_WARN_LAMBDA("Invalid owner or resource: %s", this->src);
             return;
         }
 
-        this->resourceProgress.Dispatch(this, this->image);
+        this->resourceProgress.Dispatch(this, this->image.get());
 
         YGNodeMarkDirty(this->ygNode);
         res->RemoveListener(owner);
@@ -206,7 +206,7 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
         case Resource::State::Ready:
         case Resource::State::Error:
             // TODO: should Dispatch() run callbacks synchronously or through a microtask?
-            listener(this, this->image);
+            listener(this, this->image.get());
             break;
     }
 }
@@ -236,9 +236,11 @@ void ImageSceneNode::Destroy() {
 
 void ImageSceneNode::ClearResource() {
     if (this->image) {
+        auto resource = this->image.get();
         this->image->RemoveListener(this);
-        this->GetResources()->ReleaseResource(this->image);
         this->image = nullptr;
+
+        this->GetResources()->ReleaseResource(resource);
     }
 }
 

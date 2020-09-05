@@ -96,18 +96,18 @@ void LinkSceneNode::Fetch(const Napi::CallbackInfo& info) {
             break;
         case Resource::State::Ready:
         case Resource::State::Error:
-            listener(this, this->resource);
+            listener(this, this->resource.get());
             break;
     }
 }
 
 void LinkSceneNode::ResourceListener(Resource::Owner owner, Resource* res) {
-    if (this != owner || this->resource != res) {
+    if (this != owner || this->resource.get() != res) {
         LOG_WARN("Invalid owner or resource: %s", this->href);
         return;
     }
 
-    this->resourceProgress.Dispatch(this, this->resource);
+    this->resourceProgress.Dispatch(this, this->resource.get());
 
     res->RemoveListener(owner);
 }
@@ -237,9 +237,11 @@ void LinkSceneNode::Destroy() {
 
 void LinkSceneNode::ClearResource() {
     if (this->resource) {
+        auto resourcePtr = this->resource.get();
         this->resource->RemoveListener(this);
-        this->GetResources()->ReleaseResource(this->resource, true);
         this->resource = nullptr;
+
+        this->GetResources()->ReleaseResource(resourcePtr, true);
     }
 }
 

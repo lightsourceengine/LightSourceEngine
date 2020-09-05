@@ -98,7 +98,8 @@ void BoxSceneNode::OnStyleLayout() {
         const auto box{ this->GetBackgroundClipBox(backgroundClip) };
 
         if (!IsEmpty(box)) {
-            auto fit{this->GetStyleContext()->ComputeBackgroundFit(this->style.get(), box, this->backgroundImage)};
+            auto fit{ this->GetStyleContext()->ComputeBackgroundFit(
+                this->style.get(), box, this->backgroundImage.get()) };
 
             this->backgroundImageRect = ClipImage(box, fit,
                     this->backgroundImage->WidthF(), this->backgroundImage->HeightF());
@@ -325,7 +326,7 @@ void BoxSceneNode::UpdateBackgroundImage(const std::string& backgroundUri) {
     this->backgroundImage = this->GetResources()->AcquireImage(backgroundUri);
 
     auto listener{ [this](Resource::Owner owner, Resource* res) {
-        if (this != owner || this->backgroundImage != res) {
+        if (this != owner || this->backgroundImage.get() != res) {
             return;
         }
 
@@ -343,16 +344,18 @@ void BoxSceneNode::UpdateBackgroundImage(const std::string& backgroundUri) {
             break;
         case Resource::State::Ready:
         case Resource::State::Error:
-            listener(this, this->backgroundImage);
+            listener(this, this->backgroundImage.get());
             break;
     }
 }
 
 void BoxSceneNode::ClearBackgroundImageResource() {
     if (this->backgroundImage) {
+        auto resource = this->backgroundImage.get();
         this->backgroundImage->RemoveListener(this);
-        this->GetResources()->ReleaseResource(this->backgroundImage);
         this->backgroundImage = nullptr;
+
+        this->GetResources()->ReleaseResource(resource);
     }
 }
 

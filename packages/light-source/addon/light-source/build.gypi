@@ -85,6 +85,9 @@
               "test/ThreadPoolSpec.cc",
               "test/StyleSpec.cc",
               "test/StyleContextSpec.cc",
+              "test/FontFaceSpec.cc",
+              "test/ImageSpec.cc",
+              "test/ResourcesSpec.cc",
             ]
           }
         ]

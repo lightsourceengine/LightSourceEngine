@@ -11,10 +11,11 @@
 #include <vector>
 #include <blend2d.h>
 #include <ls/Paintable.h>
+#include <ls/Resources.h>
+#include <ls/StyleEnums.h>
 
 namespace ls {
 
-class FontFace;
 class Renderer;
 class RenderingContext2D;
 class Style;
@@ -33,7 +34,7 @@ class TextBlock final : public Paintable {
     /**
      * Layout the text according to the style policy and dimensions.
      */
-    void Shape(const std::string& utf8, FontFace* fontFace, Style* style, StyleContext* context,
+    void Shape(const std::string& utf8, const FontFaceRef& fontFace, Style* style, StyleContext* context,
             float maxWidth, float maxHeight);
 
     // Calculated bounds of the text. Set after call to Shape().

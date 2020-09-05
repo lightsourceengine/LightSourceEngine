@@ -23,4 +23,13 @@ using SceneRef = std::shared_ptr<Scene>;
 class Style;
 using StyleRef = std::shared_ptr<Style>;
 
+class FontFace;
+using FontFaceRef = std::shared_ptr<FontFace>;
+
+class Image;
+using ImageRef = std::shared_ptr<Image>;
+
+class Resource;
+using ResourceRef = std::shared_ptr<Resource>;
+
 } // namespace ls

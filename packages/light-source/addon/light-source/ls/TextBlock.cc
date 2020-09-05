@@ -5,12 +5,13 @@
  * tree.
  */
 
+#include <ls/TextBlock.h>
+
 #include <ls/Renderer.h>
 #include <ls/RenderingContext2D.h>
 #include <ls/Resources.h>
 #include <ls/Style.h>
 #include <ls/StyleContext.h>
-#include <ls/TextBlock.h>
 #include <ls/Timer.h>
 #include <math.h>
 #include <utf8.h>
@@ -22,7 +23,7 @@ namespace ls {
 static std::size_t StringLength(const std::string& utf8) noexcept;
 static void ApplyTransform(uint32_t* codepoints, std::size_t size, StyleTextTransform transform) noexcept;
 
-void TextBlock::Shape(const std::string& utf8, FontFace* fontFace, Style* style, StyleContext* context,
+void TextBlock::Shape(const std::string& utf8, const FontFaceRef& fontFace, Style* style, StyleContext* context,
         float maxWidth, float maxHeight) {
     /*
      * Blend2D does not directly expose font metrics per character nor detailed glyph information. The context fill

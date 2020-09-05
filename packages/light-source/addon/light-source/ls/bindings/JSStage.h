@@ -26,6 +26,7 @@ class JSStage : public Napi::SafeObjectWrap<JSStage> {
 
  private:
     void Constructor(const Napi::CallbackInfo& info) override;
+    void Update(const Napi::CallbackInfo& info);
     void Destroy(const Napi::CallbackInfo& info);
 
  private:

@@ -60,7 +60,7 @@ class LinkSceneNode final : public Napi::SafeObjectWrap<LinkSceneNode>, public S
     LinkRelationship relationship{ LinkRelationshipPreload };
     LinkCategory category{ LinkCategoryAuto };
     std::string href{};
-    Resource* resource{};
+    ResourceRef resource{};
     ResourceProgress resourceProgress;
 };
 

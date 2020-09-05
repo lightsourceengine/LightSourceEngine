@@ -39,6 +39,10 @@ StageRef JSStage::GetNative() const noexcept {
     return this->native;
 }
 
+void JSStage::Update(const CallbackInfo& info) {
+    this->native->Update();
+}
+
 void JSStage::Destroy(const CallbackInfo& info) {
     this->native->Destroy();
 }

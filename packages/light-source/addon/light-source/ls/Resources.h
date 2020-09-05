@@ -12,11 +12,12 @@
 #include <ls/StyleEnums.h>
 #include <ls/Texture.h>
 #include <ls/ImageBytes.h>
+#include <ls/types.h>
 
 #include <memory>
 #include <string>
 #include <list>
-#include <unordered_map>
+#include <phmap.h>
 #include <std17/filesystem>
 
 namespace ls {
@@ -27,6 +28,7 @@ class Resource {
  public:
     using Owner = void*;
     using Listener = std::function<void(Owner, Resource*)>;
+    using ResourceId = uint32_t;
 
     enum State {
         Init,
@@ -36,13 +38,15 @@ class Resource {
     };
 
  public:
-    Resource(const std::string& id);
+    Resource(const std::string& tag);
     virtual ~Resource() = default;
+
+    ResourceId GetId() const noexcept { return this->id; }
+    const std::string& GetTag() const noexcept { return this->tag; }
 
     void AddListener(Owner owner, Listener&& listener);
     void RemoveListener(Owner owner);
     State GetState() const noexcept { return this->state; }
-    const std::string& GetId() const noexcept { return this->id; }
     virtual void Load(Napi::Env env) = 0;
 
     Napi::String GetErrorMessage(const Napi::Env& env) const;
@@ -57,7 +61,10 @@ class Resource {
         Listener listener;
     };
 
-    std::string id{};
+    static ResourceId nextResourceId;
+
+    ResourceId id;
+    std::string tag{};
     std17::filesystem::path path{};
     std::vector<ListenerEntry> listeners{};
     State state{ Init };
@@ -68,7 +75,7 @@ class Resource {
 
 class Image final : public Resource {
  public:
-    Image(const std::string& id) : Resource(id) {}
+    Image(const std::string& tag) : Resource(tag) {}
     ~Image() override = default;
 
     void Load(Napi::Env env) override;
@@ -86,7 +93,7 @@ class Image final : public Resource {
     float AspectRatio() const noexcept;
 
     // Test-only method.
-    static Image Mock(const std::string& id, int32_t width, int32_t height);
+    static Image Mock(const std::string& tag, int32_t width, int32_t height);
 
  private:
     AsyncWork<ImageBytes> work;
@@ -111,10 +118,10 @@ struct Font {
 
 class FontFace final : public Resource {
  public:
-    FontFace(const std::string& id);
+    FontFace(const std::string& tag);
     ~FontFace() override = default;
 
-    static bool Equals(FontFace* fontFace, const std::string& family, StyleFontStyle style,
+    static bool Equals(const FontFaceRef& fontFace, const std::string& family, StyleFontStyle style,
         StyleFontWeight weight) noexcept;
 
     void Load(Napi::Env env) override;
@@ -139,40 +146,24 @@ class FontFace final : public Resource {
 
 class Resources {
  public:
-    bool HasImage(const std::string& path) const;
-    Image* AcquireImage(const std::string& path);
-    void ReleaseImage(const std::string& path, bool immediateDelete = false);
+    bool HasImage(const std::string& tag) const;
+    ImageRef AcquireImage(const std::string& tag);
 
-    bool HasFontFace(const std::string& path) const;
-    FontFace* AcquireFontFace(const std::string& path);
-    FontFace* AcquireFontFaceByStyle(const std::string& family, StyleFontStyle style, StyleFontWeight weight);
-    void ReleaseFontFace(const std::string& path, bool immediateDelete = false);
+    bool HasFontFace(const std::string& tag) const;
+    FontFaceRef AcquireFontFace(const std::string& tag);
+    FontFaceRef AcquireFontFaceByStyle(const std::string& family, StyleFontStyle style, StyleFontWeight weight);
 
     void ReleaseResource(Resource* resource, bool immediateDelete = false);
 
     void Compact();
 
  private:
-    template <typename T>
-    struct ResourceRef {
-        ResourceRef() noexcept : refs(0), resource(nullptr) {}
-        explicit ResourceRef(std::unique_ptr<T>&& p) noexcept : refs(1), resource(std::move(p)) {}
-        ResourceRef(ResourceRef<T>&& other) noexcept : refs(other.refs), resource(std::move(other.resource)) {}
-
-        T* ToPointer() const noexcept { return this->resource.get(); }
-
-        int32_t refs{};
-        std::unique_ptr<T> resource;
-    };
-
-    using ImageDataRef = ResourceRef<Image>;
-    using FontFaceRef = ResourceRef<FontFace>;
-
-    using ImageDataMap = std::unordered_map<std::string, ImageDataRef>;
-    using FontFaceMap = std::unordered_map<std::string, FontFaceRef>;
+    using ImageDataMap = phmap::flat_hash_map<std::string, ImageRef>;
+    using FontFaceMap = phmap::flat_hash_map<std::string, FontFaceRef>;
 
     ImageDataMap images;
     FontFaceMap fonts;
+    phmap::flat_hash_set<Resource*> pendingDeletions;
 };
 
 } // namespace ls
