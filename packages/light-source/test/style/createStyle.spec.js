@@ -29,6 +29,7 @@ describe('createStyle()', () => {
     assert.deepEqual(style.height, new StyleValue(50, StyleUnit.Point))
   })
   it('should return spec if instanceof Style', () => {
+    // TODO: remove
     const style = new StyleClass()
 
     assert.strictEqual(createStyle(style), style)
@@ -37,5 +38,10 @@ describe('createStyle()', () => {
     for (const input of [null, undefined, '', 3, NaN]) {
       assert.isNull(createStyle(input))
     }
+  })
+  it('should throw Error when setting created class', () => {
+    const styleClass = createStyle({ backgroundColor: 'red' })
+
+    assert.throws(() => { styleClass.backgroundColor = 'blue' })
   })
 })

@@ -199,20 +199,14 @@ constexpr uint32_t StylePropertyMetaGetType(StyleProperty property) noexcept {
     return kStylePropertyMeta[property] & kStylePropertyMetaTypeMask;
 }
 
-constexpr int32_t StylePropertyMetaCountType(uint32_t type) noexcept {
-    int32_t count = 0;
-
-    for (int32_t i = 0; i < Count<StyleProperty>(); i++) {
-        if (StylePropertyMetaGetType(static_cast<StyleProperty>(i)) == type) {
-            count++;
-        }
-    }
-
-    return count;
-}
-
 constexpr bool IsYogaProperty(StyleProperty property) noexcept {
     return kStylePropertyMeta[property] & StylePropertyMetaGroupYoga;
 }
 
-} // namespace ls
+void StylePropertyValueInit();
+bool StylePropertyValueIsValid(StyleProperty property, int32_t value) noexcept;
+const char* StylePropertyValueToString(StyleProperty property, int32_t value) noexcept;
+const char* StylePropertyValueDefault(StyleProperty property) noexcept;
+int32_t StylePropertyValueFromString(StyleProperty property, const char* value) noexcept;
+
+}; // namespace ls

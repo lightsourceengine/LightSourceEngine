@@ -63,6 +63,7 @@ export const StyleClass = lib.StyleClass || CreateStubStyleClass()
 export const StyleUnit = lib.StyleUnit || {}
 export const StyleTransform = lib.StyleTransform || {}
 export const StyleTransformSpec = lib.StyleTransformSpec || {}
+export const StyleAnchor = lib.StyleAnchor || {}
 export const StyleValue = lib.StyleValue || CreateStubStyleValue()
 export const SceneBase = lib.SceneBase || class {}
 export const StageBase = lib.StageBase || CreateStubStageBase()

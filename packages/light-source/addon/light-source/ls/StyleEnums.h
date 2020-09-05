@@ -149,16 +149,4 @@ constexpr bool IsValidEnum(int32_t value) {
     return value >= 0 && value < Count<T>();
 }
 
-// type-erased version of ToString. if the value is out of range, "unknown" is returned.
-template<typename T>
-const char* StylePropertyIntToString(int32_t property) noexcept {
-    return IsValidEnum<T>(property) ? ToString<T>(static_cast<T>(property)) : "unknown";
-}
-
-// type-erased version of FromString. if the value is out of range, illegal_argument exception is thrown.
-template<typename T>
-int32_t StylePropertyIntFromString(const char* value) {
-    return FromString<T>(value);
-}
-
 } // namespace ls

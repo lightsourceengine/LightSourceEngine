@@ -74,20 +74,20 @@ const sampleTextSmall = '   Hello, world!   '
 const sampleTextNewline = '1) Eat\n2) Sleep\n3) Conquer\n4) Repeat'
 
 const TextAlignApp = () => (
-  <box style={sheet.body}>
+  <box class={sheet.body}>
     <link href='resource/Roboto-Bold.ttf' />
-    <text style={sheet.maxLinesTextAlignLeft}>{sampleTextSmall}</text>
-    <text style={sheet.maxLinesTextAlignCenter}>{sampleTextSmall}</text>
-    <text style={sheet.maxLinesTextAlignRight}>{sampleTextSmall}</text>
-    <text style={sheet.textAlignLeft}>{sampleText}</text>
-    <text style={sheet.textAlignCenter}>{sampleText}</text>
-    <text style={sheet.textAlignRight}>{sampleText}</text>
-    <text style={sheet.ellipsisTextAlignLeft}>{sampleText}</text>
-    <text style={sheet.ellipsisTextAlignCenter}>{sampleText}</text>
-    <text style={sheet.ellipsisTextAlignRight}>{sampleText}</text>
-    <text style={sheet.textAlignLeft}>{sampleTextNewline}</text>
-    <text style={sheet.textAlignCenter}>{sampleTextNewline}</text>
-    <text style={sheet.textAlignRight}>{sampleTextNewline}</text>
+    <text class={sheet.maxLinesTextAlignLeft}>{sampleTextSmall}</text>
+    <text class={sheet.maxLinesTextAlignCenter}>{sampleTextSmall}</text>
+    <text class={sheet.maxLinesTextAlignRight}>{sampleTextSmall}</text>
+    <text class={sheet.textAlignLeft}>{sampleText}</text>
+    <text class={sheet.textAlignCenter}>{sampleText}</text>
+    <text class={sheet.textAlignRight}>{sampleText}</text>
+    <text class={sheet.ellipsisTextAlignLeft}>{sampleText}</text>
+    <text class={sheet.ellipsisTextAlignCenter}>{sampleText}</text>
+    <text class={sheet.ellipsisTextAlignRight}>{sampleText}</text>
+    <text class={sheet.textAlignLeft}>{sampleTextNewline}</text>
+    <text class={sheet.textAlignCenter}>{sampleTextNewline}</text>
+    <text class={sheet.textAlignRight}>{sampleTextNewline}</text>
   </box>
 )
 

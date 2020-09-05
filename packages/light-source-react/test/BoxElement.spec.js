@@ -5,7 +5,6 @@
  */
 
 import { assert } from 'chai'
-import { createStyle } from 'light-source'
 import React from 'react'
 import { renderAsync, rejects, beforeEachTestCase, container, afterEachTestCase } from './test-env'
 
@@ -19,22 +18,6 @@ describe('BoxElement', () => {
   afterEach(async () => {
     root = null
     await afterEachTestCase()
-  })
-  describe('prop: style', () => {
-    it('should set style with Style object', async () => {
-      const style = createStyle({})
-
-      style.backgroundColor = 'red'
-
-      await renderAsync(<box style={style} />)
-
-      assert.equal(root.children[0].style.backgroundColor, 0xFFFF0000)
-    })
-    it('should set style with Object', async () => {
-      await renderAsync(<box style={{ backgroundColor: 'red' }} />)
-
-      assert.equal(root.children[0].style.backgroundColor, 0xFFFF0000)
-    })
   })
   describe('prop: waypoint', () => {
     it('should set waypoint to horizontal navigation', async () => {

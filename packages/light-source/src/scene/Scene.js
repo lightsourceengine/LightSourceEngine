@@ -8,7 +8,6 @@ import { SceneBase } from '../addon'
 import { BoxSceneNode, ImageSceneNode, TextSceneNode, LinkSceneNode, RootSceneNode } from './SceneNode'
 import { EventEmitter } from '../util'
 import { AttachedEvent, DestroyedEvent, DestroyingEvent, DetachedEvent, EventNames } from '../event'
-import { createStyle } from '../style/createStyle'
 
 const kEmptyFrameListener = Object.freeze([0, null])
 let sFrameRequestId = 0
@@ -33,11 +32,14 @@ export class Scene extends SceneBase {
     super()
     const graphicsContext = createGraphicsContext(stage, platform, config)
     const root = new RootSceneNode(this)
+    const { style } = root
 
-    root.style = createStyle({
-      backgroundColor: 'black',
-      '@extend': '%absoluteFill'
-    })
+    style.backgroundColor = 'black'
+    style.top = 0
+    style.right = 0
+    style.bottom = 0
+    style.left = 0
+    style.position = 0
 
     super.$setup(stage, root, graphicsContext)
 

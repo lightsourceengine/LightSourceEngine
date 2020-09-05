@@ -35,53 +35,53 @@ Napi::Value BoxColor(const Napi::Env& env, const std17::optional<color_t>& color
 }
 
 std17::optional<color_t> UnboxColor(const Napi::Env& env, const Napi::Value& value) {
-    if (value.IsNumber()) {
-        return { value.As<Number>().Uint32Value() };
-    } else if (value.IsString()) {
-        // 256 bytes is more than enough space for the longest css color name and # colors
-        char* str = Napi::CopyUtf8(value);
+    switch (value.Type()) {
+        case napi_string: {
+            // 256 bytes is more than enough space for the longest css color name and # colors
+            char* str = Napi::CopyUtf8(value);
 
-        ToLowercase(str);
+            if (str[0] == '#') {
+                return ParseHexHashColorString(ToLowercase(str));
+            } else {
+                auto it{ sColorMap.find(ToLowercase(str)) };
 
-        if (str[0] == '#') {
-            return ParseHexHashColorString(str);
-        } else {
-            auto it{ sColorMap.find(str) };
+                if (it != sColorMap.end()) {
+                    return { it->second };
+                }
 
-            if (it != sColorMap.end()) {
-                return { it->second };
+                return {};
             }
         }
+        case napi_number:
+            return { value.As<Number>().Uint32Value() };
+        default:
+            return {};
     }
-
-    return {};
 }
 
 std17::optional<StyleValue> UnboxStyleValue(const Napi::Env& env, const Napi::Value& value) {
-    if (value.IsNumber()) {
-        const float floatValue{ value.As<Number>() };
+    switch (value.Type()) {
+        case napi_string:
+            return ParseStyleNumberString(ToLowercase(Napi::CopyUtf8(value)));
+        case napi_number: {
+            const float floatValue{value.As<Number>()};
 
-        if (!std::isnan(floatValue)) {
-            return { StyleValue::OfPoint(floatValue) };
+            if (std::isnan(floatValue)) {
+                return {};
+            }
+
+            return StyleValue::OfPoint(floatValue);
         }
-    } else if (value.IsObject()) {
-        auto styleValue = JSStyleValue::ToStyleValue(value);
+        default: {
+            auto styleValue = JSStyleValue::ToStyleValue(value);
 
-        if (styleValue.IsUndefined()) {
-            return {};
+            if (styleValue.IsUndefined()) {
+                return {};
+            }
+
+            return styleValue;
         }
-
-        return styleValue;
-    } else if (value.IsString()) {
-        // 256 is more than enough space for the longest javascript number (not BigInt) or enum
-        char* str = Napi::CopyUtf8(value);
-
-        ToLowercase(str);
-
-        return ParseStyleNumberString(str);
     }
-
-    return {};
 }
 
 static std17::optional<StyleValue> ParseStyleNumberString(const char* value) noexcept {

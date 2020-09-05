@@ -24,6 +24,8 @@ class JSStyle : public Napi::SafeObjectWrap<JSStyle>, public StyleOps {
 
  private:
     void Constructor(const Napi::CallbackInfo& info) override;
+    void Reset(const Napi::CallbackInfo& info);
+    Napi::Value BindStyleClass(const Napi::CallbackInfo& info);
 
  private:
     friend Napi::SafeObjectWrap<JSStyle>;

@@ -6,6 +6,7 @@
 
 #include <event/event.h>
 #include <ls/Style.h>
+#include <ls/StyleValidator.h>
 #include <ls/BoxSceneNode.h>
 #include <ls/ImageSceneNode.h>
 #include <ls/LinkSceneNode.h>
@@ -44,11 +45,15 @@ Object Init(Env env, Object exports) {
     HandleScope scope(env);
 
     ls::Style::Init();
+    ls::StyleValidator::Init();
+    ls::StylePropertyValueInit();
+
     Event::subscribe(ls::SceneNode::YogaNodeLayoutEvent);
 
     ExportClass(exports, ls::bindings::NewLogLevelClass(env));
     ExportClass(exports, ls::bindings::NewStyleTransformClass(env));
     ExportClass(exports, ls::bindings::NewStyleUnitClass(env));
+    ExportClass(exports, ls::bindings::NewStyleAnchorClass(env));
 
     ExportClass(exports, ls::bindings::JSStage::GetClass(env));
     ExportClass(exports, ls::bindings::JSScene::GetClass(env));

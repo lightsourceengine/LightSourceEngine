@@ -51,12 +51,12 @@ const sheet = createStyleSheet({
 })
 
 const BorderRadiusApp = () => (
-  <box style={sheet.body}>
-    <box style={sheet.borderRadius} />
-    <box style={sheet.borderRadiusTopLeft} />
-    <box style={sheet.borderRadiusTopRight} />
-    <box style={sheet.borderRadiusBottomLeft} />
-    <box style={sheet.borderRadiusBottomRight} />
+  <box class={sheet.body}>
+    <box class={sheet.borderRadius} />
+    <box class={sheet.borderRadiusTopLeft} />
+    <box class={sheet.borderRadiusTopRight} />
+    <box class={sheet.borderRadiusBottomLeft} />
+    <box class={sheet.borderRadiusBottomRight} />
   </box>
 )
 

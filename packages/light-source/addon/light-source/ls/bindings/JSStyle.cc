@@ -7,6 +7,10 @@
 
 #include <ls/bindings/JSStyle.h>
 
+#include <ls/Style.h>
+#include <ls/bindings/JSStyleClass.h>
+#include <cassert>
+
 using Napi::CallbackInfo;
 using Napi::Function;
 using Napi::FunctionReference;
@@ -35,6 +39,8 @@ Function JSStyle::GetClass(Napi::Env env) {
             }),
 
         jsStyleConstructor = DefineClass(env, "Style", true, {
+            InstanceMethod("reset", &JSStyle::Reset),
+            InstanceMethod(Napi::SymbolFor(env, "bindStyleClass"), &JSStyle::BindStyleClass),
             LS_FOR_EACH_STYLE_PROPERTY(LS_PROP)
         });
 
@@ -42,6 +48,31 @@ Function JSStyle::GetClass(Napi::Env env) {
     }
 
     return jsStyleConstructor.Value();
+}
+
+void JSStyle::Reset(const Napi::CallbackInfo& info) {
+    assert(this->native != nullptr);
+    // TODO: send change events
+    this->native->Reset();
+}
+
+Napi::Value JSStyle::BindStyleClass(const Napi::CallbackInfo& info) {
+    assert(this->native != nullptr);
+    auto env{ info.Env() };
+    auto value{ info[0] };
+
+    if (Napi::IsNullish(env, value)) {
+        this->native->SetParent(nullptr);
+        return env.Null();
+    }
+
+    auto jsStyleClass{ JSStyleClass::Cast(info[0]) };
+
+    NAPI_EXPECT_NOT_NULL(env, jsStyleClass, "bindStyleClass requires a StyleClass instance or null");
+
+    this->native->SetParent(jsStyleClass->GetNative());
+
+    return info[0];
 }
 
 } // namespace bindings

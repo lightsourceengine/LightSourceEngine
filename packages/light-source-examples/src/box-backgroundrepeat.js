@@ -16,4 +16,4 @@ const body = style({
   '@extend': '%absoluteFill'
 })
 
-letThereBeLight(<box style={body} />, { fullscreen: false })
+letThereBeLight(<box class={body} />, { fullscreen: false })

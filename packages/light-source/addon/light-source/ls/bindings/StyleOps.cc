@@ -10,6 +10,9 @@
 #include <ls/bindings/Convert.h>
 #include <ls/bindings/JSStyleValue.h>
 #include <ls/bindings/JSStyleTransformSpec.h>
+#include <ls/StyleValidator.h>
+#include <ls/string-ext.h>
+#include <cassert>
 
 namespace ls {
 namespace bindings {
@@ -31,17 +34,21 @@ void StyleOps::Set(const Napi::CallbackInfo& info) {
 
     NAPI_EXPECT_TRUE(env, IsValidEnum<StyleProperty>(propertyInt), "invalid style property id");
 
-    auto property{ static_cast<StyleProperty>(propertyInt) };
-    auto value{ info[1] };
-
-    this->Set(env, property, value);
+    this->Set(env, static_cast<StyleProperty>(propertyInt), info[1]);
 }
 
 void StyleOps::Set(const Napi::Env& env, StyleProperty property, const Napi::Value& value) {
+    assert(this->native != nullptr);
     switch (StylePropertyMetaGetType(property)) {
         case StylePropertyMetaTypeEnum:
             if (value.IsString()) {
-                this->native->SetEnum(property, Napi::CopyUtf8(value));
+                auto stringValue{ ToLowercase(Napi::CopyUtf8(value)) };
+
+                if (StyleValidator::IsValidValue(property, stringValue)) {
+                    this->native->SetEnum(property, Napi::CopyUtf8(value));
+                } else {
+                    this->native->SetUndefined(property);
+                }
             } else {
                 this->native->SetUndefined(property);
             }
@@ -53,21 +60,30 @@ void StyleOps::Set(const Napi::Env& env, StyleProperty property, const Napi::Val
                 this->native->SetUndefined(property);
             }
             break;
-        case StylePropertyMetaTypeColor: {
-            auto color{ UnboxColor(env, value) };
-
-            if (color.has_value()) {
-                this->native->SetColor(property, *color);
-            } else {
+        case StylePropertyMetaTypeColor:
+            if (Napi::IsNullish(env, value)) {
                 this->native->SetUndefined(property);
+            } else {
+                auto color{ UnboxColor(env, value) };
+
+                if (color.has_value()) {
+                    this->native->SetColor(property, *color);
+                } else {
+                    this->native->SetUndefined(property);
+                }
             }
             break;
-        }
         case StylePropertyMetaTypeNumber: {
             auto number{ UnboxStyleValue(env, value) };
 
             if (number.has_value()) {
-                this->native->SetNumber(property, *number);
+                if (number->IsUndefined()) {
+                    this->native->SetUndefined(property);
+                } else if (StyleValidator::IsValidValue(property, *number)) {
+                    this->native->SetNumber(property, *number);
+                } else {
+                    this->native->SetUndefined(property);
+                }
             } else {
                 this->native->SetUndefined(property);
             }
@@ -76,7 +92,13 @@ void StyleOps::Set(const Napi::Env& env, StyleProperty property, const Napi::Val
         }
         case StylePropertyMetaTypeInteger:
             if (value.IsNumber()) {
-                this->native->SetInteger(property, value.As<Napi::Number>().Int32Value());
+                auto intValue{ value.As<Napi::Number>().Int32Value() };
+
+                if (StyleValidator::IsValidValue(property, intValue)) {
+                    this->native->SetInteger(property, intValue);
+                } else {
+                    this->native->SetUndefined(property);
+                }
             } else {
                 this->native->SetUndefined(property);
             }
@@ -91,6 +113,7 @@ void StyleOps::Set(const Napi::Env& env, StyleProperty property, const Napi::Val
 }
 
 Napi::Value StyleOps::Get(StyleProperty property, const Napi::CallbackInfo& info) {
+    assert(this->native != nullptr);
     auto env{ info.Env() };
     Napi::HandleScope scope(env);
 
@@ -113,7 +136,7 @@ Napi::Value StyleOps::Get(StyleProperty property, const Napi::CallbackInfo& info
             }
         case StylePropertyMetaTypeTransform:
             if (this->native->IsEmpty(property)) {
-                return env.Undefined();
+                return JSStyleTransformSpec::Undefined(env);
             } else {
                 return JSStyleTransformSpec::New(env, this->native->GetTransform());
             }

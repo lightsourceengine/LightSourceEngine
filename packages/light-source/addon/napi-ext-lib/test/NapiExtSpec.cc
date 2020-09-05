@@ -235,6 +235,33 @@ void NapiExtSpec(TestSuite* parent) {
             }
         }
     };
+
+    spec->Describe("IsNullish()")->tests = {
+        {
+            "should return true for null value",
+            [](const TestInfo& info) {
+                Assert::IsTrue(Napi::IsNullish(info.Env(), info.Env().Null()));
+            }
+        },
+        {
+            "should return true for undefined value",
+            [](const TestInfo& info) {
+                Assert::IsTrue(Napi::IsNullish(info.Env(), info.Env().Undefined()));
+            }
+        },
+        {
+            "should return false for empty value",
+            [](const TestInfo& info) {
+                Assert::IsFalse(Napi::IsNullish(info.Env(), Napi::Value()));
+            }
+        },
+        {
+            "should return false for string value",
+            [](const TestInfo& info) {
+                Assert::IsFalse(Napi::IsNullish(info.Env(), Napi::String::New(info.Env(), "test")));
+            }
+        }
+    };
 }
 
 } // namespace ls

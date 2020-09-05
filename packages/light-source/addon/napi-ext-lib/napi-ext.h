@@ -178,6 +178,11 @@ size_t StringByteLength(const Napi::Value& value) noexcept;
 template<typename T, typename F>
 T* ConstructorWithExternalFactory(const Napi::CallbackInfo& info, const char* className);
 
+/**
+ * @return true if value is null or undefined; otherwise, false (even if value is empty).
+ */
+bool IsNullish(const Napi::Env& env, const Napi::Value& value) noexcept;
+
 } // namespace Napi
 
 #include "napi-ext-inl.h"

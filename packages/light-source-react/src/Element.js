@@ -5,9 +5,9 @@
  */
 
 import { emptyObject } from './emptyObject'
-import { createStyle } from 'light-source'
 
 const kCommentElementProps = [
+  'class',
   'focusable',
   'hidden',
   'onFocus',
@@ -48,8 +48,7 @@ export class Element {
     const { style } = newProps
 
     if (oldProps.style !== style) {
-      // createStyle returns style if already a Style instance
-      node.style = createStyle(style)
+      updateStyle(node, style)
     }
 
     for (const name of kCommentElementProps) {
@@ -92,3 +91,20 @@ export class Element {
 
 const throwBadNodeArg = () => { throw Error('Invalid node arg passed to Element constructor.') }
 const throwBadPropsArg = () => { throw Error('Invalid props arg passed to Element constructor.') }
+const updateStyle = (node, style) => {
+  // React re-render with a different state, while preserving the SceneNode graph. The piece meal
+  // style settings could accumulate and produce unwanted results. The solution is to clear the piece
+  // meal style settings before an update. Note, the class bound to the style remains unchanged.
+  node.style.reset()
+
+  // Only support plain objects. StyleClasses, mixins and shorthand are NOT supported. style is only for
+  // surgical style updates.
+  if (/* isPlainObject: */typeof style === 'object' && style?.constructor === Object) {
+    for (const key of Object.keys(style)) {
+      // TODO: check key against style property names
+      if (key in node.style) {
+        node.style[key] = style[key]
+      }
+    }
+  }
+}

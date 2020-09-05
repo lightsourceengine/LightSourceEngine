@@ -5,7 +5,10 @@
  */
 
 import { BlurEvent, FocusEvent } from '../event'
-import { addon, Style } from '../addon'
+import { addon, Style, StyleClass } from '../addon'
+
+const $bindStyle = Symbol.for('bindStyle')
+const $bindStyleClass = Symbol.for('bindStyleClass')
 
 const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
   focusable = false
@@ -20,28 +23,51 @@ const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
   _hasFocus = false
   _scene = null
   _style = null
+  _class = null
 
   constructor (scene) {
     super(scene)
     this._scene = scene
   }
 
+  /**
+   * Style interface for this node.
+   *
+   * The style object can be used to set and get the style properties of this node. Get returns the current state
+   * of the style that will be used for rendering. The set is used to manually set individual properties, overriding
+   * any properties set by the style class.
+   *
+   * @returns {Style} Instance to the style object of this node.
+   */
   get style () {
     if (!this._style) {
-      this._style = this.$bindStyle(new Style())
+      this._style = this[$bindStyle](new Style())
     }
     return this._style
   }
 
-  set style (styleClass) {
-    if (!this._style) {
-      this._style = this.$bindStyle(new Style())
-    }
-
-    // set: StyleClass, null/undefined, Style?
-    this.$applyStyleClass(styleClass)
+  /**
+   * Set and get the style class of this node.
+   *
+   * The style class must be a StyleClass instance or null. The style class sets the base properties of the
+   * style object of this node. When properties are manually set on the style object, those properties take
+   * precedence over the style class properties.
+   *
+   * @property class {StyleClass}
+   */
+  get class () {
+    return this._class
   }
 
+  set class (styleClass) {
+    if (!styleClass || styleClass instanceof StyleClass) {
+      this._class = this.style[$bindStyleClass](styleClass || null)
+    }
+  }
+
+  /**
+   * @returns {Scene} The Scene owner of this node.
+   */
   get scene () {
     return this._scene
   }

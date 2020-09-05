@@ -18,7 +18,7 @@ import { MappingType } from './input/MappingType'
 import { PluginType } from './stage/PluginType'
 import { Direction } from './input/Direction'
 import { Key } from './input/Key'
-import { StyleUnit, StyleTransform, LogLevel, logger } from './addon'
+import { StyleAnchor, StyleUnit, StyleTransform, LogLevel, logger } from './addon'
 import { AudioDecoderType } from './audio/AudioDecoderType'
 import { AudioSourceType } from './audio/AudioSourceType'
 import { InputDeviceType } from './input/InputDeviceType'
@@ -57,6 +57,7 @@ export {
   // Style
   StyleUnit,
   StyleTransform,
+  StyleAnchor,
   ShorthandRegistry,
   createStyle,
   rgb,

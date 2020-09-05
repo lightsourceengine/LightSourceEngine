@@ -53,7 +53,7 @@ const NavigationApp = () => {
   })
 
   return (
-    <box style={sheet.body} waypoint='horizontal'>
+    <box class={sheet.body} waypoint='horizontal'>
       <ListItem ref={ref} />
       <ListItem />
       <ListItem />

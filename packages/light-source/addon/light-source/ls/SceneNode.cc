@@ -93,51 +93,24 @@ Napi::Value SceneNode::GetChildren(const Napi::CallbackInfo& info) {
 }
 
 Napi::Value SceneNode::BindStyle(const Napi::CallbackInfo& info) {
+    auto env{ info.Env() };
+
+    NAPI_EXPECT_NULL(env, this->style, "SceneNode has already been bound to a Style");
+
     auto jsStyle = bindings::JSStyle::Cast(info[0]);
 
-    if (this->style) {
-        this->style->ClearChangeListener();
-        this->style->SetParent(nullptr);
-    }
+    NAPI_EXPECT_NOT_NULL(env, jsStyle, "bindStyle expects a Style instance");
 
-    if (jsStyle) {
-        this->style = jsStyle->GetNative();
-        this->style->SetChangeListener([this](StyleProperty property) {
-            if (IsYogaProperty(property)) {
-                this->GetStyleContext()->SetYogaPropertyValue(this->style.get(), property, this->ygNode);
-            } else {
-                this->OnStylePropertyChanged(property);
-            }
-        });
-    } else {
-        this->style = nullptr;
-    }
-
-    return jsStyle ? info[0] : info.Env().Null();
-}
-
-void SceneNode::ApplyStyleClass(const Napi::CallbackInfo& info) {
-    if (!this->style) {
-        return;
-    }
-
-    auto jsStyleClass = bindings::JSStyleClass::Cast(info[0]);
-
-    if (jsStyleClass) {
-        this->style->SetParent(jsStyleClass->GetNative());
-    } else {
-        // TODO: clear parent
-        this->style->SetParent(nullptr);
-    }
-
-    this->ygNode->setStyle({});
-    this->style->Reset();
-
-    this->style->ForEachYogaProperty([this](StyleProperty property) {
-        this->GetStyleContext()->SetYogaPropertyValue(this->style.get(), property, this->ygNode);
+    this->style = jsStyle->GetNative();
+    this->style->SetChangeListener([this](StyleProperty property) {
+        if (IsYogaProperty(property)) {
+            this->GetStyleContext()->SetYogaPropertyValue(this->style.get(), property, this->ygNode);
+        } else {
+            this->OnStylePropertyChanged(property);
+        }
     });
 
-    this->OnStyleReset();
+    return info[0];
 }
 
 Napi::Value SceneNode::GetHidden(const CallbackInfo& info) {
@@ -265,7 +238,11 @@ void SceneNode::Destroy() {
         parent->RemoveChild(this);
     }
 
-    this->style = nullptr;
+    if (this->style) {
+        this->style->ClearChangeListener();
+        this->style->SetParent(nullptr);
+        this->style = nullptr;
+    }
     this->sortedChildren.clear();
     YGNodeFree(this->ygNode);
     this->ygNode = nullptr;

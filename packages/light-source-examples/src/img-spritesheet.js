@@ -47,7 +47,6 @@ const AnimatedSprite = ({ spriteSheetRow }) => {
     let currentFrame = 0
     let millisUntilNextFrame = millisPerFrame
 
-    node.style = sheet.sprite
     node.style.objectPositionY = spriteSheetRow * -64
 
     // Note, Light Source Engine does not have an animation API at the moment, but animations
@@ -70,13 +69,13 @@ const AnimatedSprite = ({ spriteSheetRow }) => {
     scene.requestAnimationFrame(onAnimationFrame)
   })
 
-  return (<img ref={ref} src={spritesheet} />)
+  return (<img ref={ref} src={spritesheet} class={sheet.sprite} />)
 }
 
 const SpritesApp = () => {
   const sprites = frameCount.map((value, index) => <AnimatedSprite spriteSheetRow={index} key={index.toString()} />)
 
-  return (<box style={sheet.body}>{sprites}</box>)
+  return (<box class={sheet.body}>{sprites}</box>)
 }
 
 letThereBeLight(<SpritesApp />, { fullscreen: false })

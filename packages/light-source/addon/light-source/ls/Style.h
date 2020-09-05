@@ -28,6 +28,10 @@ struct StyleValue {
         return this->unit == StyleNumberUnitUndefined;
     }
 
+    bool IsAuto() const noexcept {
+        return this->unit == StyleNumberUnitAuto;
+    }
+
     static StyleValue OfAuto() noexcept {
         return { StyleNumberUnitAuto, 0 };
     }
@@ -41,9 +45,12 @@ struct StyleValue {
     }
 
     static StyleValue OfAnchor(StyleAnchor anchor) noexcept {
-        return { StyleNumberUnitPoint, static_cast<float>(anchor) };
+        return { StyleNumberUnitAnchor, static_cast<float>(anchor) };
     }
 };
+
+bool operator==(const StyleValue& a, const StyleValue& b) noexcept;
+bool operator!=(const StyleValue& a, const StyleValue& b) noexcept;
 
 /**
  * Entry in transform Style property array representing specific transforms of identity, rotate, scale and translate.
@@ -71,31 +78,8 @@ struct StyleTransformSpec {
     }
 };
 
-/**
- * Validator for Style property numbers.
- *
- * The isValueOk checks the value field of a StyleValue number. If isValueOk returns false, the StyleValue fails
- * validation. If the value passes, each isUnitSupported function is called until at least 1 function returns true
- * for the StyleValue unit field.
- */
-struct StyleValueValidator {
-    static constexpr auto MAX_UNIT_CHECKS = 6;
-
-    using IsValueOkFunc = bool(*)(float);
-    using IsUnitSupportedFunc = bool(*)(StyleNumberUnit);
-
-    IsValueOkFunc isValueOk{};
-    IsUnitSupportedFunc isUnitSupported[MAX_UNIT_CHECKS]{};
-    int32_t isUnitSupportedSize{};
-
-    StyleValueValidator() noexcept = default;
-    StyleValueValidator(IsValueOkFunc isValueOk,
-        const std::initializer_list<IsUnitSupportedFunc>& isUnitSupportedChecks) noexcept;
-
-    bool IsValid(const StyleValue& styleValue) const noexcept;
-
-    explicit operator bool() const noexcept { return this->isValueOk; }
-};
+bool operator==(const StyleTransformSpec& a, const StyleTransformSpec& b) noexcept;
+bool operator!=(const StyleTransformSpec& a, const StyleTransformSpec& b) noexcept;
 
 class Style {
  public:
@@ -146,33 +130,17 @@ class Style {
     // etc units.
     void OnMediaChange(bool remChange, bool viewportChange) noexcept;
 
-    void ForEachYogaProperty(const std::function<void(StyleProperty)>& func);
     void Reset();
 
     static void Init();
-    static void InitValidators();
     static Style* Or(Style* style) noexcept;
     static Style* Or(const StyleRef& style) noexcept;
 
  private:
-    // Structure that type-erases enum string mapping functions.
-    struct EnumOps {
-        using IsValid = bool(*)(int32_t);
-        using ToString = const char*(*)(int32_t);
-        using FromString = int32_t(*)(const char*);
+    void GatherDefinedProperties(phmap::flat_hash_set<StyleProperty>& properties);
+    bool IsEmpty(StyleProperty property, bool includeParent) const noexcept;
 
-        IsValid isValid{};
-        ToString toString{};
-        FromString fromString{};
-
-        template<typename T>
-        static EnumOps Of() {
-            return { IsValidEnum<T>, StylePropertyIntToString<T>, StylePropertyIntFromString<T> };
-        }
-
-        explicit operator bool() const noexcept { return this->isValid && this->fromString && this->toString; }
-    };
-
+ private:
     // Property buckets
 
     phmap::flat_hash_map<StyleProperty, color_t> colorMap;
@@ -188,10 +156,8 @@ class Style {
 
     // Static helpers
 
+    static phmap::flat_hash_set<StyleProperty> tempDefinedProperties;
     static Style empty;
-    static std::vector<StyleProperty> yogaProperties;
-    static EnumOps enumOps[];
-    static StyleValueValidator numberValidators[];
 };
 
 }; // namespace ls

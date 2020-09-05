@@ -45,6 +45,8 @@
         "ls/Style.cc",
         "ls/StyleEnums.cc",
         "ls/StyleContext.cc",
+        "ls/StyleProperty.cc",
+        "ls/StyleValidator.cc",
         "ls/Resources.cc",
         "ls/ResourceProgress.cc",
         "ls/DecodeImage.cc",

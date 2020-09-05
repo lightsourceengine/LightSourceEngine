@@ -31,7 +31,7 @@ export const createStyle = (properties) => {
   if (properties instanceof StyleClass) {
     return properties
   }
-  return createStyleInternal(properties, '', emptyObject)
+  return Object.freeze(createStyleInternal(properties, '', emptyObject))
 }
 
 /**

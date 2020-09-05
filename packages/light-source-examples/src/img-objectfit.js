@@ -49,12 +49,12 @@ const sheet = createStyleSheet({
 })
 
 const ObjectFitApp = () => (
-  <box style={sheet.body}>
-    <img src={background} style={sheet.objectFitContain} />
-    <img src={background} style={sheet.objectFitFill} />
-    <img src={background} style={sheet.objectFitCover} />
-    <img src={background} style={sheet.objectFitScaleDown} />
-    <img src={background} style={sheet.objectFitNone} />
+  <box class={sheet.body}>
+    <img src={background} class={sheet.objectFitContain} />
+    <img src={background} class={sheet.objectFitFill} />
+    <img src={background} class={sheet.objectFitCover} />
+    <img src={background} class={sheet.objectFitScaleDown} />
+    <img src={background} class={sheet.objectFitNone} />
   </box>
 )
 

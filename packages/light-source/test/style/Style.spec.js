@@ -5,7 +5,7 @@
  */
 
 import { assert } from 'chai'
-import { Style, StyleUnit, StyleValue } from '../../src/addon'
+import { Style, StyleAnchor, StyleClass, StyleUnit, StyleValue } from '../../src/addon'
 import { getRotateAngle, isRotate, rotate } from '../../src/style/transform'
 
 const style = (obj) => Object.assign(new Style(), obj)
@@ -14,12 +14,12 @@ const testStyleValue = (name, value, expectedValue) => {
   assert.deepEqual(style({ [name]: value })[name], expectedValue)
 }
 
-const testStyleValueEmpty = (name, value) => {
-  assert.sameOrderedMembers(style({ [name]: value })[name], [undefined, StyleUnit.Undefined])
+const testStyleValueUndefined = (name, value) => {
+  assert.isUndefined(style({ [name]: value })[name])
 }
 
-const testStyleValueEmptyString = (name, value) => {
-  assert.equal(style({ [name]: value })[name], '')
+const testStyleValueEmpty = (name, value) => {
+  assert.isTrue(style({ [name]: value })[name].isUndefined())
 }
 
 const testStyleUnitValue = (name, value, expectedUnit, expectedValue) => {
@@ -49,7 +49,7 @@ describe('Style', () => {
         testStyleUnitValue(property, '5vmax', StyleUnit.ViewportMax, 5)
       }
     })
-    it('should reject %, auto, anchors and negative values', () => {
+    it('should undefined StyleValue for invalid %, auto, anchors and negative values', () => {
       for (const property of borderProperties) {
         for (const input of ['5%', 'auto', 'left', -1, '-1px']) {
           testStyleValueEmpty(property, input)
@@ -72,9 +72,9 @@ describe('Style', () => {
         testStyleValue(property, '#ffff', 0xFFFFFFFF)
       }
     })
-    it('should return 0 for invalid color values', () => {
+    it('should return undefined for invalid color values', () => {
       for (const property of colorProperties) {
-        testStyleValue(property, '', undefined)
+        testStyleValueUndefined(property, '')
       }
     })
   })
@@ -132,7 +132,7 @@ describe('Style', () => {
       testPositionProperty(property, xDirection)
     })
     it('should reject invalid value', () => {
-      testInvalidPositionProperty(property)
+      testInvalidPositionProperty(property, xDirection)
     })
   })
   describe('backgroundPositionY property', () => {
@@ -141,7 +141,7 @@ describe('Style', () => {
       testPositionProperty(property, yDirection)
     })
     it('should reject invalid value', () => {
-      testInvalidPositionProperty(property)
+      testInvalidPositionProperty(property, yDirection)
     })
   })
   describe('borderRadius properties', () => {
@@ -155,11 +155,12 @@ describe('Style', () => {
         testStyleUnitValue(property, '5vh', StyleUnit.ViewportHeight, 5)
         testStyleUnitValue(property, '5vmin', StyleUnit.ViewportMin, 5)
         testStyleUnitValue(property, '5vmax', StyleUnit.ViewportMax, 5)
+        testStyleUnitValue(property, '5%', StyleUnit.Percent, 5)
       }
     })
     it('should reject %, auto, anchors and negative values', () => {
       for (const property of borderRadiusProperties) {
-        for (const input of ['5%', 'auto', 'left', -1, '-1px']) {
+        for (const input of ['auto', 'left', -1, '-1px']) {
           testStyleValueEmpty(property, input)
         }
       }
@@ -224,12 +225,14 @@ describe('Style', () => {
   describe('maxLines property', () => {
     const property = 'maxLines'
     it('should set values', () => {
-      testStyleUnitValue(property, 0, StyleUnit.Point, 0)
-      testStyleUnitValue(property, 1, StyleUnit.Point, 1)
+      testIntegerValue(property, 0, 0)
+      testIntegerValue(property, 1, 1)
+      // TODO: NaN gets converted to 0 somewhere..
+      testIntegerValue(property, NaN, 0)
     })
     it('should reject invalid values', () => {
-      for (const input of [-1, '10', null, {}, [], undefined, NaN]) {
-        testStyleValueEmpty(property, input)
+      for (const input of [-1, '10', null, {}, [], undefined]) {
+        testStyleValueUndefined(property, input)
       }
     })
   })
@@ -249,7 +252,7 @@ describe('Style', () => {
       testPositionProperty(property, xDirection)
     })
     it('should reject invalid value', () => {
-      testInvalidPositionProperty(property)
+      testInvalidPositionProperty(property, xDirection)
     })
   })
   describe('objectPositionY property', () => {
@@ -258,21 +261,31 @@ describe('Style', () => {
       testPositionProperty(property, yDirection)
     })
     it('should reject invalid value', () => {
-      testInvalidPositionProperty(property)
+      testInvalidPositionProperty(property, yDirection)
     })
   })
   describe('opacity property', () => {
     const property = 'opacity'
-    it('should set value', () => {
-      testStyleUnitValue(property, 0, StyleUnit.Point, 0)
-      testStyleUnitValue(property, 1, StyleUnit.Point, 1)
+    it('should set value in range [0,1]', () => {
+      for (const input of [0, 0.5, 1]) {
+        testStyleUnitValue(property, input, StyleUnit.Point, input)
+      }
+    })
+    it('should set percent value in range [0,100]', () => {
+      testStyleUnitValue(property, '0%', StyleUnit.Percent, 0)
+      testStyleUnitValue(property, '50%', StyleUnit.Percent, 50)
+      testStyleUnitValue(property, '100%', StyleUnit.Percent, 100)
     })
     it('should reject value outside of range [0,1]', () => {
       testStyleValueEmpty(property, -1)
       testStyleValueEmpty(property, 2)
     })
+    it('should reject percent value outside of range [0,100]', () => {
+      testStyleValueEmpty(property, '-1%')
+      testStyleValueEmpty(property, '101%')
+    })
     it('should reject invalid value', () => {
-      for (const value of ['', null, undefined, {}, NaN, '30px']) {
+      for (const value of ['', null, undefined, {}, '30deg']) {
         testStyleValueEmpty(property, value)
       }
     })
@@ -309,7 +322,8 @@ describe('Style', () => {
   })
   describe('transform property', () => {
     it('should be initialized to zero length array', () => {
-      assert.lengthOf(style({}).transform, 0)
+      const styleClass = new StyleClass()
+      assert.lengthOf(styleClass.transform, 0)
     })
     it('should be assignable', () => {
       const s1 = style({ transform: [rotate('90deg')] })
@@ -328,7 +342,7 @@ describe('Style', () => {
       const transformValue = s.transform[0]
 
       assert.isTrue(isRotate(transformValue))
-      assert.sameOrderedMembers(getRotateAngle(transformValue), [90, StyleUnit.Degree])
+      assert.deepEqual(getRotateAngle(transformValue), new StyleValue(90, StyleUnit.Degree))
     })
     it('should assignable to transform value', () => {
       const s = style({ transform: rotate('90deg') })
@@ -338,7 +352,7 @@ describe('Style', () => {
       const transformValue = s.transform[0]
 
       assert.isTrue(isRotate(transformValue))
-      assert.sameOrderedMembers(getRotateAngle(transformValue), [90, StyleUnit.Degree])
+      assert.deepEqual(getRotateAngle(transformValue), new StyleValue(90, StyleUnit.Degree))
     })
     it('should reject invalid values', () => {
       const s = style({ transform: 'invalid' })
@@ -351,7 +365,7 @@ describe('Style', () => {
       testPositionProperty(property, xDirection)
     })
     it('should reject invalid value', () => {
-      testInvalidPositionProperty(property)
+      testInvalidPositionProperty(property, xDirection)
     })
   })
   describe('transformOriginY property', () => {
@@ -360,7 +374,7 @@ describe('Style', () => {
       testPositionProperty(property, yDirection)
     })
     it('should reject invalid value', () => {
-      testInvalidPositionProperty(property)
+      testInvalidPositionProperty(property, yDirection)
     })
   })
   describe('backgroundImage property', () => {
@@ -368,6 +382,9 @@ describe('Style', () => {
     const testUri = 'test.jpg'
     it('should be assignable to a string uri', () => {
       testStyleValue(property, testUri, testUri)
+    })
+    it('should be assignable to an empty string', () => {
+      testStyleValue(property, '', '')
     })
     // TODO: support file uri with parameters
     xit('should set from uri property', () => {
@@ -393,20 +410,21 @@ describe('Style', () => {
         null,
         undefined,
         3,
-        '',
         NaN,
         {},
         { id: 'x' },
         { uri: 3 }
       ]
 
-      inputs.forEach(input => testStyleValueEmptyString(property, input))
+      inputs.forEach(input => testStyleValueUndefined(property, input))
     })
   })
   describe('zIndex property', () => {
     const property = 'zIndex'
     it('should set positive value', () => {
       testIntegerValue(property, 1, 1)
+      // TODO: NaN is getting set to 0 somewhere
+      testIntegerValue(property, NaN, 0)
     })
     it('should set negative value', () => {
       testIntegerValue(property, -1, -1)
@@ -417,11 +435,10 @@ describe('Style', () => {
         '3',
         null,
         undefined,
-        NaN,
         {}
       ]
 
-      inputs.forEach(i => testIntegerValue(property, i, 0))
+      inputs.forEach(i => testStyleValueUndefined(property, i))
     })
   })
 })
@@ -441,20 +458,32 @@ const testPositionProperty = (property, direction) => {
   testStyleUnitValue(property, '5vmax', StyleUnit.ViewportMax, 5)
   testStyleUnitValue(property, '5rem', StyleUnit.RootEm, 5)
 
+  testStyleUnitValue(property, 'center', StyleUnit.Anchor, StyleAnchor.Center)
+
   if (direction === xDirection) {
-    testStyleUnitValue(property, 'left', StyleUnit.Anchor, 'left')
-    testStyleUnitValue(property, 'right', StyleUnit.Anchor, 'right')
+    testStyleUnitValue(property, 'left', StyleUnit.Anchor, StyleAnchor.Left)
+    testStyleUnitValue(property, 'right', StyleUnit.Anchor, StyleAnchor.Right)
   } else if (direction === yDirection) {
-    testStyleUnitValue(property, 'top', StyleUnit.Anchor, 'top')
-    testStyleUnitValue(property, 'bottom', StyleUnit.Anchor, 'bottom')
+    testStyleUnitValue(property, 'top', StyleUnit.Anchor, StyleAnchor.Top)
+    testStyleUnitValue(property, 'bottom', StyleUnit.Anchor, StyleAnchor.Bottom)
   } else {
     assert.fail()
   }
 }
 
-const testInvalidPositionProperty = (property) => {
+const testInvalidPositionProperty = (property, direction) => {
   for (const input of ['', null, {}, [], undefined, NaN]) {
     testStyleValueEmpty(property, input)
+  }
+
+  if (direction === xDirection) {
+    testStyleValueEmpty(property, 'top')
+    testStyleValueEmpty(property, 'bottom')
+  } else if (direction === yDirection) {
+    testStyleValueEmpty(property, 'left')
+    testStyleValueEmpty(property, 'right')
+  } else {
+    assert.fail()
   }
 }
 

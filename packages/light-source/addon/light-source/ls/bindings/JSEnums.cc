@@ -41,5 +41,15 @@ Napi::Function NewStyleTransformClass(Napi::Env env) {
         .ToConstructor();
 }
 
+Napi::Function NewStyleAnchorClass(Napi::Env env) {
+    return ClassBuilder(env, "StyleAnchor")
+        .WithStaticValue("Left", StyleAnchorLeft)
+        .WithStaticValue("Right", StyleAnchorRight)
+        .WithStaticValue("Center", StyleAnchorCenter)
+        .WithStaticValue("Top", StyleAnchorTop)
+        .WithStaticValue("Bottom", StyleAnchorBottom)
+        .ToConstructor();
+}
+
 } // namespace bindings
 } // namespace ls

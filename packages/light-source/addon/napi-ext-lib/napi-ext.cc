@@ -198,4 +198,14 @@ size_t StringByteLength(const Napi::Value& value) noexcept {
     return 0;
 }
 
+bool IsNullish(const Napi::Env& env, const Napi::Value& value) noexcept {
+    napi_valuetype type;
+
+    if (napi_typeof(env, value, &type) == napi_ok) {
+        return type == napi_null || type == napi_undefined;
+    }
+
+    return false;
+}
+
 } // namespace Napi

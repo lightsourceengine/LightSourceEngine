@@ -14,6 +14,7 @@ namespace bindings {
 
 Napi::Function NewStyleUnitClass(Napi::Env env);
 Napi::Function NewStyleTransformClass(Napi::Env env);
+Napi::Function NewStyleAnchorClass(Napi::Env env);
 
 } // namespace bindings
 } // namespace ls

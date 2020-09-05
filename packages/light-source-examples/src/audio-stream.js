@@ -50,9 +50,9 @@ const StreamingAudioApp = () => {
   })
 
   return (
-    <box style={sheet.body}>
+    <box class={sheet.body}>
       <link href='file:resource/Roboto-Bold.ttf?family=Roboto' />
-      <text style={sheet.label}>{`Background music is ${loadingStatus}.`}</text>
+      <text class={sheet.label}>{`Background music is ${loadingStatus}.`}</text>
     </box>
   )
 }
