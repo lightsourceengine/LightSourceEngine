@@ -20,7 +20,6 @@ const sheet = createStyleSheet({
     '@extend': '%absoluteFill'
   },
   sprite: {
-    flex: 1,
     objectFit: 'none',
     marginBottom: 20,
     marginRight: 20,
