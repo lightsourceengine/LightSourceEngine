@@ -103,6 +103,7 @@ void Scene::SetGraphicsContext(GraphicsContext* graphicsContext) {
 
 void Scene::Destroy() noexcept {
     // TODO: destroy graphics context?
+    this->isAttached = false;
     this->root = SafeObjectWrap<SceneNode>::RemoveRef(this->root, [](SceneNode* node) { node->Destroy(); });
     this->graphicsContext = GraphicsContext::RemoveRef(this->graphicsContext);
     this->stage = nullptr;

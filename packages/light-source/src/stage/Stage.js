@@ -247,9 +247,8 @@ export class Stage extends StageBase {
       const tick = now()
 
       if (!this._platformPlugin.processEvents() || this._quitRequested) {
-        // TODO: something is open (timer?) that is preventing node from exiting
         logexcept(() => this.$destroy(), 'mainLoopExit')
-        process.exit()
+        return
       }
 
       // TODO: check suspended
@@ -285,8 +284,6 @@ export class Stage extends StageBase {
     } else {
       queueMicrotask(() => {
         logexcept(() => this.$destroy(), 'quit()')
-        // TODO: something is open (timer?) that is preventing node from exiting
-        process.exit()
       })
     }
   }

@@ -66,11 +66,7 @@ void SDLGraphicsContextImpl::Attach(const Napi::CallbackInfo& info) {
             displayIndex);
     }
 
-    try {
-        this->renderer.Attach(this->window);
-    } catch (std::exception& e) {
-        throw Error::New(env, e.what());
-    }
+    NAPI_TRY(env, this->renderer.Attach(this->window));
 
     this->width = this->renderer.GetWidth();
     this->height = this->renderer.GetHeight();

@@ -5,7 +5,7 @@
  */
 
 import { stage } from 'light-source'
-import { shutdown } from 'light-source-reconciler/lib/light-source-reconciler'
+import { shutdown } from 'light-source-reconciler'
 import { render, findSceneNode, findElement } from './renderer'
 import { letThereBeLight } from './letThereBeLight'
 
