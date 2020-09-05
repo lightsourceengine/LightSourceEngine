@@ -60,7 +60,7 @@ const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
   }
 
   set class (styleClass) {
-    if (!styleClass || styleClass instanceof StyleClass) {
+    if (styleClass === null || styleClass === undefined || styleClass instanceof StyleClass) {
       this._class = this.style[$bindStyleClass](styleClass || null)
     }
   }

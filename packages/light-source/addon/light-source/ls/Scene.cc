@@ -75,8 +75,8 @@ void Scene::Frame() {
     }
 
     this->PropagateViewportAndRootFontSizeChanges();
-    this->ComputeBoundingBoxLayout();
     this->ExecuteStyleLayoutRequests();
+    this->ComputeBoundingBoxLayout();
     this->ExecutePaintRequests();
     this->Composite();
 }

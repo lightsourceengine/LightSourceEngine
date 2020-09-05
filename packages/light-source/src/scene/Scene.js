@@ -39,7 +39,7 @@ export class Scene extends SceneBase {
     style.right = 0
     style.bottom = 0
     style.left = 0
-    style.position = 0
+    style.position = 'absolute'
 
     super.$setup(stage, root, graphicsContext)
 

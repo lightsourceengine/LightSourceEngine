@@ -6,7 +6,7 @@
 
 import { StyleClass, styleProperties } from '../addon'
 import { ShorthandRegistry } from './ShorthandRegistry'
-import { emptyObject } from '../util'
+import { emptyObject, isPlainObject } from '../util'
 import { MixinRegistry } from './MixinRegistry'
 
 /**
@@ -45,7 +45,7 @@ export const createStyleInStyleSheet = (style, key, styleSheet) => {
 }
 
 const createStyleInternal = (style, key, styleSheet) => {
-  if (!style || typeof style !== 'object') {
+  if (!isPlainObject(style)) {
     return null
   }
 
