@@ -18,7 +18,7 @@ namespace bindings {
 Napi::Function JSStyleTransformSpec::GetClass(const Napi::Env& env) {
     if (jsStyleTransformSpecClass.IsEmpty()) {
         const char* script = R"(
-            class StyleTransformSpec {
+            const StyleTransformSpec = class StyleTransformSpec {
                 constructor(transform, ...args) {
                     switch (transform) {
                         case 0:

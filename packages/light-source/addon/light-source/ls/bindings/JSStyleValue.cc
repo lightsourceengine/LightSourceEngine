@@ -18,7 +18,7 @@ namespace bindings {
 Napi::Function JSStyleValue::GetClass(const Napi::Env& env) {
     if (jsStyleValueClass.IsEmpty()) {
         const char* script = R"(
-            class StyleValue {
+            const StyleValue = class StyleValue {
                 constructor(value, unit) {
                     this.unit = unit || 0
                     this.value = value || 0
