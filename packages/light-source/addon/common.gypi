@@ -21,6 +21,15 @@
     "MACOSX_DEPLOYMENT_TARGET": "10.10",
     "CLANG_CXX_LANGUAGE_STANDARD": "gnu++14",
     "DEAD_CODE_STRIPPING": "YES",
+    "LD_RUNPATH_SEARCH_PATHS": [
+      # mac runpath for ls-node build
+      "@executable_path/../lib/Frameworks",
+    ],
+    "FRAMEWORK_SEARCH_PATHS": [
+      # this allows the mac build to find SDL2 and SDL2_mixer include files; however, the search path (-F) still
+      # needs to be specified when linking frameworks
+      "<(ls_framework_path)"
+    ]
   },
   "msvs_settings": {
     "VCCLCompilerTool": {

@@ -12,7 +12,7 @@
 #include <ls/Rect.h>
 #include <ls/Color.h>
 #include <ls/Texture.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 namespace ls {
 

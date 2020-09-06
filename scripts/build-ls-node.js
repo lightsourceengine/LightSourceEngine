@@ -67,7 +67,7 @@
 
 const { join, delimiter } = require('path')
 const { spawnSync } = require('child_process')
-const { emptyDirSync, ensureDirSync, pathExistsSync, copySync, symlinkSync } = require('fs-extra')
+const { emptyDirSync, ensureDirSync, pathExistsSync, copySync, symlinkSync, existsSync } = require('fs-extra')
 const readPkg = require('read-pkg')
 const { tmpdir, homedir } = require('os')
 const commandLineArgs = require('command-line-args')
@@ -78,6 +78,7 @@ let sTargetPlatformAlias
 let sStagingPath
 let sLightSourceVersion
 let sLsNodeName
+let sFrameworkPath
 let sSkipBuild = false
 const sCrossToolsHome = process.env.CROSSTOOLS_HOME || join(homedir(), 'crosstools')
 const sCrossToolsSysroot =`${sCrossToolsHome}/x64-gcc-6.3.1/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot`
@@ -94,7 +95,8 @@ const sSupportedPlatforms = new Set([
 ])
 const optionDefinitions = [
   { name: 'tag', type: String, multiple: false, defaultOption: true, defaultValue: `${process.platform}-${process.arch}` },
-  { name: 'skip-build', type: Boolean, defaultValue: false }
+  { name: 'skip-build', type: Boolean, defaultValue: false },
+  { name: 'framework-path', type: String, defaultValue: '' }
 ]
 
 const run = (...args) => {
@@ -118,13 +120,11 @@ const build = () => {
   }
 
   switch (sTargetArch) {
-    case process.arch:
-      break
     case 'armv6l':
     case 'armv7l':
-      env.npm_config_ls_sdl_include = `${sCrossToolsSysroot}/usr/include/SDL2`
+      env.npm_config_ls_sdl_include = `${sCrossToolsSysroot}/usr/include`
       env.npm_config_ls_sdl_lib = `${sCrossToolsSysroot}/usr/lib`
-      env.npm_config_ls_sdl_mixer_include = `${sCrossToolsSysroot}/usr/include/SDL2`
+      env.npm_config_ls_sdl_mixer_include = `${sCrossToolsSysroot}/usr/include`
       env.npm_config_ls_sdl_mixer_lib = `${sCrossToolsSysroot}/usr/lib`
       // TODO: use this environment variable when the arm backend is ready
       // env.npm_config_ls_asmjit_build = 'arm'
@@ -134,6 +134,10 @@ const build = () => {
       break
     default:
       break
+  }
+
+  if (sFrameworkPath) {
+    env.npm_config_ls_framework_path = sFrameworkPath
   }
 
   console.log(`Building [${sTargetPlatform}-${sTargetArch}]...`)
@@ -174,11 +178,12 @@ const installNodeBin = () => {
 }
 
 const installGlobalModules = () => {
-  const p = join(sStagingPath, 'lib', 'node_modules')
-  const lightSourcePath = join(p, 'light-source')
+  const lib = join(sStagingPath, 'lib')
+  const nodeModules = join(lib, 'node_modules')
+  const lightSourcePath = join(nodeModules, 'light-source')
   const lightSourceReleasePath = join(lightSourcePath, 'Release')
-  const lightSourceReactPath = join(p, 'light-source-react')
-  const reactPath = join(p, 'react')
+  const lightSourceReactPath = join(nodeModules, 'light-source-react')
+  const reactPath = join(nodeModules, 'react')
   const addonPath = join('packages/light-source/build/Release')
 
   console.log('Installing global modules...')
@@ -204,6 +209,19 @@ const installGlobalModules = () => {
 
   for (const entry of fileList) {
     copySync(entry[0], entry[1])
+  }
+
+  if (sTargetPlatform === 'darwin') {
+    const sdl2 = join(lib, 'Frameworks', 'SDL2.framework')
+    const sdl2Mixer = join(lib, 'Frameworks', 'SDL2_mixer.framework')
+
+    // Note: copySync copies directory CONTENTS, not the containing directory. So, we need to create (ensure) the
+    // .framework directory we are copying, then copy the files into the new directory.
+    emptyDirSync(sdl2)
+    emptyDirSync(sdl2Mixer)
+
+    copySync(`${sFrameworkPath}/SDL2.framework`, sdl2)
+    copySync(`${sFrameworkPath}/SDL2_mixer.framework`, sdl2Mixer)
   }
 }
 
@@ -257,6 +275,10 @@ const load = () => {
 
   if (!sSupportedPlatforms.has(sTargetPlatformAlias)) {
     exit(`Unsupported platform ${sTargetPlatformAlias}.`)
+  }
+
+  if (sTargetPlatform === 'darwin' && (!sFrameworkPath || !existsSync(sFrameworkPath))) {
+    exit('No framework path provided!')
   }
 
   sLightSourceVersion = readPkg.sync({ cwd: join('packages', 'light-source') }).version

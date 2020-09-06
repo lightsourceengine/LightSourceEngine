@@ -2,20 +2,21 @@
   "variables": {
     "ls_with_sdl_mixer%": "false",
     "ls_with_tests%": "false",
+    "ls_framework_path%": "@none",
     "conditions": [
       [
         "OS==\"mac\"", {
-          "ls_sdl_include%": "/usr/local/include/SDL2",
+          "ls_sdl_include%": "/usr/local/include",
           "ls_sdl_lib%": "/usr/local/lib",
-          "ls_sdl_mixer_include%": "/usr/local/include/SDL2",
-          "ls_sdl_mixer_lib%": "/usr/local/lib",
+          "ls_sdl_mixer_include%": "/usr/local/include",
+          "ls_sdl_mixer_lib%": "/usr/local/lib"
         }
       ],
       [
         "OS==\"linux\"", {
-          "ls_sdl_include%": "/usr/include/SDL2",
+          "ls_sdl_include%": "/usr/include",
           "ls_sdl_lib%": "/usr/lib/<!@(gcc -dumpmachine)",
-          "ls_sdl_mixer_include%": "/usr/include/SDL2",
+          "ls_sdl_mixer_include%": "/usr/include",
           "ls_sdl_mixer_lib%": "/usr/lib/<!@(gcc -dumpmachine)",
         }
       ],

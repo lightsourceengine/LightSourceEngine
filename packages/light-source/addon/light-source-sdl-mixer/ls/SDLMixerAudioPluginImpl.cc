@@ -6,8 +6,8 @@
 
 #include "SDLMixerAudioPluginImpl.h"
 
-#include <SDL.h>
-#include <SDL_mixer.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 #include <ls/AudioDestination.h>
 #include <ls/AudioSource.h>
 #include <ls/Format.h>

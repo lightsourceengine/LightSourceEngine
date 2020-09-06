@@ -6,7 +6,7 @@
 
 #include <ls/SDLKeyboard.h>
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;

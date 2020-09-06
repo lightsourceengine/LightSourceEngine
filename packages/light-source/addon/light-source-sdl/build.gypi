@@ -4,10 +4,10 @@
       "target_name": "light-source-sdl",
       "includes": [
         "../common.gypi",
+        "../sdl.gypi"
       ],
       "include_dirs": [
         ".",
-        "<(ls_sdl_include)",
         "../napi-ext-lib",
         "../logger-lib",
         "../light-source-graphics-lib",
@@ -31,25 +31,6 @@
         "ls/SDLGamepad.cc",
         "ls/SDLUtil.cc",
         "ls/Init.cc",
-      ],
-      "conditions": [
-        [
-          "OS==\"mac\" or OS==\"linux\"", {
-            "libraries": [
-              "-L<(ls_sdl_lib)"
-            ]
-          }
-        ]
-      ],
-      "msvs_settings": {
-        "VCLinkerTool": {
-          "AdditionalLibraryDirectories": [
-            "<(ls_sdl_lib)"
-          ]
-        }
-      },
-      "libraries": [
-        "-lSDL2"
       ]
     }
   ]
