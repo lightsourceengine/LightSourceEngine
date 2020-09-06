@@ -4,11 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { afterSceneTest, beforeSceneTest } from '../test-env'
-import { ImageSceneNode } from '../../src/scene/SceneNode'
-import { assert } from 'chai'
+import chai from 'chai'
 import { join } from 'path'
+import { afterSceneTest, beforeSceneTest } from '../test-env.js'
+import { ImageSceneNode } from '../../src/scene/SceneNode.js'
 
+const { assert } = chai
 const images = ['640x480.png', '300x300.svg', '600x400.jpg', '600x400.gif']
 
 const expectOnLoad = (node) => new Promise((resolve, reject) => {

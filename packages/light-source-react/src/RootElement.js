@@ -4,8 +4,8 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { Element } from './Element'
-import { emptyObject } from './emptyObject'
+import { Element } from './Element.js'
+import { emptyObject } from './emptyObject.js'
 
 export class RootElement extends Element {
   /**

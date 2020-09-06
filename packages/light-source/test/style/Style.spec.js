@@ -4,9 +4,11 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
-import { Style, StyleAnchor, StyleClass, StyleUnit, StyleValue } from '../../src/addon'
-import { getRotateAngle, isRotate, rotate } from '../../src/style/transform'
+import chai from 'chai'
+import { Style, StyleAnchor, StyleClass, StyleUnit, StyleValue } from '../../src/addon/index.js'
+import { getRotateAngle, isRotate, rotate } from '../../src/style/transform.js'
+
+const { assert } = chai
 
 const style = (obj) => Object.assign(new Style(), obj)
 

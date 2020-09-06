@@ -4,9 +4,11 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { EventEmitter } from '../../src/util'
+import chai from 'chai'
 import sinon from 'sinon'
-import { assert } from 'chai'
+import { EventEmitter } from '../../src/util/EventEmitter.js'
+
+const { assert } = chai
 
 const test = Symbol.for('test')
 const event = { $type: test }

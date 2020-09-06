@@ -4,9 +4,10 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
-import { test } from '../test-env'
+import chai from 'chai'
+import { test } from '../test-env.js'
 
+const { assert } = chai
 let stage
 
 describe('Stage', () => {

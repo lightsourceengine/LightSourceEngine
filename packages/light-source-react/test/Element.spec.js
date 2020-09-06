@@ -4,10 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
+import chai from 'chai'
 import { createStyle } from 'light-source'
 import React from 'react'
-import { renderAsync, beforeEachTestCase, afterEachTestCase } from './test-env'
+import { renderAsync, beforeEachTestCase, afterEachTestCase } from './test-env.js'
+
+const { assert } = chai
 
 describe('Element', () => {
   beforeEach(() => {

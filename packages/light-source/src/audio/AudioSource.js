@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { clamp, isNumber, EventEmitter } from '../util'
+import { clamp, isNumber, EventEmitter } from '../util/index.js'
 import { readFileSync, promises } from 'fs'
 import {
   AudioSourceCapabilityFadeIn,
@@ -14,9 +14,9 @@ import {
   AudioSourceStateInit,
   AudioSourceStateLoading,
   AudioSourceStateReady
-} from './constants'
-import { AudioSourceType } from './AudioSourceType'
-import { ReadyStatusEvent, ErrorStatusEvent, EventNames } from '../event'
+} from './constants.js'
+import { AudioSourceType } from './AudioSourceType.js'
+import { ReadyStatusEvent, ErrorStatusEvent, EventNames } from '../event/index.js'
 
 let nextAsyncId = 1
 const { readFile } = promises

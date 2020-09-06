@@ -4,18 +4,19 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
-import { AudioDestination } from '../../src/audio/AudioDestination'
+import chai from 'chai'
+import { AudioDestination } from '../../src/audio/AudioDestination.js'
 import {
   AudioDestinationCapabilityFadeOut,
   AudioDestinationCapabilityPause,
   AudioDestinationCapabilityResume,
   AudioDestinationCapabilityStop,
   AudioDestinationCapabilityVolume
-} from '../../src/audio/constants'
+} from '../../src/audio/constants.js'
 import sinon from 'sinon'
-import { AudioDecoderType } from '../../src/audio/AudioDecoderType'
+import { AudioDecoderType } from '../../src/audio/AudioDecoderType.js'
 
+const { assert } = chai
 const kTestDecoders = [AudioDecoderType.OGG, 'MOCK']
 
 describe('AudioDestination', () => {

@@ -4,9 +4,11 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
-import { createStyle } from '../../src/style/createStyle'
-import { StyleClass, StyleUnit, StyleValue } from '../../src/addon'
+import chai from 'chai'
+import { createStyle } from '../../src/style/createStyle.js'
+import { StyleClass, StyleUnit, StyleValue } from '../../src/addon/index.js'
+
+const { assert } = chai
 
 describe('createStyle()', () => {
   it('should create a new style sheet', () => {

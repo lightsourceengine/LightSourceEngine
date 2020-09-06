@@ -4,11 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
-import { AudioManager } from '../../src/audio/AudioManager'
-import bindings from 'bindings'
-import { AudioSourceType } from '../../src/audio/AudioSourceType'
+import chai from 'chai'
+import { AudioManager } from '../../src/audio/AudioManager.js'
+import { load } from '../../src/addon/load.js'
+import { AudioSourceType } from '../../src/audio/AudioSourceType.js'
 
+const { assert } = chai
 const testWavFile = 'test/resources/test.wav'
 
 describe('AudioManager', () => {
@@ -16,7 +17,7 @@ describe('AudioManager', () => {
   beforeEach(() => {
     const mockStage = {}
     audio = new AudioManager(mockStage)
-    audio.$setPlugin(bindings('light-source-ref-audio').createInstance())
+    audio.$setPlugin(load('light-source-ref-audio').createInstance())
     audio.$attach()
   })
   afterEach(() => {

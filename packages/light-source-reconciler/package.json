@@ -11,7 +11,11 @@
   "engines": {
     "node": ">=14"
   },
-  "main": "dist/cjs/index.js",
+  "main": "dist/index.mjs",
+  "type": "module",
+  "exports": {
+    ".": "dist/index.mjs"
+  },
   "scripts": {
     "bundle": "rollup -c",
     "coverage": "nyc --reporter=text run-s testOnly",

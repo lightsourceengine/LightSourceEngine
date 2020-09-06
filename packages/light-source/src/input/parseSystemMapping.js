@@ -4,8 +4,8 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { Key } from './Key'
-import { Mapping } from './Mapping'
+import { Key } from './Key.js'
+import { Mapping } from './Mapping.js'
 
 const gameControllerKeyToStandardKey = new Map([
   ['a', Key.A],

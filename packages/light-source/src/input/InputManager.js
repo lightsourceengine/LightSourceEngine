@@ -4,15 +4,15 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { Key } from './Key'
-import { Mapping } from './Mapping'
-import { Direction } from './Direction'
-import { parseSystemMapping } from './parseSystemMapping'
-import { Keyboard } from './Keyboard'
-import { eventCapturePhase } from '../event/eventCapturePhase'
-import { MappingType } from './MappingType'
-import { emptyArray, EventEmitter, now } from '../util'
-import { InputDeviceType } from './InputDeviceType'
+import { Key } from './Key.js'
+import { Mapping } from './Mapping.js'
+import { Direction } from './Direction.js'
+import { parseSystemMapping } from './parseSystemMapping.js'
+import { Keyboard } from './Keyboard.js'
+import { eventCapturePhase } from '../event/eventCapturePhase.js'
+import { MappingType } from './MappingType.js'
+import { emptyArray, EventEmitter, now } from '../util/index.js'
+import { InputDeviceType } from './InputDeviceType.js'
 import {
   AttachedEvent,
   DetachedEvent,
@@ -23,8 +23,8 @@ import {
   KeyUpEvent, RawAxisMotionEvent, RawHatDownEvent, RawHatUpEvent,
   RawKeyDownEvent,
   RawKeyUpEvent
-} from '../event'
-import { logger } from '../addon'
+} from '../event/index.js'
+import { logger } from '../addon/index.js'
 
 /**
  *

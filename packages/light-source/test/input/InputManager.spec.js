@@ -4,13 +4,15 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
-import { InputManager } from '../../src/input/InputManager'
-import sinon from 'sinon'
-import { Mapping } from '../../src/input/Mapping'
-import { Keyboard } from '../../src/input/Keyboard'
+import chai from 'chai'
 import { existsSync } from 'fs'
-import { rejects } from '../test-env'
+import sinon from 'sinon'
+import { InputManager } from '../../src/input/InputManager.js'
+import { Mapping } from '../../src/input/Mapping.js'
+import { Keyboard } from '../../src/input/Keyboard.js'
+import { rejects } from '../test-env.js'
+
+const { assert } = chai
 
 const createMockStage = () => {
   const scene = {

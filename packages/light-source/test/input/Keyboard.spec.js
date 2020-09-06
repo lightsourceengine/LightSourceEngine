@@ -4,12 +4,14 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
-import { Keyboard } from '../../src/input/Keyboard'
-import { parseSystemMapping } from '../../src/input/parseSystemMapping'
-import { ScanCode } from '../../src/input/ScanCode'
-import { Key } from '../../src/input/Key'
-import { MappingType } from '../../src/input/MappingType'
+import chai from 'chai'
+import { Keyboard } from '../../src/input/Keyboard.js'
+import { parseSystemMapping } from '../../src/input/parseSystemMapping.js'
+import { ScanCode } from '../../src/input/ScanCode.js'
+import { Key } from '../../src/input/Key.js'
+import { MappingType } from '../../src/input/MappingType.js'
+
+const { assert } = chai
 
 describe('Keyboard', () => {
   let keyboard = null

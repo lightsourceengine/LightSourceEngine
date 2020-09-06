@@ -5,7 +5,7 @@
  */
 
 import { performance } from 'perf_hooks'
-import { setTimeout, clearTimeout } from './timeout-scope'
+import { setTimeout, clearTimeout } from './timeout-scope.js'
 
 // Export a window object containing the minimum functionality required by scheduler. This window is used privately
 // by scheduler and is not intended as a general window polyfill.

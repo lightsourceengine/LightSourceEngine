@@ -4,9 +4,9 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { Element } from './Element'
-import { RootElement } from './RootElement'
-import { Reconciler } from './Reconciler'
+import { Element } from './Element.js'
+import { RootElement } from './RootElement.js'
+import { Reconciler } from './Reconciler.js'
 
 const throwDisconnected = () => {
   throw Error('ReactRenderer has been disconnected and should no longer be in use.')

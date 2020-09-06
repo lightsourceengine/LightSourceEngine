@@ -4,10 +4,10 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { StyleClass, styleProperties } from '../addon'
-import { ShorthandRegistry } from './ShorthandRegistry'
-import { emptyObject, isPlainObject } from '../util'
-import { MixinRegistry } from './MixinRegistry'
+import { StyleClass, styleProperties } from '../addon/index.js'
+import { ShorthandRegistry } from './ShorthandRegistry.js'
+import { emptyObject, isPlainObject } from '../util/index.js'
+import { MixinRegistry } from './MixinRegistry.js'
 
 /**
  * Create a Style instance from plain Object of style properties.

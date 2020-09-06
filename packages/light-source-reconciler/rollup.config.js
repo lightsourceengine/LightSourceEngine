@@ -12,12 +12,39 @@ import { resolve } from 'path'
 import { onwarn, minify, nodeEnv } from '../rollup/plugins'
 
 export default [
+  // {
+  //   input: 'lib/light-source-reconciler.js',
+  //   onwarn,
+  //   output: {
+  //     format: 'cjs',
+  //     file: 'dist/cjs/index.js',
+  //     preferConst: true
+  //   },
+  //   external: ['worker_threads', 'react'],
+  //   plugins: [
+  //     autoExternal({
+  //       dependencies: false
+  //     }),
+  //     nodeEnv(),
+  //     commonjs({
+  //       ignoreGlobal: true
+  //     }),
+  //     inject({
+  //       MessageChannel: resolve('lib/SchedulerMessageChannel.js'),
+  //       window: resolve('lib/window-polyfill.js'),
+  //       setTimeout: [resolve('lib/timeout-scope.js'), 'setTimeout'],
+  //       clearTimeout: [resolve('lib/timeout-scope.js'), 'clearTimeout']
+  //     }),
+  //     nodeResolve(),
+  //     minify()
+  //   ]
+  // },
   {
     input: 'lib/light-source-reconciler.js',
     onwarn,
     output: {
-      format: 'cjs',
-      file: 'dist/cjs/index.js',
+      format: 'esm',
+      file: 'dist/index.mjs',
       preferConst: true
     },
     external: ['worker_threads', 'react'],

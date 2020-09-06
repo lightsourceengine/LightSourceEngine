@@ -4,9 +4,11 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
+import chai from 'chai'
 import React from 'react'
-import { renderAsync, rejects, beforeEachTestCase, container, afterEachTestCase } from './test-env'
+import { renderAsync, rejects, beforeEachTestCase, container, afterEachTestCase } from './test-env.js'
+
+const { assert } = chai
 
 let root
 

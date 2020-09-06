@@ -4,11 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
+import chai from 'chai'
 import React from 'react'
-import { renderAsync, container, afterEachTestCase, beforeEachTestCase } from './test-env'
-import { render } from '../src/renderer'
+import { renderAsync, container, afterEachTestCase, beforeEachTestCase } from './test-env.js'
+import { render } from '../src/renderer.js'
 
+const { assert } = chai
 const kImage = 'test/resource/image-1280x720.png'
 let root
 

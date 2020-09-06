@@ -4,9 +4,10 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { afterSceneTest, beforeSceneTest } from '../test-env'
-import { assert } from 'chai'
+import chai from 'chai'
+import { afterSceneTest, beforeSceneTest } from '../test-env.js'
 
+const { assert } = chai
 const kImage = 'test/resources/640x480.png'
 const kSvg = 'test/resources/300x300.svg'
 const kFont = 'test/resources/arrow.ttf'

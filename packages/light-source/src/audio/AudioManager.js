@@ -4,10 +4,10 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { NullAudioSource, SampleAudioSource, StreamAudioSource } from './AudioSource'
-import { AudioDestination } from './AudioDestination'
-import { emptyArray, EventEmitter } from '../util'
-import { AttachedEvent, DetachedEvent, EventNames } from '../event'
+import { NullAudioSource, SampleAudioSource, StreamAudioSource } from './AudioSource.js'
+import { AudioDestination } from './AudioDestination.js'
+import { emptyArray, EventEmitter } from '../util/index.js'
+import { AttachedEvent, DetachedEvent, EventNames } from '../event/index.js'
 
 /**
  * Audio API.

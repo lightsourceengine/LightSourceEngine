@@ -4,8 +4,8 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { BlurEvent, FocusEvent } from '../event'
-import { addon, Style, StyleClass } from '../addon'
+import { BlurEvent, FocusEvent } from '../event/index.js'
+import { addon, Style, StyleClass } from '../addon/index.js'
 
 const $bindStyle = Symbol.for('bindStyle')
 const $bindStyleClass = Symbol.for('bindStyleClass')

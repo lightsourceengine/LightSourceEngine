@@ -4,11 +4,13 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
+import chai from 'chai'
 import React from 'react'
-import { afterEachTestCase, beforeEachTestCase, container, renderAsync } from './test-env'
-import { findElement, findSceneNode, render } from '../src/renderer'
-import { TextElement } from '../src/TextElement'
+import { afterEachTestCase, beforeEachTestCase, container, renderAsync } from './test-env.js'
+import { findElement, findSceneNode, render } from '../src/renderer.js'
+import { TextElement } from '../src/TextElement.js'
+
+const { assert } = chai
 
 class TestComponent extends React.Component {
   static content = 'this is a test'

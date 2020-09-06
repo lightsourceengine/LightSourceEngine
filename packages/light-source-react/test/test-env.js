@@ -7,8 +7,10 @@
 import { stage, logger, LogLevel } from 'light-source'
 import { shutdown } from 'light-source-reconciler'
 import React from 'react'
-import { assert } from 'chai'
-import { getActiveContainers, render } from '../src/renderer'
+import chai from 'chai'
+import { getActiveContainers, render } from '../src/renderer.js'
+
+const { assert } = chai
 
 before(() => {
   logger.setLogLevel(LogLevel.Off)

@@ -5,7 +5,7 @@
  */
 
 import { stage } from 'light-source'
-import { render } from './renderer'
+import { render } from './renderer.js'
 
 /**
  * Bootstraps a Light Source Engine application using React.

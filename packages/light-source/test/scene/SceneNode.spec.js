@@ -4,11 +4,13 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
+import chai from 'chai'
 import sinon from 'sinon'
-import { afterSceneTest, beforeSceneTest } from '../test-env'
-import { Style, StyleClass } from '../../src/addon'
-import { createStyle } from '../../src/style/createStyle'
+import { afterSceneTest, beforeSceneTest } from '../test-env.js'
+import { Style, StyleClass } from '../../src/addon/index.js'
+import { createStyle } from '../../src/style/createStyle.js'
+
+const { assert } = chai
 
 describe('SceneNode', () => {
   let scene

@@ -4,8 +4,8 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
-import { StyleUnit, StyleTransform, StyleTransformSpec } from '../../src/addon'
+import chai from 'chai'
+import { StyleUnit, StyleTransform, StyleTransformSpec } from '../../src/addon/index.js'
 import {
   translate,
   scale,
@@ -22,7 +22,9 @@ import {
   getTranslateY,
   getScaleX,
   getScaleY
-} from '../../src/style/transform'
+} from '../../src/style/transform.js'
+
+const { assert } = chai
 
 describe('transform', () => {
   describe('translate()', () => {

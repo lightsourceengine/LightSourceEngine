@@ -6,8 +6,8 @@
 
 import { stage } from 'light-source'
 import { shutdown } from 'light-source-reconciler'
-import { render, findSceneNode, findElement } from './renderer'
-import { letThereBeLight } from './letThereBeLight'
+import { render, findSceneNode, findElement } from './renderer.js'
+import { letThereBeLight } from './letThereBeLight.js'
 
 stage.once('destroyed', (event) => {
   shutdown()

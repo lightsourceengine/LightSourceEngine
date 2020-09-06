@@ -4,9 +4,9 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { parseColor } from '../addon'
-import { clamp, isNumber } from '../util'
-import { rgb } from './rgb'
+import { parseColor } from '../addon/index.js'
+import { clamp, isNumber } from '../util/index.js'
+import { rgb } from './rgb.js'
 
 /**
  * Create a style color value from RGB color components and an opacity (alpha component).

@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import bindings from 'bindings'
+import { load } from '../../src/addon/load.js'
 import { bindTestSuite } from 'napi-unit/mocha'
 
 // Run native napi-unit tests.
@@ -17,7 +17,7 @@ import { bindTestSuite } from 'napi-unit/mocha'
 
 const bindTestSuiteOptions = {
   // Note: bindings function must be called from this file in order for require to find light-source native modules.
-  bindings: (...args) => bindings(...args),
+  bindings: (...args) => load(...args),
   testSuiteProperty: 'test'
 }
 

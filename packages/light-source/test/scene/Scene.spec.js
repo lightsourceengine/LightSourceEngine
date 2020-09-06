@@ -4,10 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
+import chai from 'chai'
 import sinon from 'sinon'
-import { BoxSceneNode, TextSceneNode, ImageSceneNode, LinkSceneNode, RootSceneNode } from '../../src/scene/SceneNode'
-import { afterSceneTest, beforeSceneTest } from '../test-env'
+import { BoxSceneNode, TextSceneNode, ImageSceneNode, LinkSceneNode, RootSceneNode } from '../../src/scene/SceneNode.js'
+import { afterSceneTest, beforeSceneTest } from '../test-env.js'
+
+const { assert } = chai
 
 describe('Scene', () => {
   let scene

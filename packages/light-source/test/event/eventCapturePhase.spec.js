@@ -4,14 +4,16 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
-import { eventCapturePhase } from '../../src/event/eventCapturePhase'
-import { Key } from '../../src/input/Key'
-import { afterSceneTest, beforeSceneTest } from '../test-env'
-import { waypoint } from '../../src/scene/waypoint'
-import { MappingType } from '../../src/input/MappingType'
-import { KeyDownEvent } from '../../src/event'
-import { Direction } from '../../src/input/Direction'
+import chai from 'chai'
+import { eventCapturePhase } from '../../src/event/eventCapturePhase.js'
+import { Key } from '../../src/input/Key.js'
+import { afterSceneTest, beforeSceneTest } from '../test-env.js'
+import { waypoint } from '../../src/scene/waypoint.js'
+import { MappingType } from '../../src/input/MappingType.js'
+import { KeyDownEvent } from '../../src/event/index.js'
+import { Direction } from '../../src/input/Direction.js'
+
+const { assert } = chai
 
 describe('eventCapturePhase()', () => {
   let scene

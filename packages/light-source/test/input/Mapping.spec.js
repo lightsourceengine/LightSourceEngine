@@ -4,11 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
-import { Mapping } from '../../src/input/Mapping'
-import { Key } from '../../src/input/Key'
-import { MappingType } from '../../src/input/MappingType'
+import chai from 'chai'
+import { Mapping } from '../../src/input/Mapping.js'
+import { Key } from '../../src/input/Key.js'
+import { MappingType } from '../../src/input/MappingType.js'
 
+const { assert } = chai
 const standard = MappingType.Standard
 
 describe('Mapping', () => {

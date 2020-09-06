@@ -4,9 +4,11 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { afterSceneTest, beforeSceneTest } from '../test-env'
-import { assert } from 'chai'
-import { RootSceneNode } from '../../src/scene/SceneNode'
+import chai from 'chai'
+import { afterSceneTest, beforeSceneTest } from '../test-env.js'
+import { RootSceneNode } from '../../src/scene/SceneNode.js'
+
+const { assert } = chai
 
 describe('RootSceneNode', () => {
   let node

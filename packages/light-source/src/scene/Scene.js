@@ -4,10 +4,10 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { SceneBase } from '../addon'
-import { BoxSceneNode, ImageSceneNode, TextSceneNode, LinkSceneNode, RootSceneNode } from './SceneNode'
-import { EventEmitter } from '../util'
-import { AttachedEvent, DestroyedEvent, DestroyingEvent, DetachedEvent, EventNames } from '../event'
+import { SceneBase } from '../addon/index.js'
+import { BoxSceneNode, ImageSceneNode, TextSceneNode, LinkSceneNode, RootSceneNode } from './SceneNode.js'
+import { EventEmitter } from '../util/index.js'
+import { AttachedEvent, DestroyedEvent, DestroyingEvent, DetachedEvent, EventNames } from '../event/index.js'
 
 const kEmptyFrameListener = Object.freeze([0, null])
 let sFrameRequestId = 0

@@ -4,9 +4,10 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
-import { ShorthandRegistry, resetShorthandRegistry } from '../../src/style/ShorthandRegistry'
+import chai from 'chai'
+import { ShorthandRegistry, resetShorthandRegistry } from '../../src/style/ShorthandRegistry.js'
 
+const { assert } = chai
 const testId = '@test'
 const sizeId = '@size'
 const unknownId = '@unknown'

@@ -4,8 +4,10 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
-import { rgba } from '../../src/style/rgba'
+import chai from 'chai'
+import { rgba } from '../../src/style/rgba.js'
+
+const { assert } = chai
 
 describe('rgba()', () => {
   it('should return integer in 0xRRGGBBAA color format', () => {

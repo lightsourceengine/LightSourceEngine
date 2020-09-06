@@ -4,8 +4,8 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
-import { StreamAudioSource } from '../../src/audio/AudioSource'
+import chai from 'chai'
+import { StreamAudioSource } from '../../src/audio/AudioSource.js'
 import {
   AudioSourceCapabilityFadeIn,
   AudioSourceCapabilityLoop,
@@ -13,11 +13,12 @@ import {
   AudioSourceStateError,
   AudioSourceStateLoading,
   AudioSourceStateReady
-} from '../../src/audio/constants'
+} from '../../src/audio/constants.js'
 import sinon from 'sinon'
-import { AudioSourceType } from '../../src/audio/AudioSourceType'
-import { test } from 'light-source/test/test-env'
+import { AudioSourceType } from '../../src/audio/AudioSourceType.js'
+import { test } from '../test-env.js'
 
+const { assert } = chai
 const testWavFile = 'test/resources/test.wav'
 
 describe('AudioSource', () => {

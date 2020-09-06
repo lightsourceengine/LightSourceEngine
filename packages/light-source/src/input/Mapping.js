@@ -4,8 +4,8 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { isNumber } from '../util'
-import { MappingType } from './MappingType'
+import { isNumber } from '../util/index.js'
+import { MappingType } from './MappingType.js'
 
 const buttonRegEx = /^b(\d+)$/
 const hatRegEx = /^h(\d+)\.([1248])$/

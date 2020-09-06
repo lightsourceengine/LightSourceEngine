@@ -4,13 +4,13 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { Scene } from '../scene/Scene'
 import bindings from 'bindings'
-import { addonError, logger, StageBase } from '../addon'
-import { InputManager } from '../input/InputManager'
-import { AudioManager } from '../audio/AudioManager'
-import { isNumber, logexcept, EventEmitter, now } from '../util'
-import { PluginType } from './PluginType'
+import { Scene } from '../scene/Scene.js'
+import { addonError, logger, StageBase } from '../addon/index.js'
+import { InputManager } from '../input/InputManager.js'
+import { AudioManager } from '../audio/AudioManager.js'
+import { isNumber, logexcept, EventEmitter, now } from '../util/index.js'
+import { PluginType } from './PluginType.js'
 import {
   AttachedEvent,
   DestroyedEvent,
@@ -19,7 +19,7 @@ import {
   EventNames,
   StartedEvent,
   StoppedEvent
-} from '../event'
+} from '../event/index.js'
 
 const kEmptyCapabilities = { displays: [] }
 

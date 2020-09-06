@@ -4,13 +4,14 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
+import chai from 'chai'
 import React from 'react'
-import { TextElement } from '../src/TextElement'
 import { stage } from 'light-source'
-import { ReactRenderer } from '../src/ReactRenderer'
-import './test-env'
+import { TextElement } from '../src/TextElement.js'
+import { ReactRenderer } from '../src/ReactRenderer.js'
+import './test-env.js'
 
+const { assert } = chai
 let root
 let reactRenderer
 

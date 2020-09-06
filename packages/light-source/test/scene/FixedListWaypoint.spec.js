@@ -4,12 +4,14 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
-import { FixedListWaypoint } from '../../src/scene/FixedListWaypoint'
-import { afterSceneTest, beforeSceneTest } from '../test-env'
-import { Key } from '../../src/input/Key'
-import { KeyDownEvent } from '../../src/event'
-import { MappingType } from '../../src/input/MappingType'
+import chai from 'chai'
+import { FixedListWaypoint } from '../../src/scene/FixedListWaypoint.js'
+import { afterSceneTest, beforeSceneTest } from '../test-env.js'
+import { Key } from '../../src/input/Key.js'
+import { KeyDownEvent } from '../../src/event/index.js'
+import { MappingType } from '../../src/input/MappingType.js'
+
+const { assert } = chai
 
 describe('FixedListWaypoint', () => {
   let scene

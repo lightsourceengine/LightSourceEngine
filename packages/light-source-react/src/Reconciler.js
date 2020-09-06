@@ -5,10 +5,10 @@
  */
 
 import { ReactReconciler } from 'light-source-reconciler'
-import { TextElement } from './TextElement'
-import { BoxElement } from './BoxElement'
-import { ImageElement } from './ImageElement'
-import { LinkElement } from './LinkElement'
+import { TextElement } from './TextElement.js'
+import { BoxElement } from './BoxElement.js'
+import { ImageElement } from './ImageElement.js'
+import { LinkElement } from './LinkElement.js'
 import { performance } from 'perf_hooks'
 
 const kText = 'text'

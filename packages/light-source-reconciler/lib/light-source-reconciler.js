@@ -5,8 +5,8 @@
  */
 
 import ReactReconciler from 'react-reconciler'
-import SchedulerMessageChannel from './SchedulerMessageChannel'
-import { closePendingTimeouts } from './timeout-scope'
+import SchedulerMessageChannel from './SchedulerMessageChannel.js'
+import { closePendingTimeouts } from './timeout-scope.js'
 
 const shutdown = () => {
   SchedulerMessageChannel.close()

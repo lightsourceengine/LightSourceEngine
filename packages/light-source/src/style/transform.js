@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { StyleTransform, StyleTransformSpec, StyleValue } from '../addon'
+import { StyleTransform, StyleTransformSpec, StyleValue } from '../addon/index.js'
 
 const kUndefinedStyleValue = StyleValue.of(undefined)
 

@@ -4,9 +4,10 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
-import { fileuri } from '../../src/util'
+import chai from 'chai'
+import { fileuri } from '../../src/util/index.js'
 
+const { assert } = chai
 const invalidPathValues = ['', 123, {}, [], null, undefined, NaN]
 
 describe('fileuri()', () => {

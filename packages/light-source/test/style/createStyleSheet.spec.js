@@ -4,10 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { assert } from 'chai'
-import { createStyleSheet } from '../../src/style/createStyleSheet'
-import { StyleClass, StyleValue } from '../../src/addon'
-import { rgb } from '../../src/exports'
+import chai from 'chai'
+import { createStyleSheet } from '../../src/style/createStyleSheet.js'
+import { StyleClass, StyleValue } from '../../src/addon/index.js'
+import { rgb } from '../../src/style/rgb.js'
+
+const { assert } = chai
 
 describe('createStyleSheet()', () => {
   it('should return an empty style sheet when spec is an empty object', () => {

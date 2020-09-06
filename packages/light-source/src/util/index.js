@@ -4,8 +4,8 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { logger } from '../addon'
-import { EventEmitter } from './EventEmitter'
+import { logger } from '../addon/index.js'
+import { EventEmitter } from './EventEmitter.js'
 import { performance } from 'perf_hooks'
 
 export const { now } = performance

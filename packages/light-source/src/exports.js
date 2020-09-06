@@ -4,24 +4,24 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { Stage } from './stage/Stage'
-import { createStyleSheet } from './style/createStyleSheet'
-import { ShorthandRegistry } from './style/ShorthandRegistry'
-import { MixinRegistry } from './style/MixinRegistry'
-import { createStyle } from './style/createStyle'
-import { rgba } from './style/rgba'
-import { rgb } from './style/rgb'
-import { ScanCode } from './input/ScanCode'
-import { waypoint } from './scene/waypoint'
-import { Mapping } from './input/Mapping'
-import { MappingType } from './input/MappingType'
-import { PluginType } from './stage/PluginType'
-import { Direction } from './input/Direction'
-import { Key } from './input/Key'
-import { StyleAnchor, StyleUnit, StyleTransform, LogLevel, logger } from './addon'
-import { AudioDecoderType } from './audio/AudioDecoderType'
-import { AudioSourceType } from './audio/AudioSourceType'
-import { InputDeviceType } from './input/InputDeviceType'
+import { Stage } from './stage/Stage.js'
+import { createStyleSheet } from './style/createStyleSheet.js'
+import { ShorthandRegistry } from './style/ShorthandRegistry.js'
+import { MixinRegistry } from './style/MixinRegistry.js'
+import { createStyle } from './style/createStyle.js'
+import { rgba } from './style/rgba.js'
+import { rgb } from './style/rgb.js'
+import { ScanCode } from './input/ScanCode.js'
+import { waypoint } from './scene/waypoint.js'
+import { Mapping } from './input/Mapping.js'
+import { MappingType } from './input/MappingType.js'
+import { PluginType } from './stage/PluginType.js'
+import { Direction } from './input/Direction.js'
+import { Key } from './input/Key.js'
+import { StyleAnchor, StyleUnit, StyleTransform, LogLevel, logger } from './addon/index.js'
+import { AudioDecoderType } from './audio/AudioDecoderType.js'
+import { AudioSourceType } from './audio/AudioSourceType.js'
+import { InputDeviceType } from './input/InputDeviceType.js'
 import {
   translate,
   scale,
@@ -38,7 +38,7 @@ import {
   getTranslateY,
   getScaleX,
   getScaleY
-} from './style/transform'
+} from './style/transform.js'
 
 const errorHandler = obj => {
   if (obj) {

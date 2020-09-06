@@ -4,15 +4,15 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { AudioDecoderType } from './AudioDecoderType'
+import { AudioDecoderType } from './AudioDecoderType.js'
 import {
   AudioDestinationCapabilityFadeOut,
   AudioDestinationCapabilityPause,
   AudioDestinationCapabilityResume,
   AudioDestinationCapabilityStop,
   AudioDestinationCapabilityVolume
-} from './constants'
-import { clamp, isNumber, emptyArray } from '../util'
+} from './constants.js'
+import { clamp, isNumber, emptyArray } from '../util/index.js'
 
 /**
  * An audio output buffer.
