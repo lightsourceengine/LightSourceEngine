@@ -4,13 +4,13 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import bindings from 'bindings'
+import { load } from './load.js'
 
 let lib
 let error
 
 try {
-  lib = bindings('light-source')
+  lib = load('light-source.node')
 } catch (e) {
   console.log('Error loading light-source.node: ' + e.message)
   lib = {}
@@ -62,7 +62,7 @@ export const Style = lib.Style || CreateStubStyle()
 export const StyleClass = lib.StyleClass || CreateStubStyleClass()
 export const StyleUnit = lib.StyleUnit || {}
 export const StyleTransform = lib.StyleTransform || {}
-export const StyleTransformSpec = lib.StyleTransformSpec || {}
+export const StyleTransformSpec = lib.StyleTransformSpec || CreateStubStyleTransformSpec()
 export const StyleAnchor = lib.StyleAnchor || {}
 export const StyleValue = lib.StyleValue || CreateStubStyleValue()
 export const SceneBase = lib.SceneBase || class {}

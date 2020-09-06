@@ -5,8 +5,8 @@
  */
 
 import autoExternal from 'rollup-plugin-auto-external'
-import commonjs from '@rollup/plugin-commonjs'
 import resolve from '@rollup/plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs'
 import { beautify, onwarn, minify, babelrc, nodeEnv } from '../rollup/plugins'
 
 const input = 'src/exports.js'
@@ -14,16 +14,13 @@ const cjs = () => commonjs({
   ignoreGlobal: true
 })
 
-// Note: light-source-reconciler is included in all of these files intentionally to reduce the complexity for library users.
-
 export default [
   {
     input,
     onwarn,
-    external: ['worker_threads'],
     output: {
       format: 'cjs',
-      file: 'dist/cjs/light-source-react.js'
+      file: 'dist/light-source-react.cjs'
     },
     plugins: [
       autoExternal(),
@@ -37,31 +34,14 @@ export default [
   {
     input,
     onwarn,
-    external: ['worker_threads'],
-    output: {
-      format: 'esm',
-      file: 'dist/esm/light-source-react.mjs'
-    },
-    plugins: [
-      autoExternal(),
-      nodeEnv(),
-      resolve(),
-      babelrc(),
-      cjs(),
-      beautify()
-    ]
-  },
-  {
-    input,
-    onwarn,
-    external: ['react', 'worker_threads'],
+    external: ['light-source', 'react', 'worker_threads'],
     output: {
       format: 'cjs',
-      file: 'dist/cjs/light-source-react.standalone.js',
+      file: 'dist/light-source-react.standalone.cjs',
       preferConst: true
     },
     plugins: [
-      autoExternal({ peerDependencies: false }),
+      autoExternal({ dependencies: false, peerDependencies: false }),
       nodeEnv(),
       resolve(),
       babelrc(),

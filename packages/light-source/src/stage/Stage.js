@@ -4,8 +4,8 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import bindings from 'bindings'
 import { Scene } from '../scene/Scene.js'
+import { load } from '../addon/load.js'
 import { addonError, logger, StageBase } from '../addon/index.js'
 import { InputManager } from '../input/InputManager.js'
 import { AudioManager } from '../audio/AudioManager.js'
@@ -130,7 +130,7 @@ export class Stage extends StageBase {
     let Plugin
 
     if (typeof plugin === 'string') {
-      Plugin = bindings(plugin)
+      Plugin = load(plugin)
     } else {
       Plugin = plugin
     }

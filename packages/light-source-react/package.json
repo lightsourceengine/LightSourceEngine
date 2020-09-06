@@ -11,13 +11,13 @@
   "engines": {
     "node": ">=14"
   },
-  "main": "dist/cjs/light-source-react.js",
-  "module": "dist/esm/light-source-react.mjs",
+  "main": "dist/light-source-react.cjs",
   "files": [
     "dist/"
   ],
   "dependencies": {
-    "light-source": "1.0.0-alpha.3"
+    "light-source": "1.0.0-alpha.3",
+    "light-source-reconciler": "1.0.0-private.0"
   },
   "peerDependencies": {
     "react": "^16.13.1"

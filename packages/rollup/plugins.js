@@ -110,6 +110,11 @@ export const nodeEnv = () => replace({
 /**
  * Replaces 'object-assign' imports with the standard Object.assign function.
  */
-export const inlineObjectAssign = () => inlineModule({
-  'object-assign': 'export default Object.assign'
+export const replaceObjectAssign = () => replace({
+  sourceMap: false,
+  replaces: {
+    'require("object-assign")': 'Object.assign',
+    'require(\'object-assign\')': 'Object.assign'
+  }
 })
+

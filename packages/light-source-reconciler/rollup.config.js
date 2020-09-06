@@ -9,49 +9,23 @@ import nodeResolve from '@rollup/plugin-node-resolve'
 import inject from '@rollup/plugin-inject'
 import commonjs from '@rollup/plugin-commonjs'
 import { resolve } from 'path'
-import { onwarn, minify, nodeEnv } from '../rollup/plugins'
+import { onwarn, minify, nodeEnv, replaceObjectAssign } from '../rollup/plugins'
 
 export default [
-  // {
-  //   input: 'lib/light-source-reconciler.js',
-  //   onwarn,
-  //   output: {
-  //     format: 'cjs',
-  //     file: 'dist/cjs/index.js',
-  //     preferConst: true
-  //   },
-  //   external: ['worker_threads', 'react'],
-  //   plugins: [
-  //     autoExternal({
-  //       dependencies: false
-  //     }),
-  //     nodeEnv(),
-  //     commonjs({
-  //       ignoreGlobal: true
-  //     }),
-  //     inject({
-  //       MessageChannel: resolve('lib/SchedulerMessageChannel.js'),
-  //       window: resolve('lib/window-polyfill.js'),
-  //       setTimeout: [resolve('lib/timeout-scope.js'), 'setTimeout'],
-  //       clearTimeout: [resolve('lib/timeout-scope.js'), 'clearTimeout']
-  //     }),
-  //     nodeResolve(),
-  //     minify()
-  //   ]
-  // },
   {
     input: 'lib/light-source-reconciler.js',
     onwarn,
     output: {
-      format: 'esm',
-      file: 'dist/index.mjs',
+      format: 'cjs',
+      file: 'dist/index.cjs',
       preferConst: true
     },
-    external: ['worker_threads', 'react'],
+    external: ['worker_threads', 'react', 'object-assign'],
     plugins: [
       autoExternal({
         dependencies: false
       }),
+      replaceObjectAssign(),
       nodeEnv(),
       commonjs({
         ignoreGlobal: true

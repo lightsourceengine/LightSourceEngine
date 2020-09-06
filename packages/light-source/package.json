@@ -11,8 +11,7 @@
   "engines": {
     "node": ">=14"
   },
-  "main": "dist/cjs/light-source.js",
-  "module": "dist/esm/light-source.mjs",
+  "main": "./dist/light-source.cjs",
   "files": [
     "dist/",
     "addon/",

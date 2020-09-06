@@ -6,7 +6,8 @@
 
 import autoExternal from 'rollup-plugin-auto-external'
 import resolve from '@rollup/plugin-node-resolve'
-import { beautify, onwarn, minify, babelrc } from '../rollup/plugins'
+import replace from 'rollup-plugin-re'
+import { beautify, onwarn, minify, babelrc, inlineModule } from '../rollup/plugins.js'
 
 const input = 'src/exports.js'
 
@@ -16,24 +17,16 @@ export default [
     onwarn,
     output: {
       format: 'cjs',
-      file: 'dist/cjs/light-source.js'
+      file: 'dist/light-source.cjs'
     },
     plugins: [
       autoExternal(),
-      resolve(),
-      babelrc(),
-      beautify()
-    ]
-  },
-  {
-    input,
-    onwarn,
-    output: {
-      format: 'esm',
-      file: 'dist/esm/light-source.mjs'
-    },
-    plugins: [
-      autoExternal(),
+      replace({
+        sourceMap: false,
+        replaces: {
+          'process.env.LS_BINDINGS': JSON.stringify('bindings')
+        }
+      }),
       resolve(),
       babelrc(),
       beautify()
@@ -44,11 +37,22 @@ export default [
     onwarn,
     output: {
       format: 'cjs',
-      file: 'dist/cjs/light-source.standalone.js',
+      file: 'dist/light-source.standalone.cjs',
       preferConst: true
     },
     plugins: [
-      autoExternal(),
+      autoExternal({
+        dependencies: false
+      }),
+      inlineModule({
+        bindings: 'export default {}'
+      }),
+      replace({
+        sourceMap: false,
+        replaces: {
+          'process.env.LS_BINDINGS': JSON.stringify('custom-bindings')
+        }
+      }),
       resolve(),
       babelrc(),
       minify({

@@ -46,17 +46,16 @@
 //   lib/
 //     node/
 //       light-source/
-//         package.json
 //         index.js
-//         build
+//         Release
 //           <light-source .node files>
 //       light-source-react
 //         index.js
 //       react
 //         index.js
 //   bin/
-//     node
-//     ls-node -> node
+//     __node
+//     ls-node (shell script with env configuration)
 //
 // lib/node/light-source/package.json - This file exists to coerce bindings into loading node module files from
 //     the light-source directory.
@@ -68,7 +67,7 @@
 
 const { join, delimiter } = require('path')
 const { spawnSync } = require('child_process')
-const { emptyDirSync, ensureDirSync, ensureFileSync, pathExistsSync, copySync, symlinkSync } = require('fs-extra')
+const { emptyDirSync, ensureDirSync, pathExistsSync, copySync, symlinkSync } = require('fs-extra')
 const readPkg = require('read-pkg')
 const { tmpdir, homedir } = require('os')
 const commandLineArgs = require('command-line-args')
@@ -144,7 +143,7 @@ const build = () => {
 
 const prepareStagingDirectory = () => {
   emptyDirSync(sStagingPath)
-  ensureDirSync(join(sStagingPath, 'lib', 'node'))
+  ensureDirSync(join(sStagingPath, 'lib', 'node_modules'))
   ensureDirSync(join(sStagingPath, 'lib', 'rpath'))
   ensureDirSync(join(sStagingPath, 'bin'))
 }
@@ -152,7 +151,7 @@ const prepareStagingDirectory = () => {
 const installNodeBin = () => {
   const node = `node-${process.version}-${sTargetPlatform}-${sTargetArch}`
   const nodeBinaryPath = join(sNodeDownloadsPath, node, 'bin', 'node')
-  const stagingNodeBinaryPath = join(sStagingPath, 'bin', 'node')
+  const stagingNodeBinaryPath = join(sStagingPath, 'bin', '__node')
 
   if (sTargetPlatform === process.platform && sTargetArch === process.arch) {
     copySync(process.execPath, stagingNodeBinaryPath)
@@ -164,10 +163,10 @@ const installNodeBin = () => {
     console.log(`Downloading [${url}]...`)
 
     run(`wget -qO- "${url}" | tar -C "${sNodeDownloadsPath}" -xvz ${node}/bin/node`, { shell: true })
-    copySync(nodeBinaryPath, join(sStagingPath, 'bin', 'node'))
+    copySync(nodeBinaryPath, stagingNodeBinaryPath)
   }
 
-  symlinkSync('node', join(sStagingPath, 'bin', 'ls-node'))
+  copySync(join(__dirname, 'static', 'ls-node.sh'), join(sStagingPath, 'bin', 'ls-node'))
 
   if (sTargetPlatform === 'linux') {
     run('patchelf', [ '--set-rpath', '$ORIGIN/../lib/rpath', stagingNodeBinaryPath ], {})
@@ -175,24 +174,37 @@ const installNodeBin = () => {
 }
 
 const installGlobalModules = () => {
-  const p = join(sStagingPath, 'lib', 'node')
+  const p = join(sStagingPath, 'lib', 'node_modules')
   const lightSourcePath = join(p, 'light-source')
+  const lightSourceReleasePath = join(lightSourcePath, 'Release')
   const lightSourceReactPath = join(p, 'light-source-react')
   const reactPath = join(p, 'react')
-  const bindingsPath = join(p, 'bindings')
+  const addonPath = join('packages/light-source/build/Release')
 
   console.log('Installing global modules...')
 
   ensureDirSync(lightSourcePath)
+  ensureDirSync(lightSourceReleasePath)
   ensureDirSync(lightSourceReactPath)
   ensureDirSync(reactPath)
-  ensureDirSync(bindingsPath)
 
-  copySync('packages/light-source/dist/cjs/light-source.standalone.js', join(lightSourcePath, 'index.js'))
-  ensureFileSync(join(lightSourcePath, 'package.json'))
-  copySync('packages/light-source-react/dist/cjs/light-source-react.standalone.js', join(lightSourceReactPath, 'index.js'))
-  copySync('packages/light-source-node/dist/cjs/react.standalone.js', join(reactPath, 'index.js'))
-  copySync('packages/light-source-node/dist/cjs/bindings.standalone.js', join(bindingsPath, 'index.js'))
+  const fileList = [
+    ['packages/light-source/dist/light-source.standalone.cjs', join(lightSourcePath, 'index.js')],
+    ['packages/light-source-react/dist/light-source-react.standalone.cjs', join(lightSourceReactPath, 'index.js')],
+    ['packages/light-source-node/dist/react.standalone.cjs', join(reactPath, 'index.js')],
+
+    // TODO: add when toolchain supports modules
+    // ['packages/light-source-node/dist/node-path-loader.mjs', join(sStagingPath, 'lib', 'node-path-loader.mjs')],
+
+    [join(addonPath, 'light-source.node'), join(lightSourceReleasePath, 'light-source.node')],
+    [join(addonPath, 'light-source-sdl.node'), join(lightSourceReleasePath, 'light-source-sdl.node')],
+    [join(addonPath, 'light-source-sdl-mixer.node'), join(lightSourceReleasePath, 'light-source-sdl-mixer.node')],
+    [join(addonPath, 'light-source-sdl-audio.node'), join(lightSourceReleasePath, 'light-source-sdl-mixer-audio.node')]
+  ]
+
+  for (const entry of fileList) {
+    copySync(entry[0], entry[1])
+  }
 }
 
 const installArchSpecificFiles = () => {

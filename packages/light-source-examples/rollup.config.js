@@ -8,35 +8,20 @@ import autoExternal from 'rollup-plugin-auto-external'
 import commonjs from '@rollup/plugin-commonjs'
 import resolve from '@rollup/plugin-node-resolve'
 import { beautify, onwarn, babelrc } from '../rollup/plugins'
+import { readdirSync } from 'fs'
 
 const cjs = () => commonjs({
   ignoreGlobal: true
 })
 
-export default [
-  {
-    input: 'src/img-objectfit.js',
+const files = readdirSync('src').map(file => {
+  return {
+    input: `src/${file}`,
     onwarn,
     external: ['light-source', 'light-source-react', 'react'],
     output: {
       format: 'cjs',
-      file: 'dist/cjs/img-objectfit.js'
-    },
-    plugins: [
-      autoExternal(),
-      resolve(),
-      babelrc(),
-      cjs(),
-      beautify()
-    ]
-  },
-  {
-    input: 'src/img-objectfit.js',
-    onwarn,
-    external: ['light-source', 'light-source-react', 'react'],
-    output: {
-      format: 'esm',
-      file: 'dist/esm/img-objectfit.mjs'
+      file: `dist/${file}`
     },
     plugins: [
       autoExternal(),
@@ -46,4 +31,6 @@ export default [
       beautify()
     ]
   }
-]
+})
+
+export default files
