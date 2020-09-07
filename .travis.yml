@@ -40,13 +40,13 @@ matrix:
       before_install:
         - set -e
         - git clone --depth 1 https://github.com/lightsourceengine/ci-packages.git "${HOME}/ci-packages"
-        - mkdir -p $HOME/Frameworks
-        - tar -xzf ${HOME}/ci-packages/SDL2-2.0.12.framework.tar.gz --directory "$HOME/Frameworks"
-        - tar -xzf ${HOME}/ci-packages/SDL2_mixer-2.0.4.framework.tar.gz --directory "$HOME/Frameworks"
+        - mkdir -p "$HOME/Frameworks"
+        - tar -xzf "${HOME}/ci-packages/SDL2-2.0.12.framework.tar.gz" --directory "$HOME/Frameworks"
+        - tar -xzf "${HOME}/ci-packages/SDL2_mixer-2.0.4.framework.tar.gz" --directory "$HOME/Frameworks"
         - . ${HOME}/.nvm/nvm.sh
       install:
-        - yarn --ignore-scripts # install yarn packages required for build-ls-node.js
         - nvm install $LS_NODE_VERSION
+        - (cd scripts && yarn)
         - ./scripts/build-ls-node.js --framework-path "${npm_config_ls_framework_path}"
       script: skip
     - name: "linux-armv7l [Release]"
@@ -57,12 +57,12 @@ matrix:
           packages: [patchelf]
       before_install:
         - set -e
-        - mkdir -p ${NODE_DOWNLOADS}
-        - git clone --depth 1 https://github.com/lightsourceengine/crosstools.git ${HOME}/crosstools
+        - mkdir -p "${NODE_DOWNLOADS}"
+        - git clone --depth 1 https://github.com/lightsourceengine/crosstools.git "${HOME}/crosstools"
         - . ${HOME}/.nvm/nvm.sh
       install:
-        - yarn --ignore-scripts # install yarn packages required for build-ls-node.js
         - nvm install $LS_NODE_VERSION
+        - (cd scripts && yarn)
         - ./scripts/build-ls-node.js linux-armv7l
       script: skip
   exclude:
@@ -71,7 +71,7 @@ matrix:
       env: YARN_GPG=no npm_config_ls_with_tests=true npm_config_ls_sdl_include="$HOME/SDL2-2.0.10/include" npm_config_ls_sdl_lib="$HOME/SDL2-2.0.10/lib/x64" npm_config_ls_sdl_mixer_include="$HOME/SDL2_mixer-2.0.4/include" npm_config_ls_sdl_mixer_lib="$HOME/SDL2_mixer-2.0.4/lib/x64"
       before_install:
         - set -e
-        - git clone --depth 1 https://github.com/lightsourceengine/ci-packages.git ${HOME}/ci-packages
+        - git clone --depth 1 https://github.com/lightsourceengine/ci-packages.git "${HOME}/ci-packages"
         - powershell expand-archive -path "$HOME/ci-packages/SDL2/2.0.10/SDL2-devel-2.0.10-VC.zip" -destinationpath "$HOME"
         - powershell expand-archive -path "$HOME/ci-packages/SDL2_mixer/2.0.4/SDL2_mixer-devel-2.0.4-VC.zip" -destinationpath "$HOME"
       install: yarn --force

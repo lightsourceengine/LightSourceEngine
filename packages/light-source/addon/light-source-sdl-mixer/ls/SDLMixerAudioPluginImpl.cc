@@ -12,7 +12,6 @@
 #else
 #include <SDL2/SDL_mixer.h>
 #endif
-
 #include <ls/AudioDestination.h>
 #include <ls/AudioSource.h>
 #include <ls/Format.h>
