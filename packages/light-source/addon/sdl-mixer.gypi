@@ -9,8 +9,11 @@
     ],
     [
       "OS==\"mac\" and ls_framework_path!=\"@none\"", {
+        "defines": [
+          "LS_USING_SDL2_MIXER_FRAMEWORK"
+        ],
         "libraries": [
-          "-F<(ls_framework_path) -framework SDL2_mixer"
+          "-framework SDL2_mixer"
         ]
       },
       {

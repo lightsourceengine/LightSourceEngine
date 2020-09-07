@@ -31,6 +31,9 @@
       "<(ls_framework_path)"
     ]
   },
+  "mac_framework_dirs": [
+    "<(ls_framework_path)"
+  ],
   "msvs_settings": {
     "VCCLCompilerTool": {
       "ExceptionHandling": "1",

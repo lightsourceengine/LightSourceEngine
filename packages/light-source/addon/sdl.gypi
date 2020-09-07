@@ -10,7 +10,7 @@
     [
       "OS==\"mac\" and ls_framework_path!=\"@none\"", {
         "libraries": [
-          "-F<(ls_framework_path) -framework SDL2"
+          "-framework SDL2"
         ]
       },
       {

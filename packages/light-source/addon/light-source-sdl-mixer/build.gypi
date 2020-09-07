@@ -7,8 +7,8 @@
           "target_name": "light-source-sdl-mixer",
           "includes": [
             "../common.gypi",
-            "../sdl.gypi",
             "../sdl-mixer.gypi",
+            "../sdl.gypi"
           ],
           "include_dirs": [
             ".",

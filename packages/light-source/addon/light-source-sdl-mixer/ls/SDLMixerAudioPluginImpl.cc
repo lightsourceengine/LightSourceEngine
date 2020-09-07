@@ -7,7 +7,12 @@
 #include "SDLMixerAudioPluginImpl.h"
 
 #include <SDL2/SDL.h>
+#ifdef LS_USING_SDL2_MIXER_FRAMEWORK
+#include <SDL2_mixer/SDL_mixer.h>
+#else
 #include <SDL2/SDL_mixer.h>
+#endif
+
 #include <ls/AudioDestination.h>
 #include <ls/AudioSource.h>
 #include <ls/Format.h>
