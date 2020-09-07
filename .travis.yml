@@ -45,6 +45,7 @@ matrix:
         - tar -xzf ${HOME}/ci-packages/SDL2_mixer-2.0.4.framework.tar.gz --directory "$HOME/Frameworks"
         - . ${HOME}/.nvm/nvm.sh
       install:
+        - yarn --ignore-scripts # install yarn packages required for build-ls-node.js
         - nvm install $LS_NODE_VERSION
         - ./scripts/build-ls-node.js --framework-path "${npm_config_ls_framework_path}"
       script: skip
@@ -60,7 +61,7 @@ matrix:
         - git clone --depth 1 https://github.com/lightsourceengine/crosstools.git ${HOME}/crosstools
         - . ${HOME}/.nvm/nvm.sh
       install:
-        - yarn --ignore-scripts
+        - yarn --ignore-scripts # install yarn packages required for build-ls-node.js
         - nvm install $LS_NODE_VERSION
         - ./scripts/build-ls-node.js linux-armv7l
       script: skip
