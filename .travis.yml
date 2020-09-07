@@ -46,7 +46,9 @@ matrix:
         - . ${HOME}/.nvm/nvm.sh
       install:
         - nvm install $LS_NODE_VERSION
-        - (cd scripts && yarn)
+        - cd scripts
+        - yarn
+        - cd ..
         - ./scripts/build-ls-node.js --framework-path "${npm_config_ls_framework_path}"
       script: skip
     - name: "linux-armv7l [Release]"
@@ -62,7 +64,9 @@ matrix:
         - . ${HOME}/.nvm/nvm.sh
       install:
         - nvm install $LS_NODE_VERSION
-        - (cd scripts && yarn)
+        - cd scripts
+        - yarn
+        - cd ..
         - ./scripts/build-ls-node.js linux-armv7l
       script: skip
   exclude:
