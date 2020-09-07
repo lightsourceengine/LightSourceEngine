@@ -38,21 +38,18 @@ matrix:
       os: osx
       env: npm_config_ls_framework_path="$HOME/Frameworks"
       before_install:
-        - set -e
         - git clone --depth 1 https://github.com/lightsourceengine/ci-packages.git "${HOME}/ci-packages"
         - mkdir -p "$HOME/Frameworks"
         - tar -xzf "${HOME}/ci-packages/SDL2-2.0.12.framework.tar.gz" --directory "$HOME/Frameworks"
         - tar -xzf "${HOME}/ci-packages/SDL2_mixer-2.0.4.framework.tar.gz" --directory "$HOME/Frameworks"
         - . ${HOME}/.nvm/nvm.sh
-        - set +e
       install:
-        - set -e
         - nvm install $LS_NODE_VERSION
         - cd scripts
         - yarn
+        - sleep 10
         - cd ..
         - ./scripts/build-ls-node.js --framework-path "${npm_config_ls_framework_path}"
-        - set +e
       script: skip
     - name: "linux-armv7l [Release]"
       os: linux
