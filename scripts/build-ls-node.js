@@ -170,7 +170,7 @@ const installNodeBin = () => {
     copySync(nodeBinaryPath, stagingNodeBinaryPath)
   }
 
-  copySync(join(__dirname, 'static', 'ls-node.sh'), join(sStagingPath, 'bin', 'ls-node'))
+  copySync(join(__dirname, 'static', 'ls-node.sh'), join(sStagingPath, 'bin', 'node'))
 
   if (sTargetPlatform === 'linux') {
     run('patchelf', [ '--set-rpath', '$ORIGIN/../lib/rpath', stagingNodeBinaryPath ], {})
@@ -254,6 +254,7 @@ const load = () => {
   const options = commandLineArgs(optionDefinitions, { camelCase: true })
   const match = /^(\w+)-(\w+)$/.exec(options.tag)
 
+  sFrameworkPath = options.frameworkPath
   sSkipBuild = options.skipBuild
 
   if (match) {

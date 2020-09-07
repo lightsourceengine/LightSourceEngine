@@ -5,6 +5,7 @@ env:
   global:
     - npm_config_ls_with_sdl_mixer=true
     - npm_config_ls_install_opts="--jobs max"
+    - LS_NODE_VERSION=v14.8.0
 cache:
   yarn: true
   directories:
@@ -33,6 +34,20 @@ matrix:
         - HOMEBREW_NO_AUTO_UPDATE=1 brew install sdl2 sdl2_mixer
       install: yarn --force
       script: yarn run lint
+    - name: "darwin-x64 [ls-node]"
+      os: osx
+      env: npm_config_ls_framework_path="$HOME/Frameworks"
+      before_install:
+        - set -e
+        - git clone --depth 1 https://github.com/lightsourceengine/ci-packages.git "${HOME}/ci-packages"
+        - mkdir -p $HOME/Frameworks
+        - tar -xzf ${HOME}/ci-packages/SDL2-2.0.12.framework.tar.gz --directory "$HOME/Frameworks"
+        - tar -xzf ${HOME}/ci-packages/SDL2_mixer-2.0.4.framework.tar.gz --directory "$HOME/Frameworks"
+        - . ${HOME}/.nvm/nvm.sh
+      install:
+        - nvm install $LS_NODE_VERSION
+        - ./scripts/build-ls-node.js --framework-path "${npm_config_ls_framework_path}"
+      script: skip
     - name: "linux-armv7l [Release]"
       os: linux
       env: npm_config_ls_with_tests=false NODE_DOWNLOADS="${HOME}/node_downloads"
@@ -46,7 +61,7 @@ matrix:
         - . ${HOME}/.nvm/nvm.sh
       install:
         - yarn --ignore-scripts
-        - nvm install v14.8.0
+        - nvm install $LS_NODE_VERSION
         - ./scripts/build-ls-node.js linux-armv7l
       script: skip
   exclude:
