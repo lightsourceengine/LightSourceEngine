@@ -5,13 +5,13 @@
  */
 
 import bindings from 'bindings'
-import { join, resolve } from 'path'
+import { join, delimiter } from 'path'
 
 /**
  * Wrapper around bindings for loading .node files.
  *
  * For development, bindings will be used to load .node files from node_modules. When running with ls-node,
- * modules will be loaded from the light-source package in LS_ADDON_PATH.
+ * modules will be loaded from the light-source package in NODE_PATH.
  *
  * @ignore
  */
@@ -38,15 +38,24 @@ const customBindings = (opts) => {
     opts.bindings += '.node'
   }
 
-  let { LS_ADDON_PATH } = process.env
+  let { NODE_PATH = '' } = process.env
+  let tried = ''
 
-  if (LS_ADDON_PATH) {
-    LS_ADDON_PATH = resolve(LS_ADDON_PATH)
+  for (let searchPath of NODE_PATH.split(delimiter)) {
+    searchPath = searchPath.trim()
+
+    if (!searchPath) {
+      continue
+    }
+
+    const candidate = join(searchPath, 'light-source', 'Release', opts.bindings)
+
+    try {
+      return require(candidate)
+    } catch (e) {
+      tried += `\n${candidate}: ${e.message}`
+    }
   }
 
-  if (!LS_ADDON_PATH) {
-    throw Error('No bindings search path set. Expected LS_ADDON_PATH.')
-  }
-
-  return require(join(LS_ADDON_PATH, opts.bindings))
+  throw Error(`Could not find ${opts.bindings} in $NODE_PATH. Tried:${tried}`)
 }

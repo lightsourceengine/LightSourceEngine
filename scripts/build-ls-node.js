@@ -50,7 +50,6 @@
 // supported. The following shell dependencies are required, depending on the arguments specified.
 //
 // - node
-// - patchelf
 // - upx
 // - tar
 // - wget
@@ -78,7 +77,7 @@
 //     Frameworks/
 //       SDL2.framework
 //       SDL2_mixer.framework
-//     rpath/
+//     so/
 //     node_modules/
 //       light-source/
 //         index.js
@@ -93,10 +92,11 @@
 //
 // Frameworks - On mac, SDL2 and SDL2_mixer frameworks are bundled for the runtime. light-source-sdl.node has it's
 //              @executable_path set to find this Frameworks directory.
-// rpath      - On linux builds, this folder is in the runpath. This allows the packager flexibility with how the SDL
-//              so is loaded on the target system.
-// node       - This is a shell script that sets NODE_PATH to find react, light-source and light-source-react
-//              javascript packages. The packages are global or builtin to the runtime or developer.
+// so         - On linux builds, this folder is the default value for LD_LIBRARY_PATH. This allows the packager
+//              flexibility with how the SDL so is loaded on the target system.
+// node       - This is a shell script that sets NODE_PATH, to find react, light-source and light-source-react
+//              javascript packages, and LD_LIBRARY_PATH, to find SDL libraries. The packages are global or builtin
+//              to the runtime or developer.
 // Release/   - Pre-compiled light-source addon are stored here. The light-source runtime can find them using the
 //              $LS_ADDON_PATH environment variable.
 //
@@ -256,7 +256,7 @@ class LightSourceBundle {
       nodeHome,
       nodeLib: join(nodeHome, 'lib'),
       nodeFrameworks: join(nodeHome, 'lib', 'Frameworks'),
-      nodeRpath: join(nodeHome, 'lib', 'rpath'),
+      nodeLdLibraryPath: join(nodeHome, 'lib', 'so'),
       nodeBin: join(nodeHome, 'bin'),
       nodeModules,
       nodeLightSource: join(nodeModules, 'light-source'),
@@ -352,10 +352,9 @@ class LightSourceBundle {
     await copy(join(this.srcRoot, 'scripts', 'static', 'ls-node.sh'), join(this.staging.nodeBin, 'node'))
 
     if (this.options.platform === 'linux') {
-      console.log('staging: patching node binary rpath...')
-      ensureDirSync(join(this.staging.nodeRpath))
-      await command ('patchelf', [ '--set-rpath', '$ORIGIN/../lib/rpath', nodeBinaryPath ])
-      console.log('staging: patching node binary rpath... complete')
+      console.log('staging: patching node binary ld library path...')
+      ensureDirSync(join(this.staging.nodeLdLibraryPath))
+      console.log('staging: patching node binary ld library path... complete')
     }
 
     if (this.options.compressNodeBinary) {
@@ -385,15 +384,15 @@ class LightSourceBundle {
       const cpp = 'libstdc++.so.6.0.22'
 
       console.log('staging: adding cpp 6.0.22 library...')
-      await copy(join(this.crosstoolsSysroot, 'lib', cpp), join(this.staging.nodeRpath, cpp))
-      await createSymlink(cpp, join(this.staging.nodeRpath, 'libstdc++.so.6'))
+      await copy(join(this.crosstoolsSysroot, 'lib', cpp), join(this.staging.nodeLdLibraryPath, cpp))
+      await createSymlink(cpp, join(this.staging.nodeLdLibraryPath, 'libstdc++.so.6'))
       console.log('staging: adding cpp 6.0.22 library... complete')
     }
 
     if (this.options.profile === Profile.nclassic || this.options.profile === Profile.psclassic) {
       console.log('staging: adding SDL2 symlink...')
-      await createSymlink('/usr/lib/libSDL2.so', join(this.staging.nodeRpath, 'libSDL2-2.0.so.0'))
-      await createSymlink('/usr/lib/libSDL2_mixer.so', join(this.staging.nodeRpath, 'libSDL2_mixer-2.0.so.0'))
+      await createSymlink('/usr/lib/libSDL2.so', join(this.staging.nodeLdLibraryPath, 'libSDL2-2.0.so.0'))
+      await createSymlink('/usr/lib/libSDL2_mixer.so', join(this.staging.nodeLdLibraryPath, 'libSDL2_mixer-2.0.so.0'))
       console.log('staging: adding SDL2 symlink... complete')
     }
   }
