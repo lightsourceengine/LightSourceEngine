@@ -306,8 +306,8 @@ class LightSourceBundle {
 
       console.log(`package: ${tar}`)
 
-      await command('tar', ['-C', 'build', '-cvzf', join('build', tar), this.staging.home],
-        {shell: true, cwd: this.srcRoot})
+      await command('tar', ['-cvzf', tar, basename(this.staging.home)],
+        {shell: true, cwd: join(this.srcRoot, 'build')})
     }
 
     console.log(`package: creating package... complete`)

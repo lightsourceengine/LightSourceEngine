@@ -1,7 +1,7 @@
 #!/bin/sh
 
 SCRIPT_DIR=$(dirname "$0")
-if [ $SCRIPT_DIR == "." ]; then
+if [ $SCRIPT_DIR = "." ]; then
   SCRIPT_DIR=`pwd`
 fi
 
