@@ -5,307 +5,505 @@
 //
 // Usage:
 //
-// build-ls-node.js                      Build a runtime using the current node environment os + arch.
-// build-ls-node.js <platform-arch-tag>  Build a runtime for a specific platform. The current node environment or a
-//                                       tag supported by crosstools is supported.
+// build-ls-node.js [args]      Build a runtime using the current node environment os + arch.
 //
-// <platform-arch-tag> is a string generated in node by: process.platform + '-' + process.arch. The cross compilation
-// tags are:
+// Arguments:
 //
-//   linux-armv7l - Raspberry Pi 2/3/4, PlayStation Classic and more
-//   nesc-armv7l  - S/NES Classic
-//   linux-armv6l - Raspberry Pi Zero (Note: after version 10, NodeJS no longer publishes armv6l builds!)
+// --platform value [Default: process.platform Values: darwin, linux]
+// The target platform id.
 //
-// Environment Variables:
+// --arch value [Default: process.arch Values: armv7l, armv6l, x64]
+// The target arch id.
 //
-// CROSSTOOLS_HOME     - Path to crosstools directory. Defaults to ${HOME}/crosstools
+// --profile value [Default: none Value: none, pi, nclassic, psclassic]
+// The platform profile. An additional specifier of the platform to help the package builder tailor the build for
+// a specific target.
+//
+// --sdl-profile value [Default: system Values: system, rpi, kmsdrm, framework]
+// The SDL profile is a hint about how SDL should be linked and possibly packaged for the target platform.
+//
+// --framework-path path
+// If --profile framework is specified, the SDL2.framework and SDL2_mixer.framework in this path will be used
+// for building and packaging.
+//
+// --node-binary-cache path
+// Directory where the official node packages are unarchived and stored on disk. If not specified, a temporary
+// folder is used.
+//
+// --crosstools-home path
+// If cross compiling to arm, this path points to the source root of the crosstools project.
+//
+// --skip-build
+// If specified, yarn --force is not run and this script assumes LightSourceEngine has been successfully build.
+//
+// --compress-node-binary
+// If specified, the node executable is compressed with upx. This is useful for systems with limited disk space.
+//
+// --minimal-node-install
+// If specified, nearly everything except the node binary is stripped from the official node package. The resulting
+// package will not be functional for node development, but the package can run Light Source Engine apps. This is
+// available for systems with limited disk space.
 //
 // Shell Dependencies:
 //
+// This script is intended to run on a x86_64 Ubuntu system. It can run on Mac, but cross compiling to arm is not
+// supported. The following shell dependencies are required, depending on the arguments specified.
+//
 // - node
 // - patchelf
+// - upx
+// - tar
+// - wget
 // - python 2.7 (for node-gyp)
 // - crosstools (https://github.com/lightsourceengine/crosstools)
 // - C++ 14 toolchain (gcc or clang)
 // - SDL 2.0.4+ development libraries
 // - SDL Mixer 2.0.0+ development libraries
 //
-// The environment that invokes this script will be the node version of the built package. This restriction is
-// to avoid potential node ABI conflicts when building light-source native modules.
+// Node Version
 //
-// light-source depends on several npm_config environment variables that describe SDL paths and other options. For
-// cross compile builds, these environment variables are managed by THIS script. For local builds, these environment
-// variables must be exported by the caller of this script.
+// The node version that invokes this scripts will be the node version of the built package. This restriction is
+// to prevent node ABI conflicts with light-source native modules and the mode runtime on the target system.
 //
 // Package Structure:
 //
-// The Light Source Engine is just a pre-compiled NodeJS distribution with light-source installed as a global
-// module. npm and extraneous files have been removed.
+// The Light Source Engine is just a standard NodeJS distribution with a pre-compiled light-source installed as a
+// global module (via $NODE_PATH). For some builds, npm and extraneous files have been removed to reduce size on disk
+// for the target system (when --minimal-node-install is specified).
+//
+// Here is the general structure of where files end up:
 //
 // root
 //   lib/
-//     node/
+//     Frameworks/
+//       SDL2.framework
+//       SDL2_mixer.framework
+//     rpath/
+//     node_modules/
 //       light-source/
 //         index.js
-//         Release
-//           <light-source .node files>
+//         Release/
 //       light-source-react
 //         index.js
 //       react
 //         index.js
 //   bin/
 //     __node
-//     ls-node (shell script with env configuration)
+//     -node (shell script with env configuration)
 //
-// lib/node/light-source/package.json - This file exists to coerce bindings into loading node module files from
-//     the light-source directory.
-// lib/node/lib/rpath - This directory is in the runpath for node and node module files on Linux. Any platform specific
-//     shared objects can be placed here.
-// lib/node/light-source-react/index.js - Contains react-reconciler and scheduler.
-// lib/node/react - Standalone version of react.
+// Frameworks - On mac, SDL2 and SDL2_mixer frameworks are bundled for the runtime. light-source-sdl.node has it's
+//              @executable_path set to find this Frameworks directory.
+// rpath      - On linux builds, this folder is in the runpath. This allows the packager flexibility with how the SDL
+//              so is loaded on the target system.
+// node       - This is a shell script that sets NODE_PATH to find react, light-source and light-source-react
+//              javascript packages. The packages are global or builtin to the runtime or developer.
+// Release/   - Pre-compiled light-source addon are stored here. The light-source runtime can find them using the
+//              $LS_ADDON_PATH environment variable.
 //
 
-const { join, delimiter } = require('path')
-const { spawnSync } = require('child_process')
-const { emptyDirSync, ensureDirSync, pathExistsSync, copySync, symlinkSync, existsSync } = require('fs-extra')
+const { join, delimiter, basename } = require('path')
+const { spawn } = require('child_process')
+const { emptyDirSync, ensureDirSync, pathExistsSync, copy, move, createSymlink } = require('fs-extra')
 const readPkg = require('read-pkg')
-const { tmpdir, homedir } = require('os')
+const { tmpdir } = require('os')
 const commandLineArgs = require('command-line-args')
 
-let sTargetArch
-let sTargetPlatform
-let sTargetPlatformAlias
-let sStagingPath
-let sLightSourceVersion
-let sLsNodeName
-let sFrameworkPath
-let sSkipBuild = false
-const sCrossToolsHome = process.env.CROSSTOOLS_HOME || join(homedir(), 'crosstools')
-const sCrossToolsSysroot =`${sCrossToolsHome}/x64-gcc-6.3.1/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot`
-const sNodeDownloadsPath = process.env.NODE_DOWNLOADS || tmpdir()
-const sCrossProfileMapping = {
-  armv6l: 'rpizero',
-  armv7l: 'rpi'
-}
-const sSupportedPlatforms = new Set([
-  'linux',
-  'darwin',
-  'nesc',
-  'psc'
-])
-const optionDefinitions = [
-  { name: 'tag', type: String, multiple: false, defaultOption: true, defaultValue: `${process.platform}-${process.arch}` },
-  { name: 'skip-build', type: Boolean, defaultValue: false },
-  { name: 'framework-path', type: String, defaultValue: '' }
-]
+const command = async (...args) => {
+  return new Promise((resolve, reject) => {
+    const subprocess = spawn(...args)
+    let out = ''
 
-const run = (...args) => {
-  const result = spawnSync(...args)
+    subprocess.on('close', (code) => {
+      if (code !== 0) {
+        console.log(args[0] + ' command failed with code ' + code)
+        console.log(out)
+        process.exit(1)
+      } else {
+        resolve()
+      }
+    });
 
-  if (result.status !== 0) {
-    result.stdout && console.log(result.stdout.toString())
-    result.stderr && console.error(result.stderr.toString())
-    process.exit(1)
-  }
+    subprocess.stderr.setEncoding('utf8');
+    subprocess.stderr.on('data', (data) => {
+      out += data.toString()
+    })
+
+    subprocess.stdout.setEncoding('utf8');
+    subprocess.stdout.on('data', (data) => {
+      out += data.toString()
+    })
+
+    subprocess.on('error', (err) => {
+      console.log(args[0] + ' command failed with unexpected error')
+      console.log(err.message)
+      process.exit(1)
+    })
+  })
 }
 
-const build = () => {
-  let command = 'yarn'
-  let args = [ '--force' ]
-  let env = {
-    ...process.env,
-    npm_config_ls_install_opts: '--jobs max',
-    npm_config_ls_with_tests: 'false',
-    npm_config_ls_with_sdl_mixer: 'true'
-  }
-
-  switch (sTargetArch) {
-    case 'armv6l':
-    case 'armv7l':
-      env.npm_config_ls_sdl_include = `${sCrossToolsSysroot}/usr/include`
-      env.npm_config_ls_sdl_lib = `${sCrossToolsSysroot}/usr/lib`
-      env.npm_config_ls_sdl_mixer_include = `${sCrossToolsSysroot}/usr/include`
-      env.npm_config_ls_sdl_mixer_lib = `${sCrossToolsSysroot}/usr/lib`
-      // TODO: use this environment variable when the arm backend is ready
-      // env.npm_config_ls_asmjit_build = 'arm'
-      args.unshift(sCrossProfileMapping[sTargetArch], command)
-      env.PATH = `${env.PATH}${delimiter}${join(sCrossToolsHome, 'bin')}` 
-      command = 'cross'
-      break
-    default:
-      break
-  }
-
-  if (sFrameworkPath) {
-    env.npm_config_ls_framework_path = sFrameworkPath
-  }
-
-  console.log(`Building [${sTargetPlatform}-${sTargetArch}]...`)
-
-  run(command, args, { env, shell: true })
+const Platform = {
+  linux: 0,
+  darwin: 1,
 }
 
-const prepareStagingDirectory = () => {
-  emptyDirSync(sStagingPath)
-  ensureDirSync(join(sStagingPath, 'lib', 'node_modules'))
-  ensureDirSync(join(sStagingPath, 'lib', 'rpath'))
-  ensureDirSync(join(sStagingPath, 'bin'))
+const Architecture = {
+  armv6l: 'armv6l',
+  armv7l: 'armv7l',
+  x64: 'x64'
 }
 
-const installNodeBin = () => {
-  const node = `node-${process.version}-${sTargetPlatform}-${sTargetArch}`
-  const nodeBinaryPath = join(sNodeDownloadsPath, node, 'bin', 'node')
-  const stagingNodeBinaryPath = join(sStagingPath, 'bin', '__node')
-
-  if (sTargetPlatform === process.platform && sTargetArch === process.arch) {
-    copySync(process.execPath, stagingNodeBinaryPath)
-  } else if (pathExistsSync(nodeBinaryPath)) {
-    copySync(nodeBinaryPath, stagingNodeBinaryPath)
-  } else {
-    const url = `https://nodejs.org/download/release/${process.version}/${node}.tar.gz`
-
-    console.log(`Downloading [${url}]...`)
-
-    run(`wget -qO- "${url}" | tar -C "${sNodeDownloadsPath}" -xvz ${node}/bin/node`, { shell: true })
-    copySync(nodeBinaryPath, stagingNodeBinaryPath)
-  }
-
-  copySync(join(__dirname, 'static', 'ls-node.sh'), join(sStagingPath, 'bin', 'node'))
-
-  if (sTargetPlatform === 'linux') {
-    run('patchelf', [ '--set-rpath', '$ORIGIN/../lib/rpath', stagingNodeBinaryPath ], {})
-  }
+const Profile = {
+  none: 'none',
+  pi: 'pi',
+  nclassic: 'nclassic',
+  psclassic: 'psclassic'
 }
 
-const installGlobalModules = () => {
-  const lib = join(sStagingPath, 'lib')
-  const nodeModules = join(lib, 'node_modules')
-  const lightSourcePath = join(nodeModules, 'light-source')
-  const lightSourceReleasePath = join(lightSourcePath, 'Release')
-  const lightSourceReactPath = join(nodeModules, 'light-source-react')
-  const reactPath = join(nodeModules, 'react')
-  const addonPath = join('packages/light-source/build/Release')
+const SDLProfile = {
+  system: 'system',
+  rpi: 'rpi',
+  kmsdrm: 'kmsdrm',
+  framework: 'framework'
+}
 
-  console.log('Installing global modules...')
-
-  ensureDirSync(lightSourcePath)
-  ensureDirSync(lightSourceReleasePath)
-  ensureDirSync(lightSourceReactPath)
-  ensureDirSync(reactPath)
-
-  const fileList = [
-    ['packages/light-source/dist/light-source.standalone.cjs', join(lightSourcePath, 'index.js')],
-    ['packages/light-source-react/dist/light-source-react.standalone.cjs', join(lightSourceReactPath, 'index.js')],
-    ['packages/light-source-node/dist/react.standalone.cjs', join(reactPath, 'index.js')],
-
-    // TODO: add when toolchain supports modules
-    // ['packages/light-source-node/dist/node-path-loader.mjs', join(sStagingPath, 'lib', 'node-path-loader.mjs')],
-
-    [join(addonPath, 'light-source.node'), join(lightSourceReleasePath, 'light-source.node')],
-    [join(addonPath, 'light-source-sdl.node'), join(lightSourceReleasePath, 'light-source-sdl.node')],
-    [join(addonPath, 'light-source-sdl-mixer.node'), join(lightSourceReleasePath, 'light-source-sdl-mixer.node')],
-    [join(addonPath, 'light-source-sdl-audio.node'), join(lightSourceReleasePath, 'light-source-sdl-mixer-audio.node')]
+const getCommandLineOptions = () => {
+  const commandLineArgSpec = [
+    { name: 'platform', type: String, multiple: false, defaultValue: process.platform },
+    { name: 'arch', type: String, multiple: false, defaultValue: process.arch },
+    { name: 'profile', type: String, multiple: false, defaultValue: 'none' },
+    { name: 'sdl-profile', type: String, multiple: false, defaultValue: 'system' },
+    { name: 'framework-path', type: String, multiple: false, defaultValue: '/Library/Frameworks' },
+    { name: 'node-binary-cache', type: String, multiple: false, defaultValue: '' },
+    { name: 'crosstools-home', type: String, multiple: false, defaultValue: '' },
+    { name: 'skip-build', type: Boolean, defaultValue: false },
+    { name: 'compress-node-binary', type: Boolean, defaultValue: false },
+    { name: 'minimal-node-install', type: Boolean, defaultValue: false }
   ]
 
-  for (const entry of fileList) {
-    copySync(entry[0], entry[1])
+  const options = commandLineArgs(commandLineArgSpec, { camelCase: true })
+  const validateStringArg = (options, name, legalValues) => {
+    if (legalValues[options[name]] === undefined) {
+      throw Error(`Invalid ${name} value of ${options[name]}. Legal values: ${Object.keys(legalValues).join(', ')}`)
+    }
   }
 
-  if (sTargetPlatform === 'darwin') {
-    const sdl2 = join(lib, 'Frameworks', 'SDL2.framework')
-    const sdl2Mixer = join(lib, 'Frameworks', 'SDL2_mixer.framework')
+  validateStringArg(options, 'platform', Platform)
+  validateStringArg(options, 'arch', Architecture)
+  validateStringArg(options, 'profile', Profile)
+  validateStringArg(options, 'sdlProfile', SDLProfile)
 
-    // Note: copySync copies directory CONTENTS, not the containing directory. So, we need to create (ensure) the
-    // .framework directory we are copying, then copy the files into the new directory.
-    emptyDirSync(sdl2)
-    emptyDirSync(sdl2Mixer)
+  options.isArmCrossCompile = (process.platform === 'linux' && process.arch === 'x64'
+      && options.platform === 'linux' && (options.arch === Architecture.armv6l || options.arch === Architecture.armv7l))
 
-    copySync(`${sFrameworkPath}/SDL2.framework`, sdl2)
-    copySync(`${sFrameworkPath}/SDL2_mixer.framework`, sdl2Mixer)
+  if (!options.isArmCrossCompile && (options.platform !== process.platform || options.arch !== process.arch)) {
+    throw Error(`Host ${process.platform}-${process.arch} cannot compile to target ${options.platform}-${options.arch}`)
+  }
+
+  if (options.isArmCrossCompile && !pathExistsSync(options.crosstoolsHome)) {
+    throw Error('--crosstool-home does not specify a directory')
+  }
+
+  if (!options.nodeBinaryCache) {
+    options.nodeBinaryCache = tmpdir()
+  }
+
+  if (!pathExistsSync(options.nodeBinaryCache)) {
+    throw Error('--node-binary-cache does not exist')
+  }
+
+  if (options.sdlProfile === 'framework' && !pathExistsSync(options.frameworkPath)) {
+    throw Error('--framework-path must specify a valid directory when --sdl-profile framework is enabled')
+  }
+
+  return options
+}
+
+const getPackageName = ({platform, arch, profile, sdlProfile}, lightSourceVersion) => {
+  let postFix = ''
+
+  if (platform === 'darwin') {
+    platform = 'mac'
+  } else if (profile === Profile.pi) {
+    if (sdlProfile === SDLProfile.rpi) {
+      postFix = "-rpi"
+    } else if (sdlProfile === SDLProfile.kmsdrm) {
+      postFix = "-kmsdrm"
+    }
+  } else if (profile === Profile.psclassic || profile === Profile.nclassic) {
+    platform = profile
+  }
+
+  return `ls-node-v${lightSourceVersion}-${platform}-${arch}${postFix}`
+}
+
+class LightSourceBundle {
+  constructor (srcRoot, options) {
+    const lightSourceVersion = readPkg.sync({ cwd: join(srcRoot, 'packages', 'light-source') }).version
+    const packageName = getPackageName(options, lightSourceVersion)
+    const home = join(srcRoot, 'build', packageName)
+    let nodeHome
+
+    if (options.profile === Profile.nclassic || options.profile === Profile.psclassic) {
+      nodeHome = join(home, 'usr', 'share', 'ls-node')
+    } else {
+      nodeHome = home
+    }
+
+    const nodeModules = join(nodeHome, 'lib', 'node_modules')
+
+    this.staging = {
+      home,
+      nodeHome,
+      nodeLib: join(nodeHome, 'lib'),
+      nodeFrameworks: join(nodeHome, 'lib', 'Frameworks'),
+      nodeRpath: join(nodeHome, 'lib', 'rpath'),
+      nodeBin: join(nodeHome, 'bin'),
+      nodeModules,
+      nodeLightSource: join(nodeModules, 'light-source'),
+      nodeLightSourceAddon: join(nodeModules, 'light-source', 'Release'),
+      nodeLightSourceReact: join(nodeModules, 'light-source-react'),
+      nodeReact: join(nodeModules, 'react'),
+    }
+
+    this.options = options
+    this.srcRoot = srcRoot
+    this.nodeVersion = process.version
+    this.nodeTag = `node-${this.nodeVersion}-${this.options.platform}-${this.options.arch}`
+
+    if (this.options.isArmCrossCompile) {
+      this.crosstoolsSysroot = `${this.options.crosstoolsHome}/x64-gcc-6.3.1/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot`
+    }
+  }
+
+  async build() {
+    await Promise.all([
+      this.#compile(),
+      this.#stagingFirstPass()
+    ])
+    
+    await this.#stagingSecondPass()
+
+    console.log(`package: creating package...`)
+
+    if (this.options.profile === Profile.psclassic) {
+      // TODO: this should be in deb package format, not tar.gz
+      const mod = `${basename(this.staging.home)}.mod`
+
+      console.log(`package: ${mod}`)
+
+      await command('tar', ['-cvzf', `../${mod}`, '.'],
+        {shell: true, cwd: this.staging.home})
+    } else if (this.options.profile === Profile.nclassic) {
+      // TODO: add install/uninstall script, bin link
+      const hmod = `${basename(this.staging.home)}.hmod`
+
+      console.log(`package: ${hmod}`)
+
+      await command('tar', ['-cvzf', `../${hmod}`, '.'],
+        {shell: true, cwd: this.staging.home})
+    } else {
+      const tar = `${basename(this.staging.home)}.tar.gz`
+
+      console.log(`package: ${tar}`)
+
+      await command('tar', ['-C', 'build', '-cvzf', join('build', tar), this.staging.home],
+        {shell: true, cwd: this.srcRoot})
+    }
+
+    console.log(`package: creating package... complete`)
+  }
+
+  async #stagingFirstPass () {
+    const nodeHomeCache = join(this.options.nodeBinaryCache, this.nodeTag)
+
+    if (!pathExistsSync(nodeHomeCache)) {
+      const url = `https://nodejs.org/download/release/${this.nodeVersion}/${this.nodeTag}.tar.gz`
+
+      console.log('staging: downloading node...')
+      console.log(`staging: ${url}`)
+      await command(`wget -qO- "${url}" | tar -C "${this.options.nodeBinaryCache}" -xzf -`, { shell: true })
+      console.log('staging: downloading node... complete')
+    } else {
+      console.log(`Using node (${this.nodeTag}) from cache...`)
+    }
+
+    emptyDirSync(this.staging.home)
+    ensureDirSync(this.staging.nodeHome)
+
+    if (this.options.minimalNodeInstall) {
+      console.log('staging: adding minimal node package...')
+      ensureDirSync(this.staging.nodeLib)
+      ensureDirSync(this.staging.nodeBin)
+      ensureDirSync(this.staging.nodeModules)
+      await copy(join(nodeHomeCache, 'bin', 'node'), join(this.staging.nodeBin, 'node'))
+      console.log('staging: adding minimal node package... complete')
+    } else {
+      console.log('staging: adding full node package...')
+      await copy(nodeHomeCache, this.staging.nodeHome)
+      console.log('staging: adding full node package... complete')
+    }
+
+    const nodeBinaryPath = join(this.staging.nodeBin, '__node')
+
+    console.log('staging: wrapping node binary...')
+    await move(join(this.staging.nodeBin, 'node'), nodeBinaryPath)
+    console.log('staging: wrapping node binary... complete')
+
+    await copy(join(this.srcRoot, 'scripts', 'static', 'ls-node.sh'), join(this.staging.nodeBin, 'node'))
+
+    if (this.options.platform === 'linux') {
+      console.log('staging: patching node binary rpath...')
+      ensureDirSync(join(this.staging.nodeRpath))
+      await command ('patchelf', [ '--set-rpath', '$ORIGIN/../lib/rpath', nodeBinaryPath ])
+      console.log('staging: patching node binary rpath... complete')
+    }
+
+    if (this.options.compressNodeBinary) {
+      console.log('staging: compressing node binary...')
+      await command ('upx', [ '-q', nodeBinaryPath ])
+      console.log('staging: compressing node binary... complete')
+    }
+
+    ensureDirSync(this.staging.nodeLightSource)
+    ensureDirSync(this.staging.nodeLightSourceReact)
+    ensureDirSync(this.staging.nodeReact)
+
+    if (this.options.sdlProfile === SDLProfile.framework) {
+      const sdl2 = join(this.staging.nodeFrameworks, 'SDL2.framework')
+      const sdl2Mixer = join(this.staging.nodeFrameworks, 'SDL2_mixer.framework')
+
+      ensureDirSync(sdl2)
+      ensureDirSync(sdl2Mixer)
+
+      console.log('staging: adding Mac SDL Frameworks...')
+      await copy(join(this.options.frameworkPath, 'SDL2.framework'), sdl2)
+      await copy(join(this.options.frameworkPath, 'SDL2_mixer.framework'), sdl2Mixer)
+      console.log('staging: adding Mac SDL Frameworks... complete')
+    }
+
+    if (this.options.isArmCrossCompile) {
+      const cpp = 'libstdc++.so.6.0.22'
+
+      console.log('staging: adding cpp 6.0.22 library...')
+      await copy(join(this.crosstoolsSysroot, 'lib', cpp), join(this.staging.nodeRpath, cpp))
+      await createSymlink(cpp, join(this.staging.nodeRpath, 'libstdc++.so.6'))
+      console.log('staging: adding cpp 6.0.22 library... complete')
+    }
+
+    if (this.options.profile === Profile.nclassic || this.options.profile === Profile.psclassic) {
+      console.log('staging: adding SDL2 symlink...')
+      await createSymlink('/usr/lib/libSDL2.so', join(this.staging.nodeRpath, 'libSDL2-2.0.so.0'))
+      await createSymlink('/usr/lib/libSDL2_mixer.so', join(this.staging.nodeRpath, 'libSDL2_mixer-2.0.so.0'))
+      console.log('staging: adding SDL2 symlink... complete')
+    }
+  }
+
+  async #stagingSecondPass () {
+    ensureDirSync(this.staging.nodeLightSourceAddon)
+    ensureDirSync(this.staging.nodeLightSourceReact)
+    ensureDirSync(this.staging.nodeReact)
+
+    console.log('staging: adding LightSourceEngine files from source root...')
+
+    const copies = await Promise.allSettled([
+      copy(join(this.srcRoot, 'packages/light-source/build/Release/light-source.node'),
+        join(this.staging.nodeLightSourceAddon, 'light-source.node')),
+      copy(join(this.srcRoot, 'packages/light-source/build/Release/light-source-sdl.node'),
+        join(this.staging.nodeLightSourceAddon, 'light-source-sdl.node')),
+      copy(join(this.srcRoot, 'packages/light-source/build/Release/light-source-sdl-audio.node'),
+        join(this.staging.nodeLightSourceAddon, 'light-source-sdl-audio.node')),
+      copy(join(this.srcRoot, 'packages/light-source/build/Release/light-source-sdl-mixer.node'),
+        join(this.staging.nodeLightSourceAddon, 'light-source-sdl-mixer.node')),
+      copy(join(this.srcRoot, 'packages/light-source/dist/light-source.standalone.cjs'),
+        join(this.staging.nodeLightSource, 'index.js')),
+      copy(join(this.srcRoot, 'packages/light-source-react/dist/light-source-react.standalone.cjs'),
+        join(this.staging.nodeLightSourceReact, 'index.js')),
+      copy(join(this.srcRoot, 'packages/light-source-node/dist/react.standalone.cjs'),
+        join(this.staging.nodeReact, 'index.js'))
+    ])
+
+    const firstRejected = copies.find(value => value.status === 'rejected')
+
+    if (firstRejected) {
+      throw firstRejected.reason
+    }
+
+    console.log('staging: adding LightSourceEngine files from source root... complete')
+  }
+
+  async #compile () {
+    if (this.options.skipBuild) {
+      console.log('compile: skipping, using files already in source root')
+      return
+    }
+
+    let program
+    let programArgs
+    const env = {
+      ...process.env,
+      npm_config_ls_install_opts: '--jobs max',
+      npm_config_ls_with_tests: 'false',
+      npm_config_ls_with_sdl_mixer: 'true'
+    }
+
+    if (this.options.isArmCrossCompile) {
+      const sysroot = this.crosstoolsSysroot
+      const crossProfile = { armv6l: 'rpizero', armv7l: 'rpi' }[this.options.arch]
+
+      if (crossProfile === undefined) {
+        throw Error('cross: unsupported arch' + this.options.arch)
+      }
+
+      program = 'cross'
+      programArgs = [crossProfile, 'yarn']
+
+      env.npm_config_ls_sdl_include = `${sysroot}/usr/include`
+      env.npm_config_ls_sdl_lib = `${sysroot}/usr/lib`
+      env.npm_config_ls_sdl_mixer_include = `${sysroot}/usr/include`
+      env.npm_config_ls_sdl_mixer_lib = `${sysroot}/usr/lib`
+      // env.npm_config_ls_asmjit_build = 'arm'
+      if (process.env.PATH) {
+        env.PATH += delimiter
+      } else {
+        env.PATH = ''
+      }
+      env.PATH += join(this.options.crosstoolsHome, 'bin')
+    } else {
+      program = 'yarn'
+      programArgs = []
+    }
+
+    if (this.options.sdlProfile === SDLProfile.framework) {
+      env.npm_config_ls_framework_path = this.options.frameworkPath
+    }
+
+    console.log('compile: running yarn...')
+
+    const compileInterval = setInterval(() => { console.log('compile: still working...') }, 5000)
+
+    await command(program, [...programArgs, '--force'], { shell: true, cwd: this.srcRoot, env })
+
+    clearInterval(compileInterval)
+    console.log('compile: running yarn... complete')
   }
 }
 
-const installArchSpecificFiles = () => {
-  if (sTargetArch.startsWith('arm')) {
-    const cpp = 'libstdc++.so.6.0.22'
+let cloptions
 
-    console.log('Copying libstdc++...')
-
-    copySync(join(sCrossToolsSysroot, 'lib', cpp), join(sStagingPath, 'lib', 'rpath', cpp))
-    symlinkSync(cpp, join(sStagingPath, 'lib', 'rpath', 'libstdc++.so.6'))
-  }
-
-  if (sTargetPlatformAlias === 'nesc' || sTargetPlatformAlias === 'psc') {
-    console.log('Creating SDL2 symlink...')
-
-    symlinkSync('/usr/lib/libSDL2.so', join(sStagingPath, 'lib', 'rpath', 'libSDL2-2.0.so.0'))
-  }
-}
-
-const createPackage = () => {
-  const tar = `${sLsNodeName}.tar.gz`
-
-  console.log(`Packaging [${tar}]...`)
-
-  run('tar', [ '-C', 'build', '-cvzf', join('build', tar), sLsNodeName ], { shell: true })
-}
-
-const load = () => {
-  const options = commandLineArgs(optionDefinitions, { camelCase: true })
-  const match = /^(\w+)-(\w+)$/.exec(options.tag)
-
-  sFrameworkPath = options.frameworkPath
-  sSkipBuild = options.skipBuild
-
-  if (match) {
-    sTargetPlatformAlias = match[1]
-    sTargetArch = match[2]
-  } else {
-    exit(`Unknown platform/arch: ${options.tag}`)
-  }
-
-  switch (sTargetPlatformAlias) {
-    case 'nesc':
-    case 'psc':
-      sTargetPlatform = 'linux'
-      break
-    default:
-      sTargetPlatform = sTargetPlatformAlias
-      break
-  }
-
-  if (!sSupportedPlatforms.has(sTargetPlatformAlias)) {
-    exit(`Unsupported platform ${sTargetPlatformAlias}.`)
-  }
-
-  if (sTargetPlatform === 'darwin' && (!sFrameworkPath || !existsSync(sFrameworkPath))) {
-    exit('No framework path provided!')
-  }
-
-  sLightSourceVersion = readPkg.sync({ cwd: join('packages', 'light-source') }).version
-  sLsNodeName = `ls-node-v${sLightSourceVersion}-${sTargetPlatform}-${sTargetArch}`
-  sStagingPath = join('build', sLsNodeName)
-}
-
-const exit = (message) => {
-  console.error(`Error: ${message}`)
+try {
+  cloptions = getCommandLineOptions()
+} catch (e) {
+  console.log(e.message)
   process.exit(1)
 }
 
-const main = () => {
-  process.chdir(join(__dirname, '..'))
+const bundle = new LightSourceBundle(join(__dirname, '..'), cloptions)
 
-  load()
-  prepareStagingDirectory()
-  sSkipBuild || build()
-  installNodeBin()
-  installGlobalModules()
-  installArchSpecificFiles()
-  createPackage()
-}
-
-try {
-  main()
-} catch (e) {
-  exit(e.message)
-}
+bundle.build()
+  .then(() => {
+    console.log('done')
+  })
+  .catch((e) => {
+    console.log(e.message)
+    process.exit(1)
+  })

@@ -6,6 +6,8 @@ env:
     - npm_config_ls_with_sdl_mixer=true
     - npm_config_ls_install_opts="--jobs max"
     - LS_NODE_VERSION=v14.8.0
+    - NODE_DOWNLOADS="${HOME}/node_downloads"
+    - CROSSTOOLS_HOME="${HOME}/crosstools"
 cache:
   yarn: true
   directories:
@@ -44,16 +46,17 @@ matrix:
         - tar -xzf "${HOME}/ci-packages/SDL2-2.0.12.framework.tar.gz" --directory "$HOME/Frameworks"
         - tar -xzf "${HOME}/ci-packages/SDL2_mixer-2.0.4.framework.tar.gz" --directory "$HOME/Frameworks"
         - . ${HOME}/.nvm/nvm.sh
-      install:
         - nvm install $LS_NODE_VERSION
+        - mkdir -p "${NODE_DOWNLOADS}"
+      install:
         - set +e
         - (cd scripts && yarn)
         - set -e
-        - ./scripts/build-ls-node.js --framework-path "${npm_config_ls_framework_path}"
+        - ./scripts/build-ls-node.js --sdl-profile framework --framework-path "${npm_config_ls_framework_path}" --node-binary-cache "$NODE_DOWNLOADS"
       script: skip
     - name: "linux-armv7l [Release]"
       os: linux
-      env: npm_config_ls_with_tests=false NODE_DOWNLOADS="${HOME}/node_downloads"
+      env: npm_config_ls_with_tests=false
       addons:
         apt:
           packages: [patchelf]
@@ -62,12 +65,12 @@ matrix:
         - mkdir -p "${NODE_DOWNLOADS}"
         - git clone --depth 1 https://github.com/lightsourceengine/crosstools.git "${HOME}/crosstools"
         - . ${HOME}/.nvm/nvm.sh
-      install:
         - nvm install $LS_NODE_VERSION
+      install:
         - set +e
         - (cd scripts && yarn)
         - set -e
-        - ./scripts/build-ls-node.js linux-armv7l
+        - ./scripts/build-ls-node.js --platform linux --arch armv7l --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
       script: skip
   exclude:
     - name: "windows-x64 [Release]"
