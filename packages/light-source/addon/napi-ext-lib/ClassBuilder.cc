@@ -100,7 +100,7 @@ static napi_value StaticVoidMethodBinding(napi_env env, napi_callback_info info)
     Napi::CallbackInfo cbi(env, info);
 
     assert(cbi.Data());
-    reinterpret_cast<ClassBuilderMethod>(cbi.Data())(cbi);
+    reinterpret_cast<ClassBuilderVoidMethod>(cbi.Data())(cbi);
 
     return nullptr;
 }

@@ -84,7 +84,7 @@ const char* LogProcessArg(std::nullptr_t) noexcept;
 // Log methods called by LOG_* macros.
 template<typename... Args>
 void Log(const LogLevel logLevel, const LogSite& site, const char* format, const Args&... args) noexcept {
-    const auto hasMessage{ format[0] != '\0' };
+    const auto hasMessage{ format && format[0] != '\0' };
 
     LogPrintHeader(logLevel, site, hasMessage);
 
