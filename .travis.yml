@@ -15,7 +15,7 @@ cache:
 
 matrix:
   include:
-    - name: "linux-x64 [Release]"
+    - name: "linux-x64 [full-build]"
       os: linux
       env: npm_config_ls_with_tests=true
       addons:
@@ -28,7 +28,7 @@ matrix:
         - sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
       install: yarn --force
       script: skip
-    - name: "darwin-x64 [Release]"
+    - name: "darwin-x64 [full-build]"
       os: osx
       env: npm_config_ls_with_tests=true
       before_install:
@@ -38,39 +38,60 @@ matrix:
       script: yarn run lint
     - name: "darwin-x64 [ls-node]"
       os: osx
-      env: npm_config_ls_framework_path="$HOME/Frameworks"
       before_install:
         - set -e
-        - git clone --depth 1 https://github.com/lightsourceengine/ci-packages.git "${HOME}/ci-packages"
         - mkdir -p "$HOME/Frameworks"
+        - mkdir -p "${NODE_DOWNLOADS}"
+        - . ${HOME}/.nvm/nvm.sh
+        - nvm install $LS_NODE_VERSION
+        - git clone --depth 1 https://github.com/lightsourceengine/ci-packages.git "${HOME}/ci-packages"
         - tar -xzf "${HOME}/ci-packages/SDL2-2.0.12.framework.tar.gz" --directory "$HOME/Frameworks"
         - tar -xzf "${HOME}/ci-packages/SDL2_mixer-2.0.4.framework.tar.gz" --directory "$HOME/Frameworks"
-        - . ${HOME}/.nvm/nvm.sh
-        - nvm install $LS_NODE_VERSION
-        - mkdir -p "${NODE_DOWNLOADS}"
       install:
         - set +e
-        - (cd scripts && yarn)
+        - (cd scripts && yarn) # XXX: travis hung here when yarn returned non-zero for a warning, unset -e to get output
         - set -e
-        - ./scripts/build-ls-node.js --sdl-profile framework --framework-path "${npm_config_ls_framework_path}" --node-binary-cache "$NODE_DOWNLOADS"
+        - ./scripts/build-ls-node.js --sdl-profile framework --framework-path "$HOME/Frameworks" --node-binary-cache "$NODE_DOWNLOADS"
       script: skip
-    - name: "linux-armv7l [Release]"
+    - name: "linux-armv7l [ls-node]"
       os: linux
-      env: npm_config_ls_with_tests=false
-      addons:
-        apt:
-          packages: [patchelf]
       before_install:
         - set -e
         - mkdir -p "${NODE_DOWNLOADS}"
-        - git clone --depth 1 https://github.com/lightsourceengine/crosstools.git "${HOME}/crosstools"
         - . ${HOME}/.nvm/nvm.sh
         - nvm install $LS_NODE_VERSION
+        - git clone --depth 1 https://github.com/lightsourceengine/crosstools.git "${HOME}/crosstools"
       install:
-        - set +e
         - (cd scripts && yarn)
-        - set -e
         - ./scripts/build-ls-node.js --platform linux --arch armv7l --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
+      script: skip
+    - name: "pi-armv7l-rpi [release]"
+      os: linux
+      before_install:
+        - set -e
+        - mkdir -p "${NODE_DOWNLOADS}"
+        - . ${HOME}/.nvm/nvm.sh
+        - nvm install $LS_NODE_VERSION
+        - git clone --depth 1 https://github.com/lightsourceengine/crosstools.git "${HOME}/crosstools"
+        - git clone --depth 1 https://github.com/lightsourceengine/ci-packages.git "${HOME}/ci-packages"
+        - tar -xzf "${HOME}/ci-packages/SDL2-2.0.12-armv7l-rpi.tar.gz" --directory "$HOME"
+      install:
+        - (cd scripts && yarn)
+        - ./scripts/build-ls-node.js --platform pi --arch armv7l --sdl-profile rpi --sdl-root "${HOME}/SDL2-2.0.12-armv7l-rpi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
+      script: skip
+    - name: "pi-armv7l-kmsdrm [release]"
+      os: linux
+      before_install:
+        - set -e
+        - mkdir -p "${NODE_DOWNLOADS}"
+        - . ${HOME}/.nvm/nvm.sh
+        - nvm install $LS_NODE_VERSION
+        - git clone --depth 1 https://github.com/lightsourceengine/crosstools.git "${HOME}/crosstools"
+        - git clone --depth 1 https://github.com/lightsourceengine/ci-packages.git "${HOME}/ci-packages"
+        - tar -xzf "${HOME}/ci-packages/SDL2-2.0.12-armv7l-kmsdrm.tar.gz" --directory "$HOME"
+      install:
+        - (cd scripts && yarn)
+        - ./scripts/build-ls-node.js --platform pi --arch armv7l --sdl-profile kmsdrm --sdl-root "${HOME}/SDL2-2.0.12-armv7l-kmsdrm" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
       script: skip
   exclude:
     - name: "windows-x64 [Release]"

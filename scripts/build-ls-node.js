@@ -212,7 +212,7 @@ const getCommandLineOptions = () => {
     throw Error('--crosstool-home does not specify a directory')
   }
 
-  if ((this.options.sdlProfile === SDLProfile.rpi || this.options.sdlProfile === SDLProfile.kmsdrm)
+  if ((options.sdlProfile === SDLProfile.rpi || options.sdlProfile === SDLProfile.kmsdrm)
       && !pathExistsSync(options.sdlRoot)) {
     throw Error('--sdl-root does not specify a directory')
   }
