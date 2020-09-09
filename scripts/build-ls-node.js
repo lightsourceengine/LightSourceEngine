@@ -12,7 +12,7 @@
 // --platform value [Default: process.platform Values: darwin, linux]
 // The target platform id.
 //
-// --arch value [Default: process.arch Values: armv7l, armv6l, x64]
+// --arch value [Default: process.arch Values: armv7l, x64]
 // The target arch id.
 //
 // --profile value [Default: none Value: none, pi, nclassic, psclassic]
@@ -33,11 +33,20 @@
 // --crosstools-home path
 // If cross compiling to arm, this path points to the source root of the crosstools project.
 //
+// --sdl-root path
+// If an SDL video profile of rpi or kmsdrm is specified, this is the path is used. The path points to a directory
+// containing an include (SDL2 headers) and lib (pre-compiled SDL2 shared object for the target). Light Source Engine
+// will be built against this SDL2 version and the shared object will be included in the final package.
+//
 // --skip-build
 // If specified, yarn --force is not run and this script assumes LightSourceEngine has been successfully build.
 //
 // --compress-node-binary
 // If specified, the node executable is compressed with upx. This is useful for systems with limited disk space.
+//
+// --strip-node-binary
+//
+// If specified, the node executable will be stripped of debug symbols.
 //
 // --minimal-node-install
 // If specified, nearly everything except the node binary is stripped from the official node package. The resulting
@@ -147,7 +156,6 @@ const Platform = {
 }
 
 const Architecture = {
-  armv6l: 'armv6l',
   armv7l: 'armv7l',
   x64: 'x64'
 }
@@ -177,6 +185,7 @@ const getCommandLineOptions = () => {
     { name: 'crosstools-home', type: String, multiple: false, defaultValue: '' },
     { name: 'skip-build', type: Boolean, defaultValue: false },
     { name: 'compress-node-binary', type: Boolean, defaultValue: false },
+    { name: 'strip-node-binary', type: Boolean, defaultValue: false },
     { name: 'minimal-node-install', type: Boolean, defaultValue: false }
   ]
 
@@ -193,7 +202,7 @@ const getCommandLineOptions = () => {
   validateStringArg(options, 'sdlProfile', SDLProfile)
 
   options.isArmCrossCompile = (process.platform === 'linux' && process.arch === 'x64'
-      && options.platform === 'linux' && (options.arch === Architecture.armv6l || options.arch === Architecture.armv7l))
+      && options.platform === 'linux' && (options.arch === Architecture.armv7l))
 
   if (!options.isArmCrossCompile && (options.platform !== process.platform || options.arch !== process.arch)) {
     throw Error(`Host ${process.platform}-${process.arch} cannot compile to target ${options.platform}-${options.arch}`)
@@ -201,6 +210,11 @@ const getCommandLineOptions = () => {
 
   if (options.isArmCrossCompile && !pathExistsSync(options.crosstoolsHome)) {
     throw Error('--crosstool-home does not specify a directory')
+  }
+
+  if ((this.options.sdlProfile === SDLProfile.rpi || this.options.sdlProfile === SDLProfile.kmsdrm)
+      && !pathExistsSync(options.sdlRoot)) {
+    throw Error('--sdl-root does not specify a directory')
   }
 
   if (!options.nodeBinaryCache) {
@@ -357,6 +371,18 @@ class LightSourceBundle {
       console.log('staging: patching node binary ld library path... complete')
     }
 
+    if (this.options.stripNodeBinary) {
+      console.log('staging: stripping node binary...')
+      if (this.options.isArmCrossCompile) {
+        const strip = join(
+          this.options.crosstoolsHome, 'x64-gcc-6.3.1/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip')
+        await command (strip, [nodeBinaryPath])
+      } else {
+        await command ('strip', [ nodeBinaryPath ])
+      }
+      console.log('staging: stripping node binary... complete')
+    }
+
     if (this.options.compressNodeBinary) {
       console.log('staging: compressing node binary...')
       await command ('upx', [ '-q', nodeBinaryPath ])
@@ -389,7 +415,10 @@ class LightSourceBundle {
       console.log('staging: adding cpp 6.0.22 library... complete')
     }
 
-    if (this.options.profile === Profile.nclassic || this.options.profile === Profile.psclassic) {
+    if (this.options.sdlProfile === SDLProfile.rpi || this.options.sdlProfile === SDLProfile.kmsdrm) {
+      await copy(join(this.options.sdlRoot, 'lib', 'libSDL2-2.0.so.0'), 
+        join(this.staging.nodeLdLibraryPath, 'libSDL2-2.0.so.0'))
+    } else if (this.options.profile === Profile.nclassic || this.options.profile === Profile.psclassic) {
       console.log('staging: adding SDL2 symlink...')
       await createSymlink('/usr/lib/libSDL2.so', join(this.staging.nodeLdLibraryPath, 'libSDL2-2.0.so.0'))
       await createSymlink('/usr/lib/libSDL2_mixer.so', join(this.staging.nodeLdLibraryPath, 'libSDL2_mixer-2.0.so.0'))
@@ -456,8 +485,7 @@ class LightSourceBundle {
       program = 'cross'
       programArgs = [crossProfile, 'yarn']
 
-      env.npm_config_ls_sdl_include = `${sysroot}/usr/include`
-      env.npm_config_ls_sdl_lib = `${sysroot}/usr/lib`
+      this.#configureSdlRoot(env, sysroot)
       env.npm_config_ls_sdl_mixer_include = `${sysroot}/usr/include`
       env.npm_config_ls_sdl_mixer_lib = `${sysroot}/usr/lib`
       // env.npm_config_ls_asmjit_build = 'arm'
@@ -484,6 +512,16 @@ class LightSourceBundle {
 
     clearInterval(compileInterval)
     console.log('compile: running yarn... complete')
+  }
+
+  #configureSdlRoot(env, sysroot) {
+    if (this.options.sdlProfile === SDLProfile.rpi || this.options.sdlProfile === SDLProfile.kmsdrm) {
+      env.npm_config_ls_sdl_include = join(this.options.sdlRoot, 'include')
+      env.npm_config_ls_sdl_lib = join(this.options.sdlRoot, 'lib')
+    } else {
+      env.npm_config_ls_sdl_include = `${sysroot}/usr/include`
+      env.npm_config_ls_sdl_lib = `${sysroot}/usr/lib`
+    }
   }
 }
 
