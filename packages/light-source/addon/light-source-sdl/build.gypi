@@ -14,6 +14,7 @@
         "../light-source-platform-lib",
         "../light-source-util-lib",
         "../deps/cpp17_headers/include",
+        "../deps/SDL2/include"
       ],
       "dependencies": [
         "napi-ext-lib",

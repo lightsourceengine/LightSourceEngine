@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <SDL2/SDL.h>
+#include <SDL2.include>
 #include <ls/SDLRenderer.h>
 #include <ls/GraphicsContext.h>
 

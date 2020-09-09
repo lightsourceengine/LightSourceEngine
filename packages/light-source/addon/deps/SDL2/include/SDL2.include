@@ -1,0 +1,19 @@
+/*
+ * Copyright (C) 2020 Daniel Anderson
+ *
+ * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
+ */
+
+#pragma once
+
+// Wraps up the different ways each platform includes SDL.h. Light Source Engine code should include SDL2 with
+// this file.
+
+#ifdef _WIN32
+    // The Windows SDL2 distribution does not have an SDL2 directory in it's include path.
+    #include <SDL2.h>
+#else
+    // For linux (debian) and brew (mac), headers are in an SDL2 directory in the include path. For mac framework
+    // packages, the compiler will use SDL2 to lookup the header in the SDL2.framework.
+    #include <SDL2/SDL.h>
+#endif

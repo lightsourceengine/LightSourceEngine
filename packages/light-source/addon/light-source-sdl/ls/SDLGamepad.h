@@ -7,7 +7,7 @@
 #pragma once
 
 #include <napi-ext.h>
-#include <SDL2/SDL.h>
+#include <SDL2.include>
 #include <vector>
 #include <ls/InputDevice.h>
 
