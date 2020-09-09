@@ -6,10 +6,11 @@
 
 #pragma once
 
-#include <ls/PixelFormat.h>
-#include <ls/Color.h>
 #include <cstdint>
 #include <std20/bit>
+
+#include "Color.h"
+#include "PixelFormat.h"
 
 namespace ls {
 

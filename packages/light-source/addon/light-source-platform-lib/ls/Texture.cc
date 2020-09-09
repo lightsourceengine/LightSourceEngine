@@ -5,7 +5,7 @@
  * tree.
  */
 
-#include <ls/Texture.h>
+#include "Texture.h"
 
 namespace ls {
 

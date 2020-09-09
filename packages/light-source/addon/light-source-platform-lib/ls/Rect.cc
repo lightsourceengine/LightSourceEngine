@@ -5,7 +5,8 @@
  * tree.
  */
 
-#include <ls/Rect.h>
+#include "Rect.h"
+
 #include <cmath>
 
 namespace ls {

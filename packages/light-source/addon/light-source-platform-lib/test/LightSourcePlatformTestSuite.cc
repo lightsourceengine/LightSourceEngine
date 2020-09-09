@@ -18,7 +18,7 @@ namespace ls {
 Object Init(Env env, Object exports) {
     HandleScope scope(env);
 
-    exports["test"] = Napi::TestSuite::Build(env, "light-source-graphics-lib native tests", {
+    exports["test"] = Napi::TestSuite::Build(env, "light-source-platform-lib native tests", {
         &ls::MatrixSpec,
         &ls::RectSpec,
     });
@@ -26,4 +26,4 @@ Object Init(Env env, Object exports) {
     return exports;
 }
 
-NODE_API_MODULE(LightSourceGraphicsTestSuite, Init);
+NODE_API_MODULE(LightSourcePlatformTestSuite, Init);

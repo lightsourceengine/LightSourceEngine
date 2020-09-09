@@ -4,10 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <napi-unit.h>
-#include <ls/Matrix.h>
 #include <ls/Math.h>
+#include <napi-unit.h>
+
 #include <std20/numbers>
+
+#include "../../light-source-platform-lib/ls/Matrix.h"
 
 using Napi::Assert;
 using Napi::TestInfo;

@@ -6,9 +6,10 @@
 
 #pragma once
 
-#include <ls/PixelFormat.h>
 #include <cstdint>
 #include <memory>
+
+#include "PixelFormat.h"
 
 namespace ls {
 

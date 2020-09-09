@@ -25,5 +25,5 @@ bindTestSuite([
   'light-source',
   'napi-ext-lib-test',
   'light-source-util-lib-test',
-  'light-source-graphics-lib-test'
+  'light-source-platform-lib-test'
 ], bindTestSuiteOptions)
