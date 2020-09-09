@@ -77,7 +77,7 @@ matrix:
         - tar -xzf "${HOME}/ci-packages/SDL2-2.0.12-armv7l-rpi.tar.gz" --directory "$HOME"
       install:
         - (cd scripts && yarn)
-        - ./scripts/build-ls-node.js --platform pi --arch armv7l --sdl-profile rpi --sdl-root "${HOME}/SDL2-2.0.12-armv7l-rpi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
+        - ./scripts/build-ls-node.js --platform linux --arch armv7l --profile pi --sdl-profile rpi --sdl-root "${HOME}/SDL2-2.0.12-armv7l-rpi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
       script: skip
     - name: "pi-armv7l-kmsdrm [release]"
       os: linux
@@ -91,7 +91,7 @@ matrix:
         - tar -xzf "${HOME}/ci-packages/SDL2-2.0.12-armv7l-kmsdrm.tar.gz" --directory "$HOME"
       install:
         - (cd scripts && yarn)
-        - ./scripts/build-ls-node.js --platform pi --arch armv7l --sdl-profile kmsdrm --sdl-root "${HOME}/SDL2-2.0.12-armv7l-kmsdrm" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
+        - ./scripts/build-ls-node.js --platform linux --arch armv7l --profile pi --sdl-profile kmsdrm --sdl-root "${HOME}/SDL2-2.0.12-armv7l-kmsdrm" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
       script: skip
   exclude:
     - name: "windows-x64 [Release]"

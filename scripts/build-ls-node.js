@@ -183,6 +183,7 @@ const getCommandLineOptions = () => {
     { name: 'framework-path', type: String, multiple: false, defaultValue: '/Library/Frameworks' },
     { name: 'node-binary-cache', type: String, multiple: false, defaultValue: '' },
     { name: 'crosstools-home', type: String, multiple: false, defaultValue: '' },
+    { name: 'sdl-root', type: String, multiple: false, defaultValue: '' },
     { name: 'skip-build', type: Boolean, defaultValue: false },
     { name: 'compress-node-binary', type: Boolean, defaultValue: false },
     { name: 'strip-node-binary', type: Boolean, defaultValue: false },
