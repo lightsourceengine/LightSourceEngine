@@ -67,9 +67,6 @@ matrix:
       script: skip
     - name: "pi-armv7l-rpi [release]"
       os: linux
-      addons:
-        apt:
-          packages: [ upx ]
       before_install:
         - set -e
         - mkdir -p "${NODE_DOWNLOADS}"
@@ -78,15 +75,14 @@ matrix:
         - git clone --depth 1 https://github.com/lightsourceengine/crosstools.git "${HOME}/crosstools"
         - git clone --depth 1 https://github.com/lightsourceengine/ci-packages.git "${HOME}/ci-packages"
         - tar -xzf "${HOME}/ci-packages/SDL2-2.0.12-armv7l-rpi.tar.gz" --directory "$HOME"
+        - wget -qO- https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz | tar xJ -C "$HOME"
+        - export PATH="$HOME/upx-3.96-amd64_linux:$PATH"
       install:
         - (cd scripts && yarn)
         - ./scripts/build-ls-node.js --platform linux --arch armv7l --profile pi --sdl-profile rpi --sdl-root "${HOME}/SDL2-2.0.12-armv7l-rpi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
       script: skip
     - name: "pi-armv7l-kmsdrm [release]"
       os: linux
-      addons:
-        apt:
-          packages: [ upx ]
       before_install:
         - set -e
         - mkdir -p "${NODE_DOWNLOADS}"
@@ -95,6 +91,8 @@ matrix:
         - git clone --depth 1 https://github.com/lightsourceengine/crosstools.git "${HOME}/crosstools"
         - git clone --depth 1 https://github.com/lightsourceengine/ci-packages.git "${HOME}/ci-packages"
         - tar -xzf "${HOME}/ci-packages/SDL2-2.0.12-armv7l-kmsdrm.tar.gz" --directory "$HOME"
+        - wget -qO- https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz | tar xJ -C "$HOME"
+        - export PATH="$HOME/upx-3.96-amd64_linux:$PATH"
       install:
         - (cd scripts && yarn)
         - ./scripts/build-ls-node.js --platform linux --arch armv7l --profile pi --sdl-profile kmsdrm --sdl-root "${HOME}/SDL2-2.0.12-armv7l-kmsdrm" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
