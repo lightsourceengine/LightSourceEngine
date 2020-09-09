@@ -67,6 +67,9 @@ matrix:
       script: skip
     - name: "pi-armv7l-rpi [release]"
       os: linux
+      addons:
+        apt:
+          packages: [ upx ]
       before_install:
         - set -e
         - mkdir -p "${NODE_DOWNLOADS}"
@@ -81,6 +84,9 @@ matrix:
       script: skip
     - name: "pi-armv7l-kmsdrm [release]"
       os: linux
+      addons:
+        apt:
+          packages: [ upx ]
       before_install:
         - set -e
         - mkdir -p "${NODE_DOWNLOADS}"
