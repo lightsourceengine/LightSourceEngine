@@ -23,6 +23,9 @@
         ".",
         "../napi-ext-lib",
       ],
+      "dependencies": [
+          "napi-ext-lib",
+      ],
       "sources": [
         "ls/bindings/Logger.cc",
       ]

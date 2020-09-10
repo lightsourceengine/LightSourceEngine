@@ -8,7 +8,7 @@
 #include <ls/DecodeFont.h>
 
 #include <array>
-#include <ls/Format.h>
+#include <ls/string-ext.h>
 
 using std17::filesystem::detail::equals_simple_insensitive;
 

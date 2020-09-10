@@ -7,13 +7,14 @@
 #include <ls/SDLPlatformPluginImpl.h>
 
 #include <ls/CapabilitiesView.h>
-#include <ls/Format.h>
+#include <ls/string-ext.h>
 #include <ls/Log.h>
 #include <ls/Timer.h>
 #include <ls/SDLGamepad.h>
 #include <ls/SDLGraphicsContextImpl.h>
 #include <ls/SDLKeyboard.h>
 #include <unordered_set>
+#include <ls/SDL2.h>
 
 using Napi::Array;
 using Napi::Boolean;
@@ -79,7 +80,7 @@ SDLPlatformPluginImpl::SDLPlatformPluginImpl(const CallbackInfo& info) {
     SDL_version linked{};
 
     SDL_VERSION(&compiled);
-    SDL_GetVersion(&linked);
+    SDL2::SDL_GetVersion(&linked);
 
     LOG_INFO("SDL Version: compiled=%i.%i.%i linked=%i.%i.%i",
              compiled.major, compiled.minor, compiled.patch,
@@ -117,10 +118,10 @@ Value SDLPlatformPluginImpl::GetCapabilities(const Napi::CallbackInfo &info) {
 
 Capabilities SDLPlatformPluginImpl::DetermineCapabilities(Napi::Env env) {
     Capabilities caps{};
-    auto numVideoDisplays{ SDL_GetNumVideoDisplays() };
+    auto numVideoDisplays{ SDL2::SDL_GetNumVideoDisplays() };
 
     if (numVideoDisplays < 0) {
-        LOG_ERROR("SDL_GetNumVideoDisplays: %s", SDL_GetError());
+        LOG_ERROR("SDL_GetNumVideoDisplays: %s", SDL2::SDL_GetError());
         return caps;
     }
 
@@ -128,21 +129,21 @@ Capabilities SDLPlatformPluginImpl::DetermineCapabilities(Napi::Env env) {
 
     for (auto i{ 0 }; i < numVideoDisplays; i++) {
         Display display{};
-        auto name{ SDL_GetDisplayName(i) };
+        auto name{ SDL2::SDL_GetDisplayName(i) };
 
         display.name = name ? name : "";
 
-        auto numDisplayModes{ SDL_GetNumDisplayModes(i) };
+        auto numDisplayModes{ SDL2::SDL_GetNumDisplayModes(i) };
 
         if (numDisplayModes < 0) {
-            LOG_ERROR("SDL_GetNumDisplayModes(%i: %s", i, SDL_GetError());
+            LOG_ERROR("SDL_GetNumDisplayModes(%i: %s", i, SDL2::SDL_GetError());
             continue;
         }
 
         SDL_DisplayMode desktopDisplayMode;
 
-        if (SDL_GetDesktopDisplayMode(i, &desktopDisplayMode) != 0) {
-            LOG_ERROR("SDL_GetDesktopDisplayMode(%i): %s", i, SDL_GetError());
+        if (SDL2::SDL_GetDesktopDisplayMode(i, &desktopDisplayMode) != 0) {
+            LOG_ERROR("SDL_GetDesktopDisplayMode(%i): %s", i, SDL2::SDL_GetError());
             continue;
         }
 
@@ -152,8 +153,8 @@ Capabilities SDLPlatformPluginImpl::DetermineCapabilities(Napi::Env env) {
         uniqueDisplayModes.clear();
 
         for (auto j{ 0 }; j < numDisplayModes; j++) {
-            if (SDL_GetDisplayMode(i, j, &displayMode) != 0) {
-                LOG_ERROR("SDL_GetDisplayMode(%i, %i): %s", i, j, SDL_GetError());
+            if (SDL2::SDL_GetDisplayMode(i, j, &displayMode) != 0) {
+                LOG_ERROR("SDL_GetDisplayMode(%i, %i): %s", i, j, SDL2::SDL_GetError());
                 uniqueDisplayModes.clear();
                 break;
             }
@@ -178,8 +179,10 @@ Napi::Value SDLPlatformPluginImpl::LoadGameControllerMappings(const Napi::Callba
         return Boolean::New(env, false);
     }
 
-    return Boolean::New(
-        env, SDL_GameControllerAddMappingsFromFile(info[0].As<String>().Utf8Value().c_str()) >= 0);
+    auto result = SDL2::SDL_GameControllerAddMappingsFromRW(
+        SDL2::SDL_RWFromFile(info[0].As<String>().Utf8Value().c_str(), "rb"), 1);
+
+    return Boolean::New(env, result >= 0);
 }
 
 void SDLPlatformPluginImpl::SetCallback(const CallbackInfo& info) {
@@ -205,21 +208,21 @@ void SDLPlatformPluginImpl::ResetCallbacks(const CallbackInfo& info) {
 }
 
 void SDLPlatformPluginImpl::Init(Napi::Env env) {
-    if (SDL_WasInit(SDL_INIT_VIDEO) == 0 && SDL_Init(SDL_INIT_VIDEO) != 0) {
-        throw Error::New(env, Format("Failed to init SDL video. SDL Error: %s", SDL_GetError()));
+    if (SDL2::SDL_WasInit(SDL_INIT_VIDEO) == 0 && SDL2::SDL_Init(SDL_INIT_VIDEO) != 0) {
+        throw Error::New(env, Format("Failed to init SDL video. SDL Error: %s", SDL2::SDL_GetError()));
     }
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+    SDL2::SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
-    if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0 && SDL_Init(SDL_INIT_JOYSTICK) != 0) {
-        throw Error::New(env, Format("Failed to init SDL joystick. SDL Error: %s", SDL_GetError()));
+    if (SDL2::SDL_WasInit(SDL_INIT_JOYSTICK) == 0 && SDL2::SDL_Init(SDL_INIT_JOYSTICK) != 0) {
+        throw Error::New(env, Format("Failed to init SDL joystick. SDL Error: %s", SDL2::SDL_GetError()));
     }
 
-    if (SDL_WasInit(SDL_INIT_GAMECONTROLLER) == 0 && SDL_Init(SDL_INIT_GAMECONTROLLER) != 0) {
-        throw Error::New(env, Format("Failed to init SDL gamecontroller. SDL Error: %s", SDL_GetError()));
+    if (SDL2::SDL_WasInit(SDL_INIT_GAMECONTROLLER) == 0 && SDL2::SDL_Init(SDL_INIT_GAMECONTROLLER) != 0) {
+        throw Error::New(env, Format("Failed to init SDL gamecontroller. SDL Error: %s", SDL2::SDL_GetError()));
     }
 
-    SDL_GameControllerEventState(SDL_IGNORE);
+    SDL2::SDL_GameControllerEventState(SDL_IGNORE);
 }
 
 void SDLPlatformPluginImpl::Attach(const CallbackInfo& info) {
@@ -247,7 +250,7 @@ void SDLPlatformPluginImpl::Detach(const CallbackInfo& info) {
 
     this->ClearGamepads();
 
-    SDL_Quit();
+    SDL2::SDL_Quit();
 
     this->isAttached = false;
 }
@@ -272,15 +275,16 @@ Value SDLPlatformPluginImpl::ProcessEvents(const Napi::CallbackInfo& info) {
     static constexpr auto NUM_EVENTS_PER_FRAME{ 20 };
     static SDL_Event eventBuffer[NUM_EVENTS_PER_FRAME];
 
-    SDL_PumpEvents();
+    SDL2::SDL_PumpEvents();
 
     auto env{ info.Env() };
     auto eventIndex{ 0 };
-    auto eventCount{ SDL_PeepEvents(eventBuffer, NUM_EVENTS_PER_FRAME, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT) };
+    auto eventCount{ SDL2::SDL_PeepEvents(
+        eventBuffer, NUM_EVENTS_PER_FRAME, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT) };
     auto result{ true };
 
     if (eventCount < 0) {
-        LOG_ERROR(SDL_GetError());
+        LOG_ERROR(SDL2::SDL_GetError());
         result = false;
     }
 
@@ -445,16 +449,16 @@ void SDLPlatformPluginImpl::DispatchJoystickHatMotion(
 }
 
 void SDLPlatformPluginImpl::DispatchJoystickAdded(Napi::Env env, int32_t index) {
-    auto joystick{ SDL_JoystickOpen(index) };
+    auto joystick{ SDL2::SDL_JoystickOpen(index) };
 
     if (!joystick) {
         // TODO: ????
         return;
     }
 
-    auto instanceId{ SDL_JoystickInstanceID(joystick) };
+    auto instanceId{ SDL2::SDL_JoystickInstanceID(joystick) };
 
-    SDL_JoystickClose(joystick);
+    SDL2::SDL_JoystickClose(joystick);
 
     if (this->gamepadsByInstanceId.find(instanceId) != this->gamepadsByInstanceId.end()) {
         return;
@@ -506,7 +510,7 @@ bool SDLPlatformPluginImpl::IsCallbackEmpty(StageCallback callbackId) {
 void SDLPlatformPluginImpl::SyncGamepads(Napi::Env env) {
     this->ClearGamepads();
 
-    for (int32_t i{ 0 }; i < SDL_NumJoysticks(); i++) {
+    for (int32_t i{ 0 }; i < SDL2::SDL_NumJoysticks(); i++) {
         try {
             this->AddGamepad(env, i);
         } catch (const std::exception& e) {

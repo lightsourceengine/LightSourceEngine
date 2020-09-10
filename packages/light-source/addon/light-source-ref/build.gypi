@@ -2,6 +2,7 @@
   "targets": [
     {
       "target_name": "light-source-ref",
+      "type": "static_library",
       "includes": [
         "../common.gypi",
       ],
@@ -16,13 +17,13 @@
       "dependencies": [
         "napi-ext-lib",
         "logger-lib",
-        "light-source-platform-lib"
+        "light-source-platform-lib",
+        "light-source-util-lib"
       ],
       "sources": [
         "ls/RefRenderer.cc",
         "ls/RefGraphicsContextImpl.cc",
-        "ls/RefPlatformPluginImpl.cc",
-        "ls/Init.cc",
+        "ls/RefPlatformPluginImpl.cc"
       ]
     }
   ]

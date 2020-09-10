@@ -8,7 +8,6 @@
 
 #include <napi.h>
 #include <ls/AudioPlugin.h>
-#include <SDL2.include>
 
 namespace ls {
 

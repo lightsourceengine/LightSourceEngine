@@ -11,6 +11,10 @@
         "../napi-ext-lib",
         "../logger-lib",
       ],
+      "dependencies": [
+        "napi-ext-lib",
+        "logger-lib",
+      ],
       "sources": [
         "ls/AudioPlugin.cc",
         "ls/AudioSource.cc",

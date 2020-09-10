@@ -23,7 +23,7 @@
 #include <ls/bindings/Logger.h>
 #include <napi.h>
 
-#ifdef LIGHT_SOURCE_NATIVE_TESTS
+#if defined(LS_ENABLE_NATIVE_TESTS)
 #include <test/LightSourceTestSuite.h>
 #endif
 
@@ -69,12 +69,13 @@ Object Init(Env env, Object exports) {
     ExportClass(exports, ls::RootSceneNode::GetClass(env));
 
     ExportFunction(exports, Function::New(env, &ls::bindings::ParseColor, "parseColor"));
+    ExportFunction(exports, Function::New(env, &ls::bindings::LoadPlugin, "loadPlugin"));
     ExportFunction(exports, Function::New(env, &ls::SceneNode::GetInstanceCount, "getSceneNodeInstanceCount"));
 
     exports["logger"] = ls::bindings::NewLoggerClass(env);
     exports["styleProperties"] = ls::bindings::GetStyleProperties(env);
 
-    #ifdef LIGHT_SOURCE_NATIVE_TESTS
+    #if defined(LS_ENABLE_NATIVE_TESTS)
     exports["test"] = ls::LightSourceTestSuite(env);
     #endif
 

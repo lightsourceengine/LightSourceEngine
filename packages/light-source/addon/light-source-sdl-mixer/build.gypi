@@ -1,37 +1,30 @@
 {
-  "conditions": [
-  [
-    "ls_with_sdl_mixer==\"true\"", {
-      "targets": [
-        {
-          "target_name": "light-source-sdl-mixer",
-          "includes": [
-            "../common.gypi",
-            "../sdl-mixer.gypi",
-            "../sdl.gypi"
-          ],
-          "include_dirs": [
-            ".",
-            "../napi-ext-lib",
-            "../logger-lib",
-            "../light-source-audio-lib",
-            "../light-source-util-lib",
-            "../deps/cpp17_headers/include",
-            "../deps/SDL2/include",
-          ],
-          "dependencies": [
-              "napi-ext-lib",
-              "logger-lib",
-              "light-source-audio-lib",
-              "light-source-util-lib",
-          ],
-          "sources": [
-            "ls/SDLMixerAudioPluginImpl.cc",
-            "ls/Init.cc",
-          ]
-        }
+  "targets": [
+    {
+      "target_name": "light-source-sdl-mixer",
+      "type": "static_library",
+      "includes": [
+        "../common.gypi"
+      ],
+      "include_dirs": [
+        ".",
+        "../napi-ext-lib",
+        "../logger-lib",
+        "../light-source-audio-lib",
+        "../light-source-util-lib",
+        "../deps/cpp17_headers/include",
+        "<(ls_sdl_include)",
+        "<(ls_sdl_mixer_include)"
+      ],
+      "dependencies": [
+          "napi-ext-lib",
+          "logger-lib",
+          "light-source-audio-lib",
+          "light-source-util-lib",
+      ],
+      "sources": [
+        "ls/SDLMixerAudioPluginImpl.cc"
       ]
     }
-  ]
   ]
 }

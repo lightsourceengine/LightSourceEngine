@@ -12,18 +12,27 @@
         "../logger-lib",
         "../deps/filesystem/include",
         "../deps/cpp17_headers/include",
+        "<(ls_sdl_include)",
+        "<(ls_sdl_mixer_include)",
+      ],
+      "dependencies": [
+          "napi-ext-lib",
+          "logger-lib",
       ],
       "sources": [
         "ls/Uri.cc",
-        "ls/Format.cc",
         "ls/Timer.cc",
+        "ls/System.cc",
         "ls/string-ext.cc",
+        "ls/SDL2.cc",
+        "ls/SDL2_mixer.cc",
+        "ls/internal/SharedLibrary.cc"
       ]
     }
   ],
   "conditions": [
     [
-      "ls_with_tests==\"true\"", {
+      "ls_enable_native_tests==1", {
         "targets": [{
           "target_name": "light-source-util-lib-test",
           "includes": [
@@ -33,9 +42,10 @@
             ".",
             "../napi-ext-lib",
             "../logger-lib",
-            "../cpp-compat",
             "../deps/filesystem/include",
             "../deps/cpp17_headers/include",
+            "<(ls_sdl_include)",
+            "<(ls_sdl_mixer_include)",
             "<!@(node -p \"require('napi-unit').include\")"
           ],
           "dependencies": [

@@ -2,9 +2,9 @@
   "targets": [
     {
       "target_name": "light-source-sdl-audio",
+      "type": "static_library",
       "includes": [
-        "../common.gypi",
-        "../sdl.gypi"
+        "../common.gypi"
       ],
       "include_dirs": [
         ".",
@@ -13,7 +13,7 @@
         "../light-source-audio-lib",
         "../light-source-util-lib",
         "../deps/cpp17_headers/include",
-        "../deps/SDL2/include"
+        "<(ls_sdl_include)"
       ],
       "dependencies": [
         "napi-ext-lib",
@@ -22,8 +22,7 @@
         "light-source-util-lib",
       ],
       "sources": [
-        "ls/SDLAudioPluginImpl.cc",
-        "ls/Init.cc",
+        "ls/SDLAudioPluginImpl.cc"
       ]
     }
   ]

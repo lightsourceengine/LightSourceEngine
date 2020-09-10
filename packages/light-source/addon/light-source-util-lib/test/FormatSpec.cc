@@ -5,7 +5,7 @@
  */
 
 #include <napi-unit.h>
-#include <ls/Format.h>
+#include <ls/string-ext.h>
 
 using Napi::Assert;
 using Napi::TestInfo;

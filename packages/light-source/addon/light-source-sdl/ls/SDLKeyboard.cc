@@ -6,7 +6,7 @@
 
 #include <ls/SDLKeyboard.h>
 
-#include <SDL2.include>
+#include <ls/SDL2.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -54,7 +54,7 @@ Value SDLKeyboard::IsButtonDown(const CallbackInfo& info) {
     if (info[0].IsNumber()) {
         auto len{0};
         auto keyIndex{info[0].As<Number>().Int32Value()};
-        auto state = SDL_GetKeyboardState(&len);
+        auto state = SDL2::SDL_GetKeyboardState(&len);
 
         isDown = (keyIndex > 0 && keyIndex < len && state && state[keyIndex] != 0);
     } else {

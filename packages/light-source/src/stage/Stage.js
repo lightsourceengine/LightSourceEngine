@@ -5,8 +5,7 @@
  */
 
 import { Scene } from '../scene/Scene.js'
-import { load } from '../addon/load.js'
-import { addonError, logger, StageBase } from '../addon/index.js'
+import { addonError, loadPlugin, logger, StageBase } from '../addon/index.js'
 import { InputManager } from '../input/InputManager.js'
 import { AudioManager } from '../audio/AudioManager.js'
 import { isNumber, logexcept, EventEmitter, now } from '../util/index.js'
@@ -96,12 +95,12 @@ export class Stage extends StageBase {
       throw Error('Stage platform plugin has already been initialized.')
     }
 
-    this.loadPlugin('light-source-sdl.node')
+    this.loadPlugin('platform:sdl')
 
     if (!this._audioPlugin) {
       const site = 'init()'
-      const mixer = 'light-source-sdl-mixer.node'
-      const audio = 'light-source-sdl-audio.node'
+      const mixer = 'audio:sdl-mixer'
+      const audio = 'audio:sdl-audio'
 
       try {
         this.loadPlugin(mixer)
@@ -127,13 +126,7 @@ export class Stage extends StageBase {
     }
 
     const site = 'loadPlugin()'
-    let Plugin
-
-    if (typeof plugin === 'string') {
-      Plugin = load(plugin)
-    } else {
-      Plugin = plugin
-    }
+    const Plugin = loadPlugin(plugin)
 
     assertPluginInterface(Plugin)
 

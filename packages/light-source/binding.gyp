@@ -1,38 +1,25 @@
 {
   "variables": {
-    "ls_with_sdl_mixer%": "false",
-    "ls_with_tests%": "false",
-    "ls_framework_path%": "@none",
-    "conditions": [
-      [
-        "OS==\"mac\"", {
-          "ls_sdl_include%": "/usr/local/include",
-          "ls_sdl_lib%": "/usr/local/lib",
-          "ls_sdl_mixer_include%": "/usr/local/include",
-          "ls_sdl_mixer_lib%": "/usr/local/lib"
-        }
-      ],
-      [
-        "OS==\"linux\"", {
-          "ls_sdl_include%": "/usr/include",
-          "ls_sdl_lib%": "/usr/lib/<!@(gcc -dumpmachine)",
-          "ls_sdl_mixer_include%": "/usr/include",
-          "ls_sdl_mixer_lib%": "/usr/lib/<!@(gcc -dumpmachine)",
-        }
-      ],
-      [
-        "OS==\"win\"", {
-          "ls_sdl_include%": "<!@(echo %USERPROFILE%)\\SDL2\\include",
-          "ls_sdl_lib%": "<!@(echo %USERPROFILE%)\\SDL2\\lib\\x64",
-          "ls_sdl_mixer_include%": "<!@(echo %USERPROFILE%)\\SDL2_mixer\\include",
-          "ls_sdl_mixer_lib%": "<!@(echo %USERPROFILE%)\\SDL2_mixer\\lib\\x64",
-        }
-      ]
-    ]
+    "ls_enable_plugin_platform_sdl%": "1",
+    "ls_enable_plugin_platform_ref%": "1",
+    "ls_enable_plugin_audio_sdl_audio%": "1",
+    "ls_enable_plugin_audio_sdl_mixer%": "1",
+    "ls_enable_plugin_audio_ref%": "1",
+    "ls_enable_native_tests%": "0",
+    "ls_sdl_include%": "addon/deps/SDL/repo/include",
+    "ls_sdl_mixer_include%": "addon/deps/SDL_mixer/repo",
   },
   "target_defaults": {
     "include_dirs": [
       "<!@(node -p \"require('node-addon-api').include\")",
+    ],
+    "conditions": [
+      [ "ls_enable_native_tests==1", { "defines": [ "LS_ENABLE_NATIVE_TESTS" ] } ],
+      [ "ls_enable_plugin_platform_sdl==1", { "defines": [ "LS_ENABLE_PLUGIN_PLATFORM_SDL" ] } ],
+      [ "ls_enable_plugin_platform_ref==1", { "defines": [ "LS_ENABLE_PLUGIN_PLATFORM_REF" ] } ],
+      [ "ls_enable_plugin_audio_sdl_audio==1", { "defines": [ "LS_ENABLE_PLUGIN_AUDIO_SDL_AUDIO" ] } ],
+      [ "ls_enable_plugin_audio_sdl_mixer==1", { "defines": [ "LS_ENABLE_PLUGIN_AUDIO_SDL_MIXER" ] } ],
+      [ "ls_enable_plugin_audio_ref==1", { "defines": [ "LS_ENABLE_PLUGIN_AUDIO_REF" ] } ],
     ]
   },
   "includes": [
@@ -49,13 +36,13 @@
     "addon/light-source-platform-lib/build.gypi",
     "addon/light-source-util-lib/build.gypi",
     "addon/logger-lib/build.gypi",
-
-    # node modules
-    "addon/light-source/build.gypi",
     "addon/light-source-ref/build.gypi",
     "addon/light-source-ref-audio/build.gypi",
     "addon/light-source-sdl/build.gypi",
     "addon/light-source-sdl-audio/build.gypi",
     "addon/light-source-sdl-mixer/build.gypi",
+
+    # node modules
+    "addon/light-source/build.gypi"
   ]
 }

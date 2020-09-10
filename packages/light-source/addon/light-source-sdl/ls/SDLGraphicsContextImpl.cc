@@ -37,7 +37,7 @@ void SDLGraphicsContextImpl::Attach(const Napi::CallbackInfo& info) {
     if (!this->window) {
         auto displayIndex{ this->configDisplayIndex };
 
-        this->window = SDL_CreateWindow(
+        this->window = SDL2::SDL_CreateWindow(
             this->title.c_str(),
             SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex),
             SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex),
@@ -46,22 +46,22 @@ void SDLGraphicsContextImpl::Attach(const Napi::CallbackInfo& info) {
             this->configFullscreen ? SDL_WINDOW_FULLSCREEN : 0);
 
         if (!this->window) {
-            LOG_ERROR("SDL_CreateWindow(): %s", SDL_GetError());
+            LOG_ERROR("SDL_CreateWindow(): %s", SDL2::SDL_GetError());
             throw Error::New(env, "Failed to create window");
         }
 
         if (this->configFullscreen) {
-            SDL_ShowCursor(SDL_DISABLE);
+            SDL2::SDL_ShowCursor(SDL_DISABLE);
         }
 
         SDL_DisplayMode displayMode{};
 
-        SDL_GetWindowDisplayMode(window, &displayMode);
+        SDL2::SDL_GetWindowDisplayMode(window, &displayMode);
 
         LOG_INFO("size=%i,%i format=%s refreshRate=%i displayIndex=%i",
             displayMode.w,
             displayMode.h,
-            SDL_GetPixelFormatName(displayMode.format),
+            SDL2::SDL_GetPixelFormatName(displayMode.format),
             displayMode.refresh_rate,
             displayIndex);
     }
@@ -77,7 +77,7 @@ void SDLGraphicsContextImpl::Detach(const Napi::CallbackInfo& info) {
     this->renderer.Detach();
 
     if (this->window) {
-        SDL_DestroyWindow(this->window);
+        SDL2::SDL_DestroyWindow(this->window);
         this->window = nullptr;
     }
 }
@@ -114,7 +114,7 @@ void SDLGraphicsContextImpl::SetTitle(const Napi::CallbackInfo& info, const Napi
     }
 
     if (this->window) {
-        SDL_SetWindowTitle(this->window, this->title.c_str());
+        SDL2::SDL_SetWindowTitle(this->window, this->title.c_str());
     }
 }
 

@@ -53,7 +53,7 @@ class PlatformPlugin : public Napi::SafeObjectWrap<PlatformPlugin>, PlatformPlug
     static Napi::Function GetClass(Napi::Env env);
 
  private:
-  PlatformPluginInterface* impl{};
+    PlatformPluginInterface* impl{};
 };
 
 template<typename T>

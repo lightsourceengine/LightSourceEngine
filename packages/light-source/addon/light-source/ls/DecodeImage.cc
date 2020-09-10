@@ -7,7 +7,7 @@
 
 #include <ls/DecodeImage.h>
 
-#include <ls/Format.h>
+#include <ls/string-ext.h>
 #include <stb_image.h>
 #include <nanosvg.h>
 #include <nanosvgrast.h>

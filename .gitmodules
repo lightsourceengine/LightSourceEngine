@@ -22,3 +22,9 @@
 [submodule "packages/light-source/addon/deps/parallel-hashmap/repo"]
 	path = packages/light-source/addon/deps/parallel-hashmap/repo
 	url = https://github.com/greg7mdp/parallel-hashmap.git
+[submodule "packages/light-source/addon/deps/SDL/repo"]
+	path = packages/light-source/addon/deps/SDL/repo
+	url = https://github.com/SDL-mirror/SDL.git
+[submodule "packages/light-source/addon/deps/SDL_mixer/repo"]
+	path = packages/light-source/addon/deps/SDL_mixer/repo
+	url = https://github.com/SDL-mirror/SDL_mixer.git

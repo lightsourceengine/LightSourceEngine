@@ -32,3 +32,29 @@ char* ToLowercase(char* str) noexcept {
 }
 
 } // namespace ls
+
+namespace ls {
+namespace internal {
+
+const char* FormatArg(const bool& value) noexcept {
+    return value ? "true" : "false";
+}
+
+const char* FormatArg(const std::string& value) noexcept {
+    return value.c_str();
+}
+
+const char* FormatArg(std::nullptr_t) noexcept {
+    return "null";
+}
+
+const char* FormatArg(const char* value) noexcept {
+    return value ? value : "null";
+}
+
+const char* FormatArg(const std::exception& e) noexcept {
+    return e.what();
+}
+
+} // namespace internal
+} // namespace ls

@@ -12,7 +12,7 @@
   "defines": [
     "STX_NAMESPACE_NAME=std17",
     "ASMJIT_STATIC=1",
-    "BLEND2D_STATIC=TRUE",
+    "BLEND2D_STATIC=1",
     "YG_ENABLE_NODE_LAYOUT_EVENT=1",
   ],
   "xcode_settings": {
@@ -20,20 +20,8 @@
     "CLANG_CXX_LIBRARY": "libc++",
     "MACOSX_DEPLOYMENT_TARGET": "10.10",
     "CLANG_CXX_LANGUAGE_STANDARD": "gnu++14",
-    "DEAD_CODE_STRIPPING": "YES",
-    "LD_RUNPATH_SEARCH_PATHS": [
-      # mac runpath for ls-node build
-      "@executable_path/../lib/Frameworks",
-    ],
-    "FRAMEWORK_SEARCH_PATHS": [
-      # this allows the mac build to find SDL2 and SDL2_mixer include files; however, the search path (-F) still
-      # needs to be specified when linking frameworks
-      "<(ls_framework_path)"
-    ]
+    "DEAD_CODE_STRIPPING": "YES"
   },
-  "mac_framework_dirs": [
-    "<(ls_framework_path)"
-  ],
   "msvs_settings": {
     "VCCLCompilerTool": {
       "ExceptionHandling": "1",
@@ -58,7 +46,9 @@
         "defines": [
           "ASMJIT_BUILD_ARM=1"
         ]
-      },
+      }
+    ],
+    [
       "ls_asmjit_build==\"x86\"", {
         "defines": [
           "ASMJIT_BUILD_X86=1"

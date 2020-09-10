@@ -3,7 +3,6 @@ node_js: 14
 dist: xenial
 env:
   global:
-    - npm_config_ls_with_sdl_mixer=true
     - npm_config_ls_install_opts="--jobs max"
     - LS_NODE_VERSION=v14.8.0
     - NODE_DOWNLOADS="${HOME}/node_downloads"
@@ -17,7 +16,7 @@ matrix:
   include:
     - name: "linux-x64 [full-build]"
       os: linux
-      env: npm_config_ls_with_tests=true
+      env: npm_config_ls_enable_native_tests=1
       addons:
         apt:
           sources: [ubuntu-toolchain-r-test]
@@ -30,7 +29,7 @@ matrix:
       script: skip
     - name: "darwin-x64 [full-build]"
       os: osx
-      env: npm_config_ls_with_tests=true
+      env: npm_config_ls_enable_native_tests=1
       before_install:
         - set -e
         - HOMEBREW_NO_AUTO_UPDATE=1 brew install sdl2 sdl2_mixer
@@ -55,6 +54,9 @@ matrix:
       script: skip
     - name: "linux-armv7l [ls-node]"
       os: linux
+      addons:
+        apt:
+          packages: [ patchelf ]
       before_install:
         - set -e
         - mkdir -p "${NODE_DOWNLOADS}"
@@ -67,6 +69,9 @@ matrix:
       script: skip
     - name: "pi-armv7l-rpi [release]"
       os: linux
+      addons:
+        apt:
+          packages: [ patchelf ]
       before_install:
         - set -e
         - mkdir -p "${NODE_DOWNLOADS}"
@@ -83,6 +88,9 @@ matrix:
       script: skip
     - name: "pi-armv7l-kmsdrm [release]"
       os: linux
+      addons:
+        apt:
+          packages: [ patchelf ]
       before_install:
         - set -e
         - mkdir -p "${NODE_DOWNLOADS}"
@@ -100,7 +108,7 @@ matrix:
   exclude:
     - name: "windows-x64 [Release]"
       os: windows
-      env: YARN_GPG=no npm_config_ls_with_tests=true npm_config_ls_sdl_include="$HOME/SDL2-2.0.10/include" npm_config_ls_sdl_lib="$HOME/SDL2-2.0.10/lib/x64" npm_config_ls_sdl_mixer_include="$HOME/SDL2_mixer-2.0.4/include" npm_config_ls_sdl_mixer_lib="$HOME/SDL2_mixer-2.0.4/lib/x64"
+      env: YARN_GPG=no npm_config_ls_enable_native_tests=1 npm_config_ls_sdl_include="$HOME/SDL2-2.0.10/include" npm_config_ls_sdl_lib="$HOME/SDL2-2.0.10/lib/x64" npm_config_ls_sdl_mixer_include="$HOME/SDL2_mixer-2.0.4/include" npm_config_ls_sdl_mixer_lib="$HOME/SDL2_mixer-2.0.4/lib/x64"
       before_install:
         - set -e
         - git clone --depth 1 https://github.com/lightsourceengine/ci-packages.git "${HOME}/ci-packages"

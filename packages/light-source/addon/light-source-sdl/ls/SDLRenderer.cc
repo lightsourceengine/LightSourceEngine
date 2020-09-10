@@ -11,7 +11,7 @@
 #include <ls/SDLUtil.h>
 #include <ls/PixelConversion.h>
 #include <ls/Log.h>
-#include <ls/Format.h>
+#include <ls/string-ext.h>
 
 namespace ls {
 
@@ -20,7 +20,7 @@ static const std::array<uint8_t, 4> kSinglePixelWhite{ 255, 255, 255, 255 };
 SDLRenderer::SDLRenderer() {
     SDL_RendererInfo info;
 
-    if (SDL_GetRenderDriverInfo(0, &info) == 0) {
+    if (SDL2::SDL_GetRenderDriverInfo(0, &info) == 0) {
         this->UpdateTextureFormats(info);
     }
 }
@@ -52,7 +52,7 @@ void SDLRenderer::UpdateTextureFormats(const SDL_RendererInfo& info) noexcept {
 }
 
 void SDLRenderer::Present() {
-    SDL_RenderPresent(this->renderer);
+    SDL2::SDL_RenderPresent(this->renderer);
 }
 
 void SDLRenderer::DrawFillRect(const Rect& rect, const Matrix& transform, const color_t fillColor) {
@@ -80,7 +80,7 @@ void SDLRenderer::DrawImage(const Texture& texture, const EdgeRect& capInsets, c
 
 void SDLRenderer::FillRenderTarget(const color_t color) {
     SetRenderDrawColor(color);
-    SDL_RenderClear(this->renderer);
+    SDL2::SDL_RenderClear(this->renderer);
 }
 
 bool SDLRenderer::SetRenderTarget(const Texture& newRenderTarget) {
@@ -90,8 +90,8 @@ bool SDLRenderer::SetRenderTarget(const Texture& newRenderTarget) {
         return false;
     }
 
-    if (SDL_SetRenderTarget(this->renderer, newRenderTarget.Cast<SDL_Texture>()) != 0) {
-        LOG_ERROR(SDL_GetError());
+    if (SDL2::SDL_SetRenderTarget(this->renderer, newRenderTarget.Cast<SDL_Texture>()) != 0) {
+        LOG_ERROR(SDL2::SDL_GetError());
 
         return false;
     }
@@ -104,7 +104,7 @@ bool SDLRenderer::SetRenderTarget(const Texture& newRenderTarget) {
 
 void SDLRenderer::Reset() {
     if (this->renderer) {
-        SDL_SetRenderTarget(this->renderer, nullptr);
+        SDL2::SDL_SetRenderTarget(this->renderer, nullptr);
     }
 
     this->ResetInternal({});
@@ -119,17 +119,17 @@ void SDLRenderer::ResetInternal(const Texture& newRenderTarget) {
 
     this->DisableClipping();
     this->SetRenderDrawColor(ColorWhite);
-    SDL_SetRenderDrawBlendMode(this->renderer, SDL_BLENDMODE_BLEND);
+    SDL2::SDL_SetRenderDrawBlendMode(this->renderer, SDL_BLENDMODE_BLEND);
 }
 
 void SDLRenderer::EnabledClipping(const Rect& rect) {
     const auto clipRect { ToSDLRect(rect) };
 
-    SDL_RenderSetClipRect(this->renderer, &clipRect);
+    SDL2::SDL_RenderSetClipRect(this->renderer, &clipRect);
 }
 
 void SDLRenderer::DisableClipping() {
-    SDL_RenderSetClipRect(this->renderer, nullptr);
+    SDL2::SDL_RenderSetClipRect(this->renderer, nullptr);
 }
 
 Texture SDLRenderer::CreateTexture(int32_t width, int32_t height, Texture::Type type) {
@@ -139,7 +139,7 @@ Texture SDLRenderer::CreateTexture(int32_t width, int32_t height, Texture::Type 
 void SDLRenderer::SetRenderDrawColor(color_t color) noexcept {
     if (this->drawColor != color) {
         // TODO: consider opacity
-        SDL_SetRenderDrawColor(this->renderer, color.r, color.g, color.b, color.a);
+        SDL2::SDL_SetRenderDrawColor(this->renderer, color.r, color.g, color.b, color.a);
         this->drawColor = color;
     }
 }
@@ -147,10 +147,11 @@ void SDLRenderer::SetRenderDrawColor(color_t color) noexcept {
 void SDLRenderer::Attach(SDL_Window* window) {
     auto driverIndex{ 0 };
 
-    this->renderer = SDL_CreateRenderer(window, driverIndex, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    this->renderer = SDL2::SDL_CreateRenderer(
+        window, driverIndex, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     if (!this->renderer) {
-        throw std::runtime_error(Format("Failed to create an SDL renderer. SDL Error: %s", SDL_GetError()));
+        throw std::runtime_error(Format("Failed to create an SDL renderer. SDL Error: %s", SDL2::SDL_GetError()));
     }
 
     this->fillRectTexture = ls::CreateTexture(this->renderer, 1, 1, Texture::Updatable, this->textureFormat);
@@ -158,11 +159,11 @@ void SDLRenderer::Attach(SDL_Window* window) {
 
     // TODO: check texture
 
-    SDL_GetRendererOutputSize(renderer, &this->width, &this->height);
+    SDL2::SDL_GetRendererOutputSize(renderer, &this->width, &this->height);
 
     SDL_RendererInfo info{};
 
-    if (SDL_GetRenderDriverInfo(driverIndex, &info) == 0) {
+    if (SDL2::SDL_GetRenderDriverInfo(driverIndex, &info) == 0) {
         this->UpdateTextureFormats(info);
     }
 
@@ -170,8 +171,8 @@ void SDLRenderer::Attach(SDL_Window* window) {
             "software=%s accelerated=%s vsync=%s renderTarget=%s",
         this->GetWidth(),
         this->GetHeight(),
-        SDL_GetVideoDriver(driverIndex),
-        SDL_GetPixelFormatName(ToSDLPixelFormat(this->textureFormat)),
+        SDL2::SDL_GetVideoDriver(driverIndex),
+        SDL2::SDL_GetPixelFormatName(ToSDLPixelFormat(this->textureFormat)),
         info.max_texture_width,
         info.max_texture_height,
         (info.flags & SDL_RENDERER_SOFTWARE) != 0,

@@ -2,6 +2,7 @@
   "targets": [
     {
       "target_name": "light-source-ref-audio",
+      "type": "static_library",
       "includes": [
         "../common.gypi",
       ],
@@ -15,11 +16,12 @@
       ],
       "dependencies": [
         "napi-ext-lib",
+        "logger-lib",
         "light-source-audio-lib",
+        "light-source-util-lib",
       ],
       "sources": [
-        "ls/RefAudioPluginImpl.cc",
-        "ls/Init.cc",
+        "ls/RefAudioPluginImpl.cc"
       ]
     }
   ]

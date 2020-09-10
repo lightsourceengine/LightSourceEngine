@@ -4,11 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "SDLAudioPluginImpl.h"
+#include <ls/SDLAudioPluginImpl.h>
 
 #include <ls/AudioDestination.h>
 #include <ls/AudioSource.h>
-#include <ls/Format.h>
+#include <ls/string-ext.h>
+#include <ls/SDL2.h>
 
 using Napi::Boolean;
 using Napi::Buffer;
@@ -45,7 +46,7 @@ class SDLAudioSourceImpl final : public AudioSourceInterface {
         SDL_RWops* src{ nullptr };
 
         if (data && len > 0) {
-            src = SDL_RWFromMem(data, len);
+            src = SDL2::SDL_RWFromMem(data, len);
         }
 
         if (!src) {
@@ -53,7 +54,7 @@ class SDLAudioSourceImpl final : public AudioSourceInterface {
         }
 
         SDL_AudioSpec spec{};
-        auto chunk{ SDL_LoadWAV_RW(src, SDL_TRUE, &spec, &this->audioBuffer, &this->audioBufferLen) };
+        auto chunk{ SDL2::SDL_LoadWAV_RW(src, SDL_TRUE, &spec, &this->audioBuffer, &this->audioBufferLen) };
 
         if (!chunk) {
             throw Error::New(env, "Load() failed to load audio data.");
@@ -66,8 +67,8 @@ class SDLAudioSourceImpl final : public AudioSourceInterface {
 
     void Play(const CallbackInfo& info) override {
         if (this->audioBuffer) {
-            SDL_ClearQueuedAudio(this->deviceId);
-            SDL_QueueAudio(this->deviceId, this->audioBuffer, this->audioBufferLen);
+            SDL2::SDL_ClearQueuedAudio(this->deviceId);
+            SDL2::SDL_QueueAudio(this->deviceId, this->audioBuffer, this->audioBufferLen);
         }
     }
 
@@ -89,7 +90,7 @@ class SDLAudioSourceImpl final : public AudioSourceInterface {
  private:
     void Destroy() {
         if (this->audioBuffer) {
-            SDL_FreeWAV(this->audioBuffer);
+            SDL2::SDL_FreeWAV(this->audioBuffer);
             this->audioBuffer = nullptr;
             this->audioBufferLen = 0;
         }
@@ -117,15 +118,15 @@ class SDLAudioSampleAudioDestinationImpl final : public AudioDestinationInterfac
     }
 
     void Pause(const CallbackInfo& info) override {
-        SDL_PauseAudio(0);
+        SDL2::SDL_PauseAudio(0);
     }
 
     void Resume(const CallbackInfo& info) override {
-        SDL_PauseAudio(1);
+        SDL2::SDL_PauseAudio(1);
     }
 
     void Stop(const CallbackInfo& info) override {
-        SDL_ClearQueuedAudio(this->deviceId);
+        SDL2::SDL_ClearQueuedAudio(this->deviceId);
     }
 
     void Destroy(const CallbackInfo& info) override {
@@ -187,8 +188,8 @@ void SDLAudioPluginImpl::Attach(const CallbackInfo& info) {
     auto env{ info.Env() };
 
     // Initialize SDL Audio.
-    if (SDL_WasInit(SDL_INIT_AUDIO) == 0 && SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
-        throw Error::New(env, Format("Failed to init SDL audio. SDL Error: %s", SDL_GetError()));
+    if (SDL2::SDL_WasInit(SDL_INIT_AUDIO) == 0 && SDL2::SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
+        throw Error::New(env, Format("Failed to init SDL audio. SDL Error: %s", SDL2::SDL_GetError()));
     }
 
     // Open an audio device.
@@ -199,23 +200,23 @@ void SDLAudioPluginImpl::Attach(const CallbackInfo& info) {
     desired.channels = 2;
     desired.samples = 512;
 
-    if (SDL_OpenAudio(&desired, nullptr) != 0) {
-        throw Error::New(env, Format("Cannot open audio. SDL_OpenAudio: %s", SDL_GetError()));
+    if (SDL2::SDL_OpenAudio(&desired, nullptr) != 0) {
+        throw Error::New(env, Format("Cannot open audio. SDL_OpenAudio: %s", SDL2::SDL_GetError()));
     }
 
     // Reserved device id for SDL_OpenAudio is 1.
     this->deviceId = 1;
 
     // Ensure the device is silent.
-    SDL_PauseAudio(0);
+    SDL2::SDL_PauseAudio(0);
 
-    auto len{ SDL_GetNumAudioDevices(0) };
+    auto len{ SDL2::SDL_GetNumAudioDevices(0) };
 
     // Get list of audio device names.
     this->audioDevices.clear();
 
     for (auto i = 0; i < len; i++) {
-        auto str{ SDL_GetAudioDeviceName(i, 0) };
+        auto str{ SDL2::SDL_GetAudioDeviceName(i, 0) };
 
         this->audioDevices.emplace_back(str ? str : "");
     }
@@ -228,8 +229,8 @@ void SDLAudioPluginImpl::Detach(const CallbackInfo& info) {
         return;
     }
 
-    SDL_CloseAudio();
-    SDL_QuitSubSystem(SDL_INIT_AUDIO);
+    SDL2::SDL_CloseAudio();
+    SDL2::SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
     this->isAttached = false;
 }

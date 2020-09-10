@@ -9,7 +9,7 @@
 
 #include <cstdint>
 #include <std17/algorithm>
-#include <ls/ByteOrder.h>
+#include <ls/System.h>
 
 namespace ls {
 

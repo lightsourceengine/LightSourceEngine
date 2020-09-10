@@ -19,8 +19,8 @@ before(() => {
     shutdown()
   })
 
-  stage.loadPlugin('light-source-ref')
-  stage.loadPlugin('light-source-ref-audio')
+  stage.loadPlugin('platform:ref')
+  stage.loadPlugin('audio:ref')
   stage.createScene()
   stage.start()
 })

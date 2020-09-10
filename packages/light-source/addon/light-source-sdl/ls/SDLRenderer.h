@@ -7,7 +7,7 @@
 #pragma once
 
 #include <ls/Renderer.h>
-#include <SDL2.include>
+#include <ls/SDL2.h>
 #include <vector>
 
 namespace ls {

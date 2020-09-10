@@ -4,15 +4,15 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include "SDLMixerAudioPluginImpl.h"
+#include <ls/SDLMixerAudioPluginImpl.h>
 
-#include <SDL2_mixer.include>
+#include <ls/SDL2.h>
+#include <ls/SDL2_mixer.h>
 #include <ls/AudioDestination.h>
 #include <ls/AudioSource.h>
-#include <ls/Format.h>
+#include <ls/string-ext.h>
 #include <ls/Log.h>
 #include <ls/Timer.h>
-
 #include <algorithm>
 #include <std17/algorithm>
 
@@ -51,7 +51,7 @@ class SDLMixerSampleAudioSourceImpl final : public AudioSourceInterface {
 
         Timer t("sample: load");
 
-        this->chunk = Mix_LoadWAV_RW(LoadRW(env, info[0]), SDL_TRUE);
+        this->chunk = SDL2::mixer::Mix_LoadWAV_RW(LoadRW(env, info[0]), SDL_TRUE);
 
         if (!this->chunk) {
             throw Error::New(env, "Load() failed to load audio data.");
@@ -65,7 +65,7 @@ class SDLMixerSampleAudioSourceImpl final : public AudioSourceInterface {
     Napi::Value GetVolume(const Napi::CallbackInfo& info) override {
         if (this->chunk) {
             return Number::New(info.Env(), ConstrainVolume(
-            static_cast<float>(Mix_VolumeChunk(this->chunk, -1)) / MIX_MAX_VOLUME_F));
+                static_cast<float>(SDL2::mixer::Mix_VolumeChunk(this->chunk, -1)) / MIX_MAX_VOLUME_F));
         }
 
         return Number::New(info.Env(), 0);
@@ -75,7 +75,7 @@ class SDLMixerSampleAudioSourceImpl final : public AudioSourceInterface {
         if (this->chunk) {
             const auto volume{ ConstrainVolume(info[0].As<Number>().FloatValue()) };
 
-            Mix_VolumeChunk(this->chunk, static_cast<int32_t>(volume * MIX_MAX_VOLUME_F));
+            SDL2::mixer::Mix_VolumeChunk(this->chunk, static_cast<int32_t>(volume * MIX_MAX_VOLUME_F));
         }
     }
 
@@ -96,13 +96,13 @@ class SDLMixerSampleAudioSourceImpl final : public AudioSourceInterface {
             auto fadeInMs{ GetFadeInMs(info) };
 
             if (fadeInMs > 0) {
-                result = Mix_FadeInChannel(-1, this->chunk, GetLoops(info) - 1, fadeInMs);
+                result = SDL2::mixer::Mix_FadeInChannelTimed(-1, this->chunk, GetLoops(info) - 1, fadeInMs, -1);
             } else {
-                result = Mix_PlayChannel(-1, this->chunk, GetLoops(info) - 1);
+                result = SDL2::mixer::Mix_PlayChannelTimed(-1, this->chunk, GetLoops(info) - 1, -1);
             }
 
             if (result < 0) {
-                LOG_ERROR(Mix_GetError());
+                LOG_ERROR(SDL2::SDL_GetError());
             }
         }
     }
@@ -114,7 +114,7 @@ class SDLMixerSampleAudioSourceImpl final : public AudioSourceInterface {
  private:
     void Destroy() {
         if (this->chunk) {
-            Mix_FreeChunk(this->chunk);
+            SDL2::mixer::Mix_FreeChunk(this->chunk);
             this->chunk = nullptr;
         }
     }
@@ -126,7 +126,10 @@ class SDLMixerSampleAudioSourceImpl final : public AudioSourceInterface {
 class SDLMixerSampleAudioDestinationImpl final : public AudioDestinationInterface {
  public:
     explicit SDLMixerSampleAudioDestinationImpl(const CallbackInfo& info) {
-        FillVector(&this->decoders, &Mix_GetChunkDecoder, Mix_GetNumChunkDecoders());
+        FillVector(
+            &this->decoders,
+            [](int32_t i) { return SDL2::mixer::Mix_GetChunkDecoder(i); },
+            SDL2::mixer::Mix_GetNumChunkDecoders());
     }
 
     virtual ~SDLMixerSampleAudioDestinationImpl() = default;
@@ -137,30 +140,30 @@ class SDLMixerSampleAudioDestinationImpl final : public AudioDestinationInterfac
 
     Napi::Value GetVolume(const CallbackInfo& info) override {
         return Number::New(info.Env(),
-            ConstrainVolume(static_cast<float>(Mix_Volume(-1, -1)) / MIX_MAX_VOLUME_F));
+            ConstrainVolume(static_cast<float>(SDL2::mixer::Mix_Volume(-1, -1)) / MIX_MAX_VOLUME_F));
     }
 
     void SetVolume(const CallbackInfo& info, const Napi::Value& value) override {
         auto volume{ ConstrainVolume(info[0].As<Number>().FloatValue()) };
 
-        Mix_Volume(-1, static_cast<int32_t>(volume * MIX_MAX_VOLUME_F));
+        SDL2::mixer::Mix_Volume(-1, static_cast<int32_t>(volume * MIX_MAX_VOLUME_F));
     }
 
     void Pause(const CallbackInfo& info) override {
-        Mix_Pause(-1);
+        SDL2::mixer::Mix_Pause(-1);
     }
 
     void Resume(const CallbackInfo& info) override {
-        Mix_Resume(-1);
+        SDL2::mixer::Mix_Resume(-1);
     }
 
     void Stop(const CallbackInfo& info) override {
         auto fadeOutMs{ GetFadeOutMs(info) };
 
         if (fadeOutMs > 0) {
-            Mix_FadeOutChannel(-1, fadeOutMs);
+            SDL2::mixer::Mix_FadeOutChannel(-1, fadeOutMs);
         } else {
-            Mix_HaltChannel(-1);
+            SDL2::mixer::Mix_HaltChannel(-1);
         }
     }
 
@@ -196,7 +199,7 @@ class SDLMixerStreamAudioSourceImpl final : public AudioSourceInterface {
 
         Timer t("music: load mus");
 
-        this->music = Mix_LoadMUS_RW(LoadRW(env, info[0]), SDL_TRUE);
+        this->music = SDL2::mixer::Mix_LoadMUS_RW(LoadRW(env, info[0]), SDL_TRUE);
 
         if (!this->music) {
             throw Error::New(env, "Load() failed to load audio data.");
@@ -223,13 +226,13 @@ class SDLMixerStreamAudioSourceImpl final : public AudioSourceInterface {
             int32_t result;
 
             if (fadeInMs > 0) {
-                result = Mix_FadeInMusic(this->music, GetLoops(info) - 1, fadeInMs);
+                result = SDL2::mixer::Mix_FadeInMusic(this->music, GetLoops(info) - 1, fadeInMs);
             } else {
-                result = Mix_PlayMusic(this->music, GetLoops(info) - 1);
+                result = SDL2::mixer::Mix_PlayMusic(this->music, GetLoops(info) - 1);
             }
 
             if (result < 0) {
-                LOG_ERROR(Mix_GetError());
+                LOG_ERROR(SDL2::SDL_GetError());
             }
         }
     }
@@ -248,7 +251,7 @@ class SDLMixerStreamAudioSourceImpl final : public AudioSourceInterface {
  private:
     void Destroy() {
         if (this->music) {
-            Mix_FreeMusic(this->music);
+            SDL2::mixer::Mix_FreeMusic(this->music);
             this->music = nullptr;
         }
     }
@@ -260,7 +263,10 @@ class SDLMixerStreamAudioSourceImpl final : public AudioSourceInterface {
 class SDLMixerStreamAudioDestinationImpl final : public AudioDestinationInterface {
  public:
     explicit SDLMixerStreamAudioDestinationImpl(const CallbackInfo& info) {
-        FillVector(&this->decoders, &Mix_GetMusicDecoder, Mix_GetNumMusicDecoders());
+        FillVector(
+            &this->decoders,
+            [](int32_t i) { return SDL2::mixer::Mix_GetMusicDecoder(i); },
+            SDL2::mixer::Mix_GetNumMusicDecoders());
     }
 
     virtual ~SDLMixerStreamAudioDestinationImpl() = default;
@@ -271,30 +277,30 @@ class SDLMixerStreamAudioDestinationImpl final : public AudioDestinationInterfac
 
     Napi::Value GetVolume(const CallbackInfo& info) override {
         return Number::New(info.Env(),
-            ConstrainVolume(static_cast<float>(Mix_VolumeMusic(-1)) / MIX_MAX_VOLUME_F));
+            ConstrainVolume(static_cast<float>(SDL2::mixer::Mix_VolumeMusic(-1)) / MIX_MAX_VOLUME_F));
     }
 
     void SetVolume(const CallbackInfo& info, const Napi::Value& value) override {
         auto volume{ ConstrainVolume(info[0].As<Number>().FloatValue()) };
 
-        Mix_VolumeMusic(static_cast<int32_t>(volume * MIX_MAX_VOLUME_F));
+        SDL2::mixer::Mix_VolumeMusic(static_cast<int32_t>(volume * MIX_MAX_VOLUME_F));
     }
 
     void Pause(const CallbackInfo& info) override {
-        Mix_PauseMusic();
+        SDL2::mixer::Mix_PauseMusic();
     }
 
     void Resume(const CallbackInfo& info) override {
-        Mix_ResumeMusic();
+        SDL2::mixer::Mix_ResumeMusic();
     }
 
     void Stop(const CallbackInfo& info) override {
         auto fadeOutMs{ GetFadeOutMs(info) };
 
         if (fadeOutMs > 0) {
-            Mix_FadeOutMusic(fadeOutMs);
+            SDL2::mixer::Mix_FadeOutMusic(fadeOutMs);
         } else {
-            Mix_HaltMusic();
+            SDL2::mixer::Mix_HaltMusic();
         }
     }
 
@@ -328,24 +334,24 @@ void SDLMixerAudioPluginImpl::Attach(const CallbackInfo& info) {
 
     auto env{ info.Env() };
 
-    if (SDL_WasInit(SDL_INIT_AUDIO) == 0 && SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
-        throw Error::New(env, Format("Failed to init SDL audio. SDL Error: %s", SDL_GetError()));
+    if (SDL2::SDL_WasInit(SDL_INIT_AUDIO) == 0 && SDL2::SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
+        throw Error::New(env, Format("Failed to init SDL audio. SDL Error: %s", SDL2::SDL_GetError()));
     }
 
-    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 512) < 0) {
-        throw Error::New(env, Format("Cannot open mixer. Error: %s", Mix_GetError()));
+    if (SDL2::mixer::Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 512) < 0) {
+        throw Error::New(env, Format("Cannot open mixer. Error: %s", SDL2::SDL_GetError()));
     }
 
-    Mix_Init(MIX_INIT_FLAC | MIX_INIT_MOD | MIX_INIT_MP3 | MIX_INIT_OGG
+    SDL2::mixer::Mix_Init(MIX_INIT_FLAC | MIX_INIT_MOD | MIX_INIT_MP3 | MIX_INIT_OGG
         // TODO: MIX_INIT_OPUS and MIX_INIT_MID not available in 2.0.0 headers.. ok to patch it in
         | /*MIX_INIT_MID*/ 0x00000020 | /*MIX_INIT_OPUS*/ 0x00000040);
 
     FillVector(
         &this->audioDevices,
         [](int32_t i) -> const char* {
-            return SDL_GetAudioDeviceName(i, 0);
+            return SDL2::SDL_GetAudioDeviceName(i, 0);
         },
-        SDL_GetNumAudioDevices(0));
+        SDL2::SDL_GetNumAudioDevices(0));
 
     this->isAttached = true;
 }
@@ -355,14 +361,14 @@ void SDLMixerAudioPluginImpl::Detach(const CallbackInfo& info) {
         return;
     }
 
-    Mix_CloseAudio();
+    SDL2::mixer::Mix_CloseAudio();
 
     // Documentation recommended way to call Mix_Quit()
-    while (Mix_Init(0)) {
-        Mix_Quit();
+    while (SDL2::mixer::Mix_Init(0)) {
+        SDL2::mixer::Mix_Quit();
     }
 
-    SDL_QuitSubSystem(SDL_INIT_AUDIO);
+    SDL2::SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
     this->isAttached = false;
 }
@@ -414,7 +420,7 @@ SDL_RWops* LoadRW(Napi::Env env, const Napi::Value& value) {
     SDL_RWops* src{ nullptr };
 
     if (data && len > 0) {
-        src = SDL_RWFromMem(data, len);
+        src = SDL2::SDL_RWFromMem(data, len);
     }
 
     if (!src) {
@@ -442,13 +448,7 @@ float ConstrainVolume(const float volume) noexcept {
 
 int32_t GetPropertyAsInt(const CallbackInfo& info, const char* property, const int32_t defaultValue) {
     if (info.Length() > 0 && info[0].IsObject()) {
-        HandleScope scope(info.Env());
-        auto opts{ info[0].As<Object>() };
-        auto fadeOutMs{ opts.Get(property) };
-
-        if (fadeOutMs.IsNumber()) {
-            return fadeOutMs.As<Number>().Int32Value();
-        }
+        return Napi::ObjectGetNumberOrDefault(info[0].As<Object>(), property, 0);
     }
 
     return defaultValue;

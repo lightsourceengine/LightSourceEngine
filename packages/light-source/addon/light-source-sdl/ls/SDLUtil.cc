@@ -28,10 +28,11 @@ static SDLTextureBridge sTextureBridge{};
 
 Texture CreateTexture(SDL_Renderer* renderer, int32_t width, int32_t height, Texture::Type type,
         PixelFormat format) noexcept {
-    auto texturePtr { SDL_CreateTexture(renderer, ToSDLPixelFormat(format), ToSDLTextureAccess(type), width, height) };
+    auto texturePtr { SDL2::SDL_CreateTexture(
+        renderer, ToSDLPixelFormat(format), ToSDLTextureAccess(type), width, height) };
 
     if (texturePtr) {
-        SDL_SetTextureBlendMode(texturePtr, SDL_BLENDMODE_BLEND);
+        SDL2::SDL_SetTextureBlendMode(texturePtr, SDL_BLENDMODE_BLEND);
     }
 
     return {
@@ -42,7 +43,7 @@ Texture CreateTexture(SDL_Renderer* renderer, int32_t width, int32_t height, Tex
 
 SDL_Texture* DestroyTexture(SDL_Texture* texture) noexcept {
     if (texture) {
-        SDL_DestroyTexture(texture);
+        SDL2::SDL_DestroyTexture(texture);
     }
 
     return nullptr;
@@ -50,15 +51,15 @@ SDL_Texture* DestroyTexture(SDL_Texture* texture) noexcept {
 
 SDL_Renderer* DestroyRenderer(SDL_Renderer* renderer) noexcept {
     if (renderer) {
-        SDL_DestroyRenderer(renderer);
+        SDL2::SDL_DestroyRenderer(renderer);
     }
 
     return nullptr;
 }
 
 void SetTextureTintColor(SDL_Texture* texture, color_t color) noexcept {
-    SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
-    SDL_SetTextureAlphaMod(texture, color.a);
+    SDL2::SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
+    SDL2::SDL_SetTextureAlphaMod(texture, color.a);
 }
 
 void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const Rect& rect, const Matrix& transform,
@@ -77,7 +78,8 @@ void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const Rect& rect, c
 
     SetTextureTintColor(texture, tintColor);
 
-    SDL_RenderCopyEx(renderer, texture, nullptr, &destRect, transform.GetAxisAngleDeg(), &kCenterPoint, SDL_FLIP_NONE);
+    SDL2::SDL_RenderCopyEx(
+        renderer, texture, nullptr, &destRect, transform.GetAxisAngleDeg(), &kCenterPoint, SDL_FLIP_NONE);
 }
 
 void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const Rect& srcRect, const Rect& destRect,
@@ -104,7 +106,7 @@ void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const Rect& srcRect
 
     SetTextureTintColor(texture, tintColor);
 
-    SDL_RenderCopyEx(
+    SDL2::SDL_RenderCopyEx(
         renderer, texture, &sdlSrcRect, &sdlDestRect, transform.GetAxisAngleDeg(), &kCenterPoint, SDL_FLIP_NONE);
 }
 
@@ -125,31 +127,31 @@ void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const EdgeRect& cap
     SDL_Rect destRect;
 
     SetTextureTintColor(texture, tintColor);
-    SDL_QueryTexture(texture, nullptr, nullptr, &textureWidth, &textureHeight);
+    SDL2::SDL_QueryTexture(texture, nullptr, nullptr, &textureWidth, &textureHeight);
 
     // Top row
 
     srcRect = { 0, 0, capInsets.left, capInsets.top };
     destRect = { x, y, capInsets.left, capInsets.top };
 
-    SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
+    SDL2::SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
 
     srcRect = { capInsets.left, 0, textureWidth - capInsets.left - capInsets.right, capInsets.top };
     destRect = {x + capInsets.left, y, w - capInsets.left - capInsets.right, capInsets.top };
 
-    SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
+    SDL2::SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
 
     srcRect = { textureWidth - capInsets.right, 0, capInsets.right, capInsets.top };
     destRect = {x + w - capInsets.right, y, capInsets.right, capInsets.top };
 
-    SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
+    SDL2::SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
 
     // Middle row
 
     srcRect = { 0, capInsets.top, capInsets.left, textureHeight - capInsets.top - capInsets.bottom };
     destRect = { x, y + capInsets.top, capInsets.left, h - capInsets.top - capInsets.bottom };
 
-    SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
+    SDL2::SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
 
     srcRect = {
         capInsets.left,
@@ -164,7 +166,7 @@ void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const EdgeRect& cap
         h - capInsets.top - capInsets.bottom
     };
 
-    SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
+    SDL2::SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
 
     srcRect = {
         textureWidth - capInsets.right,
@@ -179,14 +181,14 @@ void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const EdgeRect& cap
         h - capInsets.top - capInsets.bottom
     };
 
-    SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
+    SDL2::SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
 
     // Bottom row
 
     srcRect = { 0, textureHeight - capInsets.bottom, capInsets.left, capInsets.bottom };
     destRect = { x, y + h - capInsets.bottom, capInsets.left, capInsets.bottom };
 
-    SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
+    SDL2::SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
 
     srcRect = {
         capInsets.left,
@@ -201,12 +203,12 @@ void DrawImage(SDL_Renderer* renderer, SDL_Texture* texture, const EdgeRect& cap
         capInsets.bottom
     };
 
-    SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
+    SDL2::SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
 
     srcRect = { textureWidth - capInsets.right, textureHeight - capInsets.bottom, capInsets.right, capInsets.bottom };
     destRect = {x + w - capInsets.right, y + h - capInsets.bottom, capInsets.right, capInsets.bottom };
 
-    SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
+    SDL2::SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
 }
 
 void DrawBorder(SDL_Renderer* renderer, SDL_Texture* fillRectTexture, const Rect& rect, const EdgeRect& border,
@@ -226,7 +228,7 @@ void DrawBorder(SDL_Renderer* renderer, SDL_Texture* fillRectTexture, const Rect
         SDL_Rect edge{ x, y, w, border.top };
         SDL_Point center{ 0, 0 };
 
-        SDL_RenderCopyEx(renderer, fillRectTexture, nullptr, &edge, rotate, &center, SDL_FLIP_NONE);
+        SDL2::SDL_RenderCopyEx(renderer, fillRectTexture, nullptr, &edge, rotate, &center, SDL_FLIP_NONE);
     }
 
     // Bottom edge
@@ -235,7 +237,7 @@ void DrawBorder(SDL_Renderer* renderer, SDL_Texture* fillRectTexture, const Rect
         SDL_Rect edge{ x, y + yShift, w, border.bottom };
         SDL_Point center{ 0, -yShift };
 
-        SDL_RenderCopyEx(renderer, fillRectTexture, nullptr, &edge, rotate, &center, SDL_FLIP_NONE);
+        SDL2::SDL_RenderCopyEx(renderer, fillRectTexture, nullptr, &edge, rotate, &center, SDL_FLIP_NONE);
     }
 
     // Left edge
@@ -244,7 +246,7 @@ void DrawBorder(SDL_Renderer* renderer, SDL_Texture* fillRectTexture, const Rect
         SDL_Rect edge{ x, y + yShift, border.left, h - border.top - border.bottom };
         SDL_Point center{ 0, -yShift };
 
-        SDL_RenderCopyEx(renderer, fillRectTexture, nullptr, &edge, rotate, &center, SDL_FLIP_NONE);
+        SDL2::SDL_RenderCopyEx(renderer, fillRectTexture, nullptr, &edge, rotate, &center, SDL_FLIP_NONE);
     }
 
     // Right edge
@@ -254,7 +256,7 @@ void DrawBorder(SDL_Renderer* renderer, SDL_Texture* fillRectTexture, const Rect
         SDL_Rect edge{ x + xShift, y + yShift, border.right, h - border.top - border.bottom };
         SDL_Point center{ -xShift, -yShift };
 
-        SDL_RenderCopyEx(renderer, fillRectTexture, nullptr, &edge, rotate, &center, SDL_FLIP_NONE);
+        SDL2::SDL_RenderCopyEx(renderer, fillRectTexture, nullptr, &edge, rotate, &center, SDL_FLIP_NONE);
     }
 }
 
@@ -262,7 +264,7 @@ int32_t SDLTextureBridge::GetWidth(void* platformTextureRef) const noexcept {
     int32_t width{0};
 
     if (platformTextureRef) {
-        SDL_QueryTexture(static_cast<SDL_Texture*>(platformTextureRef), nullptr, nullptr, &width, nullptr);
+        SDL2::SDL_QueryTexture(static_cast<SDL_Texture*>(platformTextureRef), nullptr, nullptr, &width, nullptr);
     }
 
     return width;
@@ -272,7 +274,7 @@ int32_t SDLTextureBridge::GetHeight(void* platformTextureRef) const noexcept {
     int32_t height{0};
 
     if (platformTextureRef) {
-        SDL_QueryTexture(static_cast<SDL_Texture*>(platformTextureRef), nullptr, nullptr, nullptr, &height);
+        SDL2::SDL_QueryTexture(static_cast<SDL_Texture*>(platformTextureRef), nullptr, nullptr, nullptr, &height);
     }
 
     return height;
@@ -281,26 +283,26 @@ int32_t SDLTextureBridge::GetHeight(void* platformTextureRef) const noexcept {
 bool SDLTextureBridge::Lock(void* platformTextureRef, void** buffer, int32_t* pitch) noexcept {
     auto p{ static_cast<SDL_Texture*>(platformTextureRef) };
 
-    return p ? SDL_LockTexture(p, nullptr, buffer, pitch) == 0 : false;
+    return p ? SDL2::SDL_LockTexture(p, nullptr, buffer, pitch) == 0 : false;
 }
 
 void SDLTextureBridge::Unlock(void* platformTextureRef) noexcept {
     if (platformTextureRef) {
-        SDL_UnlockTexture(static_cast<SDL_Texture*>(platformTextureRef));
+        SDL2::SDL_UnlockTexture(static_cast<SDL_Texture*>(platformTextureRef));
     }
 }
 
 bool SDLTextureBridge::Update(void* platformTextureRef, const uint8_t* buffer, int32_t length) {
     auto p{ static_cast<SDL_Texture*>(platformTextureRef) };
 
-    return p ? SDL_UpdateTexture(static_cast<SDL_Texture*>(p), nullptr, buffer, length) == 0 : false;
+    return p ? SDL2::SDL_UpdateTexture(static_cast<SDL_Texture*>(p), nullptr, buffer, length) == 0 : false;
 }
 
 PixelFormat SDLTextureBridge::GetPixelFormat(void* platformTextureRef) const noexcept {
     uint32_t format{ SDL_PIXELFORMAT_UNKNOWN };
 
     if (platformTextureRef) {
-        SDL_QueryTexture(static_cast<SDL_Texture*>(platformTextureRef), &format, nullptr, nullptr, nullptr);
+        SDL2::SDL_QueryTexture(static_cast<SDL_Texture*>(platformTextureRef), &format, nullptr, nullptr, nullptr);
     }
 
     return ToPixelFormat(format);
@@ -310,7 +312,7 @@ Texture::Type SDLTextureBridge::GetType(void* platformTextureRef) const noexcept
     int32_t access{ SDL_TextureAccess::SDL_TEXTUREACCESS_STATIC };
 
     if (platformTextureRef) {
-        SDL_QueryTexture(static_cast<SDL_Texture*>(platformTextureRef), nullptr, &access, nullptr, nullptr);
+        SDL2::SDL_QueryTexture(static_cast<SDL_Texture*>(platformTextureRef), nullptr, &access, nullptr, nullptr);
     }
 
     return ToTextureType(access);

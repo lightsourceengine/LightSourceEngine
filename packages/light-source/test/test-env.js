@@ -16,8 +16,8 @@ before(() => {
   logger.setLogLevel(LogLevel.Off)
 
   stage = new Stage()
-  stage.loadPlugin('light-source-ref')
-  stage.loadPlugin('light-source-ref-audio')
+  stage.loadPlugin('platform:ref')
+  stage.loadPlugin('audio:ref')
   stage.createScene({ width: 1280, height: 720 })
   stage.start()
 

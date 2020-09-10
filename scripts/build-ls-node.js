@@ -62,6 +62,7 @@
 // - upx
 // - tar
 // - wget
+// - patchelf
 // - python 2.7 (for node-gyp)
 // - crosstools (https://github.com/lightsourceengine/crosstools)
 // - C++ 14 toolchain (gcc or clang)
@@ -367,9 +368,10 @@ class LightSourceBundle {
     await copy(join(this.srcRoot, 'scripts', 'static', 'ls-node.sh'), join(this.staging.nodeBin, 'node'))
 
     if (this.options.platform === 'linux') {
-      console.log('staging: patching node binary ld library path...')
+      console.log('staging: patching node binary rpath...')
       ensureDirSync(join(this.staging.nodeLdLibraryPath))
-      console.log('staging: patching node binary ld library path... complete')
+      await command ('patchelf', [ '--set-rpath', '$ORIGIN/../lib/so', nodeBinaryPath ])
+      console.log('staging: patching node binary rpath... complete')
     }
 
     if (this.options.stripNodeBinary) {
@@ -418,12 +420,7 @@ class LightSourceBundle {
 
     if (this.options.sdlProfile === SDLProfile.rpi || this.options.sdlProfile === SDLProfile.kmsdrm) {
       await copy(join(this.options.sdlRoot, 'lib', 'libSDL2-2.0.so.0'), 
-        join(this.staging.nodeLdLibraryPath, 'libSDL2-2.0.so.0'))
-    } else if (this.options.profile === Profile.nclassic || this.options.profile === Profile.psclassic) {
-      console.log('staging: adding SDL2 symlink...')
-      await createSymlink('/usr/lib/libSDL2.so', join(this.staging.nodeLdLibraryPath, 'libSDL2-2.0.so.0'))
-      await createSymlink('/usr/lib/libSDL2_mixer.so', join(this.staging.nodeLdLibraryPath, 'libSDL2_mixer-2.0.so.0'))
-      console.log('staging: adding SDL2 symlink... complete')
+        join(this.staging.nodeLdLibraryPath, 'libSDL2.so'))
     }
   }
 
@@ -437,12 +434,6 @@ class LightSourceBundle {
     const copies = await Promise.allSettled([
       copy(join(this.srcRoot, 'packages/light-source/build/Release/light-source.node'),
         join(this.staging.nodeLightSourceAddon, 'light-source.node')),
-      copy(join(this.srcRoot, 'packages/light-source/build/Release/light-source-sdl.node'),
-        join(this.staging.nodeLightSourceAddon, 'light-source-sdl.node')),
-      copy(join(this.srcRoot, 'packages/light-source/build/Release/light-source-sdl-audio.node'),
-        join(this.staging.nodeLightSourceAddon, 'light-source-sdl-audio.node')),
-      copy(join(this.srcRoot, 'packages/light-source/build/Release/light-source-sdl-mixer.node'),
-        join(this.staging.nodeLightSourceAddon, 'light-source-sdl-mixer.node')),
       copy(join(this.srcRoot, 'packages/light-source/dist/light-source.standalone.cjs'),
         join(this.staging.nodeLightSource, 'index.js')),
       copy(join(this.srcRoot, 'packages/light-source-react/dist/light-source-react.standalone.cjs'),
@@ -471,12 +462,10 @@ class LightSourceBundle {
     const env = {
       ...process.env,
       npm_config_ls_install_opts: '--jobs max',
-      npm_config_ls_with_tests: 'false',
-      npm_config_ls_with_sdl_mixer: 'true'
+      npm_config_ls_enable_native_tests: '0',
     }
 
     if (this.options.isArmCrossCompile) {
-      const sysroot = this.crosstoolsSysroot
       const crossProfile = { armv6l: 'rpizero', armv7l: 'rpi' }[this.options.arch]
 
       if (crossProfile === undefined) {
@@ -486,10 +475,8 @@ class LightSourceBundle {
       program = 'cross'
       programArgs = [crossProfile, 'yarn']
 
-      this.#configureSdlRoot(env, sysroot)
-      env.npm_config_ls_sdl_mixer_include = `${sysroot}/usr/include`
-      env.npm_config_ls_sdl_mixer_lib = `${sysroot}/usr/lib`
-      // env.npm_config_ls_asmjit_build = 'arm'
+      // TODO: env.npm_config_ls_asmjit_build = 'arm'
+
       if (process.env.PATH) {
         env.PATH += delimiter
       } else {
@@ -501,10 +488,6 @@ class LightSourceBundle {
       programArgs = []
     }
 
-    if (this.options.sdlProfile === SDLProfile.framework) {
-      env.npm_config_ls_framework_path = this.options.frameworkPath
-    }
-
     console.log('compile: running yarn...')
 
     const compileInterval = setInterval(() => { console.log('compile: still working...') }, 5000)
@@ -513,16 +496,6 @@ class LightSourceBundle {
 
     clearInterval(compileInterval)
     console.log('compile: running yarn... complete')
-  }
-
-  #configureSdlRoot(env, sysroot) {
-    if (this.options.sdlProfile === SDLProfile.rpi || this.options.sdlProfile === SDLProfile.kmsdrm) {
-      env.npm_config_ls_sdl_include = join(this.options.sdlRoot, 'include')
-      env.npm_config_ls_sdl_lib = join(this.options.sdlRoot, 'lib')
-    } else {
-      env.npm_config_ls_sdl_include = `${sysroot}/usr/include`
-      env.npm_config_ls_sdl_lib = `${sysroot}/usr/lib`
-    }
   }
 }
 

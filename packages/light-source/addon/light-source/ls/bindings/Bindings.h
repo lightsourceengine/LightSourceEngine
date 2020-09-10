@@ -14,6 +14,7 @@ namespace bindings {
 
 Napi::Value ParseColor(const Napi::CallbackInfo& info);
 Napi::Object GetStyleProperties(Napi::Env env);
+Napi::Value LoadPlugin(const Napi::CallbackInfo& info);
 
 } // namespace bindings
 } // namespace ls

@@ -13,7 +13,7 @@
 #include <ls/Stage.h>
 #include <ls/Log.h>
 #include <ls/Uri.h>
-#include <ls/Format.h>
+#include <ls/string-ext.h>
 
 using Napi::Error;
 using Napi::Function;

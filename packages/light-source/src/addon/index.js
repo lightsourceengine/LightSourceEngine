@@ -71,6 +71,7 @@ export const logger = lib.logger || CreateStubLogger()
 export const LogLevel  = lib.LogLevel || {}
 export const getSceneNodeInstanceCount = lib.getSceneNodeInstanceCount || emptyFunction
 export const parseColor = lib.parseColor || emptyFunction
+export const loadPlugin = lib.loadPlugin || ((id) => { throw Error('native code not loaded') })
 export const styleProperties = lib.styleProperties || {}
 
 export const addon = lib

@@ -7,12 +7,12 @@
 #pragma once
 
 #include <ls/PixelFormat.h>
-#include <ls/ByteOrder.h>
+#include <ls/System.h>
 #include <ls/Matrix.h>
 #include <ls/Rect.h>
 #include <ls/Color.h>
 #include <ls/Texture.h>
-#include <SDL2.include>
+#include <ls/SDL2.h>
 
 namespace ls {
 
@@ -54,33 +54,33 @@ constexpr SDL_Rect ToSDLRect(const Rect& rect) noexcept {
 
 /** @return PixelFormat representation or PixelFormatUnknown if a PixelFormat cannot be found. */
 constexpr PixelFormat ToPixelFormat(uint32_t pixelFormat) noexcept {
-#if LS_BYTE_ORDER == LS_BIG_ENDIAN
-    switch (pixelFormat) {
-        case SDL_PIXELFORMAT_RGBA8888:
-            return PixelFormatRGBA;
-        case SDL_PIXELFORMAT_ARGB8888:
-            return PixelFormatARGB;
-        case SDL_PIXELFORMAT_BGRA8888:
-            return PixelFormatBGRA;
-        case SDL_PIXELFORMAT_ABGR8888:
-            return PixelFormatABGR;
-        default:
-            return PixelFormatUnknown;
+    if (kIsBigEndian) {
+        switch (pixelFormat) {
+            case SDL_PIXELFORMAT_RGBA8888:
+                return PixelFormatRGBA;
+            case SDL_PIXELFORMAT_ARGB8888:
+                return PixelFormatARGB;
+            case SDL_PIXELFORMAT_BGRA8888:
+                return PixelFormatBGRA;
+            case SDL_PIXELFORMAT_ABGR8888:
+                return PixelFormatABGR;
+            default:
+                return PixelFormatUnknown;
+        }
+    } else {
+        switch (pixelFormat) {
+            case SDL_PIXELFORMAT_ABGR8888:
+                return PixelFormatRGBA;
+            case SDL_PIXELFORMAT_BGRA8888:
+                return PixelFormatARGB;
+            case SDL_PIXELFORMAT_ARGB8888:
+                return PixelFormatBGRA;
+            case SDL_PIXELFORMAT_RGBA8888:
+                return PixelFormatABGR;
+            default:
+                return PixelFormatUnknown;
+        }
     }
-#else
-    switch (pixelFormat) {
-        case SDL_PIXELFORMAT_ABGR8888:
-            return PixelFormatRGBA;
-        case SDL_PIXELFORMAT_BGRA8888:
-            return PixelFormatARGB;
-        case SDL_PIXELFORMAT_ARGB8888:
-            return PixelFormatBGRA;
-        case SDL_PIXELFORMAT_RGBA8888:
-            return PixelFormatABGR;
-        default:
-            return PixelFormatUnknown;
-    }
-#endif
 }
 
 /** @returns SDL pixel format representation; otherwise SDL_PIXELFORMAT_UNKNOWN */

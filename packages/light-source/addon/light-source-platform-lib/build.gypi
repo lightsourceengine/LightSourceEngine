@@ -15,6 +15,7 @@
       ],
       "dependencies": [
         "napi-ext-lib",
+        "logger-lib",
         "light-source-util-lib"
       ],
       "sources": [
@@ -29,7 +30,7 @@
   ],
   "conditions": [
     [
-      "ls_with_tests==\"true\"", {
+      "ls_enable_native_tests==1", {
         "targets": [{
           "target_name": "light-source-platform-lib-test",
           "includes": [

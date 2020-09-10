@@ -7,7 +7,7 @@
 #include <ls/SDLGamepad.h>
 
 #include <ls/Log.h>
-#include <ls/Format.h>
+#include <ls/string-ext.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -39,27 +39,27 @@ void SDLGamepad::Constructor(const Napi::CallbackInfo& info) {
     auto env{ info.Env() };
     auto index{ info[0].As<Number>().Int32Value() };
 
-    this->joystick = SDL_JoystickOpen(index);
+    this->joystick = SDL2::SDL_JoystickOpen(index);
 
     if (!this->joystick) {
         throw Error::New(env, Format("Could not open SDL Joystick at index %i", index));
     }
 
-    auto joystickName = SDL_JoystickName(this->joystick);
+    auto joystickName = SDL2::SDL_JoystickName(this->joystick);
 
     this->name = joystickName ? joystickName : "";
 
-    auto joystickGUID{ SDL_JoystickGetGUID(this->joystick) };
+    auto joystickGUID{ SDL2::SDL_JoystickGetGUID(this->joystick) };
     static char guid[33];
 
     guid[0] = '\0';
-    SDL_JoystickGetGUIDString(joystickGUID, guid, 33);
+    SDL2::SDL_JoystickGetGUIDString(joystickGUID, guid, 33);
 
-    this->id = SDL_JoystickInstanceID(this->joystick);
+    this->id = SDL2::SDL_JoystickInstanceID(this->joystick);
     this->uuid = guid;
-    this->buttonCount = SDL_JoystickNumButtons(this->joystick);
-    this->hatCount = SDL_JoystickNumHats(this->joystick);
-    this->axisCount = SDL_JoystickNumAxes(this->joystick);
+    this->buttonCount = SDL2::SDL_JoystickNumButtons(this->joystick);
+    this->hatCount = SDL2::SDL_JoystickNumHats(this->joystick);
+    this->axisCount = SDL2::SDL_JoystickNumAxes(this->joystick);
     this->hatState.resize(this->hatCount);
 // TODO: not available in 2.0.4..
 //    this->product = SDL_JoystickGetProduct(this->joystick);
@@ -107,7 +107,7 @@ Value SDLGamepad::IsButtonDown(const CallbackInfo& info) {
     bool state;
 
     if (this->joystick) {
-        state = SDL_JoystickGetButton(this->joystick, info[0].As<Number>().Int32Value()) != 0;
+        state = SDL2::SDL_JoystickGetButton(this->joystick, info[0].As<Number>().Int32Value()) != 0;
     } else {
         state = false;
     }
@@ -156,7 +156,7 @@ Value SDLGamepad::GetProductVersion(const CallbackInfo& info) {
 }
 
 Value SDLGamepad::GetGameControllerMapping(const CallbackInfo& info) {
-    auto value{ SDL_GameControllerMappingForGUID(SDL_JoystickGetGUID(this->joystick)) };
+    auto value{ SDL2::SDL_GameControllerMappingForGUID(SDL_JoystickGetGUID(this->joystick)) };
 
     if (value) {
         return String::New(info.Env(), value);
@@ -171,7 +171,7 @@ void SDLGamepad::Destroy(const CallbackInfo& info) {
 
 void SDLGamepad::Destroy() {
     if (this->joystick) {
-        SDL_JoystickClose(this->joystick);
+        SDL2::SDL_JoystickClose(this->joystick);
         this->joystick = nullptr;
     }
 }

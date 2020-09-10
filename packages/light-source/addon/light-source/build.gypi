@@ -12,6 +12,11 @@
         "../light-source-util-lib",
         "../light-source-audio-lib",
         "../light-source-platform-lib",
+        "../light-source-sdl",
+        "../light-source-ref",
+        "../light-source-sdl-audio",
+        "../light-source-sdl-mixer",
+        "../light-source-ref-audio",
         "../deps/yoga/lib",
         "../deps/asmjit/repo/src",
         "../deps/blend2d/repo/src",
@@ -20,19 +25,27 @@
         "../deps/cpp17_headers/include",
         "../deps/utfcpp/repo/source",
         "../deps/concurrentqueue/repo",
+        "../deps/SDL/repo/include",
+        "../deps/SDL_mixer/repo",
         "../deps/filesystem/include",
         "../deps/parallel-hashmap/repo/parallel_hashmap",
       ],
       "dependencies": [
+        "napi-ext-lib",
+        "logger-lib",
+        "light-source-platform-lib",
+        "light-source-sdl",
+        "light-source-ref",
+        "light-source-audio-lib",
+        "light-source-sdl-audio",
+        "light-source-sdl-mixer",
+        "light-source-ref-audio",
         "asmjit",
         "blend2d",
         "yoga",
         "stb_image",
         "nanosvg",
-        "napi-ext-lib",
         "light-source-util-lib",
-        "light-source-platform-lib",
-        "logger-lib",
         "logger-bindings-lib",
       ],
       "sources": [
@@ -73,12 +86,9 @@
       ],
       "conditions": [
         [
-          "ls_with_tests==\"true\"", {
+          "ls_enable_native_tests==1", {
             "include_dirs": [
               "<!@(node -p \"require('napi-unit').include\")"
-            ],
-            "defines": [
-              "LIGHT_SOURCE_NATIVE_TESTS"
             ],
             "sources": [
               "test/ThreadPoolSpec.cc",

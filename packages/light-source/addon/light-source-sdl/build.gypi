@@ -2,24 +2,24 @@
   "targets": [
     {
       "target_name": "light-source-sdl",
+      "type": "static_library",
       "includes": [
-        "../common.gypi",
-        "../sdl.gypi"
+        "../common.gypi"
       ],
       "include_dirs": [
         ".",
         "../napi-ext-lib",
         "../logger-lib",
-        "../light-source-platform-lib",
-        "../light-source-util-lib",
+        "<(ls_sdl_include)",
         "../deps/cpp17_headers/include",
-        "../deps/SDL2/include"
+        "../light-source-platform-lib",
+        "../light-source-util-lib"
       ],
       "dependencies": [
         "napi-ext-lib",
-        "light-source-platform-lib",
-        "light-source-util-lib",
         "logger-lib",
+        "light-source-platform-lib",
+        "light-source-util-lib"
       ],
       "sources": [
         "ls/SDLRenderer.cc",
@@ -28,8 +28,7 @@
         "ls/InputDevice.cc",
         "ls/SDLKeyboard.cc",
         "ls/SDLGamepad.cc",
-        "ls/SDLUtil.cc",
-        "ls/Init.cc",
+        "ls/SDLUtil.cc"
       ]
     }
   ]
