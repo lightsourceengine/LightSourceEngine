@@ -9,6 +9,9 @@
       "include_dirs": [
         "repo/asmjit/src"
       ],
+	  "defines": [
+	  "ASMJIT_STATIC=1"
+	  ],
       "sources": [
         "repo/src/asmjit/core/func.cpp",
         "repo/src/asmjit/core/cpuinfo.cpp",

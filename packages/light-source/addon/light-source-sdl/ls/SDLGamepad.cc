@@ -156,7 +156,8 @@ Value SDLGamepad::GetProductVersion(const CallbackInfo& info) {
 }
 
 Value SDLGamepad::GetGameControllerMapping(const CallbackInfo& info) {
-    auto value{ SDL2::SDL_GameControllerMappingForGUID(SDL_JoystickGetGUID(this->joystick)) };
+    auto value{ SDL2::SDL_GameControllerMappingForGUID(
+        SDL2::SDL_JoystickGetGUID(this->joystick)) };
 
     if (value) {
         return String::New(info.Env(), value);

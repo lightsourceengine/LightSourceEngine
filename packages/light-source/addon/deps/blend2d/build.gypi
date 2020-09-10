@@ -6,6 +6,9 @@
       "includes": [
         "../../common.gypi",
       ],
+	  "defines": [
+		"BL_STATIC"
+	  ],
       "include_dirs": [
         "repo/blend2d/src",
         "../asmjit/repo/src"

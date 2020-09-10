@@ -14,7 +14,7 @@
 #include <windows.h>
 
 #define SharedLibraryOpen(NAME) LoadLibrary((NAME))
-#define SharedLibraryClose(HANDLE) return FreeLibrary(reinterpret_cast<HMODULE>(HANDLE))
+#define SharedLibraryClose(HANDLE) FreeLibrary(reinterpret_cast<HMODULE>(HANDLE))
 #define SharedLibraryGetLastError() GetLastError()
 #define SharedLibraryGetSymbol(HANDLE, SYMBOL) GetProcAddress(reinterpret_cast<HMODULE>(HANDLE), (SYMBOL))
 #else
@@ -37,7 +37,7 @@ void SharedLibrary::Open(const char* libraryName) {
     this->handle = SharedLibraryOpen(libraryName);
 
     if (!this->handle) {
-        throw std::runtime_error(Format("Error loading %s: %s", libraryName, dlerror()));
+        throw std::runtime_error(Format("Error loading %s: %s", libraryName, SharedLibraryGetLastError()));
     }
 }
 
