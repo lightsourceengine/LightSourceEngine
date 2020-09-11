@@ -49,6 +49,8 @@
             "<!@(node -p \"require('napi-unit').include\")"
           ],
           "dependencies": [
+            "napi-ext-lib",
+            "logger-lib",
             "light-source-util-lib"
           ],
           "sources": [

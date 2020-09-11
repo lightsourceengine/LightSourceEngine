@@ -45,7 +45,10 @@
             "<!@(node -p \"require('napi-unit').include\")"
           ],
           "dependencies": [
-            "light-source-util-lib"
+            "napi-ext-lib",
+            "logger-lib",
+            "light-source-util-lib",
+            "light-source-platform-lib"
           ],
           "sources": [
             "test/MatrixSpec.cc",
