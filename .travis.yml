@@ -114,4 +114,4 @@ matrix:
         - powershell expand-archive -path "$HOME/ci-packages/SDL2/2.0.10/SDL2-devel-2.0.10-VC.zip" -destinationpath "$HOME"
         - powershell expand-archive -path "$HOME/ci-packages/SDL2_mixer/2.0.4/SDL2_mixer-devel-2.0.4-VC.zip" -destinationpath "$HOME"
       install: yarn --force
-      script: yarn test
+      script: skip
