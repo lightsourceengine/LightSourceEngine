@@ -51,4 +51,6 @@ constexpr const char* kPluginAudioSdlAudio = "audio:sdl-audio";
 constexpr const char* kPluginAudioSdlMixer = "audio:sdl-mixer";
 constexpr const char* kPluginAudioRef = "audio:ref";
 
+constexpr const char* kDefaultRuntimeFrameworkPath = "/Library/Frameworks";
+
 } // namespace ls

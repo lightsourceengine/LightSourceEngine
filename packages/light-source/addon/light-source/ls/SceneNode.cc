@@ -177,7 +177,12 @@ void SceneNode::InsertBefore(const CallbackInfo& info) {
     }
 
     auto before{ SceneNode::QueryInterface(info[1]) };
-    auto beforeIndex{ before ? this->GetChildIndex(before) : static_cast<int32_t>(YGNodeGetChildCount(this->ygNode)) };
+
+    if (before == nullptr) {
+        throw Error::New(env, "insertBefore: before must be a SceneNode");
+    }
+
+    auto beforeIndex{ this->GetChildIndex(before) };
 
     if (beforeIndex < 0) {
         throw Error::New(env, "insertBefore: before argument is not a child");

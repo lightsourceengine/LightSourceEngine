@@ -51,6 +51,7 @@ void RefPlatformPluginImpl::Detach(const CallbackInfo& info) {
 }
 
 void RefPlatformPluginImpl::Destroy(const CallbackInfo& info) {
+    this->capabilitiesRef.Reset();
 }
 
 void RefPlatformPluginImpl::SetCallback(const CallbackInfo& info) {

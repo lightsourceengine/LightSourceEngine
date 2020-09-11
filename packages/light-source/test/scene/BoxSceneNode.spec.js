@@ -32,7 +32,7 @@ describe('BoxSceneNode', () => {
       assert.strictEqual(node.children[0], child)
       assert.strictEqual(node.children[0].parent, node)
     })
-    xit('should throw Error when adding self as child', () => {
+    it('should throw Error when adding self as child', () => {
       const node = scene.createNode('box')
 
       assert.throws(() => node.appendChild(node))
@@ -65,10 +65,12 @@ describe('BoxSceneNode', () => {
       assert.lengthOf(node.children, 0)
       assert.isNull(child.parent)
     })
-    xit('should throw Error when removing self', () => {
+    it('should be a no-op when child is self', () => {
       const node = scene.createNode('box')
 
-      assert.throws(() => node.removeChild(node))
+      node.removeChild(node)
+
+      assert.lengthOf(node.children, 0)
     })
     it('should be a no-op attempting to remove a node that is not a child', () => {
       const node = scene.createNode('box')
@@ -107,7 +109,7 @@ describe('BoxSceneNode', () => {
         assert.throws(() => node.insertBefore(input, child1))
       }
     })
-    xit('should throw Error when inserting self', () => {
+    it('should throw Error when inserting self', () => {
       const node = scene.createNode('box')
       const child1 = scene.createNode('img')
 
@@ -115,7 +117,7 @@ describe('BoxSceneNode', () => {
 
       assert.throws(() => node.insertBefore(node, child1))
     })
-    xit('should throw Error when before is invalid', () => {
+    it('should throw Error when before is invalid', () => {
       const node = scene.createNode('box')
 
       node.appendChild(scene.createNode('img'))
@@ -124,7 +126,7 @@ describe('BoxSceneNode', () => {
         assert.throws(() => node.insertBefore(scene.createNode('img'), input))
       }
     })
-    xit('should throw Error when before is self', () => {
+    it('should throw Error when before is self', () => {
       const node = scene.createNode('box')
 
       node.appendChild(scene.createNode('img'))

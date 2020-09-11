@@ -74,7 +74,7 @@ static void EnsureSDL2(const Napi::Env& env) {
     }
 
     if (kIsMac && !HasEnv("LS_SDL_USE_DYLIB")) {
-        std17::filesystem::path p(GetEnvOrDefault("LS_RUNTIME_FRAMEWORK_PATH", "/Library/Frameworks"));
+        std17::filesystem::path p(GetEnvOrDefault("LS_RUNTIME_FRAMEWORK_PATH", kDefaultRuntimeFrameworkPath));
 
         NAPI_TRY(env, SDL2::Open(p.append(kSDLFramework).append(kSDLFrameworkLib).c_str()));
     } else {
@@ -88,7 +88,7 @@ static void EnsureSDL2_mixer(const Napi::Env& env) {
     }
 
     if (kIsMac && !HasEnv("LS_SDL_MIXER_USE_DYLIB")) {
-        std17::filesystem::path p(GetEnvOrDefault("LS_RUNTIME_FRAMEWORK_PATH", "/Library/Frameworks"));
+        std17::filesystem::path p(GetEnvOrDefault("LS_RUNTIME_FRAMEWORK_PATH", kDefaultRuntimeFrameworkPath));
 
         NAPI_TRY(env, SDL2::mixer::Open(p.append(kSDLMixerFramework).append(kSDLMixerFrameworkLib).c_str()));
     } else {

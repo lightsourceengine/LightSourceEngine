@@ -7,6 +7,7 @@
 import chai from 'chai'
 import { Style, StyleAnchor, StyleClass, StyleUnit, StyleValue } from '../../src/addon/index.js'
 import { getRotateAngle, isRotate, rotate } from '../../src/style/transform.js'
+import { fileuri } from '../../src/util'
 
 const { assert } = chai
 
@@ -388,16 +389,9 @@ describe('Style', () => {
     it('should be assignable to an empty string', () => {
       testStyleValue(property, '', '')
     })
-    // TODO: support file uri with parameters
-    xit('should set from uri property', () => {
-      testStyleValue(property, { uri: testUri }, { id: testUri, uri: testUri })
-    })
-    xit('should set from uri property and reject invalid id', () => {
-      testStyleValue(property, { id: 3, uri: testUri }, { id: testUri, uri: testUri })
-    })
-    xit('should set from uri property and use width & height', () => {
-      testStyleValue(property, { uri: testUri, width: 10, height: 20 },
-        { id: testUri, uri: testUri, width: 10, height: 20 })
+    it('should set from uri property and use width & height', () => {
+      testStyleValue(property, fileuri(testUri, { width: 10, height: 20 }),
+        `file:${testUri}?width=10&height=20`)
     })
     xit('should  set from uri property and use int capInsets', () => {
       testStyleValue(property, { uri: testUri, capInsets: 10 },
