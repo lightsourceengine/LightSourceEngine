@@ -19,15 +19,14 @@
 #include <ls/System.h>
 #include <ls/SDL2.h>
 #include <ls/SDL2_mixer.h>
-#include <std17/filesystem>
 #include <ls/Config.h>
+#include <std17/filesystem>
 
 namespace ls {
 namespace bindings {
 
 static void EnsureSDL2(const Napi::Env& env);
 static void EnsureSDL2_mixer(const Napi::Env& env);
-static bool LoadFramework(const char* framework, const char* frameworkLib);
 
 Napi::Value ParseColor(const Napi::CallbackInfo& info) {
     auto env{ info.Env() };
@@ -69,30 +68,18 @@ Napi::Value LoadPlugin(const Napi::CallbackInfo& info) {
     }
 }
 
-static bool LoadFramework(const char* framework, const char* frameworkLib) {
-    std17::filesystem::path frameworkLibPath(GetEnvOrDefault("LS_RUNTIME_FRAMEWORK_PATH", "/Library/Frameworks"));
-
-    frameworkLibPath.append(framework).append(frameworkLib);
-
-    try {
-        SDL2::Open(frameworkLibPath.c_str());
-        return true;
-    } catch (std::exception& e) {
-        // ignore
-        return false;
-    }
-}
-
 static void EnsureSDL2(const Napi::Env& env) {
     if (SDL2::IsOpen()) {
         return;
     }
 
-    if (kIsMac && !HasEnv("LS_SDL_USE_DYLIB") && LoadFramework(kSDLFramework, kSDLFrameworkLib)) {
-        return;
-    }
+    if (kIsMac && !HasEnv("LS_SDL_USE_DYLIB")) {
+        std17::filesystem::path p(GetEnvOrDefault("LS_RUNTIME_FRAMEWORK_PATH", "/Library/Frameworks"));
 
-    NAPI_TRY(env, SDL2::Open(GetEnvOrDefault("LS_SDL_LIB_NAME", kSDLDefaultLibName)));
+        NAPI_TRY(env, SDL2::Open(p.append(kSDLFramework).append(kSDLFrameworkLib).c_str()));
+    } else {
+        NAPI_TRY(env, SDL2::Open(GetEnvOrDefault("LS_SDL_LIB_NAME", kSDLDefaultLibName)));
+    }
 }
 
 static void EnsureSDL2_mixer(const Napi::Env& env) {
@@ -100,11 +87,13 @@ static void EnsureSDL2_mixer(const Napi::Env& env) {
         return;
     }
 
-    if (kIsMac && !HasEnv("LS_SDL_MIXER_USE_DYLIB") && LoadFramework(kSDLMixerFramework, kSDLMixerFrameworkLib)) {
-        return;
-    }
+    if (kIsMac && !HasEnv("LS_SDL_MIXER_USE_DYLIB")) {
+        std17::filesystem::path p(GetEnvOrDefault("LS_RUNTIME_FRAMEWORK_PATH", "/Library/Frameworks"));
 
-    NAPI_TRY(env, SDL2::mixer::Open(GetEnvOrDefault("LS_SDL_MIXER_LIB_NAME", kSDLMixerDefaultLibName)));
+        NAPI_TRY(env, SDL2::mixer::Open(p.append(kSDLMixerFramework).append(kSDLMixerFrameworkLib).c_str()));
+    } else {
+        NAPI_TRY(env, SDL2::mixer::Open(GetEnvOrDefault("LS_SDL_MIXER_LIB_NAME", kSDLMixerDefaultLibName)));
+    }
 }
 
 } // namespace bindings
