@@ -105,14 +105,13 @@ matrix:
         - (cd scripts && yarn)
         - ./scripts/build-ls-node.js --platform linux --arch armv7l --profile pi --sdl-profile kmsdrm --sdl-root "${HOME}/SDL2-2.0.12-armv7l-kmsdrm" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
       script: skip
-  exclude:
     - name: "windows-x64 [Release]"
       os: windows
-      env: YARN_GPG=no npm_config_ls_enable_native_tests=1 npm_config_ls_sdl_include="$HOME/SDL2-2.0.10/include" npm_config_ls_sdl_lib="$HOME/SDL2-2.0.10/lib/x64" npm_config_ls_sdl_mixer_include="$HOME/SDL2_mixer-2.0.4/include" npm_config_ls_sdl_mixer_lib="$HOME/SDL2_mixer-2.0.4/lib/x64"
+      env: YARN_GPG=no npm_config_ls_enable_native_tests=1
       before_install:
         - set -e
         - git clone --depth 1 https://github.com/lightsourceengine/ci-packages.git "${HOME}/ci-packages"
         - powershell expand-archive -path "$HOME/ci-packages/SDL2/2.0.10/SDL2-devel-2.0.10-VC.zip" -destinationpath "$HOME"
         - powershell expand-archive -path "$HOME/ci-packages/SDL2_mixer/2.0.4/SDL2_mixer-devel-2.0.4-VC.zip" -destinationpath "$HOME"
       install: yarn --force
-      script: skip
+      script: yarn test
