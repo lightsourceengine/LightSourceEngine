@@ -13,7 +13,7 @@ import { getActiveContainers, render } from '../src/renderer.js'
 const { assert } = chai
 
 before(() => {
-  logger.setLogLevel(LogLevel.Off)
+  logger.setLogLevel(LogLevel.OFF)
 
   stage.on('destroying', (event) => {
     shutdown()

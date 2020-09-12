@@ -12,6 +12,8 @@
 #include <ls/LinkSceneNode.h>
 #include <ls/RootSceneNode.h>
 #include <ls/TextSceneNode.h>
+#include <ls/System.h>
+#include <ls/Log.h>
 #include <ls/bindings/Bindings.h>
 #include <ls/bindings/JSEnums.h>
 #include <ls/bindings/JSScene.h>
@@ -43,6 +45,13 @@ void ExportClass(Object exports, const Function& constructor) {
 
 Object Init(Env env, Object exports) {
     HandleScope scope(env);
+    
+    auto logLevel = ls::GetEnvOrDefault("LS_LOG_LEVEL", "INFO");
+
+    if (!ls::SetLogLevel(logLevel)) {
+        ls::SetLogLevel(ls::LogLevelInfo);
+        LOG_ERROR("LS_LOG_LEVEL contains invalid value of %s. Defaulting to INFO.", logLevel);
+    }
 
     ls::Style::Init();
     ls::StyleValidator::Init();

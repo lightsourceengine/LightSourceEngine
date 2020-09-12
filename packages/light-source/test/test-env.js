@@ -13,7 +13,7 @@ const nodes = []
 let stage = null
 
 before(() => {
-  logger.setLogLevel(LogLevel.Off)
+  logger.setLogLevel(LogLevel.OFF)
 
   stage = new Stage()
   stage.loadPlugin('platform:ref')

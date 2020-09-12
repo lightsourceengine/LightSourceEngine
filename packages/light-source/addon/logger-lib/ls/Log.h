@@ -24,9 +24,11 @@ enum LogLevel {
     LogLevelCount,
 };
 
-bool IsLogLevel(const int32_t logLevel) noexcept;
+bool IsLogLevel(int32_t logLevel) noexcept;
 
-void SetLogLevel(const LogLevel logLevel) noexcept;
+void SetLogLevel(LogLevel logLevel) noexcept;
+
+bool SetLogLevel(const char* logLevel) noexcept;
 
 LogLevel GetLogLevel() noexcept;
 

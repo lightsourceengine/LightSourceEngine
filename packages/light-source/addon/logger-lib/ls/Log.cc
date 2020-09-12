@@ -14,8 +14,16 @@ namespace ls {
 static auto sLogLevel{ LogLevelInfo };
 static auto sSink{ stdout };
 
-static
-const char* LogLevelToString(const LogLevel logLevel) noexcept {
+static bool eqi(const char* a, const char* b) {
+    while (::tolower(static_cast<unsigned char>(*a)) == ::tolower(static_cast<unsigned char>(*b++))) {
+        if (*a++ == 0) {
+            return true;
+        }
+    }
+    return false;
+};
+
+constexpr const char* LogLevelToString(const LogLevel logLevel) noexcept {
     switch (logLevel) {
         case LogLevelDebug:
             return "DEBUG";
@@ -48,8 +56,42 @@ bool IsLogLevel(const int32_t logLevel) noexcept {
     }
 }
 
-void SetLogLevel(const LogLevel logLevel) noexcept {
+void SetLogLevel(LogLevel logLevel) noexcept {
     sLogLevel = logLevel;
+}
+
+bool SetLogLevel(const char* logLevel) noexcept {
+    LogLevel e;
+
+    if (logLevel == nullptr || *logLevel == '\0') {
+        return false;
+    } else if (logLevel[1] == '\0') {
+        const int32_t logLevelInt = logLevel[0] - '0';
+
+        if (!IsLogLevel(logLevelInt)) {
+            return false;
+        }
+
+        e = static_cast<LogLevel>(logLevelInt);
+    } else if (eqi(logLevel, LogLevelToString(LogLevelOff))) {
+        e = LogLevelOff;
+    } else if (eqi(logLevel, LogLevelToString(LogLevelInfo))) {
+        e = LogLevelInfo;
+    } else if (eqi(logLevel, LogLevelToString(LogLevelWarn))) {
+        e = LogLevelWarn;
+    } else if (eqi(logLevel, LogLevelToString(LogLevelError))) {
+        e = LogLevelError;
+    } else if (eqi(logLevel, LogLevelToString(LogLevelDebug))) {
+        e = LogLevelDebug;
+    } else if (eqi(logLevel, LogLevelToString(LogLevelAll))) {
+        e = LogLevelAll;
+    } else {
+        return false;
+    }
+
+    SetLogLevel(e);
+
+    return true;
 }
 
 LogLevel GetLogLevel() noexcept {

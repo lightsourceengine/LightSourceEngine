@@ -32,12 +32,12 @@ Function NewLoggerClass(Napi::Env env) {
 
 Function NewLogLevelClass(Napi::Env env) {
     return ClassBuilder(env, "LogLevel")
-        .WithStaticValue("Off", ls::LogLevel::LogLevelOff)
-        .WithStaticValue("Error", ls::LogLevel::LogLevelError)
-        .WithStaticValue("Warn", ls::LogLevel::LogLevelWarn)
-        .WithStaticValue("Info", ls::LogLevel::LogLevelInfo)
-        .WithStaticValue("Debug", ls::LogLevel::LogLevelDebug)
-        .WithStaticValue("All", ls::LogLevel::LogLevelAll)
+        .WithStaticValue("OFF", ls::LogLevel::LogLevelOff)
+        .WithStaticValue("ERROR", ls::LogLevel::LogLevelError)
+        .WithStaticValue("WARN", ls::LogLevel::LogLevelWarn)
+        .WithStaticValue("INFO", ls::LogLevel::LogLevelInfo)
+        .WithStaticValue("DEBUG", ls::LogLevel::LogLevelDebug)
+        .WithStaticValue("ALL", ls::LogLevel::LogLevelAll)
         .ToConstructor();
 }
 
@@ -96,12 +96,31 @@ Value Logger::GetLogLevel(const CallbackInfo& info) {
 }
 
 void Logger::SetLogLevel(const CallbackInfo& info) {
-    if (info[0].IsNumber()) {
-        auto logLevel{ info[0].As<Number>().Int32Value() };
+    auto env{ info.Env() };
 
-        if (IsLogLevel(logLevel)) {
-            ls::SetLogLevel(static_cast<LogLevel>(logLevel));
+    switch (info[0].Type()) {
+        case napi_number: {
+            int32_t logLevel{ info[0].As<Number>() };
+
+            if (IsLogLevel(logLevel)) {
+                ls::SetLogLevel(static_cast<LogLevel>(logLevel));
+            } else {
+                throw Error::New(env, "LogLevel value out of range.");
+            }
+
+            break;
         }
+        case napi_string: {
+            auto value = Napi::CopyUtf8(info[0]);
+
+            if (!ls::SetLogLevel(value)) {
+                throw Error::New(env, "Invalid LogLevel value.");
+            }
+
+            break;
+        }
+        default:
+            throw Error::New(env, "LogLevel must be a string or integer.");
     }
 }
 

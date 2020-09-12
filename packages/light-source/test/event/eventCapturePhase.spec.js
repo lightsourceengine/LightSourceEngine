@@ -36,7 +36,7 @@ describe('eventCapturePhase()', () => {
     assert.isTrue(event.hasStopPropagation())
     assert.strictEqual(scene.root.children[0].children[0], scene.activeNode)
   })
-  it('should be a noop if scene has not active node', () => {
+  it('should be a noop if scene has no active node', () => {
     const event = rightKeyEvent()
 
     scene.activeNode.blur()
