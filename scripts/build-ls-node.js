@@ -19,12 +19,8 @@
 // The platform profile. An additional specifier of the platform to help the package builder tailor the build for
 // a specific target.
 //
-// --sdl-profile value [Default: system Values: system, rpi, kmsdrm, framework]
+// --sdl-profile value [Default: system Values: system, rpi, kmsdrm, framework, dll]
 // The SDL profile is a hint about how SDL should be linked and possibly packaged for the target platform.
-//
-// --framework-path path
-// If --profile framework is specified, the SDL2.framework and SDL2_mixer.framework in this path will be used
-// for building and packaging.
 //
 // --node-binary-cache path
 // Directory where the official node packages are unarchived and stored on disk. If not specified, a temporary
@@ -33,10 +29,11 @@
 // --crosstools-home path
 // If cross compiling to arm, this path points to the source root of the crosstools project.
 //
-// --sdl-root path
-// If an SDL video profile of rpi or kmsdrm is specified, this is the path is used. The path points to a directory
-// containing an include (SDL2 headers) and lib (pre-compiled SDL2 shared object for the target). Light Source Engine
-// will be built against this SDL2 version and the shared object will be included in the final package.
+// --sdl-runtime-pkg path
+// SDL2 runtime binaries to be included in the final package.
+//
+// --sdl-mixer-runtime-pkg path
+// SDL2_mixer runtime binaries to be included in the final package.
 //
 // --skip-build
 // If specified, yarn --force is not run and this script assumes LightSourceEngine has been successfully build.
@@ -88,6 +85,7 @@
 //       SDL2.framework
 //       SDL2_mixer.framework
 //     so/
+//       libSDL2.so
 //     node_modules/
 //       light-source/
 //         index.js
@@ -98,28 +96,35 @@
 //         index.js
 //   bin/
 //     __node
-//     -node (shell script with env configuration)
+//     node (shell script with env configuration)
+//     *.dll
 //
 // Frameworks - On mac, SDL2 and SDL2_mixer frameworks are bundled for the runtime. light-source-sdl.node has it's
 //              @executable_path set to find this Frameworks directory.
 // so         - On linux builds, this folder is the default value for LD_LIBRARY_PATH. This allows the packager
-//              flexibility with how the SDL so is loaded on the target system.
+//              flexibility with how the SDL so is loaded on the target system. Also, SDL_mixer is NOT shipped, as
+//              there are too many dependencies to manage. User's should install SDL_mixer from apt if streaming
+//              audio formats are required.
 // node       - This is a shell script that sets NODE_PATH, to find react, light-source and light-source-react
 //              javascript packages, and LD_LIBRARY_PATH, to find SDL libraries. The packages are global or builtin
 //              to the runtime or developer.
-// Release/   - Pre-compiled light-source addon are stored here. The light-source runtime can find them using the
+// Release    - Pre-compiled light-source addon are stored here. The light-source runtime can find them using the
 //              $LS_ADDON_PATH environment variable.
+// Windows    - On Windows, the SDL DLLs are in the bin directory, as that is in Windows default lib search path.
 //
 
-const { join, delimiter, basename } = require('path')
+const { join, basename, extname } = require('path')
 const { spawn } = require('child_process')
-const { emptyDirSync, ensureDirSync, pathExistsSync, copy, move, createSymlink } = require('fs-extra')
+const { emptyDirSync, ensureDirSync, pathExistsSync, copy, move, createSymlink, createWriteStream, unlink, writeFile } = require('fs-extra')
 const readPkg = require('read-pkg')
 const { tmpdir } = require('os')
 const commandLineArgs = require('command-line-args')
+const fetch = require('node-fetch')
+const tar = require('tar')
+const AdmZip = require('adm-zip')
 
 const command = async (...args) => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const subprocess = spawn(...args)
     let out = ''
 
@@ -172,7 +177,8 @@ const SDLProfile = {
   system: 'system',
   rpi: 'rpi',
   kmsdrm: 'kmsdrm',
-  framework: 'framework'
+  framework: 'framework',
+  dll: 'dll',
 }
 
 const getCommandLineOptions = () => {
@@ -181,10 +187,10 @@ const getCommandLineOptions = () => {
     { name: 'arch', type: String, multiple: false, defaultValue: process.arch },
     { name: 'profile', type: String, multiple: false, defaultValue: 'none' },
     { name: 'sdl-profile', type: String, multiple: false, defaultValue: 'system' },
-    { name: 'framework-path', type: String, multiple: false, defaultValue: '/Library/Frameworks' },
     { name: 'node-binary-cache', type: String, multiple: false, defaultValue: '' },
     { name: 'crosstools-home', type: String, multiple: false, defaultValue: '' },
-    { name: 'sdl-root', type: String, multiple: false, defaultValue: '' },
+    { name: 'sdl-runtime-pkg', type: String, multiple: false, defaultValue: '' },
+    { name: 'sdl-mixer-runtime-pkg', type: String, multiple: false, defaultValue: '' },
     { name: 'skip-build', type: Boolean, defaultValue: false },
     { name: 'compress-node-binary', type: Boolean, defaultValue: false },
     { name: 'strip-node-binary', type: Boolean, defaultValue: false },
@@ -214,11 +220,6 @@ const getCommandLineOptions = () => {
     throw Error('--crosstool-home does not specify a directory')
   }
 
-  if ((options.sdlProfile === SDLProfile.rpi || options.sdlProfile === SDLProfile.kmsdrm)
-      && !pathExistsSync(options.sdlRoot)) {
-    throw Error('--sdl-root does not specify a directory')
-  }
-
   if (!options.nodeBinaryCache) {
     options.nodeBinaryCache = tmpdir()
   }
@@ -227,8 +228,39 @@ const getCommandLineOptions = () => {
     throw Error('--node-binary-cache does not exist')
   }
 
-  if (options.sdlProfile === 'framework' && !pathExistsSync(options.frameworkPath)) {
-    throw Error('--framework-path must specify a valid directory when --sdl-profile framework is enabled')
+  const sdlRuntimePkgExists = pathExistsSync(options.sdlRuntimePkg)
+  const sdlMixerRuntimePkgExists = pathExistsSync(options.sdlMixerRuntimePkg)
+  const sdlProfileError = (pkgFlag) => {
+    if (!sdlRuntimePkgExists) {
+      throw Error(`--sdl-profile ${options.sdlProfile} requires ${pkgFlag} to be a valid path`)
+    }
+  }
+
+  switch (options.sdlProfile) {
+    case SDLProfile.rpi:
+    case SDLProfile.kmsdrm:
+      if (!sdlRuntimePkgExists) {
+        sdlProfileError('--sdl-runtime-pkg')
+      }
+      break
+    case SDLProfile.framework:
+      if (!sdlRuntimePkgExists || !options.sdlRuntimePkg.endsWith('SDL2.framework')) {
+        sdlProfileError('--sdl-runtime-pkg')
+      }
+      if (!sdlMixerRuntimePkgExists || !options.sdlMixerRuntimePkg.endsWith('SDL2_mixer.framework')) {
+        sdlProfileError('--sdl-mixer-runtime-pkg')
+      }
+      break
+    case SDLProfile.dll:
+      if (!sdlRuntimePkgExists) {
+        sdlProfileError('--sdl-runtime-pkg')
+      }
+      if (!sdlMixerRuntimePkgExists) {
+        sdlProfileError('--sdl-mixer-runtime-pkg')
+      }
+      break
+    default:
+      break
   }
 
   return options
@@ -298,60 +330,34 @@ class LightSourceBundle {
     ])
     
     await this.#stagingSecondPass()
-
-    console.log(`package: creating package...`)
-
-    if (this.options.profile === Profile.psclassic) {
-      // TODO: this should be in deb package format, not tar.gz
-      const mod = `${basename(this.staging.home)}.mod`
-
-      console.log(`package: ${mod}`)
-
-      await command('tar', ['-cvzf', `../${mod}`, '.'],
-        {shell: true, cwd: this.staging.home})
-    } else if (this.options.profile === Profile.nclassic) {
-      // TODO: add install/uninstall script, bin link
-      const hmod = `${basename(this.staging.home)}.hmod`
-
-      console.log(`package: ${hmod}`)
-
-      await command('tar', ['-cvzf', `../${hmod}`, '.'],
-        {shell: true, cwd: this.staging.home})
-    } else {
-      const tar = `${basename(this.staging.home)}.tar.gz`
-
-      console.log(`package: ${tar}`)
-
-      await command('tar', ['-cvzf', tar, basename(this.staging.home)],
-        {shell: true, cwd: join(this.srcRoot, 'build')})
-    }
-
-    console.log(`package: creating package... complete`)
+    await this.#createPackage()
   }
 
   async #stagingFirstPass () {
     const nodeHomeCache = join(this.options.nodeBinaryCache, this.nodeTag)
+    const exe = (program) => this.options.platform === 'win' ? program + '.exe' : program
 
+    // Download node to cache.
     if (!pathExistsSync(nodeHomeCache)) {
-      const url = `https://nodejs.org/download/release/${this.nodeVersion}/${this.nodeTag}.tar.gz`
-
-      console.log('staging: downloading node...')
-      console.log(`staging: ${url}`)
-      await command(`wget -qO- "${url}" | tar -C "${this.options.nodeBinaryCache}" -xzf -`, { shell: true })
-      console.log('staging: downloading node... complete')
+      await this.#downloadNode()
     } else {
       console.log(`Using node (${this.nodeTag}) from cache...`)
     }
 
+    // Clear staging directory.
     emptyDirSync(this.staging.home)
     ensureDirSync(this.staging.nodeHome)
 
+    // Copy entire node install or a minimal install with just the node executable.
     if (this.options.minimalNodeInstall) {
+      const nodeExecutable = exe('node')
+
       console.log('staging: adding minimal node package...')
       ensureDirSync(this.staging.nodeLib)
       ensureDirSync(this.staging.nodeBin)
       ensureDirSync(this.staging.nodeModules)
-      await copy(join(nodeHomeCache, 'bin', 'node'), join(this.staging.nodeBin, 'node'))
+      await copy(join(nodeHomeCache, 'bin', nodeExecutable), join(this.staging.nodeBin, nodeExecutable))
+      await copy(join(nodeHomeCache, 'LICENSE'), join(this.staging.nodeHome, 'LICENSE-node'))
       console.log('staging: adding minimal node package... complete')
     } else {
       console.log('staging: adding full node package...')
@@ -359,14 +365,28 @@ class LightSourceBundle {
       console.log('staging: adding full node package... complete')
     }
 
-    const nodeBinaryPath = join(this.staging.nodeBin, '__node')
+    // Copy license.
+    const lightSourceEngineLicense = 'LICENSE-LightSourceEngine'
+
+    await copy(join(this.srcRoot, 'scripts', 'static', lightSourceEngineLicense),
+      join(this.staging.nodeHome, lightSourceEngineLicense))
+
+    // Rename node to __node. node will be invoked by a wrapped script.
+    const nodeBinaryPath = join(this.staging.nodeBin, exe('__node'))
 
     console.log('staging: wrapping node binary...')
-    await move(join(this.staging.nodeBin, 'node'), nodeBinaryPath)
+    await move(join(this.staging.nodeBin, exe('node')), nodeBinaryPath)
     console.log('staging: wrapping node binary... complete')
 
-    await copy(join(this.srcRoot, 'scripts', 'static', 'ls-node.sh'), join(this.staging.nodeBin, 'node'))
+    // Copy wrapper script (this sets up the environment to find Light Source Engine built-ins)
+    if (this.options.platform === 'win') {
+      await copy(join(this.srcRoot, 'scripts', 'static', 'ls-node.cmd'), join(this.staging.nodeBin, 'node.cmd'))
+    } else {
+      await copy(join(this.srcRoot, 'scripts', 'static', 'ls-node.sh'), join(this.staging.nodeBin, 'node'))
+    }
 
+    // Set the node runpath.
+    // TODO: set to pick up a bundled c++ lib, but not sure if this is necessary
     if (this.options.platform === 'linux') {
       console.log('staging: patching node binary rpath...')
       ensureDirSync(join(this.staging.nodeLdLibraryPath))
@@ -374,6 +394,18 @@ class LightSourceBundle {
       console.log('staging: patching node binary rpath... complete')
     }
 
+    // Copy c++ lib from cross compiler.
+    // TODO: some platforms have an earlier version of c++. seems to work, but more investigation is needed
+    if (this.options.isArmCrossCompile) {
+      const cpp = 'libstdc++.so.6.0.22'
+
+      console.log('staging: adding cpp 6.0.22 library...')
+      await copy(join(this.crosstoolsSysroot, 'lib', cpp), join(this.staging.nodeLdLibraryPath, cpp))
+      await createSymlink(cpp, join(this.staging.nodeLdLibraryPath, 'libstdc++.so.6'))
+      console.log('staging: adding cpp 6.0.22 library... complete')
+    }
+
+    // Strip symbols. Saves several megs on arm builds.
     if (this.options.stripNodeBinary) {
       console.log('staging: stripping node binary...')
       if (this.options.isArmCrossCompile) {
@@ -386,17 +418,19 @@ class LightSourceBundle {
       console.log('staging: stripping node binary... complete')
     }
 
+    // Compress node binary with upx. 66% size reduction on arm builds.
     if (this.options.compressNodeBinary) {
       console.log('staging: compressing node binary...')
       await command ('upx', [ '-q', nodeBinaryPath ])
       console.log('staging: compressing node binary... complete')
     }
 
-    ensureDirSync(this.staging.nodeLightSource)
-    ensureDirSync(this.staging.nodeLightSourceReact)
-    ensureDirSync(this.staging.nodeReact)
-
-    if (this.options.sdlProfile === SDLProfile.framework) {
+    // Copy pre-compiled SDL binaries according to the selected SDL profile.
+    if (this.options.sdlProfile === SDLProfile.rpi || this.options.sdlProfile === SDLProfile.kmsdrm) {
+      // TODO: untar single file?
+      await copy(join(this.options.sdlRuntimePkg, 'lib', 'libSDL2-2.0.so.0'),
+        join(this.staging.nodeLdLibraryPath, 'libSDL2.so'))
+    } else if (this.options.sdlProfile === SDLProfile.framework) {
       const sdl2 = join(this.staging.nodeFrameworks, 'SDL2.framework')
       const sdl2Mixer = join(this.staging.nodeFrameworks, 'SDL2_mixer.framework')
 
@@ -404,24 +438,73 @@ class LightSourceBundle {
       ensureDirSync(sdl2Mixer)
 
       console.log('staging: adding Mac SDL Frameworks...')
-      await copy(join(this.options.frameworkPath, 'SDL2.framework'), sdl2)
-      await copy(join(this.options.frameworkPath, 'SDL2_mixer.framework'), sdl2Mixer)
+      await copy(join(this.options.sdlRuntimePkg), sdl2)
+      await copy(join(this.options.sdlMixerRuntimePkg), sdl2Mixer)
       console.log('staging: adding Mac SDL Frameworks... complete')
+    } else if (this.options.sdlProfile === SDLProfile.dll) {
+      const processZipEntries = (entries, rename) => {
+        const files = []
+
+        for (const entry of entries.filter(e => e.endsWith('.dll') || e.endsWith('.txt'))) {
+          const readAndWrite = new Promise((resolve, reject) => {
+            entry.getDataAsync((buffer, err) => {
+              err ? reject(Error(err)) : resolve(buffer)
+            })
+          }).then((buffer) => writeFile(join(this.options.nodeBin, rename(entry.entryName)), buffer))
+
+          files.push(readAndWrite)
+        }
+
+        return files
+      }
+
+      const sdl = new AdmZip(this.options.sdlRuntimePkg)
+      const sdlMixer = new AdmZip(this.options.sdlMixerRuntimePkg)
+
+      await Promise.all([
+        ...processZipEntries(sdl.getEntries(), (name) => name),
+        ...processZipEntries(sdlMixer.getEntries(), (name) => name === 'README.txt' ? 'README-SDL_mixer.txt' : name)
+      ])
+    }
+  }
+
+  async #downloadNode () {
+    const downloadArchiveFromNodeJs = async (outputStream, archiveExt) => {
+      const url = `https://nodejs.org/download/release/${this.nodeVersion}/${this.nodeTag}${archiveExt}`
+
+      console.log(`staging: ${url}`)
+
+      const response = await fetch(url)
+
+      response.body.pipe(outputStream)
+
+      await new Promise((resolve, reject) => {
+        outputStream.on('end', () => resolve())
+        outputStream.on('error', reject)
+      })
     }
 
-    if (this.options.isArmCrossCompile) {
-      const cpp = 'libstdc++.so.6.0.22'
+    console.log('staging: downloading node...')
 
-      console.log('staging: adding cpp 6.0.22 library...')
-      await copy(join(this.crosstoolsSysroot, 'lib', cpp), join(this.staging.nodeLdLibraryPath, cpp))
-      await createSymlink(cpp, join(this.staging.nodeLdLibraryPath, 'libstdc++.so.6'))
-      console.log('staging: adding cpp 6.0.22 library... complete')
+    if (this.options.platform === 'win') {
+      // zip library does not support streams, so download to temp, extract and delete temp
+      const tempFile = join(this.options.nodeBinaryCache, this.nodeTag + '.zip')
+
+      await downloadArchiveFromNodeJs(createWriteStream(tempFile), extname(tempFile))
+
+      await new Promise((resolve, reject) => {
+        (new AdmZip(tempFile)).extractAllToAsync(
+          this.options.nodeBinaryCache, false, (err) => {
+            err ? reject(err) : resolve()
+          })
+      })
+
+      await unlink(tempFile)
+    } else {
+      await downloadArchiveFromNodeJs(tar.x({ C: this.options.nodeBinaryCache }), '.tar.gz')
     }
 
-    if (this.options.sdlProfile === SDLProfile.rpi || this.options.sdlProfile === SDLProfile.kmsdrm) {
-      await copy(join(this.options.sdlRoot, 'lib', 'libSDL2-2.0.so.0'), 
-        join(this.staging.nodeLdLibraryPath, 'libSDL2.so'))
-    }
+    console.log('staging: downloading node... complete')
   }
 
   async #stagingSecondPass () {
@@ -457,14 +540,29 @@ class LightSourceBundle {
       return
     }
 
-    let program
-    let programArgs
+    // Set up environment.
     const env = {
+      // inherit the environment
       ...process.env,
+      // use all the power
       npm_config_ls_install_opts: '--jobs max',
-      npm_config_ls_enable_native_tests: '0',
+      // enable all plugins, include ref
+      // TODO: disable ref for release builds?
+      // TODO: this list must be kept in sync!
+      ls_enable_plugin_platform_sdl: 1,
+      ls_enable_plugin_platform_ref: 1,
+      ls_enable_plugin_audio_sdl_audio: 1,
+      ls_enable_plugin_audio_sdl_mixer: 1,
+      ls_enable_plugin_audio_ref: 1,
+      // disable tests
+      npm_config_ls_enable_native_tests: 0,
+      // TODO: (not supported yet) env.npm_config_ls_asmjit_build = 'arm'
     }
 
+    let program
+    let programArgs
+
+    // Setup compile command. Either "cross [profile] yarn --force" or "yarn --force"
     if (this.options.isArmCrossCompile) {
       const crossProfile = { armv6l: 'rpizero', armv7l: 'rpi' }[this.options.arch]
 
@@ -472,17 +570,8 @@ class LightSourceBundle {
         throw Error('cross: unsupported arch' + this.options.arch)
       }
 
-      program = 'cross'
+      program = join(this.options.crosstoolsHome, 'bin', 'cross')
       programArgs = [crossProfile, 'yarn']
-
-      // TODO: env.npm_config_ls_asmjit_build = 'arm'
-
-      if (process.env.PATH) {
-        env.PATH += delimiter
-      } else {
-        env.PATH = ''
-      }
-      env.PATH += join(this.options.crosstoolsHome, 'bin')
     } else {
       program = 'yarn'
       programArgs = []
@@ -492,10 +581,54 @@ class LightSourceBundle {
 
     const compileInterval = setInterval(() => { console.log('compile: still working...') }, 5000)
 
-    await command(program, [...programArgs, '--force'], { shell: true, cwd: this.srcRoot, env })
+    try {
+      await command(program, [...programArgs, '--force'], {shell: true, cwd: this.srcRoot, env})
+    } finally {
+      clearInterval(compileInterval)
+    }
 
-    clearInterval(compileInterval)
     console.log('compile: running yarn... complete')
+  }
+
+  async #createPackage () {
+    console.log(`package: creating package...`)
+
+    const packageName = basename(this.staging.home)
+    const packagePathNoExt = this.staging.home
+
+    if (this.options.platform === 'win') {
+      const zip = new AdmZip(packagePathNoExt + '.zip')
+
+      zip.addLocalFolder(this.staging.home, packageName)
+
+      await new Promise((resolve, reject) => {
+        zip.writeZip((err) => { err ? reject(err) : resolve() })
+      })
+    } else if (this.options.profile === Profile.psclassic) {
+      // TODO: this should be in deb package format, not tar.gz
+      const mod = `${basename(this.staging.home)}.mod`
+
+      console.log(`package: ${mod}`)
+
+      await command('tar', ['-cvzf', `../${mod}`, '.'],
+        {shell: true, cwd: this.staging.home})
+    } else if (this.options.profile === Profile.nclassic) {
+      // TODO: add install/uninstall script, bin link
+      const hmod = `${basename(this.staging.home)}.hmod`
+
+      console.log(`package: ${hmod}`)
+
+      await command('tar', ['-cvzf', `../${hmod}`, '.'],
+        {shell: true, cwd: this.staging.home})
+    } else {
+      await tar.create({
+        file: packagePathNoExt + 'tar.gz',
+        gzip: true,
+        C: join(this.srcRoot, 'build')
+      }, [packageName])
+    }
+
+    console.log(`package: creating package... complete`)
   }
 }
 
