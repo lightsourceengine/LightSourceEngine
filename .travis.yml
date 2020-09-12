@@ -75,6 +75,7 @@ matrix:
         - git clone --depth 1 https://github.com/lightsourceengine/crosstools.git "${HOME}/crosstools"
         - git clone --depth 1 https://github.com/lightsourceengine/ci-packages.git "${HOME}/ci-packages"
         - tar -xzf "${HOME}/ci-packages/SDL2-2.0.12-armv7l-rpi.tar.gz" --directory "$HOME"
+        - tar -xzf "${HOME}/ci-packages/SDL2-2.0.12-armv7l-kmsdrm.tar.gz" --directory "$HOME"
         - wget -qO- https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz | tar xJ -C "$HOME"
         - export PATH="$HOME/upx-3.96-amd64_linux:$PATH"
       install:
