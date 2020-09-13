@@ -7,6 +7,7 @@
 import { terser } from 'rollup-plugin-terser'
 import replace from 'rollup-plugin-re'
 import babel from '@rollup/plugin-babel'
+import { readFileSync } from 'fs'
 
 const preamble = '// Light Source Engine\n' +
   '// Copyright (C) 2020 Daniel Anderson.\n' +
@@ -123,3 +124,7 @@ export const replaceObjectAssign = () => replace({
   }
 })
 
+/**
+ * Read the version field from a package.json file.
+ */
+export const getPackageJsonVersion = (packageJsonFile) => JSON.parse(readFileSync(packageJsonFile, "utf8")).version

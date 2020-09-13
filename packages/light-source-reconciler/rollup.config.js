@@ -9,7 +9,10 @@ import nodeResolve from '@rollup/plugin-node-resolve'
 import inject from '@rollup/plugin-inject'
 import commonjs from '@rollup/plugin-commonjs'
 import { resolve } from 'path'
-import { onwarn, nodeEnv, replaceObjectAssign } from '../rollup/plugins'
+import { onwarn, nodeEnv, replaceObjectAssign, getPackageJsonVersion } from '../rollup/plugins'
+
+const pkg = require.resolve('react-reconciler/package.json')
+const intro = `global.reactReconcilerVersion = ${JSON.stringify(getPackageJsonVersion(pkg))}`
 
 // The react reconciler does not have a defined lifecycle nor does the reconciler provide an API for
 // shutdown. The reconciler may hold timers through setTimeout and SchedulerMessageChannel, preventing node
@@ -17,13 +20,14 @@ import { onwarn, nodeEnv, replaceObjectAssign } from '../rollup/plugins'
 // timers. From there, I expose a reconciler shutdown. This is a horrible hack, but the solution avoids forking
 // the reconciler.
 
-const lightSourceReconciler = (input, format) => ({
+const lightSourceReconciler = (input) => ({
   input,
   onwarn,
   output: {
-    format: format,
-    file: `dist/index${format === 'cjs' ? '.cjs' : '.mjs'}`,
-    preferConst: true
+    format: 'esm',
+    file: 'dist/index.mjs',
+    preferConst: true,
+    intro
   },
   external: ['worker_threads', 'react', 'object-assign'],
   plugins: [
@@ -46,5 +50,5 @@ const lightSourceReconciler = (input, format) => ({
 })
 
 export default [
-  lightSourceReconciler('lib/light-source-reconciler.js', 'esm')
+  lightSourceReconciler('lib/light-source-reconciler.js')
 ]

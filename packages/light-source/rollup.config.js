@@ -7,11 +7,14 @@
 import autoExternal from 'rollup-plugin-auto-external'
 import resolve from '@rollup/plugin-node-resolve'
 import replace from 'rollup-plugin-re'
-import { beautify, onwarn, minify, inlineModule } from '../rollup/plugins.js'
+import { beautify, onwarn, minify, inlineModule, getPackageJsonVersion } from '../rollup/plugins.js'
+
+const intro = `global.lightSourceVersion = ${JSON.stringify(getPackageJsonVersion('./package.json'))}`
 
 const inlineBindings = () => inlineModule({
   bindings: 'export default {}'
 })
+
 const setLsBindingsType = (value) => replace({
   sourceMap: false,
   replaces: {
@@ -26,7 +29,8 @@ const lightSourceNpm = (input) => (
     output: {
       format: 'esm',
       file: 'dist/light-source.mjs',
-      preferConst: true
+      preferConst: true,
+      intro
     },
     plugins: [
       autoExternal(),
@@ -43,7 +47,8 @@ const lightSourceStandalone = (input) => ({
   output: {
     format: 'esm',
     file: 'dist/light-source.standalone.mjs',
-    preferConst: true
+    preferConst: true,
+    intro
   },
   plugins: [
     autoExternal({

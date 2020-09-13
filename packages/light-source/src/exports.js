@@ -52,6 +52,7 @@ const errorHandler = obj => {
 ['SIGINT', 'uncaughtException', 'unhandledRejection'].forEach(e => process.on(e, errorHandler))
 
 const stage = new Stage()
+const { lightSourceVersion } = global // set by rollup from package.json
 
 export {
   // Style
@@ -101,5 +102,7 @@ export {
 
   // Audio
   AudioDecoderType,
-  AudioSourceType
+  AudioSourceType,
+
+  lightSourceVersion
 }

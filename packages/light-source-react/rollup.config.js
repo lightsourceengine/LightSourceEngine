@@ -6,7 +6,11 @@
 
 import autoExternal from 'rollup-plugin-auto-external'
 import resolve from '@rollup/plugin-node-resolve'
-import { beautify, onwarn, minify, replaceObjectAssign } from '../rollup/plugins'
+import { beautify, onwarn, minify, replaceObjectAssign, getPackageJsonVersion } from '../rollup/plugins'
+
+const lightSourceReactVersion = JSON.stringify(getPackageJsonVersion('./package.json'))
+const reactVersion = JSON.stringify(getPackageJsonVersion(require.resolve('react/package.json')))
+const intro = `global.lightSourceReactVersion = ${lightSourceReactVersion}; global.reactVersion=${reactVersion}`
 
 const lightSourceReactNpm = (input) => ({
   input,
@@ -14,7 +18,8 @@ const lightSourceReactNpm = (input) => ({
   output: {
     format: 'esm',
     file: 'dist/light-source-react.mjs',
-    preferConst: true
+    preferConst: true,
+    intro
   },
   plugins: [
     autoExternal(),
@@ -30,7 +35,8 @@ const lightSourceReactStandalone = (input) => ({
   output: {
     format: 'esm',
     file: 'dist/light-source-react.standalone.mjs',
-    preferConst: true
+    preferConst: true,
+    intro
   },
   plugins: [
     autoExternal({ dependencies: false, peerDependencies: false }),

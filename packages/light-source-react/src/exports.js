@@ -5,7 +5,7 @@
  */
 
 import { stage } from 'light-source'
-import { shutdown } from 'light-source-reconciler'
+import { shutdown, reactReconcilerVersion } from 'light-source-reconciler'
 import { render, findSceneNode, findElement } from './renderer.js'
 import { letThereBeLight } from './letThereBeLight.js'
 
@@ -13,4 +13,15 @@ stage.once('destroyed', (event) => {
   shutdown()
 })
 
-export { render, findSceneNode, findElement, letThereBeLight }
+const { lightSourceReactVersion } = global // set by rollup from package.json
+const { reactVersion } = global // set by rollup from package.json
+
+export {
+  render,
+  findSceneNode,
+  findElement,
+  letThereBeLight,
+  reactVersion,
+  reactReconcilerVersion,
+  lightSourceReactVersion
+}
