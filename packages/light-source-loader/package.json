@@ -1,6 +1,6 @@
 {
-  "name": "light-source-node",
-  "description": "ls-node specific libraries",
+  "name": "light-source-loader",
+  "description": "Node ESM loaders for Light Source Engine",
   "version": "1.0.0-private.0",
   "license": "MIT",
   "repository": {
@@ -10,6 +10,12 @@
   "author": "Daniel Anderson <dan.anderson.oss@gmail.com>",
   "engines": {
     "node": ">=14"
+  },
+  "type": "module",
+  "exports": {
+    "./builtin": "./dist/builtin.mjs",
+    "./babel": "./dist/babel.mjs",
+    "./babel-jsx": "./dist/babel-jsx.mjs"
   },
   "scripts": {
     "bundle": "rollup -c",

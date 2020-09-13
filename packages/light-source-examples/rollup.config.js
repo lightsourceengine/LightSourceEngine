@@ -5,32 +5,22 @@
  */
 
 import autoExternal from 'rollup-plugin-auto-external'
-import commonjs from '@rollup/plugin-commonjs'
-import resolve from '@rollup/plugin-node-resolve'
 import { beautify, onwarn, babelrc } from '../rollup/plugins'
 import { readdirSync } from 'fs'
 
-const cjs = () => commonjs({
-  ignoreGlobal: true
+const convertReactJsx = (file) => ({
+  input: `src/${file}`,
+  onwarn,
+  external: ['light-source', 'light-source-react', 'react'],
+  output: {
+    format: 'esm',
+    file: `dist/${file.slice(0, -1)}`
+  },
+  plugins: [
+    autoExternal(),
+    babelrc({ extensions: [ '.mjsx' ] }),
+    beautify()
+  ]
 })
 
-const files = readdirSync('src').map(file => {
-  return {
-    input: `src/${file}`,
-    onwarn,
-    external: ['light-source', 'light-source-react', 'react'],
-    output: {
-      format: 'cjs',
-      file: `dist/${file}`
-    },
-    plugins: [
-      autoExternal(),
-      resolve(),
-      babelrc(),
-      cjs(),
-      beautify()
-    ]
-  }
-})
-
-export default files
+export default readdirSync('src').filter(f => f.endsWith('.mjsx')).map(file => convertReactJsx(file))

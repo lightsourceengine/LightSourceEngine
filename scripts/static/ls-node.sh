@@ -1,9 +1,11 @@
 #!/bin/sh
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+LIB_DIR="${SCRIPT_DIR}/../lib"
+NODE_MODULES_DIR="${LIB_DIR}/node_modules"
 
-export NODE_PATH="${SCRIPT_DIR}/../lib/node_modules:${NODE_PATH}"
-export LS_RUNTIME_FRAMEWORK_PATH="${LS_RUNTIME_FRAMEWORK_PATH:-"${SCRIPT_DIR}/../lib/Frameworks"}:${LS_RUNTIME_FRAMEWORK_PATH}"
-export LD_LIBRARY_PATH="${LS_LD_LIBRARY_PATH:-"${SCRIPT_DIR}/../lib/so"}:${LD_LIBRARY_PATH}"
+export NODE_PATH="${NODE_MODULES_DIR}:${NODE_PATH}"
+export LS_RUNTIME_FRAMEWORK_PATH="${LS_RUNTIME_FRAMEWORK_PATH:-"${LIB_DIR}/Frameworks"}"
+export LD_LIBRARY_PATH="${LIB_DIR}/so:${LD_LIBRARY_PATH}"
 
-$SCRIPT_DIR/__node "$@"
+$SCRIPT_DIR/__node --loader "${NODE_MODULES_DIR}/light-source-loader/builtin.mjs" "$@"

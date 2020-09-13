@@ -310,6 +310,7 @@ class LightSourceBundle {
       nodeLightSource: join(nodeModules, 'light-source'),
       nodeLightSourceAddon: join(nodeModules, 'light-source', 'Release'),
       nodeLightSourceReact: join(nodeModules, 'light-source-react'),
+      nodeLightSourceLoader: join(nodeModules, 'light-source-loader'),
       nodeReact: join(nodeModules, 'react'),
     }
 
@@ -510,19 +511,26 @@ class LightSourceBundle {
   async #stagingSecondPass () {
     ensureDirSync(this.staging.nodeLightSourceAddon)
     ensureDirSync(this.staging.nodeLightSourceReact)
+    ensureDirSync(this.staging.nodeLightSourceLoader)
     ensureDirSync(this.staging.nodeReact)
 
     console.log('staging: adding LightSourceEngine files from source root...')
 
+    // TODO: probably should get this from light-source-loader
+    const loaderPackageJson = JSON.stringify({ type: "module", exports: { "./builtin": "./builtin.mjs" } });
+
     const copies = await Promise.allSettled([
       copy(join(this.srcRoot, 'packages/light-source/build/Release/light-source.node'),
         join(this.staging.nodeLightSourceAddon, 'light-source.node')),
-      copy(join(this.srcRoot, 'packages/light-source/dist/light-source.standalone.cjs'),
-        join(this.staging.nodeLightSource, 'index.js')),
-      copy(join(this.srcRoot, 'packages/light-source-react/dist/light-source-react.standalone.cjs'),
-        join(this.staging.nodeLightSourceReact, 'index.js')),
-      copy(join(this.srcRoot, 'packages/light-source-node/dist/react.standalone.cjs'),
-        join(this.staging.nodeReact, 'index.js'))
+      copy(join(this.srcRoot, 'packages/light-source/dist/light-source.standalone.mjs'),
+        join(this.staging.nodeLightSource, 'index.mjs')),
+      copy(join(this.srcRoot, 'packages/light-source-react/dist/light-source-react.standalone.mjs'),
+        join(this.staging.nodeLightSourceReact, 'index.mjs')),
+      copy(join(this.srcRoot, 'packages/light-source-react/dist/react.standalone.cjs'),
+        join(this.staging.nodeReact, 'index.cjs')),
+      copy(join(this.srcRoot, 'packages/light-source-loader/dist/builtin.mjs'),
+        join(this.staging.nodeLightSourceLoader, 'builtin.mjs')),
+      writeFile(join(this.staging.nodeLightSourceLoader, 'package.json'), loaderPackageJson)
     ])
 
     const firstRejected = copies.find(value => value.status === 'rejected')

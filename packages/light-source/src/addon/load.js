@@ -6,6 +6,9 @@
 
 import bindings from 'bindings'
 import { join, delimiter } from 'path'
+import { createRequire } from 'module'
+
+const require = createRequire(import.meta.url)
 
 /**
  * Wrapper around bindings for loading .node files.

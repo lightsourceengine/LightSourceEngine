@@ -21,7 +21,7 @@ static bool eqi(const char* a, const char* b) {
         }
     }
     return false;
-};
+}
 
 constexpr const char* LogLevelToString(const LogLevel logLevel) noexcept {
     switch (logLevel) {

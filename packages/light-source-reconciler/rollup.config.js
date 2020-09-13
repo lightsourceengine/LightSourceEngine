@@ -9,35 +9,43 @@ import nodeResolve from '@rollup/plugin-node-resolve'
 import inject from '@rollup/plugin-inject'
 import commonjs from '@rollup/plugin-commonjs'
 import { resolve } from 'path'
-import { onwarn, minify, nodeEnv, replaceObjectAssign } from '../rollup/plugins'
+import { onwarn, nodeEnv, replaceObjectAssign } from '../rollup/plugins'
+
+// The react reconciler does not have a defined lifecycle nor does the reconciler provide an API for
+// shutdown. The reconciler may hold timers through setTimeout and SchedulerMessageChannel, preventing node
+// from shutting down. I was able to hijack global functions, giving me access to the components holding
+// timers. From there, I expose a reconciler shutdown. This is a horrible hack, but the solution avoids forking
+// the reconciler.
+
+const lightSourceReconciler = (input, format) => ({
+  input,
+  onwarn,
+  output: {
+    format: format,
+    file: `dist/index${format === 'cjs' ? '.cjs' : '.mjs'}`,
+    preferConst: true
+  },
+  external: ['worker_threads', 'react', 'object-assign'],
+  plugins: [
+    autoExternal({
+      dependencies: false
+    }),
+    replaceObjectAssign(),
+    nodeEnv(),
+    commonjs({
+      ignoreGlobal: true
+    }),
+    inject({
+      MessageChannel: resolve('lib/SchedulerMessageChannel.js'),
+      window: resolve('lib/window-polyfill.js'),
+      setTimeout: [resolve('lib/timeout-scope.js'), 'setTimeout'],
+      clearTimeout: [resolve('lib/timeout-scope.js'), 'clearTimeout']
+    }),
+    nodeResolve()
+  ]
+})
 
 export default [
-  {
-    input: 'lib/light-source-reconciler.js',
-    onwarn,
-    output: {
-      format: 'cjs',
-      file: 'dist/index.cjs',
-      preferConst: true
-    },
-    external: ['worker_threads', 'react', 'object-assign'],
-    plugins: [
-      autoExternal({
-        dependencies: false
-      }),
-      replaceObjectAssign(),
-      nodeEnv(),
-      commonjs({
-        ignoreGlobal: true
-      }),
-      inject({
-        MessageChannel: resolve('lib/SchedulerMessageChannel.js'),
-        window: resolve('lib/window-polyfill.js'),
-        setTimeout: [resolve('lib/timeout-scope.js'), 'setTimeout'],
-        clearTimeout: [resolve('lib/timeout-scope.js'), 'clearTimeout']
-      }),
-      nodeResolve(),
-      minify()
-    ]
-  }
+  lightSourceReconciler('lib/light-source-reconciler.js', 'cjs'),
+  lightSourceReconciler('lib/light-source-reconciler.js', 'esm')
 ]

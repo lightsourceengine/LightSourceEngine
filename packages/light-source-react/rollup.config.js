@@ -7,46 +7,62 @@
 import autoExternal from 'rollup-plugin-auto-external'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
-import { beautify, onwarn, minify, babelrc, nodeEnv } from '../rollup/plugins'
+import { beautify, onwarn, minify, babelrc, replaceObjectAssign, noop } from '../rollup/plugins'
 
 const input = 'src/exports.js'
+const isCjs = (format) => format === 'cjs'
+const formatToExtension = format => isCjs(format) ? '.cjs' : '.mjs'
 const cjs = () => commonjs({
   ignoreGlobal: true
 })
 
-export default [
-  {
-    input,
-    onwarn,
-    output: {
-      format: 'cjs',
-      file: 'dist/light-source-react.cjs'
-    },
-    plugins: [
-      autoExternal(),
-      nodeEnv(),
-      resolve(),
-      babelrc(),
-      cjs(),
-      beautify()
-    ]
+const lightSourceReactNpm = (input, format) => ({
+  input,
+  onwarn,
+  output: {
+    format,
+    file: `dist/light-source-react${formatToExtension(format)}`
   },
+  plugins: [
+    autoExternal(),
+    resolve(),
+    isCjs(format) ? babelrc() : noop(),
+    isCjs(format) ? cjs() : noop(),
+    beautify()
+  ]
+})
+const lightSourceReactStandalone = (input, format) => ({
+  input,
+  onwarn,
+  external: ['light-source', 'react', 'worker_threads'],
+  output: {
+    format,
+    file: `dist/light-source-react.standalone${formatToExtension(format)}`,
+    preferConst: true
+  },
+  plugins: [
+    autoExternal({ dependencies: false, peerDependencies: false }),
+    resolve(),
+    isCjs(format) ? babelrc() : noop(),
+    isCjs(format) ? cjs() : noop(),
+    minify()
+  ]
+})
+
+export default [
+  lightSourceReactNpm(input, 'cjs'),
+  lightSourceReactNpm(input, 'esm'),
+  lightSourceReactStandalone(input, 'cjs'),
+  lightSourceReactStandalone(input, 'esm'),
   {
-    input,
+    input: require.resolve('react/cjs/react.production.min.js'),
     onwarn,
-    external: ['light-source', 'react', 'worker_threads'],
     output: {
       format: 'cjs',
-      file: 'dist/light-source-react.standalone.cjs',
-      preferConst: true
+      file: 'dist/react.standalone.cjs'
     },
     plugins: [
-      autoExternal({ dependencies: false, peerDependencies: false }),
-      nodeEnv(),
-      resolve(),
-      babelrc(),
-      cjs(),
-      minify()
+      replaceObjectAssign()
     ]
   }
 ]

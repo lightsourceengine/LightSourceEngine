@@ -39,9 +39,10 @@ export const onwarn = (warning, warn) => {
 /**
  * Run babel using the .babelrc file.
  */
-export const babelrc = () => babel({
+export const babelrc = (options = {}) => babel({
   babelHelpers: 'bundled',
-  exclude: ['node_modules/**']
+  exclude: ['node_modules/**'],
+  ...options
 })
 
 /**
@@ -57,8 +58,7 @@ export const inlineModule = (options = {}) => ({
   load (id) {
     return (id in options) ? options[id] : null
   }
-}
-)
+})
 
 /**
  * Get the list of exports for each module id. This method gets exports by requiring the
@@ -106,6 +106,11 @@ export const nodeEnv = () => replace({
     'process.env.NODE_ENV': JSON.stringify('production')
   }
 })
+
+/**
+ * Plugin that does nothing. Used as a placeholder for creating config templates.
+ */
+export const noop = () => replace()
 
 /**
  * Replaces 'object-assign' imports with the standard Object.assign function.
