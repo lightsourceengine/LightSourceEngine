@@ -17,11 +17,11 @@ const transformOptions = {
   cloneInputAst: false,
   sourceType: 'module',
   parserOpts: {
-    sourceType: 'module',
+    sourceType: 'module'
   },
   presets: [
-    [ "@babel/preset-env", { "targets": { "node": "14" }, "shippedProposals": true, "loose": true, "modules": false } ],
-    "@babel/preset-react"
+    ['@babel/preset-env', { targets: { node: '14' }, shippedProposals: true, loose: true, modules: false }],
+    '@babel/preset-react'
   ]
 }
 
@@ -31,7 +31,7 @@ const transformOptions = {
  * The babel configuration is embedded, and not configurable. This is expected to be the common case, as Light Source
  * Engine requires node 14+, which supports much of the ES2020 standard out of the box. For most javascript programs,
  * babel transpilation is not needed.
- * 
+ *
  * @ignore
  */
 export const transformSource = async (source, context, defaultTransformSource) => {
@@ -41,7 +41,7 @@ export const transformSource = async (source, context, defaultTransformSource) =
     source = code
   }
 
-  return defaultTransformSource(source, context, defaultTransformSource);
+  return defaultTransformSource(source, context, defaultTransformSource)
 }
 
 export { getFormatJsx as getFormat }

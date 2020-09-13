@@ -11,6 +11,7 @@
   "engines": {
     "node": ">=14"
   },
+  "type": "module",
   "main": "./dist/light-source.cjs",
   "exports": {
     "import": "./dist/light-source.mjs",
@@ -36,7 +37,7 @@
     "lint": "standard",
     "prepublishOnly": "run-s bundle test",
     "test": "run-s lint cpplint testOnly",
-    "testOnly": "mocha --require @babel/register --reporter spec \"test/**/*.spec.js\""
+    "testOnly": "mocha --reporter spec \"test/**/*.spec.js\""
   },
   "standard": {
     "ignore": [

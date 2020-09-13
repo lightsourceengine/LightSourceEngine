@@ -6,7 +6,7 @@
 
 import chai from 'chai'
 import { AudioManager } from '../../src/audio/AudioManager.js'
-import { loadPlugin } from '../../src/addon/index'
+import { loadPlugin } from '../../src/addon/index.js'
 import { AudioSourceType } from '../../src/audio/AudioSourceType.js'
 
 const { assert } = chai

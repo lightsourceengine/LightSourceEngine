@@ -4,7 +4,9 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-const { describe, it, before, after, beforeEach, afterEach } = require('mocha')
+import mocha from 'mocha'
+
+const { describe, it, before, after, beforeEach, afterEach } = mocha
 
 const isTestSuite = (obj) => {
   return obj && obj.hasOwnProperty('tests') && obj.hasOwnProperty('description')
@@ -15,7 +17,7 @@ const bind = (testSuite) => {
     const func = f => f || (() => {})
     const array = arr => arr || []
 
-    array(testSuite.children).forEach(bindTestSuite);
+    array(testSuite.children).forEach(value => bindTestSuite(value));
     before(func(testSuite.before))
     after(func(testSuite.after))
     beforeEach(func(testSuite.beforeEach))
@@ -27,7 +29,7 @@ const bind = (testSuite) => {
 /**
  * Converts a napi-unit TestSuite object into a runnable mocha test suite.
  */
-const bindTestSuite = (obj, options = {}) => {
+export const bindTestSuite = (obj, options = {}) => {
   if (!options.testSuiteProperty) {
     options.testSuiteProperty = 'test'
   }
@@ -69,5 +71,3 @@ const bindTestSuite = (obj, options = {}) => {
     testSuite && bind(testSuite)
   }
 }
-
-exports.bindTestSuite = bindTestSuite

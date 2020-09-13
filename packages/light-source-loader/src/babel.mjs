@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import babel from "@babel/core";
+import babel from '@babel/core'
 import { getFormatJsx } from './index.mjs'
 
 const { transformAsync } = babel
@@ -21,7 +21,7 @@ export const transformSource = async (source, context, defaultTransformSource) =
     source = code
   }
 
-  return defaultTransformSource(source, context, defaultTransformSource);
+  return defaultTransformSource(source, context, defaultTransformSource)
 }
 
 export { getFormatJsx as getFormat }

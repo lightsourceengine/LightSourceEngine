@@ -7,7 +7,7 @@
 import chai from 'chai'
 import { Style, StyleAnchor, StyleClass, StyleUnit, StyleValue } from '../../src/addon/index.js'
 import { getRotateAngle, isRotate, rotate } from '../../src/style/transform.js'
-import { fileuri } from '../../src/util'
+import { fileuri } from '../../src/util/index.js'
 
 const { assert } = chai
 

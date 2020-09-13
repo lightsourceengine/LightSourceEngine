@@ -18,7 +18,7 @@ const convertReactJsx = (file) => ({
   },
   plugins: [
     autoExternal(),
-    babelrc({ extensions: [ '.mjsx' ] }),
+    babelrc({ extensions: ['.mjsx'] }),
     beautify()
   ]
 })

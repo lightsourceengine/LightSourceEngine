@@ -45,7 +45,7 @@ void ExportClass(Object exports, const Function& constructor) {
 
 Object Init(Env env, Object exports) {
     HandleScope scope(env);
-    
+
     auto logLevel = ls::GetEnvOrDefault("LS_LOG_LEVEL", "INFO");
 
     if (!ls::SetLogLevel(logLevel)) {

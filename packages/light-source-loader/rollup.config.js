@@ -10,10 +10,10 @@ import autoExternal from 'rollup-plugin-auto-external'
 const standaloneLoader = (filename) => ({
   input: `src/${filename}`,
   onwarn,
-  external: [ '@babel/core' ],
+  external: ['@babel/core'],
   output: {
     format: 'esm',
-      file: `dist/${filename}`
+    file: `dist/${filename}`
   },
   plugins: [
     autoExternal(),

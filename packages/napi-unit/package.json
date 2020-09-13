@@ -2,6 +2,11 @@
   "name": "napi-unit",
   "private": true,
   "version": "1.0.0-private.0",
+  "main": "./index.cjs",
+  "exports": {
+    ".": "./index.cjs",
+    "./mocha": "./mocha.mjs"
+  },
   "scripts": {
     "test": "echo 'No tests.'",
     "lint": "echo 'Nothing to lint.'",
