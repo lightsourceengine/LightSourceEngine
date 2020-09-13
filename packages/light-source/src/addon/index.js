@@ -4,50 +4,26 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { load } from './load.js'
+import { loadLightSourceAddon } from './loadLightSourceAddon.js'
 
-let lib
-let error
-
-try {
-  lib = load('light-source.node')
-} catch (e) {
-  console.log('Error loading light-source.node: ' + e.message)
-  lib = {}
-  error = e
+class StubStageBase {
+  $destroy() {}
 }
 
-const emptyFunction = () => 0
+class StubStyleValue {
+  unit = 0
+  value = 0
+  static of (value) { return new StubStyleValue() }
+}
 
-const CreateStubStageBase = () =>
-  class StubStageBase {
-    $destroy() {}
-  }
-
-const CreateStubStyle = () =>
-  class StubStyle {
-  }
-
-const CreateStubStyleValue = () =>
-  class StubStyleValue {
-    unit = 0
-    value = 0
-    static of (value) { return new StubStyleValue() }
-  }
-
-const CreateStubStyleTransformSpec = () =>
-  class StubStyleTransformSpec {
-    transform = -1
-    static identity () {}
-    static rotate (angle) {}
-    static scale (x, y) {}
-    static translate (x, y) {}
-    static validate(spec) { return false }
-  }
-
-const CreateStubStyleClass = () =>
-  class StubStyleClass {
-  }
+class StubStyleTransformSpec {
+  transform = -1
+  static identity () {}
+  static rotate (angle) {}
+  static scale (x, y) {}
+  static translate (x, y) {}
+  static validate(spec) { return false }
+}
 
 const CreateStubLogger = () => ({
   warn(message, site) {},
@@ -58,24 +34,26 @@ const CreateStubLogger = () => ({
   getLogLevel() { return -1 }
 })
 
-export const Style = lib.Style || CreateStubStyle()
-export const StyleClass = lib.StyleClass || CreateStubStyleClass()
-export const StyleUnit = lib.StyleUnit || {}
-export const StyleTransform = lib.StyleTransform || {}
-export const StyleTransformSpec = lib.StyleTransformSpec || CreateStubStyleTransformSpec()
-export const StyleAnchor = lib.StyleAnchor || {}
-export const StyleValue = lib.StyleValue || CreateStubStyleValue()
-export const SceneBase = lib.SceneBase || class {}
-export const StageBase = lib.StageBase || CreateStubStageBase()
-export const logger = lib.logger || CreateStubLogger()
-export const LogLevel  = lib.LogLevel || {}
-export const getSceneNodeInstanceCount = lib.getSceneNodeInstanceCount || emptyFunction
-export const parseColor = lib.parseColor || emptyFunction
-export const loadPlugin = lib.loadPlugin || ((id) => { throw Error('native code not loaded') })
-export const styleProperties = lib.styleProperties || {}
+// Load light-source.node. If this operation fails, populate the light-source javascript api with stub implementations
+// so the app can continue to load. When the stage is init'd, the user should be notified of the native addon
+// load failure and deal with the error in their app.
+export const [ addon, addonError ] = loadLightSourceAddon()
 
-export const addon = lib
-export const addonError = error
+export const Style = addon.Style || (class StubStyle {})
+export const StyleClass = addon.StyleClass || (class StubStyleClass {})
+export const StyleUnit = addon.StyleUnit || {}
+export const StyleTransform = addon.StyleTransform || {}
+export const StyleTransformSpec = addon.StyleTransformSpec || StubStyleTransformSpec
+export const StyleAnchor = addon.StyleAnchor || {}
+export const StyleValue = addon.StyleValue || StubStyleValue
+export const SceneBase = addon.SceneBase || (class SceneBase {})
+export const StageBase = addon.StageBase || StubStageBase
+export const logger = addon.logger || CreateStubLogger()
+export const LogLevel  = addon.LogLevel || {}
+export const getSceneNodeInstanceCount = addon.getSceneNodeInstanceCount || (() => 0)
+export const parseColor = addon.parseColor || (() => 0)
+export const loadPlugin = addon.loadPlugin || ((id) => { throw Error('native code not loaded') })
+export const styleProperties = addon.styleProperties || {}
 
 /**
  * @class SceneNode

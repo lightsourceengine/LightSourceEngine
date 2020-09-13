@@ -11,7 +11,7 @@
   "engines": {
     "node": ">=14"
   },
-  "main": "dist/light-source-react.cjs",
+  "type": "module",
   "exports": "./dist/light-source-react.mjs",
   "module": "./dist/light-source-react.mjs",
   "files": [
@@ -31,7 +31,7 @@
     "lint": "standard",
     "prepublishOnly": "run-s bundle test",
     "test": "run-s lint testOnly",
-    "testOnly": "echo 'Tests disabled.'"
+    "testOnly": "node --loader light-source-loader/babel-mocha _mocha --reporter spec \"test/**/*.spec.js\""
   },
   "standard": {
     "ignore": [

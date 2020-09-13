@@ -86,14 +86,15 @@
 //       SDL2_mixer.framework
 //     so/
 //       libSDL2.so
-//     node_modules/
+//     builtin/
+//       loader.mjs
 //       light-source/
-//         index.js
+//         index.mjs
 //         Release/
 //       light-source-react
-//         index.js
+//         index.mjs
 //       react
-//         index.js
+//         index.cjs
 //   bin/
 //     __node
 //     node (shell script with env configuration)
@@ -297,7 +298,7 @@ class LightSourceBundle {
       nodeHome = home
     }
 
-    const nodeModules = join(nodeHome, 'lib', 'node_modules')
+    const nodeBuiltin = join(nodeHome, 'lib', 'builtin')
 
     this.staging = {
       home,
@@ -306,12 +307,11 @@ class LightSourceBundle {
       nodeFrameworks: join(nodeHome, 'lib', 'Frameworks'),
       nodeLdLibraryPath: join(nodeHome, 'lib', 'so'),
       nodeBin: join(nodeHome, 'bin'),
-      nodeModules,
-      nodeLightSource: join(nodeModules, 'light-source'),
-      nodeLightSourceAddon: join(nodeModules, 'light-source', 'Release'),
-      nodeLightSourceReact: join(nodeModules, 'light-source-react'),
-      nodeLightSourceLoader: join(nodeModules, 'light-source-loader'),
-      nodeReact: join(nodeModules, 'react'),
+      nodeBuiltin,
+      nodeLightSource: join(nodeBuiltin, 'light-source'),
+      nodeLightSourceAddon: join(nodeBuiltin, 'light-source', 'Release'),
+      nodeLightSourceReact: join(nodeBuiltin, 'light-source-react'),
+      nodeReact: join(nodeBuiltin, 'react'),
     }
 
     this.options = options
@@ -356,7 +356,7 @@ class LightSourceBundle {
       console.log('staging: adding minimal node package...')
       ensureDirSync(this.staging.nodeLib)
       ensureDirSync(this.staging.nodeBin)
-      ensureDirSync(this.staging.nodeModules)
+      ensureDirSync(this.staging.nodeBuiltin)
       await copy(join(nodeHomeCache, 'bin', nodeExecutable), join(this.staging.nodeBin, nodeExecutable))
       await copy(join(nodeHomeCache, 'LICENSE'), join(this.staging.nodeHome, 'LICENSE-node'))
       console.log('staging: adding minimal node package... complete')
@@ -511,13 +511,9 @@ class LightSourceBundle {
   async #stagingSecondPass () {
     ensureDirSync(this.staging.nodeLightSourceAddon)
     ensureDirSync(this.staging.nodeLightSourceReact)
-    ensureDirSync(this.staging.nodeLightSourceLoader)
     ensureDirSync(this.staging.nodeReact)
 
     console.log('staging: adding LightSourceEngine files from source root...')
-
-    // TODO: probably should get this from light-source-loader
-    const loaderPackageJson = JSON.stringify({ type: "module", exports: { "./builtin": "./builtin.mjs" } });
 
     const copies = await Promise.allSettled([
       copy(join(this.srcRoot, 'packages/light-source/build/Release/light-source.node'),
@@ -528,9 +524,8 @@ class LightSourceBundle {
         join(this.staging.nodeLightSourceReact, 'index.mjs')),
       copy(join(this.srcRoot, 'packages/light-source-react/dist/react.standalone.cjs'),
         join(this.staging.nodeReact, 'index.cjs')),
-      copy(join(this.srcRoot, 'packages/light-source-loader/dist/builtin.mjs'),
-        join(this.staging.nodeLightSourceLoader, 'builtin.mjs')),
-      writeFile(join(this.staging.nodeLightSourceLoader, 'package.json'), loaderPackageJson)
+      copy(join(this.srcRoot, 'packages/light-source-loader/dist/builtin.standalone.mjs'),
+        join(this.staging.nodeBuiltin, 'loader.mjs'))
     ])
 
     const firstRejected = copies.find(value => value.status === 'rejected')

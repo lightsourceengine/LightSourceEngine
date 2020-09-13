@@ -7,44 +7,42 @@
 import autoExternal from 'rollup-plugin-auto-external'
 import resolve from '@rollup/plugin-node-resolve'
 import replace from 'rollup-plugin-re'
-import { beautify, onwarn, minify, babelrc, inlineModule, noop } from '../rollup/plugins.js'
+import { beautify, onwarn, minify, inlineModule } from '../rollup/plugins.js'
 
-const input = 'src/exports.js'
-const formatToExtension = format => format === 'esm' ? '.mjs' : 'cjs'
 const inlineBindings = () => inlineModule({
   bindings: 'export default {}'
 })
-const setLsBindingsEnv = (value) => replace({
+const setLsBindingsType = (value) => replace({
   sourceMap: false,
   replaces: {
-    'process.env.LS_BINDINGS': JSON.stringify(value)
+    'global.LS_BINDINGS_TYPE': JSON.stringify(value)
   }
 })
 
-const lightSourceNpm = (input, format) => (
+const lightSourceNpm = (input) => (
   {
     input,
     onwarn,
     output: {
-      format,
-      file: `dist/light-source${formatToExtension(format)}`
+      format: 'esm',
+      file: 'dist/light-source.mjs',
+      preferConst: true
     },
     plugins: [
       autoExternal(),
-      setLsBindingsEnv('bindings'),
+      setLsBindingsType('bindings'),
       resolve(),
-      format === 'esm' ? noop() : babelrc(),
       beautify()
     ]
   }
 )
 
-const lightSourceStandalone = (input, format) => ({
+const lightSourceStandalone = (input) => ({
   input,
   onwarn,
   output: {
-    format,
-    file: `dist/light-source.standalone${formatToExtension(format)}`,
+    format: 'esm',
+    file: 'dist/light-source.standalone.mjs',
     preferConst: true
   },
   plugins: [
@@ -52,9 +50,8 @@ const lightSourceStandalone = (input, format) => ({
       dependencies: false
     }),
     inlineBindings(),
-    setLsBindingsEnv('custom-bindings'),
+    setLsBindingsType('builtin-bindings'),
     resolve(),
-    format === 'esm' ? noop() : babelrc(),
     minify({
       reserved: [
         // light-source-react relies on function.name to be preserved for these classes
@@ -69,8 +66,6 @@ const lightSourceStandalone = (input, format) => ({
 })
 
 export default [
-  lightSourceNpm(input, 'cjs'),
-  lightSourceNpm(input, 'esm'),
-  lightSourceStandalone(input, 'cjs'),
-  lightSourceStandalone(input, 'esm')
+  lightSourceNpm('src/exports.js'),
+  lightSourceStandalone('src/exports.js')
 ]

@@ -6,63 +6,54 @@
 
 import autoExternal from 'rollup-plugin-auto-external'
 import resolve from '@rollup/plugin-node-resolve'
-import commonjs from '@rollup/plugin-commonjs'
-import { beautify, onwarn, minify, babelrc, replaceObjectAssign, noop } from '../rollup/plugins'
+import { beautify, onwarn, minify, replaceObjectAssign } from '../rollup/plugins'
 
-const input = 'src/exports.js'
-const isCjs = (format) => format === 'cjs'
-const formatToExtension = format => isCjs(format) ? '.cjs' : '.mjs'
-const cjs = () => commonjs({
-  ignoreGlobal: true
-})
-
-const lightSourceReactNpm = (input, format) => ({
+const lightSourceReactNpm = (input) => ({
   input,
   onwarn,
   output: {
-    format,
-    file: `dist/light-source-react${formatToExtension(format)}`
+    format: 'esm',
+    file: 'dist/light-source-react.mjs',
+    preferConst: true
   },
   plugins: [
     autoExternal(),
     resolve(),
-    isCjs(format) ? babelrc() : noop(),
-    isCjs(format) ? cjs() : noop(),
     beautify()
   ]
 })
-const lightSourceReactStandalone = (input, format) => ({
+
+const lightSourceReactStandalone = (input) => ({
   input,
   onwarn,
   external: ['light-source', 'react', 'worker_threads'],
   output: {
-    format,
-    file: `dist/light-source-react.standalone${formatToExtension(format)}`,
+    format: 'esm',
+    file: 'dist/light-source-react.standalone.mjs',
     preferConst: true
   },
   plugins: [
     autoExternal({ dependencies: false, peerDependencies: false }),
     resolve(),
-    isCjs(format) ? babelrc() : noop(),
-    isCjs(format) ? cjs() : noop(),
     minify()
   ]
 })
 
+const reactStandalone = () => ({
+  input: require.resolve('react/cjs/react.production.min.js'),
+  onwarn,
+  output: {
+    format: 'cjs',
+    file: 'dist/react.standalone.cjs',
+    preferConst: true
+  },
+  plugins: [
+    replaceObjectAssign()
+  ]
+})
+
 export default [
-  lightSourceReactNpm(input, 'cjs'),
-  lightSourceReactNpm(input, 'esm'),
-  lightSourceReactStandalone(input, 'cjs'),
-  lightSourceReactStandalone(input, 'esm'),
-  {
-    input: require.resolve('react/cjs/react.production.min.js'),
-    onwarn,
-    output: {
-      format: 'cjs',
-      file: 'dist/react.standalone.cjs'
-    },
-    plugins: [
-      replaceObjectAssign()
-    ]
-  }
+  lightSourceReactNpm('src/exports.js'),
+  lightSourceReactStandalone('src/exports.js'),
+  reactStandalone()
 ]

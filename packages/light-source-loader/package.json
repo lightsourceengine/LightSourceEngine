@@ -13,9 +13,10 @@
   },
   "type": "module",
   "exports": {
-    "./builtin": "./dist/builtin.mjs",
-    "./babel": "./dist/babel.mjs",
-    "./babel-jsx": "./dist/babel-jsx.mjs"
+    "./builtin": "./dist/builtin.standalone.mjs",
+    "./babel": "./dist/babel.standalone.mjs",
+    "./babel-jsx": "./dist/babel-jsx.standalone.mjs",
+    "./babel-mocha": "./dist/babel-mocha.standalone.mjs"
   },
   "scripts": {
     "bundle": "rollup -c",

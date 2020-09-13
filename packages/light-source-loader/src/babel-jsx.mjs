@@ -7,6 +7,16 @@
 import babel from '@babel/core'
 import { getFormatJsx, isJsx } from './index.mjs'
 
+/**
+ * Module loader that limits babel transpilation to jsx and mjsx files only.
+ *
+ * The babel configuration is embedded, and not configurable. This is expected to be a common case. Light Source
+ * Engine requires node 14+, which supports much of the ES2020 standard out of the box. For most javascript based
+ * Light Source Engine apps, other than JSX, babel transpilation may not be needed.
+ *
+ * @ignore
+ */
+
 const { transformAsync } = babel
 const transformOptions = {
   babelrc: false,
@@ -25,15 +35,6 @@ const transformOptions = {
   ]
 }
 
-/**
- * Limits babel transpilation to jsx and mjsx files only.
- *
- * The babel configuration is embedded, and not configurable. This is expected to be the common case, as Light Source
- * Engine requires node 14+, which supports much of the ES2020 standard out of the box. For most javascript programs,
- * babel transpilation is not needed.
- *
- * @ignore
- */
 export const transformSource = async (source, context, defaultTransformSource) => {
   if (isJsx(context.url)) {
     const { code } = await transformAsync(source, transformOptions)

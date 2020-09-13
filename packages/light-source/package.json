@@ -12,11 +12,8 @@
     "node": ">=14"
   },
   "type": "module",
-  "main": "./dist/light-source.cjs",
-  "exports": {
-    "import": "./dist/light-source.mjs",
-    "require": "./dist/light-source.cjs"
-  },
+  "module": "./dist/light-source.mjs",
+  "exports": "./dist/light-source.mjs",
   "files": [
     "dist/",
     "addon/",

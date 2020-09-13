@@ -46,6 +46,5 @@ const lightSourceReconciler = (input, format) => ({
 })
 
 export default [
-  lightSourceReconciler('lib/light-source-reconciler.js', 'cjs'),
   lightSourceReconciler('lib/light-source-reconciler.js', 'esm')
 ]

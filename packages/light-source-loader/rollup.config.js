@@ -7,13 +7,13 @@
 import { onwarn, beautify } from '../rollup/plugins'
 import autoExternal from 'rollup-plugin-auto-external'
 
-const standaloneLoader = (filename) => ({
-  input: `src/${filename}`,
+const standaloneLoader = (stem) => ({
+  input: `src/${stem}.mjs`,
   onwarn,
   external: ['@babel/core'],
   output: {
     format: 'esm',
-    file: `dist/${filename}`
+    file: `dist/${stem}.standalone.mjs`
   },
   plugins: [
     autoExternal(),
@@ -22,7 +22,8 @@ const standaloneLoader = (filename) => ({
 })
 
 export default [
-  standaloneLoader('builtin.mjs'),
-  standaloneLoader('babel.mjs'),
-  standaloneLoader('babel-jsx.mjs')
+  standaloneLoader('builtin'),
+  standaloneLoader('babel'),
+  standaloneLoader('babel-jsx'),
+  standaloneLoader('babel-mocha')
 ]
