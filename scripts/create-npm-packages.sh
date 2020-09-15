@@ -16,12 +16,12 @@ set -e
 # disk and the patches are made. Finally, the files are tarballed into the final package and stored in
 # $SCROOT/build/npm/publishable.
 
-pushd () {
-  command pushd "$@" > /dev/null
+_pushd () {
+  cd "$@"
 }
 
-popd () {
-  command popd "$@" > /dev/null
+_popd () {
+  cd -
 }
 
 get_version() {
@@ -35,11 +35,11 @@ create_npm_package() {
   mkdir -p "${TARGET_DIR}"
   VERSION=$(get_version "${SOURCE_DIR}/package.json")
 
-  pushd "${SOURCE_DIR}"
+  _pushd "${SOURCE_DIR}"
   npm pack > /dev/null 2>&1
   tar -xzf ${1}-${VERSION}.tgz -C "${TARGET_DIR}"
   rm ${1}-${VERSION}.tgz
-  popd
+  _popd
 
   OVERLAY="${SOURCE_DIR}/publishing/package-json.overlay"
 
@@ -56,9 +56,9 @@ create_npm_package() {
     cp -rf "${PATCH_DIR}/" "${TARGET_DIR}/package"
   fi
 
-  pushd "${TARGET_DIR}/package"
+  _pushd "${TARGET_DIR}/package"
   tar -czf "${PUBLISHABLE_DIR}/${1}-${PUBLISHING_VERSION}.tgz" .
-  popd
+  _popd
 
   # TODO: cleanup
   # rm -rf "${TARGET_DIR}"
@@ -68,12 +68,12 @@ test_npm_install() {
   TEST_DIR="${SOURCE_ROOT}/build/npm/test"
   mkdir -p "${TEST_DIR}"
 
-  pushd "${TEST_DIR}"
+  _pushd "${TEST_DIR}"
   export npm_config_ls_install_opts="--jobs max"
   echo "{\"dependencies\": { \"light-source\": \"../publishable/light-source-${PUBLISHING_VERSION}.tgz\" }}" > package.json
   rm -rf ./empty-cache
   npm install --cache ./empty-cache
-  popd
+  _popd
 }
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
@@ -81,11 +81,11 @@ SOURCE_ROOT="${SCRIPT_DIR}/.."
 PUBLISHABLE_DIR="${SOURCE_ROOT}/build/npm/publishable"
 PUBLISHING_VERSION=$(get_version "${SOURCE_ROOT}/publishing/version.json")
 
-pushd "${SOURCE_ROOT}"
+_pushd "${SOURCE_ROOT}"
 # TODO: yarn --force
 # TODO: yarn test
 yarn run bundle
-popd
+_popd
 
 rm -rf "${SOURCE_ROOT}/build/npm"
 mkdir -p "${PUBLISHABLE_DIR}"
