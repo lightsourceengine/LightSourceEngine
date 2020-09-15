@@ -96,7 +96,7 @@ napi_value SafeObjectWrap<T>::ConstructorBridge(napi_env env, napi_callback_info
     }
 
     const CallbackInfo callbackInfo(env, info);
-    T* instance;
+    T* instance{};
 
 #ifdef NAPI_CPP_EXCEPTIONS
     try {

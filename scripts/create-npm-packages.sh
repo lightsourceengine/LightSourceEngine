@@ -53,7 +53,7 @@ create_npm_package() {
   PATCH_DIR="${SOURCE_DIR}/publishing/patch"
 
   if [ -d "${PATCH_DIR}" ]; then
-    cp -rf "${PATCH_DIR}/" "${TARGET_DIR}/package"
+    cp -rf "${PATCH_DIR}/." "${TARGET_DIR}/package"
   fi
 
   _pushd "${TARGET_DIR}/package"
