@@ -14,7 +14,7 @@
 namespace ls {
 
 Style Style::empty{};
-phmap::flat_hash_set<StyleProperty> Style::tempDefinedProperties;
+Style::StylePropertySet Style::tempDefinedProperties;
 
 bool operator==(const StyleValue& a, const StyleValue& b) noexcept {
     switch (a.unit) {
@@ -380,7 +380,7 @@ void Style::Reset() {
     tempDefinedProperties.clear();
 }
 
-void Style::GatherDefinedProperties(phmap::flat_hash_set<StyleProperty>& properties) {
+void Style::GatherDefinedProperties(StylePropertySet& properties) {
     for (const auto& p : this->enumMap) {
         properties.insert(p.first);
     }

@@ -13,6 +13,7 @@
 #include <ls/Math.h>
 #include <Yoga.h>
 #include <phmap.h>
+#include <phmap_utils.h>
 #include <std17/optional>
 
 namespace ls {
@@ -137,16 +138,23 @@ class Style {
     static Style* Or(const StyleRef& style) noexcept;
 
  private:
-    void GatherDefinedProperties(phmap::flat_hash_set<StyleProperty>& properties);
+    struct StylePropertyHash : public phmap::phmap_unary_function<StyleProperty, size_t> {
+        inline size_t operator()(StyleProperty val) const noexcept {
+            return static_cast<size_t>(val);
+        }
+    };
+    using StylePropertySet = phmap::flat_hash_set<StyleProperty, StylePropertyHash>;
+
+    void GatherDefinedProperties(StylePropertySet& properties);
     bool IsEmpty(StyleProperty property, bool includeParent) const noexcept;
 
  private:
     // Property buckets
 
-    phmap::flat_hash_map<StyleProperty, color_t> colorMap;
-    phmap::flat_hash_map<StyleProperty, std::string> stringMap;
-    phmap::flat_hash_map<StyleProperty, StyleValue> numberMap;
-    phmap::flat_hash_map<StyleProperty, int32_t> enumMap;
+    phmap::flat_hash_map<StyleProperty, color_t, StylePropertyHash> colorMap;
+    phmap::flat_hash_map<StyleProperty, std::string, StylePropertyHash> stringMap;
+    phmap::flat_hash_map<StyleProperty, StyleValue, StylePropertyHash> numberMap;
+    phmap::flat_hash_map<StyleProperty, int32_t, StylePropertyHash> enumMap;
     std::vector<StyleTransformSpec> transform;
 
     // Style state
@@ -156,8 +164,8 @@ class Style {
 
     // Static helpers
 
-    static phmap::flat_hash_set<StyleProperty> tempDefinedProperties;
+    static StylePropertySet tempDefinedProperties;
     static Style empty;
 };
 
-}; // namespace ls
+} // namespace ls
