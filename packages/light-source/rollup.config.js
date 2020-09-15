@@ -7,9 +7,9 @@
 import autoExternal from 'rollup-plugin-auto-external'
 import resolve from '@rollup/plugin-node-resolve'
 import replace from 'rollup-plugin-re'
-import { beautify, onwarn, minify, inlineModule, getPackageJsonVersion } from '../rollup/plugins.js'
+import { beautify, onwarn, minify, inlineModule, getPublishingVersion } from '../rollup/plugins.js'
 
-const intro = `global.lightSourceVersion = ${JSON.stringify(getPackageJsonVersion('./package.json'))}`
+const intro = `global.lightSourceVersion = ${JSON.stringify(getPublishingVersion())}`
 
 const inlineBindings = () => inlineModule({
   bindings: 'export default {}'

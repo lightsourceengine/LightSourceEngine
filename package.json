@@ -38,8 +38,6 @@
     "cross-env": "^7.0.2",
     "docdash": "^1.2.0",
     "jsdoc": "^3.6.5",
-    "light-source-reconciler": "1.0.0-private.0",
-    "light-source-loader": "1.0.0-private.0",
     "mocha": "^8.1.1",
     "napi-unit": "1.0.0-private.0",
     "node-addon-api": "^3.0.0",

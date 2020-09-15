@@ -1,7 +1,7 @@
 {
   "name": "light-source-react",
   "description": "Light Source Engine",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-private.0",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -15,10 +15,10 @@
   "exports": "./dist/light-source-react.mjs",
   "module": "./dist/light-source-react.mjs",
   "files": [
-    "dist/"
+    "dist/light-source-react.mjs"
   ],
   "dependencies": {
-    "light-source": "1.0.0-alpha.3",
+    "light-source": "1.0.0-private.0",
     "light-source-reconciler": "1.0.0-private.0"
   },
   "peerDependencies": {

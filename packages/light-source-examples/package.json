@@ -1,5 +1,6 @@
 {
   "name": "light-source-examples",
+  "private": true,
   "description": "Example Light Source Engine programs",
   "version": "1.0.0-private.0",
   "license": "MIT",

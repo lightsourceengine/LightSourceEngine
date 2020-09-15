@@ -1,0 +1,8 @@
+{
+  version: "@version",
+  files: "!",
+  standard: "!",
+  scripts: {
+    install: "@package.json"
+  }
+}

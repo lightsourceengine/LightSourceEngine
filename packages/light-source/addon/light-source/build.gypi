@@ -86,7 +86,7 @@
       ],
       "conditions": [
         [
-          "ls_enable_native_tests==1", {
+          "enable_native_tests==1", {
             "include_dirs": [
               "<!@(node -p \"require('napi-unit').include\")"
             ],

@@ -128,3 +128,8 @@ export const replaceObjectAssign = () => replace({
  * Read the version field from a package.json file.
  */
 export const getPackageJsonVersion = (packageJsonFile) => JSON.parse(readFileSync(packageJsonFile, "utf8")).version
+
+/**
+ * Get the monorepo application version.
+ */
+export const getPublishingVersion = () => JSON.parse(readFileSync('../../publishing/version.json', "utf8")).version

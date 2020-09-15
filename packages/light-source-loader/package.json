@@ -11,6 +11,9 @@
   "engines": {
     "node": ">=14"
   },
+  "files": [
+    "dist/"
+  ],
   "type": "module",
   "exports": {
     "./builtin": "./dist/builtin.standalone.mjs",

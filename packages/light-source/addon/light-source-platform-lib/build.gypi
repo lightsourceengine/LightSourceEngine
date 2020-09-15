@@ -30,7 +30,7 @@
   ],
   "conditions": [
     [
-      "ls_enable_native_tests==1", {
+      "enable_native_tests==1", {
         "targets": [{
           "target_name": "light-source-platform-lib-test",
           "includes": [

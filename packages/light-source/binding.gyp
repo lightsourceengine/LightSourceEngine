@@ -5,16 +5,16 @@
     "ls_enable_plugin_audio_sdl_audio%": "1",
     "ls_enable_plugin_audio_sdl_mixer%": "1",
     "ls_enable_plugin_audio_ref%": "1",
-    "ls_enable_native_tests%": "0",
     "ls_sdl_include%": "addon/deps/SDL/repo/include",
     "ls_sdl_mixer_include%": "addon/deps/SDL_mixer/repo",
+    # note: enable_native_tests variable is set in set-enable-native-tests.gypi
+    "ls_enable_native_tests%": "0",
   },
   "target_defaults": {
     "include_dirs": [
       "<!@(node -p \"require('node-addon-api').include\")",
     ],
     "conditions": [
-      [ "ls_enable_native_tests==1", { "defines": [ "LS_ENABLE_NATIVE_TESTS" ] } ],
       [ "ls_enable_plugin_platform_sdl==1", { "defines": [ "LS_ENABLE_PLUGIN_PLATFORM_SDL" ] } ],
       [ "ls_enable_plugin_platform_ref==1", { "defines": [ "LS_ENABLE_PLUGIN_PLATFORM_REF" ] } ],
       [ "ls_enable_plugin_audio_sdl_audio==1", { "defines": [ "LS_ENABLE_PLUGIN_AUDIO_SDL_AUDIO" ] } ],
@@ -23,6 +23,9 @@
     ]
   },
   "includes": [
+    # move setting enable_native_tests variable to another file so tests can be disabled in npm package builds
+    "addon/set-enable-native-tests.gypi",
+
     # third party static libraries
     "addon/deps/nanosvg/build.gypi",
     "addon/deps/stb/build.gypi",

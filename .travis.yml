@@ -40,9 +40,6 @@ matrix:
     - name: "darwin-x64 [full-build]"
       os: osx
       env: npm_config_ls_enable_native_tests=1
-      before_install:
-        - set -e
-        - HOMEBREW_NO_AUTO_UPDATE=1 brew install sdl2 sdl2_mixer
       install: yarn --force
       script: yarn run lint
     - name: "darwin-x64 [lse-node]"
@@ -83,4 +80,8 @@ matrix:
         - ./scripts/build-lse-node.js --platform linux --arch armv7l --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
         - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv7l --profile pi --sdl-profile rpi --sdl-runtime-pkg "${HOME}/SDL2-2.0.12-armv7l-rpi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
         - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv7l --profile pi --sdl-profile kmsdrm --sdl-runtime-pkg "${HOME}/SDL2-2.0.12-armv7l-kmsdrm" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
+      script: skip
+    - name: "npm package build"
+      os: linux
+      install: ./scripts/create-npm-packages.sh
       script: skip

@@ -566,7 +566,7 @@ class SourceRoot {
   }
 
   async getVersion () {
-    const json = await readFile(join(this.#root, 'packages/light-source/package.json'), "utf8")
+    const json = await readFile(join(this.#root, 'publishing/version.json'), "utf8")
 
     return JSON.parse(json).version
   }
