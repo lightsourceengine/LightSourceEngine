@@ -4,7 +4,8 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { join, resolve as resolvePath, dirname } from 'path'
+import { join, resolve as resolvePath, dirname, basename } from 'path'
+import { fileURLToPath, pathToFileURL } from 'url'
 
 /**
  * Module loader for the Light Source Engine packaged runtime.
@@ -14,7 +15,9 @@ import { join, resolve as resolvePath, dirname } from 'path'
  * dependencies (peerDependencies is ok). When a developer bundles an app targeting a packaged runtime, any
  * builtin modules should be marked as external (rollup terminology).
  *
- * The builtin module directory is $NODE_HOME/lib/builtin.
+ * On Windows, the builtin module directory is $NODE_HOME/builtin. For all other platforms, the
+ * builtin module directory is $NODE_HOME/lib/builtin. This loader file is always in the builtin directory,
+ * so the builtin directory is discovered relative to this file.
  *
  * In the case of react, apps should be using the builtin version or react. However, there are legitimate use cases
  * where a developer may want to use a different version of react. So, the loader will prioritize a user specified
@@ -26,13 +29,18 @@ import { join, resolve as resolvePath, dirname } from 'path'
  * @ignore
  */
 
-const builtinPath = resolvePath(dirname(process.execPath), '..', 'lib', 'builtin')
+const builtinPath = dirname(fileURLToPath(import.meta.url))
+
+if (basename(builtinPath) !== 'builtin') {
+  throw Error('Fatal: builtin module loader is not in the builtin directory')
+}
+
 const userOverridableModules = {
-  react: resolvePath(builtinPath, 'react', 'index.cjs')
+  react: pathToFileURL(resolvePath(builtinPath, 'react', 'index.cjs'))
 }
 const lightSourceModules = {
-  'light-source': join(builtinPath, 'light-source', 'index.mjs'),
-  'light-source-react': join(builtinPath, 'light-source-react', 'index.mjs')
+  'light-source': pathToFileURL(join(builtinPath, 'light-source', 'index.mjs')),
+  'light-source-react': pathToFileURL(join(builtinPath, 'light-source-react', 'index.mjs'))
 }
 
 export const resolve = async (specifier, context, defaultResolver) => {

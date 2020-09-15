@@ -5,7 +5,7 @@
  */
 
 import { isJsx, babelTransformSource } from './index.mjs'
-import { fileURLToPath } from 'url'
+import { fileURLToPath, pathToFileURL } from 'url'
 import { dirname, join } from 'path'
 
 /**
@@ -55,7 +55,7 @@ export const resolve = async (specifier, context, defaultResolver) => {
     const result = await defaultResolver('mocha', context)
 
     // Find _mocha relative to index.js. getFormat will mark this file as commonjs.
-    return defaultResolver(join(dirname(fileURLToPath(result.url)), 'bin', '_mocha'), context)
+    return defaultResolver(pathToFileURL(join(dirname(fileURLToPath(result.url)), 'bin', '_mocha')), context)
   }
 
   return defaultResolver(specifier, context)

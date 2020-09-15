@@ -5,8 +5,9 @@
  */
 
 import bindings from 'bindings'
-import { join, dirname } from 'path'
+import { join, dirname, basename } from 'path'
 import { createRequire } from 'module'
+import { fileURLToPath } from 'url'
 
 /**
  * Load the native portions of Light Source Engine from light-source.node.
@@ -24,19 +25,20 @@ import { createRequire } from 'module'
  * @ignore
  */
 export const loadLightSourceAddon = () => {
-  const file = 'light-source.node'
+  const name = 'light-source.node'
   let addon = null
   let addonError = null
 
   try {
     if (global.LS_BINDINGS_TYPE === 'builtin-bindings') {
       // TODO: would rather use import and light-source-loader/builtin, but node es modules do not support native addons yet
-      const require = createRequire(import.meta.url)
-      const builtinPath = join(dirname(process.execPath), '..', 'lib', 'builtin', 'light-source', 'Release')
+      const { url } = import.meta
+      const module = getLightSourceModuleFromUrl(url)
+      const require = createRequire(url)
 
-      addon = require(join(builtinPath, file))
+      addon = require(join(module, 'Release', name))
     } else {
-      addon = bindings(file)
+      addon = bindings(name)
     }
   } catch (e) {
     console.error('Failed to load light-source.node: ' + e.message)
@@ -44,4 +46,14 @@ export const loadLightSourceAddon = () => {
   }
 
   return [ addon, addonError ]
+}
+
+const getLightSourceModuleFromUrl = url => {
+  const module = dirname(fileURLToPath(url))
+
+  if (basename(module) !== 'light-source') {
+    throw Error('Light Source Engine js code is not in packaged runtime')
+  }
+
+  return module
 }

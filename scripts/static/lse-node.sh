@@ -7,6 +7,6 @@ LIB_DIR="${SCRIPT_DIR}/../lib"
 export LS_RUNTIME_FRAMEWORK_PATH="${LS_RUNTIME_FRAMEWORK_PATH:-"${LIB_DIR}/Frameworks"}"
 
 # linux only
-export LD_LIBRARY_PATH="${LIB_DIR}/so:${LD_LIBRARY_PATH}"
+export LD_LIBRARY_PATH="${LIB_DIR}/native:${LD_LIBRARY_PATH}"
 
-$SCRIPT_DIR/__node --loader "${LIB_DIR}/builtin/loader.mjs" "$@"
+$SCRIPT_DIR/node --loader "${LIB_DIR}/builtin/loader.mjs" "$@"
