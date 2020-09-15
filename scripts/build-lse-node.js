@@ -369,7 +369,7 @@ class LightSourceNodePackage {
     }
 
     this.#name = `ls-node-v${lightSourceVersion}-${platform}-${options.arch}${postFix}`
-    this.#home = join(sourceRoot.getBuild(), this.#name)
+    this.#home = join(sourceRoot.getBuildPath(), this.#name)
 
     await emptyDir(this.#home)
     await ensureDir(this.#home)
