@@ -10,7 +10,6 @@ cache:
   yarn: true
   directories:
     - ${HOME}/node_downloads
-    - ${HOME}/upx
     - ${HOME}/.nvm
 matrix:
   include:
