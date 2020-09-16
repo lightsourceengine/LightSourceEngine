@@ -5,11 +5,13 @@ env:
     - npm_config_ls_install_opts="--jobs max"
     - NODE_DOWNLOADS="${HOME}/node_downloads"
     - CROSSTOOLS_HOME="${HOME}/crosstools"
-    - PATH="${HOME}/upx:${PATH}"
+    - LSE_CACHE="${HOME}/lse-cache"
+    - PATH="${LSE_CACHE}/upx:${PATH}"
 cache:
   yarn: true
   directories:
     - ${HOME}/node_downloads
+    - ${HOME}/lse-cache
     - ${HOME}/.nvm
 matrix:
   include:
@@ -45,13 +47,12 @@ matrix:
       os: osx
       before_install:
         - set -e
-        - mkdir -p "${NODE_DOWNLOADS}"
         - ./scripts/ci/lse-git-clone.sh "ci-packages"
       install:
         - set +e
         - (cd scripts && yarn) # XXX: travis hung here when yarn returned non-zero for a warning, unset -e to get output
         - set -e
-        - ./scripts/build-lse-node.js --sdl-profile framework --sdl-runtime-pkg "${HOME}/ci-packages/SDL2-2.0.12.framework.tar.gz" --sdl-mixer-runtime-pkg "${HOME}/ci-packages/SDL2_mixer-2.0.4.framework.tar.gz" --node-binary-cache "$NODE_DOWNLOADS"
+        - ./scripts/build-lse-node.js --sdl-profile framework --sdl-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2-2.0.12.framework.tar.gz" --sdl-mixer-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2_mixer-2.0.4.framework.tar.gz" --node-binary-cache "$NODE_DOWNLOADS"
       script: skip
     - name: "linux-armv7l [lse-node, pi-rpi, pi-kmsdrm]"
       os: linux
@@ -60,15 +61,14 @@ matrix:
           packages: [ patchelf ]
       before_install:
         - set -e
-        - mkdir -p "${NODE_DOWNLOADS}"
         - ./scripts/ci/lse-git-clone.sh "crosstools" "ci-packages"
         - ./scripts/ci/get-upx.sh
         - . ${CROSSTOOLS_HOME}/bin/x64-gcc-6.3.1.env
-        - tar -xzf "${HOME}/ci-packages/SDL2-2.0.12-armv7l-rpi.tar.gz" --directory "$HOME"
-        - tar -xzf "${HOME}/ci-packages/SDL2-2.0.12-armv7l-kmsdrm.tar.gz" --directory "$HOME"
+        - tar -xzf "${LSE_CACHE}/ci-packages/SDL2-2.0.12-armv7l-rpi.tar.gz" --directory "${LSE_CACHE}"
+        - tar -xzf "${LSE_CACHE}/ci-packages/SDL2-2.0.12-armv7l-kmsdrm.tar.gz" --directory "${LSE_CACHE}"
       install:
         - (cd scripts && yarn)
         - ./scripts/build-lse-node.js --platform linux --arch armv7l --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
-        - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv7l --profile pi --sdl-profile rpi --sdl-runtime-pkg "${HOME}/SDL2-2.0.12-armv7l-rpi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
-        - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv7l --profile pi --sdl-profile kmsdrm --sdl-runtime-pkg "${HOME}/SDL2-2.0.12-armv7l-kmsdrm" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
+        - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv7l --profile pi --sdl-profile rpi --sdl-runtime-pkg "${LSE_CACHE}/SDL2-2.0.12-armv7l-rpi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
+        - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv7l --profile pi --sdl-profile kmsdrm --sdl-runtime-pkg "${LSE_CACHE}/SDL2-2.0.12-armv7l-kmsdrm" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
       script: skip
