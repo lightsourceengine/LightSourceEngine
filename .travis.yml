@@ -4,8 +4,8 @@ env:
   global:
     - npm_config_ls_install_opts="--jobs max"
     - NODE_DOWNLOADS="${HOME}/node_downloads"
-    - CROSSTOOLS_HOME="${HOME}/crosstools"
     - LSE_CACHE="${HOME}/lse-cache"
+    - CROSSTOOLS_HOME="${LSE_CACHE}/crosstools"
     - PATH="${LSE_CACHE}/upx:${PATH}"
 cache:
   yarn: true
