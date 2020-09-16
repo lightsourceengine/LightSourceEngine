@@ -22,7 +22,6 @@ matrix:
       env: YARN_GPG=no npm_config_ls_enable_native_tests=1
       before_install:
         - set -e
-        - ./scripts/ci/lse-git-clone.sh "ci-packages"
       install: yarn --force
       script: skip
     - name: "linux-x64 [full-build]"
@@ -71,14 +70,12 @@ matrix:
         - . ${HOME}/.nvm/nvm.sh
         - nvm install $LS_NODE_VERSION
         - mkdir -p "${NODE_DOWNLOADS}"
-        - tar -xzf "${HOME}/ci-packages/SDL2-2.0.12-armv7l-rpi.tar.gz" --directory "$HOME"
-        - tar -xzf "${HOME}/ci-packages/SDL2-2.0.12-armv7l-kmsdrm.tar.gz" --directory "$HOME"
         - ./scripts/ci/lse-git-clone.sh "crosstools" "ci-packages"
         - ./scripts/ci/get-upx.sh
         - source "${CROSSTOOLS_HOME}/bin/x64-gcc-6.3.1.env"
       install:
         - (cd scripts && yarn)
         - ./scripts/build-lse-node.js --platform linux --arch armv7l --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
-        - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv7l --profile pi --sdl-profile rpi --sdl-runtime-pkg "${HOME}/SDL2-2.0.12-armv7l-rpi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
-        - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv7l --profile pi --sdl-profile kmsdrm --sdl-runtime-pkg "${HOME}/SDL2-2.0.12-armv7l-kmsdrm" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
+        - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv7l --profile pi --sdl-profile rpi --sdl-runtime-pkg "${HOME}/ci-packages/SDL2-2.0.12-armv7l-rpi.tar.gz" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
+        - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv7l --profile pi --sdl-profile kmsdrm --sdl-runtime-pkg "${HOME}/ci-packages/SDL2-2.0.12-armv7l-kmsdrm.tar.gz" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
       script: skip
