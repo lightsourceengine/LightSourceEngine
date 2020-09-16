@@ -72,7 +72,7 @@ matrix:
         - mkdir -p "${NODE_DOWNLOADS}"
         - ./scripts/ci/lse-git-clone.sh "crosstools" "ci-packages"
         - ./scripts/ci/get-upx.sh
-        - source "${CROSSTOOLS_HOME}/bin/x64-gcc-6.3.1.env"
+        - . ${CROSSTOOLS_HOME}/bin/x64-gcc-6.3.1.env
       install:
         - (cd scripts && yarn)
         - ./scripts/build-lse-node.js --platform linux --arch armv7l --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
