@@ -22,7 +22,7 @@
     "./babel-mocha": "./dist/babel-mocha.standalone.mjs"
   },
   "scripts": {
-    "bundle": "rollup -c",
+    "bundle": "rimraf dist && rollup -c",
     "coverage": "echo 'No coverage.'",
     "jsdoc": "echo 'No docs.'",
     "lint": "standard",

@@ -63,7 +63,7 @@
   },
   "scripts": {
     "install": "cross-env-shell node-gyp rebuild $npm_config_ls_install_opts",
-    "bundle": "rimraf dist build/standalone && rollup -c",
+    "bundle": "rimraf dist && rollup -c",
     "coverage": "nyc --reporter=text run-s testOnly",
     "cpplint": "tools/cpplint.py --quiet --recursive addon",
     "jsdoc": "rimraf docs && jsdoc -c jsdoc.json",

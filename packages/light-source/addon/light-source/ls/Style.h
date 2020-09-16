@@ -138,12 +138,7 @@ class Style {
     static Style* Or(const StyleRef& style) noexcept;
 
  private:
-    struct StylePropertyHash : public phmap::phmap_unary_function<StyleProperty, size_t> {
-        inline size_t operator()(StyleProperty val) const noexcept {
-            return static_cast<size_t>(val);
-        }
-    };
-    using StylePropertySet = phmap::flat_hash_set<StyleProperty, StylePropertyHash>;
+    using StylePropertySet = phmap::flat_hash_set<StyleProperty>;
 
     void GatherDefinedProperties(StylePropertySet& properties);
     bool IsEmpty(StyleProperty property, bool includeParent) const noexcept;
@@ -151,10 +146,10 @@ class Style {
  private:
     // Property buckets
 
-    phmap::flat_hash_map<StyleProperty, color_t, StylePropertyHash> colorMap;
-    phmap::flat_hash_map<StyleProperty, std::string, StylePropertyHash> stringMap;
-    phmap::flat_hash_map<StyleProperty, StyleValue, StylePropertyHash> numberMap;
-    phmap::flat_hash_map<StyleProperty, int32_t, StylePropertyHash> enumMap;
+    phmap::flat_hash_map<StyleProperty, color_t> colorMap;
+    phmap::flat_hash_map<StyleProperty, std::string> stringMap;
+    phmap::flat_hash_map<StyleProperty, StyleValue> numberMap;
+    phmap::flat_hash_map<StyleProperty, int32_t> enumMap;
     std::vector<StyleTransformSpec> transform;
 
     // Style state

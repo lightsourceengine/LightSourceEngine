@@ -29,7 +29,7 @@ describe('ReactRenderer', () => {
     it('should render a single div element', async () => {
       assert.lengthOf(root.children, 0)
 
-      await reactRendererRender(<div />)
+      await reactRendererRender(<box />)
 
       assert.lengthOf(root.children, 1)
     })
@@ -43,7 +43,7 @@ describe('ReactRenderer', () => {
     it('should a Component with a single div element', async () => {
       assert.lengthOf(root.children, 0)
 
-      const TestComponent = () => <div />
+      const TestComponent = () => <box />
 
       await reactRendererRender(<TestComponent />)
 
@@ -66,7 +66,7 @@ describe('ReactRenderer', () => {
     it('should clear all root children when null is rendered', async () => {
       assert.lengthOf(root.children, 0)
 
-      await reactRendererRender(<div />)
+      await reactRendererRender(<box />)
 
       assert.lengthOf(root.children, 1)
 

@@ -15,7 +15,7 @@
   "exports": "./dist/index.mjs",
   "module": "./dist/index.mjs",
   "scripts": {
-    "bundle": "rollup -c",
+    "bundle": "rimraf dist && rollup -c",
     "coverage": "nyc --reporter=text run-s testOnly",
     "jsdoc": "echo 'No docs.'",
     "lint": "standard",

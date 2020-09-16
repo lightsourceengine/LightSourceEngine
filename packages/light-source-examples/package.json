@@ -13,7 +13,7 @@
     "node": ">=12"
   },
   "scripts": {
-    "bundle": "rollup -c",
+    "bundle": "rimraf dist && rollup -c",
     "coverage": "echo 'No coverage.'",
     "jsdoc": "echo 'No docs.'",
     "lint": "standard",

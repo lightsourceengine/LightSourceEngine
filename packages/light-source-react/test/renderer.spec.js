@@ -50,21 +50,21 @@ describe('renderer.js', () => {
     })
     it('should throw Error for invalid container', () => {
       for (const invalidContainer of [null, undefined, '', {}, []]) {
-        assert.throws(() => render(invalidContainer, <div />, () => {}))
+        assert.throws(() => render(invalidContainer, <box />, () => {}))
       }
     })
     it('should throw Error for invalid callback', () => {
       for (const invalidCallback of [{}, [], 'hello', 1]) {
-        assert.throws(() => render(container(), <div />, invalidCallback))
+        assert.throws(() => render(container(), <box />, invalidCallback))
       }
     })
     it('should accept null or undefined callback', () => {
       for (const noCallback of [null, undefined]) {
-        render(container(), <div />, noCallback)
+        render(container(), <box />, noCallback)
       }
     })
     it('should always call callback for null element', async () => {
-      await renderAsync(<div />)
+      await renderAsync(<box />)
       await renderAsync(null)
       await renderAsync(null)
     })

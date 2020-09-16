@@ -83,5 +83,8 @@ matrix:
       script: skip
     - name: "npm package build"
       os: linux
-      install: ./scripts/create-npm-packages.sh
+      install:
+        - cd scripts
+        - yarn
+        - ./create-npm-packages.sh
       script: skip
