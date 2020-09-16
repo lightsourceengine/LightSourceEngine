@@ -30,7 +30,7 @@ matrix:
       addons:
         apt:
           sources: [ubuntu-toolchain-r-test]
-          packages: [gcc-6, g++-6, libegl1-mesa-dev, libgles2-mesa-dev, libsdl2-dev, libsdl2-mixer-dev]
+          packages: [gcc-6, g++-6]
       before_install:
         - set -e
         - sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
