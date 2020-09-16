@@ -525,15 +525,15 @@ class LightSourceNodePackage {
 
   async installCppLib (options) {
     if (options.isArmCrossCompile) {
-      const sysroot = `${options.crosstoolsHome}/x64-gcc-6.3.1/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot`
-      const cpp = 'libstdc++.so.6.0.22'
+      const libcpp = process.env.CROSS_LIBCPP
+      const libcppBasename = basename(libcpp)
       const ldPath = join(this.#nodeLib, 'native')
 
       await ensureDir(ldPath)
-      await copy(join(sysroot, 'lib', cpp), join(ldPath, cpp))
-      await createSymlink(cpp, join(ldPath, 'libstdc++.so.6'))
+      await copy(libcpp, join(ldPath, libcppBasename))
+      await createSymlink(libcppBasename, join(ldPath, 'libstdc++.so.6'))
 
-      log(`staging: ${cpp} installed`)
+      log(`staging: ${libcppBasename} installed`)
     }
   }
 
@@ -645,14 +645,11 @@ class SourceRoot {
 
     // Setup compile command. Either "cross [profile] yarn --force" or "yarn --force"
     if (options.isArmCrossCompile) {
-      const crossProfile = { armv6l: 'rpizero', armv7l: 'rpi' }[options.arch]
-
-      if (crossProfile === undefined) {
-        throw Error('cross: unsupported arch' + options.arch)
-      }
+      // TODO: use profile to choose a device specific cross target
+      const crossTarget = options.arch
 
       program = join(options.crosstoolsHome, 'bin', 'cross')
-      programArgs = [crossProfile, 'yarn']
+      programArgs = [crossTarget, 'yarn']
     } else {
       program = 'yarn'
       programArgs = []
@@ -694,10 +691,14 @@ class SDLFrameworkPackage {
       const frameworkPath = join(libPath, frameworkName)
 
       await ensureDir(frameworkPath)
-      await copy(join(pkg), frameworkPath)
+      await copy(pkg, frameworkPath)
+    } else if (pkg.endsWith('.tar.gz')) {
+        await tar.x({
+          file: pkg,
+          C: libPath
+        })
     } else {
-      // TODO: untar?
-      throw Error('sdl-runtime-pkg must be a .framework directory')
+      throw Error('sdl-runtime-pkg must be a .framework directory or tarball')
     }
   }
 }

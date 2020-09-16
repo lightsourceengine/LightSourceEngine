@@ -81,11 +81,13 @@ SOURCE_ROOT="${SCRIPT_DIR}/.."
 PUBLISHABLE_DIR="${SOURCE_ROOT}/build/npm/publishable"
 PUBLISHING_VERSION=$(get_version "${SOURCE_ROOT}/publishing/version.json")
 
-_pushd "${SOURCE_ROOT}"
-# TODO: yarn --force
-# TODO: yarn test
-yarn run bundle
-_popd
+if [ "$1" = "--skip-yarn-install" ]; then
+  _pushd "${SOURCE_ROOT}"
+  # TODO: yarn --force
+  # TODO: yarn test
+  yarn run bundle
+  _popd
+fi
 
 rm -rf "${SOURCE_ROOT}/build/npm"
 mkdir -p "${PUBLISHABLE_DIR}"
