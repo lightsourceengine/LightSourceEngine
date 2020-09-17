@@ -368,7 +368,7 @@ class LightSourceNodePackage {
       platform = options.profile
     }
 
-    this.#name = `ls-node-v${lightSourceVersion}-${platform}-${options.arch}${postFix}`
+    this.#name = `lse-node-v${lightSourceVersion}-${platform}-${options.arch}${postFix}`
     this.#home = join(sourceRoot.getBuildPath(), this.#name)
 
     await emptyDir(this.#home)
@@ -410,6 +410,8 @@ class LightSourceNodePackage {
 
       await copy(nodePackage.getHome(), this.#nodeHome)
       await move(join(this.#nodeHome, 'LICENSE'), join(this.#nodeHome, 'LICENSE-node'))
+      await move(join(this.#nodeHome, 'README.md'), join(this.#nodeHome, 'README-node.md'))
+      await move(join(this.#nodeHome, 'CHANGELOG.md'), join(this.#nodeHome, 'CHANGELOG-node.md'))
 
       copyComplete()
     }
@@ -604,7 +606,7 @@ class SourceRoot {
   }
 
   getLicense () {
-    join(this.#root, 'LICENSE')
+    return join(this.#root, 'LICENSE')
   }
 
   getNodeWrapperScript ({ platform }) {
