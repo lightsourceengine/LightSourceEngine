@@ -9,9 +9,16 @@ import replace from 'rollup-plugin-re'
 import babel from '@rollup/plugin-babel'
 import { readFileSync } from 'fs'
 
-const preamble = '// Light Source Engine\n' +
-  '// Copyright (C) 2020 Daniel Anderson.\n' +
-  '// This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.'
+const preamble =
+  '/*\n' +
+  ' * Light Source Engine ${version}\n' +
+  ' * Copyright (C) 2019-2020 Daniel Anderson <dan.anderson.oss@gmail.com>.\n' +
+  ' *\n' +
+  ' * This source code is licensed under the MIT License.\n' +
+  ' *\n' +
+  ' * License Text:    https://github.com/lightsourceengine/LightSourceEngine/blob/master/LICENSE\n' +
+  ' * Original Source: https://github.com/lightsourceengine/LightSourceEngine\n' +
+  ' */\n'
 
 /**
  * Clean up rollup javascript output with terser.
@@ -24,7 +31,7 @@ export const beautify = () => terser({
     quote_style: 1,
     semicolons: false,
     beautify: true,
-    preamble
+    preamble: preamble.replace("${version}", getPublishingVersion())
   }
 })
 
@@ -129,7 +136,14 @@ export const replaceObjectAssign = () => replace({
  */
 export const getPackageJsonVersion = (packageJsonFile) => JSON.parse(readFileSync(packageJsonFile, "utf8")).version
 
+let lightSourceVersion
+
 /**
  * Get the monorepo application version.
  */
-export const getPublishingVersion = () => JSON.parse(readFileSync('../../publishing/version.json', "utf8")).version
+export const getPublishingVersion = () => {
+  if (!lightSourceVersion) {
+    lightSourceVersion = JSON.parse(readFileSync('../../publishing/version.json', "utf8")).version
+  }
+  return lightSourceVersion
+}

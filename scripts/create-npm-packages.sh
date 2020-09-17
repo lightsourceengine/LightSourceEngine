@@ -56,6 +56,8 @@ create_npm_package() {
     cp -rf "${PATCH_DIR}/." "${TARGET_DIR}/package"
   fi
 
+  cp "${SOURCE_ROOT}/LICENSE" "${TARGET_DIR}/package"
+
   _pushd "${TARGET_DIR}/package"
   tar -czf "${PUBLISHABLE_DIR}/${1}-${PUBLISHING_VERSION}.tgz" .
   _popd

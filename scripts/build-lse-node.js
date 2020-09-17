@@ -497,7 +497,7 @@ class LightSourceNodePackage {
 
   async installLicense (sourceRoot) {
     const license = sourceRoot.getLicense()
-    await copy(license, join(this.#nodeHome, basename(license)))
+    await copy(license, join(this.#nodeHome, 'LICENSE-lse-node'))
 
     log(`staging: license installed`)
   }
@@ -604,7 +604,7 @@ class SourceRoot {
   }
 
   getLicense () {
-    return join(this.#root, 'scripts/static/LICENSE-LightSourceEngine')
+    join(this.#root, 'LICENSE')
   }
 
   getNodeWrapperScript ({ platform }) {
