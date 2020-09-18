@@ -19,7 +19,7 @@
 // The platform profile. An additional specifier of the platform to help the package builder tailor the build for
 // a specific target.
 //
-// --sdl-profile value [Default: system Values: system, rpi, kmsdrm, framework, dll]
+// --sdl-profile value [Default: system Values: system, native, framework, dll]
 // The SDL profile is a hint about how SDL should be linked and possibly packaged for the target platform.
 //
 // --node-binary-cache path
@@ -150,8 +150,7 @@ const Profile = {
 
 const SDLProfile = {
   system: 'system',
-  rpi: 'rpi',
-  kmsdrm: 'kmsdrm',
+  native: 'native',
   framework: 'framework',
   dll: 'dll',
 }
@@ -213,8 +212,7 @@ const getCommandLineOptions = () => {
   }
 
   switch (options.sdlProfile) {
-    case SDLProfile.rpi:
-    case SDLProfile.kmsdrm:
+    case SDLProfile.native:
       if (!sdlRuntimePkgExists) {
         sdlProfileError('--sdl-runtime-pkg')
       }
@@ -349,25 +347,20 @@ class LightSourceNodePackage {
   #nodeBuiltin = ''
 
   async prepare (options, sourceRoot) {
-    let postFix = ''
-    let { platform } = options
+    let { platform: platformAlias } = options
     let lightSourceVersion = await sourceRoot.getVersion()
 
     if (options.platform === Platform.darwin) {
-      platform = 'mac'
+      platformAlias = 'mac'
     } else if (options.platform === Platform.win32) {
-      platform = 'win'
+      platformAlias = 'win'
     } else if (options.profile === Profile.pi) {
-      if (options.sdlProfile === SDLProfile.rpi) {
-        postFix = "-rpi"
-      } else if (options.sdlProfile === SDLProfile.kmsdrm) {
-        postFix = "-kmsdrm"
-      }
+      platformAlias = 'raspberrypi'
     } else if (options.profile === Profile.psclassic || options.profile === Profile.nclassic) {
-      platform = options.profile
+      platformAlias = options.profile
     }
 
-    this.#name = `lse-node-v${lightSourceVersion}-${platform}-${options.arch}${postFix}`
+    this.#name = `lse-node-v${lightSourceVersion}-${platformAlias}-${options.arch}`
     this.#home = join(sourceRoot.getBuildPath(), this.#name)
 
     await emptyDir(this.#home)
@@ -846,7 +839,7 @@ const createLseNodePackage = async () => {
       const { sdlProfile } = options
       let sdlPackage
 
-      if (sdlProfile === SDLProfile.rpi || sdlProfile === SDLProfile.kmsdrm) {
+      if (sdlProfile === SDLProfile.native) {
         sdlPackage = new SDLNativePackage()
       } else if (sdlProfile === SDLProfile.framework) {
         sdlPackage = new SDLFrameworkPackage()
