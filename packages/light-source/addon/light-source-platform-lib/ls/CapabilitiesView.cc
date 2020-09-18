@@ -16,6 +16,7 @@ namespace ls {
 Napi::Object ToCapabilitiesView(Napi::Env env, const Capabilities& caps) {
     auto jsCaps{ Object::New(env) };
     auto jsDisplays{ Array::New(env, caps.displays.size()) };
+    auto jsVideoDrivers{ Array::New(env, caps.videoDrivers.size()) };
     auto i{ 0 };
     auto toObject{
         [](Napi::Env env, const DisplayMode& mode) -> Object {
@@ -28,7 +29,7 @@ Napi::Object ToCapabilitiesView(Napi::Env env, const Capabilities& caps) {
         }
     };
 
-    for (const Display& display : caps.displays) {
+    for (const auto& display : caps.displays) {
         auto jsDisplay{ Object::New(env) };
         auto jsModes{ Array::New(env, display.modes.size()) };
         auto j{ 0 };
@@ -46,6 +47,11 @@ Napi::Object ToCapabilitiesView(Napi::Env env, const Capabilities& caps) {
     }
 
     jsCaps["displays"] = jsDisplays;
+    i = 0;
+
+    for (const auto& videoDriver : caps.videoDrivers) {
+        jsVideoDrivers[i++] = Napi::String::New(env, videoDriver);
+    }
 
     return jsCaps;
 }

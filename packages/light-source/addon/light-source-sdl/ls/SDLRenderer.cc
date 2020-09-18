@@ -165,7 +165,18 @@ void SDLRenderer::Attach(SDL_Window* window) {
         this->UpdateTextureFormats(info);
     }
 
-    LOG_INFO("Renderer Info: size=%i,%i driver=%s renderer=%s textureFormat=%s maxTextureSize=%i,%i "
+    std::string textureFormats;
+
+    for (auto i = 0u; i < info.num_texture_formats; i++) {
+        if (!textureFormats.empty()) {
+            textureFormats += ", ";
+        }
+        textureFormats += SDL2::SDL_GetPixelFormatName(info.texture_formats[i]);
+    }
+
+    LOGX_INFO("Texture Formats: %s", textureFormats);
+
+    LOGX_INFO("SDL_Renderer: %ix%i driver=%s renderer=%s textureFormat=%s maxTextureSize=%i,%i "
             "software=%s accelerated=%s vsync=%s renderTarget=%s",
         this->GetWidth(),
         this->GetHeight(),

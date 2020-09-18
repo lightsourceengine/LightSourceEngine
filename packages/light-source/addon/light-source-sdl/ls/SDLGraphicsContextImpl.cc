@@ -22,7 +22,6 @@ using Napi::Value;
 namespace ls {
 
 SDLGraphicsContextImpl::SDLGraphicsContextImpl(const Napi::CallbackInfo& info) {
-    HandleScope scope(info.Env());
     auto config{ info[1].As<Object>() };
 
     this->configDisplayIndex = Napi::ObjectGetNumberOrDefault(config, "displayIndex", 0);
@@ -33,6 +32,7 @@ SDLGraphicsContextImpl::SDLGraphicsContextImpl(const Napi::CallbackInfo& info) {
 
 void SDLGraphicsContextImpl::Attach(const Napi::CallbackInfo& info) {
     auto env{ info.Env() };
+    bool isWindowFullscreen{ false };
 
     if (!this->window) {
         auto displayIndex{ this->configDisplayIndex };
@@ -50,27 +50,31 @@ void SDLGraphicsContextImpl::Attach(const Napi::CallbackInfo& info) {
             throw Error::New(env, "Failed to create window");
         }
 
-        if (this->configFullscreen) {
+        isWindowFullscreen = (SDL2::SDL_GetWindowFlags(this->window)
+            & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP));
+
+        if (isWindowFullscreen) {
+            // TODO: if mouse events are ever supported, this should be configurable.
             SDL2::SDL_ShowCursor(SDL_DISABLE);
         }
 
         SDL_DisplayMode displayMode{};
 
-        SDL2::SDL_GetWindowDisplayMode(window, &displayMode);
+        SDL2::SDL_GetWindowDisplayMode(this->window, &displayMode);
 
-        LOG_INFO("size=%i,%i format=%s refreshRate=%i displayIndex=%i",
+        LOGX_INFO("SDL_Window: %ix%i @ %ihz, format=%s, fullscreen=%s",
             displayMode.w,
             displayMode.h,
-            SDL2::SDL_GetPixelFormatName(displayMode.format),
             displayMode.refresh_rate,
-            displayIndex);
+            SDL2::SDL_GetPixelFormatName(displayMode.format),
+            isWindowFullscreen);
     }
 
     NAPI_TRY(env, this->renderer.Attach(this->window));
 
     this->width = this->renderer.GetWidth();
     this->height = this->renderer.GetHeight();
-    this->fullscreen = false;
+    this->fullscreen = isWindowFullscreen;
 }
 
 void SDLGraphicsContextImpl::Detach(const Napi::CallbackInfo& info) {

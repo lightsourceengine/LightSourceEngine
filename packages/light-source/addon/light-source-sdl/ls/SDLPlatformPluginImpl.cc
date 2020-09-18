@@ -82,13 +82,25 @@ SDLPlatformPluginImpl::SDLPlatformPluginImpl(const CallbackInfo& info) {
     SDL_VERSION(&compiled);
     SDL2::SDL_GetVersion(&linked);
 
-    LOG_INFO("SDL Version: compiled=%i.%i.%i linked=%i.%i.%i",
-             compiled.major, compiled.minor, compiled.patch,
-             linked.major, linked.minor, linked.patch);
+    LOGX_INFO("SDL Version %i.%i.%i (compiled=%i.%i.%i)",
+        linked.major, linked.minor, linked.patch, compiled.major, compiled.minor, compiled.patch);
 
     this->Init(env);
+
     this->capabilities = this->DetermineCapabilities(env);
-    this->capabilitiesRef = Persistent(ToCapabilitiesView(env, capabilities));
+    this->capabilitiesRef = Persistent(ToCapabilitiesView(env, this->capabilities));
+
+    std::string videoDrivers;
+
+    for (const auto& videoDriver : this->capabilities.videoDrivers) {
+        if (!videoDrivers.empty()) {
+            videoDrivers += ", ";
+        }
+        videoDrivers += videoDriver;
+    }
+
+    LOGX_INFO("Default Video Driver: %s", SDL2::SDL_GetCurrentVideoDriver());
+    LOGX_INFO("Video Drivers: %s", videoDrivers);
 }
 
 SDLPlatformPluginImpl::~SDLPlatformPluginImpl() {
@@ -167,6 +179,12 @@ Capabilities SDLPlatformPluginImpl::DetermineCapabilities(Napi::Env env) {
         }
 
         caps.displays.emplace_back(display);
+    }
+
+    auto numVideoDrivers = SDL2::SDL_GetNumVideoDrivers();
+
+    for (auto i = 0; i < numVideoDrivers; i++) {
+        caps.videoDrivers.push_back(SDL2::SDL_GetVideoDriver(i));
     }
 
     return caps;

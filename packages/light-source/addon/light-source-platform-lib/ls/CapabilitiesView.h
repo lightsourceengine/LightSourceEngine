@@ -24,6 +24,7 @@ struct Display {
 
 struct Capabilities {
     std::vector<Display> displays;
+    std::vector<std::string> videoDrivers;
 };
 
 Napi::Object ToCapabilitiesView(Napi::Env env, const Capabilities& caps);

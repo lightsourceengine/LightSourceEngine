@@ -39,6 +39,7 @@ constexpr const char* kSDLFrameworkLib = "SDL2";
     APPLY(SDL_UpdateTexture)                                \
     APPLY(SDL_GetPixelFormatName)                           \
     APPLY(SDL_GetVideoDriver)                               \
+    APPLY(SDL_GetNumVideoDrivers)                           \
     APPLY(SDL_GetCurrentVideoDriver)                        \
     APPLY(SDL_GetRenderDriverInfo)                          \
     APPLY(SDL_GetRendererInfo)                              \
@@ -80,6 +81,7 @@ constexpr const char* kSDLFrameworkLib = "SDL2";
     APPLY(SDL_DestroyWindow)                                \
     APPLY(SDL_SetWindowTitle)                               \
     APPLY(SDL_GetWindowDisplayMode)                         \
+    APPLY(SDL_GetWindowFlags)                               \
     APPLY(SDL_ShowCursor)                                   \
     APPLY(SDL_RWFromFile)                                   \
     APPLY(SDL_RWFromMem)                                    \

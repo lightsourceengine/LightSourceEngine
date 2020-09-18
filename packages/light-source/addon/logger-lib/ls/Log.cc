@@ -166,13 +166,20 @@ const char* LogProcessArg(std::nullptr_t) noexcept {
 void LogPrintHeader(const LogLevel logLevel, const LogSite& site, const bool hasMessage) {
     char buffer[31];
 
-    std::printf("%s [%-5s] %s:%u %s()%s",
-        TimestampNow(buffer, sizeof(buffer)),
-        LogLevelToString(logLevel),
-        GetFileBasename(site.file),
-        site.line,
-        site.function,
-        hasMessage ? " - " : "");
+    if (site.file) {
+        std::printf("%s [%-5s] %s:%u %s()%s",
+            TimestampNow(buffer, sizeof(buffer)),
+            LogLevelToString(logLevel),
+            GetFileBasename(site.file),
+            site.line,
+            site.function,
+            hasMessage ? " - " : "");
+    } else {
+        std::printf("%s [%-5s]%s",
+            TimestampNow(buffer, sizeof(buffer)),
+            LogLevelToString(logLevel),
+            hasMessage ? " " : "");
+    }
 }
 
 const char* LogProcessArg(const std::string& value) noexcept {

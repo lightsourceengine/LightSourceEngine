@@ -60,12 +60,18 @@ void SetLogSink(FILE* file) noexcept;
 #define LOG_WARN_LAMBDA(...)  _LOG(_LOG_SITE_LAMBDA(), ls::LogLevelWarn, __VA_ARGS__)
 #define LOG_ERROR_LAMBDA(...) _LOG(_LOG_SITE_LAMBDA(), ls::LogLevelError, __VA_ARGS__)
 
+// Log macros to log without site (file and function) information.
+#define LOGX_DEBUG(...) _LOG({}, ls::LogLevelDebug, __VA_ARGS__)
+#define LOGX_INFO(...)  _LOG({}, ls::LogLevelInfo, __VA_ARGS__)
+#define LOGX_WARN(...)  _LOG({}, ls::LogLevelWarn, __VA_ARGS__)
+#define LOGX_ERROR(...) _LOG({}, ls::LogLevelError, __VA_ARGS__)
+
 namespace internal {
 
 struct LogSite {
-    const char* file;
-    unsigned line;
-    const char* function;
+    const char* file{};
+    unsigned line{};
+    const char* function{};
 };
 
 // Helper method to print the timestamp, log site info and logLevel.
