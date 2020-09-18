@@ -39,7 +39,9 @@ constexpr const char* kSDLFrameworkLib = "SDL2";
     APPLY(SDL_UpdateTexture)                                \
     APPLY(SDL_GetPixelFormatName)                           \
     APPLY(SDL_GetVideoDriver)                               \
+    APPLY(SDL_GetCurrentVideoDriver)                        \
     APPLY(SDL_GetRenderDriverInfo)                          \
+    APPLY(SDL_GetRendererInfo)                              \
     APPLY(SDL_CreateRenderer)                               \
     APPLY(SDL_DestroyRenderer)                              \
     APPLY(SDL_GetRendererOutputSize)                        \

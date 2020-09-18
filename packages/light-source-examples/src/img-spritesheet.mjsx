@@ -6,7 +6,9 @@
 
 import { createStyleSheet } from 'light-source'
 import { letThereBeLight } from 'light-source-react'
-import React, { useEffect, useRef } from 'react'
+import React from 'react'
+
+const { useEffect, useRef } = React
 
 // Demonstrates objectPosition on img elements and manual animations.
 

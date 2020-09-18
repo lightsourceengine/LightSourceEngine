@@ -59,7 +59,6 @@
 // - upx
 // - tar
 // - wget
-// - patchelf
 // - python 2.7 (for node-gyp)
 // - crosstools (https://github.com/lightsourceengine/crosstools)
 // - C++ 14 toolchain (gcc or clang)
@@ -452,14 +451,6 @@ class LightSourceNodePackage {
   async configureNodeExecutable (nodePackage, options) {
     const executable = join(this.#nodeBin, nodePackage.getNodeExecutableBasename())
 
-    if (isLinux(options.platform)) {
-      const complete = logMark('node: patchelf...')
-
-      await runCommand ('patchelf', [ '--set-rpath', '$ORIGIN/../lib/native', executable ])
-
-      complete()
-    }
-
     if (options.stripNodeBinary) {
       const complete = logMark('node: strip...')
 
@@ -709,7 +700,6 @@ class SDLNativePackage {
   libRoot = 'native'
 
   async install (path, options) {
-    const libPath = join(path, this.libRoot)
     const { sdlRuntimePkg } = options
     const pkgIsDirectory = await isDirectory(sdlRuntimePkg)
     const tarballExtension = '.tar.gz'
@@ -717,12 +707,12 @@ class SDLNativePackage {
     const complete = logMark('staging: copying native SDL2...')
 
     if (pkgIsDirectory) {
-      await copy(join(sdlRuntimePkg, libSDL2Path), join(libPath, 'libSDL2.so'))
+      await copy(join(sdlRuntimePkg, libSDL2Path), join(path, 'libSDL2.so'))
     } else if (sdlRuntimePkg.endsWith(tarballExtension)) {
       await tar.x({
         file: sdlRuntimePkg
       }, [join(basename(sdlRuntimePkg).slice(0, -(tarballExtension.length)), libSDL2Path)])
-      await move(join(libPath, 'libSDL2-2.0.so.0'), join(libPath, 'libSDL2.so'))
+      await move(join(path, 'libSDL2-2.0.so.0'), join(path, 'libSDL2.so'))
     } else {
       throw Error('sdl-runtime-pkg must be a directory or tarball')
     }

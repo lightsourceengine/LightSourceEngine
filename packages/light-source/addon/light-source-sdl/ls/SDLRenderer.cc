@@ -145,10 +145,8 @@ void SDLRenderer::SetRenderDrawColor(color_t color) noexcept {
 }
 
 void SDLRenderer::Attach(SDL_Window* window) {
-    auto driverIndex{ 0 };
-
     this->renderer = SDL2::SDL_CreateRenderer(
-        window, driverIndex, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+        window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     if (!this->renderer) {
         throw std::runtime_error(Format("Failed to create an SDL renderer. SDL Error: %s", SDL2::SDL_GetError()));
@@ -159,19 +157,20 @@ void SDLRenderer::Attach(SDL_Window* window) {
 
     // TODO: check texture
 
-    SDL2::SDL_GetRendererOutputSize(renderer, &this->width, &this->height);
+    SDL2::SDL_GetRendererOutputSize(this->renderer, &this->width, &this->height);
 
     SDL_RendererInfo info{};
 
-    if (SDL2::SDL_GetRenderDriverInfo(driverIndex, &info) == 0) {
+    if (SDL2::SDL_GetRendererInfo(this->renderer, &info) == 0) {
         this->UpdateTextureFormats(info);
     }
 
-    LOG_INFO("Renderer Info: size=%i,%i driver=%s textureFormat=%s maxTextureSize=%i,%i "
+    LOG_INFO("Renderer Info: size=%i,%i driver=%s renderer=%s textureFormat=%s maxTextureSize=%i,%i "
             "software=%s accelerated=%s vsync=%s renderTarget=%s",
         this->GetWidth(),
         this->GetHeight(),
-        SDL2::SDL_GetVideoDriver(driverIndex),
+        SDL2::SDL_GetCurrentVideoDriver(),
+        info.name,
         SDL2::SDL_GetPixelFormatName(ToSDLPixelFormat(this->textureFormat)),
         info.max_texture_width,
         info.max_texture_height,

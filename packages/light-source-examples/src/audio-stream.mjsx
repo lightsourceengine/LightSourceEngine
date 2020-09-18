@@ -6,7 +6,9 @@
 
 import { stage, createStyleSheet, AudioDecoderType } from 'light-source'
 import { letThereBeLight } from 'light-source-react'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
+
+const { useEffect, useState } = React
 
 // Demonstrates playing an mp3 or ogg file.
 

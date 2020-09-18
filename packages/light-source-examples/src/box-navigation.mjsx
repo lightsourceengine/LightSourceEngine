@@ -6,7 +6,9 @@
 
 import { createStyleSheet } from 'light-source'
 import { letThereBeLight } from 'light-source-react'
-import React, { createRef, useEffect, forwardRef, useState } from 'react'
+import React from 'react'
+
+const { createRef, useEffect, forwardRef, useState } = React
 
 // Demonstrates keyboard or gamepad focus navigation.
 
