@@ -12,7 +12,7 @@
 // --platform value [Default: process.platform Values: darwin, linux, win32]
 // The target platform id.
 //
-// --arch value [Default: process.arch Values: armv7l, x64]
+// --arch value [Default: process.arch Values: armv6l, armv7l, x64]
 // The target arch id.
 //
 // --profile value [Default: none Value: none, pi, nclassic, psclassic]
@@ -137,6 +137,7 @@ const Platform = {
 }
 
 const Architecture = {
+  armv6l: 'armv6l',
   armv7l: 'armv7l',
   x64: 'x64'
 }
@@ -184,12 +185,11 @@ const getCommandLineOptions = () => {
   validateStringArg(options, 'sdlProfile', SDLProfile)
 
   options.isArmCrossCompile = (isLinux(process.platform) && process.arch === Architecture.x64
-      && isLinux(options.platform) && (options.arch === Architecture.armv7l))
+      && isLinux(options.platform) && (options.arch === Architecture.armv7l || options.arch === Architecture.armv6l))
 
-  // TODO: re-enable
-  // if (!options.isArmCrossCompile && (options.platform !== process.platform || options.arch !== process.arch)) {
-  //   throw Error(`Host ${process.platform}-${process.arch} cannot compile to target ${options.platform}-${options.arch}`)
-  // }
+  if (!options.isArmCrossCompile && (options.platform !== process.platform || options.arch !== process.arch)) {
+    throw Error(`Host ${process.platform}-${process.arch} cannot compile to target ${options.platform}-${options.arch}`)
+  }
 
   if (options.isArmCrossCompile && !pathExistsSync(options.crosstoolsHome)) {
     throw Error('--crosstool-home does not specify a directory')
@@ -290,7 +290,8 @@ class NodePackage {
     const home = join(this.#cache, tag)
     const homeExists = await pathExists(home)
     const ext = windows ? '.zip' : '.tar.gz'
-    const url = `https://nodejs.org/download/release/${this.#version}/${tag}${ext}`
+    const domain = this.#arch === Architecture.armv6l ? 'unofficial-builds.nodejs.org' : 'nodejs.org'
+    const url = `https://${domain}/download/release/${this.#version}/${tag}${ext}`
 
     if (homeExists) {
       log('node: found node package in cache')
@@ -633,6 +634,10 @@ class SourceRoot {
     if (options.isArmCrossCompile) {
       // TODO: use profile to choose a device specific cross target
       const crossTarget = options.arch
+
+      if (options.arch === Architecture.armv7l) {
+        env.CROSS_MARCH_FLAG = "-march=armv7-a -mfpu=neon"
+      }
 
       program = join(options.crosstoolsHome, 'bin', 'cross')
       programArgs = [crossTarget, 'yarn']
