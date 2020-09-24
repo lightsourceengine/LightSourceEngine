@@ -12,7 +12,7 @@
 #if defined(_WIN32)
 constexpr const char* kSDLDefaultLibName = "SDL2.dll";
 #elif defined(__linux__)
-constexpr const char* kSDLDefaultLibName = "libSDL2.so";
+constexpr const char* kSDLDefaultLibName = "libSDL2-2.0.so.0";
 #elif defined(__APPLE__)
 constexpr const char* kSDLDefaultLibName = "libSDL2.dylib";
 #else

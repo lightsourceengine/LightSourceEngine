@@ -17,7 +17,7 @@ Napi::Object ToCapabilitiesView(Napi::Env env, const Capabilities& caps) {
     auto jsCaps{ Object::New(env) };
     auto jsDisplays{ Array::New(env, caps.displays.size()) };
     auto jsVideoDrivers{ Array::New(env, caps.videoDrivers.size()) };
-    auto i{ 0 };
+    auto i{ 0u };
     auto toObject{
         [](Napi::Env env, const DisplayMode& mode) -> Object {
             auto modeObj{ Object::New(env) };

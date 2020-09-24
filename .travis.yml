@@ -67,8 +67,8 @@ matrix:
         - tar -xzf "${LSE_CACHE}/ci-packages/SDL2-2.0.12-armv7l-pi.tar.gz" --directory "${LSE_CACHE}"
       install:
         - (cd scripts && yarn)
-        - ./scripts/build-lse-node.js --platform linux --arch armv7l --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
-        - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv7l --profile pi --sdl-profile native --sdl-runtime-pkg "${LSE_CACHE}/SDL2-2.0.12-armv7l-pi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
+        - ./scripts/build-lse-node.js --platform linux --arch armv7l --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
+        - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv7l --profile pi --sdl-profile native --sdl-runtime-pkg "${LSE_CACHE}/SDL2-2.0.12-armv7l-pi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
       script: skip
     - name: "linux-armv6l [lse-node, lse-node-pi]"
       os: linux
@@ -83,6 +83,6 @@ matrix:
         - tar -xzf "${LSE_CACHE}/ci-packages/SDL2-2.0.12-armv6l-pi.tar.gz" --directory "${LSE_CACHE}"
       install:
         - (cd scripts && yarn)
-        - ./scripts/build-lse-node.js --platform linux --arch armv6l --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
-        - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv6l --profile pi --sdl-profile native --sdl-runtime-pkg "${LSE_CACHE}/SDL2-2.0.12-armv6l-pi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "$NODE_DOWNLOADS" --crosstools-home "$CROSSTOOLS_HOME"
+        - ./scripts/build-lse-node.js --platform linux --arch armv6l --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
+        - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv6l --profile pi --sdl-profile native --sdl-runtime-pkg "${LSE_CACHE}/SDL2-2.0.12-armv6l-pi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
       script: skip

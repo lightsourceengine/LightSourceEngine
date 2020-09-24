@@ -13,7 +13,7 @@
 #if defined(_WIN32)
 constexpr const char* kSDLMixerDefaultLibName = "SDL2_mixer.dll";
 #elif defined(__linux__)
-constexpr const char* kSDLMixerDefaultLibName = "libSDL2_mixer.so";
+constexpr const char* kSDLMixerDefaultLibName = "libSDL2_mixer-2.0.so.0";
 #elif defined(__APPLE__)
 constexpr const char* kSDLMixerDefaultLibName = "libSDL2_mixer.dylib";
 #else

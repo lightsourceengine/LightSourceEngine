@@ -700,19 +700,15 @@ class SDLNativePackage {
   async install (path, options) {
     const { sdlRuntimePkg } = options
     const pkgIsDirectory = await isDirectory(sdlRuntimePkg)
-    const tarballExtension = '.tar.gz'
     const libSDL2Path = join('lib', 'libSDL2-2.0.so.0')
     const complete = logMark('staging: copying native SDL2...')
 
     if (pkgIsDirectory) {
-      await copy(join(sdlRuntimePkg, libSDL2Path), join(path, 'libSDL2.so'))
-    } else if (sdlRuntimePkg.endsWith(tarballExtension)) {
-      await tar.x({
-        file: sdlRuntimePkg
-      }, [join(basename(sdlRuntimePkg).slice(0, -(tarballExtension.length)), libSDL2Path)])
-      await move(join(path, 'libSDL2-2.0.so.0'), join(path, 'libSDL2.so'))
+      await copy(join(sdlRuntimePkg, libSDL2Path), join(path, 'libSDL2-2.0.so.0.12.0'))
+      await createSymlink('libSDL2-2.0.so.0.12.0', join(path, 'libSDL2-2.0.so.0'))
+      await createSymlink('libSDL2-2.0.so.0.12.0', join(path, 'libSDL2-2.0.so'))
     } else {
-      throw Error('sdl-runtime-pkg must be a directory or tarball')
+      throw Error('sdl-runtime-pkg must be a directory')
     }
 
     complete()
