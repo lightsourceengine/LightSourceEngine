@@ -198,7 +198,6 @@ void TextBlock::Paint(RenderingContext2D* context) {
     }
 
     auto pixels{ target.Lock() };
-    Timer t("text render");
 
     context->Begin(pixels.Data(), pixels.Width(), pixels.Height(), pixels.Pitch());
 

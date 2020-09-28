@@ -174,7 +174,7 @@ class AxisEvent extends Event {
 
 class RawHatEvent extends Event {
   constructor ($type, target, device, hat, value, pressed) {
-    super()
+    super($type, target)
 
     this.device = device
     this.hat = hat

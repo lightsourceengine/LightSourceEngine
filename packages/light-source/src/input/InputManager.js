@@ -55,7 +55,9 @@ export class InputManager {
     EventNames.rawaxismotion,
     EventNames.keyup,
     EventNames.keydown,
-    EventNames.axismotion
+    EventNames.axismotion,
+    EventNames.rawhatup,
+    EventNames.rawhatdown
   ])
 
   constructor (stage) {

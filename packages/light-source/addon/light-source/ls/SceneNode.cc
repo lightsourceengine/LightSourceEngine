@@ -127,7 +127,7 @@ Resources* SceneNode::GetResources() const noexcept {
 }
 
 SceneNode* SceneNode::GetParent() const noexcept {
-    auto parent{ this->ygNode->getParent() };
+    auto parent{ this->ygNode ? this->ygNode->getParent() : nullptr };
 
     return parent ? YGNodeGetContextAs<SceneNode>(parent) : nullptr;
 }

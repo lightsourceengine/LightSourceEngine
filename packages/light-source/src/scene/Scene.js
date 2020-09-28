@@ -46,6 +46,10 @@ export class Scene extends SceneBase {
     this._stage = stage
     this._root = root
     this._graphicsContext = graphicsContext
+
+    if (typeof config?.title === 'string') {
+      this.title = config.title
+    }
   }
 
   on (id, listener) {

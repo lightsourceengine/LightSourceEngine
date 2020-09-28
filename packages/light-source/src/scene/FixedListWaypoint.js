@@ -13,15 +13,11 @@ const verticalTag = 'vertical'
 
 const HORIZONTAL = 1
 const VERTICAL = 2
-const OFFSET = Array(3)
-
-OFFSET.fill(Array(5))
-
-OFFSET[HORIZONTAL][LEFT] = -1
-OFFSET[HORIZONTAL][RIGHT] = 1
-
-OFFSET[VERTICAL][UP] = -1
-OFFSET[VERTICAL][DOWN] = 1
+const OFFSET = [
+  [],
+  [0, -1, 1, 0, 0],
+  [0, 0, 0, -1, 1]
+]
 
 export class FixedListWaypoint {
   constructor (tag) {
