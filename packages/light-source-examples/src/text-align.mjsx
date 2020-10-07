@@ -57,8 +57,8 @@ const sheet = createStyleSheet({
     textOverflow: 'ellipsis'
   },
   '%label': {
-    fontFamily: 'Roboto-Bold',
     fontSize: 24,
+    fontWeight: 'bold',
     color: 'lightgray',
     width: '50vh',
     border: 2,
@@ -75,7 +75,6 @@ const sampleTextNewline = '1) Eat\n2) Sleep\n3) Conquer\n4) Repeat'
 
 const TextAlignApp = () => (
   <box class={sheet.body}>
-    <link href='resource/Roboto-Bold.ttf' />
     <text class={sheet.maxLinesTextAlignLeft}>{sampleTextSmall}</text>
     <text class={sheet.maxLinesTextAlignCenter}>{sampleTextSmall}</text>
     <text class={sheet.maxLinesTextAlignRight}>{sampleTextSmall}</text>

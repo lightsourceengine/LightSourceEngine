@@ -49,6 +49,7 @@
     "rimraf": "^3.0.2",
     "rollup": "^2.26.5",
     "rollup-plugin-auto-external": "^2.0.0",
+    "rollup-plugin-copy": "^3.3.0",
     "rollup-plugin-re": "^1.0.7",
     "rollup-plugin-terser": "^7.0.0",
     "shallow-equal": "^1.2.1",

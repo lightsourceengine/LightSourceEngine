@@ -439,6 +439,13 @@ class LightSourceNodePackage {
       await copy(module.native, join(nativeDir, `${module.name}.node`))
     }
 
+    if (module.font) {
+      const fontDir = join(this.#nodeBuiltin, module.name, 'font')
+
+      await ensureDir(fontDir)
+      await copy(module.font, fontDir)
+    }
+
     log(`staging: ${module.name} module installed`)
   }
 
@@ -566,7 +573,8 @@ class SourceRoot {
     return {
       name: 'light-source',
       mjs: join(this.#root, 'packages/light-source/dist/light-source.standalone.mjs'),
-      native: join(this.#root, 'packages/light-source/build/Release/light-source.node')
+      native: join(this.#root, 'packages/light-source/build/Release/light-source.node'),
+      font: join(this.#root, 'packages/light-source/src/font')
     }
   }
 

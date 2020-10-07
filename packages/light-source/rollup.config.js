@@ -7,9 +7,10 @@
 import autoExternal from 'rollup-plugin-auto-external'
 import resolve from '@rollup/plugin-node-resolve'
 import replace from 'rollup-plugin-re'
+import copy from 'rollup-plugin-copy'
 import { beautify, onwarn, minify, inlineModule, getPublishingVersion } from '../rollup/plugins.js'
 
-const intro = `global.lightSourceVersion = ${JSON.stringify(getPublishingVersion())}`
+const intro = `const LIGHT_SOURCE_VERSION = '${getPublishingVersion()}'; const INTRINSIC_FONT_DIR = 'font';`
 
 const inlineBindings = () => inlineModule({
   bindings: 'export default {}'
@@ -36,7 +37,8 @@ const lightSourceNpm = (input) => (
       autoExternal(),
       setLsBindingsType('bindings'),
       resolve(),
-      beautify()
+      beautify(),
+      copy({ targets: [{ src: 'src/font/*', dest: 'dist/font' }] })
     ]
   }
 )

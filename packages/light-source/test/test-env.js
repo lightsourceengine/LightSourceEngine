@@ -56,7 +56,8 @@ export const afterSceneTest = () => {
   nodes.length = 0
 
   assert.lengthOf(test.scene.root.children, 0)
-  assert.equal(getSceneNodeInstanceCount(), 1, 'test has leaked SceneNode instances')
+  assert.equal(getSceneNodeInstanceCount(), 1 + test.scene._fonts.length,
+    'test has leaked SceneNode instances')
 }
 
 export const rejects = async (subject) => {

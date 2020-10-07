@@ -8,6 +8,8 @@ import { SceneBase } from '../addon/index.js'
 import { BoxSceneNode, ImageSceneNode, TextSceneNode, LinkSceneNode, RootSceneNode } from './SceneNode.js'
 import { EventEmitter } from '../util/index.js'
 import { AttachedEvent, DestroyedEvent, DestroyingEvent, DetachedEvent, EventNames } from '../event/index.js'
+import { fileURLToPath } from 'url'
+import { join, dirname } from 'path'
 
 const kEmptyFrameListener = Object.freeze([0, null])
 let sFrameRequestId = 0
@@ -23,6 +25,7 @@ export class Scene extends SceneBase {
 
   _stage = null
   _root = null
+  _fonts = []
   _graphicsContext = null
   _fgFrameListeners = []
   _bgFrameListeners = []
@@ -49,6 +52,10 @@ export class Scene extends SceneBase {
 
     if (typeof config?.title === 'string') {
       this.title = config.title
+    }
+
+    if (config.defaultFontSet !== false) {
+      loadFontSet(this, config.defaultFontSet)
     }
   }
 
@@ -188,6 +195,9 @@ export class Scene extends SceneBase {
   $destroy () {
     this._emitter.emitEvent(DestroyingEvent(this))
 
+    this._fonts.forEach(font => font.destroy())
+    this._fonts = []
+
     super.$destroy()
 
     this.$setActiveNode(null)
@@ -215,6 +225,62 @@ const removeAnimationFrameListener = (requestId, listeners) => {
   if (index >= 0) {
     // Just clear the listener and preserve the array structure, as the frame may be processing this list right now
     listeners[index] = kEmptyFrameListener
+  }
+}
+
+const loadFontSet = (self, fontSet) => {
+  const isFunction = typeof fontSet === 'function'
+
+  if (fontSet === undefined || fontSet === true || isFunction) {
+    const base = dirname(fileURLToPath(import.meta.url))
+    let fontDir
+
+    try {
+      fontDir = join(base, INTRINSIC_FONT_DIR)
+    } catch (e) {
+      fontDir = join(base, '..', 'font')
+    }
+
+    let fonts = [
+      { file: 'Roboto-Regular.ttf', style: 'normal', weight: 'normal' },
+      { file: 'Roboto-Bold.ttf', style: 'normal', weight: 'bold' },
+      { file: 'Roboto-Italic.ttf', style: 'italic', weight: 'normal' },
+      { file: 'Roboto-BoldItalic.ttf', style: 'italic', weight: 'bold' }
+    ]
+
+    if (isFunction) {
+      fonts = fonts.filter(({ style, weight }) => fontSet(style, weight))
+    }
+
+    fontSet = fonts.map(({ file, style, weight }) => `file:${join(fontDir, file)}?family=default&style=${style}&weight=${weight}`)
+  }
+
+  if (!Array.isArray(fontSet)) {
+    throw Error('fontSet must be an array of font urls or boolean')
+  }
+
+  for (const font of fontSet) {
+    const fontLink = new LinkSceneNode(self)
+
+    try {
+      fontLink.href = font
+    } catch (e) {
+      continue
+    }
+
+    try {
+      fontLink.as = 'font'
+    } catch (e) {
+      continue
+    }
+
+    try {
+      fontLink.fetch()
+    } catch (e) {
+      continue
+    }
+
+    self._fonts.push(fontLink)
   }
 }
 

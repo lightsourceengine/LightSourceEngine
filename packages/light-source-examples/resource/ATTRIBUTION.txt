@@ -10,12 +10,6 @@ Author: Various (see Source link)
 Source: https://opengameart.org/content/universal-lpc-sprite-male-01
 License: Creative Commons Attribution-ShareAlike 3.0
 
-Roboto-Bold.ttf
-Roboto-Regular.ttf
-
-Source: https://fonts.google.com/specimen/Roboto
-License: http://www.apache.org/licenses/LICENSE-2.0
-
 pattern-1004855.jpg
 
 License: https://pixabay.com/service/license/

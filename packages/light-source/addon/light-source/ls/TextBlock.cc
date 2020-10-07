@@ -56,7 +56,7 @@ void TextBlock::Shape(const std::string& utf8, const FontFaceRef& fontFace, Styl
 
     const auto fontSize = context->ComputeFontSize(style);
 
-    if (fontSize <= 0 || style->IsEmpty(StyleProperty::fontFamily)) {
+    if (fontSize <= 0) {
         return;
     }
 

@@ -122,15 +122,12 @@ const styles = createStyleSheet({
     justifyContent: 'flex-end'
   },
   '%primaryFont': {
-    fontFamily: 'Roboto',
     color: '#444'
   },
   '%hintFont': {
-    fontFamily: 'Roboto',
     color: '#999'
   },
   '%highlightFont': {
-    fontFamily: 'Roboto',
     color: 'dodgerblue'
   }
 })
@@ -328,7 +325,6 @@ const SwitchyApp = () => {
   return (
     <ErrorBoundary>
       <box class={styles.body} onKeyUp={({key}) => key === Key.B && stage.quit()}>
-        <link href="file:resource/Roboto-Regular.ttf?family=Roboto"/>
         <box class={styles.headline}>
           <text class={styles.h1}>• Switchy Settings</text>
         </box>

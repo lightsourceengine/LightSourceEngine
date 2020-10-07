@@ -28,6 +28,8 @@ using Napi::Value;
 
 namespace ls {
 
+static const std::string kDefaultFontFamily = "default";
+
 void TextSceneNode::Constructor(const Napi::CallbackInfo& info) {
     this->SceneNodeConstructor(info);
     this->SetFlag(FlagLeaf, true);
@@ -183,7 +185,7 @@ void TextSceneNode::SetText(const CallbackInfo& info, const Napi::Value& value) 
 bool TextSceneNode::SetFont(Style* style) {
     auto dirty{ false };
 
-    if (!style || style->IsEmpty(StyleProperty::fontFamily) || style->IsEmpty(StyleProperty::fontSize)) {
+    if (!style) {
         if (this->fontFace) {
             dirty = true;
         }
@@ -193,7 +195,9 @@ bool TextSceneNode::SetFont(Style* style) {
         return dirty;
     }
 
-    const auto& fontFamily{ style->GetString(StyleProperty::fontFamily) };
+    const auto& fontFamily{
+        style->IsEmpty(StyleProperty::fontFamily) ? kDefaultFontFamily : style->GetString(StyleProperty::fontFamily)
+    };
     const auto fontStyle{ style->GetEnum<StyleFontStyle>(StyleProperty::fontStyle) };
     const auto fontWeight{ style->GetEnum<StyleFontWeight>(StyleProperty::fontWeight) };
 

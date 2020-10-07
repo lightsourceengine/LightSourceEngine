@@ -52,7 +52,13 @@ const errorHandler = obj => {
 ['SIGINT', 'uncaughtException', 'unhandledRejection'].forEach(e => process.on(e, errorHandler))
 
 const stage = new Stage()
-const { lightSourceVersion } = global // set by rollup from package.json
+let lightSourceVersion
+
+try {
+  lightSourceVersion = LIGHT_SOURCE_VERSION
+} catch (e) {
+  lightSourceVersion = '0.0.0'
+}
 
 export {
   // Style

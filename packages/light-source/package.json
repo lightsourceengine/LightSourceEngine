@@ -85,6 +85,10 @@
     "env": {
       "mocha": true,
       "node": true
-    }
+    },
+    "globals": [
+      "LIGHT_SOURCE_VERSION",
+      "INTRINSIC_FONT_DIR"
+    ]
   }
 }
