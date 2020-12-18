@@ -25,11 +25,11 @@
     "postinstall": "yarn workspaces run bundle"
   },
   "devDependencies": {
-    "@babel/core": "^7.11.4",
-    "@babel/eslint-parser": "^7.11.4",
-    "@babel/preset-env": "^7.11.0",
-    "@babel/preset-react": "^7.10.4",
-    "@babel/register": "^7.10.5",
+    "@babel/core": "^7.12.10",
+    "@babel/eslint-parser": "^7.12.1",
+    "@babel/preset-env": "^7.12.11",
+    "@babel/preset-react": "^7.12.10",
+    "@babel/register": "^7.12.10",
     "@rollup/plugin-babel": "^5.2.2",
     "@rollup/plugin-commonjs": "^17.0.0",
     "@rollup/plugin-inject": "^4.0.2",
