@@ -22,7 +22,7 @@
     "light-source-reconciler": "1.0.0-private.0"
   },
   "peerDependencies": {
-    "react": "^16.13.1"
+    "react": "^16.14.0"
   },
   "scripts": {
     "bundle": "rimraf dist && rollup -c",
