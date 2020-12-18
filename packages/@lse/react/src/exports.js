@@ -5,7 +5,7 @@
  */
 
 import { stage } from '@lse/core'
-import { shutdown, reactReconcilerVersion } from 'light-source-reconciler'
+import { shutdown, reactReconcilerVersion } from '@lse/reconciler'
 import { render, findSceneNode, findElement } from './renderer.js'
 import { letThereBeLight } from './letThereBeLight.js'
 

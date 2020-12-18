@@ -17,11 +17,11 @@ set -e
 # $SCROOT/build/npm/publishable.
 
 _pushd () {
-  cd "$@"
+  cd "$@" > /dev/null 2>&1
 }
 
 _popd () {
-  cd -
+  cd - > /dev/null 2>&1
 }
 
 get_version() {
@@ -29,7 +29,7 @@ get_version() {
 }
 
 create_npm_package() {
-  TARGET_DIR="${SOURCE_ROOT}/build/npm/@lse/$1"
+  TARGET_DIR="${SOURCE_ROOT}/build/npm/$1"
   SOURCE_DIR="${SOURCE_ROOT}/packages/@lse/$1"
   
   mkdir -p "${TARGET_DIR}"
@@ -37,8 +37,8 @@ create_npm_package() {
 
   _pushd "${SOURCE_DIR}"
   npm pack > /dev/null 2>&1
-  tar -xzf ${1}-${VERSION}.tgz -C "${TARGET_DIR}"
-  rm ${1}-${VERSION}.tgz
+  tar -xzf lse-${1}-${VERSION}.tgz -C "${TARGET_DIR}"
+  rm lse-${1}-${VERSION}.tgz
   _popd
 
   OVERLAY="${SOURCE_DIR}/publishing/package-json.overlay"
@@ -59,7 +59,7 @@ create_npm_package() {
   cp "${SOURCE_ROOT}/LICENSE" "${TARGET_DIR}/package"
 
   _pushd "${TARGET_DIR}/package"
-  tar -czf "${PUBLISHABLE_DIR}/${1}-${PUBLISHING_VERSION}.tgz" .
+  tar -czf "${PUBLISHABLE_DIR}/lse-${1}-${PUBLISHING_VERSION}.tgz" .
   _popd
 
   # TODO: cleanup
@@ -72,7 +72,7 @@ test_npm_install() {
 
   _pushd "${TEST_DIR}"
   export npm_config_ls_install_opts="--jobs max"
-  echo "{\"dependencies\": { \"light-source\": \"../publishable/light-source-${PUBLISHING_VERSION}.tgz\" }}" > package.json
+  echo "{\"dependencies\": { \"@lse/core\": \"../publishable/lse-core-${PUBLISHING_VERSION}.tgz\" }}" > package.json
   rm -rf ./empty-cache
   npm install --cache ./empty-cache
   _popd
@@ -83,13 +83,15 @@ SOURCE_ROOT="${SCRIPT_DIR}/.."
 PUBLISHABLE_DIR="${SOURCE_ROOT}/build/npm/publishable"
 PUBLISHING_VERSION=$(get_version "${SOURCE_ROOT}/publishing/version.json")
 
+_pushd "${SOURCE_ROOT}"
+
 if [ "$1" = "--skip-yarn-install" ]; then
-  _pushd "${SOURCE_ROOT}"
-  # TODO: yarn --force
-  # TODO: yarn test
   yarn run bundle
-  _popd
+else
+  yarn --force
 fi
+
+_popd
 
 rm -rf "${SOURCE_ROOT}/build/npm"
 mkdir -p "${PUBLISHABLE_DIR}"

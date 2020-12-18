@@ -22,7 +22,7 @@
   ],
   "dependencies": {
     "@lse/core": "1.0.0-private.0",
-    "light-source-reconciler": "1.0.0-private.0"
+    "@lse/reconciler": "1.0.0-private.0"
   },
   "peerDependencies": {
     "react": "^16.14.0"

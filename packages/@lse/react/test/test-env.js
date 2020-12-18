@@ -5,7 +5,7 @@
  */
 
 import { stage, logger, LogLevel } from '@lse/core'
-import { shutdown } from 'light-source-reconciler'
+import { shutdown } from '@lse/reconciler'
 import React from 'react'
 import chai from 'chai'
 import { getActiveContainers, render } from '../src/renderer.js'

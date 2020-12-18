@@ -9,7 +9,7 @@ import nodeResolve from '@rollup/plugin-node-resolve'
 import inject from '@rollup/plugin-inject'
 import commonjs from '@rollup/plugin-commonjs'
 import { resolve } from 'path'
-import { onwarn, nodeEnv, replaceObjectAssign, getPackageJsonVersion } from '../rollup/plugins'
+import { onwarn, nodeEnv, replaceObjectAssign, getPackageJsonVersion } from '../../rollup/plugins'
 
 const pkg = require.resolve('react-reconciler/package.json')
 const intro = `global.reactReconcilerVersion = ${JSON.stringify(getPackageJsonVersion(pkg))}`

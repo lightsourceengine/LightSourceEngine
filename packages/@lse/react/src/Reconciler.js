@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { ReactReconciler } from 'light-source-reconciler'
+import { ReactReconciler } from '@lse/reconciler'
 import { TextElement } from './TextElement.js'
 import { BoxElement } from './BoxElement.js'
 import { ImageElement } from './ImageElement.js'

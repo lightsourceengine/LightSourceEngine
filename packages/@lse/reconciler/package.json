@@ -1,5 +1,5 @@
 {
-  "name": "light-source-reconciler",
+  "name": "@lse/reconciler",
   "description": "React reconciler compatibility patches",
   "version": "1.0.0-private.0",
   "license": "MIT",
