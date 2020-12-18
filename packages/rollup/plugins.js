@@ -143,7 +143,16 @@ let lightSourceVersion
  */
 export const getPublishingVersion = () => {
   if (!lightSourceVersion) {
-    lightSourceVersion = JSON.parse(readFileSync('../../publishing/version.json', "utf8")).version
+    let versionFile
+
+    // TODO: version file search patch while refactoring @lse scope.
+    try {
+      versionFile = readFileSync('../../../publishing/version.json', "utf8")
+    } catch (e) {
+      versionFile = readFileSync('../../publishing/version.json', "utf8")
+    }
+
+    lightSourceVersion = JSON.parse(versionFile).version
   }
   return lightSourceVersion
 }

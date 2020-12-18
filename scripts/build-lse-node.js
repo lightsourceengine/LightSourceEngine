@@ -595,7 +595,7 @@ class SourceRoot {
   }
 
   getBuiltinLoader () {
-    return join(this.#root, 'packages/light-source-loader/dist/builtin.standalone.mjs')
+    return join(this.#root, 'packages/@lse/loader/dist/builtin.standalone.mjs')
   }
 
   getLicense () {

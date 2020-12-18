@@ -2,7 +2,7 @@
   "private": true,
   "workspaces": [
     "packages/napi-unit",
-    "packages/light-source-loader",
+    "packages/@lse/loader",
     "packages/light-source",
     "packages/light-source-reconciler",
     "packages/light-source-react",

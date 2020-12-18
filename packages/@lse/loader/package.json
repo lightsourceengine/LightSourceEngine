@@ -1,5 +1,5 @@
 {
-  "name": "light-source-loader",
+  "name": "@lse/loader",
   "description": "Node ESM loaders for Light Source Engine",
   "version": "1.0.0-private.0",
   "license": "MIT",
@@ -8,6 +8,9 @@
     "url": "https://github.com/LightSourceEngine/LightSourceEngine.git"
   },
   "author": "Daniel Anderson <dan.anderson.oss@gmail.com>",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=14"
   },

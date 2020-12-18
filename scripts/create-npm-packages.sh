@@ -96,6 +96,7 @@ mkdir -p "${PUBLISHABLE_DIR}"
 
 create_npm_package "light-source"
 create_npm_package "light-source-react"
-create_npm_package "light-source-loader"
+# TODO: uncomment after refactor
+# create_npm_package "@lse/loader"
 
 test_npm_install
