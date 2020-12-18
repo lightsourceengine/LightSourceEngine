@@ -68,11 +68,11 @@
 // Node Version
 //
 // The node version that invokes this script will be the node version of the built package. This restriction is
-// to prevent node ABI conflicts with light-source native modules and the mode runtime on the target system.
+// to prevent node ABI conflicts with Light Source Engine native modules and the mode runtime on the target system.
 //
 // Package Structure
 //
-// The Light Source Engine is just a standard NodeJS distribution with a pre-compiled light-source, light-source-react
+// The Light Source Engine is just a standard NodeJS distribution with a pre-compiled @lse/core, @lse/react
 // and react installed as 'builtin' modules.
 //
 // Pre-compiled SDL libraries are included, if available on the system.
@@ -90,12 +90,13 @@
 //   lib/
 //     builtin/
 //       loader.mjs
-//       light-source/
-//         index.mjs
-//         Release/
-//       light-source-react
-//         index.mjs
-//       react
+//       @lse/
+//         core/
+//           index.mjs
+//           Release/
+//         react/
+//           index.mjs
+//       react/
 //         index.cjs
 //     Frameworks/
 //       SDL2.framework
@@ -116,7 +117,7 @@
 // lse-node   - Script that configures the Light Source Engine environment and launches node. The configuration will
 //              set up builtins and other platform specific configurations. This script should be used to launch
 //              LSE apps.
-// Release    - The pre-compiled light-source addon are stored here.
+// Release    - The pre-compiled @lse/core addons are stored here.
 // Windows    - On Windows, the SDL DLLs appear in the same directory as node.exe, as that is in Windows default lib
 //              search path.
 //
@@ -571,10 +572,10 @@ class SourceRoot {
 
   getLightSourceModule () {
     return {
-      name: 'light-source',
-      mjs: join(this.#root, 'packages/light-source/dist/light-source.standalone.mjs'),
-      native: join(this.#root, 'packages/light-source/build/Release/light-source.node'),
-      font: join(this.#root, 'packages/light-source/src/font')
+      name: '@lse/core',
+      mjs: join(this.#root, 'packages/@lse/core/dist/light-source.standalone.mjs'),
+      native: join(this.#root, 'packages/@lse/core/build/Release/light-source.node'),
+      font: join(this.#root, 'packages/@lse/core/src/font')
     }
   }
 
@@ -589,7 +590,7 @@ class SourceRoot {
   getReactModule () {
     return {
       name: 'react',
-      cjs: join(this.#root, 'packages/light-source-react/dist/react.standalone.cjs'),
+      cjs: join(this.#root, 'packages/@lse/react/dist/react.standalone.cjs'),
       native: null
     }
   }

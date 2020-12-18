@@ -15,6 +15,7 @@ const intro = `global.lightSourceReactVersion = ${lightSourceReactVersion}; glob
 const lightSourceReactNpm = (input) => ({
   input,
   onwarn,
+  external: ['@lse/core'],
   output: {
     format: 'esm',
     file: 'dist/light-source-react.mjs',
@@ -31,7 +32,7 @@ const lightSourceReactNpm = (input) => ({
 const lightSourceReactStandalone = (input) => ({
   input,
   onwarn,
-  external: ['light-source', 'react', 'worker_threads'],
+  external: ['@lse/core', 'react', 'worker_threads'],
   output: {
     format: 'esm',
     file: 'dist/light-source-react.standalone.mjs',

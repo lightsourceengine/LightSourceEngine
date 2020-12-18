@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { stage, logger, LogLevel } from 'light-source'
+import { stage, logger, LogLevel } from '@lse/core'
 import { shutdown } from 'light-source-reconciler'
 import React from 'react'
 import chai from 'chai'

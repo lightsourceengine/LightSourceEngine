@@ -1,30 +1,30 @@
-[submodule "packages/light-source/addon/deps/filesystem/repo"]
-	path = packages/light-source/addon/deps/filesystem/repo
+[submodule "packages/@lse/core/addon/deps/filesystem/repo"]
+	path = packages/@lse/core/addon/deps/filesystem/repo
 	url = https://github.com/gulrak/filesystem.git
-[submodule "packages/light-source/addon/deps/concurrentqueue/repo"]
-	path = packages/light-source/addon/deps/concurrentqueue/repo
+[submodule "packages/@lse/core/addon/deps/concurrentqueue/repo"]
+	path = packages/@lse/core/addon/deps/concurrentqueue/repo
 	url = https://github.com/cameron314/concurrentqueue.git
-[submodule "packages/light-source/addon/deps/utfcpp/repo"]
-	path = packages/light-source/addon/deps/utfcpp/repo
+[submodule "packages/@lse/core/addon/deps/utfcpp/repo"]
+	path = packages/@lse/core/addon/deps/utfcpp/repo
 	url = https://github.com/nemtrif/utfcpp.git
-[submodule "packages/light-source/addon/deps/stb/repo"]
-	path = packages/light-source/addon/deps/stb/repo
+[submodule "packages/@lse/core/addon/deps/stb/repo"]
+	path = packages/@lse/core/addon/deps/stb/repo
 	url = https://github.com/nothings/stb.git
-[submodule "packages/light-source/addon/deps/cpp17_headers/repo"]
-	path = packages/light-source/addon/deps/cpp17_headers/repo
+[submodule "packages/@lse/core/addon/deps/cpp17_headers/repo"]
+	path = packages/@lse/core/addon/deps/cpp17_headers/repo
 	url = https://github.com/lightsourceengine/cpp17_headers.git
-[submodule "packages/light-source/addon/deps/asmjit/repo"]
-	path = packages/light-source/addon/deps/asmjit/repo
+[submodule "packages/@lse/core/addon/deps/asmjit/repo"]
+	path = packages/@lse/core/addon/deps/asmjit/repo
 	url = https://github.com/asmjit/asmjit.git
-[submodule "packages/light-source/addon/deps/blend2d/repo"]
-	path = packages/light-source/addon/deps/blend2d/repo
+[submodule "packages/@lse/core/addon/deps/blend2d/repo"]
+	path = packages/@lse/core/addon/deps/blend2d/repo
 	url = https://github.com/blend2d/blend2d.git
-[submodule "packages/light-source/addon/deps/parallel-hashmap/repo"]
-	path = packages/light-source/addon/deps/parallel-hashmap/repo
+[submodule "packages/@lse/core/addon/deps/parallel-hashmap/repo"]
+	path = packages/@lse/core/addon/deps/parallel-hashmap/repo
 	url = https://github.com/greg7mdp/parallel-hashmap.git
-[submodule "packages/light-source/addon/deps/SDL/repo"]
-	path = packages/light-source/addon/deps/SDL/repo
+[submodule "packages/@lse/core/addon/deps/SDL/repo"]
+	path = packages/@lse/core/addon/deps/SDL/repo
 	url = https://github.com/SDL-mirror/SDL.git
-[submodule "packages/light-source/addon/deps/SDL_mixer/repo"]
-	path = packages/light-source/addon/deps/SDL_mixer/repo
+[submodule "packages/@lse/core/addon/deps/SDL_mixer/repo"]
+	path = packages/@lse/core/addon/deps/SDL_mixer/repo
 	url = https://github.com/SDL-mirror/SDL_mixer.git

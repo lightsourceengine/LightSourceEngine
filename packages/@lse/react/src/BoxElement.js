@@ -5,7 +5,7 @@
  */
 
 import { Element } from './Element.js'
-import { waypoint } from 'light-source'
+import { waypoint } from '@lse/core'
 
 export class BoxElement extends Element {
   /**

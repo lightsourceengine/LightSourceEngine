@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { stage } from 'light-source'
+import { stage } from '@lse/core'
 import { shutdown, reactReconcilerVersion } from 'light-source-reconciler'
 import { render, findSceneNode, findElement } from './renderer.js'
 import { letThereBeLight } from './letThereBeLight.js'

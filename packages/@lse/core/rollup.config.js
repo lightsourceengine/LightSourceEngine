@@ -8,7 +8,7 @@ import autoExternal from 'rollup-plugin-auto-external'
 import resolve from '@rollup/plugin-node-resolve'
 import replace from 'rollup-plugin-re'
 import copy from 'rollup-plugin-copy'
-import { beautify, onwarn, minify, inlineModule, getPublishingVersion } from '../rollup/plugins.js'
+import { beautify, onwarn, minify, inlineModule, getPublishingVersion } from '../../rollup/plugins.js'
 
 const intro = `const LIGHT_SOURCE_VERSION = '${getPublishingVersion()}'; const INTRINSIC_FONT_DIR = 'font';`
 

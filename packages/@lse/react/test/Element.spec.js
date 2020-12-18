@@ -5,7 +5,7 @@
  */
 
 import chai from 'chai'
-import { createStyle } from 'light-source'
+import { createStyle } from '@lse/core'
 import React from 'react'
 import { renderAsync, beforeEachTestCase, afterEachTestCase } from './test-env.js'
 

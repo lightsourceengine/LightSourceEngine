@@ -6,7 +6,7 @@
 
 import chai from 'chai'
 import React from 'react'
-import { stage } from 'light-source'
+import { stage } from '@lse/core'
 import { TextElement } from '../src/TextElement.js'
 import { ReactRenderer } from '../src/ReactRenderer.js'
 import './test-env.js'

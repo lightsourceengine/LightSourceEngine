@@ -29,8 +29,8 @@ get_version() {
 }
 
 create_npm_package() {
-  TARGET_DIR="${SOURCE_ROOT}/build/npm/$1"
-  SOURCE_DIR="${SOURCE_ROOT}/packages/$1"
+  TARGET_DIR="${SOURCE_ROOT}/build/npm/@lse/$1"
+  SOURCE_DIR="${SOURCE_ROOT}/packages/@lse/$1"
   
   mkdir -p "${TARGET_DIR}"
   VERSION=$(get_version "${SOURCE_DIR}/package.json")
@@ -94,9 +94,8 @@ fi
 rm -rf "${SOURCE_ROOT}/build/npm"
 mkdir -p "${PUBLISHABLE_DIR}"
 
-create_npm_package "light-source"
-# TODO: uncomment after refactor
-# create_npm_package "@lse/react"
-# create_npm_package "@lse/loader"
+create_npm_package "core"
+create_npm_package "react"
+create_npm_package "loader"
 
 test_npm_install
