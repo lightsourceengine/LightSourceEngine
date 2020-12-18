@@ -5,7 +5,7 @@
  */
 
 import { createStyleSheet, stage, Key, ScanCode } from 'light-source'
-import { letThereBeLight } from 'light-source-react'
+import { letThereBeLight } from '@lse/react'
 import { EventEmitter } from 'events'
 import { cpus } from 'os'
 import React from 'react'

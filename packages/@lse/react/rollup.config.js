@@ -6,7 +6,7 @@
 
 import autoExternal from 'rollup-plugin-auto-external'
 import resolve from '@rollup/plugin-node-resolve'
-import { beautify, onwarn, minify, replaceObjectAssign, getPublishingVersion, getPackageJsonVersion } from '../rollup/plugins'
+import { beautify, onwarn, minify, replaceObjectAssign, getPublishingVersion, getPackageJsonVersion } from '../../rollup/plugins'
 
 const lightSourceReactVersion = JSON.stringify(getPublishingVersion())
 const reactVersion = JSON.stringify(getPackageJsonVersion(require.resolve('react/package.json')))

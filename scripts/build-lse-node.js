@@ -580,8 +580,8 @@ class SourceRoot {
 
   getLightSourceReactModule () {
     return {
-      name: 'light-source-react',
-      mjs: join(this.#root, 'packages/light-source-react/dist/light-source-react.standalone.mjs'),
+      name: '@lse/react',
+      mjs: join(this.#root, 'packages/@lse/react/dist/light-source-react.standalone.mjs'),
       native: null
     }
   }

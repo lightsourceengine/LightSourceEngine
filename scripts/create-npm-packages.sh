@@ -95,8 +95,8 @@ rm -rf "${SOURCE_ROOT}/build/npm"
 mkdir -p "${PUBLISHABLE_DIR}"
 
 create_npm_package "light-source"
-create_npm_package "light-source-react"
 # TODO: uncomment after refactor
+# create_npm_package "@lse/react"
 # create_npm_package "@lse/loader"
 
 test_npm_install

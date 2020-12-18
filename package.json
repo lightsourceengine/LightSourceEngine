@@ -5,7 +5,7 @@
     "packages/@lse/loader",
     "packages/light-source",
     "packages/light-source-reconciler",
-    "packages/light-source-react",
+    "packages/@lse/react",
     "packages/light-source-examples"
   ],
   "license": "MIT",

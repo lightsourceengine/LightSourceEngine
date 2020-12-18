@@ -5,7 +5,7 @@
  */
 
 import { createStyle } from 'light-source'
-import { letThereBeLight } from 'light-source-react'
+import { letThereBeLight } from '@lse/react'
 import React from 'react'
 
 // Demonstrates backgroundRepeat style property on div/box elements.

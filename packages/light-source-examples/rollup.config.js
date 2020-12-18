@@ -11,7 +11,7 @@ import { readdirSync } from 'fs'
 const convertReactJsx = (file) => ({
   input: `src/${file}`,
   onwarn,
-  external: ['light-source', 'light-source-react', 'react'],
+  external: ['light-source', '@lse/react', 'react'],
   output: {
     format: 'esm',
     file: `dist/${file.slice(0, -1)}`
