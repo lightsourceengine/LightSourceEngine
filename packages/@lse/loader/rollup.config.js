@@ -22,8 +22,6 @@ const standaloneLoader = (stem) => ({
 })
 
 export default [
-  standaloneLoader('builtin'),
-  standaloneLoader('babel'),
-  standaloneLoader('babel-jsx'),
-  standaloneLoader('babel-mocha')
+  standaloneLoader('index'),
+  standaloneLoader('babel')
 ]

@@ -34,7 +34,7 @@
     "lint": "standard",
     "prepublishOnly": "run-s bundle test",
     "test": "run-s lint testOnly",
-    "testOnly": "node --loader @lse/loader/babel-mocha _mocha --reporter spec \"test/**/*.spec.js\""
+    "testOnly": "node --loader @lse/loader/babel _mocha --reporter spec \"test/**/*.spec.js\""
   },
   "standard": {
     "ignore": [

@@ -89,12 +89,13 @@
 // root
 //   lib/
 //     builtin/
-//       loader.mjs
 //       @lse/
 //         core/
 //           index.mjs
 //           Release/
 //         react/
+//           index.mjs
+//         loader/
 //           index.mjs
 //       react/
 //         index.cjs
@@ -413,11 +414,6 @@ class LightSourceNodePackage {
     complete()
   }
 
-  async installModuleLoader (sourceRoot) {
-    await copy(sourceRoot.getBuiltinLoader(), join(this.#nodeBuiltin, 'loader.mjs'))
-    log('staging: loader installed')
-  }
-
   async installModule(module) {
     if (module.mjs) {
       const sourceDir = join(this.#nodeBuiltin, module.name)
@@ -434,10 +430,11 @@ class LightSourceNodePackage {
     }
 
     if (module.native) {
+      const name = basename(module.native)
       const nativeDir = join(this.#nodeBuiltin, module.name, 'Release')
 
       await ensureDir(nativeDir)
-      await copy(module.native, join(nativeDir, `${module.name}.node`))
+      await copy(module.native, join(nativeDir, name))
     }
 
     if (module.font) {
@@ -587,16 +584,20 @@ class SourceRoot {
     }
   }
 
+  getLightSourceLoaderModule () {
+    return {
+      name: '@lse/loader',
+      mjs: join(this.#root, 'packages/@lse/loader/dist/index.standalone.mjs'),
+      native: null
+    }
+  }
+
   getReactModule () {
     return {
       name: 'react',
       cjs: join(this.#root, 'packages/@lse/react/dist/react.standalone.cjs'),
       native: null
     }
-  }
-
-  getBuiltinLoader () {
-    return join(this.#root, 'packages/@lse/loader/dist/builtin.standalone.mjs')
   }
 
   getLicense () {
@@ -873,7 +874,7 @@ const createLseNodePackage = async () => {
     .then(() => {
       // These files are dependent on compile completing and staging creating directories.
       return Promise.all([
-        lightSourceModePackage.installModuleLoader(sourceRoot),
+        lightSourceModePackage.installModule(sourceRoot.getLightSourceLoaderModule()),
         lightSourceModePackage.installModule(sourceRoot.getLightSourceModule()),
         lightSourceModePackage.installModule(sourceRoot.getLightSourceReactModule()),
         lightSourceModePackage.installModule(sourceRoot.getReactModule()),

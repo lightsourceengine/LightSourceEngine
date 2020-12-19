@@ -1,5 +1,5 @@
 {
-  "name": "light-source-examples",
+  "name": "examples",
   "private": true,
   "description": "Example Light Source Engine programs",
   "version": "1.0.0-private.0",
@@ -23,7 +23,9 @@
   "standard": {
     "ignore": [
       "dist/",
-      "node_modules/"
+      "node_modules/",
+      "resource",
+      "rollup.config.js"
     ],
     "parser": "@babel/eslint-parser",
     "env": {

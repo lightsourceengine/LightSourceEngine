@@ -5,55 +5,34 @@
  */
 
 import bindings from 'bindings'
-import { join, dirname, basename } from 'path'
+import { resolve } from 'path'
 import { createRequire } from 'module'
-import { fileURLToPath } from 'url'
+
+const { LSE_ENV, LSE_PATH } = process.env
+const NATIVE_MODULE_NAME = 'light-source.node'
+const require = createRequire(import.meta.url)
 
 /**
- * Load the native portions of Light Source Engine from light-source.node.
- *
- * When Light Source Engine is packaged as a runtime with the light-source module as a builtin, light-source.node
- * must be loaded from the builtin path. The builtin path is hard coded in this file because node's import does not
- * have native addon support yet.
- *
- * In all other environments, light-source.node is loaded through bindings. The bindings module knows how to find
- * the correct Release or Debug .node in the node_module directories.
- *
- * When light-source is bundled, global.LS_BINDINGS_TYPE is set. npm bundles get "bindings" and standalone bundles
- * get "builtin-bindings".
+ * Load the native portions of Light Source Engine from @lse/core.
  *
  * @ignore
  */
 export const loadLightSourceAddon = () => {
-  const name = 'light-source.node'
   let addon = null
   let addonError = null
 
   try {
-    if (global.LS_BINDINGS_TYPE === 'builtin-bindings') {
-      // TODO: would rather use import and light-source-loader/builtin, but node es modules do not support native addons yet
-      const { url } = import.meta
-      const module = getLightSourceModuleFromUrl(url)
-      const require = createRequire(url)
-
-      addon = require(join(module, 'Release', name))
+    if (LSE_ENV === 'lse-node') {
+      // In "lse-node" mode, load the native module from the pseudo-builtin module path.
+      addon = require(resolve(LSE_PATH, '@lse', 'core', 'Release', NATIVE_MODULE_NAME))
     } else {
-      addon = bindings(name)
+      // In "node" mode, load the native module from the package manager installed node_modules.
+      addon = bindings(NATIVE_MODULE_NAME)
     }
   } catch (e) {
-    console.error('Failed to load light-source.node: ' + e.message)
+    console.error(`Failed to load ${NATIVE_MODULE_NAME}: ${e.message}`)
     addonError = e
   }
 
   return [ addon, addonError ]
-}
-
-const getLightSourceModuleFromUrl = url => {
-  const module = dirname(fileURLToPath(url))
-
-  if (basename(module) !== 'light-source') {
-    throw Error('Light Source Engine js code is not in packaged runtime')
-  }
-
-  return module
 }

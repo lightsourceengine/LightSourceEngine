@@ -3,21 +3,17 @@
  *
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
-import babel from '@babel/core'
+import { resolve } from './common.mjs'
 
-const { transformAsync } = babel
+/**
+ * Default Light Source Engine module loader.
+ *
+ * - Loads pseudo-builtin (global) modules from LSE_PATH.
+ * - Adds ability to run mocha bin with a module loader.
+ *
+ * @ignore
+ */
 
-export const isJsx = (url) => url.endsWith('.jsx') || url.endsWith('.mjsx')
+export const getFormat = async (url, context, defaultGetFormat) => url.endsWith('_mocha') ? { format: 'commonjs' } : defaultGetFormat(url, context, defaultGetFormat)
 
-export const getFormatJsx = async (url, context, defaultGetFormat) =>
-  isJsx(url) ? { format: 'module' } : defaultGetFormat(url, context, defaultGetFormat)
-
-export const babelTransformSource = async (source, context, defaultTransformSource) => {
-  if (context.format === 'commonjs' || context.format === 'module') {
-    const { code } = await transformAsync(source)
-
-    source = code
-  }
-
-  return defaultTransformSource(source, context, defaultTransformSource)
-}
+export { resolve }

@@ -19,10 +19,8 @@
   ],
   "type": "module",
   "exports": {
-    "./builtin": "./dist/builtin.standalone.mjs",
-    "./babel": "./dist/babel.standalone.mjs",
-    "./babel-jsx": "./dist/babel-jsx.standalone.mjs",
-    "./babel-mocha": "./dist/babel-mocha.standalone.mjs"
+    ".": "./dist/index.standalone.mjs",
+    "./babel": "./dist/babel.standalone.mjs"
   },
   "scripts": {
     "bundle": "rimraf dist && rollup -c",
