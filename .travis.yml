@@ -28,7 +28,7 @@ matrix:
         artifacts:
           branch: master
           paths:
-            - $(echo build/*.zip)
+            - $(ls build/*.zip | tr "\n" ";")
     - name: "linux-x64 [full-build]"
       os: linux
       env: npm_config_ls_enable_native_tests=1
