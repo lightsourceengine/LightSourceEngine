@@ -1,4 +1,5 @@
 language: node_js
+node_js: 14
 dist: xenial
 env:
   global:
@@ -30,15 +31,13 @@ matrix:
       before_install:
         - set -e
         - ./scripts/ci/lse-git-clone.sh "ci-packages"
+        - choco install awscli
       install: skip
       script:
         - (cd scripts && yarn)
         - ./scripts/build-lse-node.js --sdl-profile dll --sdl-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2-2.0.12-win32-x64.zip" --sdl-mixer-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2_mixer-2.0.4-win32-x64.zip" --node-binary-cache "${NODE_DOWNLOADS}"
-      addons:
-        artifacts:
-          branch: master
-          paths:
-            - build/lse-node-v1.0.0-win-x64.zip
+      after_success:
+        - test $TRAVIS_BRANCH = "master" && aws cp build "s3://${ARTIFACTS_BUCKET}${ARTIFACTS_TARGET_PATHS}/build" --recursive
     - name: "linux-x64 [full-build]"
       os: linux
       env: npm_config_ls_enable_native_tests=1
