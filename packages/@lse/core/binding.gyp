@@ -34,18 +34,18 @@
     "addon/deps/yoga/build.gypi",
 
     # static libraries
-    "addon/napi-ext-lib/build.gypi",
-    "addon/light-source-audio-lib/build.gypi",
-    "addon/light-source-platform-lib/build.gypi",
-    "addon/light-source-util-lib/build.gypi",
-    "addon/logger-lib/build.gypi",
-    "addon/light-source-ref/build.gypi",
-    "addon/light-source-ref-audio/build.gypi",
-    "addon/light-source-sdl/build.gypi",
-    "addon/light-source-sdl-audio/build.gypi",
-    "addon/light-source-sdl-mixer/build.gypi",
+    "addon/lse-lib-napi-ext/build.gypi",
+    "addon/lse-lib-audio/build.gypi",
+    "addon/lse-lib-platform/build.gypi",
+    "addon/lse-lib-util/build.gypi",
+    "addon/lse-lib-logger/build.gypi",
+    "addon/lse-plugin-ref/build.gypi",
+    "addon/lse-plugin-ref-audio/build.gypi",
+    "addon/lse-plugin-sdl/build.gypi",
+    "addon/lse-plugin-sdl-audio/build.gypi",
+    "addon/lse-plugin-sdl-mixer/build.gypi",
 
     # node modules
-    "addon/light-source/build.gypi"
+    "addon/lse-core/build.gypi"
   ]
 }

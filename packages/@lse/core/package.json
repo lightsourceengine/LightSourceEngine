@@ -23,9 +23,8 @@
 
     "addon/common.gypi",
 
-    "addon/light-source*",
-    "addon/logger-lib",
-    "addon/napi-ext-lib",
+    "addon/lse-*",
+
     "addon/deps/yoga",
     "addon/deps/nanosvg",
 
