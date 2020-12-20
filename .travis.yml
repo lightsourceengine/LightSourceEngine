@@ -20,12 +20,20 @@ matrix:
       node_js: 14
       os: windows
       env: YARN_GPG=no npm_config_ls_enable_native_tests=1
+      before_install: set -e
+      install: yarn --force
+      script: skip
+    - name: "windows-x64 [lse-node]"
+      node_js: 14
+      os: windows
+      env: YARN_GPG=no
       before_install:
         - set -e
         - ./scripts/ci/lse-git-clone.sh "ci-packages"
-      install: yarn --force
+      install: skip
       script:
-        - ./scripts/build-lse-node.js --skip-compile --sdl-profile dll --sdl-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2-2.0.12-win32-x64.zip" --sdl-mixer-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2_mixer-2.0.4-win32-x64.zip" --node-binary-cache "${NODE_DOWNLOADS}"
+        - (cd scripts && yarn)
+        - ./scripts/build-lse-node.js --sdl-profile dll --sdl-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2-2.0.12-win32-x64.zip" --sdl-mixer-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2_mixer-2.0.4-win32-x64.zip" --node-binary-cache "${NODE_DOWNLOADS}"
       addons:
         artifacts:
           branch: master
