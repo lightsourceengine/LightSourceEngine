@@ -76,6 +76,8 @@ test_npm_install() {
   rm -rf ./empty-cache
   npm install --cache ./empty-cache
   _popd
+
+  rm -rf "${TEST_DIR}"
 }
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
@@ -101,3 +103,5 @@ create_npm_package "react"
 create_npm_package "loader"
 
 test_npm_install
+
+rm -r "${SOURCE_ROOT}/build/npm/core" "${SOURCE_ROOT}/build/npm/react" "${SOURCE_ROOT}/build/npm/loader"

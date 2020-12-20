@@ -125,7 +125,8 @@
 
 const { join, basename } = require('path')
 const { spawn } = require('child_process')
-const { emptyDir, ensureDir, lstat, pathExists, pathExistsSync, copy, move, createSymlink, createWriteStream, unlink, writeFile, readFile } = require('fs-extra')
+const { emptyDir, ensureDir, lstat, pathExists, pathExistsSync, copy, move, createSymlink, createWriteStream,
+  unlink, writeFile, readFile, remove } = require('fs-extra')
 const { tmpdir } = require('os')
 const commandLineArgs = require('command-line-args')
 const fetch = require('node-fetch')
@@ -545,6 +546,8 @@ class LightSourceNodePackage {
     } else {
       await Package.createTar(sourceRoot.getBuildPath(), this.getName())
     }
+
+    await remove(join(sourceRoot.getBuildPath(), this.getName()))
 
     packagingComplete()
   }
