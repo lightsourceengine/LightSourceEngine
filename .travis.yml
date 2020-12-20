@@ -37,6 +37,7 @@ matrix:
         - (cd scripts && yarn)
         - ./scripts/build-lse-node.js --sdl-profile dll --sdl-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2-2.0.12-win32-x64.zip" --sdl-mixer-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2_mixer-2.0.4-win32-x64.zip" --node-binary-cache "${NODE_DOWNLOADS}"
       after_success:
+        - export "PATH=/c/Program Files/Amazon/AWSCLIV2:$PATH"
         - test $TRAVIS_BRANCH = "master" && aws cp build "s3://${ARTIFACTS_BUCKET}${ARTIFACTS_TARGET_PATHS}/build" --recursive
     - name: "linux-x64 [full-build]"
       os: linux
