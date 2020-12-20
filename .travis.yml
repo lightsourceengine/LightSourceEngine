@@ -7,6 +7,7 @@ env:
     - LSE_CACHE="${HOME}/lse-cache"
     - CROSSTOOLS_HOME="${LSE_CACHE}/crosstools"
     - PATH="${LSE_CACHE}/upx:${PATH}"
+    - ARTIFACTS_TARGET_PATHS="/${TRAVIS_REPO_SLUG}/${TRAVIS_BUILD_NUMBER}"
 cache:
   yarn: true
   directories:
@@ -23,6 +24,11 @@ matrix:
         - set -e
       install: yarn --force
       script: skip
+      addons:
+        artifacts:
+          branch: master
+          paths:
+            - $(echo build/*.zip)
     - name: "linux-x64 [full-build]"
       os: linux
       env: npm_config_ls_enable_native_tests=1
@@ -30,6 +36,10 @@ matrix:
         apt:
           sources: [ubuntu-toolchain-r-test]
           packages: [gcc-6, g++-6]
+        artifacts:
+          branch: master
+          paths:
+            - $(ls build/npm/publishable/*.tgz | tr "\n" ":")
       before_install:
         - set -e
         - sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
@@ -54,11 +64,20 @@ matrix:
         - set -e
         - ./scripts/build-lse-node.js --sdl-profile framework --sdl-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2-2.0.12.framework.tar.gz" --sdl-mixer-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2_mixer-2.0.4.framework.tar.gz" --node-binary-cache "$NODE_DOWNLOADS"
       script: skip
+      addons:
+        artifacts:
+          branch: master
+          paths:
+            - $(ls build/*.tar.gz | tr "\n" ":")
     - name: "linux-armv7l [lse-node, lse-node-pi]"
       os: linux
       addons:
         apt:
           packages: [ patchelf ]
+        artifacts:
+          branch: master
+          paths:
+            - $(ls build/*.tar.gz | tr "\n" ":")
       before_install:
         - set -e
         - ./scripts/ci/lse-git-clone.sh "crosstools" "ci-packages"
@@ -75,6 +94,10 @@ matrix:
       addons:
         apt:
           packages: [ patchelf ]
+        artifacts:
+          branch: master
+          paths:
+            - $(ls build/*.tar.gz | tr "\n" ":")
       before_install:
         - set -e
         - ./scripts/ci/lse-git-clone.sh "crosstools" "ci-packages"
@@ -86,14 +109,3 @@ matrix:
         - ./scripts/build-lse-node.js --platform linux --arch armv6l --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
         - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv6l --profile pi --sdl-profile native --sdl-runtime-pkg "${LSE_CACHE}/SDL2-2.0.12-armv6l-pi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
       script: skip
-addons:
-  artifacts:
-    enabled: true
-    branch: master
-    s3_region: $AWS_DEFAULT_REGION
-    key: $AWS_ACCESS_KEY_ID
-    secret: $AWS_SECRET_ACCESS_KEY
-    bucket: lse-builds
-    paths:
-      - $(ls build/*.tar.gz | tr "\n" ":")
-      - $(ls build/npm/publishable/*.tgz | tr "\n" ":")
