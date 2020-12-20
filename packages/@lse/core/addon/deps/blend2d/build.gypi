@@ -105,7 +105,7 @@
         "repo/src/blend2d/pipegen/fetchgradientpart.cpp",
         "repo/src/blend2d/pipegen/fetchutils.cpp",
         "repo/src/blend2d/pipegen/fillpart.cpp",
-        "repo/src/blend2d/pipegen/fetchpixelptrpart.cpp"
+        "repo/src/blend2d/pipegen/fetchpixelptrpart.cpp",
       ],
       "cflags_cc+": [
         "-w",

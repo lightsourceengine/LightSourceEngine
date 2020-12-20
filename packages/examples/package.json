@@ -13,7 +13,7 @@
     "node": ">=14"
   },
   "scripts": {
-    "bundle": "echo 'Skipping bundle.",
+    "bundle": "echo 'Skipping bundle.'",
     "gen": "rimraf lib && rollup -c",
     "coverage": "echo 'No coverage.'",
     "jsdoc": "echo 'No docs.'",
