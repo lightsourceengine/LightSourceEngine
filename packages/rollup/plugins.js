@@ -11,7 +11,7 @@ import { readFileSync } from 'fs'
 
 const preamble =
   '/*\n' +
-  ' * Light Source Engine ${version}\n' +
+  ' * Light Source Engine\n' +
   ' * Copyright (C) 2019-2020 Daniel Anderson <dan.anderson.oss@gmail.com>.\n' +
   ' *\n' +
   ' * This source code is licensed under the MIT License.\n' +

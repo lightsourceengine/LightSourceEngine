@@ -14,7 +14,7 @@ const convertReactJsx = (file) => ({
   external: ['@lse/core', '@lse/react', 'react'],
   output: {
     format: 'esm',
-    file: `dist/${file.slice(0, -1)}`
+    file: `lib/${file.slice(0, -1)}`
   },
   plugins: [
     autoExternal(),
