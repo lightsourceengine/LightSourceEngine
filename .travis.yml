@@ -22,13 +22,15 @@ matrix:
       env: YARN_GPG=no npm_config_ls_enable_native_tests=1
       before_install:
         - set -e
+        - ./scripts/ci/lse-git-clone.sh "ci-packages"
       install: yarn --force
-      script: skip
+      script:
+        - ./scripts/build-lse-node.js --skip-compile --sdl-profile dll --sdl-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2-2.0.12-win32-x64.zip" --sdl-mixer-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2_mixer-2.0.4-win32-x64.zip" --node-binary-cache "${NODE_DOWNLOADS}"
       addons:
         artifacts:
           branch: master
           paths:
-            - $(ls build/*.zip | tr "\n" ";")
+            - build/lse-node-v1.0.0-win-x64.zip
     - name: "linux-x64 [full-build]"
       os: linux
       env: npm_config_ls_enable_native_tests=1
