@@ -23,7 +23,7 @@ matrix:
       env: YARN_GPG=no npm_config_lse_enable_native_tests=1
       before_install: set -e
       install: yarn --force
-      script: skip
+      script: yarn test
     - name: "windows-x64 [lse-node]"
       node_js: 14
       os: windows
@@ -46,18 +46,30 @@ matrix:
         apt:
           sources: [ubuntu-toolchain-r-test]
           packages: [gcc-6, g++-6]
-        artifacts:
-          branch: master
-          paths:
-            - $(ls build/npm/publishable/*.tgz | tr "\n" ":")
       before_install:
         - set -e
         - sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
         - sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
       install: yarn --force
-      script:
+      script: yarn test
+    - name: "linux-x64 [lse-node]"
+      os: linux
+      addons:
+        apt:
+          sources: [ubuntu-toolchain-r-test]
+          packages: [gcc-6, g++-6]
+        artifacts:
+          branch: master
+          paths:
+            - $(ls build/*.tar.gz | tr "\n" ":")
+      before_install:
+        - set -e
+        - sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
+        - sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
+      install:
         - (cd scripts && yarn)
-        - ./scripts/create-npm-packages.sh --skip-yarn-install
+        - ./scripts/build-lse-node.js --sdl-profile system --node-binary-cache "${NODE_DOWNLOADS}"
+      script: skip
     - name: "darwin-x64 [full-build]"
       os: osx
       env: npm_config_lse_enable_native_tests=1
@@ -73,7 +85,7 @@ matrix:
         - (cd scripts && yarn) # XXX: travis hung here when yarn returned non-zero for a warning, unset -e to get output
         - set -e
         - ./scripts/build-lse-node.js --sdl-profile framework --sdl-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2-2.0.12.framework.tar.gz" --sdl-mixer-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2_mixer-2.0.4.framework.tar.gz" --node-binary-cache "$NODE_DOWNLOADS"
-      script: skip
+      script: yarn test
       addons:
         artifacts:
           branch: master
@@ -119,3 +131,12 @@ matrix:
         - ./scripts/build-lse-node.js --platform linux --arch armv6l --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
         - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv6l --profile pi --sdl-profile native --sdl-runtime-pkg "${LSE_CACHE}/SDL2-2.0.12-armv6l-pi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
       script: skip
+    - name: "linux-x64 [packaging]"
+      os: linux
+      addons:
+        artifacts:
+          branch: master
+          paths:
+            - $(ls build/npm/publishable/*.tar.gz | tr "\n" ":")
+      install: (cd scripts && yarn)
+      script: ./scripts/create-npm-packages.sh
