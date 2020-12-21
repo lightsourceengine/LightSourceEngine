@@ -19,7 +19,7 @@ namespace lse {
 Object Init(Env env, Object exports) {
     HandleScope scope(env);
 
-    exports["test"] = Napi::TestSuite::Build(env, "napi-ext native tests", {
+    exports["test"] = Napi::TestSuite::Build(env, "lse-lib-napi-ext native tests", {
         &lse::NapiExtSpec,
         &lse::SafeObjectWrapSpec,
         &lse::ClassBuilderSpec,

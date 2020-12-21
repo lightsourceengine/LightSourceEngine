@@ -18,7 +18,7 @@ const lightSourceReactNpm = (input) => ({
   external: ['@lse/core'],
   output: {
     format: 'esm',
-    file: 'dist/light-source-react.mjs',
+    file: 'dist/lse-react.mjs',
     preferConst: true,
     intro
   },
@@ -35,7 +35,7 @@ const lightSourceReactStandalone = (input) => ({
   external: ['@lse/core', 'react', 'worker_threads'],
   output: {
     format: 'esm',
-    file: 'dist/light-source-react.standalone.mjs',
+    file: 'dist/lse-react.standalone.mjs',
     preferConst: true,
     intro
   },

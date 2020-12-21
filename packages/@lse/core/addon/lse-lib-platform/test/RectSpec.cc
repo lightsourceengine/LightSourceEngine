@@ -6,7 +6,7 @@
 
 #include <napi-unit.h>
 
-#include "../../light-source-platform-lib/ls/Rect.h"
+#include <lse/Rect.h>
 
 using Napi::Assert;
 using Napi::TestInfo;

@@ -19,7 +19,7 @@ void ResourcesSpec(Napi::TestSuite* parent);
 
 inline
 Napi::Value LightSourceTestSuite(Napi::Env env) {
-    return Napi::TestSuite::Build(env, "light-source native tests", {
+    return Napi::TestSuite::Build(env, "lse-core native tests", {
         &ThreadPoolSpec,
         &StyleSpec,
         &StyleContextSpec,

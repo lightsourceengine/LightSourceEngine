@@ -19,7 +19,7 @@ namespace lse {
 Object Init(Env env, Object exports) {
     HandleScope scope(env);
 
-    exports["test"] = Napi::TestSuite::Build(env, "light-source-util-lib native tests", {
+    exports["test"] = Napi::TestSuite::Build(env, "lse-lib-util native tests", {
         &lse::FormatSpec,
         &lse::StringExtSpec,
         &lse::UriSpec,
@@ -28,4 +28,4 @@ Object Init(Env env, Object exports) {
     return exports;
 }
 
-NODE_API_MODULE(LightSourceUtilTestSuite, Init);
+NODE_API_MODULE(LightSourceEngineUtilLibTestSuite, Init);

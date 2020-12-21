@@ -15,10 +15,10 @@
     "node": ">=14"
   },
   "type": "module",
-  "exports": "./dist/light-source-react.mjs",
-  "module": "./dist/light-source-react.mjs",
+  "exports": "./dist/lse-react.mjs",
+  "module": "./dist/lse-react.mjs",
   "files": [
-    "dist/light-source-react.mjs"
+    "dist/lse-react.mjs"
   ],
   "dependencies": {
     "@lse/core": "1.0.0-private.0",

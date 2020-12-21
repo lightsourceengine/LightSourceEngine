@@ -10,7 +10,7 @@ import bindings from 'bindings'
 import { bindTestSuite } from 'napi-unit/mocha'
 
 /**
- * The native tests modules need to be loaded from packages/light-source (module_root). By default, bindings will use
+ * The native tests modules need to be loaded from packages/@lse/core (module_root). By default, bindings will use
  * the invoking file as reference to get the module_root. Since bindTestSuite() is invoking binding, the module_root
  * would resolve to packages/napi-unit. To load the native tests from the correct path, module_root is explicitly
  * set.
@@ -38,7 +38,7 @@ const bindTestSuiteOptions = {
  * @ignore
  */
 bindTestSuite([
-  'light-source',
+  'lse-core',
   'lse-lib-napi-ext-test',
   'lse-lib-util-test',
   'lse-lib-platform-test'

@@ -122,7 +122,7 @@ export class Stage extends StageBase {
    */
   loadPlugin (plugin, config = {}) {
     if (addonError) {
-      throw Error(`Failed to load light-source.node: ${addonError.message}`)
+      throw Error(`Failed to load lse-core.node: ${addonError.message}`)
     }
 
     const site = 'loadPlugin()'

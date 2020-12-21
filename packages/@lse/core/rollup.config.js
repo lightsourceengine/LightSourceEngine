@@ -21,7 +21,7 @@ const lightSourceNpm = (input) => (
     onwarn,
     output: {
       format: 'esm',
-      file: 'dist/light-source.mjs',
+      file: 'dist/lse-core.mjs',
       preferConst: true,
       intro
     },
@@ -39,7 +39,7 @@ const lightSourceStandalone = (input) => ({
   onwarn,
   output: {
     format: 'esm',
-    file: 'dist/light-source.standalone.mjs',
+    file: 'dist/lse-core.standalone.mjs',
     preferConst: true,
     intro
   },
@@ -51,7 +51,7 @@ const lightSourceStandalone = (input) => ({
     resolve(),
     minify({
       reserved: [
-        // light-source-react relies on function.name to be preserved for these classes
+        // @lse/react relies on function.name to be preserved for these classes
         'Scene',
         'BoxSceneNode',
         'ImageSceneNode',

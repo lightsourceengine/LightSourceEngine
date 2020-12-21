@@ -573,8 +573,8 @@ class SourceRoot {
   getLightSourceModule () {
     return {
       name: '@lse/core',
-      mjs: join(this.#root, 'packages/@lse/core/dist/light-source.standalone.mjs'),
-      native: join(this.#root, 'packages/@lse/core/build/Release/light-source.node'),
+      mjs: join(this.#root, 'packages/@lse/core/dist/lse-core.standalone.mjs'),
+      native: join(this.#root, 'packages/@lse/core/build/Release/lse-core.node'),
       font: join(this.#root, 'packages/@lse/core/src/font')
     }
   }
@@ -582,7 +582,7 @@ class SourceRoot {
   getLightSourceReactModule () {
     return {
       name: '@lse/react',
-      mjs: join(this.#root, 'packages/@lse/react/dist/light-source-react.standalone.mjs'),
+      mjs: join(this.#root, 'packages/@lse/react/dist/lse-react.standalone.mjs'),
       native: null
     }
   }

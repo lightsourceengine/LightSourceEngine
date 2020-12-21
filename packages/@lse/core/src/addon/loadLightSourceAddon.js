@@ -9,7 +9,7 @@ import { resolve } from 'path'
 import { createRequire } from 'module'
 
 const { LSE_ENV, LSE_PATH } = process.env
-const NATIVE_MODULE_NAME = 'light-source.node'
+const NATIVE_MODULE_NAME = 'lse-core.node'
 const require = createRequire(import.meta.url)
 
 /**

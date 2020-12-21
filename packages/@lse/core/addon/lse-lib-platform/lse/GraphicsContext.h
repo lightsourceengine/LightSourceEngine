@@ -62,8 +62,8 @@ class GraphicsContext : public Napi::SafeObjectWrap<GraphicsContext>, public Gra
     GraphicsContextInterface* impl{};
 };
 
-// XXX: The class is needed to do safe casting with instanceof. The GetClass symbol is in light-source-sdl.node or
-//      light-source-ref.node, but GetClass is accessed in light-source.node. On Mac, the .node files are loaded with
+// XXX: The class is needed to do safe casting with instanceof. The GetClass symbol is in lse-plugin-sdl.node or
+//      lse-plugin-ref.node, but GetClass is accessed in lse-core.node. On Mac, the .node files are loaded with
 //      RTLD_GLOBAL and the GetClass symbol can be found. On Linux, RTLD_LOCAL is used, so the symbol cannot be found.
 //      require() does not provide a way to change dlopen() options. inline-ing works for this case, but a custom
 //      .node loader might be required if there are too many symbols that are affected.

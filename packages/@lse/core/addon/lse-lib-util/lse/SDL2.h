@@ -101,7 +101,7 @@ constexpr const char* kSDLFrameworkLib = "SDL2";
 //
 // The manual load is done for two reasons:
 // 1) Light Source Engine developers do not have to worry about linking to SDL2 at compile time.
-// 2) light-source.node can be loaded without SDL2 dependencies. If SDL2 is unavailable at runtime, the javascript
+// 2) lse-core.node can be loaded without SDL2 dependencies. If SDL2 is unavailable at runtime, the javascript
 //    environment can do error reporting.
 
 namespace lse {

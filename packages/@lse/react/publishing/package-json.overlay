@@ -4,7 +4,7 @@
   scripts: "!",
   standard: "!",
   dependencies: {
-    // removing all dependencies from package.json and adding the publishing version of light-source
-    "light-source": "@version",
+    // removing all dependencies from package.json and adding the publishing version of Light Source Engine
+    "@lse/core": "@version",
   }
 }

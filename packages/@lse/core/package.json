@@ -15,10 +15,10 @@
     "node": ">=14"
   },
   "type": "module",
-  "module": "./dist/light-source.mjs",
-  "exports": "./dist/light-source.mjs",
+  "module": "./dist/lse-core.mjs",
+  "exports": "./dist/lse-core.mjs",
   "files": [
-    "dist/light-source.mjs",
+    "dist/lse-core.mjs",
     "binding.gyp",
 
     "addon/common.gypi",

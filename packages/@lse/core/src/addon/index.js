@@ -34,7 +34,7 @@ const CreateStubLogger = () => ({
   getLogLevel() { return -1 }
 })
 
-// Load light-source.node. If this operation fails, populate the light-source javascript api with stub implementations
+// Load lse-core.node. If this operation fails, populate the light-source javascript api with stub implementations
 // so the app can continue to load. When the stage is init'd, the user should be notified of the native addon
 // load failure and deal with the error in their app.
 export const [ addon, addonError ] = loadLightSourceAddon()

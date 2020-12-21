@@ -9,7 +9,7 @@
 
 #include <std20/numbers>
 
-#include "../../light-source-platform-lib/ls/Matrix.h"
+#include <lse/Matrix.h>
 
 using Napi::Assert;
 using Napi::TestInfo;

@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "light-source",
+      "target_name": "lse-core",
       "includes": [
         "../common.gypi",
       ],

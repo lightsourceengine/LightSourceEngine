@@ -56,7 +56,7 @@ constexpr const char* kSDLMixerFrameworkLib = "SDL2_mixer";
 //
 // The manual load is done for two reasons:
 // 1) Light Source Engine developers do not have to worry about linking to SDL_mixer at compile time.
-// 2) light-source.node can be loaded without SDL_mixer dependencies. If SDL_mixer is unavailable at runtime, the
+// 2) lse-core.node can be loaded without SDL_mixer dependencies. If SDL_mixer is unavailable at runtime, the
 //    javascript environment can do error reporting.
 
 namespace lse {

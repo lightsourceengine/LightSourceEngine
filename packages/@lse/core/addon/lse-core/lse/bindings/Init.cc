@@ -91,4 +91,4 @@ Object Init(Env env, Object exports) {
     return exports;
 }
 
-NODE_API_MODULE(LightSource, Init);
+NODE_API_MODULE(LightSourceEngineCore, Init);

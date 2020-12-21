@@ -18,7 +18,7 @@
     "node": ">=14"
   },
   "scripts": {
-    "clean": "rimraf build packages/**/build packages/**/dist",
+    "clean": "rimraf build packages/*/build packages/@lse/*/build packages/*/dist packages/@lse/*/dist",
     "test": "yarn workspaces run test",
     "lint": "yarn workspaces run lint",
     "bundle": "yarn workspaces run bundle",
