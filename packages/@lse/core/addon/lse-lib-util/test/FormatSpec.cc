@@ -5,13 +5,13 @@
  */
 
 #include <napi-unit.h>
-#include <ls/string-ext.h>
+#include <lse/string-ext.h>
 
 using Napi::Assert;
 using Napi::TestInfo;
 using Napi::TestSuite;
 
-namespace ls {
+namespace lse {
 
 void FormatSpec(TestSuite* parent) {
     const auto spec{ parent->Describe("Format") };
@@ -50,4 +50,4 @@ void FormatSpec(TestSuite* parent) {
     };
 }
 
-} // namespace ls
+} // namespace lse

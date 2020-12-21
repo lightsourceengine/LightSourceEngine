@@ -10,7 +10,7 @@
 #include <exception>
 #include <cstdio>
 
-namespace ls {
+namespace lse {
 
 enum LogLevel {
     LogLevelOff,
@@ -43,28 +43,28 @@ void SetLogSink(FILE* file) noexcept;
 #define _LOG_SITE_LAMBDA() { __FILE__, __LINE__, LAMBDA_FUNCTION }
 #define _LOG(logSite, logLevel, ...)                                 \
     if (IsLogEnabled(logLevel)) {                                    \
-       ls::internal::Log(logLevel, logSite, __VA_ARGS__);            \
+       lse::internal::Log(logLevel, logSite, __VA_ARGS__);            \
     }
 
 // Standard logging macros.
-#define LOG_DEBUG(...) _LOG(_LOG_SITE(), ls::LogLevelDebug, __VA_ARGS__)
-#define LOG_INFO(...)  _LOG(_LOG_SITE(), ls::LogLevelInfo, __VA_ARGS__)
-#define LOG_WARN(...)  _LOG(_LOG_SITE(), ls::LogLevelWarn, __VA_ARGS__)
-#define LOG_ERROR(...) _LOG(_LOG_SITE(), ls::LogLevelError, __VA_ARGS__)
+#define LOG_DEBUG(...) _LOG(_LOG_SITE(), lse::LogLevelDebug, __VA_ARGS__)
+#define LOG_INFO(...)  _LOG(_LOG_SITE(), lse::LogLevelInfo, __VA_ARGS__)
+#define LOG_WARN(...)  _LOG(_LOG_SITE(), lse::LogLevelWarn, __VA_ARGS__)
+#define LOG_ERROR(...) _LOG(_LOG_SITE(), lse::LogLevelError, __VA_ARGS__)
 
 // Lambda logging macros.
 // Expects a user defined LAMBDA_FUNCTION const char* to be in scope. LAMBDA_FUNCTION replaces __FUNCTION__. Lambdas
 // may use the non-LAMBDA log macros, but compilers may not set __FUNCTION__ to a useful string.
-#define LOG_DEBUG_LAMBDA(...) _LOG(_LOG_SITE_LAMBDA(), ls::LogLevelDebug, __VA_ARGS__)
-#define LOG_INFO_LAMBDA(...)  _LOG(_LOG_SITE_LAMBDA(), ls::LogLevelInfo, __VA_ARGS__)
-#define LOG_WARN_LAMBDA(...)  _LOG(_LOG_SITE_LAMBDA(), ls::LogLevelWarn, __VA_ARGS__)
-#define LOG_ERROR_LAMBDA(...) _LOG(_LOG_SITE_LAMBDA(), ls::LogLevelError, __VA_ARGS__)
+#define LOG_DEBUG_LAMBDA(...) _LOG(_LOG_SITE_LAMBDA(), lse::LogLevelDebug, __VA_ARGS__)
+#define LOG_INFO_LAMBDA(...)  _LOG(_LOG_SITE_LAMBDA(), lse::LogLevelInfo, __VA_ARGS__)
+#define LOG_WARN_LAMBDA(...)  _LOG(_LOG_SITE_LAMBDA(), lse::LogLevelWarn, __VA_ARGS__)
+#define LOG_ERROR_LAMBDA(...) _LOG(_LOG_SITE_LAMBDA(), lse::LogLevelError, __VA_ARGS__)
 
 // Log macros to log without site (file and function) information.
-#define LOGX_DEBUG(...) _LOG({}, ls::LogLevelDebug, __VA_ARGS__)
-#define LOGX_INFO(...)  _LOG({}, ls::LogLevelInfo, __VA_ARGS__)
-#define LOGX_WARN(...)  _LOG({}, ls::LogLevelWarn, __VA_ARGS__)
-#define LOGX_ERROR(...) _LOG({}, ls::LogLevelError, __VA_ARGS__)
+#define LOGX_DEBUG(...) _LOG({}, lse::LogLevelDebug, __VA_ARGS__)
+#define LOGX_INFO(...)  _LOG({}, lse::LogLevelInfo, __VA_ARGS__)
+#define LOGX_WARN(...)  _LOG({}, lse::LogLevelWarn, __VA_ARGS__)
+#define LOGX_ERROR(...) _LOG({}, lse::LogLevelError, __VA_ARGS__)
 
 namespace internal {
 
@@ -111,4 +111,4 @@ void LogCustomSite(const LogLevel logLevel, const char* site, const char* messag
 
 } // namespace internal
 
-} // namespace ls
+} // namespace lse

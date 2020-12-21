@@ -9,7 +9,7 @@
 
 #include <napi-ext.h>
 
-namespace ls {
+namespace lse {
 
 class SceneNode;
 class Resource;
@@ -34,5 +34,5 @@ class ResourceProgress {
     Napi::FunctionReference onError{};
 };
 
-} // namespace ls
+} // namespace lse
 

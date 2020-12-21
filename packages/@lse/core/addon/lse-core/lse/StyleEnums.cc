@@ -4,12 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/StyleEnums.h>
+#include <lse/StyleEnums.h>
 
-#include <ls/CStringHashMap.h>
+#include <lse/CStringHashMap.h>
 #include <stdexcept>
 
-namespace ls {
+namespace lse {
 
 template<typename T>
 CStringHashMap<T> LoadFromStringMap() {
@@ -265,4 +265,4 @@ const char* StylePropertyToString(StyleProperty property) noexcept {
     return "unknown";
 }
 
-} // namespace ls
+} // namespace lse

@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include <ls/bindings/StyleOps.h>
+#include <lse/bindings/StyleOps.h>
 
-namespace ls {
+namespace lse {
 namespace bindings {
 
 /**
@@ -29,4 +29,4 @@ class JSStyleClass : public Napi::SafeObjectWrap<JSStyleClass>, public StyleOps 
 };
 
 } // namespace bindings
-} // namespace ls
+} // namespace lse

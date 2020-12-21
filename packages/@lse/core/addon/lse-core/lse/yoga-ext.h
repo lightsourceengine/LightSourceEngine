@@ -8,10 +8,10 @@
 
 #include <cassert>
 #include <YGNode.h>
-#include <ls/Rect.h>
-#include <ls/Point.h>
+#include <lse/Rect.h>
+#include <lse/Point.h>
 
-namespace ls {
+namespace lse {
 
 /**
  * Gets the bounding box of an element. The position is relative to the element's parent. The dimensions include
@@ -61,4 +61,4 @@ T* YGNodeGetContextAs(YGNodeConstRef node) noexcept {
     return static_cast<T*>(node->getContext());
 }
 
-} // namespace ls
+} // namespace lse

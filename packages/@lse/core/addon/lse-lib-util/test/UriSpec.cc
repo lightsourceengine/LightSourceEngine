@@ -5,13 +5,13 @@
  */
 
 #include <napi-unit.h>
-#include <ls/Uri.h>
+#include <lse/Uri.h>
 
 using Napi::Assert;
 using Napi::TestInfo;
 using Napi::TestSuite;
 
-namespace ls {
+namespace lse {
 
 void UriSpec(TestSuite* parent) {
     const auto spec{ parent->Describe("Uri") };
@@ -203,4 +203,4 @@ void UriSpec(TestSuite* parent) {
     };
 }
 
-} // namespace ls
+} // namespace lse

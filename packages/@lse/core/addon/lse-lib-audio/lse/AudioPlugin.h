@@ -9,7 +9,7 @@
 
 #include <napi-ext.h>
 
-namespace ls {
+namespace lse {
 
 class AudioPluginInterface {
  public:
@@ -74,4 +74,4 @@ Napi::Object AudioPluginInit(Napi::Env env, Napi::Object exports, const char* na
     return exports;
 }
 
-} // namespace ls
+} // namespace lse

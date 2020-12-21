@@ -5,12 +5,12 @@
  * tree.
  */
 
-#include <ls/StyleEnums.h>
-#include <ls/bindings/JSEnums.h>
+#include <lse/StyleEnums.h>
+#include <lse/bindings/JSEnums.h>
 
 using Napi::ClassBuilder;
 
-namespace ls {
+namespace lse {
 namespace bindings {
 
 Napi::Function NewStyleUnitClass(Napi::Env env) {
@@ -52,4 +52,4 @@ Napi::Function NewStyleAnchorClass(Napi::Env env) {
 }
 
 } // namespace bindings
-} // namespace ls
+} // namespace lse

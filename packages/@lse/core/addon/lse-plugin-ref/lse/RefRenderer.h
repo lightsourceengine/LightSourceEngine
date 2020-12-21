@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include <ls/Renderer.h>
+#include <lse/Renderer.h>
 
-namespace ls {
+namespace lse {
 
 class RefRenderer : public Renderer {
  public:
@@ -38,4 +38,4 @@ class RefRenderer : public Renderer {
     Texture CreateTexture(int32_t width, int32_t height, Texture::Type type) override;
 };
 
-} // namespace ls
+} // namespace lse

@@ -10,7 +10,7 @@ using Napi::Env;
 using Napi::HandleScope;
 using Napi::Object;
 
-namespace ls {
+namespace lse {
     void FormatSpec(Napi::TestSuite* parent);
     void StringExtSpec(Napi::TestSuite* parent);
     void UriSpec(Napi::TestSuite* parent);
@@ -20,9 +20,9 @@ Object Init(Env env, Object exports) {
     HandleScope scope(env);
 
     exports["test"] = Napi::TestSuite::Build(env, "light-source-util-lib native tests", {
-        &ls::FormatSpec,
-        &ls::StringExtSpec,
-        &ls::UriSpec,
+        &lse::FormatSpec,
+        &lse::StringExtSpec,
+        &lse::UriSpec,
     });
 
     return exports;

@@ -6,13 +6,13 @@
 
 #pragma once
 
-#include <ls/Rect.h>
-#include <ls/ResourceProgress.h>
-#include <ls/types.h>
-#include <ls/SceneNode.h>
+#include <lse/Rect.h>
+#include <lse/ResourceProgress.h>
+#include <lse/types.h>
+#include <lse/SceneNode.h>
 #include <napi-ext.h>
 
-namespace ls {
+namespace lse {
 
 class ImageSceneNode final : public Napi::SafeObjectWrap<ImageSceneNode>, public SceneNode {
  public:
@@ -47,4 +47,4 @@ class ImageSceneNode final : public Napi::SafeObjectWrap<ImageSceneNode>, public
     ResourceProgress resourceProgress;
 };
 
-} // namespace ls
+} // namespace lse

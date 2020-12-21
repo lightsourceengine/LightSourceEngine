@@ -5,17 +5,17 @@
  * tree.
  */
 
-#include <ls/StyleContext.h>
+#include <lse/StyleContext.h>
 
 #include <algorithm>
 #include <std17/algorithm>
 #include <std20/numbers>
 #include <Yoga.h>
 #include <YGStyle.h>
-#include <ls/Style.h>
-#include <ls/Resources.h>
+#include <lse/Style.h>
+#include <lse/Resources.h>
 
-namespace ls {
+namespace lse {
 
 static YGStyle kYogaStyleDefaults{};
 
@@ -666,4 +666,4 @@ void StyleContext::SetYogaPropertyValue(Style* style, StyleProperty property, YG
     #undef LS_ENUM_OR
 }
 
-} // namespace ls
+} // namespace lse

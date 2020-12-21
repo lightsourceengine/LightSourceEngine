@@ -4,16 +4,16 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/TextSceneNode.h>
+#include <lse/TextSceneNode.h>
 
-#include <ls/Stage.h>
-#include <ls/Scene.h>
-#include <ls/yoga-ext.h>
-#include <ls/Style.h>
-#include <ls/CompositeContext.h>
-#include <ls/Timer.h>
-#include <ls/Renderer.h>
-#include <ls/PixelConversion.h>
+#include <lse/Stage.h>
+#include <lse/Scene.h>
+#include <lse/yoga-ext.h>
+#include <lse/Style.h>
+#include <lse/CompositeContext.h>
+#include <lse/Timer.h>
+#include <lse/Renderer.h>
+#include <lse/PixelConversion.h>
 
 using Napi::Array;
 using Napi::CallbackInfo;
@@ -26,7 +26,7 @@ using Napi::SafeObjectWrap;
 using Napi::String;
 using Napi::Value;
 
-namespace ls {
+namespace lse {
 
 static const std::string kDefaultFontFamily = "default";
 
@@ -258,4 +258,4 @@ void TextSceneNode::Destroy() {
     SceneNode::Destroy();
 }
 
-} // namespace ls
+} // namespace lse

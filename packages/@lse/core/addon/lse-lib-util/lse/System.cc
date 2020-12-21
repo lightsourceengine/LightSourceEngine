@@ -5,10 +5,10 @@
  * tree.
  */
 
-#include <ls/System.h>
+#include <lse/System.h>
 #include <cstdlib>
 
-namespace ls {
+namespace lse {
 
 bool HasEnv(const char* name) noexcept {
     return *GetEnv(name) != '\0';
@@ -28,4 +28,4 @@ const char* GetEnvOrDefault(const char* name, const char* defaultValue) noexcept
     return HasEnv(name) ? GetEnv(name) : defaultValue;
 }
 
-} // namespace ls
+} // namespace lse

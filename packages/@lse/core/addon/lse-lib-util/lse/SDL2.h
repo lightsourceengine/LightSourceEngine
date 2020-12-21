@@ -104,7 +104,7 @@ constexpr const char* kSDLFrameworkLib = "SDL2";
 // 2) light-source.node can be loaded without SDL2 dependencies. If SDL2 is unavailable at runtime, the javascript
 //    environment can do error reporting.
 
-namespace ls {
+namespace lse {
 namespace SDL2 {
 
 #define DYNAMIC_SDL_DECLARE_FUNCTION_PTR(NAME) extern decltype(&::NAME) NAME;
@@ -118,4 +118,4 @@ bool IsOpen() noexcept;
 void Close() noexcept;
 
 } // namespace SDL2
-} // namespace ls
+} // namespace lse

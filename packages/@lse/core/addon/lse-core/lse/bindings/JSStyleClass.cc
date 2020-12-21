@@ -5,9 +5,9 @@
  * tree.
  */
 
-#include <ls/bindings/JSStyleClass.h>
+#include <lse/bindings/JSStyleClass.h>
 
-#include <ls/Style.h>
+#include <lse/Style.h>
 
 using Napi::CallbackInfo;
 using Napi::Function;
@@ -16,7 +16,7 @@ using Napi::HandleScope;
 
 static FunctionReference jsStyleClassConstructor;
 
-namespace ls {
+namespace lse {
 namespace bindings {
 
 void JSStyleClass::Constructor(const CallbackInfo& info) {
@@ -46,4 +46,4 @@ Function JSStyleClass::GetClass(Napi::Env env) {
 }
 
 } // namespace bindings
-} // namespace ls
+} // namespace lse

@@ -5,9 +5,9 @@
  * tree.
  */
 
-#include <ls/bindings/JSStage.h>
+#include <lse/bindings/JSStage.h>
 
-#include <ls/Stage.h>
+#include <lse/Stage.h>
 
 using Napi::CallbackInfo;
 using Napi::Function;
@@ -16,7 +16,7 @@ using Napi::HandleScope;
 
 static FunctionReference jsStageConstructor;
 
-namespace ls {
+namespace lse {
 namespace bindings {
 
 void JSStage::Constructor(const CallbackInfo& info) {
@@ -48,4 +48,4 @@ void JSStage::Destroy(const CallbackInfo& info) {
 }
 
 } // namespace bindings
-} // namespace ls
+} // namespace lse

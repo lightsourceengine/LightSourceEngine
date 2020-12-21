@@ -7,9 +7,9 @@
 #pragma once
 
 #include <napi-ext.h>
-#include <ls/Log.h>
+#include <lse/Log.h>
 
-namespace ls {
+namespace lse {
 namespace bindings {
 
 /**
@@ -37,4 +37,4 @@ Napi::Function NewLoggerClass(Napi::Env env);
 Napi::Function NewLogLevelClass(Napi::Env env);
 
 } // namespace bindings
-} // namespace ls
+} // namespace lse

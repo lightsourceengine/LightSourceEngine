@@ -9,7 +9,7 @@
 
 #define CHECK_IMPL(impl) if (!(impl)) { throw Napi::Error::New(info.Env(), "AudioDestination is not initialized!"); }
 
-namespace ls {
+namespace lse {
 
 AudioDestination::AudioDestination(const Napi::CallbackInfo& info) : Napi::SafeObjectWrap<AudioDestination>(info) {
 }
@@ -98,6 +98,6 @@ void AudioDestination::Finalize() {
     throw std::runtime_error("Not implemented");
 }
 
-} // namespace ls
+} // namespace lse
 
 #undef CHECK_IMPL

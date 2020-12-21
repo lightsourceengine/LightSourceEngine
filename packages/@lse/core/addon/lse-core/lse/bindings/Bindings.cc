@@ -5,24 +5,24 @@
  * tree.
  */
 
-#include <ls/bindings/Bindings.h>
+#include <lse/bindings/Bindings.h>
 
-#include <ls/StyleEnums.h>
-#include <ls/bindings/Convert.h>
-#include <ls/PlatformPlugin.h>
-#include <ls/SDLPlatformPluginImpl.h>
-#include <ls/RefPlatformPluginImpl.h>
-#include <ls/AudioPlugin.h>
-#include <ls/RefAudioPluginImpl.h>
-#include <ls/SDLAudioPluginImpl.h>
-#include <ls/SDLMixerAudioPluginImpl.h>
-#include <ls/System.h>
-#include <ls/SDL2.h>
-#include <ls/SDL2_mixer.h>
-#include <ls/Config.h>
+#include <lse/StyleEnums.h>
+#include <lse/bindings/Convert.h>
+#include <lse/PlatformPlugin.h>
+#include <lse/SDLPlatformPluginImpl.h>
+#include <lse/RefPlatformPluginImpl.h>
+#include <lse/AudioPlugin.h>
+#include <lse/RefAudioPluginImpl.h>
+#include <lse/SDLAudioPluginImpl.h>
+#include <lse/SDLMixerAudioPluginImpl.h>
+#include <lse/System.h>
+#include <lse/SDL2.h>
+#include <lse/SDL2_mixer.h>
+#include <lse/Config.h>
 #include <std17/filesystem>
 
-namespace ls {
+namespace lse {
 namespace bindings {
 
 static void EnsureSDL2(const Napi::Env& env);
@@ -51,18 +51,18 @@ Napi::Value LoadPlugin(const Napi::CallbackInfo& info) {
 
     if (kEnablePluginPlatformSdl && strcmp(name, kPluginPlatformSdl) == 0) {
         EnsureSDL2(env);
-        return PlatformPluginInit<ls::SDLPlatformPluginImpl>(env, plugin, kPluginPlatformSdl);
+        return PlatformPluginInit<lse::SDLPlatformPluginImpl>(env, plugin, kPluginPlatformSdl);
     } else if (kEnablePluginPlatformRef && strcmp(name, kPluginPlatformRef) == 0) {
-        return PlatformPluginInit<ls::RefPlatformPluginImpl>(env, plugin, kPluginPlatformRef);
+        return PlatformPluginInit<lse::RefPlatformPluginImpl>(env, plugin, kPluginPlatformRef);
     } else if (kEnablePluginAudioSdlAudio && strcmp(name, kPluginAudioSdlAudio) == 0) {
         EnsureSDL2(env);
-        return ls::AudioPluginInit<ls::SDLAudioPluginImpl>(env, plugin, kPluginAudioSdlAudio);
+        return lse::AudioPluginInit<lse::SDLAudioPluginImpl>(env, plugin, kPluginAudioSdlAudio);
     } else if (kEnablePluginAudioSdlMixer && strcmp(name, kPluginAudioSdlMixer) == 0) {
         EnsureSDL2(env);
         EnsureSDL2_mixer(env);
-        return ls::AudioPluginInit<ls::SDLMixerAudioPluginImpl>(env, plugin, kPluginAudioSdlMixer);
+        return lse::AudioPluginInit<lse::SDLMixerAudioPluginImpl>(env, plugin, kPluginAudioSdlMixer);
     } else if (kEnablePluginAudioRef && strcmp(name, kPluginAudioRef) == 0) {
-        return ls::AudioPluginInit<ls::RefAudioPluginImpl>(env, plugin, kPluginAudioRef);
+        return lse::AudioPluginInit<lse::RefAudioPluginImpl>(env, plugin, kPluginAudioRef);
     } else {
         throw Napi::Error::New(env, "Unknown plugin name");
     }
@@ -97,4 +97,4 @@ static void EnsureSDL2_mixer(const Napi::Env& env) {
 }
 
 } // namespace bindings
-} // namespace ls
+} // namespace lse

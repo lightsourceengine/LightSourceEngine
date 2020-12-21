@@ -20,7 +20,7 @@ using Napi::String;
 using Napi::TestInfo;
 using Napi::TestSuite;
 
-namespace ls {
+namespace lse {
 
 void NapiExtSpec(TestSuite* parent) {
     auto spec{ parent->Describe("napi-ext") };
@@ -264,4 +264,4 @@ void NapiExtSpec(TestSuite* parent) {
     };
 }
 
-} // namespace ls
+} // namespace lse

@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include <ls/EnumSequence.h>
-#include <ls/StyleProperty.h>
+#include <lse/EnumSequence.h>
+#include <lse/StyleProperty.h>
 #include <YGEnums.h>
 
-namespace ls {
+namespace lse {
 
 LS_ENUM_SEQ_DECL(
     StyleFontWeight,
@@ -149,4 +149,4 @@ constexpr bool IsValidEnum(int32_t value) {
     return value >= 0 && value < Count<T>();
 }
 
-} // namespace ls
+} // namespace lse

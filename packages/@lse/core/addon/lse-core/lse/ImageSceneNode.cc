@@ -4,15 +4,15 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/ImageSceneNode.h>
+#include <lse/ImageSceneNode.h>
 
-#include <ls/Style.h>
-#include <ls/Scene.h>
-#include <ls/Stage.h>
-#include <ls/Renderer.h>
-#include <ls/Color.h>
-#include <ls/CompositeContext.h>
-#include <ls/yoga-ext.h>
+#include <lse/Style.h>
+#include <lse/Scene.h>
+#include <lse/Stage.h>
+#include <lse/Renderer.h>
+#include <lse/Color.h>
+#include <lse/CompositeContext.h>
+#include <lse/yoga-ext.h>
 
 using Napi::Array;
 using Napi::Call;
@@ -26,7 +26,7 @@ using Napi::SafeObjectWrap;
 using Napi::String;
 using Napi::Value;
 
-namespace ls {
+namespace lse {
 
 void ImageSceneNode::Constructor(const Napi::CallbackInfo& info) {
     this->SceneNodeConstructor(info);
@@ -244,4 +244,4 @@ void ImageSceneNode::ClearResource() {
     }
 }
 
-} // namespace ls
+} // namespace lse

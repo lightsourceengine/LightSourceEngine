@@ -7,12 +7,12 @@
 
 #pragma once
 
-#include <ls/ResourceProgress.h>
-#include <ls/Resources.h>
-#include <ls/SceneNode.h>
+#include <lse/ResourceProgress.h>
+#include <lse/Resources.h>
+#include <lse/SceneNode.h>
 #include <napi-ext.h>
 
-namespace ls {
+namespace lse {
 
 LS_ENUM_SEQ_DECL(
     LinkRelationship,
@@ -64,4 +64,4 @@ class LinkSceneNode final : public Napi::SafeObjectWrap<LinkSceneNode>, public S
     ResourceProgress resourceProgress;
 };
 
-} // namespace ls
+} // namespace lse

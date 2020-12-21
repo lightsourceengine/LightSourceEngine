@@ -4,9 +4,9 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/ThreadPool.h>
+#include <lse/ThreadPool.h>
 
-namespace ls {
+namespace lse {
 
 ThreadPool::ThreadPool() {
     auto concurrency{ std::thread::hardware_concurrency() };
@@ -81,4 +81,4 @@ void ThreadPool::ShutdownNow() {
     }
 }
 
-} // namespace ls
+} // namespace lse

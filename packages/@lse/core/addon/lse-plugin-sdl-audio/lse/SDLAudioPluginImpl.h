@@ -7,9 +7,9 @@
 #pragma once
 
 #include <napi.h>
-#include <ls/AudioPlugin.h>
+#include <lse/AudioPlugin.h>
 
-namespace ls {
+namespace lse {
 
 class SDLAudioPluginImpl final : public AudioPluginInterface {
  public:
@@ -32,4 +32,4 @@ class SDLAudioPluginImpl final : public AudioPluginInterface {
     int32_t deviceId{-1};
 };
 
-} // namespace ls
+} // namespace lse

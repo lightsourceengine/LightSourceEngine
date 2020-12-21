@@ -4,17 +4,17 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/SDLPlatformPluginImpl.h>
+#include <lse/SDLPlatformPluginImpl.h>
 
-#include <ls/CapabilitiesView.h>
-#include <ls/string-ext.h>
-#include <ls/Log.h>
-#include <ls/Timer.h>
-#include <ls/SDLGamepad.h>
-#include <ls/SDLGraphicsContextImpl.h>
-#include <ls/SDLKeyboard.h>
+#include <lse/CapabilitiesView.h>
+#include <lse/string-ext.h>
+#include <lse/Log.h>
+#include <lse/Timer.h>
+#include <lse/SDLGamepad.h>
+#include <lse/SDLGraphicsContextImpl.h>
+#include <lse/SDLKeyboard.h>
 #include <unordered_set>
-#include <ls/SDL2.h>
+#include <lse/SDL2.h>
 
 using Napi::Array;
 using Napi::Boolean;
@@ -41,7 +41,7 @@ struct SDL_DisplayModeHash {
     }
 };
 
-namespace ls {
+namespace lse {
 
 // Note, SDL_JOYSTICK_AXIS_* defines were introduced after 2.0.4.
 
@@ -567,6 +567,6 @@ Value SDLPlatformPluginImpl::GetGamepad(Napi::Env env, int32_t instanceId) {
     return p == this->gamepadsByInstanceId.end() ? env.Undefined() : p->second->Value();
 }
 
-} // namespace ls
+} // namespace lse
 
 #undef CallbackInstanceAccessor

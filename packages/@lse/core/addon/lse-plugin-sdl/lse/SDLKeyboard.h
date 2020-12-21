@@ -7,9 +7,9 @@
 #pragma once
 
 #include <napi-ext.h>
-#include <ls/InputDevice.h>
+#include <lse/InputDevice.h>
 
-namespace ls {
+namespace lse {
 
 class SDLKeyboard final : public Napi::SafeObjectWrap<SDLKeyboard>, public InputDevice {
  public:
@@ -23,4 +23,4 @@ class SDLKeyboard final : public Napi::SafeObjectWrap<SDLKeyboard>, public Input
     void Destroy(const Napi::CallbackInfo& info);
 };
 
-} // namespace ls
+} // namespace lse

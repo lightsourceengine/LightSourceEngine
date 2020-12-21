@@ -5,11 +5,11 @@
  * tree.
  */
 
-#include <ls/GraphicsContext.h>
-#include <ls/RootSceneNode.h>
-#include <ls/Scene.h>
-#include <ls/bindings/JSScene.h>
-#include <ls/bindings/JSStage.h>
+#include <lse/GraphicsContext.h>
+#include <lse/RootSceneNode.h>
+#include <lse/Scene.h>
+#include <lse/bindings/JSScene.h>
+#include <lse/bindings/JSStage.h>
 
 using Napi::CallbackInfo;
 using Napi::Error;
@@ -19,7 +19,7 @@ using Napi::HandleScope;
 
 static FunctionReference jsSceneConstructor;
 
-namespace ls {
+namespace lse {
 namespace bindings {
 
 void JSScene::Constructor(const CallbackInfo& info) {
@@ -86,4 +86,4 @@ void JSScene::Destroy(const CallbackInfo& info) {
 }
 
 } // namespace bindings
-} // namespace ls
+} // namespace lse

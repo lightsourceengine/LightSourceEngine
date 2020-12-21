@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include <ls/Renderer.h>
-#include <ls/SDL2.h>
+#include <lse/Renderer.h>
+#include <lse/SDL2.h>
 #include <vector>
 
-namespace ls {
+namespace lse {
 
 class SDLRenderer final : public Renderer {
  public:
@@ -58,4 +58,4 @@ class SDLRenderer final : public Renderer {
     int32_t height{0};
 };
 
-} // namespace ls
+} // namespace lse

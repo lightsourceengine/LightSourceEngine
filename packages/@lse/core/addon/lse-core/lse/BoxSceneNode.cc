@@ -4,19 +4,19 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/BoxSceneNode.h>
+#include <lse/BoxSceneNode.h>
 
 #include <cstring>
-#include <ls/Scene.h>
-#include <ls/Stage.h>
-#include <ls/Style.h>
-#include <ls/CompositeContext.h>
-#include <ls/Renderer.h>
-#include <ls/Log.h>
-#include <ls/Color.h>
-#include <ls/yoga-ext.h>
-#include <ls/GraphicsContext.h>
-#include <ls/Timer.h>
+#include <lse/Scene.h>
+#include <lse/Stage.h>
+#include <lse/Style.h>
+#include <lse/CompositeContext.h>
+#include <lse/Renderer.h>
+#include <lse/Log.h>
+#include <lse/Color.h>
+#include <lse/yoga-ext.h>
+#include <lse/GraphicsContext.h>
+#include <lse/Timer.h>
 
 using Napi::CallbackInfo;
 using Napi::Function;
@@ -24,7 +24,7 @@ using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::SafeObjectWrap;
 
-namespace ls {
+namespace lse {
 
 void BoxSceneNode::Constructor(const Napi::CallbackInfo& info) {
     this->SceneNodeConstructor(info);
@@ -378,4 +378,4 @@ void BoxSceneNode::Destroy() {
     SceneNode::Destroy();
 }
 
-} // namespace ls
+} // namespace lse

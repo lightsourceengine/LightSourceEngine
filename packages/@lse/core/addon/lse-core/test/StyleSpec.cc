@@ -4,14 +4,14 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/Style.h>
+#include <lse/Style.h>
 #include <napi-unit.h>
 
 using Napi::Assert;
 using Napi::TestInfo;
 using Napi::TestSuite;
 
-namespace ls {
+namespace lse {
 
 static Style testStyle;
 
@@ -110,4 +110,4 @@ void StyleSpec(TestSuite* parent) {
     };
 }
 
-} // namespace ls
+} // namespace lse

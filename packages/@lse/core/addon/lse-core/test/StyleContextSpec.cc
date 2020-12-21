@@ -4,16 +4,16 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/Resources.h>
-#include <ls/StyleContext.h>
-#include <ls/Style.h>
+#include <lse/Resources.h>
+#include <lse/StyleContext.h>
+#include <lse/Style.h>
 #include <napi-unit.h>
 
 using Napi::Assert;
 using Napi::TestInfo;
 using Napi::TestSuite;
 
-namespace ls {
+namespace lse {
 
 void ComputeObjectFitTest(Style* style, const Image& image, const Rect& bounds, const Rect& expected);
 
@@ -84,4 +84,4 @@ void ComputeObjectFitTest(Style* style, const Image& image, const Rect& bounds, 
     Assert::Equal(fit.height, expected.height);
 }
 
-} // namespace ls
+} // namespace lse

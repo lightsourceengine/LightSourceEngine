@@ -5,14 +5,14 @@
  * tree.
  */
 
-#include <ls/SDL2.h>
-#include <ls/internal/SharedLibrary.h>
+#include <lse/SDL2.h>
+#include <lse/internal/SharedLibrary.h>
 
 #define DYNAMIC_SDL_FUNCTION_PTR(NAME) decltype(&::NAME) NAME{};
 #define DYNAMIC_LOAD_SDL_FUNCTION(NAME) \
-    ls::SDL2::NAME = reinterpret_cast<decltype(&::NAME)>(sLibrary.GetSymbol(#NAME));
+    lse::SDL2::NAME = reinterpret_cast<decltype(&::NAME)>(sLibrary.GetSymbol(#NAME));
 
-namespace ls {
+namespace lse {
 namespace SDL2 {
 
 static internal::SharedLibrary sLibrary{};
@@ -33,7 +33,7 @@ void Close() noexcept {
 }
 
 } // namespace SDL2
-} // namespace ls
+} // namespace lse
 
 #undef DYNAMIC_LOAD_SDL_FUNCTION
 #undef DYNAMIC_SDL_FUNCTION_PTR

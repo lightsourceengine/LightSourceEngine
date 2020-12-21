@@ -9,7 +9,7 @@
 
 #include <cmath>
 
-namespace ls {
+namespace lse {
 
 ImageRect ClipImage(const Rect& bounds, const Rect& imageDest, float imageWidth, float imageHeight) noexcept {
     const auto ax2{ bounds.x + bounds.width };
@@ -64,4 +64,4 @@ Rect Intersect(const Rect& a, const Rect& b) noexcept {
     };
 }
 
-} // namespace ls
+} // namespace lse

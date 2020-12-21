@@ -8,7 +8,7 @@
 
 #include <napi-unit.h>
 
-namespace ls {
+namespace lse {
 
 void ThreadPoolSpec(Napi::TestSuite* parent);
 void StyleSpec(Napi::TestSuite* parent);
@@ -29,4 +29,4 @@ Napi::Value LightSourceTestSuite(Napi::Env env) {
     });
 }
 
-} // namespace ls
+} // namespace lse

@@ -4,9 +4,9 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/RefRenderer.h>
+#include <lse/RefRenderer.h>
 
-namespace ls {
+namespace lse {
 
 class RefTextureBridge final : public Texture::Bridge {
  public:
@@ -135,4 +135,4 @@ void RefTextureBridge::Destroy(void* platformTextureRef) noexcept {
     delete static_cast<RefTexture*>(platformTextureRef);
 }
 
-} // namespace ls
+} // namespace lse

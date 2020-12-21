@@ -7,7 +7,7 @@
 
 #pragma once
 
-namespace ls {
+namespace lse {
 
 class ImageBytes {
  public:
@@ -56,4 +56,4 @@ class ImageBytes {
     int32_t pitch;
 };
 
-} // namespace ls
+} // namespace lse

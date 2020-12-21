@@ -8,7 +8,7 @@
 
 #include <napi.h>
 
-namespace ls {
+namespace lse {
 
 class InputDevice {
  public:
@@ -27,4 +27,4 @@ class InputDevice {
     std::string name{};
 };
 
-} // namespace ls
+} // namespace lse

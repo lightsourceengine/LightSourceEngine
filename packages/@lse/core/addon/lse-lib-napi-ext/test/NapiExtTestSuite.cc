@@ -10,7 +10,7 @@ using Napi::Env;
 using Napi::HandleScope;
 using Napi::Object;
 
-namespace ls {
+namespace lse {
     void NapiExtSpec(Napi::TestSuite* parent);
     void SafeObjectWrapSpec(Napi::TestSuite* parent);
     void ClassBuilderSpec(Napi::TestSuite* parent);
@@ -20,9 +20,9 @@ Object Init(Env env, Object exports) {
     HandleScope scope(env);
 
     exports["test"] = Napi::TestSuite::Build(env, "napi-ext native tests", {
-        &ls::NapiExtSpec,
-        &ls::SafeObjectWrapSpec,
-        &ls::ClassBuilderSpec,
+        &lse::NapiExtSpec,
+        &lse::SafeObjectWrapSpec,
+        &lse::ClassBuilderSpec,
     });
 
     return exports;

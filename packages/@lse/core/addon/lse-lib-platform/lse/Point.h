@@ -6,7 +6,7 @@
 
 #pragma once
 
-namespace ls {
+namespace lse {
 
 /**
  * XY point struct.
@@ -16,4 +16,4 @@ struct Point {
     float y;
 };
 
-} // namespace ls
+} // namespace lse

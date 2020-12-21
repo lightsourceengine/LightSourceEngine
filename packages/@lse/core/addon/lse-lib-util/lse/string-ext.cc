@@ -5,13 +5,13 @@
  * tree.
  */
 
-#include <ls/string-ext.h>
+#include <lse/string-ext.h>
 
 #include <algorithm>
 #include <iterator>
 #include <cctype>
 
-namespace ls {
+namespace lse {
 
 std::string& ToLowercase(std::string& str) noexcept {
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
@@ -31,9 +31,9 @@ char* ToLowercase(char* str) noexcept {
     return str;
 }
 
-} // namespace ls
+} // namespace lse
 
-namespace ls {
+namespace lse {
 namespace internal {
 
 const char* FormatArg(const bool& value) noexcept {
@@ -57,4 +57,4 @@ const char* FormatArg(const std::exception& e) noexcept {
 }
 
 } // namespace internal
-} // namespace ls
+} // namespace lse

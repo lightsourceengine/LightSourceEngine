@@ -12,7 +12,7 @@
 #define LS_EXPECT_NULL(EXPR, MESSAGE) if ((EXPR) != nullptr) { throw std::runtime_error(MESSAGE); }
 #define LS_EXPECT_NOT_NULL(EXPR, MESSAGE) if ((EXPR) == nullptr) { throw std::runtime_error(MESSAGE); }
 
-namespace ls {
+namespace lse {
 
 class Stage;
 using StageRef = std::shared_ptr<Stage>;
@@ -32,4 +32,4 @@ using ImageRef = std::shared_ptr<Image>;
 class Resource;
 using ResourceRef = std::shared_ptr<Resource>;
 
-} // namespace ls
+} // namespace lse

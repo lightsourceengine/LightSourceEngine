@@ -10,7 +10,7 @@ using Napi::Env;
 using Napi::HandleScope;
 using Napi::Object;
 
-namespace ls {
+namespace lse {
     void MatrixSpec(Napi::TestSuite* parent);
     void RectSpec(Napi::TestSuite* parent);
 }
@@ -19,8 +19,8 @@ Object Init(Env env, Object exports) {
     HandleScope scope(env);
 
     exports["test"] = Napi::TestSuite::Build(env, "light-source-platform-lib native tests", {
-        &ls::MatrixSpec,
-        &ls::RectSpec,
+        &lse::MatrixSpec,
+        &lse::RectSpec,
     });
 
     return exports;

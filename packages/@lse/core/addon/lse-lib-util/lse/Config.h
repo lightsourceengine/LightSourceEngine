@@ -7,7 +7,7 @@
 
 #pragma once
 
-namespace ls {
+namespace lse {
 
 constexpr bool kEnablePluginPlatformSdl
 #if defined(LS_ENABLE_PLUGIN_PLATFORM_SDL)
@@ -53,4 +53,4 @@ constexpr const char* kPluginAudioRef = "audio:ref";
 
 constexpr const char* kDefaultRuntimeFrameworkPath = "/Library/Frameworks";
 
-} // namespace ls
+} // namespace lse

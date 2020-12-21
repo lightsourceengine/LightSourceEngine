@@ -7,9 +7,9 @@
 #pragma once
 
 #include <napi-ext.h>
-#include <ls/SceneNode.h>
+#include <lse/SceneNode.h>
 
-namespace ls {
+namespace lse {
 
 class Style;
 
@@ -26,4 +26,4 @@ class RootSceneNode final : public Napi::SafeObjectWrap<RootSceneNode>, public S
     void Composite(CompositeContext* composite) override;
 };
 
-} // namespace ls
+} // namespace lse

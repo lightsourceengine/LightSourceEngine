@@ -5,16 +5,16 @@
  * tree.
  */
 
-#include <ls/bindings/StyleOps.h>
+#include <lse/bindings/StyleOps.h>
 
-#include <ls/bindings/Convert.h>
-#include <ls/bindings/JSStyleValue.h>
-#include <ls/bindings/JSStyleTransformSpec.h>
-#include <ls/StyleValidator.h>
-#include <ls/string-ext.h>
+#include <lse/bindings/Convert.h>
+#include <lse/bindings/JSStyleValue.h>
+#include <lse/bindings/JSStyleTransformSpec.h>
+#include <lse/StyleValidator.h>
+#include <lse/string-ext.h>
 #include <cassert>
 
-namespace ls {
+namespace lse {
 namespace bindings {
 
 void StyleOps::CreateNative() {
@@ -153,4 +153,4 @@ Napi::Value StyleOps::Get(StyleProperty property, const Napi::CallbackInfo& info
 }
 
 } // namespace bindings
-} // namespace ls
+} // namespace lse

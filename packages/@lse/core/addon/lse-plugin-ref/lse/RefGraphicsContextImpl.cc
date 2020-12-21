@@ -17,7 +17,7 @@ using Napi::Object;
 using Napi::String;
 using Napi::Value;
 
-namespace ls {
+namespace lse {
 
 RefGraphicsContextImpl::RefGraphicsContextImpl(const Napi::CallbackInfo& info) {
     HandleScope scope(info.Env());
@@ -74,4 +74,4 @@ void RefGraphicsContextImpl::Finalize() {
     delete this;
 }
 
-} // namespace ls
+} // namespace lse

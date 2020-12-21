@@ -5,13 +5,13 @@
  */
 
 #include <napi-unit.h>
-#include <ls/Resources.h>
+#include <lse/Resources.h>
 
 using Napi::Assert;
 using Napi::TestInfo;
 using Napi::TestSuite;
 
-namespace ls {
+namespace lse {
 
 void FontFaceSpec(TestSuite* parent) {
     auto spec{ parent->Describe("FontFace") };
@@ -67,4 +67,4 @@ void FontFaceSpec(TestSuite* parent) {
     };
 }
 
-} // namespace ls
+} // namespace lse

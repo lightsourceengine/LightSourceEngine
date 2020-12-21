@@ -4,14 +4,14 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/Style.h>
+#include <lse/Style.h>
 
-#include <ls/Math.h>
+#include <lse/Math.h>
 #include <algorithm>
 #include <std17/algorithm>
 #include <cassert>
 
-namespace ls {
+namespace lse {
 
 Style Style::empty{};
 Style::StylePropertySet Style::tempDefinedProperties;
@@ -406,4 +406,4 @@ void Style::Init() {
     tempDefinedProperties.reserve(Count<StyleProperty>());
 }
 
-} // namespace ls
+} // namespace lse

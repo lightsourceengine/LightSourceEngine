@@ -4,12 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/CompositeContext.h>
+#include <lse/CompositeContext.h>
 
 #include <std17/algorithm>
-#include <ls/Renderer.h>
+#include <lse/Renderer.h>
 
-namespace ls {
+namespace lse {
 
 CompositeContext::CompositeContext() {
     this->matrix.reserve(16);
@@ -80,4 +80,4 @@ float CompositeContext::CurrentOpacity() const noexcept {
     return this->opacity.back();
 }
 
-} // namespace ls
+} // namespace lse

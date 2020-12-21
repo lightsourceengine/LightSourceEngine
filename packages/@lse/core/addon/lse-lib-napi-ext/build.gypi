@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "napi-ext-lib",
+      "target_name": "lse-lib-napi-ext",
       "type": "static_library",
       "includes": [
         "../common.gypi",
@@ -17,7 +17,7 @@
     [
       "enable_native_tests==1", {
         "targets": [{
-          "target_name": "napi-ext-lib-test",
+          "target_name": "lse-lib-napi-ext-test",
           "includes": [
             "../common.gypi",
           ],
@@ -32,7 +32,7 @@
             "test/NapiExtTestSuite.cc",
           ],
           "dependencies": [
-            "napi-ext-lib",
+            "lse-lib-napi-ext",
           ],
         }]
       }

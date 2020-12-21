@@ -8,9 +8,9 @@
 #pragma once
 
 #include <std17/filesystem>
-#include <ls/ImageBytes.h>
+#include <lse/ImageBytes.h>
 
-namespace ls {
+namespace lse {
 
 /**
  * Reads an image file into memory as a BLImage.
@@ -26,4 +26,4 @@ namespace ls {
  */
 ImageBytes DecodeImageFromFile(const std17::filesystem::path& path, int32_t resizeWidth, int32_t resizeHeight);
 
-} // namespace ls
+} // namespace lse

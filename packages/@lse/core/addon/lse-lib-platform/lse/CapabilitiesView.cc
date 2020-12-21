@@ -11,7 +11,7 @@ using Napi::Array;
 using Napi::Object;
 using Napi::String;
 
-namespace ls {
+namespace lse {
 
 Napi::Object ToCapabilitiesView(Napi::Env env, const Capabilities& caps) {
     auto jsCaps{ Object::New(env) };
@@ -56,4 +56,4 @@ Napi::Object ToCapabilitiesView(Napi::Env env, const Capabilities& caps) {
     return jsCaps;
 }
 
-} // namespace ls
+} // namespace lse

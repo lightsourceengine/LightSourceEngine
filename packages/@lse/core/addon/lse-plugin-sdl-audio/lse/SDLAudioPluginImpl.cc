@@ -4,12 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/SDLAudioPluginImpl.h>
+#include <lse/SDLAudioPluginImpl.h>
 
-#include <ls/AudioDestination.h>
-#include <ls/AudioSource.h>
-#include <ls/string-ext.h>
-#include <ls/SDL2.h>
+#include <lse/AudioDestination.h>
+#include <lse/AudioSource.h>
+#include <lse/string-ext.h>
+#include <lse/SDL2.h>
 
 using Napi::Boolean;
 using Napi::Buffer;
@@ -21,7 +21,7 @@ using Napi::Number;
 using Napi::Object;
 using Napi::Value;
 
-namespace ls {
+namespace lse {
 
 class SDLAudioSourceImpl final : public AudioSourceInterface {
  public:
@@ -258,4 +258,4 @@ void SDLAudioPluginImpl::Finalize() {
     delete this;
 }
 
-} // namespace ls
+} // namespace lse

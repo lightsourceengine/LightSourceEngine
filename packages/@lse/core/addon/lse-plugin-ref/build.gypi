@@ -1,29 +1,29 @@
 {
   "targets": [
     {
-      "target_name": "light-source-ref",
+      "target_name": "lse-plugin-ref",
       "type": "static_library",
       "includes": [
         "../common.gypi",
       ],
       "include_dirs": [
         ".",
-        "../napi-ext-lib",
-        "../logger-lib",
-        "../light-source-platform-lib",
-        "../light-source-util-lib",
+        "../lse-lib-napi-ext",
+        "../lse-lib-logger",
+        "../lse-lib-platform",
+        "../lse-lib-util",
         "../deps/cpp17_headers/include",
       ],
       "dependencies": [
-        "napi-ext-lib",
-        "logger-lib",
-        "light-source-platform-lib",
-        "light-source-util-lib"
+        "lse-lib-napi-ext",
+        "lse-lib-logger",
+        "lse-lib-platform",
+        "lse-lib-util"
       ],
       "sources": [
-        "ls/RefRenderer.cc",
-        "ls/RefGraphicsContextImpl.cc",
-        "ls/RefPlatformPluginImpl.cc"
+        "lse/RefRenderer.cc",
+        "lse/RefGraphicsContextImpl.cc",
+        "lse/RefPlatformPluginImpl.cc"
       ]
     }
   ]

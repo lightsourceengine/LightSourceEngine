@@ -9,7 +9,7 @@
 
 #include <napi-ext.h>
 
-namespace ls {
+namespace lse {
 
 enum AudioSourceCapability {
     AudioSourceCapabilityVolume,
@@ -77,4 +77,4 @@ Napi::Value AudioSource::Create(Napi::Env env, const std::initializer_list<napi_
     return scope.Escape(AudioSource::GetClass(env).New(constructorArgs));
 }
 
-} // namespace ls
+} // namespace lse

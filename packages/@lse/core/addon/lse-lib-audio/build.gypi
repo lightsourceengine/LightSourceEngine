@@ -1,24 +1,24 @@
 {
   "targets": [
     {
-      "target_name": "light-source-audio-lib",
+      "target_name": "lse-lib-audio",
       "type": "static_library",
       "includes": [
         "../common.gypi",
       ],
       "include_dirs": [
         ".",
-        "../napi-ext-lib",
-        "../logger-lib",
+        "../lse-lib-napi-ext",
+        "../lse-lib-logger",
       ],
       "dependencies": [
-        "napi-ext-lib",
-        "logger-lib",
+        "lse-lib-napi-ext",
+        "lse-lib-logger",
       ],
       "sources": [
-        "ls/AudioPlugin.cc",
-        "ls/AudioSource.cc",
-        "ls/AudioDestination.cc",
+        "lse/AudioPlugin.cc",
+        "lse/AudioSource.cc",
+        "lse/AudioDestination.cc",
       ]
     },
   ]

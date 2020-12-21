@@ -4,12 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/RootSceneNode.h>
+#include <lse/RootSceneNode.h>
 
-#include <ls/Scene.h>
-#include <ls/Style.h>
-#include <ls/Renderer.h>
-#include <ls/CompositeContext.h>
+#include <lse/Scene.h>
+#include <lse/Style.h>
+#include <lse/Renderer.h>
+#include <lse/CompositeContext.h>
 
 using Napi::CallbackInfo;
 using Napi::Error;
@@ -20,7 +20,7 @@ using Napi::SafeObjectWrap;
 using Napi::String;
 using Napi::Value;
 
-namespace ls {
+namespace lse {
 
 void RootSceneNode::Constructor(const Napi::CallbackInfo& info) {
     this->SceneNodeConstructor(info);
@@ -61,4 +61,4 @@ void RootSceneNode::Composite(CompositeContext* composite) {
     }
 }
 
-} // namespace ls
+} // namespace lse

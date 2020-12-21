@@ -8,9 +8,9 @@
 #pragma once
 
 #include <napi-ext.h>
-#include <ls/Style.h>
+#include <lse/Style.h>
 
-namespace ls {
+namespace lse {
 namespace bindings {
 
 /**
@@ -25,4 +25,4 @@ class JSStyleValue {
 };
 
 } // namespace bindings
-} // namespace ls
+} // namespace lse

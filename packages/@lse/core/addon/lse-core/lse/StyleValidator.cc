@@ -5,11 +5,11 @@
  * tree.
  */
 
-#include <ls/StyleValidator.h>
+#include <lse/StyleValidator.h>
 
-#include <ls/StyleProperty.h>
+#include <lse/StyleProperty.h>
 
-namespace ls {
+namespace lse {
 
 StyleValueValidator StyleValidator::numberValidators[Count<StyleProperty>()]{};
 
@@ -194,4 +194,4 @@ bool StyleValueValidator::IsValid(const StyleValue& styleValue) const noexcept {
     return false;
 }
 
-} // namespace ls
+} // namespace lse

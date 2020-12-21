@@ -4,19 +4,19 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/Scene.h>
+#include <lse/Scene.h>
 
-#include <ls/Stage.h>
-#include <ls/Renderer.h>
-#include <ls/GraphicsContext.h>
-#include <ls/Log.h>
-#include <ls/Math.h>
-#include <ls/Style.h>
-#include <ls/RootSceneNode.h>
-#include <ls/yoga-ext.h>
-#include <ls/StyleContext.h>
+#include <lse/Stage.h>
+#include <lse/Renderer.h>
+#include <lse/GraphicsContext.h>
+#include <lse/Log.h>
+#include <lse/Math.h>
+#include <lse/Style.h>
+#include <lse/RootSceneNode.h>
+#include <lse/yoga-ext.h>
+#include <lse/StyleContext.h>
 
-#include <ls/bindings/JSStage.h>
+#include <lse/bindings/JSStage.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -34,7 +34,7 @@ using Napi::String;
 using Napi::SymbolFor;
 using Napi::Value;
 
-namespace ls {
+namespace lse {
 
 Scene::~Scene() noexcept {
     if (isAttached) {
@@ -258,4 +258,4 @@ bool Scene::SyncStyleContext() {
     return false;
 }
 
-} // namespace ls
+} // namespace lse

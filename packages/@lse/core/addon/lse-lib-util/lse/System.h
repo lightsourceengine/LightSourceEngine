@@ -7,7 +7,7 @@
 
 #pragma once
 
-namespace ls {
+namespace lse {
 
 // Platform Identity API
 
@@ -50,4 +50,4 @@ bool HasEnv(const char* name) noexcept;
 const char* GetEnv(const char* name) noexcept;
 const char* GetEnvOrDefault(const char* name, const char* defaultValue) noexcept;
 
-} // namespace ls
+} // namespace lse

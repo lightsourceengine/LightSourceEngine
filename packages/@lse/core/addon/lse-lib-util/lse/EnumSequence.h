@@ -30,7 +30,7 @@
     } \
     LS_ENUM_STRING_MAPPING(NAME)
 
-namespace ls {
+namespace lse {
 
 template <typename T>
 constexpr int32_t Count() noexcept;
@@ -54,4 +54,4 @@ constexpr int32_t CountMacroVariadicArgs() noexcept {
 }
 
 } // namespace internal
-} // namespace ls
+} // namespace lse

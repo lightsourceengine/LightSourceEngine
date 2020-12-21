@@ -5,9 +5,9 @@
  * tree.
  */
 
-#include <ls/ResourceProgress.h>
-#include <ls/Resources.h>
-#include <ls/SceneNode.h>
+#include <lse/ResourceProgress.h>
+#include <lse/Resources.h>
+#include <lse/SceneNode.h>
 
 using Napi::AssignFunctionReference;
 using Napi::Call;
@@ -15,7 +15,7 @@ using Napi::Env;
 using Napi::Error;
 using Napi::HandleScope;
 
-namespace ls {
+namespace lse {
 
 void ResourceProgress::Dispatch(SceneNode* node, Resource* resource) const {
     switch (resource->GetState()) {
@@ -73,4 +73,4 @@ Napi::Value ResourceProgress::GetOnError(const Napi::Env& env) const {
     return this->onError.IsEmpty() ? env.Null() : this->onError.Value();
 }
 
-} // namespace ls
+} // namespace lse

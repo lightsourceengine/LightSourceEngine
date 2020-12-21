@@ -8,10 +8,10 @@
 #pragma once
 
 #include <napi-ext.h>
-#include <ls/StyleEnums.h>
-#include <ls/types.h>
+#include <lse/StyleEnums.h>
+#include <lse/types.h>
 
-namespace ls {
+namespace lse {
 namespace bindings {
 
 /**
@@ -34,4 +34,4 @@ class StyleOps {
 };
 
 } // namespace bindings
-} // namespace ls
+} // namespace lse

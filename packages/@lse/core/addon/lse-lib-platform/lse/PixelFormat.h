@@ -7,9 +7,9 @@
 #pragma once
 
 #include <cstdint>
-#include <ls/EnumSequence.h>
+#include <lse/EnumSequence.h>
 
-namespace ls {
+namespace lse {
 
 /**
  * Pixel formats used for texture creation.
@@ -45,4 +45,4 @@ constexpr int32_t GetComponentCount(const PixelFormat format) noexcept {
     }
 }
 
-} // namespace ls
+} // namespace lse

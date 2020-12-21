@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <cstring>
 
-namespace ls {
+namespace lse {
 
 namespace detail {
 
@@ -35,4 +35,4 @@ template<typename T>
 using CStringHashMap
     = std::unordered_map<const char*, T, detail::CStringMapHash, detail::CStringMapEqualTo<const char*>>;
 
-} // namespace ls
+} // namespace lse

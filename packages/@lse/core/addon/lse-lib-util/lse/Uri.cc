@@ -10,7 +10,7 @@
 #include <cassert>
 #include <cctype>
 
-namespace ls {
+namespace lse {
 
 static const char* kFilePrefix = "file:";
 static const std::size_t kFilePrefixSize = strlen(kFilePrefix);
@@ -157,4 +157,4 @@ static bool Find(const std::string& str, char search, std::size_t start, std::si
     return (pos != std::string::npos);
 }
 
-} // namespace ls
+} // namespace lse

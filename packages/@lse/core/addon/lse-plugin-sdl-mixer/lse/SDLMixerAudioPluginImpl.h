@@ -7,9 +7,9 @@
 #pragma once
 
 #include <napi-ext.h>
-#include <ls/AudioPlugin.h>
+#include <lse/AudioPlugin.h>
 
-namespace ls {
+namespace lse {
 
 class SDLMixerAudioPluginImpl final : public AudioPluginInterface {
  public:
@@ -31,4 +31,4 @@ class SDLMixerAudioPluginImpl final : public AudioPluginInterface {
     std::vector<std::string> audioDevices{};
 };
 
-} // namespace ls
+} // namespace lse

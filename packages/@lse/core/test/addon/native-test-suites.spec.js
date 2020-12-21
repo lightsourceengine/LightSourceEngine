@@ -39,7 +39,7 @@ const bindTestSuiteOptions = {
  */
 bindTestSuite([
   'light-source',
-  'napi-ext-lib-test',
-  'light-source-util-lib-test',
-  'light-source-platform-lib-test'
+  'lse-lib-napi-ext-test',
+  'lse-lib-util-test',
+  'lse-lib-platform-test'
 ], bindTestSuiteOptions)

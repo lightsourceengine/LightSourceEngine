@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include <ls/SDL2.h>
-#include <ls/SDLRenderer.h>
-#include <ls/GraphicsContext.h>
+#include <lse/SDL2.h>
+#include <lse/SDLRenderer.h>
+#include <lse/GraphicsContext.h>
 
-namespace ls {
+namespace lse {
 
 class SDLGraphicsContextImpl final : public GraphicsContextInterface {
  public:
@@ -47,4 +47,4 @@ class SDLGraphicsContextImpl final : public GraphicsContextInterface {
     std::string title{"Light Source App"};
 };
 
-} // namespace ls
+} // namespace lse

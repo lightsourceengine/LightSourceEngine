@@ -8,9 +8,9 @@
 #pragma once
 
 #include <napi-ext.h>
-#include <ls/types.h>
+#include <lse/types.h>
 
-namespace ls {
+namespace lse {
 namespace bindings {
 
 /**
@@ -36,4 +36,4 @@ class JSStage : public Napi::SafeObjectWrap<JSStage> {
 };
 
 } // namespace bindings
-} // namespace ls
+} // namespace lse

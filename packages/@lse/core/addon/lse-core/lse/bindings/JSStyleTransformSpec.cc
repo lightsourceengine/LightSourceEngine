@@ -5,14 +5,14 @@
  * tree.
  */
 
-#include <ls/bindings/JSStyleTransformSpec.h>
+#include <lse/bindings/JSStyleTransformSpec.h>
 
-#include <ls/bindings/JSStyleValue.h>
+#include <lse/bindings/JSStyleValue.h>
 
 static Napi::FunctionReference jsStyleTransformSpecClass;
 static Napi::ObjectReference jsStyleTransformSpecUndefined;
 
-namespace ls {
+namespace lse {
 namespace bindings {
 
 Napi::Function JSStyleTransformSpec::GetClass(const Napi::Env& env) {
@@ -272,4 +272,4 @@ std::vector<StyleTransformSpec> JSStyleTransformSpec::ToStyleTransformSpecList(c
 }
 
 } // namespace bindings
-} // namespace ls
+} // namespace lse

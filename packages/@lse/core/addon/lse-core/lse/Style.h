@@ -7,16 +7,16 @@
 #pragma once
 
 #include <napi-ext.h>
-#include <ls/StyleEnums.h>
-#include <ls/types.h>
-#include <ls/Color.h>
-#include <ls/Math.h>
+#include <lse/StyleEnums.h>
+#include <lse/types.h>
+#include <lse/Color.h>
+#include <lse/Math.h>
 #include <Yoga.h>
 #include <phmap.h>
 #include <phmap_utils.h>
 #include <std17/optional>
 
-namespace ls {
+namespace lse {
 
 /**
  * Number Style property value. Wraps a float value with a unit type.
@@ -163,4 +163,4 @@ class Style {
     static Style empty;
 };
 
-} // namespace ls
+} // namespace lse

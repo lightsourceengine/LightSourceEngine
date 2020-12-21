@@ -5,13 +5,13 @@
  */
 
 #include <napi-unit.h>
-#include <ls/Resources.h>
+#include <lse/Resources.h>
 
 using Napi::Assert;
 using Napi::TestInfo;
 using Napi::TestSuite;
 
-namespace ls {
+namespace lse {
 
 static const char* kImageFile = "image.png";
 static const char* kFontFile = "font.ttf";
@@ -164,4 +164,4 @@ void ResourcesSpec(TestSuite* parent) {
     };
 }
 
-} // namespace ls
+} // namespace lse

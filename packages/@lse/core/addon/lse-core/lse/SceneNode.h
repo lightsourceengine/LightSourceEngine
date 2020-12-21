@@ -6,15 +6,15 @@
 
 #pragma once
 
-#include <ls/types.h>
-#include <ls/yoga-ext.h>
+#include <lse/types.h>
+#include <lse/yoga-ext.h>
 #include <event/event.h>
 #include <napi-ext.h>
-#include <ls/StyleEnums.h>
-#include <ls/Resources.h>
+#include <lse/StyleEnums.h>
+#include <lse/Resources.h>
 #include <bitset>
 
-namespace ls {
+namespace lse {
 
 class CompositeContext;
 class GraphicsContext;
@@ -144,4 +144,4 @@ std::vector<napi_property_descriptor> SceneNode::Extend(const Napi::Env& env,
     return result;
 }
 
-} // namespace ls
+} // namespace lse

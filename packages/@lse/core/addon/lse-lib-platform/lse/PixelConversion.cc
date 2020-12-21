@@ -8,7 +8,7 @@
 
 using std20::endian;
 
-namespace ls {
+namespace lse {
 
 template<int32_t C1, int32_t C2, int32_t C3, int32_t C4>
 void Convert(color_t* pixels, const uint32_t len) noexcept {
@@ -76,4 +76,4 @@ void ConvertToFormat(color_t* pixels, int32_t len, PixelFormat format) noexcept 
     }
 }
 
-} // namespace ls
+} // namespace lse

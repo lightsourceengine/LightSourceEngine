@@ -6,7 +6,7 @@
 
 #include "RefPlatformPluginImpl.h"
 
-#include <ls/CapabilitiesView.h>
+#include <lse/CapabilitiesView.h>
 
 #include "RefGraphicsContextImpl.h"
 
@@ -21,7 +21,7 @@ using Napi::Persistent;
 using Napi::String;
 using Napi::Value;
 
-namespace ls {
+namespace lse {
 
 RefPlatformPluginImpl::RefPlatformPluginImpl(const CallbackInfo& info) {
     auto env{ info.Env() };
@@ -80,4 +80,4 @@ void RefPlatformPluginImpl::Finalize() {
     delete this;
 }
 
-} // namespace ls
+} // namespace lse

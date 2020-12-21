@@ -9,7 +9,7 @@
 
 #include <napi-ext.h>
 
-namespace ls {
+namespace lse {
 namespace bindings {
 
 Napi::Function NewStyleUnitClass(Napi::Env env);
@@ -17,4 +17,4 @@ Napi::Function NewStyleTransformClass(Napi::Env env);
 Napi::Function NewStyleAnchorClass(Napi::Env env);
 
 } // namespace bindings
-} // namespace ls
+} // namespace lse

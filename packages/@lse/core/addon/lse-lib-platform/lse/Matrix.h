@@ -9,7 +9,7 @@
 #include <cmath>
 #include <std20/numbers>
 
-namespace ls {
+namespace lse {
 
 /**
  * This is a 3x3 2D transformation matrix for translation, rotation and scaling graphics operations.
@@ -115,4 +115,4 @@ struct Matrix {
     }
 };
 
-} // namespace ls
+} // namespace lse

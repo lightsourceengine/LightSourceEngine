@@ -16,7 +16,7 @@ using Napi::Value;
 #define CHECK_IMPL(impl) if (!(impl)) { throw Napi::Error::New(info.Env(), "PlatformPlugin is not initialized!"); }
 #define CHECK_IMPL_STD(impl) if (!(impl)) { throw std::runtime_error("PlatformPlugin is not initialized!"); }
 
-namespace ls {
+namespace lse {
 
 GraphicsContext::GraphicsContext(const CallbackInfo& info) : Napi::SafeObjectWrap<GraphicsContext>(info) {
 }
@@ -96,7 +96,7 @@ void GraphicsContext::Finalize() {
     throw std::runtime_error("Not implemented");
 }
 
-} // namespace ls
+} // namespace lse
 
 #undef CHECK_IMPL
 #undef CHECK_IMPL_STD

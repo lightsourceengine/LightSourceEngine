@@ -1,27 +1,27 @@
 {
   "targets": [
     {
-      "target_name": "light-source-ref-audio",
+      "target_name": "lse-plugin-ref-audio",
       "type": "static_library",
       "includes": [
         "../common.gypi",
       ],
       "include_dirs": [
         ".",
-        "../napi-ext-lib",
-        "../logger-lib",
-        "../light-source-audio-lib",
-        "../light-source-util-lib",
+        "../lse-lib-napi-ext",
+        "../lse-lib-logger",
+        "../lse-lib-audio",
+        "../lse-lib-util",
         "../deps/cpp17_headers/include",
       ],
       "dependencies": [
-        "napi-ext-lib",
-        "logger-lib",
-        "light-source-audio-lib",
-        "light-source-util-lib",
+        "lse-lib-napi-ext",
+        "lse-lib-logger",
+        "lse-lib-audio",
+        "lse-lib-util",
       ],
       "sources": [
-        "ls/RefAudioPluginImpl.cc"
+        "lse/RefAudioPluginImpl.cc"
       ]
     }
   ]

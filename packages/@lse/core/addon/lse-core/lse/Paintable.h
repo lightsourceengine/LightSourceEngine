@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include <ls/Texture.h>
+#include <lse/Texture.h>
 
-namespace ls {
+namespace lse {
 
 class Renderer;
 class RenderingContext2D;
@@ -47,4 +47,4 @@ class Paintable {
     Texture target{};
 };
 
-} // namespace ls
+} // namespace lse

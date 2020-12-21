@@ -8,9 +8,9 @@
 #pragma once
 
 #include <napi-ext.h>
-#include <ls/Renderer.h>
+#include <lse/Renderer.h>
 
-namespace ls {
+namespace lse {
 
 class GraphicsContextInterface {
  public:
@@ -103,4 +103,4 @@ Napi::Value GraphicsContext::Create(Napi::Env env, Napi::Value config) {
     return scope.Escape(GraphicsContext::GetClass(env).New({ external, config }));
 }
 
-} // namespace ls
+} // namespace lse

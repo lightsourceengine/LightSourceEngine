@@ -6,7 +6,7 @@
 
 #pragma once
 
-namespace ls {
+namespace lse {
 
 /**
  * Width and height dimensions.
@@ -16,4 +16,4 @@ struct Size {
     float height;
 };
 
-} // namespace ls
+} // namespace lse

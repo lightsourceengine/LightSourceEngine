@@ -15,7 +15,7 @@ using Napi::TestInfo;
 using Napi::TestSuite;
 using Napi::Value;
 
-namespace ls {
+namespace lse {
 
 void ClassBuilderSpec(TestSuite* parent) {
     auto spec{ parent->Describe("ClassBuilder") };
@@ -110,4 +110,4 @@ void ClassBuilderSpec(TestSuite* parent) {
     };
 }
 
-} // namespace ls
+} // namespace lse

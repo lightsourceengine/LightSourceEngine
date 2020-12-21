@@ -1,34 +1,34 @@
 {
   "targets": [
     {
-      "target_name": "light-source-sdl",
+      "target_name": "lse-plugin-sdl",
       "type": "static_library",
       "includes": [
         "../common.gypi"
       ],
       "include_dirs": [
         ".",
-        "../napi-ext-lib",
-        "../logger-lib",
+        "../lse-lib-napi-ext",
+        "../lse-lib-logger",
         "<(ls_sdl_include)",
         "../deps/cpp17_headers/include",
-        "../light-source-platform-lib",
-        "../light-source-util-lib"
+        "../lse-lib-platform",
+        "../lse-lib-util"
       ],
       "dependencies": [
-        "napi-ext-lib",
-        "logger-lib",
-        "light-source-platform-lib",
-        "light-source-util-lib"
+        "lse-lib-napi-ext",
+        "lse-lib-logger",
+        "lse-lib-platform",
+        "lse-lib-util"
       ],
       "sources": [
-        "ls/SDLRenderer.cc",
-        "ls/SDLGraphicsContextImpl.cc",
-        "ls/SDLPlatformPluginImpl.cc",
-        "ls/InputDevice.cc",
-        "ls/SDLKeyboard.cc",
-        "ls/SDLGamepad.cc",
-        "ls/SDLUtil.cc"
+        "lse/SDLRenderer.cc",
+        "lse/SDLGraphicsContextImpl.cc",
+        "lse/SDLPlatformPluginImpl.cc",
+        "lse/InputDevice.cc",
+        "lse/SDLKeyboard.cc",
+        "lse/SDLGamepad.cc",
+        "lse/SDLUtil.cc"
       ]
     }
   ]

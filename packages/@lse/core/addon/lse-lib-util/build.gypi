@@ -1,32 +1,32 @@
 {
   "targets": [
     {
-      "target_name": "light-source-util-lib",
+      "target_name": "lse-lib-util",
       "type": "static_library",
       "includes": [
         "../common.gypi",
       ],
       "include_dirs": [
         ".",
-        "../napi-ext-lib",
-        "../logger-lib",
+        "../lse-lib-napi-ext",
+        "../lse-lib-logger",
         "../deps/filesystem/include",
         "../deps/cpp17_headers/include",
         "<(ls_sdl_include)",
         "<(ls_sdl_mixer_include)",
       ],
       "dependencies": [
-          "napi-ext-lib",
-          "logger-lib",
+          "lse-lib-napi-ext",
+          "lse-lib-logger",
       ],
       "sources": [
-        "ls/Uri.cc",
-        "ls/Timer.cc",
-        "ls/System.cc",
-        "ls/string-ext.cc",
-        "ls/SDL2.cc",
-        "ls/SDL2_mixer.cc",
-        "ls/internal/SharedLibrary.cc"
+        "lse/Uri.cc",
+        "lse/Timer.cc",
+        "lse/System.cc",
+        "lse/string-ext.cc",
+        "lse/SDL2.cc",
+        "lse/SDL2_mixer.cc",
+        "lse/internal/SharedLibrary.cc"
       ]
     }
   ],
@@ -34,14 +34,14 @@
     [
       "enable_native_tests==1", {
         "targets": [{
-          "target_name": "light-source-util-lib-test",
+          "target_name": "lse-lib-util-test",
           "includes": [
             "../common.gypi",
           ],
           "include_dirs": [
             ".",
-            "../napi-ext-lib",
-            "../logger-lib",
+            "../lse-lib-napi-ext",
+            "../lse-lib-logger",
             "../deps/filesystem/include",
             "../deps/cpp17_headers/include",
             "<(ls_sdl_include)",
@@ -49,9 +49,9 @@
             "<!@(node -p \"require('napi-unit').include\")"
           ],
           "dependencies": [
-            "napi-ext-lib",
-            "logger-lib",
-            "light-source-util-lib"
+            "lse-lib-napi-ext",
+            "lse-lib-logger",
+            "lse-lib-util"
           ],
           "sources": [
             "test/FormatSpec.cc",

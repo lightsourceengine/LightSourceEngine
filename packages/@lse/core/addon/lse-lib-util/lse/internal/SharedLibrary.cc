@@ -5,10 +5,10 @@
  * tree.
  */
 
-#include <ls/internal/SharedLibrary.h>
+#include <lse/internal/SharedLibrary.h>
 
 #include <stdexcept>
-#include <ls/string-ext.h>
+#include <lse/string-ext.h>
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -26,7 +26,7 @@
 #define SharedLibraryGetSymbol(HANDLE, SYMBOL) dlsym((HANDLE), (SYMBOL))
 #endif
 
-namespace ls {
+namespace lse {
 namespace internal {
 
 void SharedLibrary::Open(const char* libraryName) {
@@ -66,7 +66,7 @@ void SharedLibrary::Close() noexcept {
 }
 
 } // namespace internal
-} // namespace ls
+} // namespace lse
 
 #undef SharedLibraryOpen
 #undef SharedLibraryClose

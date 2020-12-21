@@ -10,7 +10,7 @@
 #include <string>
 #include <std17/string_view>
 
-namespace ls {
+namespace lse {
 
 enum UriScheme {
     UriSchemeFile,
@@ -67,4 +67,4 @@ std::string GetQueryParam(const std::string& uri, const char* name);
  */
 int32_t GetQueryParamInteger(const std::string& uri, const char* name, int32_t fallback);
 
-} // namespace ls
+} // namespace lse

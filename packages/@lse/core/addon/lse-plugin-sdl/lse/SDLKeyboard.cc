@@ -4,9 +4,9 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/SDLKeyboard.h>
+#include <lse/SDLKeyboard.h>
 
-#include <ls/SDL2.h>
+#include <lse/SDL2.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -18,7 +18,7 @@ using Napi::SafeObjectWrap;
 using Napi::String;
 using Napi::Value;
 
-namespace ls {
+namespace lse {
 
 constexpr auto KeyboardId = 0;
 constexpr auto KeyboardUUID = "keyboard";
@@ -67,4 +67,4 @@ Value SDLKeyboard::IsButtonDown(const CallbackInfo& info) {
 void SDLKeyboard::Destroy(const CallbackInfo& info) {
 }
 
-} // namespace ls
+} // namespace lse

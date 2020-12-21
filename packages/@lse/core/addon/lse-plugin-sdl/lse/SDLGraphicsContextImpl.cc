@@ -4,9 +4,9 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/SDLGraphicsContextImpl.h>
+#include <lse/SDLGraphicsContextImpl.h>
 
-#include <ls/Log.h>
+#include <lse/Log.h>
 #include <napi-ext.h>
 
 using Napi::Boolean;
@@ -19,7 +19,7 @@ using Napi::Object;
 using Napi::String;
 using Napi::Value;
 
-namespace ls {
+namespace lse {
 
 SDLGraphicsContextImpl::SDLGraphicsContextImpl(const Napi::CallbackInfo& info) {
     auto config{ info[1].As<Object>() };
@@ -130,4 +130,4 @@ void SDLGraphicsContextImpl::Finalize() {
     delete this;
 }
 
-} // namespace ls
+} // namespace lse

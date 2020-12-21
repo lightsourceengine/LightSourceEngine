@@ -12,7 +12,7 @@
 #include "Color.h"
 #include "PixelFormat.h"
 
-namespace ls {
+namespace lse {
 
 /**
  * In place conversion of a buffer of RGBA color values to the specified pixel format.
@@ -26,4 +26,4 @@ namespace ls {
  */
 void ConvertToFormat(color_t* pixels, int32_t len, PixelFormat format) noexcept;
 
-} // namespace ls
+} // namespace lse

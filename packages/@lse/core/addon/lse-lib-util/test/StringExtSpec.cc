@@ -5,13 +5,13 @@
  */
 
 #include <napi-unit.h>
-#include <ls/string-ext.h>
+#include <lse/string-ext.h>
 
 using Napi::Assert;
 using Napi::TestInfo;
 using Napi::TestSuite;
 
-namespace ls {
+namespace lse {
 
 void StringExtSpec(TestSuite* parent) {
     const auto spec{ parent->Describe("StringExt") };
@@ -42,4 +42,4 @@ void StringExtSpec(TestSuite* parent) {
     };
 }
 
-} // namespace ls
+} // namespace lse

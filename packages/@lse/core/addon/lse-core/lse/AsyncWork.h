@@ -12,7 +12,7 @@
 #include <unordered_map>
 #include <mutex>
 
-namespace ls {
+namespace lse {
 
 /**
  * Represents the result of the AsyncWork create function. Used as an argument to the complete function.
@@ -154,6 +154,6 @@ class AsyncWork {
     std::shared_ptr<AsyncWorkState<T>> state{};
 };
 
-} // namespace ls
+} // namespace lse
 
 #include "AsyncWork-inl.h"

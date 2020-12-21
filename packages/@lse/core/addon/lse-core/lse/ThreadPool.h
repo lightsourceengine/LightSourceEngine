@@ -15,7 +15,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace ls {
+namespace lse {
 
 /**
  * Asynchronous function executor backed by a thread pool.
@@ -96,4 +96,4 @@ std::future<T> ThreadPool::Submit(std::function<T()>&& work) {
     return future;
 }
 
-} // namespace ls
+} // namespace lse

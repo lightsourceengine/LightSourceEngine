@@ -4,15 +4,15 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/SDLMixerAudioPluginImpl.h>
+#include <lse/SDLMixerAudioPluginImpl.h>
 
-#include <ls/SDL2.h>
-#include <ls/SDL2_mixer.h>
-#include <ls/AudioDestination.h>
-#include <ls/AudioSource.h>
-#include <ls/string-ext.h>
-#include <ls/Log.h>
-#include <ls/Timer.h>
+#include <lse/SDL2.h>
+#include <lse/SDL2_mixer.h>
+#include <lse/AudioDestination.h>
+#include <lse/AudioSource.h>
+#include <lse/string-ext.h>
+#include <lse/Log.h>
+#include <lse/Timer.h>
 #include <algorithm>
 #include <std17/algorithm>
 
@@ -27,7 +27,7 @@ using Napi::Number;
 using Napi::Object;
 using Napi::Value;
 
-namespace ls {
+namespace lse {
 
 SDL_RWops* LoadRW(Napi::Env env, const Napi::Value& value);
 void FillVector(std::vector<std::string>* destination, const std::function<const char*(int32_t)>& get,
@@ -466,4 +466,4 @@ int32_t GetLoops(const CallbackInfo& info) {
     return GetPropertyAsInt(info, "loops", 1);
 }
 
-} // namespace ls
+} // namespace lse

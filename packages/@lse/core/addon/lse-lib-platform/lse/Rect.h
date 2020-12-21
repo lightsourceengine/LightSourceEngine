@@ -8,7 +8,7 @@
 
 #include <cstdint>
 
-namespace ls {
+namespace lse {
 
 /**
  * Rectangle in TRBL positional value format.
@@ -88,4 +88,4 @@ inline Rect Translate(const Rect& rect, float tx, float ty) noexcept {
     };
 }
 
-} // namespace ls
+} // namespace lse

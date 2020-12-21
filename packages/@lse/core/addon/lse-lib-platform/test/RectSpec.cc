@@ -12,7 +12,7 @@ using Napi::Assert;
 using Napi::TestInfo;
 using Napi::TestSuite;
 
-namespace ls {
+namespace lse {
 
 void RectSpec(TestSuite* parent) {
     auto spec{ parent->Describe("Rect") };
@@ -53,4 +53,4 @@ void RectSpec(TestSuite* parent) {
     };
 }
 
-} // namespace ls
+} // namespace lse

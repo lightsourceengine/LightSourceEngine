@@ -7,7 +7,7 @@
 
 #pragma once
 
-namespace ls {
+namespace lse {
 namespace internal {
 
 class SharedLibrary {
@@ -22,4 +22,4 @@ class SharedLibrary {
 };
 
 } // namespace internal
-} // namespace ls
+} // namespace lse

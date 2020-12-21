@@ -5,17 +5,17 @@
  * tree.
  */
 
-#include <ls/Resources.h>
+#include <lse/Resources.h>
 
 #include <cassert>
-#include <ls/DecodeImage.h>
-#include <ls/DecodeFont.h>
-#include <ls/Log.h>
-#include <ls/Renderer.h>
-#include <ls/Math.h>
-#include <ls/Uri.h>
+#include <lse/DecodeImage.h>
+#include <lse/DecodeFont.h>
+#include <lse/Log.h>
+#include <lse/Renderer.h>
+#include <lse/Math.h>
+#include <lse/Uri.h>
 
-namespace ls {
+namespace lse {
 
 Resource::ResourceId Resource::nextResourceId{1};
 constexpr const std::size_t LS_MAX_FONTS = 9;
@@ -310,7 +310,7 @@ Font FontFace::GetFont(float fontSize) {
     }
 
     for (auto p = this->fontsBySize.begin(); p != this->fontsBySize.end(); p++) {
-        if (ls::Equals(fontSize, p->blFont.size())) {
+        if (lse::Equals(fontSize, p->blFont.size())) {
             Font font = *p;
 
             this->fontsBySize.erase(p);
@@ -439,4 +439,4 @@ void Resources::Compact() {
     this->pendingDeletions.clear();
 }
 
-} // namespace ls
+} // namespace lse

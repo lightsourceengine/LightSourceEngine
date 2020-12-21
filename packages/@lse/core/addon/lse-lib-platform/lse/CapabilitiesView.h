@@ -9,7 +9,7 @@
 
 #include <napi.h>
 
-namespace ls {
+namespace lse {
 
 struct DisplayMode {
     int width{};
@@ -29,4 +29,4 @@ struct Capabilities {
 
 Napi::Object ToCapabilitiesView(Napi::Env env, const Capabilities& caps);
 
-} // namespace ls
+} // namespace lse

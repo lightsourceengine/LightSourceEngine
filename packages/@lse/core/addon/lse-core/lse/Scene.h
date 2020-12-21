@@ -6,16 +6,16 @@
 
 #pragma once
 
-#include <ls/types.h>
-#include <ls/CompositeContext.h>
-#include <ls/StyleContext.h>
-#include <ls/RenderingContext2D.h>
+#include <lse/types.h>
+#include <lse/CompositeContext.h>
+#include <lse/StyleContext.h>
+#include <lse/RenderingContext2D.h>
 
 #include <algorithm>
 #include <memory>
 #include <unordered_set>
 
-namespace ls {
+namespace lse {
 
 class GraphicsContext;
 class Renderer;
@@ -77,4 +77,4 @@ class Scene {
     RenderingContext2D renderingContext2D{};
 };
 
-} // namespace ls
+} // namespace lse

@@ -10,7 +10,7 @@
 #include <blend2d.h>
 #include <std17/filesystem>
 
-namespace ls {
+namespace lse {
 
 /**
  * Reads a ttf or otf font file into memory as a BLFontFace.
@@ -27,4 +27,4 @@ namespace ls {
  */
 BLFontFace DecodeFontFromFile(const std17::filesystem::path& path, uint32_t index);
 
-} // namespace ls
+} // namespace lse

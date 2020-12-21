@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "logger-lib",
+      "target_name": "lse-lib-logger",
       "type": "static_library",
       "includes": [
         "../common.gypi",
@@ -10,24 +10,24 @@
         ".",
       ],
       "sources": [
-        "ls/Log.cc",
+        "lse/Log.cc",
       ]
     },
     {
-      "target_name": "logger-bindings-lib",
+      "target_name": "lse-lib-logger-bindings",
       "type": "static_library",
       "includes": [
         "../common.gypi",
       ],
       "include_dirs": [
         ".",
-        "../napi-ext-lib",
+        "../lse-lib-napi-ext",
       ],
       "dependencies": [
-          "napi-ext-lib",
+          "lse-lib-napi-ext",
       ],
       "sources": [
-        "ls/bindings/Logger.cc",
+        "lse/bindings/Logger.cc",
       ]
     }
   ]

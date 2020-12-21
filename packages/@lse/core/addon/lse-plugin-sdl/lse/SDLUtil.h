@@ -6,15 +6,15 @@
 
 #pragma once
 
-#include <ls/PixelFormat.h>
-#include <ls/System.h>
-#include <ls/Matrix.h>
-#include <ls/Rect.h>
-#include <ls/Color.h>
-#include <ls/Texture.h>
-#include <ls/SDL2.h>
+#include <lse/PixelFormat.h>
+#include <lse/System.h>
+#include <lse/Matrix.h>
+#include <lse/Rect.h>
+#include <lse/Color.h>
+#include <lse/Texture.h>
+#include <lse/SDL2.h>
 
-namespace ls {
+namespace lse {
 
 // Texture operations
 
@@ -39,9 +39,9 @@ void DrawBorder(SDL_Renderer* renderer, SDL_Texture* fillRectTexture, const Rect
 // Type conversions
 
 /**
- * Convert ls::Rect to SDL_Rect.
+ * Convert lse::Rect to SDL_Rect.
  *
- * The ls::Rect is hard snapped to the pixel grid using floor().
+ * The lse::Rect is hard snapped to the pixel grid using floor().
  */
 constexpr SDL_Rect ToSDLRect(const Rect& rect) noexcept {
     return {
@@ -127,7 +127,7 @@ constexpr SDL_TextureAccess ToSDLTextureAccess(Texture::Type type) noexcept {
     }
 }
 
-/** @returns ls::Texture::Type; otherwise Texture::Type::Updatable if unknown */
+/** @returns lse::Texture::Type; otherwise Texture::Type::Updatable if unknown */
 constexpr Texture::Type ToTextureType(int32_t textureAccess) noexcept {
     switch (textureAccess) {
         case SDL_TextureAccess::SDL_TEXTUREACCESS_STREAMING:
@@ -140,4 +140,4 @@ constexpr Texture::Type ToTextureType(int32_t textureAccess) noexcept {
     }
 }
 
-} // namespace ls
+} // namespace lse

@@ -5,9 +5,9 @@
  * tree.
  */
 
-#include <ls/SDLUtil.h>
+#include <lse/SDLUtil.h>
 
-namespace ls {
+namespace lse {
 
 class SDLTextureBridge final : public Texture::Bridge {
  public:
@@ -322,4 +322,4 @@ void SDLTextureBridge::Destroy(void* platformTextureRef) noexcept {
     DestroyTexture(static_cast<SDL_Texture*>(platformTextureRef));
 }
 
-} // namespace ls
+} // namespace lse

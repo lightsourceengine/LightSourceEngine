@@ -5,17 +5,17 @@
  * tree.
  */
 
-#include <ls/bindings/Convert.h>
+#include <lse/bindings/Convert.h>
 
-#include <ls/bindings/JSStyleValue.h>
-#include <ls/string-ext.h>
-#include <ls/CStringHashMap.h>
+#include <lse/bindings/JSStyleValue.h>
+#include <lse/string-ext.h>
+#include <lse/CStringHashMap.h>
 
 using Napi::Number;
 using Napi::Object;
 using Napi::String;
 
-namespace ls {
+namespace lse {
 namespace bindings {
 
 static CStringHashMap<StyleNumberUnit> InitUnitMap();
@@ -314,4 +314,4 @@ static CStringHashMap<uint32_t> InitColorMap() {
 }
 
 } // namespace bindings
-} // namespace ls
+} // namespace lse

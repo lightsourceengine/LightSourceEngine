@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/bindings/Logger.h>
+#include <lse/bindings/Logger.h>
 
 using Napi::CallbackInfo;
 using Napi::ClassBuilder;
@@ -16,7 +16,7 @@ using Napi::Number;
 using Napi::String;
 using Napi::Value;
 
-namespace ls {
+namespace lse {
 namespace bindings {
 
 Function NewLoggerClass(Napi::Env env) {
@@ -32,35 +32,35 @@ Function NewLoggerClass(Napi::Env env) {
 
 Function NewLogLevelClass(Napi::Env env) {
     return ClassBuilder(env, "LogLevel")
-        .WithStaticValue("OFF", ls::LogLevel::LogLevelOff)
-        .WithStaticValue("ERROR", ls::LogLevel::LogLevelError)
-        .WithStaticValue("WARN", ls::LogLevel::LogLevelWarn)
-        .WithStaticValue("INFO", ls::LogLevel::LogLevelInfo)
-        .WithStaticValue("DEBUG", ls::LogLevel::LogLevelDebug)
-        .WithStaticValue("ALL", ls::LogLevel::LogLevelAll)
+        .WithStaticValue("OFF", lse::LogLevel::LogLevelOff)
+        .WithStaticValue("ERROR", lse::LogLevel::LogLevelError)
+        .WithStaticValue("WARN", lse::LogLevel::LogLevelWarn)
+        .WithStaticValue("INFO", lse::LogLevel::LogLevelInfo)
+        .WithStaticValue("DEBUG", lse::LogLevel::LogLevelDebug)
+        .WithStaticValue("ALL", lse::LogLevel::LogLevelAll)
         .ToConstructor();
 }
 
 void Logger::LogInfo(const Napi::CallbackInfo &info) {
-    if (ls::GetLogLevel() >= LogLevelInfo) {
+    if (lse::GetLogLevel() >= LogLevelInfo) {
         Log(LogLevelInfo, info);
     }
 }
 
 void Logger::LogError(const Napi::CallbackInfo &info) {
-    if (ls::GetLogLevel() >= LogLevelError) {
+    if (lse::GetLogLevel() >= LogLevelError) {
         Log(LogLevelError, info);
     }
 }
 
 void Logger::LogDebug(const Napi::CallbackInfo &info) {
-    if (ls::GetLogLevel() >= LogLevelDebug) {
+    if (lse::GetLogLevel() >= LogLevelDebug) {
         Log(LogLevelDebug, info);
     }
 }
 
 void Logger::LogWarn(const Napi::CallbackInfo &info) {
-    if (ls::GetLogLevel() >= LogLevelWarn) {
+    if (lse::GetLogLevel() >= LogLevelWarn) {
         Log(LogLevelWarn, info);
     }
 }
@@ -92,7 +92,7 @@ void Logger::Close(const CallbackInfo& info) {
 }
 
 Value Logger::GetLogLevel(const CallbackInfo& info) {
-    return Number::New(info.Env(), ls::GetLogLevel());
+    return Number::New(info.Env(), lse::GetLogLevel());
 }
 
 void Logger::SetLogLevel(const CallbackInfo& info) {
@@ -103,7 +103,7 @@ void Logger::SetLogLevel(const CallbackInfo& info) {
             int32_t logLevel{ info[0].As<Number>() };
 
             if (IsLogLevel(logLevel)) {
-                ls::SetLogLevel(static_cast<LogLevel>(logLevel));
+                lse::SetLogLevel(static_cast<LogLevel>(logLevel));
             } else {
                 throw Error::New(env, "LogLevel value out of range.");
             }
@@ -113,7 +113,7 @@ void Logger::SetLogLevel(const CallbackInfo& info) {
         case napi_string: {
             auto value = Napi::CopyUtf8(info[0]);
 
-            if (!ls::SetLogLevel(value)) {
+            if (!lse::SetLogLevel(value)) {
                 throw Error::New(env, "Invalid LogLevel value.");
             }
 
@@ -153,8 +153,8 @@ void Logger::SetSink(const CallbackInfo& info) {
         throw Error::New(env, "stdout or null is the only supported log sink");
     }
 
-    ls::SetLogSink(nullptr);
+    lse::SetLogSink(nullptr);
 }
 
 } // namespace bindings
-} // namespace ls
+} // namespace lse

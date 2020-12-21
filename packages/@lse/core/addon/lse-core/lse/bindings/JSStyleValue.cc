@@ -5,14 +5,14 @@
  * tree.
  */
 
-#include <ls/bindings/JSStyleValue.h>
+#include <lse/bindings/JSStyleValue.h>
 
-#include <ls/bindings/Convert.h>
+#include <lse/bindings/Convert.h>
 
 static Napi::FunctionReference jsStyleValueClass;
 static Napi::ObjectReference jsStyleValueUndefined;
 
-namespace ls {
+namespace lse {
 namespace bindings {
 
 Napi::Function JSStyleValue::GetClass(const Napi::Env& env) {
@@ -98,4 +98,4 @@ StyleValue JSStyleValue::ToStyleValue(const Napi::Value& value) {
 }
 
 } // namespace bindings
-} // namespace ls
+} // namespace lse

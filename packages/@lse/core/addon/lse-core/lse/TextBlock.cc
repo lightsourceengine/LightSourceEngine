@@ -5,20 +5,20 @@
  * tree.
  */
 
-#include <ls/TextBlock.h>
+#include <lse/TextBlock.h>
 
-#include <ls/Renderer.h>
-#include <ls/RenderingContext2D.h>
-#include <ls/Resources.h>
-#include <ls/Style.h>
-#include <ls/StyleContext.h>
-#include <ls/Timer.h>
+#include <lse/Renderer.h>
+#include <lse/RenderingContext2D.h>
+#include <lse/Resources.h>
+#include <lse/Style.h>
+#include <lse/StyleContext.h>
+#include <lse/Timer.h>
 #include <math.h>
 #include <utf8.h>
 #include <cctype>
 #include <utility>
 
-namespace ls {
+namespace lse {
 
 static std::size_t StringLength(const std::string& utf8) noexcept;
 static void ApplyTransform(uint32_t* codepoints, std::size_t size, StyleTextTransform transform) noexcept;
@@ -455,4 +455,4 @@ TextBlock::TextIterator TextBlock::TextIterator::operator++(int32_t) noexcept {
     return *this;
 }
 
-} // namespace ls
+} // namespace lse

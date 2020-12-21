@@ -9,7 +9,7 @@
 #include <chrono>
 #include <string>
 
-namespace ls {
+namespace lse {
 
 class Timer {
  private:
@@ -27,4 +27,4 @@ class Timer {
     std::string label;
 };
 
-} // namespace ls
+} // namespace lse

@@ -7,12 +7,12 @@
 #pragma once
 
 #include <napi-ext.h>
-#include <ls/CapabilitiesView.h>
-#include <ls/PlatformPlugin.h>
+#include <lse/CapabilitiesView.h>
+#include <lse/PlatformPlugin.h>
 #include <array>
 #include <unordered_map>
 
-namespace ls {
+namespace lse {
 
 class SDLKeyboard;
 class SDLGamepad;
@@ -81,6 +81,6 @@ class SDLPlatformPluginImpl final : public PlatformPluginInterface {
     bool isAttached{false};
 };
 
-} // namespace ls
+} // namespace lse
 
 #undef DeclareStageCallback

@@ -7,8 +7,8 @@
 #include "RefAudioPluginImpl.h"
 
 #include <napi-ext.h>
-#include <ls/AudioDestination.h>
-#include <ls/AudioSource.h>
+#include <lse/AudioDestination.h>
+#include <lse/AudioSource.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -20,7 +20,7 @@ using Napi::NewStringArray;
 using Napi::Number;
 using Napi::Value;
 
-namespace ls {
+namespace lse {
 
 class RefAudioSourceImpl final : public AudioSourceInterface {
  public:
@@ -96,4 +96,4 @@ void RefAudioPluginImpl::Finalize() {
     delete this;
 }
 
-} // namespace ls
+} // namespace lse

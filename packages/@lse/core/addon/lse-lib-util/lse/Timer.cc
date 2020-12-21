@@ -5,12 +5,12 @@
  */
 
 #include "Timer.h"
-#include <ls/Log.h>
+#include <lse/Log.h>
 
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 
-namespace ls {
+namespace lse {
 
 Timer::Timer() : start(high_resolution_clock::now()) {
 }
@@ -30,4 +30,4 @@ Timer::~Timer() {
     this->Log();
 }
 
-} // namespace ls
+} // namespace lse

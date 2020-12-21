@@ -59,7 +59,7 @@ constexpr const char* kSDLMixerFrameworkLib = "SDL2_mixer";
 // 2) light-source.node can be loaded without SDL_mixer dependencies. If SDL_mixer is unavailable at runtime, the
 //    javascript environment can do error reporting.
 
-namespace ls {
+namespace lse {
 namespace SDL2 {
 namespace mixer {
 
@@ -75,4 +75,4 @@ void Close() noexcept;
 
 } // namespace mixer
 } // namespace SDL2
-} // namespace ls
+} // namespace lse

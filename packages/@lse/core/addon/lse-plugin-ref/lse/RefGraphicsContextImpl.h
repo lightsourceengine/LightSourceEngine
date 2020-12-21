@@ -7,9 +7,9 @@
 #pragma once
 
 #include "RefRenderer.h"
-#include <ls/GraphicsContext.h>
+#include <lse/GraphicsContext.h>
 
-namespace ls {
+namespace lse {
 
 class RefGraphicsContextImpl final : public GraphicsContextInterface {
  public:
@@ -40,4 +40,4 @@ class RefGraphicsContextImpl final : public GraphicsContextInterface {
     bool fullscreen{};
 };
 
-} // namespace ls
+} // namespace lse

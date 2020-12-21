@@ -6,11 +6,11 @@
  */
 
 #include "AudioSource.h"
-#include <ls/Log.h>
+#include <lse/Log.h>
 
 #define CHECK_IMPL(impl) if (!(impl)) { throw Napi::Error::New(info.Env(), "AudioSource is not initialized!"); }
 
-namespace ls {
+namespace lse {
 
 AudioSource::AudioSource(const Napi::CallbackInfo& info) : Napi::SafeObjectWrap<AudioSource>(info) {
 }
@@ -81,6 +81,6 @@ void AudioSource::Finalize() {
     throw std::runtime_error("Not implemented");
 }
 
-} // namespace ls
+} // namespace lse
 
 #undef CHECK_IMPL

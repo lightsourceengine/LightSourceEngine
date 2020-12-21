@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/ThreadPool.h>
+#include <lse/ThreadPool.h>
 #include <napi-unit.h>
 
 #include <chrono>
@@ -14,7 +14,7 @@ using Napi::Assert;
 using Napi::TestInfo;
 using Napi::TestSuite;
 
-namespace ls {
+namespace lse {
 
 const auto TIMEOUT = std::chrono::milliseconds(100);
 static std::unique_ptr<ThreadPool> sThreadPool;
@@ -111,4 +111,4 @@ void ThreadPoolSpec(TestSuite* parent) {
     };
 }
 
-} // namespace ls
+} // namespace lse

@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include <ls/Log.h>
+#include <lse/Log.h>
 
-namespace ls {
+namespace lse {
 
 template<typename T>
 typename AsyncWorkState<T>::AsyncWorkStateMap AsyncWorkState<T>::sAsyncWorkStateMap;
@@ -176,4 +176,4 @@ void AsyncWork<T>::Cancel() {
     }
 }
 
-} // namespace ls
+} // namespace lse

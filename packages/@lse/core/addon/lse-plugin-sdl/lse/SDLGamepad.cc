@@ -4,10 +4,10 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/SDLGamepad.h>
+#include <lse/SDLGamepad.h>
 
-#include <ls/Log.h>
-#include <ls/string-ext.h>
+#include <lse/Log.h>
+#include <lse/string-ext.h>
 
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -24,7 +24,7 @@ constexpr int32_t log2(int32_t n) {
     return (n > 1) ? 1 + log2(n >> 1) : 0;
 }
 
-namespace ls {
+namespace lse {
 
 SDLGamepad::SDLGamepad(const CallbackInfo& info) : SafeObjectWrap<SDLGamepad>(info) {
 }
@@ -187,4 +187,4 @@ uint8_t SDLGamepad::GetHatState(uint8_t hatIndex) const {
     return (hatIndex < this->hatCount) ? this->hatState[hatIndex] : 0;
 }
 
-} // namespace ls
+} // namespace lse

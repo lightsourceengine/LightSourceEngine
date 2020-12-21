@@ -10,7 +10,7 @@
 #include <string>
 #include <std17/string_view>
 
-namespace ls {
+namespace lse {
 
 // Simple ascii std::string conversion to lowercase, no intl or encoding considered.
 std::string& ToLowercase(std::string& str) noexcept;
@@ -54,4 +54,4 @@ std::string Format(const char* format, const Args&... args) {
     return formattedString;
 }
 
-} // namespace ls
+} // namespace lse

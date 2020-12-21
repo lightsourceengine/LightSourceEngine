@@ -7,12 +7,12 @@
 #pragma once
 
 #include <napi-ext.h>
-#include <ls/Rect.h>
-#include <ls/types.h>
-#include <ls/SceneNode.h>
-#include <ls/Texture.h>
+#include <lse/Rect.h>
+#include <lse/types.h>
+#include <lse/SceneNode.h>
+#include <lse/Texture.h>
 
-namespace ls {
+namespace lse {
 
 class BoxSceneNode final : public Napi::SafeObjectWrap<BoxSceneNode>, public SceneNode {
  public:
@@ -43,4 +43,4 @@ class BoxSceneNode final : public Napi::SafeObjectWrap<BoxSceneNode>, public Sce
     Texture paintTarget{};
 };
 
-} // namespace ls
+} // namespace lse

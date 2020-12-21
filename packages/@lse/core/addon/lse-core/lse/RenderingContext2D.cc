@@ -5,9 +5,9 @@
  * tree.
  */
 
-#include <ls/RenderingContext2D.h>
+#include <lse/RenderingContext2D.h>
 
-namespace ls {
+namespace lse {
 
 void RenderingContext2D::End() noexcept {
     this->context.end();
@@ -76,4 +76,4 @@ void RenderingContext2D::StrokePath() noexcept {
     this->context.strokePath(this->path);
 }
 
-} // namespace ls
+} // namespace lse

@@ -5,9 +5,9 @@
  * tree.
  */
 
-#include <ls/DecodeImage.h>
+#include <lse/DecodeImage.h>
 
-#include <ls/string-ext.h>
+#include <lse/string-ext.h>
 #include <stb_image.h>
 #include <nanosvg.h>
 #include <nanosvgrast.h>
@@ -30,7 +30,7 @@ constexpr std::array<const char*, 5> kImageExtensions {{
     ".svg"
 }};
 
-namespace ls {
+namespace lse {
 
 bool ScaleSvg(NSVGimagePtr& svg, int32_t scaleWidth, int32_t scaleHeight,
               float* scaleX, float* scaleY, int32_t* renderWidth, int32_t* renderHeight) noexcept {
@@ -150,4 +150,4 @@ ImageBytes DecodeImageFromFile(const std17::filesystem::path& path, int32_t resi
     return { bytes, deleter, width, height, width * 4 };
 }
 
-} // namespace ls
+} // namespace lse

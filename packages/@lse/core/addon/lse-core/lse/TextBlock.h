@@ -10,11 +10,11 @@
 #include <string>
 #include <vector>
 #include <blend2d.h>
-#include <ls/Paintable.h>
-#include <ls/Resources.h>
-#include <ls/StyleEnums.h>
+#include <lse/Paintable.h>
+#include <lse/Resources.h>
+#include <lse/StyleEnums.h>
 
-namespace ls {
+namespace lse {
 
 class Renderer;
 class RenderingContext2D;
@@ -106,4 +106,4 @@ class TextBlock final : public Paintable {
     std::vector<TextLine> lines{};
 };
 
-} // namespace ls
+} // namespace lse

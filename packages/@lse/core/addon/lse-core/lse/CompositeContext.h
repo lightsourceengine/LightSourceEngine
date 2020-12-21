@@ -7,10 +7,10 @@
 #pragma once
 
 #include <vector>
-#include <ls/Matrix.h>
-#include <ls/Rect.h>
+#include <lse/Matrix.h>
+#include <lse/Rect.h>
 
-namespace ls {
+namespace lse {
 
 class Renderer;
 
@@ -42,4 +42,4 @@ class CompositeContext {
     std::vector<float> opacity;
 };
 
-} // namespace ls
+} // namespace lse

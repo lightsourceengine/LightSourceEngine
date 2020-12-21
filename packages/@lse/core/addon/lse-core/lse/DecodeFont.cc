@@ -5,10 +5,10 @@
  * tree.
  */
 
-#include <ls/DecodeFont.h>
+#include <lse/DecodeFont.h>
 
 #include <array>
-#include <ls/string-ext.h>
+#include <lse/string-ext.h>
 
 using std17::filesystem::detail::equals_simple_insensitive;
 
@@ -21,7 +21,7 @@ constexpr const std::array<const char*, 4> kFontExtensions {{
     ".otc",
 }};
 
-namespace ls {
+namespace lse {
 
 BLFontFace DecodeFontFromFile(const std17::filesystem::path& path, uint32_t index) {
     std::error_code errorCode;
@@ -74,4 +74,4 @@ BLFontFace DecodeFontFromFile(const std17::filesystem::path& path, uint32_t inde
     return fontFace;
 }
 
-} // namespace ls
+} // namespace lse

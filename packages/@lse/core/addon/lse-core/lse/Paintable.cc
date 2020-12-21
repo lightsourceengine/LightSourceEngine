@@ -5,11 +5,11 @@
  * tree.
  */
 
-#include <ls/Paintable.h>
+#include <lse/Paintable.h>
 
-#include <ls/Renderer.h>
+#include <lse/Renderer.h>
 
-namespace ls {
+namespace lse {
 
 void Paintable::Destroy() noexcept {
     this->target.Destroy();
@@ -30,4 +30,4 @@ Texture Paintable::EnsureLockableTexture(Renderer* renderer, int32_t width, int3
     return target;
 }
 
-} // namespace ls
+} // namespace lse

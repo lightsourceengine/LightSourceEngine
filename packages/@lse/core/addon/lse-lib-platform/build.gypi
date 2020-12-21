@@ -1,30 +1,30 @@
 {
   "targets": [
     {
-      "target_name": "light-source-platform-lib",
+      "target_name": "lse-lib-platform",
       "type": "static_library",
       "includes": [
         "../common.gypi",
       ],
       "include_dirs": [
         ".",
-        "../light-source-util-lib",
-        "../napi-ext-lib",
-        "../logger-lib",
+        "../lse-lib-util",
+        "../lse-lib-napi-ext",
+        "../lse-lib-logger",
         "../deps/cpp17_headers/include"
       ],
       "dependencies": [
-        "napi-ext-lib",
-        "logger-lib",
-        "light-source-util-lib"
+        "lse-lib-napi-ext",
+        "lse-lib-logger",
+        "lse-lib-util"
       ],
       "sources": [
-        "ls/GraphicsContext.cc",
-        "ls/PlatformPlugin.cc",
-        "ls/CapabilitiesView.cc",
-        "ls/PixelConversion.cc",
-        "ls/Texture.cc",
-        "ls/Rect.cc"
+        "lse/GraphicsContext.cc",
+        "lse/PlatformPlugin.cc",
+        "lse/CapabilitiesView.cc",
+        "lse/PixelConversion.cc",
+        "lse/Texture.cc",
+        "lse/Rect.cc"
       ]
     }
   ],
@@ -32,23 +32,23 @@
     [
       "enable_native_tests==1", {
         "targets": [{
-          "target_name": "light-source-platform-lib-test",
+          "target_name": "lse-lib-platform-test",
           "includes": [
             "../common.gypi",
           ],
           "include_dirs": [
             ".",
-            "../napi-ext-lib",
-            "../light-source-util-lib",
-            "../logger-lib",
+            "../lse-lib-napi-ext",
+            "../lse-lib-util",
+            "../lse-lib-logger",
             "../deps/cpp17_headers/include",
             "<!@(node -p \"require('napi-unit').include\")"
           ],
           "dependencies": [
-            "napi-ext-lib",
-            "logger-lib",
-            "light-source-util-lib",
-            "light-source-platform-lib"
+            "lse-lib-napi-ext",
+            "lse-lib-logger",
+            "lse-lib-util",
+            "lse-lib-platform"
           ],
           "sources": [
             "test/MatrixSpec.cc",

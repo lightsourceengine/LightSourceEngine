@@ -9,7 +9,7 @@
 #include <ctime>
 #include <cassert>
 
-namespace ls {
+namespace lse {
 
 static auto sLogLevel{ LogLevelInfo };
 static auto sSink{ stdout };
@@ -213,4 +213,4 @@ void LogCustomSite(const LogLevel logLevel, const char* site, const char* messag
 
 } // namespace internal
 
-} // namespace ls
+} // namespace lse

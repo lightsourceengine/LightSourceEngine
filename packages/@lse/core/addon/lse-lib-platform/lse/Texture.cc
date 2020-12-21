@@ -7,7 +7,7 @@
 
 #include "Texture.h"
 
-namespace ls {
+namespace lse {
 
 class NullTextureBridge final : public Texture::Bridge {
  public:
@@ -118,4 +118,4 @@ void Texture::Pixels::Release() noexcept {
     }
 }
 
-} // namespace ls
+} // namespace lse

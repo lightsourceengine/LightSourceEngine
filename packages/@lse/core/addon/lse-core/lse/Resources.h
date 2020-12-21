@@ -8,11 +8,11 @@
 #pragma once
 
 #include <blend2d.h>
-#include <ls/AsyncWork.h>
-#include <ls/StyleEnums.h>
-#include <ls/Texture.h>
-#include <ls/ImageBytes.h>
-#include <ls/types.h>
+#include <lse/AsyncWork.h>
+#include <lse/StyleEnums.h>
+#include <lse/Texture.h>
+#include <lse/ImageBytes.h>
+#include <lse/types.h>
 
 #include <memory>
 #include <string>
@@ -20,7 +20,7 @@
 #include <phmap.h>
 #include <std17/filesystem>
 
-namespace ls {
+namespace lse {
 
 class Renderer;
 
@@ -166,4 +166,4 @@ class Resources {
     phmap::flat_hash_set<Resource*> pendingDeletions;
 };
 
-} // namespace ls
+} // namespace lse

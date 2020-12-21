@@ -7,12 +7,12 @@
 
 #pragma once
 
-#include <ls/Matrix.h>
-#include <ls/Rect.h>
-#include <ls/Style.h>
+#include <lse/Matrix.h>
+#include <lse/Rect.h>
+#include <lse/Style.h>
 #include <Yoga.h>
 
-namespace ls {
+namespace lse {
 
 class Style;
 class Image;
@@ -75,4 +75,4 @@ class StyleContext {
     float rootFontSize;
 };
 
-} // namespace ls
+} // namespace lse

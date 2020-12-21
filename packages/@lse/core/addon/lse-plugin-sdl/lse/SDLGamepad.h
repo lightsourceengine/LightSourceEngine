@@ -7,11 +7,11 @@
 #pragma once
 
 #include <napi-ext.h>
-#include <ls/SDL2.h>
+#include <lse/SDL2.h>
 #include <vector>
-#include <ls/InputDevice.h>
+#include <lse/InputDevice.h>
 
-namespace ls {
+namespace lse {
 
 class SDLGamepad final : public Napi::SafeObjectWrap<SDLGamepad>, public InputDevice {
  public:
@@ -50,4 +50,4 @@ class SDLGamepad final : public Napi::SafeObjectWrap<SDLGamepad>, public InputDe
     std::string gameControllerMapping;
 };
 
-} // namespace ls
+} // namespace lse

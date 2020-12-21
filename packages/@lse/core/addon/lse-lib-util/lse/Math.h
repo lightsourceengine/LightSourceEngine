@@ -10,7 +10,7 @@
 #include <cstdint>
 #include <limits>
 
-namespace ls {
+namespace lse {
 
 inline bool Equals(const float a, const float b) noexcept { return std::abs(a - b) < 0.0001f; }
 
@@ -32,4 +32,4 @@ inline float SnapToPixelGrid(float f) noexcept {
 
 constexpr auto kUndefined = std::numeric_limits<float>::quiet_NaN();
 
-} // namespace ls
+} // namespace lse

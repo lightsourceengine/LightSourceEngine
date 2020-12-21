@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include <ls/PlatformPlugin.h>
+#include <lse/PlatformPlugin.h>
 
-namespace ls {
+namespace lse {
 
 class RefPlatformPluginImpl final : public PlatformPluginInterface {
  public:
@@ -34,4 +34,4 @@ class RefPlatformPluginImpl final : public PlatformPluginInterface {
     Napi::ObjectReference capabilitiesRef;
 };
 
-} // namespace ls
+} // namespace lse

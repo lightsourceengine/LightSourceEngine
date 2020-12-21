@@ -6,14 +6,14 @@
 
 #pragma once
 
-#include <ls/Rect.h>
-#include <ls/Texture.h>
-#include <ls/Matrix.h>
-#include <ls/Color.h>
-#include <ls/PixelFormat.h>
+#include <lse/Rect.h>
+#include <lse/Texture.h>
+#include <lse/Matrix.h>
+#include <lse/Color.h>
+#include <lse/PixelFormat.h>
 #include <cstdint>
 
-namespace ls {
+namespace lse {
 
 /**
  * Interface for rendering to the screen and creating textures (images).
@@ -117,4 +117,4 @@ class Renderer {
     virtual PixelFormat GetTextureFormat() const = 0;
 };
 
-} // namespace ls
+} // namespace lse

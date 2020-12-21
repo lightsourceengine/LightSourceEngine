@@ -16,7 +16,7 @@ using Napi::Value;
 
 #define CHECK_IMPL(impl) if (!(impl)) { throw Napi::Error::New(info.Env(), "PlatformPlugin is not initialized!"); }
 
-namespace ls {
+namespace lse {
 
 PlatformPlugin::PlatformPlugin(const CallbackInfo& info) : Napi::SafeObjectWrap<PlatformPlugin>(info) {
 }
@@ -119,6 +119,6 @@ Function PlatformPlugin::GetClass(Napi::Env env) {
     return constructor.Value();
 }
 
-} // namespace ls
+} // namespace lse
 
 #undef CHECK_IMPL

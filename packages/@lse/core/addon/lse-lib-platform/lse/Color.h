@@ -9,9 +9,9 @@
 
 #include <cstdint>
 #include <std17/algorithm>
-#include <ls/System.h>
+#include <lse/System.h>
 
-namespace ls {
+namespace lse {
 
 /**
  * 32-bit color type. 8-bits per channel. 0xAARRGGBB format.
@@ -71,4 +71,4 @@ constexpr color_t ColorWhite = 0xFFFFFFFF;
 constexpr color_t ColorBlack = 0xFF000000;
 constexpr color_t ColorTransparent = 0;
 
-} // namespace ls
+} // namespace lse

@@ -5,13 +5,13 @@
  * tree.
  */
 
-#include <ls/StyleProperty.h>
-#include <ls/StyleEnums.h>
+#include <lse/StyleProperty.h>
+#include <lse/StyleEnums.h>
 #include <cassert>
 #include <stdexcept>
 #include <YGStyle.h>
 
-namespace ls {
+namespace lse {
 
 template<typename T>
 static const char* StylePropertyIntToString(int32_t property) noexcept {
@@ -99,4 +99,4 @@ const char* StylePropertyValueDefault(StyleProperty property) noexcept {
     return StylePropertyValueToString(property, enumOps[property].defaultValue);
 }
 
-} // namespace ls
+} // namespace lse

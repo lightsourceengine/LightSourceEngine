@@ -5,13 +5,13 @@
  */
 
 #include <napi-unit.h>
-#include <ls/Resources.h>
+#include <lse/Resources.h>
 
 using Napi::Assert;
 using Napi::TestInfo;
 using Napi::TestSuite;
 
-namespace ls {
+namespace lse {
 
 void ImageSpec(TestSuite* parent) {
     auto spec{ parent->Describe("Image") };
@@ -30,4 +30,4 @@ void ImageSpec(TestSuite* parent) {
     };
 }
 
-} // namespace ls
+} // namespace lse

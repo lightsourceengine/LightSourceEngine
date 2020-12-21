@@ -9,7 +9,7 @@
 
 #include <napi-ext.h>
 
-namespace ls {
+namespace lse {
 
 class PlatformPluginInterface {
  public:
@@ -80,4 +80,4 @@ Napi::Object PlatformPluginInit(Napi::Env env, Napi::Object exports, const char*
     return exports;
 }
 
-} // namespace ls
+} // namespace lse

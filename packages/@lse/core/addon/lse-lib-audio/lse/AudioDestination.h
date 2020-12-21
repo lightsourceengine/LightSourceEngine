@@ -9,7 +9,7 @@
 
 #include <napi-ext.h>
 
-namespace ls {
+namespace lse {
 
 enum AudioDestinationCapability {
     AudioDestinationCapabilityStop,
@@ -85,4 +85,4 @@ Napi::Value AudioDestination::Create(Napi::Env env, const std::initializer_list<
     return scope.Escape(AudioDestination::GetClass(env).New(constructorArgs));
 }
 
-} // namespace ls
+} // namespace lse

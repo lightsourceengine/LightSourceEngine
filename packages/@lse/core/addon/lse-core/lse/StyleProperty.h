@@ -7,10 +7,10 @@
 
 #pragma once
 
-#include <ls/EnumSequence.h>
+#include <lse/EnumSequence.h>
 #include <functional>
 
-namespace ls {
+namespace lse {
 
 #define LS_FOR_EACH_STYLE_PROPERTY(APPLY) \
      APPLY(alignItems) \
@@ -210,12 +210,12 @@ const char* StylePropertyValueToString(StyleProperty property, int32_t value) no
 const char* StylePropertyValueDefault(StyleProperty property) noexcept;
 int32_t StylePropertyValueFromString(StyleProperty property, const char* value) noexcept;
 
-} // namespace ls
+} // namespace lse
 
 namespace std {
 template<>
-struct hash<ls::StyleProperty> {
-    std::size_t operator()(ls::StyleProperty value) const noexcept {
+struct hash<lse::StyleProperty> {
+    std::size_t operator()(lse::StyleProperty value) const noexcept {
         return static_cast<std::size_t>(value);
     }
 };

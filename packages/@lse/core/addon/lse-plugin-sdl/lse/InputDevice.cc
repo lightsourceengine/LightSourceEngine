@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/InputDevice.h>
+#include <lse/InputDevice.h>
 
 using Napi::CallbackInfo;
 using Napi::Function;
@@ -14,7 +14,7 @@ using Napi::Number;
 using Napi::String;
 using Napi::Value;
 
-namespace ls {
+namespace lse {
 
 Value InputDevice::GetId(const CallbackInfo& info) {
     return Number::New(info.Env(), this->id);
@@ -32,4 +32,4 @@ Value InputDevice::GetName(const CallbackInfo& info) {
     return String::New(info.Env(), this->name);
 }
 
-} // namespace ls
+} // namespace lse

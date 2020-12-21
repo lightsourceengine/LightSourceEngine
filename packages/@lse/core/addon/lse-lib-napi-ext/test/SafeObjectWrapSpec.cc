@@ -23,7 +23,7 @@ using Napi::TestInfo;
 using Napi::TestSuite;
 using Napi::Value;
 
-namespace ls {
+namespace lse {
 
 constexpr const auto STATIC_VALUE = 10;
 constexpr const auto INSTANCE_VALUE = 20;
@@ -487,4 +487,4 @@ void SafeObjectWrapSpec(TestSuite* parent) {
     };
 }
 
-} // namespace ls
+} // namespace lse

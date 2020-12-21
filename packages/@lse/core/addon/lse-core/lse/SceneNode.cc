@@ -4,29 +4,29 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/SceneNode.h>
+#include <lse/SceneNode.h>
 
 #include <cassert>
 #include <algorithm>
-#include <ls/Style.h>
-#include <ls/StyleContext.h>
-#include <ls/Scene.h>
-#include <ls/Stage.h>
-#include <ls/CompositeContext.h>
-#include <ls/Renderer.h>
-#include <ls/Log.h>
-#include <ls/RootSceneNode.h>
-#include <ls/BoxSceneNode.h>
-#include <ls/ImageSceneNode.h>
-#include <ls/TextSceneNode.h>
-#include <ls/LinkSceneNode.h>
-#include <ls/Timer.h>
-#include <ls/yoga-ext.h>
+#include <lse/Style.h>
+#include <lse/StyleContext.h>
+#include <lse/Scene.h>
+#include <lse/Stage.h>
+#include <lse/CompositeContext.h>
+#include <lse/Renderer.h>
+#include <lse/Log.h>
+#include <lse/RootSceneNode.h>
+#include <lse/BoxSceneNode.h>
+#include <lse/ImageSceneNode.h>
+#include <lse/TextSceneNode.h>
+#include <lse/LinkSceneNode.h>
+#include <lse/Timer.h>
+#include <lse/yoga-ext.h>
 
 // TODO: bindings should not be included here. scene nodes need to be refactored first
-#include <ls/bindings/JSScene.h>
-#include <ls/bindings/JSStyle.h>
-#include <ls/bindings/JSStyleClass.h>
+#include <lse/bindings/JSScene.h>
+#include <lse/bindings/JSStyle.h>
+#include <lse/bindings/JSStyleClass.h>
 
 using Napi::Array;
 using Napi::Boolean;
@@ -38,7 +38,7 @@ using Napi::Number;
 using Napi::Object;
 using Napi::Value;
 
-namespace ls {
+namespace lse {
 
 int32_t SceneNode::instanceCount{0};
 
@@ -402,8 +402,8 @@ void SceneNode::YogaNodeLayoutEvent(
     assert(node.getContext() != nullptr);
 
     if (node.getHasNewLayout()) {
-        static_cast<ls::SceneNode*>(node.getContext())->OnBoundingBoxChanged();
+        static_cast<lse::SceneNode*>(node.getContext())->OnBoundingBoxChanged();
     }
 }
 
-} // namespace ls
+} // namespace lse

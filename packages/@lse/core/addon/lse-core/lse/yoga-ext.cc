@@ -4,9 +4,9 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/yoga-ext.h>
+#include <lse/yoga-ext.h>
 
-namespace ls {
+namespace lse {
 
 Rect YGNodeGetBox(YGNodeConstRef node) noexcept {
     assert(node != nullptr);
@@ -86,4 +86,4 @@ const std::vector<YGNodeRef>& YGNodeGetChildren(YGNodeConstRef node) noexcept {
     return node->getChildren();
 }
 
-} // namespace ls
+} // namespace lse

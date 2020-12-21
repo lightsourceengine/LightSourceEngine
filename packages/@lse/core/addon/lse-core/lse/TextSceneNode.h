@@ -7,11 +7,11 @@
 #pragma once
 
 #include <napi-ext.h>
-#include <ls/SceneNode.h>
-#include <ls/TextBlock.h>
-#include <ls/types.h>
+#include <lse/SceneNode.h>
+#include <lse/TextBlock.h>
+#include <lse/types.h>
 
-namespace ls {
+namespace lse {
 
 class TextSceneNode final : public Napi::SafeObjectWrap<TextSceneNode>, public SceneNode {
  public:
@@ -43,4 +43,4 @@ class TextSceneNode final : public Napi::SafeObjectWrap<TextSceneNode>, public S
     TextBlock block{};
 };
 
-} // namespace ls
+} // namespace lse

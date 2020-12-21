@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/Math.h>
+#include <lse/Math.h>
 #include <napi-unit.h>
 
 #include <std20/numbers>
@@ -17,7 +17,7 @@ using Napi::TestSuite;
 
 constexpr auto PI = std20::pi_v<float>;
 
-namespace ls {
+namespace lse {
 
 void MatrixSpec(TestSuite* parent) {
     auto spec{ parent->Describe("Matrix") };
@@ -206,4 +206,4 @@ void MatrixSpec(TestSuite* parent) {
     };
 }
 
-} // namespace ls
+} // namespace lse

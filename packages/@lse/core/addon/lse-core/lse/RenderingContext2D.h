@@ -7,10 +7,10 @@
 
 #pragma once
 
-#include <ls/Color.h>
+#include <lse/Color.h>
 #include <blend2d.h>
 
-namespace ls {
+namespace lse {
 
 class Renderer;
 
@@ -53,4 +53,4 @@ class RenderingContext2D {
     BLFont font{};
 };
 
-} // namespace ls
+} // namespace lse

@@ -4,16 +4,16 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <ls/SDLRenderer.h>
+#include <lse/SDLRenderer.h>
 
 #include <array>
 #include <cstring>
-#include <ls/SDLUtil.h>
-#include <ls/PixelConversion.h>
-#include <ls/Log.h>
-#include <ls/string-ext.h>
+#include <lse/SDLUtil.h>
+#include <lse/PixelConversion.h>
+#include <lse/Log.h>
+#include <lse/string-ext.h>
 
-namespace ls {
+namespace lse {
 
 static const std::array<uint8_t, 4> kSinglePixelWhite{ 255, 255, 255, 255 };
 
@@ -56,26 +56,26 @@ void SDLRenderer::Present() {
 }
 
 void SDLRenderer::DrawFillRect(const Rect& rect, const Matrix& transform, const color_t fillColor) {
-    ls::DrawImage(this->renderer, this->fillRectTexture.Cast<SDL_Texture>(), rect, transform, fillColor);
+    lse::DrawImage(this->renderer, this->fillRectTexture.Cast<SDL_Texture>(), rect, transform, fillColor);
 }
 
 void SDLRenderer::DrawImage(const Texture& texture, const Rect& rect,
         const Matrix& transform, color_t tintColor) {
-    ls::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), rect, transform, tintColor);
+    lse::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), rect, transform, tintColor);
 }
 
 void SDLRenderer::DrawImage(const Texture& texture, const Rect& srcRect, const Rect& destRect,
         const Matrix& transform, color_t tintColor) {
-    ls::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), srcRect, destRect, transform, tintColor);
+    lse::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), srcRect, destRect, transform, tintColor);
 }
 
 void SDLRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) {
-    ls::DrawBorder(this->renderer, this->fillRectTexture.Cast<SDL_Texture>(), rect, border, transform, fillColor);
+    lse::DrawBorder(this->renderer, this->fillRectTexture.Cast<SDL_Texture>(), rect, border, transform, fillColor);
 }
 
 void SDLRenderer::DrawImage(const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
         const Matrix& transform, color_t tintColor) {
-    ls::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), capInsets, rect, transform, tintColor);
+    lse::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), capInsets, rect, transform, tintColor);
 }
 
 void SDLRenderer::FillRenderTarget(const color_t color) {
@@ -133,7 +133,7 @@ void SDLRenderer::DisableClipping() {
 }
 
 Texture SDLRenderer::CreateTexture(int32_t width, int32_t height, Texture::Type type) {
-    return ls::CreateTexture(this->renderer, width, height, type, this->textureFormat);
+    return lse::CreateTexture(this->renderer, width, height, type, this->textureFormat);
 }
 
 void SDLRenderer::SetRenderDrawColor(color_t color) noexcept {
@@ -152,7 +152,7 @@ void SDLRenderer::Attach(SDL_Window* window) {
         throw std::runtime_error(Format("Failed to create an SDL renderer. SDL Error: %s", SDL2::SDL_GetError()));
     }
 
-    this->fillRectTexture = ls::CreateTexture(this->renderer, 1, 1, Texture::Updatable, this->textureFormat);
+    this->fillRectTexture = lse::CreateTexture(this->renderer, 1, 1, Texture::Updatable, this->textureFormat);
     this->fillRectTexture.Update(kSinglePixelWhite.data(), kSinglePixelWhite.size() * sizeof(uint8_t));
 
     // TODO: check texture
@@ -203,4 +203,4 @@ void SDLRenderer::Destroy() {
     this->Detach();
 }
 
-} // namespace ls
+} // namespace lse

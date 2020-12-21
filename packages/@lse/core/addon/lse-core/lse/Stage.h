@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include <ls/Resources.h>
-#include <ls/ThreadPool.h>
+#include <lse/Resources.h>
+#include <lse/ThreadPool.h>
 
-namespace ls {
+namespace lse {
 
 /**
  * Application instance for a Light Source Engine app.
@@ -33,4 +33,4 @@ class Stage {
     mutable Resources resources;
 };
 
-} // namespace ls
+} // namespace lse

@@ -5,15 +5,15 @@
  * tree.
  */
 
-#include <ls/LinkSceneNode.h>
+#include <lse/LinkSceneNode.h>
 
 #include <cctype>
 #include <algorithm>
-#include <ls/Scene.h>
-#include <ls/Stage.h>
-#include <ls/Log.h>
-#include <ls/Uri.h>
-#include <ls/string-ext.h>
+#include <lse/Scene.h>
+#include <lse/Stage.h>
+#include <lse/Log.h>
+#include <lse/Uri.h>
+#include <lse/string-ext.h>
 
 using Napi::Error;
 using Napi::Function;
@@ -24,7 +24,7 @@ using Napi::Object;
 using Napi::ObjectReference;
 using Napi::String;
 
-namespace ls {
+namespace lse {
 
 Napi::FunctionReference LinkSceneNode::constructor;
 
@@ -291,4 +291,4 @@ LinkCategory LinkCategoryFromString(const char* value) {
     throw std::invalid_argument(value ? value : "null");
 }
 
-} // namespace ls
+} // namespace lse

@@ -11,7 +11,7 @@
 
 #include "PixelFormat.h"
 
-namespace ls {
+namespace lse {
 
 /**
  * GPU texture.
@@ -103,4 +103,4 @@ class Texture {
     Bridge* bridge{};
 };
 
-} // namespace ls
+} // namespace lse

@@ -9,7 +9,7 @@
 
 #define CHECK_IMPL(impl) if (!(impl)) { throw Napi::Error::New(info.Env(), "AudioPlugin is not initialized!"); }
 
-namespace ls {
+namespace lse {
 
 Napi::Function AudioPlugin::GetClass(Napi::Env env) {
     static Napi::FunctionReference constructor;
@@ -87,6 +87,6 @@ Napi::Value AudioPlugin::CreateStreamAudioDestination(const Napi::CallbackInfo& 
     return this->impl->CreateStreamAudioDestination(info);
 }
 
-} // namespace ls
+} // namespace lse
 
 #undef CHECK_IMPL
