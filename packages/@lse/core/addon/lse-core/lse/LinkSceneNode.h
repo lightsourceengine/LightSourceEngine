@@ -14,12 +14,12 @@
 
 namespace lse {
 
-LS_ENUM_SEQ_DECL(
+LSE_ENUM_SEQ_DECL(
     LinkRelationship,
     LinkRelationshipPreload
 )
 
-LS_ENUM_SEQ_DECL(
+LSE_ENUM_SEQ_DECL(
     LinkCategory,
     LinkCategoryAuto,
     LinkCategoryImage,

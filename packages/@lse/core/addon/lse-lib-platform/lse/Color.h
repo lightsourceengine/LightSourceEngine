@@ -21,7 +21,7 @@ union color_t {
   uint8_t channels[4];
 
   struct {
-#if LS_BYTE_ORDER == LS_LITTLE_ENDIAN
+#if LSE_BYTE_ORDER == LSE_LITTLE_ENDIAN
     uint8_t b;
     uint8_t g;
     uint8_t r;
@@ -38,7 +38,7 @@ union color_t {
   constexpr color_t(uint32_t color) noexcept: value(color) {}
 
 // XXX: work around compiler initialization order warnings
-#if LS_BYTE_ORDER == LS_LITTLE_ENDIAN
+#if LSE_BYTE_ORDER == LSE_LITTLE_ENDIAN
   constexpr color_t(uint32_t a, uint32_t r, uint32_t g, uint32_t b) noexcept
       : b(b & 0xFFu), g(g & 0xFFu), r(r & 0xFFu), a(a & 0xFFu) {}
 #else

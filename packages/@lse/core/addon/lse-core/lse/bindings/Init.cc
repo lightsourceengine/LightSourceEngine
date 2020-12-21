@@ -25,7 +25,7 @@
 #include <lse/bindings/Logger.h>
 #include <napi.h>
 
-#if defined(LS_ENABLE_NATIVE_TESTS)
+#if defined(LSE_ENABLE_NATIVE_TESTS)
 #include <test/LightSourceTestSuite.h>
 #endif
 
@@ -46,11 +46,11 @@ void ExportClass(Object exports, const Function& constructor) {
 Object Init(Env env, Object exports) {
   HandleScope scope(env);
 
-  auto logLevel = lse::GetEnvOrDefault("LS_LOG_LEVEL", "INFO");
+  auto logLevel = lse::GetEnvOrDefault("LSE_LOG_LEVEL", "INFO");
 
   if (!lse::SetLogLevel(logLevel)) {
     lse::SetLogLevel(lse::LogLevelInfo);
-    LOG_ERROR("LS_LOG_LEVEL contains invalid value of %s. Defaulting to INFO.", logLevel);
+    LOG_ERROR("LSE_LOG_LEVEL contains invalid value of %s. Defaulting to INFO.", logLevel);
   }
 
   lse::Style::Init();
@@ -84,7 +84,7 @@ Object Init(Env env, Object exports) {
   exports["logger"] = lse::bindings::NewLoggerClass(env);
   exports["styleProperties"] = lse::bindings::GetStyleProperties(env);
 
-#if defined(LS_ENABLE_NATIVE_TESTS)
+#if defined(LSE_ENABLE_NATIVE_TESTS)
   exports["test"] = lse::LightSourceTestSuite(env);
 #endif
 

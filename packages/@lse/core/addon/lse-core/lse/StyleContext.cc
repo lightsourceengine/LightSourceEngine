@@ -521,17 +521,17 @@ static void Set(YGNodeRef node, const StyleValue& styleValue, const StyleContext
 void StyleContext::SetYogaPropertyValue(Style* style, StyleProperty property, YGNodeRef target) const noexcept {
   const auto isDefined{ !style->IsEmpty(property) };
 
-#define LS_ENUM_OR(PROP, ENUM) isDefined ? style->GetEnum<ENUM>(StyleProperty::PROP) : kYogaStyleDefaults.PROP()
+#define LSE_ENUM_OR(PROP, ENUM) isDefined ? style->GetEnum<ENUM>(StyleProperty::PROP) : kYogaStyleDefaults.PROP()
 
   switch (property) {
     case StyleProperty::alignItems:
-      YGNodeStyleSetAlignItems(target, LS_ENUM_OR(alignItems, YGAlign));
+      YGNodeStyleSetAlignItems(target, LSE_ENUM_OR(alignItems, YGAlign));
       break;
     case StyleProperty::alignContent:
-      YGNodeStyleSetAlignContent(target, LS_ENUM_OR(alignContent, YGAlign));
+      YGNodeStyleSetAlignContent(target, LSE_ENUM_OR(alignContent, YGAlign));
       break;
     case StyleProperty::alignSelf:
-      YGNodeStyleSetAlignSelf(target, LS_ENUM_OR(alignSelf, YGAlign));
+      YGNodeStyleSetAlignSelf(target, LSE_ENUM_OR(alignSelf, YGAlign));
       break;
     case StyleProperty::border:
       Set<YGApplyEdge<YGEdgeAll, YGNodeStyleSetBorder>>(target, style->GetNumber(property), this);
@@ -553,7 +553,7 @@ void StyleContext::SetYogaPropertyValue(Style* style, StyleProperty property, YG
           target, style->GetNumber(property), this);
       break;
     case StyleProperty::display:
-      YGNodeStyleSetDisplay(target, LS_ENUM_OR(display, YGDisplay));
+      YGNodeStyleSetDisplay(target, LSE_ENUM_OR(display, YGDisplay));
       break;
     case StyleProperty::flex:
       Set<YGApply<YGNodeStyleSetFlex>>(target, style->GetNumber(property), this);
@@ -563,7 +563,7 @@ void StyleContext::SetYogaPropertyValue(Style* style, StyleProperty property, YG
           target, isDefined ? style->GetNumber(property) : StyleValue::OfAuto(), this);
       break;
     case StyleProperty::flexDirection:
-      YGNodeStyleSetFlexDirection(target, LS_ENUM_OR(flexDirection, YGFlexDirection));
+      YGNodeStyleSetFlexDirection(target, LSE_ENUM_OR(flexDirection, YGFlexDirection));
       break;
     case StyleProperty::flexGrow:
       Set<YGApply<YGNodeStyleSetFlexGrow>>(target, style->GetNumber(property), this);
@@ -572,14 +572,14 @@ void StyleContext::SetYogaPropertyValue(Style* style, StyleProperty property, YG
       Set<YGApply<YGNodeStyleSetFlexShrink>>(target, style->GetNumber(property), this);
       break;
     case StyleProperty::flexWrap:
-      YGNodeStyleSetFlexWrap(target, LS_ENUM_OR(flexWrap, YGWrap));
+      YGNodeStyleSetFlexWrap(target, LSE_ENUM_OR(flexWrap, YGWrap));
       break;
     case StyleProperty::height:
       Set<YGApply<YGNodeStyleSetHeight, YGNodeStyleSetHeightPercent, YGNodeStyleSetHeightAuto>>(
           target, isDefined ? style->GetNumber(property) : StyleValue::OfAuto(), this);
       break;
     case StyleProperty::justifyContent:
-      YGNodeStyleSetJustifyContent(target, LS_ENUM_OR(justifyContent, YGJustify));
+      YGNodeStyleSetJustifyContent(target, LSE_ENUM_OR(justifyContent, YGJustify));
       break;
     case StyleProperty::left:
       Set<YGApplyEdge<YGEdgeLeft, YGNodeStyleSetPosition, YGNodeStyleSetPositionPercent>>(
@@ -622,7 +622,7 @@ void StyleContext::SetYogaPropertyValue(Style* style, StyleProperty property, YG
           target, style->GetNumber(property), this);
       break;
     case StyleProperty::overflow:
-      YGNodeStyleSetOverflow(target, LS_ENUM_OR(overflow, YGOverflow));
+      YGNodeStyleSetOverflow(target, LSE_ENUM_OR(overflow, YGOverflow));
       break;
     case StyleProperty::padding:
       Set<YGApplyEdge<YGEdgeAll, YGNodeStyleSetPadding, YGNodeStyleSetPaddingPercent>>(
@@ -665,7 +665,7 @@ void StyleContext::SetYogaPropertyValue(Style* style, StyleProperty property, YG
       break;
   }
 
-#undef LS_ENUM_OR
+#undef LSE_ENUM_OR
 }
 
 } // namespace lse

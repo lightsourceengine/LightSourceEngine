@@ -9,8 +9,8 @@
 
 #include <memory>
 
-#define LS_EXPECT_NULL(EXPR, MESSAGE) if ((EXPR) != nullptr) { throw std::runtime_error(MESSAGE); }
-#define LS_EXPECT_NOT_NULL(EXPR, MESSAGE) if ((EXPR) == nullptr) { throw std::runtime_error(MESSAGE); }
+#define LSE_EXPECT_NULL(EXPR, MESSAGE) if ((EXPR) != nullptr) { throw std::runtime_error(MESSAGE); }
+#define LSE_EXPECT_NOT_NULL(EXPR, MESSAGE) if ((EXPR) == nullptr) { throw std::runtime_error(MESSAGE); }
 
 namespace lse {
 

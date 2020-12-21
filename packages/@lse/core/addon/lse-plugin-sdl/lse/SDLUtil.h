@@ -90,7 +90,7 @@ constexpr PixelFormat ToPixelFormat(uint32_t pixelFormat) noexcept {
 
 /** @returns SDL pixel format representation; otherwise SDL_PIXELFORMAT_UNKNOWN */
 constexpr uint32_t ToSDLPixelFormat(PixelFormat format) noexcept {
-#if LS_BYTE_ORDER == LS_BIG_ENDIAN
+#if LSE_BYTE_ORDER == LSE_BIG_ENDIAN
   switch (format) {
       case PixelFormatRGBA:
           return SDL_PIXELFORMAT_RGBA8888;

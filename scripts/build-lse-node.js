@@ -626,18 +626,18 @@ class SourceRoot {
       // inherit the environment
       ...process.env,
       // use all the power
-      npm_config_ls_install_opts: '--jobs max',
+      npm_config_lse_install_opts: '--jobs max',
       // enable all plugins, include ref
       // TODO: disable ref for release builds?
       // TODO: this list must be kept in sync!
-      ls_enable_plugin_platform_sdl: 1,
-      ls_enable_plugin_platform_ref: 1,
-      ls_enable_plugin_audio_sdl_audio: 1,
-      ls_enable_plugin_audio_sdl_mixer: 1,
-      ls_enable_plugin_audio_ref: 1,
+      lse_enable_plugin_platform_sdl: 1,
+      lse_enable_plugin_platform_ref: 1,
+      lse_enable_plugin_audio_sdl_audio: 1,
+      lse_enable_plugin_audio_sdl_mixer: 1,
+      lse_enable_plugin_audio_ref: 1,
       // disable tests
-      npm_config_ls_enable_native_tests: 0,
-      // TODO: (not supported yet) env.npm_config_ls_asmjit_build = 'arm'
+      npm_config_lse_enable_native_tests: 0,
+      // TODO: (not supported yet) env.npm_config_lse_asmjit_build = 'arm'
     }
 
     let program

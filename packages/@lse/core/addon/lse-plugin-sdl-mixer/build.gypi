@@ -13,8 +13,8 @@
         "../lse-lib-audio",
         "../lse-lib-util",
         "../deps/cpp17_headers/include",
-        "<(ls_sdl_include)",
-        "<(ls_sdl_mixer_include)"
+        "<(lse_sdl_include)",
+        "<(lse_sdl_mixer_include)"
       ],
       "dependencies": [
           "lse-lib-napi-ext",

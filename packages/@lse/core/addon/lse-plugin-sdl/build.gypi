@@ -10,7 +10,7 @@
         ".",
         "../lse-lib-napi-ext",
         "../lse-lib-logger",
-        "<(ls_sdl_include)",
+        "<(lse_sdl_include)",
         "../deps/cpp17_headers/include",
         "../lse-lib-platform",
         "../lse-lib-util"

@@ -7,7 +7,7 @@ export LSE_PATH="${LIB_DIR}/builtin"
 export LSE_ENV="lse-node"
 
 # mac only
-export LS_RUNTIME_FRAMEWORK_PATH="${LS_RUNTIME_FRAMEWORK_PATH:-"${LIB_DIR}/Frameworks"}"
+export LSE_RUNTIME_FRAMEWORK_PATH="${LSE_RUNTIME_FRAMEWORK_PATH:-"${LIB_DIR}/Frameworks"}"
 
 # linux only
 export LD_LIBRARY_PATH="${LIB_DIR}/native:${LD_LIBRARY_PATH}"

@@ -257,7 +257,7 @@ const char* StylePropertyToString(StyleProperty property) noexcept {
 #define TO_STRING(PROP) case StyleProperty::PROP: return #PROP;
 
   switch (property) {
-    LS_FOR_EACH_STYLE_PROPERTY(TO_STRING)
+    LSE_FOR_EACH_STYLE_PROPERTY(TO_STRING)
   }
 
 #undef TO_STRING

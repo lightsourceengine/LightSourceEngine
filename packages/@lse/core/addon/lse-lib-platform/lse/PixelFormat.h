@@ -14,7 +14,7 @@ namespace lse {
 /**
  * Pixel formats used for texture creation.
  */
-LS_ENUM_SEQ_DECL(
+LSE_ENUM_SEQ_DECL(
     PixelFormat,
 /* 4 channel, 32 bit, RGBA */
     PixelFormatRGBA,

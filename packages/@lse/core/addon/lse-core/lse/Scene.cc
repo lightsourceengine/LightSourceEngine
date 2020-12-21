@@ -82,20 +82,20 @@ void Scene::Frame() {
 }
 
 void Scene::SetRoot(RootSceneNode* rootSceneNode) {
-  LS_EXPECT_NULL(this->root, "root has already been set");
+  LSE_EXPECT_NULL(this->root, "root has already been set");
 
   this->root = rootSceneNode;
   this->root->Ref();
 }
 
 void Scene::SetStage(const StageRef& stageRef) {
-  LS_EXPECT_NULL(this->stage, "stage has already been set");
+  LSE_EXPECT_NULL(this->stage, "stage has already been set");
 
   this->stage = stageRef;
 }
 
 void Scene::SetGraphicsContext(GraphicsContext* graphicsContext) {
-  LS_EXPECT_NULL(this->graphicsContext, "graphics context has already been set");
+  LSE_EXPECT_NULL(this->graphicsContext, "graphics context has already been set");
 
   this->graphicsContext = graphicsContext;
   this->graphicsContext->Ref();

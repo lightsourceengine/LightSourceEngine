@@ -1,25 +1,25 @@
 {
   "variables": {
-    "ls_enable_plugin_platform_sdl%": "1",
-    "ls_enable_plugin_platform_ref%": "1",
-    "ls_enable_plugin_audio_sdl_audio%": "1",
-    "ls_enable_plugin_audio_sdl_mixer%": "1",
-    "ls_enable_plugin_audio_ref%": "1",
-    "ls_sdl_include%": "addon/deps/SDL/repo/include",
-    "ls_sdl_mixer_include%": "addon/deps/SDL_mixer/repo",
+    "lse_enable_plugin_platform_sdl%": "1",
+    "lse_enable_plugin_platform_ref%": "1",
+    "lse_enable_plugin_audio_sdl_audio%": "1",
+    "lse_enable_plugin_audio_sdl_mixer%": "1",
+    "lse_enable_plugin_audio_ref%": "1",
+    "lse_sdl_include%": "addon/deps/SDL/repo/include",
+    "lse_sdl_mixer_include%": "addon/deps/SDL_mixer/repo",
     # note: enable_native_tests variable is set in set-enable-native-tests.gypi
-    "ls_enable_native_tests%": "0",
+    "lse_enable_native_tests%": "0",
   },
   "target_defaults": {
     "include_dirs": [
       "<!@(node -p \"require('node-addon-api').include\")",
     ],
     "conditions": [
-      [ "ls_enable_plugin_platform_sdl==1", { "defines": [ "LS_ENABLE_PLUGIN_PLATFORM_SDL" ] } ],
-      [ "ls_enable_plugin_platform_ref==1", { "defines": [ "LS_ENABLE_PLUGIN_PLATFORM_REF" ] } ],
-      [ "ls_enable_plugin_audio_sdl_audio==1", { "defines": [ "LS_ENABLE_PLUGIN_AUDIO_SDL_AUDIO" ] } ],
-      [ "ls_enable_plugin_audio_sdl_mixer==1", { "defines": [ "LS_ENABLE_PLUGIN_AUDIO_SDL_MIXER" ] } ],
-      [ "ls_enable_plugin_audio_ref==1", { "defines": [ "LS_ENABLE_PLUGIN_AUDIO_REF" ] } ],
+      [ "lse_enable_plugin_platform_sdl==1", { "defines": [ "LSE_ENABLE_PLUGIN_PLATFORM_SDL" ] } ],
+      [ "lse_enable_plugin_platform_ref==1", { "defines": [ "LSE_ENABLE_PLUGIN_PLATFORM_REF" ] } ],
+      [ "lse_enable_plugin_audio_sdl_audio==1", { "defines": [ "LSE_ENABLE_PLUGIN_AUDIO_SDL_AUDIO" ] } ],
+      [ "lse_enable_plugin_audio_sdl_mixer==1", { "defines": [ "LSE_ENABLE_PLUGIN_AUDIO_SDL_MIXER" ] } ],
+      [ "lse_enable_plugin_audio_ref==1", { "defines": [ "LSE_ENABLE_PLUGIN_AUDIO_REF" ] } ],
     ]
   },
   "includes": [

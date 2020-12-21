@@ -9,7 +9,7 @@
 #include <cstdint>
 
 // Generates ToString<T>() and FromString<T>() mapping functions for an enum.
-#define LS_ENUM_STRING_MAPPING(NAME) \
+#define LSE_ENUM_STRING_MAPPING(NAME) \
     const char* NAME##ToString(NAME) noexcept; \
     NAME NAME##FromString(const char*); \
     template <> \
@@ -22,13 +22,13 @@
     }
 
 // Generates an enum declaration with associates ToString<T>() and FromString<T>() mapping functions.
-#define LS_ENUM_SEQ_DECL(NAME, ...)  \
+#define LSE_ENUM_SEQ_DECL(NAME, ...)  \
     enum NAME {__VA_ARGS__};         \
         template <> \
     constexpr int32_t Count<NAME>() noexcept { \
         return internal::CountMacroVariadicArgs<__VA_ARGS__>(); \
     } \
-    LS_ENUM_STRING_MAPPING(NAME)
+    LSE_ENUM_STRING_MAPPING(NAME)
 
 namespace lse {
 

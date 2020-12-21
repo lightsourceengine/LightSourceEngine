@@ -12,34 +12,34 @@
 
 namespace lse {
 
-LS_ENUM_SEQ_DECL(
+LSE_ENUM_SEQ_DECL(
     StyleFontWeight,
     StyleFontWeightNormal,
     StyleFontWeightBold
 )
 
-LS_ENUM_SEQ_DECL(
+LSE_ENUM_SEQ_DECL(
     StyleFontStyle,
     StyleFontStyleNormal,
     StyleFontStyleItalic,
     StyleFontStyleOblique
 )
 
-LS_ENUM_SEQ_DECL(
+LSE_ENUM_SEQ_DECL(
     StyleTextOverflow,
     StyleTextOverflowNone,
     StyleTextOverflowClip,
     StyleTextOverflowEllipsis
 )
 
-LS_ENUM_SEQ_DECL(
+LSE_ENUM_SEQ_DECL(
     StyleTextAlign,
     StyleTextAlignLeft,
     StyleTextAlignCenter,
     StyleTextAlignRight
 )
 
-LS_ENUM_SEQ_DECL(
+LSE_ENUM_SEQ_DECL(
     StyleObjectFit,
     StyleObjectFitFill,
     StyleObjectFitContain,
@@ -48,21 +48,21 @@ LS_ENUM_SEQ_DECL(
     StyleObjectFitScaleDown
 )
 
-LS_ENUM_SEQ_DECL(
+LSE_ENUM_SEQ_DECL(
     StyleBackgroundClip,
     StyleBackgroundClipBorderBox,
     StyleBackgroundClipPaddingBox,
     StyleBackgroundClipContentBox
 )
 
-LS_ENUM_SEQ_DECL(
+LSE_ENUM_SEQ_DECL(
     StyleTextTransform,
     StyleTextTransformNone,
     StyleTextTransformUppercase,
     StyleTextTransformLowercase
 )
 
-LS_ENUM_SEQ_DECL(
+LSE_ENUM_SEQ_DECL(
     StyleAnchor,
     StyleAnchorTop,
     StyleAnchorRight,
@@ -71,7 +71,7 @@ LS_ENUM_SEQ_DECL(
     StyleAnchorCenter
 )
 
-LS_ENUM_SEQ_DECL(
+LSE_ENUM_SEQ_DECL(
     StyleBackgroundRepeat,
     StyleBackgroundRepeatOff,
     StyleBackgroundRepeatXY,
@@ -79,14 +79,14 @@ LS_ENUM_SEQ_DECL(
     StyleBackgroundRepeatY
 )
 
-LS_ENUM_SEQ_DECL(
+LSE_ENUM_SEQ_DECL(
     StyleBackgroundSize,
     StyleBackgroundSizeNone,
     StyleBackgroundSizeCover,
     StyleBackgroundSizeContain
 )
 
-LS_ENUM_SEQ_DECL(
+LSE_ENUM_SEQ_DECL(
     StyleNumberUnit,
     StyleNumberUnitUndefined,
     StyleNumberUnitPoint,
@@ -104,7 +104,7 @@ LS_ENUM_SEQ_DECL(
     StyleNumberUnitTurn
 )
 
-LS_ENUM_SEQ_DECL(
+LSE_ENUM_SEQ_DECL(
     StyleTransform,
     StyleTransformIdentity,
     StyleTransformTranslate,
@@ -117,7 +117,7 @@ constexpr const float DEFAULT_REM_FONT_SIZE = 16.f;
 
 // Add ToString, FromString and Count to Yoga enum types for a consistent enum interface across style properties.
 
-#define LS_GEN_ENUM_FUNCTIONS(ENUM)                          \
+#define LSE_GEN_ENUM_FUNCTIONS(ENUM)                          \
     ENUM ENUM##FromString(const char* value);                \
     template<>                                               \
     inline ENUM FromString(const char* value) {              \
@@ -132,17 +132,17 @@ constexpr const float DEFAULT_REM_FONT_SIZE = 16.f;
         return facebook::yoga::enums::count<ENUM>();         \
     }
 
-LS_GEN_ENUM_FUNCTIONS(YGAlign)
-LS_GEN_ENUM_FUNCTIONS(YGDisplay)
-LS_GEN_ENUM_FUNCTIONS(YGFlexDirection)
-LS_GEN_ENUM_FUNCTIONS(YGJustify)
-LS_GEN_ENUM_FUNCTIONS(YGOverflow)
-LS_GEN_ENUM_FUNCTIONS(YGPositionType)
-LS_GEN_ENUM_FUNCTIONS(YGWrap)
+LSE_GEN_ENUM_FUNCTIONS(YGAlign)
+LSE_GEN_ENUM_FUNCTIONS(YGDisplay)
+LSE_GEN_ENUM_FUNCTIONS(YGFlexDirection)
+LSE_GEN_ENUM_FUNCTIONS(YGJustify)
+LSE_GEN_ENUM_FUNCTIONS(YGOverflow)
+LSE_GEN_ENUM_FUNCTIONS(YGPositionType)
+LSE_GEN_ENUM_FUNCTIONS(YGWrap)
 
-#undef LS_GEN_ENUM_FUNCTIONS
+#undef LSE_GEN_ENUM_FUNCTIONS
 
-// Checks if an int32_t can be cast to an enum of type T. The enum must have been declared with LS_ENUM_SEQ_DECL to
+// Checks if an int32_t can be cast to an enum of type T. The enum must have been declared with LSE_ENUM_SEQ_DECL to
 // be compatible with this function.
 template<typename T>
 constexpr bool IsValidEnum(int32_t value) {

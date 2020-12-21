@@ -12,7 +12,7 @@
 
 namespace lse {
 
-#define LS_FOR_EACH_STYLE_PROPERTY(APPLY) \
+#define LSE_FOR_EACH_STYLE_PROPERTY(APPLY) \
      APPLY(alignItems) \
      APPLY(alignContent) \
      APPLY(alignSelf) \
@@ -86,22 +86,22 @@ namespace lse {
      APPLY(transformOriginY) \
      APPLY(zIndex)
 
-#define LS_ADD_ENUM(ENUM) ENUM,
+#define LSE_ADD_ENUM(ENUM) ENUM,
 
 enum StyleProperty {
-  LS_FOR_EACH_STYLE_PROPERTY(LS_ADD_ENUM)
+  LSE_FOR_EACH_STYLE_PROPERTY(LSE_ADD_ENUM)
 };
 
-LS_ENUM_STRING_MAPPING(StyleProperty)
+LSE_ENUM_STRING_MAPPING(StyleProperty)
 
 template<>
 constexpr int32_t Count<StyleProperty>() noexcept {
-  // Note: LS_FOR_EACH_STYLE_PROPERTY(LS_ADD_ENUM) ends with ',', so a placeholder 0 is appended and
+  // Note: LSE_FOR_EACH_STYLE_PROPERTY(LSE_ADD_ENUM) ends with ',', so a placeholder 0 is appended and
   //       subtracted from count.
-  return internal::CountMacroVariadicArgs<LS_FOR_EACH_STYLE_PROPERTY(LS_ADD_ENUM) 0>() - 1;
+  return internal::CountMacroVariadicArgs<LSE_FOR_EACH_STYLE_PROPERTY(LSE_ADD_ENUM) 0>() - 1;
 }
 
-#undef LS_ADD_ENUM
+#undef LSE_ADD_ENUM
 
 constexpr const uint32_t StylePropertyMetaGroupExtended = 0;
 constexpr const uint32_t StylePropertyMetaGroupYoga = 1u << 0u;

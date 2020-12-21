@@ -18,7 +18,7 @@
 namespace lse {
 
 Resource::ResourceId Resource::nextResourceId{ 1 };
-constexpr const std::size_t LS_MAX_FONTS = 9;
+constexpr const std::size_t kMaxFonts = 9;
 
 Resource::Resource(const std::string& tag) : id(nextResourceId++), tag(tag) {
   const auto t{ GetUriScheme(tag) };
@@ -333,7 +333,7 @@ Font FontFace::GetFont(float fontSize) {
 
     this->fontsBySize.push_front(font);
 
-    if (this->fontsBySize.size() > LS_MAX_FONTS) {
+    if (this->fontsBySize.size() > kMaxFonts) {
       this->fontsBySize.pop_back();
     }
   } else {

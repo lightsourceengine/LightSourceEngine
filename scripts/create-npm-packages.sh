@@ -71,7 +71,7 @@ test_npm_install() {
   mkdir -p "${TEST_DIR}"
 
   _pushd "${TEST_DIR}"
-  export npm_config_ls_install_opts="--jobs max"
+  export npm_config_lse_install_opts="--jobs max"
   echo "{\"dependencies\": { \"@lse/core\": \"../publishable/lse-core-${PUBLISHING_VERSION}.tgz\" }}" > package.json
   rm -rf ./empty-cache
   npm install --cache ./empty-cache

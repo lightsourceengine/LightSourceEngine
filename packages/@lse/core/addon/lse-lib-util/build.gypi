@@ -12,8 +12,8 @@
         "../lse-lib-logger",
         "../deps/filesystem/include",
         "../deps/cpp17_headers/include",
-        "<(ls_sdl_include)",
-        "<(ls_sdl_mixer_include)",
+        "<(lse_sdl_include)",
+        "<(lse_sdl_mixer_include)",
       ],
       "dependencies": [
           "lse-lib-napi-ext",
@@ -44,8 +44,8 @@
             "../lse-lib-logger",
             "../deps/filesystem/include",
             "../deps/cpp17_headers/include",
-            "<(ls_sdl_include)",
-            "<(ls_sdl_mixer_include)",
+            "<(lse_sdl_include)",
+            "<(lse_sdl_mixer_include)",
             "<!@(node -p \"require('napi-unit').include\")"
           ],
           "dependencies": [

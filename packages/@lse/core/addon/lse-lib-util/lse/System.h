@@ -31,15 +31,15 @@ constexpr const bool kIsMac = false;
 
 // Endianness API
 
-#define LS_LITTLE_ENDIAN 0
-#define LS_BIG_ENDIAN 1
+#define LSE_LITTLE_ENDIAN 0
+#define LSE_BIG_ENDIAN 1
 
 #if (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__))
-#define LS_BYTE_ORDER LS_BIG_ENDIAN
+#define LSE_BYTE_ORDER LSE_BIG_ENDIAN
 constexpr const bool kIsBigEndian = true;
 constexpr const bool kIsLittleEndian = false;
 #else
-#define LS_BYTE_ORDER LS_LITTLE_ENDIAN
+#define LSE_BYTE_ORDER LSE_LITTLE_ENDIAN
 constexpr const bool kIsBigEndian = false;
 constexpr const bool kIsLittleEndian = true;
 #endif

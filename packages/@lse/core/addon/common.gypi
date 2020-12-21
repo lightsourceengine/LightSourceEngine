@@ -1,6 +1,6 @@
 {
   "variables": {
-    "ls_asmjit_build%": "host"
+    "lse_asmjit_build%": "host"
   },
   "cflags_cc!": [
     "-fno-exceptions",
@@ -42,14 +42,14 @@
       }
     ],
     [
-      "ls_asmjit_build==\"arm\"", {
+      "lse_asmjit_build==\"arm\"", {
         "defines": [
           "ASMJIT_BUILD_ARM=1"
         ]
       }
     ],
     [
-      "ls_asmjit_build==\"x86\"", {
+      "lse_asmjit_build==\"x86\"", {
         "defines": [
           "ASMJIT_BUILD_X86=1"
         ]

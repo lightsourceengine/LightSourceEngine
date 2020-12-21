@@ -29,7 +29,7 @@ Function JSStyle::GetClass(Napi::Env env) {
   if (jsStyleConstructor.IsEmpty()) {
     HandleScope scope(env);
 
-#define LS_PROP(ENUM) InstanceAccessor(                                         \
+#define LSE_PROP(ENUM) InstanceAccessor(                                         \
             ToString(StyleProperty::ENUM),                                              \
             [](JSStyle* instance, const CallbackInfo& info) {                           \
                 return instance->Get(StyleProperty::ENUM, info);                        \
@@ -41,10 +41,10 @@ Function JSStyle::GetClass(Napi::Env env) {
     jsStyleConstructor = DefineClass(env, "Style", true, {
         InstanceMethod("reset", &JSStyle::Reset),
         InstanceMethod(Napi::SymbolFor(env, "bindStyleClass"), &JSStyle::BindStyleClass),
-        LS_FOR_EACH_STYLE_PROPERTY(LS_PROP)
+        LSE_FOR_EACH_STYLE_PROPERTY(LSE_PROP)
     });
 
-#undef LS_PROP
+#undef LSE_PROP
   }
 
   return jsStyleConstructor.Value();

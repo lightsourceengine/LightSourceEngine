@@ -3,7 +3,7 @@ node_js: 14
 dist: xenial
 env:
   global:
-    - npm_config_ls_install_opts="--jobs max"
+    - npm_config_lse_install_opts="--jobs max"
     - NODE_DOWNLOADS="${HOME}/node_downloads"
     - LSE_CACHE="${HOME}/lse-cache"
     - CROSSTOOLS_HOME="${LSE_CACHE}/crosstools"
@@ -20,7 +20,7 @@ matrix:
     - name: "windows-x64 [full-build]"
       node_js: 14
       os: windows
-      env: YARN_GPG=no npm_config_ls_enable_native_tests=1
+      env: YARN_GPG=no npm_config_lse_enable_native_tests=1
       before_install: set -e
       install: yarn --force
       script: skip
@@ -41,7 +41,7 @@ matrix:
         - test $TRAVIS_BRANCH = "master" && aws s3 cp build "s3://${ARTIFACTS_BUCKET}${ARTIFACTS_TARGET_PATHS}/build" --recursive
     - name: "linux-x64 [full-build]"
       os: linux
-      env: npm_config_ls_enable_native_tests=1
+      env: npm_config_lse_enable_native_tests=1
       addons:
         apt:
           sources: [ubuntu-toolchain-r-test]
@@ -60,7 +60,7 @@ matrix:
         - ./scripts/create-npm-packages.sh --skip-yarn-install
     - name: "darwin-x64 [full-build]"
       os: osx
-      env: npm_config_ls_enable_native_tests=1
+      env: npm_config_lse_enable_native_tests=1
       install: yarn --force
       script: yarn run lint
     - name: "darwin-x64 [lse-node]"
