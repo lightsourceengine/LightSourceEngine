@@ -20,16 +20,16 @@ static internal::SharedLibrary sLibrary{};
 DYNAMIC_FOR_EACH_MIX_FUNCTION(DYNAMIC_MIX_FUNCTION_PTR)
 
 void Open(const char* library) {
-    sLibrary.Open(library);
-    DYNAMIC_FOR_EACH_MIX_FUNCTION(DYNAMIC_LOAD_MIX_FUNCTION)
+  sLibrary.Open(library);
+  DYNAMIC_FOR_EACH_MIX_FUNCTION(DYNAMIC_LOAD_MIX_FUNCTION)
 }
 
 bool IsOpen() noexcept {
-    return sLibrary.IsOpen();
+  return sLibrary.IsOpen();
 }
 
 void Close() noexcept {
-    sLibrary.Close();
+  sLibrary.Close();
 }
 
 } // namespace mixer

@@ -9,76 +9,76 @@
 namespace lse {
 
 ThreadPool::ThreadPool() {
-    auto concurrency{ std::thread::hardware_concurrency() };
+  auto concurrency{ std::thread::hardware_concurrency() };
 
-    if (concurrency <= 0) {
-        concurrency = 1u;
-    } else {
-        concurrency = std::min(concurrency, 4u);
-    }
+  if (concurrency <= 0) {
+    concurrency = 1u;
+  } else {
+    concurrency = std::min(concurrency, 4u);
+  }
 
-    this->threadPool.reserve(concurrency);
+  this->threadPool.reserve(concurrency);
 
-    for (auto i{ 0u }; i < concurrency; i++) {
-        auto worker = std::thread([this]() {
-            std::function<void()> work;
+  for (auto i{ 0u }; i < concurrency; i++) {
+    auto worker = std::thread([this]() {
+      std::function<void()> work;
 
-            while (this->running) {
-                this->workQueue.wait_dequeue(work);
+      while (this->running) {
+        this->workQueue.wait_dequeue(work);
 
-                // Shutdown inserts nullptr to indicate worker threads should shutdown.
-                if (!work) {
-                    break;
-                }
+        // Shutdown inserts nullptr to indicate worker threads should shutdown.
+        if (!work) {
+          break;
+        }
 
-                try {
-                     work();
-                } catch (const std::exception&) {
-                    // TODO: ???
-                }
-            }
-        });
+        try {
+          work();
+        } catch (const std::exception&) {
+          // TODO: ???
+        }
+      }
+    });
 
-        this->threadPool.emplace_back(std::move(worker));
-    }
+    this->threadPool.emplace_back(std::move(worker));
+  }
 }
 
 ThreadPool::~ThreadPool() {
-    this->ShutdownNow();
+  this->ShutdownNow();
 }
 
 void ThreadPool::Execute(std::function<void()>&& work) {
-    assert(!!work);
-    assert(this->running);
+  assert(!!work);
+  assert(this->running);
 
-    this->workQueue.enqueue(std::move(work));
+  this->workQueue.enqueue(std::move(work));
 }
 
 void ThreadPool::ShutdownNow() {
-    if (!this->running) {
-        return;
-    }
+  if (!this->running) {
+    return;
+  }
 
-    // this may trigger some threads to terminate
-    this->running = false;
+  // this may trigger some threads to terminate
+  this->running = false;
 
-    // when a thread sees a null task, it will return
-    std::for_each(this->threadPool.begin(), this->threadPool.end(), [this](std::thread&){
-        this->workQueue.enqueue(nullptr);
-    });
+  // when a thread sees a null task, it will return
+  std::for_each(this->threadPool.begin(), this->threadPool.end(), [this](std::thread&) {
+    this->workQueue.enqueue(nullptr);
+  });
 
-    // join all the threads
-    std::for_each(this->threadPool.begin(), this->threadPool.end(), [](std::thread& t){
-        t.join();
-    });
+  // join all the threads
+  std::for_each(this->threadPool.begin(), this->threadPool.end(), [](std::thread& t) {
+    t.join();
+  });
 
-    this->threadPool.clear();
+  this->threadPool.clear();
 
-    std::function<void()> work;
+  std::function<void()> work;
 
-    // drain the work queue
-    while (workQueue.try_dequeue(work)) {
-    }
+  // drain the work queue
+  while (workQueue.try_dequeue(work)) {
+  }
 }
 
 } // namespace lse

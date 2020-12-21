@@ -13,15 +13,15 @@ namespace lse {
 
 template<typename T>
 CStringHashMap<T> LoadFromStringMap() {
-    CStringHashMap<T> map;
+  CStringHashMap<T> map;
 
-    for (int32_t i = 0; i < Count<T>(); i++) {
-        auto e{ static_cast<T>(i) };
+  for (int32_t i = 0; i < Count<T>(); i++) {
+    auto e{ static_cast<T>(i) };
 
-        map.insert(std::make_pair(ToString(e), e));
-    }
+    map.insert(std::make_pair(ToString(e), e));
+  }
 
-    return map;
+  return map;
 }
 
 static auto sStyleFontStyleFromString = LoadFromStringMap<StyleFontStyle>();
@@ -43,39 +43,39 @@ static auto sYGWrapFromString = LoadFromStringMap<YGWrap>();
 static auto sYGPositionTypeFromString = LoadFromStringMap<YGPositionType>();
 
 const char* StyleFontWeightToString(const StyleFontWeight value) noexcept {
-    switch (value) {
-        case StyleFontWeightNormal:
-            return "normal";
-        case StyleFontWeightBold:
-            return "bold";
-    }
-    return "unknown";
+  switch (value) {
+    case StyleFontWeightNormal:
+      return "normal";
+    case StyleFontWeightBold:
+      return "bold";
+  }
+  return "unknown";
 }
 
 const char* StyleFontStyleToString(const StyleFontStyle value) noexcept {
-    switch (value) {
-        case StyleFontStyleNormal:
-            return "normal";
-        case StyleFontStyleItalic:
-            return "italic";
-        case StyleFontStyleOblique:
-            return "oblique";
-    }
-    return "unknown";
+  switch (value) {
+    case StyleFontStyleNormal:
+      return "normal";
+    case StyleFontStyleItalic:
+      return "italic";
+    case StyleFontStyleOblique:
+      return "oblique";
+  }
+  return "unknown";
 }
 
 const char* ToString(const StyleFontStyle value) noexcept {
-    return StyleFontStyleToString(value);
+  return StyleFontStyleToString(value);
 }
 
 const char* StyleTextOverflowToString(const StyleTextOverflow value) noexcept {
   switch (value) {
     case StyleTextOverflowNone:
-        return "none";
+      return "none";
     case StyleTextOverflowClip:
-        return "clip";
+      return "clip";
     case StyleTextOverflowEllipsis:
-        return "ellipsis";
+      return "ellipsis";
   }
   return "unknown";
 }
@@ -83,11 +83,11 @@ const char* StyleTextOverflowToString(const StyleTextOverflow value) noexcept {
 const char* StyleTextAlignToString(const StyleTextAlign value) noexcept {
   switch (value) {
     case StyleTextAlignLeft:
-        return "left";
+      return "left";
     case StyleTextAlignCenter:
-        return "center";
+      return "center";
     case StyleTextAlignRight:
-        return "right";
+      return "right";
   }
   return "unknown";
 }
@@ -95,15 +95,15 @@ const char* StyleTextAlignToString(const StyleTextAlign value) noexcept {
 const char* StyleObjectFitToString(const StyleObjectFit value) noexcept {
   switch (value) {
     case StyleObjectFitFill:
-        return "fill";
+      return "fill";
     case StyleObjectFitContain:
-        return "contain";
+      return "contain";
     case StyleObjectFitCover:
-        return "cover";
+      return "cover";
     case StyleObjectFitNone:
-        return "none";
+      return "none";
     case StyleObjectFitScaleDown:
-        return "scale-down";
+      return "scale-down";
   }
   return "unknown";
 }
@@ -111,49 +111,49 @@ const char* StyleObjectFitToString(const StyleObjectFit value) noexcept {
 const char* StyleBackgroundClipToString(const StyleBackgroundClip value) noexcept {
   switch (value) {
     case StyleBackgroundClipBorderBox:
-        return "border-box";
+      return "border-box";
     case StyleBackgroundClipPaddingBox:
-        return "padding-box";
+      return "padding-box";
     case StyleBackgroundClipContentBox:
-        return "content-box";
+      return "content-box";
   }
   return "unknown";
 }
 
 const char* StyleBackgroundRepeatToString(const StyleBackgroundRepeat value) noexcept {
-    switch (value) {
-        case StyleBackgroundRepeatXY:
-            return "repeat";
-        case StyleBackgroundRepeatX:
-            return "repeat-x";
-        case StyleBackgroundRepeatY:
-            return "repeat-y";
-        case StyleBackgroundRepeatOff:
-            return "no-repeat";
-    }
-    return "unknown";
+  switch (value) {
+    case StyleBackgroundRepeatXY:
+      return "repeat";
+    case StyleBackgroundRepeatX:
+      return "repeat-x";
+    case StyleBackgroundRepeatY:
+      return "repeat-y";
+    case StyleBackgroundRepeatOff:
+      return "no-repeat";
+  }
+  return "unknown";
 }
 
 const char* StyleBackgroundSizeToString(const StyleBackgroundSize value) noexcept {
-    switch (value) {
-        case StyleBackgroundSizeNone:
-            return "none";
-        case StyleBackgroundSizeCover:
-            return "cover";
-        case StyleBackgroundSizeContain:
-            return "contain";
-    }
-    return "unknown";
+  switch (value) {
+    case StyleBackgroundSizeNone:
+      return "none";
+    case StyleBackgroundSizeCover:
+      return "cover";
+    case StyleBackgroundSizeContain:
+      return "contain";
+  }
+  return "unknown";
 }
 
 const char* StyleTextTransformToString(const StyleTextTransform value) noexcept {
   switch (value) {
     case StyleTextTransformNone:
-        return "none";
+      return "none";
     case StyleTextTransformUppercase:
-        return "uppercase";
+      return "uppercase";
     case StyleTextTransformLowercase:
-        return "lowercase";
+      return "lowercase";
   }
   return "unknown";
 }
@@ -161,108 +161,108 @@ const char* StyleTextTransformToString(const StyleTextTransform value) noexcept 
 const char* StyleAnchorToString(const StyleAnchor value) noexcept {
   switch (value) {
     case StyleAnchorTop:
-        return "top";
+      return "top";
     case StyleAnchorRight:
-        return "right";
+      return "right";
     case StyleAnchorBottom:
-        return "bottom";
+      return "bottom";
     case StyleAnchorLeft:
-        return "left";
+      return "left";
     case StyleAnchorCenter:
-        return "center";
+      return "center";
   }
   return "unknown";
 }
 
 template<typename T>
 T StyleEnumFromString(const CStringHashMap<T>& map, const char* value) {
-    auto it{ value ? map.find(value) : map.end() };
+  auto it{ value ? map.find(value) : map.end() };
 
-    if (it == map.end()) {
-        throw std::invalid_argument(value ? value : "null");
-    }
+  if (it == map.end()) {
+    throw std::invalid_argument(value ? value : "null");
+  }
 
-    return it->second;
+  return it->second;
 }
 
 StyleFontStyle StyleFontStyleFromString(const char* value) {
-    return StyleEnumFromString(sStyleFontStyleFromString, value);
+  return StyleEnumFromString(sStyleFontStyleFromString, value);
 }
 
 StyleFontWeight StyleFontWeightFromString(const char* value) {
-    return StyleEnumFromString(sStyleFontWeightFromString, value);
+  return StyleEnumFromString(sStyleFontWeightFromString, value);
 }
 
 StyleTextAlign StyleTextAlignFromString(const char* value) {
-    return StyleEnumFromString(sStyleTextAlignFromString, value);
+  return StyleEnumFromString(sStyleTextAlignFromString, value);
 }
 
 StyleTextOverflow StyleTextOverflowFromString(const char* value) {
-    return StyleEnumFromString(sStyleTextOverflowFromString, value);
+  return StyleEnumFromString(sStyleTextOverflowFromString, value);
 }
 
 StyleBackgroundClip StyleBackgroundClipFromString(const char* value) {
-    return StyleEnumFromString(sStyleBackgroundClipFromString, value);
+  return StyleEnumFromString(sStyleBackgroundClipFromString, value);
 }
 
 StyleTextTransform StyleTextTransformFromString(const char* value) {
-    return StyleEnumFromString(sStyleTextTransformFromString, value);
+  return StyleEnumFromString(sStyleTextTransformFromString, value);
 }
 
 StyleAnchor StyleAnchorFromString(const char* value) {
-    return StyleEnumFromString(sStyleAnchorFromString, value);
+  return StyleEnumFromString(sStyleAnchorFromString, value);
 }
 
 StyleBackgroundRepeat StyleBackgroundRepeatFromString(const char* value) {
-    return StyleEnumFromString(sStyleBackgroundRepeatFromString, value);
+  return StyleEnumFromString(sStyleBackgroundRepeatFromString, value);
 }
 
 StyleBackgroundSize StyleBackgroundSizeFromString(const char* value) {
-    return StyleEnumFromString(sStyleBackgroundSizeFromString, value);
+  return StyleEnumFromString(sStyleBackgroundSizeFromString, value);
 }
 
 StyleObjectFit StyleObjectFitFromString(const char* value) {
-    return StyleEnumFromString(sStyleObjectFitFromString, value);
+  return StyleEnumFromString(sStyleObjectFitFromString, value);
 }
 
 YGAlign YGAlignFromString(const char* value) {
-    return StyleEnumFromString(sYGAlignFromString, value);
+  return StyleEnumFromString(sYGAlignFromString, value);
 }
 
 YGDisplay YGDisplayFromString(const char* value) {
-    return StyleEnumFromString(sYGDisplayFromString, value);
+  return StyleEnumFromString(sYGDisplayFromString, value);
 }
 
 YGFlexDirection YGFlexDirectionFromString(const char* value) {
-    return StyleEnumFromString(sYGFlexDirectionFromString, value);
+  return StyleEnumFromString(sYGFlexDirectionFromString, value);
 }
 
 YGJustify YGJustifyFromString(const char* value) {
-    return StyleEnumFromString(sYGJustifyFromString, value);
+  return StyleEnumFromString(sYGJustifyFromString, value);
 }
 
 YGOverflow YGOverflowFromString(const char* value) {
-    return StyleEnumFromString(sYGOverflowFromString, value);
+  return StyleEnumFromString(sYGOverflowFromString, value);
 }
 
 YGWrap YGWrapFromString(const char* value) {
-    return StyleEnumFromString(sYGWrapFromString, value);
+  return StyleEnumFromString(sYGWrapFromString, value);
 }
 
 YGPositionType YGPositionTypeFromString(const char* value) {
-    return StyleEnumFromString(sYGPositionTypeFromString, value);
+  return StyleEnumFromString(sYGPositionTypeFromString, value);
 }
 
 const char* StylePropertyToString(StyleProperty property) noexcept {
-    #define TO_STRING(PROP) case StyleProperty::PROP: return #PROP;
+#define TO_STRING(PROP) case StyleProperty::PROP: return #PROP;
 
-    switch (property) {
-        LS_FOR_EACH_STYLE_PROPERTY(TO_STRING)
-    }
+  switch (property) {
+    LS_FOR_EACH_STYLE_PROPERTY(TO_STRING)
+  }
 
-    #undef TO_STRING
+#undef TO_STRING
 
-    return "unknown";
+  return "unknown";
 }
 
 } // namespace lse

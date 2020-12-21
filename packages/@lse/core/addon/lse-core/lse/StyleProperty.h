@@ -89,16 +89,16 @@ namespace lse {
 #define LS_ADD_ENUM(ENUM) ENUM,
 
 enum StyleProperty {
-    LS_FOR_EACH_STYLE_PROPERTY(LS_ADD_ENUM)
+  LS_FOR_EACH_STYLE_PROPERTY(LS_ADD_ENUM)
 };
 
 LS_ENUM_STRING_MAPPING(StyleProperty)
 
 template<>
 constexpr int32_t Count<StyleProperty>() noexcept {
-    // Note: LS_FOR_EACH_STYLE_PROPERTY(LS_ADD_ENUM) ends with ',', so a placeholder 0 is appended and
-    //       subtracted from count.
-    return internal::CountMacroVariadicArgs<LS_FOR_EACH_STYLE_PROPERTY(LS_ADD_ENUM) 0>() - 1;
+  // Note: LS_FOR_EACH_STYLE_PROPERTY(LS_ADD_ENUM) ends with ',', so a placeholder 0 is appended and
+  //       subtracted from count.
+  return internal::CountMacroVariadicArgs<LS_FOR_EACH_STYLE_PROPERTY(LS_ADD_ENUM) 0>() - 1;
 }
 
 #undef LS_ADD_ENUM
@@ -197,11 +197,11 @@ static_assert(Count<StyleProperty>() == (sizeof(kStylePropertyMeta) / sizeof(int
               "StyleProperty and StylePropertyMeta are out of sync.");
 
 constexpr uint32_t StylePropertyMetaGetType(StyleProperty property) noexcept {
-    return kStylePropertyMeta[property] & kStylePropertyMetaTypeMask;
+  return kStylePropertyMeta[property] & kStylePropertyMetaTypeMask;
 }
 
 constexpr bool IsYogaProperty(StyleProperty property) noexcept {
-    return kStylePropertyMeta[property] & StylePropertyMetaGroupYoga;
+  return kStylePropertyMeta[property] & StylePropertyMetaGroupYoga;
 }
 
 void StylePropertyValueInit();
@@ -215,8 +215,8 @@ int32_t StylePropertyValueFromString(StyleProperty property, const char* value) 
 namespace std {
 template<>
 struct hash<lse::StyleProperty> {
-    std::size_t operator()(lse::StyleProperty value) const noexcept {
-        return static_cast<std::size_t>(value);
-    }
+  std::size_t operator()(lse::StyleProperty value) const noexcept {
+    return static_cast<std::size_t>(value);
+  }
 };
 } // namespace std

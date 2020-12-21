@@ -14,12 +14,12 @@ using Napi::HandleScope;
 namespace lse {
 
 void Stage::Update() {
-    this->GetResources()->Compact();
+  this->GetResources()->Compact();
 }
 
 void Stage::Destroy() {
-    // TODO: cleanup resources
-    this->threadPool.ShutdownNow();
+  // TODO: cleanup resources
+  this->threadPool.ShutdownNow();
 }
 
 } // namespace lse

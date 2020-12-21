@@ -11,21 +11,21 @@
 namespace lse {
 
 bool HasEnv(const char* name) noexcept {
-    return *GetEnv(name) != '\0';
+  return *GetEnv(name) != '\0';
 }
 
 const char* GetEnv(const char* name) noexcept {
-    auto value = name ? std::getenv(name) : nullptr;
+  auto value = name ? std::getenv(name) : nullptr;
 
-    if (value == nullptr || *value == '\0') {
-        return "";
-    }
+  if (value == nullptr || *value == '\0') {
+    return "";
+  }
 
-    return value;
+  return value;
 }
 
 const char* GetEnvOrDefault(const char* name, const char* defaultValue) noexcept {
-    return HasEnv(name) ? GetEnv(name) : defaultValue;
+  return HasEnv(name) ? GetEnv(name) : defaultValue;
 }
 
 } // namespace lse

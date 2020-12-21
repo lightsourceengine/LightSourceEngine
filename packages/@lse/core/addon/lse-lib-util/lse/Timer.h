@@ -13,18 +13,18 @@ namespace lse {
 
 class Timer {
  private:
-    typedef std::chrono::time_point<std::chrono::high_resolution_clock> TimePoint;
+  typedef std::chrono::time_point<std::chrono::high_resolution_clock> TimePoint;
 
  public:
-    Timer();
-    explicit Timer(const std::string& label);
-    ~Timer();
+  Timer();
+  explicit Timer(const std::string& label);
+  ~Timer();
 
-    void Log() const;
+  void Log() const;
 
  private:
-    TimePoint start;
-    std::string label;
+  TimePoint start;
+  std::string label;
 };
 
 } // namespace lse

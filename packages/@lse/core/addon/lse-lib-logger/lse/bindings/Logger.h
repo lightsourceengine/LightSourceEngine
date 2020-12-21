@@ -17,18 +17,18 @@ namespace bindings {
  */
 class Logger {
  public:
-    static void LogInfo(const Napi::CallbackInfo &info);
-    static void LogError(const Napi::CallbackInfo &info);
-    static void LogDebug(const Napi::CallbackInfo &info);
-    static void LogWarn(const Napi::CallbackInfo &info);
-    static void Close(const Napi::CallbackInfo &info);
-    static Napi::Value GetLogLevel(const Napi::CallbackInfo &info);
-    static void SetLogLevel(const Napi::CallbackInfo &info);
-    static Napi::Value GetSink(const Napi::CallbackInfo &info);
-    static void SetSink(const Napi::CallbackInfo &info);
+  static void LogInfo(const Napi::CallbackInfo& info);
+  static void LogError(const Napi::CallbackInfo& info);
+  static void LogDebug(const Napi::CallbackInfo& info);
+  static void LogWarn(const Napi::CallbackInfo& info);
+  static void Close(const Napi::CallbackInfo& info);
+  static Napi::Value GetLogLevel(const Napi::CallbackInfo& info);
+  static void SetLogLevel(const Napi::CallbackInfo& info);
+  static Napi::Value GetSink(const Napi::CallbackInfo& info);
+  static void SetSink(const Napi::CallbackInfo& info);
 
  private:
-    static void Log(LogLevel logLevel, const Napi::CallbackInfo &info);
+  static void Log(LogLevel logLevel, const Napi::CallbackInfo& info);
 };
 
 // logger js class creators

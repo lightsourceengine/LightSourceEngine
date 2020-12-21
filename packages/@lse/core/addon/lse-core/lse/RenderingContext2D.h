@@ -22,35 +22,35 @@ class Renderer;
  */
 class RenderingContext2D {
  public:
-    virtual ~RenderingContext2D() noexcept = default;
+  virtual ~RenderingContext2D() noexcept = default;
 
-    void Begin(uint8_t* buffer, int32_t width, int32_t height, int32_t pitch = 0) noexcept;
-    void End() noexcept;
+  void Begin(uint8_t* buffer, int32_t width, int32_t height, int32_t pitch = 0) noexcept;
+  void End() noexcept;
 
-    void SetColor(color_t color) noexcept;
-    void SetLineWidth(float width) noexcept;
-    void SetFont(BLFont font) noexcept;
+  void SetColor(color_t color) noexcept;
+  void SetLineWidth(float width) noexcept;
+  void SetFont(BLFont font) noexcept;
 
-    void BeginPath() noexcept;
-    void ClosePath() noexcept;
-    void MoveTo(float x, float y) noexcept;
-    void LineTo(float x, float y) noexcept;
-    void QuadTo(float cx, float cy, float x, float y) noexcept;
+  void BeginPath() noexcept;
+  void ClosePath() noexcept;
+  void MoveTo(float x, float y) noexcept;
+  void LineTo(float x, float y) noexcept;
+  void QuadTo(float cx, float cy, float x, float y) noexcept;
 
-    void FillPath() noexcept;
-    void StrokePath() noexcept;
-    void FillText(float x, float y, const char* text) noexcept;
-    void FillText(float x, float y, const BLGlyphRun& text) noexcept;
-    void FillAll() noexcept;
+  void FillPath() noexcept;
+  void StrokePath() noexcept;
+  void FillText(float x, float y, const char* text) noexcept;
+  void FillText(float x, float y, const BLGlyphRun& text) noexcept;
+  void FillAll() noexcept;
 
  public:
-    Renderer* renderer{};
+  Renderer* renderer{};
 
  private:
-    BLContext context{};
-    BLImage target{};
-    BLPath path{};
-    BLFont font{};
+  BLContext context{};
+  BLImage target{};
+  BLPath path{};
+  BLFont font{};
 };
 
 } // namespace lse

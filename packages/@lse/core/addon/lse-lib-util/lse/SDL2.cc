@@ -19,17 +19,17 @@ static internal::SharedLibrary sLibrary{};
 DYNAMIC_FOR_EACH_SDL_FUNCTION(DYNAMIC_SDL_FUNCTION_PTR)
 
 void Open(const char* library) {
-    sLibrary.Open(library);
+  sLibrary.Open(library);
 
-    DYNAMIC_FOR_EACH_SDL_FUNCTION(DYNAMIC_LOAD_SDL_FUNCTION)
+  DYNAMIC_FOR_EACH_SDL_FUNCTION(DYNAMIC_LOAD_SDL_FUNCTION)
 }
 
 bool IsOpen() noexcept {
-    return sLibrary.IsOpen();
+  return sLibrary.IsOpen();
 }
 
 void Close() noexcept {
-    sLibrary.Close();
+  sLibrary.Close();
 }
 
 } // namespace SDL2

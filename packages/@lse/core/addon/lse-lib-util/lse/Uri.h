@@ -13,8 +13,8 @@
 namespace lse {
 
 enum UriScheme {
-    UriSchemeFile,
-    UriSchemeUnknown,
+  UriSchemeFile,
+  UriSchemeUnknown,
 };
 
 /**

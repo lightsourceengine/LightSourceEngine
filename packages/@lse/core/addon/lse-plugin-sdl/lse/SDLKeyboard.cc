@@ -29,39 +29,39 @@ SDLKeyboard::SDLKeyboard(const CallbackInfo& info) : SafeObjectWrap<SDLKeyboard>
 }
 
 Function SDLKeyboard::GetClass(Napi::Env env) {
-    static FunctionReference constructor;
+  static FunctionReference constructor;
 
-    if (constructor.IsEmpty()) {
-        HandleScope scope(env);
+  if (constructor.IsEmpty()) {
+    HandleScope scope(env);
 
-        constructor = DefineClass(env, "SDLKeyboard", true, {
-            InstanceValue("type", String::New(env, KeyboardType)),
-            InstanceValue("id", Number::New(env, KeyboardId)),
-            InstanceValue("uuid", String::New(env, KeyboardUUID)),
-            InstanceValue("name", String::New(env, KeyboardName)),
-            InstanceValue("mapping", String::New(env, "")),
-            InstanceMethod("isButtonDown", &SDLKeyboard::IsButtonDown),
-            InstanceMethod("destroy", &SDLKeyboard::Destroy),
-        });
-    }
+    constructor = DefineClass(env, "SDLKeyboard", true, {
+        InstanceValue("type", String::New(env, KeyboardType)),
+        InstanceValue("id", Number::New(env, KeyboardId)),
+        InstanceValue("uuid", String::New(env, KeyboardUUID)),
+        InstanceValue("name", String::New(env, KeyboardName)),
+        InstanceValue("mapping", String::New(env, "")),
+        InstanceMethod("isButtonDown", &SDLKeyboard::IsButtonDown),
+        InstanceMethod("destroy", &SDLKeyboard::Destroy),
+    });
+  }
 
-    return constructor.Value();
+  return constructor.Value();
 }
 
 Value SDLKeyboard::IsButtonDown(const CallbackInfo& info) {
-    bool isDown;
+  bool isDown;
 
-    if (info[0].IsNumber()) {
-        auto len{0};
-        auto keyIndex{info[0].As<Number>().Int32Value()};
-        auto state = SDL2::SDL_GetKeyboardState(&len);
+  if (info[0].IsNumber()) {
+    auto len{ 0 };
+    auto keyIndex{ info[0].As<Number>().Int32Value() };
+    auto state = SDL2::SDL_GetKeyboardState(&len);
 
-        isDown = (keyIndex > 0 && keyIndex < len && state && state[keyIndex] != 0);
-    } else {
-        isDown = false;
-    }
+    isDown = (keyIndex > 0 && keyIndex < len && state && state[keyIndex] != 0);
+  } else {
+    isDown = false;
+  }
 
-    return Boolean::New(info.Env(), isDown);
+  return Boolean::New(info.Env(), isDown);
 }
 
 void SDLKeyboard::Destroy(const CallbackInfo& info) {

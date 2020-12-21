@@ -23,14 +23,14 @@ namespace lse {
  */
 class Stage {
  public:
-    void Update();
-    void Destroy();
-    ThreadPool* GetThreadPool() const noexcept { return &this->threadPool; }
-    Resources* GetResources() const noexcept { return &this->resources; }
+  void Update();
+  void Destroy();
+  ThreadPool* GetThreadPool() const noexcept { return &this->threadPool; }
+  Resources* GetResources() const noexcept { return &this->resources; }
 
  private:
-    mutable ThreadPool threadPool;
-    mutable Resources resources;
+  mutable ThreadPool threadPool;
+  mutable Resources resources;
 };
 
 } // namespace lse

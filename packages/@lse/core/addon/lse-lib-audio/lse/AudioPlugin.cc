@@ -12,79 +12,79 @@
 namespace lse {
 
 Napi::Function AudioPlugin::GetClass(Napi::Env env) {
-    static Napi::FunctionReference constructor;
+  static Napi::FunctionReference constructor;
 
-    if (constructor.IsEmpty()) {
-        Napi::HandleScope scope(env);
+  if (constructor.IsEmpty()) {
+    Napi::HandleScope scope(env);
 
-        constructor = AudioPlugin::DefineClass(env, "AudioPlugin", true, {
-            AudioPlugin::InstanceMethod("attach", &AudioPlugin::Attach),
-            AudioPlugin::InstanceMethod("detach", &AudioPlugin::Detach),
-            AudioPlugin::InstanceMethod("destroy", &AudioPlugin::Destroy),
-            AudioPlugin::InstanceMethod("createStreamAudioDestination", &AudioPlugin::CreateStreamAudioDestination),
-            AudioPlugin::InstanceMethod("createSampleAudioDestination", &AudioPlugin::CreateSampleAudioDestination),
-            AudioPlugin::InstanceAccessor("attached", &AudioPlugin::IsAttached),
-            AudioPlugin::InstanceAccessor("devices", &AudioPlugin::GetAudioDevices),
-        });
-    }
+    constructor = AudioPlugin::DefineClass(env, "AudioPlugin", true, {
+        AudioPlugin::InstanceMethod("attach", &AudioPlugin::Attach),
+        AudioPlugin::InstanceMethod("detach", &AudioPlugin::Detach),
+        AudioPlugin::InstanceMethod("destroy", &AudioPlugin::Destroy),
+        AudioPlugin::InstanceMethod("createStreamAudioDestination", &AudioPlugin::CreateStreamAudioDestination),
+        AudioPlugin::InstanceMethod("createSampleAudioDestination", &AudioPlugin::CreateSampleAudioDestination),
+        AudioPlugin::InstanceAccessor("attached", &AudioPlugin::IsAttached),
+        AudioPlugin::InstanceAccessor("devices", &AudioPlugin::GetAudioDevices),
+    });
+  }
 
-    return constructor.Value();
+  return constructor.Value();
 }
 
 AudioPlugin::AudioPlugin(const Napi::CallbackInfo& info) : Napi::SafeObjectWrap<AudioPlugin>(info) {
 }
 
 AudioPlugin::~AudioPlugin() {
-    if (this->impl) {
-        this->impl->Finalize();
-    }
+  if (this->impl) {
+    this->impl->Finalize();
+  }
 }
 
 void AudioPlugin::Constructor(const Napi::CallbackInfo& info) {
-    this->impl = Napi::ConstructorWithExternalFactory<AudioPluginInterface, AudioPluginInterfaceFactory>(
-        info, "AudioPlugin");
+  this->impl = Napi::ConstructorWithExternalFactory<AudioPluginInterface, AudioPluginInterfaceFactory>(
+      info, "AudioPlugin");
 }
 
 void AudioPlugin::Finalize() {
-    throw std::runtime_error("Not implemented");
+  throw std::runtime_error("Not implemented");
 }
 
 void AudioPlugin::Attach(const Napi::CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    this->impl->Attach(info);
+  CHECK_IMPL(this->impl);
+  this->impl->Attach(info);
 }
 
 void AudioPlugin::Detach(const Napi::CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    this->impl->Detach(info);
+  CHECK_IMPL(this->impl);
+  this->impl->Detach(info);
 }
 
 void AudioPlugin::Destroy(const Napi::CallbackInfo& info) {
-    if (this->impl) {
-        this->impl->Destroy(info);
-        this->impl->Finalize();
-        this->impl = nullptr;
-    }
+  if (this->impl) {
+    this->impl->Destroy(info);
+    this->impl->Finalize();
+    this->impl = nullptr;
+  }
 }
 
 Napi::Value AudioPlugin::IsAttached(const Napi::CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    return this->impl->IsAttached(info);
+  CHECK_IMPL(this->impl);
+  return this->impl->IsAttached(info);
 }
 
 Napi::Value AudioPlugin::GetAudioDevices(const Napi::CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    return this->impl->GetAudioDevices(info);
+  CHECK_IMPL(this->impl);
+  return this->impl->GetAudioDevices(info);
 }
 
 Napi::Value AudioPlugin::CreateSampleAudioDestination(const Napi::CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    return this->impl->CreateSampleAudioDestination(info);
+  CHECK_IMPL(this->impl);
+  return this->impl->CreateSampleAudioDestination(info);
 }
 
 Napi::Value AudioPlugin::CreateStreamAudioDestination(const Napi::CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    return this->impl->CreateStreamAudioDestination(info);
+  CHECK_IMPL(this->impl);
+  return this->impl->CreateStreamAudioDestination(info);
 }
 
 } // namespace lse

@@ -30,39 +30,39 @@ namespace lse {
 namespace internal {
 
 void SharedLibrary::Open(const char* libraryName) {
-    if (this->handle != nullptr) {
-        throw std::runtime_error(Format("%s has already been opened.", libraryName));
-    }
+  if (this->handle != nullptr) {
+    throw std::runtime_error(Format("%s has already been opened.", libraryName));
+  }
 
-    this->handle = SharedLibraryOpen(libraryName);
+  this->handle = SharedLibraryOpen(libraryName);
 
-    if (!this->handle) {
-        throw std::runtime_error(Format("Error loading %s: %s", libraryName, SharedLibraryGetLastError()));
-    }
+  if (!this->handle) {
+    throw std::runtime_error(Format("Error loading %s: %s", libraryName, SharedLibraryGetLastError()));
+  }
 }
 
 void* SharedLibrary::GetSymbol(const char* name) const {
-    if (!this->handle) {
-        throw std::runtime_error("Cannot get symbol of unopened library.");
-    }
+  if (!this->handle) {
+    throw std::runtime_error("Cannot get symbol of unopened library.");
+  }
 
-    auto symbol = SharedLibraryGetSymbol(this->handle, name);
+  auto symbol = SharedLibraryGetSymbol(this->handle, name);
 
-    if (symbol == nullptr) {
-        throw std::runtime_error(Format("Error retrieving symbol %s", name));
-    }
+  if (symbol == nullptr) {
+    throw std::runtime_error(Format("Error retrieving symbol %s", name));
+  }
 
-    return symbol;
+  return symbol;
 }
 
 bool SharedLibrary::IsOpen() const noexcept {
-    return this->handle != nullptr;
+  return this->handle != nullptr;
 }
 
 void SharedLibrary::Close() noexcept {
-    if (this->handle) {
-        SharedLibraryClose(this->handle);
-    }
+  if (this->handle) {
+    SharedLibraryClose(this->handle);
+  }
 }
 
 } // namespace internal

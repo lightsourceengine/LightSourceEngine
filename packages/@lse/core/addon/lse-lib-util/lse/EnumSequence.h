@@ -32,25 +32,25 @@
 
 namespace lse {
 
-template <typename T>
+template<typename T>
 constexpr int32_t Count() noexcept;
 
-template <typename T>
+template<typename T>
 const char* ToString(T) noexcept;
 
-template <typename T>
+template<typename T>
 T FromString(const char*);
 
-template <typename T>
+template<typename T>
 constexpr bool IsEnum(const int32_t value) noexcept {
-    return value >= 0 && value < Count<T>();
+  return value >= 0 && value < Count<T>();
 }
 
 namespace internal {
 
-template <int32_t... xs>
+template<int32_t... xs>
 constexpr int32_t CountMacroVariadicArgs() noexcept {
-    return sizeof...(xs);
+  return sizeof...(xs);
 }
 
 } // namespace internal

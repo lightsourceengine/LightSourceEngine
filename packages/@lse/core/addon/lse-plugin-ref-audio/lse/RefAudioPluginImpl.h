@@ -13,22 +13,22 @@ namespace lse {
 
 class RefAudioPluginImpl final : public AudioPluginInterface {
  public:
-    RefAudioPluginImpl(const Napi::CallbackInfo& info);
-    virtual ~RefAudioPluginImpl() = default;
+  RefAudioPluginImpl(const Napi::CallbackInfo& info);
+  virtual ~RefAudioPluginImpl() = default;
 
-    void Attach(const Napi::CallbackInfo& info) override;
-    void Detach(const Napi::CallbackInfo& info) override;
-    void Destroy(const Napi::CallbackInfo& info) override;
-    Napi::Value IsAttached(const Napi::CallbackInfo& info) override;
-    Napi::Value GetAudioDevices(const Napi::CallbackInfo& info) override;
-    Napi::Value CreateSampleAudioDestination(const Napi::CallbackInfo& info) override;
-    Napi::Value CreateStreamAudioDestination(const Napi::CallbackInfo& info) override;
+  void Attach(const Napi::CallbackInfo& info) override;
+  void Detach(const Napi::CallbackInfo& info) override;
+  void Destroy(const Napi::CallbackInfo& info) override;
+  Napi::Value IsAttached(const Napi::CallbackInfo& info) override;
+  Napi::Value GetAudioDevices(const Napi::CallbackInfo& info) override;
+  Napi::Value CreateSampleAudioDestination(const Napi::CallbackInfo& info) override;
+  Napi::Value CreateStreamAudioDestination(const Napi::CallbackInfo& info) override;
 
-    void Finalize() override;
+  void Finalize() override;
 
  private:
-    bool isAttached{false};
-    std::vector<std::string> audioDevices{};
+  bool isAttached{ false };
+  std::vector<std::string> audioDevices{};
 };
 
 } // namespace lse

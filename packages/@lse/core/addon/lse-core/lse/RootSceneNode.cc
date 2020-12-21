@@ -23,42 +23,42 @@ using Napi::Value;
 namespace lse {
 
 void RootSceneNode::Constructor(const Napi::CallbackInfo& info) {
-    this->SceneNodeConstructor(info);
+  this->SceneNodeConstructor(info);
 }
 
 Function RootSceneNode::GetClass(Napi::Env env) {
-    static FunctionReference constructor;
+  static FunctionReference constructor;
 
-    if (constructor.IsEmpty()) {
-        HandleScope scope(env);
+  if (constructor.IsEmpty()) {
+    HandleScope scope(env);
 
-        constructor = DefineClass(env, "RootSceneNode", true, SceneNode::Extend<RootSceneNode>(env, {}));
-    }
+    constructor = DefineClass(env, "RootSceneNode", true, SceneNode::Extend<RootSceneNode>(env, {}));
+  }
 
-    return constructor.Value();
+  return constructor.Value();
 }
 
 void RootSceneNode::OnStylePropertyChanged(StyleProperty property) {
-    switch (property) {
-        case StyleProperty::backgroundColor:
-        case StyleProperty::opacity:
-            this->RequestComposite();
-            break;
-        case StyleProperty::fontSize:
-            this->scene->OnRootFontSizeChange();
-            break;
-        default:
-            break;
-    }
+  switch (property) {
+    case StyleProperty::backgroundColor:
+    case StyleProperty::opacity:
+      this->RequestComposite();
+      break;
+    case StyleProperty::fontSize:
+      this->scene->OnRootFontSizeChange();
+      break;
+    default:
+      break;
+  }
 }
 
 void RootSceneNode::Composite(CompositeContext* composite) {
-    const auto style = Style::Or(this->style);
-    const auto backgroundColor = style->GetColor(StyleProperty::backgroundColor);
+  const auto style = Style::Or(this->style);
+  const auto backgroundColor = style->GetColor(StyleProperty::backgroundColor);
 
-    if (backgroundColor.has_value()) {
-        composite->renderer->FillRenderTarget(backgroundColor.value());
-    }
+  if (backgroundColor.has_value()) {
+    composite->renderer->FillRenderTarget(backgroundColor.value());
+  }
 }
 
 } // namespace lse

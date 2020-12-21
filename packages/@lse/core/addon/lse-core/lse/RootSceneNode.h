@@ -15,15 +15,15 @@ class Style;
 
 class RootSceneNode final : public Napi::SafeObjectWrap<RootSceneNode>, public SceneNode {
  public:
-    explicit RootSceneNode(const Napi::CallbackInfo& info) : SafeObjectWrap<RootSceneNode>(info) {}
-    ~RootSceneNode() override = default;
+  explicit RootSceneNode(const Napi::CallbackInfo& info) : SafeObjectWrap<RootSceneNode>(info) {}
+  ~RootSceneNode() override = default;
 
-    static Napi::Function GetClass(Napi::Env env);
-    void Constructor(const Napi::CallbackInfo& info) override;
+  static Napi::Function GetClass(Napi::Env env);
+  void Constructor(const Napi::CallbackInfo& info) override;
 
-    void OnStylePropertyChanged(StyleProperty property) override;
-    void Paint(RenderingContext2D* context) override {}
-    void Composite(CompositeContext* composite) override;
+  void OnStylePropertyChanged(StyleProperty property) override;
+  void Paint(RenderingContext2D* context) override {}
+  void Composite(CompositeContext* composite) override;
 };
 
 } // namespace lse

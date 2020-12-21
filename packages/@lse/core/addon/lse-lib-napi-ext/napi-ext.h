@@ -93,7 +93,8 @@ void Call(const Napi::FunctionReference& func, const std::initializer_list<napi_
  *
  * If the javascript function is not set, undefined will be returned.
  */
-Napi::Value Call(const Napi::Env& env, const Napi::FunctionReference& func,
+Napi::Value Call(
+    const Napi::Env& env, const Napi::FunctionReference& func,
     const std::initializer_list<napi_value>& args = {});
 
 /**

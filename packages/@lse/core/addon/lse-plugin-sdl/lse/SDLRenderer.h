@@ -14,48 +14,51 @@ namespace lse {
 
 class SDLRenderer final : public Renderer {
  public:
-    SDLRenderer();
-    ~SDLRenderer() override;
+  SDLRenderer();
+  ~SDLRenderer() override;
 
-    int32_t GetWidth() const override { return this->width; }
-    int32_t GetHeight() const override { return this->height; }
-    PixelFormat GetTextureFormat() const override { return this->textureFormat; }
+  int32_t GetWidth() const override { return this->width; }
+  int32_t GetHeight() const override { return this->height; }
+  PixelFormat GetTextureFormat() const override { return this->textureFormat; }
 
-    bool SetRenderTarget(const Texture& newRenderTarget) override;
-    void Reset() override;
-    void FillRenderTarget(color_t color) override;
-    void Present() override;
-    void EnabledClipping(const Rect& rect) override;
-    void DisableClipping() override;
+  bool SetRenderTarget(const Texture& newRenderTarget) override;
+  void Reset() override;
+  void FillRenderTarget(color_t color) override;
+  void Present() override;
+  void EnabledClipping(const Rect& rect) override;
+  void DisableClipping() override;
 
-    void DrawFillRect(const Rect& rect, const Matrix& transform, color_t fillColor) override;
-    void DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) override;
-    void DrawImage(const Texture& texture, const Rect& rect, const Matrix& transform,
-            color_t tintColor) override;
-    void DrawImage(const Texture& texture, const Rect& destRect, const Rect& srcRect,
-            const Matrix& transform, color_t tintColor) override;
-    void DrawImage(const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
-            const Matrix& transform, color_t tintColor) override;
+  void DrawFillRect(const Rect& rect, const Matrix& transform, color_t fillColor) override;
+  void DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) override;
+  void DrawImage(
+      const Texture& texture, const Rect& rect, const Matrix& transform,
+      color_t tintColor) override;
+  void DrawImage(
+      const Texture& texture, const Rect& destRect, const Rect& srcRect,
+      const Matrix& transform, color_t tintColor) override;
+  void DrawImage(
+      const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
+      const Matrix& transform, color_t tintColor) override;
 
-    Texture CreateTexture(int32_t width, int32_t height, Texture::Type type) override;
+  Texture CreateTexture(int32_t width, int32_t height, Texture::Type type) override;
 
-    void Attach(SDL_Window* window);
-    void Detach();
-    void Destroy();
-
- private:
-    void ResetInternal(const Texture& newRenderTarget);
-    void SetRenderDrawColor(color_t color) noexcept;
-    void UpdateTextureFormats(const SDL_RendererInfo& info) noexcept;
+  void Attach(SDL_Window* window);
+  void Detach();
+  void Destroy();
 
  private:
-    SDL_Renderer* renderer{};
-    PixelFormat textureFormat{PixelFormatUnknown};
-    color_t drawColor{};
-    Texture fillRectTexture{};
-    Texture renderTarget{};
-    int32_t width{0};
-    int32_t height{0};
+  void ResetInternal(const Texture& newRenderTarget);
+  void SetRenderDrawColor(color_t color) noexcept;
+  void UpdateTextureFormats(const SDL_RendererInfo& info) noexcept;
+
+ private:
+  SDL_Renderer* renderer{};
+  PixelFormat textureFormat{ PixelFormatUnknown };
+  color_t drawColor{};
+  Texture fillRectTexture{};
+  Texture renderTarget{};
+  int32_t width{ 0 };
+  int32_t height{ 0 };
 };
 
 } // namespace lse

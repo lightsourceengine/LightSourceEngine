@@ -19,19 +19,19 @@ class Resource;
  */
 class ResourceProgress {
  public:
-    virtual ~ResourceProgress() noexcept = default;
+  virtual ~ResourceProgress() noexcept = default;
 
-    void Dispatch(SceneNode* owner, Resource* resource) const;
-    void Reset();
+  void Dispatch(SceneNode* owner, Resource* resource) const;
+  void Reset();
 
-    void SetOnLoad(const Napi::Env& env, const Napi::Value& value);
-    Napi::Value GetOnLoad(const Napi::Env& env) const;
-    void SetOnError(const Napi::Env& env, const Napi::Value& value);
-    Napi::Value GetOnError(const Napi::Env& env) const;
+  void SetOnLoad(const Napi::Env& env, const Napi::Value& value);
+  Napi::Value GetOnLoad(const Napi::Env& env) const;
+  void SetOnError(const Napi::Env& env, const Napi::Value& value);
+  Napi::Value GetOnError(const Napi::Env& env) const;
 
  private:
-    Napi::FunctionReference onLoad{};
-    Napi::FunctionReference onError{};
+  Napi::FunctionReference onLoad{};
+  Napi::FunctionReference onError{};
 };
 
 } // namespace lse

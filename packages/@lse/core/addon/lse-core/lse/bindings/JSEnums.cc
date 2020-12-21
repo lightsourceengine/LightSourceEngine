@@ -14,41 +14,41 @@ namespace lse {
 namespace bindings {
 
 Napi::Function NewStyleUnitClass(Napi::Env env) {
-    return ClassBuilder(env, "StyleUnit")
-        .WithStaticValue("Undefined", StyleNumberUnitUndefined)
-        .WithStaticValue("Point", StyleNumberUnitPoint)
-        .WithStaticValue("Percent", StyleNumberUnitPercent)
-        .WithStaticValue("ViewportWidth", StyleNumberUnitViewportWidth)
-        .WithStaticValue("ViewportHeight", StyleNumberUnitViewportHeight)
-        .WithStaticValue("ViewportMin", StyleNumberUnitViewportMin)
-        .WithStaticValue("ViewportMax", StyleNumberUnitViewportMax)
-        .WithStaticValue("Auto", StyleNumberUnitAuto)
-        .WithStaticValue("Anchor", StyleNumberUnitAnchor)
-        .WithStaticValue("RootEm", StyleNumberUnitRootEm)
-        .WithStaticValue("Radian", StyleNumberUnitRadian)
-        .WithStaticValue("Degree", StyleNumberUnitDegree)
-        .WithStaticValue("Gradian", StyleNumberUnitGradian)
-        .WithStaticValue("Turn", StyleNumberUnitTurn)
-        .ToConstructor();
+  return ClassBuilder(env, "StyleUnit")
+      .WithStaticValue("Undefined", StyleNumberUnitUndefined)
+      .WithStaticValue("Point", StyleNumberUnitPoint)
+      .WithStaticValue("Percent", StyleNumberUnitPercent)
+      .WithStaticValue("ViewportWidth", StyleNumberUnitViewportWidth)
+      .WithStaticValue("ViewportHeight", StyleNumberUnitViewportHeight)
+      .WithStaticValue("ViewportMin", StyleNumberUnitViewportMin)
+      .WithStaticValue("ViewportMax", StyleNumberUnitViewportMax)
+      .WithStaticValue("Auto", StyleNumberUnitAuto)
+      .WithStaticValue("Anchor", StyleNumberUnitAnchor)
+      .WithStaticValue("RootEm", StyleNumberUnitRootEm)
+      .WithStaticValue("Radian", StyleNumberUnitRadian)
+      .WithStaticValue("Degree", StyleNumberUnitDegree)
+      .WithStaticValue("Gradian", StyleNumberUnitGradian)
+      .WithStaticValue("Turn", StyleNumberUnitTurn)
+      .ToConstructor();
 }
 
 Napi::Function NewStyleTransformClass(Napi::Env env) {
-    return ClassBuilder(env, "StyleTransform")
-        .WithStaticValue("Identity", StyleTransformIdentity)
-        .WithStaticValue("Translate", StyleTransformTranslate)
-        .WithStaticValue("Rotate", StyleTransformRotate)
-        .WithStaticValue("Scale", StyleTransformScale)
-        .ToConstructor();
+  return ClassBuilder(env, "StyleTransform")
+      .WithStaticValue("Identity", StyleTransformIdentity)
+      .WithStaticValue("Translate", StyleTransformTranslate)
+      .WithStaticValue("Rotate", StyleTransformRotate)
+      .WithStaticValue("Scale", StyleTransformScale)
+      .ToConstructor();
 }
 
 Napi::Function NewStyleAnchorClass(Napi::Env env) {
-    return ClassBuilder(env, "StyleAnchor")
-        .WithStaticValue("Left", StyleAnchorLeft)
-        .WithStaticValue("Right", StyleAnchorRight)
-        .WithStaticValue("Center", StyleAnchorCenter)
-        .WithStaticValue("Top", StyleAnchorTop)
-        .WithStaticValue("Bottom", StyleAnchorBottom)
-        .ToConstructor();
+  return ClassBuilder(env, "StyleAnchor")
+      .WithStaticValue("Left", StyleAnchorLeft)
+      .WithStaticValue("Right", StyleAnchorRight)
+      .WithStaticValue("Center", StyleAnchorCenter)
+      .WithStaticValue("Top", StyleAnchorTop)
+      .WithStaticValue("Bottom", StyleAnchorBottom)
+      .ToConstructor();
 }
 
 } // namespace bindings

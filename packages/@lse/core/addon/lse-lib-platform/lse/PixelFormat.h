@@ -16,33 +16,33 @@ namespace lse {
  */
 LS_ENUM_SEQ_DECL(
     PixelFormat,
-    /* 4 channel, 32 bit, RGBA */
+/* 4 channel, 32 bit, RGBA */
     PixelFormatRGBA,
-    /* 4 channel, 32 bit, ARGB */
+/* 4 channel, 32 bit, ARGB */
     PixelFormatARGB,
-    /* 4 channel, 32 bit, ABGR */
+/* 4 channel, 32 bit, ABGR */
     PixelFormatABGR,
-    /* 4 channel, 32 bit, BGRA */
+/* 4 channel, 32 bit, BGRA */
     PixelFormatBGRA,
-    /* 1 channel, 8 bit, alpha */
+/* 1 channel, 8 bit, alpha */
     PixelFormatAlpha,
-    /* unknown pixel format */
+/* unknown pixel format */
     PixelFormatUnknown
 )
 
 constexpr int32_t GetComponentCount(const PixelFormat format) noexcept {
-    switch (format) {
-        case PixelFormatRGBA:
-        case PixelFormatARGB:
-        case PixelFormatABGR:
-        case PixelFormatBGRA:
-            return 4;
-        case PixelFormatAlpha:
-            return 1;
-        // case PixelFormatUnknown:
-        default:
-            return 0;
-    }
+  switch (format) {
+    case PixelFormatRGBA:
+    case PixelFormatARGB:
+    case PixelFormatABGR:
+    case PixelFormatBGRA:
+      return 4;
+    case PixelFormatAlpha:
+      return 1;
+      // case PixelFormatUnknown:
+    default:
+      return 0;
+  }
 }
 
 } // namespace lse

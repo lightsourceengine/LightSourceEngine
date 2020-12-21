@@ -28,39 +28,39 @@ namespace lse {
 class ThreadPool {
  public:
   ThreadPool();
-    ~ThreadPool();
+  ~ThreadPool();
 
-    /**
-     * Submits work for execution.
-     *
-     * If the work function throws an exception, the exception is ignored.
-     */
-    void Execute(std::function<void()>&& work);
+  /**
+   * Submits work for execution.
+   *
+   * If the work function throws an exception, the exception is ignored.
+   */
+  void Execute(std::function<void()>&& work);
 
-    /**
-     * Submits work for execution and returns a future representing that work.
-     *
-     * The future contains the return value of the work function. If the work function throws an exception, it will
-     * be packaged with the future and thrown from future.get().
-     */
-    template<typename T>
-    std::future<T> Submit(std::function<T()>&& work);
+  /**
+   * Submits work for execution and returns a future representing that work.
+   *
+   * The future contains the return value of the work function. If the work function throws an exception, it will
+   * be packaged with the future and thrown from future.get().
+   */
+  template<typename T>
+  std::future<T> Submit(std::function<T()>&& work);
 
-    /**
-     * Initiates an orderly shutdown in which previously submitted tasks are executed, but no new tasks will be
-     * accepted. After shutdown, the executor should not longer be used.
-     */
-    void ShutdownNow();
+  /**
+   * Initiates an orderly shutdown in which previously submitted tasks are executed, but no new tasks will be
+   * accepted. After shutdown, the executor should not longer be used.
+   */
+  void ShutdownNow();
 
-    /**
-     * Returns true if the executor is running (not shutdown).
-     */
-    bool IsRunning() noexcept { return this->running; }
+  /**
+   * Returns true if the executor is running (not shutdown).
+   */
+  bool IsRunning() noexcept { return this->running; }
 
  private:
-    std::vector<std::thread> threadPool;
-    moodycamel::BlockingConcurrentQueue<std::function<void()>> workQueue;
-    std::atomic<bool> running{true};
+  std::vector<std::thread> threadPool;
+  moodycamel::BlockingConcurrentQueue<std::function<void()>> workQueue;
+  std::atomic<bool> running{ true };
 };
 
 namespace internal {
@@ -70,30 +70,30 @@ namespace internal {
 // for general use.
 template<typename T>
 struct MoveOnCopy {
-    MoveOnCopy() noexcept = default;
-    MoveOnCopy(MoveOnCopy<T>&& other) noexcept = default;
-    MoveOnCopy(T&& value) noexcept : value(std::move(value)) {} // NOLINT
-    MoveOnCopy(const MoveOnCopy<T>& other) noexcept : value(std::move(other.value)) {}
+  MoveOnCopy() noexcept = default;
+  MoveOnCopy(MoveOnCopy<T>&& other) noexcept = default;
+  MoveOnCopy(T&& value) noexcept: value(std::move(value)) {} // NOLINT
+  MoveOnCopy(const MoveOnCopy<T>& other) noexcept: value(std::move(other.value)) {}
 
-    mutable T value{};
+  mutable T value{};
 };
 
 } // namespace internal
 
 template<typename T>
 std::future<T> ThreadPool::Submit(std::function<T()>&& work) {
-    assert(!!work);
-    assert(this->running);
+  assert(!!work);
+  assert(this->running);
 
-    auto packagedTask{ std::packaged_task<T()>(std::move(work)) };
-    auto future{ packagedTask.get_future() };
-    using MoveOnCopy = internal::MoveOnCopy<std::packaged_task<T()>>;
+  auto packagedTask{ std::packaged_task<T()>(std::move(work)) };
+  auto future{ packagedTask.get_future() };
+  using MoveOnCopy = internal::MoveOnCopy<std::packaged_task<T()>>;
 
-    this->workQueue.enqueue([p = MoveOnCopy(std::move(packagedTask))]() mutable {
-        p.value();
-    });
+  this->workQueue.enqueue([p = MoveOnCopy(std::move(packagedTask))]() mutable {
+    p.value();
+  });
 
-    return future;
+  return future;
 }
 
 } // namespace lse

@@ -22,7 +22,7 @@ namespace internal {
 
 template<typename T>
 const T& FormatArg(const T& value) noexcept {
-    return value;
+  return value;
 }
 const char* FormatArg(const bool& value) noexcept;
 const char* FormatArg(const std::string& value) noexcept;
@@ -38,20 +38,20 @@ const char* FormatArg(std::nullptr_t) noexcept;
  * In addition to full printf support, Format can handle std::string, null char*, nullptr and bool.
  */
 template<typename... Args>
-std::string Format(const char* format, const Args&... args) {
-    // Measure the string. size does not include the null-terminated character.
-    const auto size{ snprintf(nullptr, 0, format, internal::FormatArg(args)...) };
+std::string Format(const char* format, const Args& ... args) {
+  // Measure the string. size does not include the null-terminated character.
+  const auto size{ snprintf(nullptr, 0, format, internal::FormatArg(args)...) };
 
-    if (size <= 0) {
-        return "";
-    }
+  if (size <= 0) {
+    return "";
+  }
 
-    std::string formattedString(size, '-');
+  std::string formattedString(size, '-');
 
-    // sprintf always writes a null terminator. std::string internal buffer is size + 1 to account for the terminator.
-    snprintf(&formattedString[0], size + 1, format, internal::FormatArg(args)...);
+  // sprintf always writes a null terminator. std::string internal buffer is size + 1 to account for the terminator.
+  snprintf(&formattedString[0], size + 1, format, internal::FormatArg(args)...);
 
-    return formattedString;
+  return formattedString;
 }
 
 } // namespace lse

@@ -146,7 +146,7 @@ LS_GEN_ENUM_FUNCTIONS(YGWrap)
 // be compatible with this function.
 template<typename T>
 constexpr bool IsValidEnum(int32_t value) {
-    return value >= 0 && value < Count<T>();
+  return value >= 0 && value < Count<T>();
 }
 
 } // namespace lse

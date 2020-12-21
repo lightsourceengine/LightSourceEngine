@@ -11,21 +11,21 @@ using Napi::HandleScope;
 using Napi::Object;
 
 namespace lse {
-    void FormatSpec(Napi::TestSuite* parent);
-    void StringExtSpec(Napi::TestSuite* parent);
-    void UriSpec(Napi::TestSuite* parent);
+void FormatSpec(Napi::TestSuite* parent);
+void StringExtSpec(Napi::TestSuite* parent);
+void UriSpec(Napi::TestSuite* parent);
 }
 
 Object Init(Env env, Object exports) {
-    HandleScope scope(env);
+  HandleScope scope(env);
 
-    exports["test"] = Napi::TestSuite::Build(env, "lse-lib-util native tests", {
-        &lse::FormatSpec,
-        &lse::StringExtSpec,
-        &lse::UriSpec,
-    });
+  exports["test"] = Napi::TestSuite::Build(env, "lse-lib-util native tests", {
+      &lse::FormatSpec,
+      &lse::StringExtSpec,
+      &lse::UriSpec,
+  });
 
-    return exports;
+  return exports;
 }
 
 NODE_API_MODULE(LightSourceEngineUtilLibTestSuite, Init);

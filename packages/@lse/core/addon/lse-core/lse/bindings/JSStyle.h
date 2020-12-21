@@ -17,18 +17,18 @@ namespace bindings {
  */
 class JSStyle : public Napi::SafeObjectWrap<JSStyle>, public StyleOps {
  public:
-    using Napi::SafeObjectWrap<JSStyle>::SafeObjectWrap;
-    ~JSStyle() override = default;
+  using Napi::SafeObjectWrap<JSStyle>::SafeObjectWrap;
+  ~JSStyle() override = default;
 
-    static Napi::Function GetClass(Napi::Env env);
-
- private:
-    void Constructor(const Napi::CallbackInfo& info) override;
-    void Reset(const Napi::CallbackInfo& info);
-    Napi::Value BindStyleClass(const Napi::CallbackInfo& info);
+  static Napi::Function GetClass(Napi::Env env);
 
  private:
-    friend Napi::SafeObjectWrap<JSStyle>;
+  void Constructor(const Napi::CallbackInfo& info) override;
+  void Reset(const Napi::CallbackInfo& info);
+  Napi::Value BindStyleClass(const Napi::CallbackInfo& info);
+
+ private:
+  friend Napi::SafeObjectWrap<JSStyle>;
 };
 
 } // namespace bindings

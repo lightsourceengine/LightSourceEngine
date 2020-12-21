@@ -11,19 +11,19 @@ using Napi::HandleScope;
 using Napi::Object;
 
 namespace lse {
-    void MatrixSpec(Napi::TestSuite* parent);
-    void RectSpec(Napi::TestSuite* parent);
+void MatrixSpec(Napi::TestSuite* parent);
+void RectSpec(Napi::TestSuite* parent);
 }
 
 Object Init(Env env, Object exports) {
-    HandleScope scope(env);
+  HandleScope scope(env);
 
-    exports["test"] = Napi::TestSuite::Build(env, "lse-lib-platform native tests", {
-        &lse::MatrixSpec,
-        &lse::RectSpec,
-    });
+  exports["test"] = Napi::TestSuite::Build(env, "lse-lib-platform native tests", {
+      &lse::MatrixSpec,
+      &lse::RectSpec,
+  });
 
-    return exports;
+  return exports;
 }
 
 NODE_API_MODULE(LightSourceEnginePlatformLibTestSuite, Init);

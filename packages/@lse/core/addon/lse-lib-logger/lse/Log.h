@@ -13,15 +13,15 @@
 namespace lse {
 
 enum LogLevel {
-    LogLevelOff,
+  LogLevelOff,
 
-    LogLevelError,
-    LogLevelWarn,
-    LogLevelInfo,
-    LogLevelDebug,
-    LogLevelAll,
+  LogLevelError,
+  LogLevelWarn,
+  LogLevelInfo,
+  LogLevelDebug,
+  LogLevelAll,
 
-    LogLevelCount,
+  LogLevelCount,
 };
 
 bool IsLogLevel(int32_t logLevel) noexcept;
@@ -69,9 +69,9 @@ void SetLogSink(FILE* file) noexcept;
 namespace internal {
 
 struct LogSite {
-    const char* file{};
-    unsigned line{};
-    const char* function{};
+  const char* file{};
+  unsigned line{};
+  const char* function{};
 };
 
 // Helper method to print the timestamp, log site info and logLevel.
@@ -81,7 +81,7 @@ void LogPrintHeader(const LogLevel logLevel, const LogSite& site, const bool has
 // are forwarded to printf as C strings. All other values are forwarded to printf.
 template<typename T>
 const T& LogProcessArg(const T& value) noexcept {
-    return value;
+  return value;
 }
 const char* LogProcessArg(const bool& value) noexcept;
 const char* LogProcessArg(const std::string& value) noexcept;
@@ -91,16 +91,16 @@ const char* LogProcessArg(std::nullptr_t) noexcept;
 
 // Log methods called by LOG_* macros.
 template<typename... Args>
-void Log(const LogLevel logLevel, const LogSite& site, const char* format, const Args&... args) noexcept {
-    const auto hasMessage{ format && format[0] != '\0' };
+void Log(const LogLevel logLevel, const LogSite& site, const char* format, const Args& ... args) noexcept {
+  const auto hasMessage{ format && format[0] != '\0' };
 
-    LogPrintHeader(logLevel, site, hasMessage);
+  LogPrintHeader(logLevel, site, hasMessage);
 
-    if (hasMessage) {
-        std::printf(format, LogProcessArg(args)...);
-    }
+  if (hasMessage) {
+    std::printf(format, LogProcessArg(args)...);
+  }
 
-    std::putc('\n', stdout);
+  std::putc('\n', stdout);
 }
 void Log(const LogLevel logLevel, const LogSite& site, const std::exception& e) noexcept;
 void Log(const LogLevel logLevel, const LogSite& site, const std::string& str) noexcept;

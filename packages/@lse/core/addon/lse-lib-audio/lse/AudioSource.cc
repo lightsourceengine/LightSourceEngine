@@ -16,69 +16,69 @@ AudioSource::AudioSource(const Napi::CallbackInfo& info) : Napi::SafeObjectWrap<
 }
 
 AudioSource::~AudioSource() {
-    if (this->impl) {
-        LOG_WARN("AudioSource was not destroyed.");
-    }
+  if (this->impl) {
+    LOG_WARN("AudioSource was not destroyed.");
+  }
 }
 
 void AudioSource::Constructor(const Napi::CallbackInfo& info) {
-    this->impl = Napi::ConstructorWithExternalFactory<AudioSourceInterface, AudioSourceInterfaceFactory>(
-        info, "AudioSource");
+  this->impl = Napi::ConstructorWithExternalFactory<AudioSourceInterface, AudioSourceInterfaceFactory>(
+      info, "AudioSource");
 }
 
 Napi::Function AudioSource::GetClass(Napi::Env env) {
-    static Napi::FunctionReference constructor;
+  static Napi::FunctionReference constructor;
 
-    if (constructor.IsEmpty()) {
-        Napi::HandleScope scope(env);
+  if (constructor.IsEmpty()) {
+    Napi::HandleScope scope(env);
 
-        constructor = AudioSource::DefineClass(env, "AudioSource", true, {
-            AudioSource::InstanceMethod("load", &AudioSource::Load),
-            AudioSource::InstanceMethod("destroy", &AudioSource::Destroy),
-            AudioSource::InstanceMethod("play", &AudioSource::Play),
-            AudioSource::InstanceMethod("hasCapability", &AudioSource::HasCapability),
-            AudioSource::InstanceAccessor("volume", &AudioSource::GetVolume, &AudioSource::SetVolume),
-        });
-    }
+    constructor = AudioSource::DefineClass(env, "AudioSource", true, {
+        AudioSource::InstanceMethod("load", &AudioSource::Load),
+        AudioSource::InstanceMethod("destroy", &AudioSource::Destroy),
+        AudioSource::InstanceMethod("play", &AudioSource::Play),
+        AudioSource::InstanceMethod("hasCapability", &AudioSource::HasCapability),
+        AudioSource::InstanceAccessor("volume", &AudioSource::GetVolume, &AudioSource::SetVolume),
+    });
+  }
 
-    return constructor.Value();
+  return constructor.Value();
 }
 
 void AudioSource::Load(const Napi::CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    this->impl->Load(info);
+  CHECK_IMPL(this->impl);
+  this->impl->Load(info);
 }
 
 void AudioSource::Destroy(const Napi::CallbackInfo& info) {
-    if (this->impl) {
-        this->impl->Destroy(info);
-        this->impl->Finalize();
-        this->impl = nullptr;
-    }
+  if (this->impl) {
+    this->impl->Destroy(info);
+    this->impl->Finalize();
+    this->impl = nullptr;
+  }
 }
 
 void AudioSource::Play(const Napi::CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    this->impl->Play(info);
+  CHECK_IMPL(this->impl);
+  this->impl->Play(info);
 }
 
 Napi::Value AudioSource::GetVolume(const Napi::CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    return this->impl->GetVolume(info);
+  CHECK_IMPL(this->impl);
+  return this->impl->GetVolume(info);
 }
 
 void AudioSource::SetVolume(const Napi::CallbackInfo& info, const Napi::Value& value) {
-    CHECK_IMPL(this->impl);
-    this->impl->SetVolume(info, value);
+  CHECK_IMPL(this->impl);
+  this->impl->SetVolume(info, value);
 }
 
 Napi::Value AudioSource::HasCapability(const Napi::CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    return this->impl->HasCapability(info);
+  CHECK_IMPL(this->impl);
+  return this->impl->HasCapability(info);
 }
 
 void AudioSource::Finalize() {
-    throw std::runtime_error("Not implemented");
+  throw std::runtime_error("Not implemented");
 }
 
 } // namespace lse

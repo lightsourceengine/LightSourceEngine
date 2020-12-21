@@ -18,189 +18,191 @@ namespace lse {
 static const std::array<uint8_t, 4> kSinglePixelWhite{ 255, 255, 255, 255 };
 
 SDLRenderer::SDLRenderer() {
-    SDL_RendererInfo info;
+  SDL_RendererInfo info;
 
-    if (SDL2::SDL_GetRenderDriverInfo(0, &info) == 0) {
-        this->UpdateTextureFormats(info);
-    }
+  if (SDL2::SDL_GetRenderDriverInfo(0, &info) == 0) {
+    this->UpdateTextureFormats(info);
+  }
 }
 
 SDLRenderer::~SDLRenderer() {
-    this->Destroy();
+  this->Destroy();
 }
 
 void SDLRenderer::UpdateTextureFormats(const SDL_RendererInfo& info) noexcept {
-    constexpr static std::array<uint32_t, 4> supportedPixelFormats{
-        SDL_PIXELFORMAT_ARGB8888,
-        SDL_PIXELFORMAT_RGBA8888,
-        SDL_PIXELFORMAT_ABGR8888,
-        SDL_PIXELFORMAT_BGRA8888
-    };
+  constexpr static std::array<uint32_t, 4> supportedPixelFormats{
+      SDL_PIXELFORMAT_ARGB8888,
+      SDL_PIXELFORMAT_RGBA8888,
+      SDL_PIXELFORMAT_ABGR8888,
+      SDL_PIXELFORMAT_BGRA8888
+  };
 
-    uint32_t format{ SDL_PIXELFORMAT_UNKNOWN };
+  uint32_t format{ SDL_PIXELFORMAT_UNKNOWN };
 
-    for (auto &p : supportedPixelFormats) {
-        for (auto i{ 0u }; i < info.num_texture_formats; i++) {
-            if (p == info.texture_formats[i]) {
-                format = p;
-                break;
-            }
-        }
+  for (auto& p : supportedPixelFormats) {
+    for (auto i{ 0u }; i < info.num_texture_formats; i++) {
+      if (p == info.texture_formats[i]) {
+        format = p;
+        break;
+      }
     }
+  }
 
-    this->textureFormat = ToPixelFormat(format);
+  this->textureFormat = ToPixelFormat(format);
 }
 
 void SDLRenderer::Present() {
-    SDL2::SDL_RenderPresent(this->renderer);
+  SDL2::SDL_RenderPresent(this->renderer);
 }
 
 void SDLRenderer::DrawFillRect(const Rect& rect, const Matrix& transform, const color_t fillColor) {
-    lse::DrawImage(this->renderer, this->fillRectTexture.Cast<SDL_Texture>(), rect, transform, fillColor);
+  lse::DrawImage(this->renderer, this->fillRectTexture.Cast<SDL_Texture>(), rect, transform, fillColor);
 }
 
-void SDLRenderer::DrawImage(const Texture& texture, const Rect& rect,
-        const Matrix& transform, color_t tintColor) {
-    lse::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), rect, transform, tintColor);
+void SDLRenderer::DrawImage(
+    const Texture& texture, const Rect& rect,
+    const Matrix& transform, color_t tintColor) {
+  lse::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), rect, transform, tintColor);
 }
 
-void SDLRenderer::DrawImage(const Texture& texture, const Rect& srcRect, const Rect& destRect,
-        const Matrix& transform, color_t tintColor) {
-    lse::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), srcRect, destRect, transform, tintColor);
+void SDLRenderer::DrawImage(
+    const Texture& texture, const Rect& srcRect, const Rect& destRect,
+    const Matrix& transform, color_t tintColor) {
+  lse::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), srcRect, destRect, transform, tintColor);
 }
 
 void SDLRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) {
-    lse::DrawBorder(this->renderer, this->fillRectTexture.Cast<SDL_Texture>(), rect, border, transform, fillColor);
+  lse::DrawBorder(this->renderer, this->fillRectTexture.Cast<SDL_Texture>(), rect, border, transform, fillColor);
 }
 
-void SDLRenderer::DrawImage(const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
-        const Matrix& transform, color_t tintColor) {
-    lse::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), capInsets, rect, transform, tintColor);
+void SDLRenderer::DrawImage(
+    const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
+    const Matrix& transform, color_t tintColor) {
+  lse::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), capInsets, rect, transform, tintColor);
 }
 
 void SDLRenderer::FillRenderTarget(const color_t color) {
-    SetRenderDrawColor(color);
-    SDL2::SDL_RenderClear(this->renderer);
+  SetRenderDrawColor(color);
+  SDL2::SDL_RenderClear(this->renderer);
 }
 
 bool SDLRenderer::SetRenderTarget(const Texture& newRenderTarget) {
-    // TODO: exceptions?
+  // TODO: exceptions?
 
-    if (!newRenderTarget.IsRenderTarget()) {
-        return false;
-    }
+  if (!newRenderTarget.IsRenderTarget()) {
+    return false;
+  }
 
-    if (SDL2::SDL_SetRenderTarget(this->renderer, newRenderTarget.Cast<SDL_Texture>()) != 0) {
-        LOG_ERROR(SDL2::SDL_GetError());
+  if (SDL2::SDL_SetRenderTarget(this->renderer, newRenderTarget.Cast<SDL_Texture>()) != 0) {
+    LOG_ERROR(SDL2::SDL_GetError());
 
-        return false;
-    }
+    return false;
+  }
 
-    this->ResetInternal(newRenderTarget);
+  this->ResetInternal(newRenderTarget);
 
-    return true;
+  return true;
 }
 
-
 void SDLRenderer::Reset() {
-    if (this->renderer) {
-        SDL2::SDL_SetRenderTarget(this->renderer, nullptr);
-    }
+  if (this->renderer) {
+    SDL2::SDL_SetRenderTarget(this->renderer, nullptr);
+  }
 
-    this->ResetInternal({});
+  this->ResetInternal({});
 }
 
 void SDLRenderer::ResetInternal(const Texture& newRenderTarget) {
-    if (newRenderTarget.IsRenderTarget()) {
-        this->renderTarget = newRenderTarget;
-    } else {
-        this->renderTarget = {};
-    }
+  if (newRenderTarget.IsRenderTarget()) {
+    this->renderTarget = newRenderTarget;
+  } else {
+    this->renderTarget = {};
+  }
 
-    this->DisableClipping();
-    this->SetRenderDrawColor(ColorWhite);
-    SDL2::SDL_SetRenderDrawBlendMode(this->renderer, SDL_BLENDMODE_BLEND);
+  this->DisableClipping();
+  this->SetRenderDrawColor(ColorWhite);
+  SDL2::SDL_SetRenderDrawBlendMode(this->renderer, SDL_BLENDMODE_BLEND);
 }
 
 void SDLRenderer::EnabledClipping(const Rect& rect) {
-    const auto clipRect { ToSDLRect(rect) };
+  const auto clipRect{ ToSDLRect(rect) };
 
-    SDL2::SDL_RenderSetClipRect(this->renderer, &clipRect);
+  SDL2::SDL_RenderSetClipRect(this->renderer, &clipRect);
 }
 
 void SDLRenderer::DisableClipping() {
-    SDL2::SDL_RenderSetClipRect(this->renderer, nullptr);
+  SDL2::SDL_RenderSetClipRect(this->renderer, nullptr);
 }
 
 Texture SDLRenderer::CreateTexture(int32_t width, int32_t height, Texture::Type type) {
-    return lse::CreateTexture(this->renderer, width, height, type, this->textureFormat);
+  return lse::CreateTexture(this->renderer, width, height, type, this->textureFormat);
 }
 
 void SDLRenderer::SetRenderDrawColor(color_t color) noexcept {
-    if (this->drawColor != color) {
-        // TODO: consider opacity
-        SDL2::SDL_SetRenderDrawColor(this->renderer, color.r, color.g, color.b, color.a);
-        this->drawColor = color;
-    }
+  if (this->drawColor != color) {
+    // TODO: consider opacity
+    SDL2::SDL_SetRenderDrawColor(this->renderer, color.r, color.g, color.b, color.a);
+    this->drawColor = color;
+  }
 }
 
 void SDLRenderer::Attach(SDL_Window* window) {
-    this->renderer = SDL2::SDL_CreateRenderer(
-        window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+  this->renderer = SDL2::SDL_CreateRenderer(
+      window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
-    if (!this->renderer) {
-        throw std::runtime_error(Format("Failed to create an SDL renderer. SDL Error: %s", SDL2::SDL_GetError()));
+  if (!this->renderer) {
+    throw std::runtime_error(Format("Failed to create an SDL renderer. SDL Error: %s", SDL2::SDL_GetError()));
+  }
+
+  this->fillRectTexture = lse::CreateTexture(this->renderer, 1, 1, Texture::Updatable, this->textureFormat);
+  this->fillRectTexture.Update(kSinglePixelWhite.data(), kSinglePixelWhite.size() * sizeof(uint8_t));
+
+  // TODO: check texture
+
+  SDL2::SDL_GetRendererOutputSize(this->renderer, &this->width, &this->height);
+
+  SDL_RendererInfo info{};
+
+  if (SDL2::SDL_GetRendererInfo(this->renderer, &info) == 0) {
+    this->UpdateTextureFormats(info);
+  }
+
+  std::string textureFormats;
+
+  for (auto i = 0u; i < info.num_texture_formats; i++) {
+    if (!textureFormats.empty()) {
+      textureFormats += ", ";
     }
+    textureFormats += SDL2::SDL_GetPixelFormatName(info.texture_formats[i]);
+  }
 
-    this->fillRectTexture = lse::CreateTexture(this->renderer, 1, 1, Texture::Updatable, this->textureFormat);
-    this->fillRectTexture.Update(kSinglePixelWhite.data(), kSinglePixelWhite.size() * sizeof(uint8_t));
+  LOGX_INFO("Texture Formats: %s", textureFormats);
 
-    // TODO: check texture
-
-    SDL2::SDL_GetRendererOutputSize(this->renderer, &this->width, &this->height);
-
-    SDL_RendererInfo info{};
-
-    if (SDL2::SDL_GetRendererInfo(this->renderer, &info) == 0) {
-        this->UpdateTextureFormats(info);
-    }
-
-    std::string textureFormats;
-
-    for (auto i = 0u; i < info.num_texture_formats; i++) {
-        if (!textureFormats.empty()) {
-            textureFormats += ", ";
-        }
-        textureFormats += SDL2::SDL_GetPixelFormatName(info.texture_formats[i]);
-    }
-
-    LOGX_INFO("Texture Formats: %s", textureFormats);
-
-    LOGX_INFO("SDL_Renderer: %ix%i driver=%s renderer=%s textureFormat=%s maxTextureSize=%i,%i "
+  LOGX_INFO("SDL_Renderer: %ix%i driver=%s renderer=%s textureFormat=%s maxTextureSize=%i,%i "
             "software=%s accelerated=%s vsync=%s renderTarget=%s",
-        this->GetWidth(),
-        this->GetHeight(),
-        SDL2::SDL_GetCurrentVideoDriver(),
-        info.name,
-        SDL2::SDL_GetPixelFormatName(ToSDLPixelFormat(this->textureFormat)),
-        info.max_texture_width,
-        info.max_texture_height,
-        (info.flags & SDL_RENDERER_SOFTWARE) != 0,
-        (info.flags & SDL_RENDERER_ACCELERATED) != 0,
-        (info.flags & SDL_RENDERER_PRESENTVSYNC) != 0,
-        (info.flags & SDL_RENDERER_TARGETTEXTURE) != 0);
+            this->GetWidth(),
+            this->GetHeight(),
+            SDL2::SDL_GetCurrentVideoDriver(),
+            info.name,
+            SDL2::SDL_GetPixelFormatName(ToSDLPixelFormat(this->textureFormat)),
+            info.max_texture_width,
+            info.max_texture_height,
+            (info.flags & SDL_RENDERER_SOFTWARE) != 0,
+            (info.flags & SDL_RENDERER_ACCELERATED) != 0,
+            (info.flags & SDL_RENDERER_PRESENTVSYNC) != 0,
+            (info.flags & SDL_RENDERER_TARGETTEXTURE) != 0);
 }
 
 void SDLRenderer::Detach() {
-    this->fillRectTexture.Destroy();
-    this->renderTarget = {};
-    this->renderer = DestroyRenderer(this->renderer);
-    this->width = 0;
-    this->height = 0;
+  this->fillRectTexture.Destroy();
+  this->renderTarget = {};
+  this->renderer = DestroyRenderer(this->renderer);
+  this->width = 0;
+  this->height = 0;
 }
 
 void SDLRenderer::Destroy() {
-    this->Detach();
+  this->Detach();
 }
 
 } // namespace lse

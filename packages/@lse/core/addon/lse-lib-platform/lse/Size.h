@@ -12,8 +12,8 @@ namespace lse {
  * Width and height dimensions.
  */
 struct Size {
-    float width;
-    float height;
+  float width;
+  float height;
 };
 
 } // namespace lse

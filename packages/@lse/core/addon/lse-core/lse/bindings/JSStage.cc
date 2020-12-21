@@ -20,31 +20,31 @@ namespace lse {
 namespace bindings {
 
 void JSStage::Constructor(const CallbackInfo& info) {
-    this->native = std::make_shared<Stage>();
+  this->native = std::make_shared<Stage>();
 }
 
 Function JSStage::GetClass(Napi::Env env) {
-    if (jsStageConstructor.IsEmpty()) {
-        HandleScope scope(env);
+  if (jsStageConstructor.IsEmpty()) {
+    HandleScope scope(env);
 
-        jsStageConstructor = DefineClass(env, "StageBase", true, {
-            InstanceMethod("$destroy", &JSStage::Destroy),
-        });
-    }
+    jsStageConstructor = DefineClass(env, "StageBase", true, {
+        InstanceMethod("$destroy", &JSStage::Destroy),
+    });
+  }
 
-    return jsStageConstructor.Value();
+  return jsStageConstructor.Value();
 }
 
 StageRef JSStage::GetNative() const noexcept {
-    return this->native;
+  return this->native;
 }
 
 void JSStage::Update(const CallbackInfo& info) {
-    this->native->Update();
+  this->native->Update();
 }
 
 void JSStage::Destroy(const CallbackInfo& info) {
-    this->native->Destroy();
+  this->native->Destroy();
 }
 
 } // namespace bindings

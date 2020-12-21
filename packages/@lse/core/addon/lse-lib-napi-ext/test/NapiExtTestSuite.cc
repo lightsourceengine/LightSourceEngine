@@ -11,21 +11,21 @@ using Napi::HandleScope;
 using Napi::Object;
 
 namespace lse {
-    void NapiExtSpec(Napi::TestSuite* parent);
-    void SafeObjectWrapSpec(Napi::TestSuite* parent);
-    void ClassBuilderSpec(Napi::TestSuite* parent);
+void NapiExtSpec(Napi::TestSuite* parent);
+void SafeObjectWrapSpec(Napi::TestSuite* parent);
+void ClassBuilderSpec(Napi::TestSuite* parent);
 }
 
 Object Init(Env env, Object exports) {
-    HandleScope scope(env);
+  HandleScope scope(env);
 
-    exports["test"] = Napi::TestSuite::Build(env, "lse-lib-napi-ext native tests", {
-        &lse::NapiExtSpec,
-        &lse::SafeObjectWrapSpec,
-        &lse::ClassBuilderSpec,
-    });
+  exports["test"] = Napi::TestSuite::Build(env, "lse-lib-napi-ext native tests", {
+      &lse::NapiExtSpec,
+      &lse::SafeObjectWrapSpec,
+      &lse::ClassBuilderSpec,
+  });
 
-    return exports;
+  return exports;
 }
 
 NODE_API_MODULE(NapiExtTestSuite, Init);

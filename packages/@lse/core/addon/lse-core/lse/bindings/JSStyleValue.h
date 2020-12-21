@@ -18,10 +18,10 @@ namespace bindings {
  */
 class JSStyleValue {
  public:
-    static Napi::Function GetClass(const Napi::Env& env);
-    static Napi::Object New(const Napi::Env& env, const StyleValue& value);
-    static Napi::Object Undefined(const Napi::Env& env);
-    static StyleValue ToStyleValue(const Napi::Value& value);
+  static Napi::Function GetClass(const Napi::Env& env);
+  static Napi::Object New(const Napi::Env& env, const StyleValue& value);
+  static Napi::Object Undefined(const Napi::Env& env);
+  static StyleValue ToStyleValue(const Napi::Value& value);
 };
 
 } // namespace bindings

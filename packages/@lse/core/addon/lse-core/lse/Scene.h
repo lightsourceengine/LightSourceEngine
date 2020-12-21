@@ -27,54 +27,54 @@ class SceneNode;
  */
 class Scene {
  public:
-    ~Scene() noexcept;
+  ~Scene() noexcept;
 
-    void Attach() noexcept;
-    void Detach() noexcept;
-    void Destroy() noexcept;
+  void Attach() noexcept;
+  void Detach() noexcept;
+  void Destroy() noexcept;
 
-    void Frame();
+  void Frame();
 
-    void SetRoot(RootSceneNode* root);
-    void SetStage(const StageRef& stage);
-    void SetGraphicsContext(GraphicsContext* graphicsContext);
-    Stage* GetStage() const noexcept { return this->stage.get(); }
-    int32_t GetWidth() const noexcept { return this->width; }
-    int32_t GetHeight() const noexcept { return this->height; }
-    StyleContext* GetStyleContext() const noexcept { return &this->styleContext; }
-    Renderer* GetRenderer() const noexcept;
+  void SetRoot(RootSceneNode* root);
+  void SetStage(const StageRef& stage);
+  void SetGraphicsContext(GraphicsContext* graphicsContext);
+  Stage* GetStage() const noexcept { return this->stage.get(); }
+  int32_t GetWidth() const noexcept { return this->width; }
+  int32_t GetHeight() const noexcept { return this->height; }
+  StyleContext* GetStyleContext() const noexcept { return &this->styleContext; }
+  Renderer* GetRenderer() const noexcept;
 
-    void OnRootFontSizeChange() noexcept;
-    void RequestPaint(SceneNode* node);
-    void RequestStyleLayout(SceneNode* node);
-    void RequestComposite();
-    void Remove(SceneNode* node);
-
- private:
-    void PropagateViewportAndRootFontSizeChanges();
-    void ComputeBoundingBoxLayout();
-    void ExecuteStyleLayoutRequests();
-    void ExecutePaintRequests();
-    void Composite();
-    void CompositePreorder(SceneNode* node, CompositeContext* context);
-    bool SyncStyleContext();
+  void OnRootFontSizeChange() noexcept;
+  void RequestPaint(SceneNode* node);
+  void RequestStyleLayout(SceneNode* node);
+  void RequestComposite();
+  void Remove(SceneNode* node);
 
  private:
-    SceneNode* root{};
-    StageRef stage{};
-    GraphicsContext* graphicsContext{};
-    mutable StyleContext styleContext{0, 0, 0};
-    int32_t width{};
-    int32_t height{};
-    float lastRootFontSize{DEFAULT_REM_FONT_SIZE};
-    bool isViewportSizeDirty{true};
-    bool isRootFontSizeDirty{false};
-    bool isAttached{false};
-    bool hasCompositeRequest{false};
-    std::unordered_set<SceneNode*> paintRequests;
-    std::unordered_set<SceneNode*> styleLayoutRequests;
-    CompositeContext compositeContext;
-    RenderingContext2D renderingContext2D{};
+  void PropagateViewportAndRootFontSizeChanges();
+  void ComputeBoundingBoxLayout();
+  void ExecuteStyleLayoutRequests();
+  void ExecutePaintRequests();
+  void Composite();
+  void CompositePreorder(SceneNode* node, CompositeContext* context);
+  bool SyncStyleContext();
+
+ private:
+  SceneNode* root{};
+  StageRef stage{};
+  GraphicsContext* graphicsContext{};
+  mutable StyleContext styleContext{ 0, 0, 0 };
+  int32_t width{};
+  int32_t height{};
+  float lastRootFontSize{ DEFAULT_REM_FONT_SIZE };
+  bool isViewportSizeDirty{ true };
+  bool isRootFontSizeDirty{ false };
+  bool isAttached{ false };
+  bool hasCompositeRequest{ false };
+  std::unordered_set<SceneNode*> paintRequests;
+  std::unordered_set<SceneNode*> styleLayoutRequests;
+  CompositeContext compositeContext;
+  RenderingContext2D renderingContext2D{};
 };
 
 } // namespace lse

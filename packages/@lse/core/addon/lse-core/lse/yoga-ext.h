@@ -57,8 +57,8 @@ const std::vector<YGNodeRef>& YGNodeGetChildren(YGNodeConstRef node) noexcept;
  */
 template<typename T>
 T* YGNodeGetContextAs(YGNodeConstRef node) noexcept {
-    assert(node != nullptr);
-    return static_cast<T*>(node->getContext());
+  assert(node != nullptr);
+  return static_cast<T*>(node->getContext());
 }
 
 } // namespace lse

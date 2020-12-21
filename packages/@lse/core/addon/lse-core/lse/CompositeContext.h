@@ -16,30 +16,30 @@ class Renderer;
 
 class CompositeContext {
  public:
-    CompositeContext();
+  CompositeContext();
 
-    void Reset();
+  void Reset();
 
-    void PushMatrix(const Matrix& m);
-    void PopMatrix();
-    const Matrix& CurrentMatrix() const noexcept;
+  void PushMatrix(const Matrix& m);
+  void PopMatrix();
+  const Matrix& CurrentMatrix() const noexcept;
 
-    void PushClipRect(const Rect& rect);
-    void PopClipRect();
-    const Rect& CurrentClipRect() const noexcept;
+  void PushClipRect(const Rect& rect);
+  void PopClipRect();
+  const Rect& CurrentClipRect() const noexcept;
 
-    void PushOpacity(float opacity);
-    void PopOpacity();
-    float CurrentOpacity() const noexcept;
-    uint8_t CurrentOpacityAlpha() const noexcept;
+  void PushOpacity(float opacity);
+  void PopOpacity();
+  float CurrentOpacity() const noexcept;
+  uint8_t CurrentOpacityAlpha() const noexcept;
 
  public:
-    Renderer* renderer{};
+  Renderer* renderer{};
 
  private:
-    std::vector<Matrix> matrix;
-    std::vector<Rect> clipRect;
-    std::vector<float> opacity;
+  std::vector<Matrix> matrix;
+  std::vector<Rect> clipRect;
+  std::vector<float> opacity;
 };
 
 } // namespace lse

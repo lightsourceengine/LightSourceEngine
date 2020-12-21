@@ -18,21 +18,21 @@ namespace bindings {
  */
 class JSStage : public Napi::SafeObjectWrap<JSStage> {
  public:
-    using Napi::SafeObjectWrap<JSStage>::SafeObjectWrap;
-    ~JSStage() override = default;
+  using Napi::SafeObjectWrap<JSStage>::SafeObjectWrap;
+  ~JSStage() override = default;
 
-    static Napi::Function GetClass(Napi::Env env);
-    StageRef GetNative() const noexcept;
-
- private:
-    void Constructor(const Napi::CallbackInfo& info) override;
-    void Update(const Napi::CallbackInfo& info);
-    void Destroy(const Napi::CallbackInfo& info);
+  static Napi::Function GetClass(Napi::Env env);
+  StageRef GetNative() const noexcept;
 
  private:
-    StageRef native{};
+  void Constructor(const Napi::CallbackInfo& info) override;
+  void Update(const Napi::CallbackInfo& info);
+  void Destroy(const Napi::CallbackInfo& info);
 
-    friend Napi::SafeObjectWrap<JSStage>;
+ private:
+  StageRef native{};
+
+  friend Napi::SafeObjectWrap<JSStage>;
 };
 
 } // namespace bindings

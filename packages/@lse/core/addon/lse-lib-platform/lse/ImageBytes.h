@@ -11,49 +11,49 @@ namespace lse {
 
 class ImageBytes {
  public:
-    using Deleter = void(*)(uint8_t*);
+  using Deleter = void (*)(uint8_t*);
 
  public:
-    ImageBytes() noexcept = default;
+  ImageBytes() noexcept = default;
 
-    ImageBytes(uint8_t* bytes, Deleter deleter, int32_t width, int32_t height, int32_t pitch)
-        : bytes(bytes, deleter), width(width), height(height), pitch(pitch) {
-    }
+  ImageBytes(uint8_t* bytes, Deleter deleter, int32_t width, int32_t height, int32_t pitch)
+      : bytes(bytes, deleter), width(width), height(height), pitch(pitch) {
+  }
 
-    int32_t Width() const noexcept {
-        return this->width;
-    }
+  int32_t Width() const noexcept {
+    return this->width;
+  }
 
-    int32_t Height() const noexcept {
-        return this->height;
-    }
+  int32_t Height() const noexcept {
+    return this->height;
+  }
 
-    float WidthF() const noexcept {
-        return this->width;
-    }
+  float WidthF() const noexcept {
+    return this->width;
+  }
 
-    float HeightF() const noexcept {
-        return this->height;
-    }
+  float HeightF() const noexcept {
+    return this->height;
+  }
 
-    int32_t Pitch() const noexcept {
-        return this->pitch;
-    }
+  int32_t Pitch() const noexcept {
+    return this->pitch;
+  }
 
-    uint8_t* Bytes() const noexcept {
-        return this->bytes.get();
-    }
+  uint8_t* Bytes() const noexcept {
+    return this->bytes.get();
+  }
 
-    void Release() {
-        this->bytes.reset();
-        this->width = this->height = this->pitch = 0;
-    }
+  void Release() {
+    this->bytes.reset();
+    this->width = this->height = this->pitch = 0;
+  }
 
  private:
-    std::shared_ptr<uint8_t> bytes;
-    int32_t width;
-    int32_t height;
-    int32_t pitch;
+  std::shared_ptr<uint8_t> bytes;
+  int32_t width;
+  int32_t height;
+  int32_t pitch;
 };
 
 } // namespace lse

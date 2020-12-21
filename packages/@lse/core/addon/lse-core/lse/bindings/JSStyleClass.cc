@@ -20,29 +20,29 @@ namespace lse {
 namespace bindings {
 
 void JSStyleClass::Constructor(const CallbackInfo& info) {
-     this->CreateNative();
+  this->CreateNative();
 }
 
 Function JSStyleClass::GetClass(Napi::Env env) {
-    if (jsStyleClassConstructor.IsEmpty()) {
-        HandleScope scope(env);
+  if (jsStyleClassConstructor.IsEmpty()) {
+    HandleScope scope(env);
 
-        #define LS_PROP(ENUM) InstanceAccessor(                    \
+#define LS_PROP(ENUM) InstanceAccessor(                    \
             ToString(StyleProperty::ENUM),                         \
             [](JSStyleClass* instance, const CallbackInfo& info) { \
                 return instance->Get(StyleProperty::ENUM, info);   \
             },                                                     \
             nullptr),
 
-        jsStyleClassConstructor = DefineClass(env, "StyleClass", true, {
-            InstanceMethod(Napi::SymbolFor(env, "set"), &JSStyleClass::Set),
-            LS_FOR_EACH_STYLE_PROPERTY(LS_PROP)
-        });
+    jsStyleClassConstructor = DefineClass(env, "StyleClass", true, {
+        InstanceMethod(Napi::SymbolFor(env, "set"), &JSStyleClass::Set),
+        LS_FOR_EACH_STYLE_PROPERTY(LS_PROP)
+    });
 
-        #undef LS_PROP
-    }
+#undef LS_PROP
+  }
 
-    return jsStyleClassConstructor.Value();
+  return jsStyleClassConstructor.Value();
 }
 
 } // namespace bindings

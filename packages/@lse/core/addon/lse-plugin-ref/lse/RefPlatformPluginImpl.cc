@@ -24,24 +24,24 @@ using Napi::Value;
 namespace lse {
 
 RefPlatformPluginImpl::RefPlatformPluginImpl(const CallbackInfo& info) {
-    auto env{ info.Env() };
-    HandleScope scope(env);
-    Capabilities capabilities{};
-    DisplayMode displayMode{ 1280, 720 };
+  auto env{ info.Env() };
+  HandleScope scope(env);
+  Capabilities capabilities{};
+  DisplayMode displayMode{ 1280, 720 };
 
-    capabilities.displays = {
-        {"mock display", displayMode, { displayMode } }
-    };
+  capabilities.displays = {
+      { "mock display", displayMode, { displayMode }}
+  };
 
-    this->capabilitiesRef = Persistent(ToCapabilitiesView(env, capabilities));
+  this->capabilitiesRef = Persistent(ToCapabilitiesView(env, capabilities));
 }
 
 Value RefPlatformPluginImpl::GetKeyboard(const CallbackInfo& info) {
-    return info.Env().Null();
+  return info.Env().Null();
 }
 
 Value RefPlatformPluginImpl::GetGamepads(const CallbackInfo& info) {
-    return Array::New(info.Env());
+  return Array::New(info.Env());
 }
 
 void RefPlatformPluginImpl::Attach(const CallbackInfo& info) {
@@ -51,7 +51,7 @@ void RefPlatformPluginImpl::Detach(const CallbackInfo& info) {
 }
 
 void RefPlatformPluginImpl::Destroy(const CallbackInfo& info) {
-    this->capabilitiesRef.Reset();
+  this->capabilitiesRef.Reset();
 }
 
 void RefPlatformPluginImpl::SetCallback(const CallbackInfo& info) {
@@ -61,23 +61,23 @@ void RefPlatformPluginImpl::ResetCallbacks(const CallbackInfo& info) {
 }
 
 Napi::Value RefPlatformPluginImpl::GetCapabilities(const Napi::CallbackInfo& info) {
-    return this->capabilitiesRef.Value();
+  return this->capabilitiesRef.Value();
 }
 
 Value RefPlatformPluginImpl::ProcessEvents(const CallbackInfo& info) {
-    return Boolean::New(info.Env(), true);
+  return Boolean::New(info.Env(), true);
 }
 
 Value RefPlatformPluginImpl::CreateGraphicsContext(const CallbackInfo& info) {
-    return GraphicsContext::Create<RefGraphicsContextImpl>(info.Env(), info[0]);
+  return GraphicsContext::Create<RefGraphicsContextImpl>(info.Env(), info[0]);
 }
 
 Napi::Value RefPlatformPluginImpl::LoadGameControllerMappings(const Napi::CallbackInfo& info) {
-    return Boolean::New(info.Env(), true);
+  return Boolean::New(info.Env(), true);
 }
 
 void RefPlatformPluginImpl::Finalize() {
-    delete this;
+  delete this;
 }
 
 } // namespace lse

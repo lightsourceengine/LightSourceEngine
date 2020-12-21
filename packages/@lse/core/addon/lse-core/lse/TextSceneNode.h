@@ -15,32 +15,32 @@ namespace lse {
 
 class TextSceneNode final : public Napi::SafeObjectWrap<TextSceneNode>, public SceneNode {
  public:
-    TextSceneNode(const Napi::CallbackInfo& info) : Napi::SafeObjectWrap<TextSceneNode>(info) {}
-    ~TextSceneNode() override = default;
+  TextSceneNode(const Napi::CallbackInfo& info) : Napi::SafeObjectWrap<TextSceneNode>(info) {}
+  ~TextSceneNode() override = default;
 
-    void Constructor(const Napi::CallbackInfo& info) override;
+  void Constructor(const Napi::CallbackInfo& info) override;
 
-    static Napi::Function GetClass(Napi::Env env);
-    Napi::Value GetText(const Napi::CallbackInfo& info);
-    void SetText(const Napi::CallbackInfo& info, const Napi::Value& value);
+  static Napi::Function GetClass(Napi::Env env);
+  Napi::Value GetText(const Napi::CallbackInfo& info);
+  void SetText(const Napi::CallbackInfo& info, const Napi::Value& value);
 
-    void OnStylePropertyChanged(StyleProperty property) override;
-    void OnBoundingBoxChanged() override;
-    void OnStyleLayout() override;
-    YGSize OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) override;
+  void OnStylePropertyChanged(StyleProperty property) override;
+  void OnBoundingBoxChanged() override;
+  void OnStyleLayout() override;
+  YGSize OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) override;
 
-    void Paint(RenderingContext2D* context) override;
-    void Composite(CompositeContext* composite) override;
-    void Destroy() override;
-
- private:
-    bool SetFont(Style* style);
-    void ClearFontFaceResource();
+  void Paint(RenderingContext2D* context) override;
+  void Composite(CompositeContext* composite) override;
+  void Destroy() override;
 
  private:
-    std::string text{};
-    FontFaceRef fontFace{};
-    TextBlock block{};
+  bool SetFont(Style* style);
+  void ClearFontFaceResource();
+
+ private:
+  std::string text{};
+  FontFaceRef fontFace{};
+  TextBlock block{};
 };
 
 } // namespace lse

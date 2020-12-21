@@ -12,8 +12,8 @@ namespace lse {
  * XY point struct.
  */
 struct Point {
-    float x;
-    float y;
+  float x;
+  float y;
 };
 
 } // namespace lse

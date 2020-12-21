@@ -14,20 +14,20 @@ using Napi::TestSuite;
 namespace lse {
 
 void ImageSpec(TestSuite* parent) {
-    auto spec{ parent->Describe("Image") };
+  auto spec{ parent->Describe("Image") };
 
-    spec->Describe("Image()")->tests = {
-        {
-            "should create a new Image object",
-            [](const TestInfo&) {
-                Image image("image.jpg");
+  spec->Describe("Image()")->tests = {
+      {
+          "should create a new Image object",
+          [](const TestInfo&) {
+            Image image("image.jpg");
 
-                Assert::Equal(image.Width(), 0);
-                Assert::Equal(image.Height(), 0);
-                Assert::Equal(image.GetState(), Resource::State::Init);
-            }
-        }
-    };
+            Assert::Equal(image.Width(), 0);
+            Assert::Equal(image.Height(), 0);
+            Assert::Equal(image.GetState(), Resource::State::Init);
+          }
+      }
+  };
 }
 
 } // namespace lse

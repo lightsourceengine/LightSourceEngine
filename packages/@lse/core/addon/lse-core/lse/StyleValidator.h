@@ -19,22 +19,23 @@ namespace lse {
  * for the StyleValue unit field.
  */
 struct StyleValueValidator {
-    static constexpr auto MAX_UNIT_CHECKS = 6;
+  static constexpr auto MAX_UNIT_CHECKS = 6;
 
-    using IsValueOkFunc = bool(*)(float, StyleNumberUnit);
-    using IsUnitSupportedFunc = bool(*)(StyleNumberUnit);
+  using IsValueOkFunc = bool (*)(float, StyleNumberUnit);
+  using IsUnitSupportedFunc = bool (*)(StyleNumberUnit);
 
-    IsValueOkFunc isValueOk{};
-    IsUnitSupportedFunc isUnitSupported[MAX_UNIT_CHECKS]{};
-    int32_t isUnitSupportedSize{};
+  IsValueOkFunc isValueOk{};
+  IsUnitSupportedFunc isUnitSupported[MAX_UNIT_CHECKS]{};
+  int32_t isUnitSupportedSize{};
 
-    StyleValueValidator() noexcept = default;
-    StyleValueValidator(IsValueOkFunc isValueOk,
-                        const std::initializer_list<IsUnitSupportedFunc>& isUnitSupportedChecks) noexcept;
+  StyleValueValidator() noexcept = default;
+  StyleValueValidator(
+      IsValueOkFunc isValueOk,
+      const std::initializer_list<IsUnitSupportedFunc>& isUnitSupportedChecks) noexcept;
 
-    bool IsValid(const StyleValue& styleValue) const noexcept;
+  bool IsValid(const StyleValue& styleValue) const noexcept;
 
-    explicit operator bool() const noexcept { return this->isValueOk; }
+  explicit operator bool() const noexcept { return this->isValueOk; }
 };
 
 /**
@@ -42,14 +43,14 @@ struct StyleValueValidator {
  */
 class StyleValidator {
  public:
-    static void Init();
+  static void Init();
 
-    static bool IsValidValue(StyleProperty property, const char* value) noexcept;
-    static bool IsValidValue(StyleProperty property, const StyleValue& value) noexcept;
-    static bool IsValidValue(StyleProperty property, int32_t value) noexcept;
+  static bool IsValidValue(StyleProperty property, const char* value) noexcept;
+  static bool IsValidValue(StyleProperty property, const StyleValue& value) noexcept;
+  static bool IsValidValue(StyleProperty property, int32_t value) noexcept;
 
  private:
-    static StyleValueValidator numberValidators[];
+  static StyleValueValidator numberValidators[];
 };
 
 } // namespace lse

@@ -14,46 +14,46 @@ using Napi::String;
 namespace lse {
 
 Napi::Object ToCapabilitiesView(Napi::Env env, const Capabilities& caps) {
-    auto jsCaps{ Object::New(env) };
-    auto jsDisplays{ Array::New(env, caps.displays.size()) };
-    auto jsVideoDrivers{ Array::New(env, caps.videoDrivers.size()) };
-    auto i{ 0u };
-    auto toObject{
-        [](Napi::Env env, const DisplayMode& mode) -> Object {
-            auto modeObj{ Object::New(env) };
+  auto jsCaps{ Object::New(env) };
+  auto jsDisplays{ Array::New(env, caps.displays.size()) };
+  auto jsVideoDrivers{ Array::New(env, caps.videoDrivers.size()) };
+  auto i{ 0u };
+  auto toObject{
+      [](Napi::Env env, const DisplayMode& mode) -> Object {
+        auto modeObj{ Object::New(env) };
 
-            modeObj["width"] = mode.width;
-            modeObj["height"] = mode.height;
+        modeObj["width"] = mode.width;
+        modeObj["height"] = mode.height;
 
-            return modeObj;
-        }
-    };
+        return modeObj;
+      }
+  };
 
-    for (const auto& display : caps.displays) {
-        auto jsDisplay{ Object::New(env) };
-        auto jsModes{ Array::New(env, display.modes.size()) };
-        auto j{ 0 };
+  for (const auto& display : caps.displays) {
+    auto jsDisplay{ Object::New(env) };
+    auto jsModes{ Array::New(env, display.modes.size()) };
+    auto j{ 0 };
 
-        jsDisplay["name"] = String::New(env, display.name);
-        jsDisplay["defaultMode"] = toObject(env, display.defaultMode);
+    jsDisplay["name"] = String::New(env, display.name);
+    jsDisplay["defaultMode"] = toObject(env, display.defaultMode);
 
-        for (const DisplayMode& displayMode : display.modes) {
-            jsModes[j++] = toObject(env, displayMode);
-        }
-
-        jsDisplay["modes"] = jsModes;
-
-        jsDisplays[i++] = jsDisplay;
+    for (const DisplayMode& displayMode : display.modes) {
+      jsModes[j++] = toObject(env, displayMode);
     }
 
-    jsCaps["displays"] = jsDisplays;
-    i = 0;
+    jsDisplay["modes"] = jsModes;
 
-    for (const auto& videoDriver : caps.videoDrivers) {
-        jsVideoDrivers[i++] = Napi::String::New(env, videoDriver);
-    }
+    jsDisplays[i++] = jsDisplay;
+  }
 
-    return jsCaps;
+  jsCaps["displays"] = jsDisplays;
+  i = 0;
+
+  for (const auto& videoDriver : caps.videoDrivers) {
+    jsVideoDrivers[i++] = Napi::String::New(env, videoDriver);
+  }
+
+  return jsCaps;
 }
 
 } // namespace lse

@@ -13,14 +13,14 @@ namespace lse {
 
 class SDLKeyboard final : public Napi::SafeObjectWrap<SDLKeyboard>, public InputDevice {
  public:
-    SDLKeyboard(const Napi::CallbackInfo& info);
-    ~SDLKeyboard() override = default;
+  SDLKeyboard(const Napi::CallbackInfo& info);
+  ~SDLKeyboard() override = default;
 
  public:
-    static Napi::Function GetClass(Napi::Env env);
+  static Napi::Function GetClass(Napi::Env env);
 
-    Napi::Value IsButtonDown(const Napi::CallbackInfo& info);
-    void Destroy(const Napi::CallbackInfo& info);
+  Napi::Value IsButtonDown(const Napi::CallbackInfo& info);
+  void Destroy(const Napi::CallbackInfo& info);
 };
 
 } // namespace lse

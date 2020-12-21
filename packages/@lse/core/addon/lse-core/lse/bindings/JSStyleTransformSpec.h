@@ -18,11 +18,11 @@ namespace bindings {
  */
 class JSStyleTransformSpec {
  public:
-    static Napi::Function GetClass(const Napi::Env& env);
-    static Napi::Object New(const Napi::Env& env, const StyleTransformSpec& value);
-    static Napi::Array New(const Napi::Env& env, const std::vector<StyleTransformSpec>& value);
-    static Napi::Value Undefined(const Napi::Env& env);
-    static std::vector<StyleTransformSpec> ToStyleTransformSpecList(const Napi::Value& value);
+  static Napi::Function GetClass(const Napi::Env& env);
+  static Napi::Object New(const Napi::Env& env, const StyleTransformSpec& value);
+  static Napi::Array New(const Napi::Env& env, const std::vector<StyleTransformSpec>& value);
+  static Napi::Value Undefined(const Napi::Env& env);
+  static std::vector<StyleTransformSpec> ToStyleTransformSpecList(const Napi::Value& value);
 };
 
 } // namespace bindings

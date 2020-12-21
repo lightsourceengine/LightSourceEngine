@@ -36,59 +36,59 @@ using Napi::Object;
 using facebook::yoga::Event;
 
 void ExportFunction(Object exports, const Function& function) {
-    exports.Set(function.Get("name").ToString(), function);
+  exports.Set(function.Get("name").ToString(), function);
 }
 
 void ExportClass(Object exports, const Function& constructor) {
-    ExportFunction(exports, constructor);
+  ExportFunction(exports, constructor);
 }
 
 Object Init(Env env, Object exports) {
-    HandleScope scope(env);
+  HandleScope scope(env);
 
-    auto logLevel = lse::GetEnvOrDefault("LS_LOG_LEVEL", "INFO");
+  auto logLevel = lse::GetEnvOrDefault("LS_LOG_LEVEL", "INFO");
 
-    if (!lse::SetLogLevel(logLevel)) {
-        lse::SetLogLevel(lse::LogLevelInfo);
-        LOG_ERROR("LS_LOG_LEVEL contains invalid value of %s. Defaulting to INFO.", logLevel);
-    }
+  if (!lse::SetLogLevel(logLevel)) {
+    lse::SetLogLevel(lse::LogLevelInfo);
+    LOG_ERROR("LS_LOG_LEVEL contains invalid value of %s. Defaulting to INFO.", logLevel);
+  }
 
-    lse::Style::Init();
-    lse::StyleValidator::Init();
-    lse::StylePropertyValueInit();
+  lse::Style::Init();
+  lse::StyleValidator::Init();
+  lse::StylePropertyValueInit();
 
-    Event::subscribe(lse::SceneNode::YogaNodeLayoutEvent);
+  Event::subscribe(lse::SceneNode::YogaNodeLayoutEvent);
 
-    ExportClass(exports, lse::bindings::NewLogLevelClass(env));
-    ExportClass(exports, lse::bindings::NewStyleTransformClass(env));
-    ExportClass(exports, lse::bindings::NewStyleUnitClass(env));
-    ExportClass(exports, lse::bindings::NewStyleAnchorClass(env));
+  ExportClass(exports, lse::bindings::NewLogLevelClass(env));
+  ExportClass(exports, lse::bindings::NewStyleTransformClass(env));
+  ExportClass(exports, lse::bindings::NewStyleUnitClass(env));
+  ExportClass(exports, lse::bindings::NewStyleAnchorClass(env));
 
-    ExportClass(exports, lse::bindings::JSStage::GetClass(env));
-    ExportClass(exports, lse::bindings::JSScene::GetClass(env));
-    ExportClass(exports, lse::bindings::JSStyle::GetClass(env));
-    ExportClass(exports, lse::bindings::JSStyleClass::GetClass(env));
-    ExportClass(exports, lse::bindings::JSStyleValue::GetClass(env));
-    ExportClass(exports, lse::bindings::JSStyleTransformSpec::GetClass(env));
+  ExportClass(exports, lse::bindings::JSStage::GetClass(env));
+  ExportClass(exports, lse::bindings::JSScene::GetClass(env));
+  ExportClass(exports, lse::bindings::JSStyle::GetClass(env));
+  ExportClass(exports, lse::bindings::JSStyleClass::GetClass(env));
+  ExportClass(exports, lse::bindings::JSStyleValue::GetClass(env));
+  ExportClass(exports, lse::bindings::JSStyleTransformSpec::GetClass(env));
 
-    ExportClass(exports, lse::BoxSceneNode::GetClass(env));
-    ExportClass(exports, lse::ImageSceneNode::GetClass(env));
-    ExportClass(exports, lse::LinkSceneNode::GetClass(env));
-    ExportClass(exports, lse::TextSceneNode::GetClass(env));
-    ExportClass(exports, lse::RootSceneNode::GetClass(env));
+  ExportClass(exports, lse::BoxSceneNode::GetClass(env));
+  ExportClass(exports, lse::ImageSceneNode::GetClass(env));
+  ExportClass(exports, lse::LinkSceneNode::GetClass(env));
+  ExportClass(exports, lse::TextSceneNode::GetClass(env));
+  ExportClass(exports, lse::RootSceneNode::GetClass(env));
 
-    ExportFunction(exports, Function::New(env, &lse::bindings::ParseColor, "parseColor"));
-    ExportFunction(exports, Function::New(env, &lse::bindings::LoadPlugin, "loadPlugin"));
-    ExportFunction(exports, Function::New(env, &lse::SceneNode::GetInstanceCount, "getSceneNodeInstanceCount"));
+  ExportFunction(exports, Function::New(env, &lse::bindings::ParseColor, "parseColor"));
+  ExportFunction(exports, Function::New(env, &lse::bindings::LoadPlugin, "loadPlugin"));
+  ExportFunction(exports, Function::New(env, &lse::SceneNode::GetInstanceCount, "getSceneNodeInstanceCount"));
 
-    exports["logger"] = lse::bindings::NewLoggerClass(env);
-    exports["styleProperties"] = lse::bindings::GetStyleProperties(env);
+  exports["logger"] = lse::bindings::NewLoggerClass(env);
+  exports["styleProperties"] = lse::bindings::GetStyleProperties(env);
 
-    #if defined(LS_ENABLE_NATIVE_TESTS)
-    exports["test"] = lse::LightSourceTestSuite(env);
-    #endif
+#if defined(LS_ENABLE_NATIVE_TESTS)
+  exports["test"] = lse::LightSourceTestSuite(env);
+#endif
 
-    return exports;
+  return exports;
 }
 
 NODE_API_MODULE(LightSourceEngineCore, Init);

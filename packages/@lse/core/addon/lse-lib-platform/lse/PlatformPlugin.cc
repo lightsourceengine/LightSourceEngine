@@ -22,101 +22,100 @@ PlatformPlugin::PlatformPlugin(const CallbackInfo& info) : Napi::SafeObjectWrap<
 }
 
 PlatformPlugin::~PlatformPlugin() {
-    if (this->impl) {
-        this->impl->Finalize();
-    }
+  if (this->impl) {
+    this->impl->Finalize();
+  }
 }
 
 void PlatformPlugin::Constructor(const CallbackInfo& info) {
-    this->impl = Napi::ConstructorWithExternalFactory<PlatformPluginInterface, PlatformPluginInterfaceFactory>(
-        info, "PlatformPlugin");
+  this->impl = Napi::ConstructorWithExternalFactory<PlatformPluginInterface, PlatformPluginInterfaceFactory>(
+      info, "PlatformPlugin");
 }
 
 Value PlatformPlugin::GetKeyboard(const CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    return this->impl->GetKeyboard(info);
+  CHECK_IMPL(this->impl);
+  return this->impl->GetKeyboard(info);
 }
 
 Value PlatformPlugin::GetGamepads(const CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    return this->impl->GetGamepads(info);
+  CHECK_IMPL(this->impl);
+  return this->impl->GetGamepads(info);
 }
 
 Value PlatformPlugin::GetCapabilities(const CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    return this->impl->GetCapabilities(info);
+  CHECK_IMPL(this->impl);
+  return this->impl->GetCapabilities(info);
 }
 
 void PlatformPlugin::SetCallback(const CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    this->impl->SetCallback(info);
+  CHECK_IMPL(this->impl);
+  this->impl->SetCallback(info);
 }
 
 void PlatformPlugin::ResetCallbacks(const CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    this->impl->ResetCallbacks(info);
+  CHECK_IMPL(this->impl);
+  this->impl->ResetCallbacks(info);
 }
 
 void PlatformPlugin::Attach(const CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    this->impl->Attach(info);
+  CHECK_IMPL(this->impl);
+  this->impl->Attach(info);
 }
 
 void PlatformPlugin::Detach(const CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    this->impl->Detach(info);
+  CHECK_IMPL(this->impl);
+  this->impl->Detach(info);
 }
 
 void PlatformPlugin::Destroy(const CallbackInfo& info) {
-    if (this->impl) {
-        this->impl->Destroy(info);
-        this->impl->Finalize();
-        this->impl = nullptr;
-    }
+  if (this->impl) {
+    this->impl->Destroy(info);
+    this->impl->Finalize();
+    this->impl = nullptr;
+  }
 }
 
 Value PlatformPlugin::ProcessEvents(const CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    return this->impl->ProcessEvents(info);
+  CHECK_IMPL(this->impl);
+  return this->impl->ProcessEvents(info);
 }
 
-
 Value PlatformPlugin::CreateGraphicsContext(const CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    return this->impl->CreateGraphicsContext(info);
+  CHECK_IMPL(this->impl);
+  return this->impl->CreateGraphicsContext(info);
 }
 
 Value PlatformPlugin::LoadGameControllerMappings(const CallbackInfo& info) {
-    CHECK_IMPL(this->impl);
-    return this->impl->LoadGameControllerMappings(info);
+  CHECK_IMPL(this->impl);
+  return this->impl->LoadGameControllerMappings(info);
 }
 
 void PlatformPlugin::Finalize() {
-    throw std::runtime_error("Not implemented");
+  throw std::runtime_error("Not implemented");
 }
 
 Function PlatformPlugin::GetClass(Napi::Env env) {
-    static FunctionReference constructor;
+  static FunctionReference constructor;
 
-    if (constructor.IsEmpty()) {
-        HandleScope scope(env);
+  if (constructor.IsEmpty()) {
+    HandleScope scope(env);
 
-        constructor = DefineClass(env, "PlatformPlugin", true, {
-            InstanceAccessor("capabilities", &PlatformPlugin::GetCapabilities, nullptr),
-            InstanceMethod("getKeyboard", &PlatformPlugin::GetKeyboard),
-            InstanceMethod("getGamepads", &PlatformPlugin::GetGamepads),
-            InstanceMethod("processEvents", &PlatformPlugin::ProcessEvents),
-            InstanceMethod("attach", &PlatformPlugin::Attach),
-            InstanceMethod("detach", &PlatformPlugin::Detach),
-            InstanceMethod("destroy", &PlatformPlugin::Destroy),
-            InstanceMethod("setCallback", &PlatformPlugin::SetCallback),
-            InstanceMethod("resetCallbacks", &PlatformPlugin::ResetCallbacks),
-            InstanceMethod("createGraphicsContext", &PlatformPlugin::CreateGraphicsContext),
-            InstanceMethod("loadGameControllerMappings", &PlatformPlugin::LoadGameControllerMappings),
-        });
-    }
+    constructor = DefineClass(env, "PlatformPlugin", true, {
+        InstanceAccessor("capabilities", &PlatformPlugin::GetCapabilities, nullptr),
+        InstanceMethod("getKeyboard", &PlatformPlugin::GetKeyboard),
+        InstanceMethod("getGamepads", &PlatformPlugin::GetGamepads),
+        InstanceMethod("processEvents", &PlatformPlugin::ProcessEvents),
+        InstanceMethod("attach", &PlatformPlugin::Attach),
+        InstanceMethod("detach", &PlatformPlugin::Detach),
+        InstanceMethod("destroy", &PlatformPlugin::Destroy),
+        InstanceMethod("setCallback", &PlatformPlugin::SetCallback),
+        InstanceMethod("resetCallbacks", &PlatformPlugin::ResetCallbacks),
+        InstanceMethod("createGraphicsContext", &PlatformPlugin::CreateGraphicsContext),
+        InstanceMethod("loadGameControllerMappings", &PlatformPlugin::LoadGameControllerMappings),
+    });
+  }
 
-    return constructor.Value();
+  return constructor.Value();
 }
 
 } // namespace lse

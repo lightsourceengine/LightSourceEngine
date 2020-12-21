@@ -14,42 +14,42 @@ namespace lse {
  * Rectangle in TRBL positional value format.
  */
 struct EdgeRect {
-    int32_t top;
-    int32_t right;
-    int32_t bottom;
-    int32_t left;
+  int32_t top;
+  int32_t right;
+  int32_t bottom;
+  int32_t left;
 };
 
 /**
  * Rectangle in position (x, y) and size (width, height) format.
  */
 struct Rect {
-    float x;
-    float y;
-    float width;
-    float height;
+  float x;
+  float y;
+  float width;
+  float height;
 };
 
 /**
  * Rectangle with texture coordinates (src member).
  */
 struct ImageRect {
-    Rect dest{};
-    Rect src{};
+  Rect dest{};
+  Rect src{};
 };
 
 /**
  * Checks if a rectangle is empty (width or height <= 0).
  */
 inline bool IsEmpty(const Rect& rect) noexcept {
-    return (static_cast<int32_t>(rect.width) <= 0) || (static_cast<int32_t>(rect.height) <= 0);
+  return (static_cast<int32_t>(rect.width) <= 0) || (static_cast<int32_t>(rect.height) <= 0);
 }
 
 /**
  * Checks if am ImageRect is empty (dest width or height <= 0).
  */
 inline bool IsEmpty(const ImageRect& rect) noexcept {
-    return IsEmpty(rect.dest);
+  return IsEmpty(rect.dest);
 }
 
 /**
@@ -80,12 +80,12 @@ ImageRect ClipImage(const Rect& bounds, const Rect& imageDest, float imageWidth,
  * @return Copy of parameter rect with x and y translated.
  */
 inline Rect Translate(const Rect& rect, float tx, float ty) noexcept {
-    return {
-        rect.x + tx,
-        rect.y + ty,
-        rect.width,
-        rect.height
-    };
+  return {
+      rect.x + tx,
+      rect.y + ty,
+      rect.width,
+      rect.height
+  };
 }
 
 } // namespace lse

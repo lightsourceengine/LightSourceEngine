@@ -17,15 +17,15 @@ namespace bindings {
  */
 class JSStyleClass : public Napi::SafeObjectWrap<JSStyleClass>, public StyleOps {
  public:
-    using Napi::SafeObjectWrap<JSStyleClass>::SafeObjectWrap;
-    ~JSStyleClass() override = default;
+  using Napi::SafeObjectWrap<JSStyleClass>::SafeObjectWrap;
+  ~JSStyleClass() override = default;
 
-    static Napi::Function GetClass(Napi::Env env);
+  static Napi::Function GetClass(Napi::Env env);
 
  private:
-    void Constructor(const Napi::CallbackInfo& info) override;
+  void Constructor(const Napi::CallbackInfo& info) override;
 
-    friend Napi::SafeObjectWrap<JSStyleClass>;
+  friend Napi::SafeObjectWrap<JSStyleClass>;
 };
 
 } // namespace bindings

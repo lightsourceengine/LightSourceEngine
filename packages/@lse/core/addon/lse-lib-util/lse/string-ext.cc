@@ -14,21 +14,21 @@
 namespace lse {
 
 std::string& ToLowercase(std::string& str) noexcept {
-    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+  std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 
-    return str;
+  return str;
 }
 
 char* ToLowercase(char* str) noexcept {
-    if (str) {
-        size_t len = strlen(str);
+  if (str) {
+    size_t len = strlen(str);
 
-        for (size_t i = 0; i < len; i++) {
-            str[i] = static_cast<char>(::tolower(str[i]));
-        }
+    for (size_t i = 0; i < len; i++) {
+      str[i] = static_cast<char>(::tolower(str[i]));
     }
+  }
 
-    return str;
+  return str;
 }
 
 } // namespace lse
@@ -37,23 +37,23 @@ namespace lse {
 namespace internal {
 
 const char* FormatArg(const bool& value) noexcept {
-    return value ? "true" : "false";
+  return value ? "true" : "false";
 }
 
 const char* FormatArg(const std::string& value) noexcept {
-    return value.c_str();
+  return value.c_str();
 }
 
 const char* FormatArg(std::nullptr_t) noexcept {
-    return "null";
+  return "null";
 }
 
 const char* FormatArg(const char* value) noexcept {
-    return value ? value : "null";
+  return value ? value : "null";
 }
 
 const char* FormatArg(const std::exception& e) noexcept {
-    return e.what();
+  return e.what();
 }
 
 } // namespace internal

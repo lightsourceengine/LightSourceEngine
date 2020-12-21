@@ -17,19 +17,19 @@ using Napi::Value;
 namespace lse {
 
 Value InputDevice::GetId(const CallbackInfo& info) {
-    return Number::New(info.Env(), this->id);
+  return Number::New(info.Env(), this->id);
 }
 
 Value InputDevice::GetUUID(const CallbackInfo& info) {
-    return String::New(info.Env(), this->uuid);
+  return String::New(info.Env(), this->uuid);
 }
 
 Value InputDevice::GetMapping(const CallbackInfo& info) {
-    return info.Env().Undefined();
+  return info.Env().Undefined();
 }
 
 Value InputDevice::GetName(const CallbackInfo& info) {
-    return String::New(info.Env(), this->name);
+  return String::New(info.Env(), this->name);
 }
 
 } // namespace lse

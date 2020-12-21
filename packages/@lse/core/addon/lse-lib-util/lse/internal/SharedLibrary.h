@@ -12,13 +12,13 @@ namespace internal {
 
 class SharedLibrary {
  public:
-    void Open(const char* libraryName);
-    void* GetSymbol(const char* name) const;
-    bool IsOpen() const noexcept;
-    void Close() noexcept;
+  void Open(const char* libraryName);
+  void* GetSymbol(const char* name) const;
+  bool IsOpen() const noexcept;
+  void Close() noexcept;
 
  private:
-    void* handle{};
+  void* handle{};
 };
 
 } // namespace internal

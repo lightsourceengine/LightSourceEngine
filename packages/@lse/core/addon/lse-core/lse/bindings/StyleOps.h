@@ -19,18 +19,18 @@ namespace bindings {
  */
 class StyleOps {
  public:
-    virtual ~StyleOps() = default;
+  virtual ~StyleOps() = default;
 
-    StyleRef GetNative() const noexcept;
-
- protected:
-    void CreateNative();
-    void Set(const Napi::CallbackInfo& info);
-    void Set(const Napi::Env& env, StyleProperty property, const Napi::Value& value);
-    Napi::Value Get(StyleProperty property, const Napi::CallbackInfo& info);
+  StyleRef GetNative() const noexcept;
 
  protected:
-    StyleRef native;
+  void CreateNative();
+  void Set(const Napi::CallbackInfo& info);
+  void Set(const Napi::Env& env, StyleProperty property, const Napi::Value& value);
+  Napi::Value Get(StyleProperty property, const Napi::CallbackInfo& info);
+
+ protected:
+  StyleRef native;
 };
 
 } // namespace bindings

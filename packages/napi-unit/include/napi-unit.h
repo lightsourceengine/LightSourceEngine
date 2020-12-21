@@ -272,7 +272,7 @@ Object TestSuite::Build(Napi::Env env, const std::string& description,
 
 inline
 Napi::Object TestSuite::ToObject(const Napi::Env& env) {
-  auto obj{Object::New(env)};
+  auto obj{ Object::New(env) };
 
   obj.Set("description", this->GetDescription(env));
   obj.Set("before", this->GetBefore(env));
@@ -292,14 +292,14 @@ Napi::Value TestSuite::GetDescription(const Napi::Env& env) {
 
 inline
 Napi::Value TestSuite::GetTests(const Napi::Env& env) {
-  auto result{Array::New(env, this->tests.size())};
-  auto i{0u};
+  auto result{ Array::New(env, this->tests.size()) };
+  auto i{ 0u };
 
   for (auto& test : this->tests) {
-    auto object{Object::New(env)};
+    auto object{ Object::New(env) };
 
     auto jsSafeTestFunc = [f = test.func](const Napi::CallbackInfo& info) {
-      auto env{info.Env()};
+      auto env{ info.Env() };
       HandleScope scope(env);
       const TestInfo testInfo(env);
 
@@ -327,8 +327,8 @@ Napi::Value TestSuite::GetTests(const Napi::Env& env) {
 
 inline
 Napi::Value TestSuite::GetChildren(const Napi::Env& env) {
-  auto result{Array::New(env, this->children.size())};
-  auto i{0u};
+  auto result{ Array::New(env, this->children.size()) };
+  auto i{ 0u };
 
   for (auto& child : this->children) {
     result[i++] = child.ToObject(env);

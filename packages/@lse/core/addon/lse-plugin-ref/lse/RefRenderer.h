@@ -12,30 +12,33 @@ namespace lse {
 
 class RefRenderer : public Renderer {
  public:
-    ~RefRenderer() override = default;
+  ~RefRenderer() override = default;
 
-    int32_t GetWidth() const override;
-    int32_t GetHeight() const override;
-    PixelFormat GetTextureFormat() const override { return PixelFormatRGBA; }
+  int32_t GetWidth() const override;
+  int32_t GetHeight() const override;
+  PixelFormat GetTextureFormat() const override { return PixelFormatRGBA; }
 
-    bool SetRenderTarget(const Texture& newRenderTarget) override;
-    void Reset() override;
-    void Present() override;
-    void EnabledClipping(const Rect& rect) override;
-    void DisableClipping() override;
+  bool SetRenderTarget(const Texture& newRenderTarget) override;
+  void Reset() override;
+  void Present() override;
+  void EnabledClipping(const Rect& rect) override;
+  void DisableClipping() override;
 
-    void DrawFillRect(const Rect& rect, const Matrix& transform, color_t fillColor) override;
-    void DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) override;
-    void DrawImage(const Texture& texture, const Rect& rect, const Matrix& transform,
-            color_t tintColor) override;
-    void DrawImage(const Texture& texture, const Rect& srcRect, const Rect& destRect,
-            const Matrix& transform, color_t tintColor) override;
-    void DrawImage(const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
-            const Matrix& transform, color_t tintColor) override;
+  void DrawFillRect(const Rect& rect, const Matrix& transform, color_t fillColor) override;
+  void DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) override;
+  void DrawImage(
+      const Texture& texture, const Rect& rect, const Matrix& transform,
+      color_t tintColor) override;
+  void DrawImage(
+      const Texture& texture, const Rect& srcRect, const Rect& destRect,
+      const Matrix& transform, color_t tintColor) override;
+  void DrawImage(
+      const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
+      const Matrix& transform, color_t tintColor) override;
 
-    void FillRenderTarget(color_t color) override;
+  void FillRenderTarget(color_t color) override;
 
-    Texture CreateTexture(int32_t width, int32_t height, Texture::Type type) override;
+  Texture CreateTexture(int32_t width, int32_t height, Texture::Type type) override;
 };
 
 } // namespace lse

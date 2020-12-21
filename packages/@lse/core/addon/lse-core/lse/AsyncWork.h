@@ -22,22 +22,22 @@ namespace lse {
 template<typename T>
 class AsyncWorkResult {
  public:
-    AsyncWorkResult() = default;
-    AsyncWorkResult(const char* e) : error(e) {}
-    AsyncWorkResult(T&& val) : value(std::move(val)) {}
+  AsyncWorkResult() = default;
+  AsyncWorkResult(const char* e) : error(e) {}
+  AsyncWorkResult(T&& val) : value(std::move(val)) {}
 
-    // If true, the create function threw an exception and error contains the exception's error message.
-    bool HasError() const noexcept { return !this->error.empty(); }
+  // If true, the create function threw an exception and error contains the exception's error message.
+  bool HasError() const noexcept { return !this->error.empty(); }
 
-    // Get an rvalue reference to the value the create function returned (if create succeeded).
-    T&& TakeValue() noexcept { return std::move(this->value); }
+  // Get an rvalue reference to the value the create function returned (if create succeeded).
+  T&& TakeValue() noexcept { return std::move(this->value); }
 
-    // Get an rvalue reference to the exception message thrown by the create function (if an error occurred).
-    std::string&& TakeError() noexcept { return std::move(this->error); }
+  // Get an rvalue reference to the exception message thrown by the create function (if an error occurred).
+  std::string&& TakeError() noexcept { return std::move(this->error); }
 
  private:
-    T value{};
-    std::string error{};
+  T value{};
+  std::string error{};
 };
 
 /**
@@ -47,7 +47,7 @@ class AsyncWorkResult {
  * should throw an std::exception.
  */
 template<typename T>
-using AsyncWorkCreate = std::function<T ()>;
+using AsyncWorkCreate = std::function<T()>;
 
 /**
  * The complete function format used by AsyncWork.
@@ -56,7 +56,7 @@ using AsyncWorkCreate = std::function<T ()>;
  * the result of executing the create function.
  */
 template<typename T>
-using AsyncWorkComplete = std::function<void (Napi::Env env, AsyncWorkResult<T>*)>;
+using AsyncWorkComplete = std::function<void(Napi::Env env, AsyncWorkResult<T>*)>;
 
 /**
  * Manages the internal state of an AsyncWork object.
@@ -77,32 +77,32 @@ using AsyncWorkComplete = std::function<void (Napi::Env env, AsyncWorkResult<T>*
 template<typename T>
 class AsyncWorkState : public std::enable_shared_from_this<AsyncWorkState<T>> {
  public:
-    AsyncWorkState(Napi::Env env, AsyncWorkCreate<T>&& create, AsyncWorkComplete<T>&& complete);
-    ~AsyncWorkState();
+  AsyncWorkState(Napi::Env env, AsyncWorkCreate<T>&& create, AsyncWorkComplete<T>&& complete);
+  ~AsyncWorkState();
 
-    void Queue();
-    void Cancel();
-    void Destroy();
-    bool IsQueued() const;
-    AsyncWorkResult<T>* GetResult() { return &this->result; }
-
- private:
-    using AsyncWorkStateMap = std::unordered_map<const AsyncWorkState<T>*, std::shared_ptr<AsyncWorkState<T>>>;
-
-    static std::shared_ptr<AsyncWorkState<T>> GetState(const AsyncWorkState<T>* state);
-    static void EraseState(AsyncWorkState<T>* state);
-    static void InsertState(AsyncWorkState<T>* state);
+  void Queue();
+  void Cancel();
+  void Destroy();
+  bool IsQueued() const;
+  AsyncWorkResult<T>* GetResult() { return &this->result; }
 
  private:
-    static AsyncWorkStateMap sAsyncWorkStateMap;
-    static std::mutex sAsyncWorkStateMapMutex;
+  using AsyncWorkStateMap = std::unordered_map<const AsyncWorkState<T>*, std::shared_ptr<AsyncWorkState<T>>>;
 
-    Napi::Env env;
-    AsyncWorkCreate<T> create;
-    AsyncWorkComplete<T> complete;
-    napi_async_work work{};
-    AsyncWorkResult<T> result{};
-    bool isQueued{false};
+  static std::shared_ptr<AsyncWorkState<T>> GetState(const AsyncWorkState<T>* state);
+  static void EraseState(AsyncWorkState<T>* state);
+  static void InsertState(AsyncWorkState<T>* state);
+
+ private:
+  static AsyncWorkStateMap sAsyncWorkStateMap;
+  static std::mutex sAsyncWorkStateMapMutex;
+
+  Napi::Env env;
+  AsyncWorkCreate<T> create;
+  AsyncWorkComplete<T> complete;
+  napi_async_work work{};
+  AsyncWorkResult<T> result{};
+  bool isQueued{ false };
 };
 
 /**
@@ -119,39 +119,39 @@ class AsyncWorkState : public std::enable_shared_from_this<AsyncWorkState<T>> {
 template<typename T>
 class AsyncWork {
  public:
-    AsyncWork() = default;
-    ~AsyncWork();
+  AsyncWork() = default;
+  ~AsyncWork();
 
-    /**
-     * Get the javascript environment.
-     *
-     * Note: This will return nullptr until Reset() is called.
-     */
-    Napi::Env Env() const noexcept { return this->env; }
+  /**
+   * Get the javascript environment.
+   *
+   * Note: This will return nullptr until Reset() is called.
+   */
+  Napi::Env Env() const noexcept { return this->env; }
 
-    /**
-     * Set the create and complete functions.
-     */
-    void Reset(Napi::Env env, AsyncWorkCreate<T>&& create, AsyncWorkComplete<T>&& complete);
+  /**
+   * Set the create and complete functions.
+   */
+  void Reset(Napi::Env env, AsyncWorkCreate<T>&& create, AsyncWorkComplete<T>&& complete);
 
-    /**
-     * Submit the create function for background execution.
-     *
-     * Assumes Reset() has been called.
-     */
-    void Queue();
+  /**
+   * Submit the create function for background execution.
+   *
+   * Assumes Reset() has been called.
+   */
+  void Queue();
 
-    /**
-     * Cancel execution.
-     *
-     * If execution has been queued, the create method may or may not execute (program should handle this
-     * accordingly). The complete method will not be called.
-     */
-    void Cancel();
+  /**
+   * Cancel execution.
+   *
+   * If execution has been queued, the create method may or may not execute (program should handle this
+   * accordingly). The complete method will not be called.
+   */
+  void Cancel();
 
  private:
-    Napi::Env env{nullptr};
-    std::shared_ptr<AsyncWorkState<T>> state{};
+  Napi::Env env{ nullptr };
+  std::shared_ptr<AsyncWorkState<T>> state{};
 };
 
 } // namespace lse

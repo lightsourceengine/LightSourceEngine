@@ -15,17 +15,17 @@ namespace detail {
 
 template<class T>
 struct CStringMapEqualTo : public std::binary_function<T, T, bool> {
-    bool operator()(const T &lhs, const T &rhs) const noexcept { return strcmp(lhs, rhs) == 0; }
+  bool operator()(const T& lhs, const T& rhs) const noexcept { return strcmp(lhs, rhs) == 0; }
 };
 
 struct CStringMapHash {
-    int32_t operator()(const char* str) const {
-        int32_t h = 0;
-        while (*str) {
-            h = h * 31 + static_cast<int32_t>(*str++);
-        }
-        return h;
+  int32_t operator()(const char* str) const {
+    int32_t h = 0;
+    while (*str) {
+      h = h * 31 + static_cast<int32_t>(*str++);
     }
+    return h;
+  }
 };
 
 } // namespace detail
@@ -33,6 +33,6 @@ struct CStringMapHash {
 // unordered_map with const char* as the key type.
 template<typename T>
 using CStringHashMap
-    = std::unordered_map<const char*, T, detail::CStringMapHash, detail::CStringMapEqualTo<const char*>>;
+= std::unordered_map<const char*, T, detail::CStringMapHash, detail::CStringMapEqualTo<const char*>>;
 
 } // namespace lse

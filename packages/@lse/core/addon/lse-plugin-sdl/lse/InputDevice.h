@@ -12,19 +12,19 @@ namespace lse {
 
 class InputDevice {
  public:
-    virtual ~InputDevice() = default;
+  virtual ~InputDevice() = default;
 
-    int32_t GetId() const noexcept { return this->id; }
+  int32_t GetId() const noexcept { return this->id; }
 
-    Napi::Value GetId(const Napi::CallbackInfo& info);
-    Napi::Value GetUUID(const Napi::CallbackInfo& info);
-    Napi::Value GetMapping(const Napi::CallbackInfo& info);
-    Napi::Value GetName(const Napi::CallbackInfo& info);
+  Napi::Value GetId(const Napi::CallbackInfo& info);
+  Napi::Value GetUUID(const Napi::CallbackInfo& info);
+  Napi::Value GetMapping(const Napi::CallbackInfo& info);
+  Napi::Value GetName(const Napi::CallbackInfo& info);
 
  protected:
-    int32_t id{-1};
-    std::string uuid{};
-    std::string name{};
+  int32_t id{ -1 };
+  std::string uuid{};
+  std::string name{};
 };
 
 } // namespace lse

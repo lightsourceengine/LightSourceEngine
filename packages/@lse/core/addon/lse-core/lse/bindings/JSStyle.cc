@@ -22,14 +22,14 @@ namespace lse {
 namespace bindings {
 
 void JSStyle::Constructor(const CallbackInfo& info) {
-    this->CreateNative();
+  this->CreateNative();
 }
 
 Function JSStyle::GetClass(Napi::Env env) {
-    if (jsStyleConstructor.IsEmpty()) {
-        HandleScope scope(env);
+  if (jsStyleConstructor.IsEmpty()) {
+    HandleScope scope(env);
 
-        #define LS_PROP(ENUM) InstanceAccessor(                                         \
+#define LS_PROP(ENUM) InstanceAccessor(                                         \
             ToString(StyleProperty::ENUM),                                              \
             [](JSStyle* instance, const CallbackInfo& info) {                           \
                 return instance->Get(StyleProperty::ENUM, info);                        \
@@ -38,41 +38,41 @@ Function JSStyle::GetClass(Napi::Env env) {
                 instance->Set(info.Env(), StyleProperty::ENUM, value);                  \
             }),
 
-        jsStyleConstructor = DefineClass(env, "Style", true, {
-            InstanceMethod("reset", &JSStyle::Reset),
-            InstanceMethod(Napi::SymbolFor(env, "bindStyleClass"), &JSStyle::BindStyleClass),
-            LS_FOR_EACH_STYLE_PROPERTY(LS_PROP)
-        });
+    jsStyleConstructor = DefineClass(env, "Style", true, {
+        InstanceMethod("reset", &JSStyle::Reset),
+        InstanceMethod(Napi::SymbolFor(env, "bindStyleClass"), &JSStyle::BindStyleClass),
+        LS_FOR_EACH_STYLE_PROPERTY(LS_PROP)
+    });
 
-        #undef LS_PROP
-    }
+#undef LS_PROP
+  }
 
-    return jsStyleConstructor.Value();
+  return jsStyleConstructor.Value();
 }
 
 void JSStyle::Reset(const Napi::CallbackInfo& info) {
-    assert(this->native != nullptr);
-    // TODO: send change events
-    this->native->Reset();
+  assert(this->native != nullptr);
+  // TODO: send change events
+  this->native->Reset();
 }
 
 Napi::Value JSStyle::BindStyleClass(const Napi::CallbackInfo& info) {
-    assert(this->native != nullptr);
-    auto env{ info.Env() };
-    auto value{ info[0] };
+  assert(this->native != nullptr);
+  auto env{ info.Env() };
+  auto value{ info[0] };
 
-    if (Napi::IsNullish(env, value)) {
-        this->native->SetParent(nullptr);
-        return env.Null();
-    }
+  if (Napi::IsNullish(env, value)) {
+    this->native->SetParent(nullptr);
+    return env.Null();
+  }
 
-    auto jsStyleClass{ JSStyleClass::Cast(info[0]) };
+  auto jsStyleClass{ JSStyleClass::Cast(info[0]) };
 
-    NAPI_EXPECT_NOT_NULL(env, jsStyleClass, "bindStyleClass requires a StyleClass instance or null");
+  NAPI_EXPECT_NOT_NULL(env, jsStyleClass, "bindStyleClass requires a StyleClass instance or null");
 
-    this->native->SetParent(jsStyleClass->GetNative());
+  this->native->SetParent(jsStyleClass->GetNative());
 
-    return info[0];
+  return info[0];
 }
 
 } // namespace bindings

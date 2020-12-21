@@ -19,15 +19,15 @@ Timer::Timer(const std::string& label) : start(high_resolution_clock::now()), la
 }
 
 void Timer::Log() const {
-    const auto elapsed{
-        duration_cast<std::chrono::microseconds>(high_resolution_clock::now() - this->start).count() / 1000.f
-    };
+  const auto elapsed{
+      duration_cast<std::chrono::microseconds>(high_resolution_clock::now() - this->start).count() / 1000.f
+  };
 
-    LOG_INFO("%s: %.2fms", this->label.empty() ? "elapsed" : this->label, elapsed);
+  LOG_INFO("%s: %.2fms", this->label.empty() ? "elapsed" : this->label, elapsed);
 }
 
 Timer::~Timer() {
-    this->Log();
+  this->Log();
 }
 
 } // namespace lse

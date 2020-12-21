@@ -12,62 +12,62 @@ namespace Napi {
 
 template<typename T>
 T ObjectGetNumberOrDefault(const Object& object, const std::string& key, T defaultValue) {
-    if (!object.Has(key)) {
-        return defaultValue;
-    }
+  if (!object.Has(key)) {
+    return defaultValue;
+  }
 
-    auto value{ object.Get(key) };
+  auto value{ object.Get(key) };
 
-    if (!value.IsNumber()) {
-        return defaultValue;
-    }
+  if (!value.IsNumber()) {
+    return defaultValue;
+  }
 
-    return value.As<Number>();
+  return value.As<Number>();
 }
 
 template<typename T>
 T ObjectGetNumberOrDefault(const Object& object, uint32_t index, T defaultValue) {
-    if (!object.Has(index)) {
-        return defaultValue;
-    }
+  if (!object.Has(index)) {
+    return defaultValue;
+  }
 
-    auto value{ object.Get(index) };
+  auto value{ object.Get(index) };
 
-    if (!value.IsNumber()) {
-        return defaultValue;
-    }
+  if (!value.IsNumber()) {
+    return defaultValue;
+  }
 
-    return value.As<Number>();
+  return value.As<Number>();
 }
 
 template<typename Iterable>
 Napi::Array NewStringArray(const Napi::Env& env, const Iterable& iterable) {
-    auto result{ Array::New(env) };
-    const auto appendString = [&env, &result](const std::string& value) {
-        result[result.Length()] = String::New(env, value);
-    };
+  auto result{ Array::New(env) };
+  const auto appendString = [&env, &result](const std::string& value) {
+    result[result.Length()] = String::New(env, value);
+  };
 
-    std::for_each(std::begin(iterable), std::end(iterable), appendString);
+  std::for_each(std::begin(iterable), std::end(iterable), appendString);
 
-    return result;
+  return result;
 }
 
 template<typename T, typename F>
 T* ConstructorWithExternalFactory(const Napi::CallbackInfo& info, const char* className) {
-    auto env{ info.Env() };
-    auto value{ info[0] };
+  auto env{ info.Env() };
+  auto value{ info[0] };
 
-    if (!value.IsExternal()) {
-        throw Napi::Error::New(env, std::string(className) + ": expected an arg of type External");
-    }
+  if (!value.IsExternal()) {
+    throw Napi::Error::New(env, std::string(className) + ": expected an arg of type External");
+  }
 
-    auto factory{ value.As<Napi::External<void>>().Data() };
+  auto factory{ value.As<Napi::External<void>>().Data() };
 
-    if (!factory) {
-        throw Napi::Error::New(env, std::string(className) + "External contains no factory method");
-    }
+  if (!factory) {
+    throw Napi::Error::New(env, std::string(className) + "External contains no factory method");
+  }
 
-    return reinterpret_cast<F>(factory)(info);
+  return reinterpret_cast<F>(factory)(info);
 }
 
 } // namespace Napi

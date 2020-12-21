@@ -12,19 +12,19 @@
 namespace lse {
 
 struct DisplayMode {
-    int width{};
-    int height{};
+  int width{};
+  int height{};
 };
 
 struct Display {
-    std::string name;
-    DisplayMode defaultMode{};
-    std::vector<DisplayMode> modes;
+  std::string name;
+  DisplayMode defaultMode{};
+  std::vector<DisplayMode> modes;
 };
 
 struct Capabilities {
-    std::vector<Display> displays;
-    std::vector<std::string> videoDrivers;
+  std::vector<Display> displays;
+  std::vector<std::string> videoDrivers;
 };
 
 Napi::Object ToCapabilitiesView(Napi::Env env, const Capabilities& caps);
