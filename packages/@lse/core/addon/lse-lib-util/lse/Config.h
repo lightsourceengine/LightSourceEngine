@@ -10,35 +10,35 @@
 namespace lse {
 
 constexpr bool kEnablePluginPlatformSdl
-#if defined(LS_ENABLE_PLUGIN_PLATFORM_SDL)
+#if defined(LSE_ENABLE_PLUGIN_PLATFORM_SDL)
     = true;
 #else
 = false;
 #endif
 
 constexpr bool kEnablePluginPlatformRef
-#if defined(LS_ENABLE_PLUGIN_PLATFORM_REF)
+#if defined(LSE_ENABLE_PLUGIN_PLATFORM_REF)
     = true;
 #else
 = false;
 #endif
 
 constexpr bool kEnablePluginAudioSdlAudio
-#if defined(LS_ENABLE_PLUGIN_AUDIO_SDL_AUDIO)
+#if defined(LSE_ENABLE_PLUGIN_AUDIO_SDL_AUDIO)
     = true;
 #else
 = false;
 #endif
 
 constexpr bool kEnablePluginAudioSdlMixer
-#if defined(LS_ENABLE_PLUGIN_AUDIO_SDL_MIXER)
+#if defined(LSE_ENABLE_PLUGIN_AUDIO_SDL_MIXER)
     = true;
 #else
 = false;
 #endif
 
 constexpr bool kEnablePluginAudioRef
-#if defined(LS_ENABLE_PLUGIN_AUDIO_REF)
+#if defined(LSE_ENABLE_PLUGIN_AUDIO_REF)
     = true;
 #else
 = false;
