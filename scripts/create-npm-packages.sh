@@ -71,7 +71,6 @@ test_npm_install() {
   mkdir -p "${TEST_DIR}"
 
   _pushd "${TEST_DIR}"
-  export npm_config_lse_install_opts="--jobs max"
   echo "{\"dependencies\": { \"@lse/core\": \"../publishable/lse-core-${PUBLISHING_VERSION}.tgz\" }}" > package.json
   rm -rf ./empty-cache
   npm install --cache ./empty-cache
@@ -86,6 +85,9 @@ PUBLISHABLE_DIR="${SOURCE_ROOT}/build/npm/publishable"
 PUBLISHING_VERSION=$(get_version "${SOURCE_ROOT}/publishing/version.json")
 
 _pushd "${SOURCE_ROOT}"
+
+export lse_enable_native_tests="0"
+export npm_config_lse_install_opts="--jobs max"
 
 if [ "$1" = "--skip-yarn-install" ]; then
   yarn run bundle

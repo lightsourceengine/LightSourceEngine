@@ -71,7 +71,7 @@
     "jsdoc": "rimraf docs && jsdoc -c jsdoc.json",
     "lint": "standard",
     "prepublishOnly": "run-s bundle test",
-    "test": "run-s lint cpplint testOnly",
+    "test": "run-s lint testOnly",
     "testOnly": "mocha --reporter spec \"test/**/*.spec.js\""
   },
   "standard": {

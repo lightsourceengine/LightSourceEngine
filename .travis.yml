@@ -51,7 +51,9 @@ matrix:
         - sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
         - sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
       install: yarn --force
-      script: yarn test
+      script:
+        - yarn run cpplint
+        - yarn test
     - name: "linux-x64 [lse-node]"
       os: linux
       addons:
@@ -74,7 +76,9 @@ matrix:
       os: osx
       env: npm_config_lse_enable_native_tests=1
       install: yarn --force
-      script: yarn run lint
+      script:
+        - yarn run cpplint
+        - yarn test
     - name: "darwin-x64 [lse-node]"
       os: osx
       before_install:
@@ -85,7 +89,7 @@ matrix:
         - (cd scripts && yarn) # XXX: travis hung here when yarn returned non-zero for a warning, unset -e to get output
         - set -e
         - ./scripts/build-lse-node.js --sdl-profile framework --sdl-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2-2.0.12.framework.tar.gz" --sdl-mixer-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2_mixer-2.0.4.framework.tar.gz" --node-binary-cache "$NODE_DOWNLOADS"
-      script: yarn test
+      script: skip
       addons:
         artifacts:
           branch: master
