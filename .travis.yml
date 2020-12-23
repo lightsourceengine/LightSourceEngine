@@ -23,7 +23,7 @@ matrix:
         artifacts:
           branch: master
           paths:
-            - $(ls build/npm/publishable/*.tar.gz | tr "\n" ":")
+            - $(ls build/npm/publishable/*.tgz | tr "\n" ":")
       install: (cd scripts && yarn)
       script: ./scripts/create-npm-packages.sh
     - name: "windows-x64 [full-build]"
@@ -47,7 +47,7 @@ matrix:
         - ./scripts/build-lse-node.js --sdl-profile dll --sdl-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2-2.0.12-win32-x64.zip" --sdl-mixer-runtime-pkg "${LSE_CACHE}/ci-packages/SDL2_mixer-2.0.4-win32-x64.zip" --node-binary-cache "${NODE_DOWNLOADS}"
       after_success:
         - export "PATH=/c/Program Files/Amazon/AWSCLIV2:$PATH"
-        - test $TRAVIS_BRANCH = "master" && aws s3 cp build "s3://${ARTIFACTS_BUCKET}${ARTIFACTS_TARGET_PATHS}/build" --recursive
+        - test "$TRAVIS_BRANCH" = "master" && aws s3 cp build "s3://${ARTIFACTS_BUCKET}${ARTIFACTS_TARGET_PATHS}/build" --recursive
     - name: "linux-x64 [full-build]"
       os: linux
       env: npm_config_lse_enable_native_tests=1
