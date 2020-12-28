@@ -147,7 +147,7 @@ Napi::Value Image::Summarize(const Napi::Env& env) const {
 }
 
 bool Image::LoadTexture(Renderer* renderer) {
-  if (this->GetState() != Ready) {
+  if (this->GetState() != Resource::Ready) {
     return false;
   }
 
@@ -162,7 +162,9 @@ bool Image::LoadTexture(Renderer* renderer) {
     return false;
   }
 
-  // TODO: convert to texture format?
+  // TODO: Move pixel conversion to a better place. image loading thread?
+  this->resource.SyncFormat(this->texture.Format());
+
   // TODO: keep image pixels?
 
   return this->texture.Update(this->resource.Bytes(), this->resource.Pitch());

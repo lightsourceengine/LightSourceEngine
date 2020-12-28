@@ -13,7 +13,8 @@
 #include <lse/Style.h>
 #include <lse/StyleContext.h>
 #include <lse/Timer.h>
-#include <math.h>
+#include <lse/PixelConversion.h>
+#include <cmath>
 #include <utf8.h>
 #include <cctype>
 #include <utility>
@@ -243,6 +244,8 @@ void TextBlock::Paint(RenderingContext2D* context) {
   }
 
   context->End();
+
+  ConvertToFormat(reinterpret_cast<color_t*>(pixels.Data()), pixels.Width() * pixels.Height(), target.Format());
 
   pixels.Release();
 }

@@ -17,6 +17,7 @@
 #include <lse/yoga-ext.h>
 #include <lse/GraphicsContext.h>
 #include <lse/Timer.h>
+#include <lse/PixelConversion.h>
 
 using Napi::CallbackInfo;
 using Napi::Function;
@@ -173,6 +174,8 @@ void BoxSceneNode::PaintBorderRadius(RenderingContext2D* context) {
   context->FillPath();
 
   context->End();
+
+  ConvertToFormat(reinterpret_cast<color_t*>(pixels.Data()), pixels.Width() * pixels.Height(), paintTarget.Format());
 
   pixels.Release();
 

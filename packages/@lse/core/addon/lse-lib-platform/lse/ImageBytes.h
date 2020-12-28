@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <lse/PixelConversion.h>
+
 namespace lse {
 
 class ImageBytes {
@@ -44,6 +46,20 @@ class ImageBytes {
     return this->bytes.get();
   }
 
+  PixelFormat Format() const noexcept {
+    return this->format;
+  }
+
+  void SyncFormat(PixelFormat targetFormat) noexcept {
+    if (targetFormat == PixelFormat::PixelFormatRGBA || targetFormat == this->format || !this->bytes) {
+      return;
+    }
+
+    ConvertToFormat(reinterpret_cast<color_t*>(this->bytes.get()), this->width * this->height, targetFormat);
+
+    this->format = targetFormat;
+  }
+
   void Release() {
     this->bytes.reset();
     this->width = this->height = this->pitch = 0;
@@ -54,6 +70,7 @@ class ImageBytes {
   int32_t width;
   int32_t height;
   int32_t pitch;
+  PixelFormat format{ PixelFormat::PixelFormatRGBA };
 };
 
 } // namespace lse

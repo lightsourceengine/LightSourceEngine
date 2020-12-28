@@ -10,69 +10,41 @@ using std20::endian;
 
 namespace lse {
 
-template<int32_t C1, int32_t C2, int32_t C3, int32_t C4>
-void Convert(color_t* pixels, const uint32_t len) noexcept {
-  for (uint32_t i = 0; i < len; i++) {
-    const color_t color{ pixels[i] };
-
-    pixels[i].value = (color.channels[C1] << 24)
-        | (color.channels[C2] << 16)
-        | (color.channels[C3] << 8)
-        | color.channels[C4];
-  }
-}
-
-void ToFormatLE(color_t* pixels, const int32_t len, const PixelFormat format) noexcept {
-  // Mapping for PixelFormatABGR
-  constexpr auto R = 0;
-  constexpr auto G = 1;
-  constexpr auto B = 2;
-  constexpr auto A = 3;
-
+void ConvertToFormat(color_t* pixels, int32_t len, PixelFormat format) noexcept {
   switch (format) {
     case PixelFormatARGB:
-      Convert<A, R, G, B>(pixels, len);
+      for (int32_t i = 0; i < len; i++) {
+        const color_t temp = pixels[i];
+
+        pixels[i].a = temp.r;
+        pixels[i].r = temp.g;
+        pixels[i].g = temp.b;
+        pixels[i].b = temp.a;
+      }
       break;
     case PixelFormatBGRA:
-      Convert<B, G, R, A>(pixels, len);
-      break;
-    case PixelFormatRGBA:
-      Convert<R, G, B, A>(pixels, len);
-      break;
-    default:
-      // PixelFormatABGR - no op in LE
-      break;
-  }
-}
+      for (int32_t i = 0; i < len; i++) {
+        const color_t temp = pixels[i];
 
-void ToFormatBE(color_t* pixels, const int32_t len, const PixelFormat format) noexcept {
-  // Mapping for PixelFormatRGBA
-  constexpr auto R = 3;
-  constexpr auto G = 2;
-  constexpr auto B = 1;
-  constexpr auto A = 0;
-
-  switch (format) {
-    case PixelFormatARGB:
-      Convert<A, R, G, B>(pixels, len);
-      break;
-    case PixelFormatBGRA:
-      Convert<B, G, R, A>(pixels, len);
+        pixels[i].b = temp.r;
+        // pixels[i].g = temp.g;
+        pixels[i].r = temp.b;
+        // pixels[i].a = temp.a;
+      }
       break;
     case PixelFormatABGR:
-      Convert<A, B, G, R>(pixels, len);
+      for (int32_t i = 0; i < len; i++) {
+        const color_t temp = pixels[i];
+
+        pixels[i].a = temp.r;
+        pixels[i].b = temp.g;
+        pixels[i].g = temp.b;
+        pixels[i].r = temp.a;
+      }
       break;
     default:
-      // PixelFormatRGBA - no op in BE
+      // PixelFormatRGBA - no op
       break;
-  }
-}
-
-void ConvertToFormat(color_t* pixels, int32_t len, PixelFormat format) noexcept {
-  if (endian::native == endian::big) {
-    ToFormatBE(pixels, len, format);
-  } else {
-    ToFormatLE(pixels, len, format);
   }
 }
 
