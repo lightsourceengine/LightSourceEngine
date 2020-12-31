@@ -1,13 +1,7 @@
-A framework for building javascript React apps for single-board computers.
+# @lse/core
 
-## Status
+This package is part of the [Light Source Engine](https://github.com/lightsourceengine/LightSourceEngine) project.
 
-The current 1.0.0 release is **unstable**. :construction: :construction_worker: :construction:.
+# LICENSE
 
-## Install
-
-See [Build Instructions](https://github.com/lightsourceengine/LightSourceEngine/tree/master/docs/dev/BuildEnvironment.md).
-
-## LICENSE
-
-[MIT License](../LICENSE)
+Licensed under the [MIT License](https://github.com/lightsourceengine/LightSourceEngine/blob/master/LICENSE).

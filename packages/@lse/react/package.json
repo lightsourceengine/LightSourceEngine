@@ -1,6 +1,6 @@
 {
   "name": "@lse/react",
-  "description": "Light Source Engine",
+  "description": "Light Source Engine React bindings.",
   "version": "1.0.0-private.0",
   "license": "MIT",
   "repository": {

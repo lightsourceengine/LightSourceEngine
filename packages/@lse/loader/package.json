@@ -1,6 +1,6 @@
 {
   "name": "@lse/loader",
-  "description": "Node ESM loaders for Light Source Engine",
+  "description": "Light Source Engine Node module loaders.",
   "version": "1.0.0-private.0",
   "license": "MIT",
   "repository": {

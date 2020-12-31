@@ -1,6 +1,6 @@
 {
   "name": "@lse/core",
-  "description": "Light Source Engine",
+  "description": "Light Source Engine core package.",
   "version": "1.0.0-private.0",
   "license": "MIT",
   "repository": {
