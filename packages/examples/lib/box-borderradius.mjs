@@ -8,11 +8,11 @@
  * Original Source: https://github.com/lightsourceengine/LightSourceEngine
  */
 
+import { jsx, jsxs } from '@lse/react/jsx-runtime';
+
 import { createStyleSheet } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
-
-import React from 'react';
 
 const sheet = createStyleSheet({
     body: {
@@ -53,20 +53,21 @@ const sheet = createStyleSheet({
     }
 });
 
-const BorderRadiusApp = () => React.createElement('box', {
-    class: sheet.body
-}, React.createElement('box', {
-    class: sheet.borderRadius
-}), React.createElement('box', {
-    class: sheet.borderRadiusTopLeft
-}), React.createElement('box', {
-    class: sheet.borderRadiusTopRight
-}), React.createElement('box', {
-    class: sheet.borderRadiusBottomLeft
-}), React.createElement('box', {
-    class: sheet.borderRadiusBottomRight
-}));
+const BorderRadiusApp = () => jsxs('box', {
+    class: sheet.body,
+    children: [ jsx('box', {
+        class: sheet.borderRadius
+    }), jsx('box', {
+        class: sheet.borderRadiusTopLeft
+    }), jsx('box', {
+        class: sheet.borderRadiusTopRight
+    }), jsx('box', {
+        class: sheet.borderRadiusBottomLeft
+    }), jsx('box', {
+        class: sheet.borderRadiusBottomRight
+    }) ]
+});
 
-letThereBeLight(React.createElement(BorderRadiusApp, null), {
+letThereBeLight(jsx(BorderRadiusApp, {}), {
     fullscreen: false
 });

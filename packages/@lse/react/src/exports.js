@@ -25,3 +25,6 @@ export {
   reactReconcilerVersion,
   lightSourceReactVersion
 }
+
+// export to support jsx transpilation using jsx-runtime
+export { createElement } from 'react'

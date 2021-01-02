@@ -6,7 +6,7 @@
 
 import { stage, createStyleSheet, AudioDecoderType } from '@lse/core'
 import { letThereBeLight } from '@lse/react'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 // Demonstrates playing an mp3 or ogg file.
 

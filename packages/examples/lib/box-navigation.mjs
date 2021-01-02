@@ -8,11 +8,13 @@
  * Original Source: https://github.com/lightsourceengine/LightSourceEngine
  */
 
+import { jsx, jsxs } from '@lse/react/jsx-runtime';
+
 import { createStyleSheet } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
 
-import React, { useEffect, forwardRef, useState, createRef } from 'react';
+import { useEffect, forwardRef, useState, createRef } from 'react';
 
 const sheet = createStyleSheet({
     body: {
@@ -37,7 +39,7 @@ const sheet = createStyleSheet({
 
 const ListItem = forwardRef((props, ref) => {
     const [listItemStyle, setListItemStyle] = useState(sheet.listItem);
-    return React.createElement('box', {
+    return jsx('box', {
         focusable: true,
         ref,
         style: listItemStyle,
@@ -51,14 +53,15 @@ const NavigationApp = () => {
     useEffect(() => {
         ref.current.node.focus();
     });
-    return React.createElement('box', {
+    return jsxs('box', {
         class: sheet.body,
-        waypoint: 'horizontal'
-    }, React.createElement(ListItem, {
-        ref
-    }), React.createElement(ListItem, null), React.createElement(ListItem, null), React.createElement(ListItem, null), React.createElement(ListItem, null));
+        waypoint: 'horizontal',
+        children: [ jsx(ListItem, {
+            ref
+        }), jsx(ListItem, {}), jsx(ListItem, {}), jsx(ListItem, {}), jsx(ListItem, {}) ]
+    });
 };
 
-letThereBeLight(React.createElement(NavigationApp, null), {
+letThereBeLight(jsx(NavigationApp, {}), {
     fullscreen: false
 });

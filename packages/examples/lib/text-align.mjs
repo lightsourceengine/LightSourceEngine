@@ -8,11 +8,11 @@
  * Original Source: https://github.com/lightsourceengine/LightSourceEngine
  */
 
+import { jsx, jsxs } from '@lse/react/jsx-runtime';
+
 import { createStyleSheet } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
-
-import React from 'react';
 
 const sheet = createStyleSheet({
     body: {
@@ -79,34 +79,47 @@ const sampleTextSmall = '   Hello, world!   ';
 
 const sampleTextNewline = '1) Eat\n2) Sleep\n3) Conquer\n4) Repeat';
 
-const TextAlignApp = () => React.createElement('box', {
-    class: sheet.body
-}, React.createElement('text', {
-    class: sheet.maxLinesTextAlignLeft
-}, sampleTextSmall), React.createElement('text', {
-    class: sheet.maxLinesTextAlignCenter
-}, sampleTextSmall), React.createElement('text', {
-    class: sheet.maxLinesTextAlignRight
-}, sampleTextSmall), React.createElement('text', {
-    class: sheet.textAlignLeft
-}, sampleText), React.createElement('text', {
-    class: sheet.textAlignCenter
-}, sampleText), React.createElement('text', {
-    class: sheet.textAlignRight
-}, sampleText), React.createElement('text', {
-    class: sheet.ellipsisTextAlignLeft
-}, sampleText), React.createElement('text', {
-    class: sheet.ellipsisTextAlignCenter
-}, sampleText), React.createElement('text', {
-    class: sheet.ellipsisTextAlignRight
-}, sampleText), React.createElement('text', {
-    class: sheet.textAlignLeft
-}, sampleTextNewline), React.createElement('text', {
-    class: sheet.textAlignCenter
-}, sampleTextNewline), React.createElement('text', {
-    class: sheet.textAlignRight
-}, sampleTextNewline));
+const TextAlignApp = () => jsxs('box', {
+    class: sheet.body,
+    children: [ jsx('text', {
+        class: sheet.maxLinesTextAlignLeft,
+        children: sampleTextSmall
+    }), jsx('text', {
+        class: sheet.maxLinesTextAlignCenter,
+        children: sampleTextSmall
+    }), jsx('text', {
+        class: sheet.maxLinesTextAlignRight,
+        children: sampleTextSmall
+    }), jsx('text', {
+        class: sheet.textAlignLeft,
+        children: sampleText
+    }), jsx('text', {
+        class: sheet.textAlignCenter,
+        children: sampleText
+    }), jsx('text', {
+        class: sheet.textAlignRight,
+        children: sampleText
+    }), jsx('text', {
+        class: sheet.ellipsisTextAlignLeft,
+        children: sampleText
+    }), jsx('text', {
+        class: sheet.ellipsisTextAlignCenter,
+        children: sampleText
+    }), jsx('text', {
+        class: sheet.ellipsisTextAlignRight,
+        children: sampleText
+    }), jsx('text', {
+        class: sheet.textAlignLeft,
+        children: sampleTextNewline
+    }), jsx('text', {
+        class: sheet.textAlignCenter,
+        children: sampleTextNewline
+    }), jsx('text', {
+        class: sheet.textAlignRight,
+        children: sampleTextNewline
+    }) ]
+});
 
-letThereBeLight(React.createElement(TextAlignApp, null), {
+letThereBeLight(jsx(TextAlignApp, {}), {
     fullscreen: false
 });

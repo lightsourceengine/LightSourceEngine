@@ -8,11 +8,11 @@
  * Original Source: https://github.com/lightsourceengine/LightSourceEngine
  */
 
+import { jsx, jsxs } from '@lse/react/jsx-runtime';
+
 import { createStyleSheet } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
-
-import React from 'react';
 
 const background = 'resource/pexels-emiliano-arano-1295138.jpg';
 
@@ -52,25 +52,26 @@ const sheet = createStyleSheet({
     }
 });
 
-const ObjectFitApp = () => React.createElement('box', {
-    class: sheet.body
-}, React.createElement('img', {
-    src: background,
-    class: sheet.objectFitContain
-}), React.createElement('img', {
-    src: background,
-    class: sheet.objectFitFill
-}), React.createElement('img', {
-    src: background,
-    class: sheet.objectFitCover
-}), React.createElement('img', {
-    src: background,
-    class: sheet.objectFitScaleDown
-}), React.createElement('img', {
-    src: background,
-    class: sheet.objectFitNone
-}));
+const ObjectFitApp = () => jsxs('box', {
+    class: sheet.body,
+    children: [ jsx('img', {
+        src: background,
+        class: sheet.objectFitContain
+    }), jsx('img', {
+        src: background,
+        class: sheet.objectFitFill
+    }), jsx('img', {
+        src: background,
+        class: sheet.objectFitCover
+    }), jsx('img', {
+        src: background,
+        class: sheet.objectFitScaleDown
+    }), jsx('img', {
+        src: background,
+        class: sheet.objectFitNone
+    }) ]
+});
 
-letThereBeLight(React.createElement(ObjectFitApp, null), {
+letThereBeLight(jsx(ObjectFitApp, {}), {
     fullscreen: false
 });

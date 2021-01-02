@@ -8,11 +8,13 @@
  * Original Source: https://github.com/lightsourceengine/LightSourceEngine
  */
 
+import { jsx } from '@lse/react/jsx-runtime';
+
 import { createStyleSheet } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
 
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 
 const sheet = createStyleSheet({
     body: {
@@ -59,7 +61,7 @@ const AnimatedSprite = ({spriteSheetRow}) => {
         };
         scene.requestAnimationFrame(onAnimationFrame);
     });
-    return React.createElement('img', {
+    return jsx('img', {
         ref,
         src: spritesheet,
         class: sheet.sprite
@@ -67,15 +69,15 @@ const AnimatedSprite = ({spriteSheetRow}) => {
 };
 
 const SpritesApp = () => {
-    const sprites = frameCount.map((value, index) => React.createElement(AnimatedSprite, {
-        spriteSheetRow: index,
-        key: index.toString()
-    }));
-    return React.createElement('box', {
-        class: sheet.body
-    }, sprites);
+    const sprites = frameCount.map((value, index) => jsx(AnimatedSprite, {
+        spriteSheetRow: index
+    }, index.toString()));
+    return jsx('box', {
+        class: sheet.body,
+        children: sprites
+    });
 };
 
-letThereBeLight(React.createElement(SpritesApp, null), {
+letThereBeLight(jsx(SpritesApp, {}), {
     fullscreen: false
 });

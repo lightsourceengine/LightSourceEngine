@@ -8,6 +8,8 @@
  * Original Source: https://github.com/lightsourceengine/LightSourceEngine
  */
 
+import { jsx, jsxs, Fragment } from '@lse/react/jsx-runtime';
+
 import { createStyleSheet, stage, ScanCode, Key } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
@@ -15,8 +17,6 @@ import { letThereBeLight } from '@lse/react';
 import { EventEmitter } from 'events';
 
 import { cpus } from 'os';
-
-import React from 'react';
 
 const styles = createStyleSheet({
     body: {
@@ -143,18 +143,23 @@ const styles = createStyleSheet({
 const ConnectedGamepadsView = () => {
     const {gamepads} = stage.input;
     if (gamepads.length === 0) {
-        return React.createElement('text', {
-            class: styles.hintText
-        }, 'No gamepads connected.');
+        return jsx('text', {
+            class: styles.hintText,
+            children: 'No gamepads connected.'
+        });
     } else {
         const createListItem = gamepad => {
             const mapState = stage.input.getSystemMapping(gamepad.uuid) ? 'MAPPED' : 'UNMAPPED';
-            return React.createElement(React.Fragment, null, React.createElement(Button, {
-                value: mapState,
-                end: true
-            }, gamepad.name), React.createElement('text', {
-                class: styles.hintText
-            }, `UUID: ${gamepad.uuid}\nButton Count: ${gamepad.buttonCount}, Hat Count: ${gamepad.hatCount}, Axis Count: ${gamepad.axisCount}`));
+            return jsxs(Fragment, {
+                children: [ jsx(Button, {
+                    value: mapState,
+                    end: true,
+                    children: gamepad.name
+                }), jsx('text', {
+                    class: styles.hintText,
+                    children: `UUID: ${gamepad.uuid}\nButton Count: ${gamepad.buttonCount}, Hat Count: ${gamepad.hatCount}, Axis Count: ${gamepad.axisCount}`
+                }) ]
+            });
         };
         return gamepads.map(createListItem);
     }
@@ -167,11 +172,11 @@ const SystemStatisticsView = () => {
     }, {
         cpuLoad: cpuTotal !== 0 ? 100 - ~~(100 * cpuIdle / cpuTotal) : 0
     });
-    const createListItem = (key, name, suffix, end = false) => React.createElement(Button, {
-        key,
+    const createListItem = (key, name, suffix, end = false) => jsx(Button, {
         value: `${systemStats[key].toFixed(2)}${suffix}`,
-        end
-    }, `${name ?? key}`);
+        end,
+        children: `${name ?? key}`
+    }, key);
     const getCpuLoadSnapshot = () => {
         const cpuList = cpus();
         const result = cpuList.reduce((accumulator, cpu) => {
@@ -200,40 +205,54 @@ const SystemStatisticsView = () => {
     return [ createListItem('cpuLoad', 'Total CPU Utilization', '%'), createListItem('heapUsed', 'Heap Used', ' MB'), createListItem('heapTotal', 'Heap Total', ' MB'), createListItem('rss', 'Resident Set Size', ' MB', true) ];
 };
 
-const VideoView = () => React.createElement(Button, {
+const VideoView = () => jsx(Button, {
     value: `${stage.scene.width}x${stage.scene.height}`,
-    end: true
-}, 'Screen Resolution');
+    end: true,
+    children: 'Screen Resolution'
+});
 
 const AudioView = () => {
     const enabled = destination => destination.isAvailable() ? 'ENABLED' : 'DISABLED';
     const decoders = destination => destination.getDecoders().join(', ');
     const {sample, stream} = stage.audio;
-    return React.createElement(React.Fragment, null, React.createElement(Button, {
-        value: enabled(sample),
-        end: true
-    }, 'Sample'), React.createElement('text', {
-        class: styles.hintText
-    }, `Audio destination for sound effects.\nDecoders: ${decoders(sample)}`), React.createElement(Button, {
-        value: enabled(stream),
-        end: true
-    }, 'Stream'), React.createElement('text', {
-        class: styles.hintText
-    }, `Audio destination for streaming.\nDecoders: ${decoders(stream)}`));
+    return jsxs(Fragment, {
+        children: [ jsx(Button, {
+            value: enabled(sample),
+            end: true,
+            children: 'Sample'
+        }), jsx('text', {
+            class: styles.hintText,
+            children: `Audio destination for sound effects.\nDecoders: ${decoders(sample)}`
+        }), jsx(Button, {
+            value: enabled(stream),
+            end: true,
+            children: 'Stream'
+        }), jsx('text', {
+            class: styles.hintText,
+            children: `Audio destination for streaming.\nDecoders: ${decoders(stream)}`
+        }) ]
+    });
 };
 
-const InfoView = () => React.createElement(React.Fragment, null, React.createElement('text', {
-    class: styles.hintText
-}, 'Switchy Settings demonstrates a practical options menu application using the Light Source Engine.'), React.createElement('text', {
-    class: styles.hintText
-}, 'The menus can be navigated with a connected gamepad or system keyboard.'), React.createElement('text', {
-    class: styles.hintText
-}, 'A connected gamepad must have a system mapping installed (SDL GameController mapping) in order to be used.'), React.createElement('text', {
-    class: styles.hintText
-}, 'By default, the system keyboard has the arrow keys mapped to the d-pad, the Z key mapped to the B button and the X key mapping to the A button.'), React.createElement(Button, {
-    onSelect: () => stage.quit(),
-    end: true
-}, 'Exit'));
+const InfoView = () => jsxs(Fragment, {
+    children: [ jsx('text', {
+        class: styles.hintText,
+        children: 'Switchy Settings demonstrates a practical options menu application using the Light Source Engine.'
+    }), jsx('text', {
+        class: styles.hintText,
+        children: 'The menus can be navigated with a connected gamepad or system keyboard.'
+    }), jsx('text', {
+        class: styles.hintText,
+        children: 'A connected gamepad must have a system mapping installed (SDL GameController mapping) in order to be used.'
+    }), jsx('text', {
+        class: styles.hintText,
+        children: 'By default, the system keyboard has the arrow keys mapped to the d-pad, the Z key mapped to the B button and the X key mapping to the A button.'
+    }), jsx(Button, {
+        onSelect: () => stage.quit(),
+        end: true,
+        children: 'Exit'
+    }) ]
+});
 
 const views = {
     InfoView,
@@ -247,19 +266,23 @@ const Button = ({children, onSelect, end = false, value = ''}) => {
     const onKeyDown = React.useCallback(e => e.key === Key.A && onSelect(), [ onSelect ]);
     const onFocus = React.useCallback(e => e.target.class = styles.buttonContainerFocused, []);
     const onBlur = React.useCallback(e => e.target.class = styles.buttonContainer, []);
-    return React.createElement('box', {
-        class: end ? styles.listItemEnd : styles.listItem
-    }, React.createElement('box', {
-        focusable: true,
-        class: styles.buttonContainer,
-        onKeyDown,
-        onFocus,
-        onBlur
-    }, React.createElement('text', {
-        class: styles.buttonText
-    }, children), React.createElement('text', {
-        class: styles.buttonValueText
-    }, value)));
+    return jsx('box', {
+        class: end ? styles.listItemEnd : styles.listItem,
+        children: jsxs('box', {
+            focusable: true,
+            class: styles.buttonContainer,
+            onKeyDown,
+            onFocus,
+            onBlur,
+            children: [ jsx('text', {
+                class: styles.buttonText,
+                children
+            }), jsx('text', {
+                class: styles.buttonValueText,
+                children: value
+            }) ]
+        })
+    });
 };
 
 const TabButton = React.forwardRef(({viewId, children}, ref) => {
@@ -273,35 +296,43 @@ const TabButton = React.forwardRef(({viewId, children}, ref) => {
         e.target.class = styles.tabButton;
         e.target.children[0].class = styles.tabButtonText;
     }, []);
-    return React.createElement('box', {
+    return jsx('box', {
         ref,
         focusable: true,
         class: styles.tabButton,
         onFocus,
-        onBlur
-    }, React.createElement('text', {
-        class: styles.tabButtonText
-    }, children));
+        onBlur,
+        children: jsx('text', {
+            class: styles.tabButtonText,
+            children
+        })
+    });
 });
 
 const LeftColumn = () => {
     const ref = React.createRef();
     React.useEffect(() => ref.current.node.focus());
-    return React.createElement('box', {
+    return jsxs('box', {
         class: styles.leftColumn,
-        waypoint: 'vertical'
-    }, React.createElement(TabButton, {
-        viewId: 'InfoView',
-        ref
-    }, 'Info'), React.createElement(TabButton, {
-        viewId: 'ConnectedGamepadsView'
-    }, 'Connected Gamepads'), React.createElement(TabButton, {
-        viewId: 'VideoView'
-    }, 'Video'), React.createElement(TabButton, {
-        viewId: 'AudioView'
-    }, 'Audio'), React.createElement(TabButton, {
-        viewId: 'SystemStatisticsView'
-    }, 'System Statistics'));
+        waypoint: 'vertical',
+        children: [ jsx(TabButton, {
+            viewId: 'InfoView',
+            ref,
+            children: 'Info'
+        }), jsx(TabButton, {
+            viewId: 'ConnectedGamepadsView',
+            children: 'Connected Gamepads'
+        }), jsx(TabButton, {
+            viewId: 'VideoView',
+            children: 'Video'
+        }), jsx(TabButton, {
+            viewId: 'AudioView',
+            children: 'Audio'
+        }), jsx(TabButton, {
+            viewId: 'SystemStatisticsView',
+            children: 'System Statistics'
+        }) ]
+    });
 };
 
 const RightColumn = () => {
@@ -313,10 +344,11 @@ const RightColumn = () => {
         ctx.addListener('changed', listener);
         return () => ctx.removeListener('changed', listener);
     });
-    return React.createElement('box', {
+    return jsx('box', {
         waypoint: 'vertical',
-        class: styles.rightColumn
-    }, React.createElement(View, null));
+        class: styles.rightColumn,
+        children: jsx(View, {})
+    });
 };
 
 class ErrorBoundary extends React.Component {
@@ -329,38 +361,47 @@ class ErrorBoundary extends React.Component {
     }
 }
 
-const SwitchyApp = () => React.createElement(ErrorBoundary, null, React.createElement('box', {
-    class: styles.body,
-    onKeyUp: ({key}) => key === Key.B && stage.quit()
-}, React.createElement('box', {
-    class: styles.headline
-}, React.createElement('text', {
-    class: styles.h1
-}, '• Switchy Settings')), React.createElement('box', {
-    class: styles.content,
-    waypoint: 'horizontal'
-}, React.createElement(LeftColumn, null), React.createElement(RightColumn, null)), React.createElement('box', {
-    class: styles.footer
-}, React.createElement('box', {
-    style: {
-        height: '100%',
-        backgroundColor: 'black',
-        width: '4vw',
-        marginRight: 'auto'
-    }
-}), React.createElement('text', {
-    class: styles.h2,
-    style: {
-        marginRight: '2vw'
-    }
-}, 'B - Back'), React.createElement('text', {
-    class: styles.h2
-}, 'A - OK'))));
+const SwitchyApp = () => jsx(ErrorBoundary, {
+    children: jsxs('box', {
+        class: styles.body,
+        onKeyUp: ({key}) => key === Key.B && stage.quit(),
+        children: [ jsx('box', {
+            class: styles.headline,
+            children: jsx('text', {
+                class: styles.h1,
+                children: '• Switchy Settings'
+            })
+        }), jsxs('box', {
+            class: styles.content,
+            waypoint: 'horizontal',
+            children: [ jsx(LeftColumn, {}), jsx(RightColumn, {}) ]
+        }), jsxs('box', {
+            class: styles.footer,
+            children: [ jsx('box', {
+                style: {
+                    height: '100%',
+                    backgroundColor: 'black',
+                    width: '4vw',
+                    marginRight: 'auto'
+                }
+            }), jsx('text', {
+                class: styles.h2,
+                style: {
+                    marginRight: '2vw'
+                },
+                children: 'B - Back'
+            }), jsx('text', {
+                class: styles.h2,
+                children: 'A - OK'
+            }) ]
+        }) ]
+    })
+});
 
 const settingsContext = React.createContext(new EventEmitter);
 
 stage.input.on('rawkeyup', e => e.button === ScanCode.ESCAPE && stage.quit());
 
-letThereBeLight(React.createElement(SwitchyApp, null), {
+letThereBeLight(jsx(SwitchyApp, {}), {
     title: 'Switchy Settings'
 });

@@ -15,10 +15,14 @@
     "node": ">=14"
   },
   "type": "module",
-  "exports": "./dist/lse-react.mjs",
+  "exports": {
+    ".": "./dist/lse-react.mjs",
+    "./jsx-runtime": "./dist/jsx-runtime.mjs"
+  },
   "module": "./dist/lse-react.mjs",
   "files": [
-    "dist/lse-react.mjs"
+    "dist/lse-react.mjs",
+    "dist/jsx-runtime.mjs"
   ],
   "dependencies": {
     "@lse/core": "1.0.0-private.0",

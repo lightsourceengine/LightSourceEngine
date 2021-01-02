@@ -6,7 +6,7 @@
 
 import { createStyleSheet } from '@lse/core'
 import { letThereBeLight } from '@lse/react'
-import React, { createRef, useEffect, forwardRef, useState } from 'react'
+import { createRef, useEffect, forwardRef, useState } from 'react'
 
 // Demonstrates keyboard or gamepad focus navigation.
 

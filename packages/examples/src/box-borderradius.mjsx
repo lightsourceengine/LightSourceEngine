@@ -6,7 +6,6 @@
 
 import { createStyleSheet } from '@lse/core'
 import { letThereBeLight } from '@lse/react'
-import React from 'react'
 
 // Demonstrates borderRadius style property on box elements.
 

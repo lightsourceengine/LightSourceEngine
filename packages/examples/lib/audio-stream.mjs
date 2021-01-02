@@ -8,11 +8,13 @@
  * Original Source: https://github.com/lightsourceengine/LightSourceEngine
  */
 
+import { jsx } from '@lse/react/jsx-runtime';
+
 import { createStyleSheet, stage, AudioDecoderType } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const sheet = createStyleSheet({
     body: {
@@ -49,13 +51,15 @@ const StreamingAudioApp = () => {
             }
         });
     });
-    return React.createElement('box', {
-        class: sheet.body
-    }, React.createElement('text', {
-        class: sheet.label
-    }, `Background music is ${loadingStatus}.`));
+    return jsx('box', {
+        class: sheet.body,
+        children: jsx('text', {
+            class: sheet.label,
+            children: `Background music is ${loadingStatus}.`
+        })
+    });
 };
 
-letThereBeLight(React.createElement(StreamingAudioApp, null), {
+letThereBeLight(jsx(StreamingAudioApp, {}), {
     fullscreen: false
 });

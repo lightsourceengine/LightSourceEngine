@@ -417,18 +417,14 @@ class LightSourceNodePackage {
   }
 
   async installModule(module) {
-    if (module.mjs) {
+    if (module.js) {
       const sourceDir = join(this.#nodeBuiltin, module.name)
 
       await ensureDir(sourceDir)
-      await copy(module.mjs, join(sourceDir, 'index.mjs'))
-    }
 
-    if (module.cjs) {
-      const sourceDir = join(this.#nodeBuiltin, module.name)
-
-      await ensureDir(sourceDir)
-      await copy(module.cjs, join(sourceDir, 'index.cjs'))
+      for (const entry of module.js) {
+        await copy(entry.source, join(sourceDir, entry.rename))
+      }
     }
 
     if (module.native) {
@@ -587,7 +583,7 @@ class SourceRoot {
   getLightSourceModule () {
     return {
       name: '@lse/core',
-      mjs: join(this.#root, 'packages/@lse/core/dist/lse-core.standalone.mjs'),
+      js: [ { source: join(this.#root, 'packages/@lse/core/dist/lse-core.standalone.mjs'), rename: 'index.mjs' } ],
       native: join(this.#root, 'packages/@lse/core/build/Release/lse-core.node'),
       font: join(this.#root, 'packages/@lse/core/src/font')
     }
@@ -596,7 +592,10 @@ class SourceRoot {
   getLightSourceReactModule () {
     return {
       name: '@lse/react',
-      mjs: join(this.#root, 'packages/@lse/react/dist/lse-react.standalone.mjs'),
+      js: [
+        { source: join(this.#root, 'packages/@lse/react/dist/lse-react.standalone.mjs'), rename: 'index.mjs' },
+        { source: join(this.#root, 'packages/@lse/react/dist/jsx-runtime.mjs'), rename: 'jsx-runtime.mjs' },
+      ],
       native: null
     }
   }
@@ -604,7 +603,7 @@ class SourceRoot {
   getLightSourceLoaderModule () {
     return {
       name: '@lse/loader',
-      mjs: join(this.#root, 'packages/@lse/loader/dist/index.standalone.mjs'),
+      js: [ { source: join(this.#root, 'packages/@lse/loader/dist/index.standalone.mjs'), rename: 'index.mjs' } ],
       native: null
     }
   }
@@ -612,7 +611,7 @@ class SourceRoot {
   getReactModule () {
     return {
       name: 'react',
-      cjs: join(this.#root, 'packages/@lse/react/dist/react.standalone.cjs'),
+      js: [ { source: join(this.#root, 'packages/@lse/react/dist/react.standalone.cjs'), rename: 'index.cjs' } ],
       native: null
     }
   }

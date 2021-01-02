@@ -8,11 +8,11 @@
  * Original Source: https://github.com/lightsourceengine/LightSourceEngine
  */
 
+import { jsx } from '@lse/react/jsx-runtime';
+
 import { createStyle } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
-
-import React from 'react';
 
 const body = createStyle({
     backgroundImage: 'resource/pattern-1004855.jpg',
@@ -20,7 +20,7 @@ const body = createStyle({
     '@extend': '%absoluteFill'
 });
 
-letThereBeLight(React.createElement('box', {
+letThereBeLight(jsx('box', {
     class: body
 }), {
     fullscreen: false
