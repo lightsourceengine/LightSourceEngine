@@ -1,6 +1,6 @@
 language: node_js
 node_js: 14
-dist: xenial
+dist: bionic
 env:
   global:
     - npm_config_lse_install_opts="--jobs max"
@@ -110,8 +110,6 @@ matrix:
     - name: "linux-armv7l [lse-node, lse-node-pi]"
       os: linux
       addons:
-        apt:
-          packages: [ patchelf ]
         artifacts:
           branch: master
           paths:
@@ -130,8 +128,6 @@ matrix:
     - name: "linux-armv6l [lse-node, lse-node-pi]"
       os: linux
       addons:
-        apt:
-          packages: [ patchelf ]
         artifacts:
           branch: master
           paths:
@@ -146,4 +142,23 @@ matrix:
         - (cd scripts && yarn)
         - ./scripts/build-lse-node.js --platform linux --arch armv6l --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
         - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv6l --profile pi --sdl-profile native --sdl-runtime-pkg "${LSE_CACHE}/SDL2-2.0.12-armv6l-pi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
+      script: skip
+    - name: "linux-arm64 [lse-node, lse-node-pi]"
+      os: linux
+      addons:
+        apt:
+          packages: [ g++-6-aarch64-linux-gnu ]
+        artifacts:
+          branch: master
+          paths:
+            - $(ls build/*.tar.gz | tr "\n" ":")
+      before_install:
+        - set -e
+        - ./scripts/ci/lse-git-clone.sh "crosstools" "ci-packages"
+        - ./scripts/ci/get-upx.sh
+        - tar -xzf "${LSE_CACHE}/ci-packages/SDL2-2.0.12-armv7l-pi.tar.gz" --directory "${LSE_CACHE}"
+      install:
+        - (cd scripts && yarn)
+        - ./scripts/build-lse-node.js --platform linux --arch arm64 --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
+        - ./scripts/build-lse-node.js --skip-compile --platform linux --arch arm64 --profile pi --sdl-profile native --sdl-runtime-pkg "${LSE_CACHE}/SDL2-2.0.12-armv7l-pi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
       script: skip

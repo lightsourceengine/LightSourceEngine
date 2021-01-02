@@ -142,6 +142,7 @@ const Platform = {
 const Architecture = {
   armv6l: 'armv6l',
   armv7l: 'armv7l',
+  arm64: 'arm64',
   x64: 'x64'
 }
 
@@ -188,7 +189,7 @@ const getCommandLineOptions = () => {
   validateStringArg(options, 'sdlProfile', SDLProfile)
 
   options.isArmCrossCompile = (isLinux(process.platform) && process.arch === Architecture.x64
-      && isLinux(options.platform) && (options.arch === Architecture.armv7l || options.arch === Architecture.armv6l))
+      && isLinux(options.platform) && (options.arch.startsWith('arm')))
 
   if (!options.isArmCrossCompile && (options.platform !== process.platform || options.arch !== process.arch)) {
     throw Error(`Host ${process.platform}-${process.arch} cannot compile to target ${options.platform}-${options.arch}`)
@@ -455,8 +456,21 @@ class LightSourceNodePackage {
       const complete = logMark('node: strip...')
 
       if (options.isArmCrossCompile) {
-        const strip = join(options.crosstoolsHome,
-          'x64-gcc-6.3.1/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip')
+        let strip
+
+        switch (options.arch) {
+          case Architecture.armv6l:
+          case Architecture.armv7l:
+            strip = join(options.crosstoolsHome,
+              'x64-gcc-6.3.1/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip')
+            break
+          case Architecture.arm64:
+            strip = 'aarch64-linux-gnu-strip'
+            break
+          default:
+            throw Error(`Unknown arm architecture: ${options.arch}`)
+        }
+
         await runCommand (strip, [executable])
       } else {
         await runCommand ('strip', [ executable ])
@@ -517,7 +531,7 @@ class LightSourceNodePackage {
   }
 
   async installCppLib (options) {
-    if (options.isArmCrossCompile) {
+    if (options.arch === Architecture.armv6l || options.arch === Architecture.armv7l) {
       const libcpp = process.env.CROSS_LIBCPP
       const libcppBasename = basename(libcpp)
       const ldPath = join(this.#nodeLib, 'native')
