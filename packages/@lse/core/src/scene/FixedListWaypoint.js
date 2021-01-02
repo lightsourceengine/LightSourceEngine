@@ -107,7 +107,7 @@ export class FixedListWaypoint {
     let i = 0
 
     for (const node of createFocalPath(owner)) {
-      if (node.hasFocus()) {
+      if (hasFocusRecursive(node)) {
         this._focalPathIndex = i
         return
       }
@@ -116,6 +116,14 @@ export class FixedListWaypoint {
 
     // this._focalPathIndex = -1
   }
+}
+
+const hasFocusRecursive = (sceneNode) => {
+  if (sceneNode.hasFocus()) {
+    return true
+  }
+
+  return sceneNode.children.some(n => hasFocusRecursive(n))
 }
 
 const findFocusable = (node) => {

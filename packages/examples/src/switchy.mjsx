@@ -8,6 +8,7 @@ import { createStyleSheet, stage, Key, ScanCode } from '@lse/core'
 import { letThereBeLight } from '@lse/react'
 import { EventEmitter } from 'events'
 import { cpus } from 'os'
+import React from 'react'
 
 const styles = createStyleSheet({
   body: {
@@ -135,7 +136,7 @@ const ConnectedGamepadsView = () => {
   const { gamepads } = stage.input
 
   if (gamepads.length === 0) {
-    return (<text class={styles.hintText}>No gamepads connected.</text>)
+    return (<Button>No gamepads connected.</Button>)
   } else {
     const createListItem = (gamepad) => {
       const mapState = stage.input.getSystemMapping(gamepad.uuid) ? 'MAPPED' : 'UNMAPPED'

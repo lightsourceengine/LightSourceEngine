@@ -18,6 +18,8 @@ import { EventEmitter } from 'events';
 
 import { cpus } from 'os';
 
+import React from 'react';
+
 const styles = createStyleSheet({
     body: {
         backgroundColor: 'lightgray',
@@ -143,8 +145,7 @@ const styles = createStyleSheet({
 const ConnectedGamepadsView = () => {
     const {gamepads} = stage.input;
     if (gamepads.length === 0) {
-        return jsx('text', {
-            class: styles.hintText,
+        return jsx(Button, {
             children: 'No gamepads connected.'
         });
     } else {
