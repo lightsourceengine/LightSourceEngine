@@ -96,6 +96,7 @@ const lightSourceReconciler = (input) => ({
     inject({
       MessageChannel: resolve('src/reconciler/SchedulerMessageChannel.js'),
       window: resolve('src/reconciler/window-polyfill.js'),
+      performance: ['perf_hooks', 'performance'],
       setTimeout: [resolve('src/reconciler/timeout-scope.js'), 'setTimeout'],
       clearTimeout: [resolve('src/reconciler/timeout-scope.js'), 'clearTimeout']
     }),

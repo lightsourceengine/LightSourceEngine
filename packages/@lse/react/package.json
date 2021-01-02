@@ -30,7 +30,7 @@
     "@lse/core": "1.0.0-private.0"
   },
   "peerDependencies": {
-    "react": "^16.14.0"
+    "react": "^17.0.1"
   },
   "scripts": {
     "bundle": "rimraf dist && rollup -c",

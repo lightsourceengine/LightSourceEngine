@@ -59,15 +59,15 @@ export const Reconciler = (scene) => {
       return inst
     },
 
-    prepareForCommit () {
-      // noop
+    prepareForCommit (containerInfo) {
+      return null
     },
 
     prepareUpdate (wordElement, type, oldProps, newProps) {
       return true
     },
 
-    resetAfterCommit () {
+    resetAfterCommit (containerInfo) {
       // noop
     },
 
@@ -115,6 +115,10 @@ export const Reconciler = (scene) => {
 
     shouldDeprioritizeSubtree (type, nextProps) {
       // noop
+    },
+
+    clearContainer ({ node }) {
+      node.children.forEach(n => node.destroy(n))
     }
   })
 }
