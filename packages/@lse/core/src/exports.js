@@ -52,13 +52,7 @@ const errorHandler = obj => {
 ['SIGINT', 'uncaughtException', 'unhandledRejection'].forEach(e => process.on(e, errorHandler))
 
 const stage = new Stage()
-let lightSourceVersion
-
-try {
-  lightSourceVersion = LIGHT_SOURCE_VERSION
-} catch (e) {
-  lightSourceVersion = '0.0.0'
-}
+const version = '$LSE_VERSION'
 
 export {
   // Style
@@ -110,5 +104,5 @@ export {
   AudioDecoderType,
   AudioSourceType,
 
-  lightSourceVersion
+  version
 }

@@ -5,44 +5,38 @@
  */
 
 import autoExternal from 'rollup-plugin-auto-external'
-import resolve from '@rollup/plugin-node-resolve'
-import { beautify, onwarn, minify, replaceObjectAssign, getPublishingVersion, getPackageJsonVersion } from '../../rollup/plugins'
+import nodeResolve from '@rollup/plugin-node-resolve'
+import { resolve } from 'path'
+import {
+  beautify,
+  onwarn,
+  minify,
+  replaceObjectAssign,
+  getPublishingVersion,
+  nodeEnv
+} from '../../rollup/plugins'
+import commonjs from '@rollup/plugin-commonjs'
+import inject from '@rollup/plugin-inject'
+import replace from 'rollup-plugin-re'
 
-const lightSourceReactVersion = JSON.stringify(getPublishingVersion())
-const reactVersion = JSON.stringify(getPackageJsonVersion(require.resolve('react/package.json')))
-const intro = `global.lightSourceReactVersion = ${lightSourceReactVersion}; global.reactVersion=${reactVersion}`
-
-const lightSourceReactNpm = (input) => ({
+const lightSourceReact = ({ input, standalone }) => ({
   input,
   onwarn,
-  external: ['@lse/core'],
+  external: ['@lse/core', '@lse/react/reconciler'],
   output: {
     format: 'esm',
-    file: 'dist/lse-react.mjs',
-    preferConst: true,
-    intro
+    file: standalone ? 'dist/lse-react.standalone.mjs' : 'dist/lse-react.mjs',
+    preferConst: true
   },
   plugins: [
     autoExternal(),
-    resolve(),
-    beautify()
-  ]
-})
-
-const lightSourceReactStandalone = (input) => ({
-  input,
-  onwarn,
-  external: ['@lse/core', 'react', 'worker_threads'],
-  output: {
-    format: 'esm',
-    file: 'dist/lse-react.standalone.mjs',
-    preferConst: true,
-    intro
-  },
-  plugins: [
-    autoExternal({ dependencies: false, peerDependencies: false }),
-    resolve(),
-    minify()
+    nodeResolve(),
+    standalone ? minify() : beautify(),
+    replace({
+      replaces: {
+        $LSE_REACT_VERSION: getPublishingVersion()
+      }
+    })
   ]
 })
 
@@ -76,9 +70,44 @@ const reactJsxRuntime = (jsxRuntimeSource) => ({
   }
 })
 
+// The react reconciler does not have a defined lifecycle nor does the reconciler provide an API for
+// shutdown. The reconciler may hold timers through setTimeout and SchedulerMessageChannel, preventing node
+// from shutting down. I was able to hijack global functions, giving me access to the components holding
+// timers. From there, I expose a reconciler shutdown. This is a horrible hack, but the solution avoids forking
+// the reconciler.
+const lightSourceReconciler = (input) => ({
+  input,
+  onwarn,
+  output: {
+    format: 'esm',
+    file: 'dist/reconciler.mjs',
+    preferConst: true
+  },
+  external: ['worker_threads', 'react', 'object-assign'],
+  plugins: [
+    autoExternal({
+      dependencies: false
+    }),
+    replaceObjectAssign(),
+    nodeEnv(),
+    commonjs({
+      ignoreGlobal: true
+    }),
+    inject({
+      MessageChannel: resolve('src/reconciler/SchedulerMessageChannel.js'),
+      window: resolve('src/reconciler/window-polyfill.js'),
+      setTimeout: [resolve('src/reconciler/timeout-scope.js'), 'setTimeout'],
+      clearTimeout: [resolve('src/reconciler/timeout-scope.js'), 'clearTimeout']
+    }),
+    nodeResolve(),
+    minify()
+  ]
+})
+
 export default [
-  lightSourceReactNpm('src/exports.js'),
-  lightSourceReactStandalone('src/exports.js'),
+  lightSourceReconciler('src/reconciler/light-source-reconciler.js'),
+  lightSourceReact({ input: 'src/exports.js' }),
+  lightSourceReact({ input: 'src/exports.js', standalone: true }),
   reactJsxRuntime('react/cjs/react-jsx-runtime.production.min.js'),
   reactStandalone('react/cjs/react.production.min.js')
 ]

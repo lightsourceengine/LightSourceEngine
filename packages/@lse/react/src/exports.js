@@ -5,26 +5,24 @@
  */
 
 import { stage } from '@lse/core'
-import { shutdown, reactReconcilerVersion } from '@lse/reconciler'
+import { shutdown } from '@lse/react/reconciler'
 import { render, findSceneNode, findElement } from './renderer.js'
 import { letThereBeLight } from './letThereBeLight.js'
+import { version as reactVersion } from 'react'
 
 stage.once('destroyed', (event) => {
   shutdown()
 })
-
-const { lightSourceReactVersion } = global // set by rollup from package.json
-const { reactVersion } = global // set by rollup from package.json
 
 export {
   render,
   findSceneNode,
   findElement,
   letThereBeLight,
-  reactVersion,
-  reactReconcilerVersion,
-  lightSourceReactVersion
+  reactVersion
 }
+
+export const version = '$LSE_REACT_VERSION'
 
 // export to support jsx transpilation using jsx-runtime
 export { createElement } from 'react'

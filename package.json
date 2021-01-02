@@ -2,7 +2,6 @@
   "private": true,
   "workspaces": [
     "packages/napi-unit",
-    "packages/@lse/reconciler",
     "packages/@lse/loader",
     "packages/@lse/core",
     "packages/@lse/react",

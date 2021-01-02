@@ -13,6 +13,4 @@ const shutdown = () => {
   closePendingTimeouts()
 }
 
-const { reactReconcilerVersion } = global // set by rollup from package.json
-
-export { ReactReconciler, shutdown, reactReconcilerVersion }
+export { ReactReconciler, shutdown }

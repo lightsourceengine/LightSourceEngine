@@ -8,8 +8,15 @@ import autoExternal from 'rollup-plugin-auto-external'
 import resolve from '@rollup/plugin-node-resolve'
 import copy from 'rollup-plugin-copy'
 import { beautify, onwarn, minify, inlineModule, getPublishingVersion } from '../../rollup/plugins.js'
+import replace from 'rollup-plugin-re'
 
-const intro = `const LIGHT_SOURCE_VERSION = '${getPublishingVersion()}'; const INTRINSIC_FONT_DIR = 'font';`
+const intro = 'const INTRINSIC_FONT_DIR = \'font\';'
+const publishingVersion = getPublishingVersion()
+const lseVersion = () => replace({
+  replaces: {
+    $LSE_VERSION: publishingVersion
+  }
+})
 
 const inlineBindings = () => inlineModule({
   bindings: 'export default {}'
@@ -28,6 +35,7 @@ const lightSourceNpm = (input) => (
     plugins: [
       autoExternal(),
       resolve(),
+      lseVersion(),
       beautify(),
       copy({ targets: [{ src: 'src/font/*', dest: 'dist/font' }] })
     ]
@@ -49,6 +57,7 @@ const lightSourceStandalone = (input) => ({
     }),
     inlineBindings(),
     resolve(),
+    lseVersion(),
     minify({
       reserved: [
         // @lse/react relies on function.name to be preserved for these classes
