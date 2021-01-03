@@ -1,6 +1,6 @@
 /*
  * Light Source Engine
- * Copyright (C) 2019-2020 Daniel Anderson <dan.anderson.oss@gmail.com>.
+ * Copyright (C) 2019-2021 Daniel Anderson <dan.anderson.oss@gmail.com>.
  *
  * This source code is licensed under the MIT License.
  *
