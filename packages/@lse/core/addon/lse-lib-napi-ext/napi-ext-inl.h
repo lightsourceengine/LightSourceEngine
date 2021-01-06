@@ -70,4 +70,17 @@ T* ConstructorWithExternalFactory(const Napi::CallbackInfo& info, const char* cl
   return reinterpret_cast<F>(factory)(info);
 }
 
+template<typename T>
+T CastNumberOrDefault(const Napi::Value& value, T defaultValue) noexcept {
+  if (value.IsNumber()) {
+    try {
+      return static_cast<T>(value.As<Napi::Number>());
+    } catch (...) {
+      // ignore and return default value
+    }
+  }
+
+  return defaultValue;
+}
+
 } // namespace Napi

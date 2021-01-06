@@ -27,6 +27,7 @@ class RefPlatformPluginImpl final : public PlatformPluginInterface {
   void ResetCallbacks(const Napi::CallbackInfo& info) override;
   Napi::Value CreateGraphicsContext(const Napi::CallbackInfo& info) override;
   Napi::Value LoadGameControllerMappings(const Napi::CallbackInfo& info) override;
+  Napi::Value GetGameControllerMapping(const Napi::CallbackInfo& info) override;
 
   void Finalize() override;
 

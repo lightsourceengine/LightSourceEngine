@@ -90,6 +90,11 @@ Value PlatformPlugin::LoadGameControllerMappings(const CallbackInfo& info) {
   return this->impl->LoadGameControllerMappings(info);
 }
 
+Value PlatformPlugin::GetGameControllerMapping(const Napi::CallbackInfo& info) {
+  CHECK_IMPL(this->impl);
+  return this->impl->GetGameControllerMapping(info);
+}
+
 void PlatformPlugin::Finalize() {
   throw std::runtime_error("Not implemented");
 }
@@ -112,6 +117,7 @@ Function PlatformPlugin::GetClass(Napi::Env env) {
         InstanceMethod("resetCallbacks", &PlatformPlugin::ResetCallbacks),
         InstanceMethod("createGraphicsContext", &PlatformPlugin::CreateGraphicsContext),
         InstanceMethod("loadGameControllerMappings", &PlatformPlugin::LoadGameControllerMappings),
+        InstanceMethod("getGameControllerMapping", &PlatformPlugin::GetGameControllerMapping),
     });
   }
 

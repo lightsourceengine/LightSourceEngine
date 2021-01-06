@@ -5,24 +5,39 @@
  */
 
 import { Stage } from './stage/Stage.js'
-import { createStyleSheet } from './style/createStyleSheet.js'
-import { ShorthandRegistry } from './style/ShorthandRegistry.js'
-import { MixinRegistry } from './style/MixinRegistry.js'
-import { createStyle } from './style/createStyle.js'
-import { rgba } from './style/rgba.js'
-import { rgb } from './style/rgb.js'
-import { ScanCode } from './input/ScanCode.js'
-import { waypoint } from './scene/waypoint.js'
-import { Mapping } from './input/Mapping.js'
-import { MappingType } from './input/MappingType.js'
-import { PluginType } from './stage/PluginType.js'
-import { Direction } from './input/Direction.js'
-import { Key } from './input/Key.js'
-import { StyleAnchor, StyleUnit, StyleTransform, LogLevel, logger } from './addon/index.js'
-import { AudioDecoderType } from './audio/AudioDecoderType.js'
-import { AudioSourceType } from './audio/AudioSourceType.js'
-import { InputDeviceType } from './input/InputDeviceType.js'
-import {
+
+const errorHandler = obj => {
+  if (obj) {
+    obj.message && console.log(obj.message)
+    obj.stack && console.log(obj.stack)
+  }
+
+  process.exit()
+};
+
+['SIGINT', 'uncaughtException', 'unhandledRejection'].forEach(e => process.on(e, errorHandler))
+
+/// ////////////////////////////////////////////////////////////////////////////
+/// Stage Exports
+/// ////////////////////////////////////////////////////////////////////////////
+
+export const stage = new Stage()
+export { PluginType } from './stage/PluginType.js'
+export { Direction } from './input/Direction.js'
+export { waypoint } from './scene/waypoint.js'
+
+/// ////////////////////////////////////////////////////////////////////////////
+/// Style Exports
+/// ////////////////////////////////////////////////////////////////////////////
+
+export { createStyle } from './style/createStyle.js'
+export { createStyleSheet } from './style/createStyleSheet.js'
+export { MixinRegistry } from './style/MixinRegistry.js'
+export { ShorthandRegistry } from './style/ShorthandRegistry.js'
+export { rgba } from './style/rgba.js'
+export { rgb } from './style/rgb.js'
+export { StyleAnchor, StyleUnit, StyleTransform } from './addon/index.js'
+export {
   translate,
   scale,
   rotate,
@@ -40,69 +55,25 @@ import {
   getScaleY
 } from './style/transform.js'
 
-const errorHandler = obj => {
-  if (obj) {
-    obj.message && console.log(obj.message)
-    obj.stack && console.log(obj.stack)
-  }
+/// ////////////////////////////////////////////////////////////////////////////
+/// Audio Exports
+/// ////////////////////////////////////////////////////////////////////////////
 
-  process.exit()
-};
+export { AudioDecoderType } from './audio/AudioDecoderType.js'
+export { AudioSourceType } from './audio/AudioSourceType.js'
 
-['SIGINT', 'uncaughtException', 'unhandledRejection'].forEach(e => process.on(e, errorHandler))
+/// ////////////////////////////////////////////////////////////////////////////
+/// Misc Exports
+/// ////////////////////////////////////////////////////////////////////////////
 
-const stage = new Stage()
-const version = '$LSE_VERSION'
+export { ScanCode } from './input/ScanCode.js'
+export { Mapping } from './input/Mapping.js'
+export { Key } from './input/Key.js'
+export { AnalogKey } from './input/AnalogKey.js'
 
-export {
-  // Style
-  StyleUnit,
-  StyleTransform,
-  StyleAnchor,
-  ShorthandRegistry,
-  createStyle,
-  rgb,
-  rgba,
-  translate,
-  scale,
-  rotate,
-  scaleX,
-  scaleY,
-  translateX,
-  translateY,
-  isRotate,
-  isScale,
-  isTranslate,
-  getRotateAngle,
-  getTranslateX,
-  getTranslateY,
-  getScaleX,
-  getScaleY,
+/// ////////////////////////////////////////////////////////////////////////////
+/// Misc Exports
+/// ////////////////////////////////////////////////////////////////////////////
 
-  // StyleSheet
-  createStyleSheet,
-  MixinRegistry,
-
-  // Stage
-  stage,
-  waypoint,
-  Direction,
-  PluginType,
-
-  // Input
-  MappingType,
-  InputDeviceType,
-  Key,
-  ScanCode,
-  Mapping,
-
-  // Logger
-  logger,
-  LogLevel,
-
-  // Audio
-  AudioDecoderType,
-  AudioSourceType,
-
-  version
-}
+export const version = '$LSE_VERSION'
+export { LogLevel, logger } from './addon/index.js'

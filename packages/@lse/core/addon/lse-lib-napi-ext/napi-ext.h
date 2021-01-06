@@ -184,6 +184,16 @@ T* ConstructorWithExternalFactory(const Napi::CallbackInfo& info, const char* cl
  */
 bool IsNullish(const Napi::Env& env, const Napi::Value& value) noexcept;
 
+/**
+ * Cast a Number value to a primitive integer.
+ *
+ * @tparam T Must be an integer
+ * @param value Number value.
+ * @return value cast as primitive; defaultValue if cast fails
+ */
+template<typename T>
+T CastNumberOrDefault(const Napi::Value& value, T defaultValue) noexcept;
+
 } // namespace Napi
 
 #include "napi-ext-inl.h"

@@ -146,11 +146,12 @@ const ConnectedGamepadsView = () => {
     const {gamepads} = stage.input;
     if (gamepads.length === 0) {
         return jsx(Button, {
+            end: true,
             children: 'No gamepads connected.'
         });
     } else {
         const createListItem = gamepad => {
-            const mapState = stage.input.getSystemMapping(gamepad.uuid) ? 'MAPPED' : 'UNMAPPED';
+            const mapState = stage.input.hasMapping(gamepad.uuid) ? 'MAPPED' : 'UNMAPPED';
             return jsxs(Fragment, {
                 children: [ jsx(Button, {
                     value: mapState,
@@ -264,7 +265,7 @@ const views = {
 };
 
 const Button = ({children, onSelect, end = false, value = ''}) => {
-    const onKeyDown = React.useCallback(e => e.key === Key.A && onSelect(), [ onSelect ]);
+    const onKeyDown = React.useCallback(e => e.key === Key.A && onSelect?.(), [ onSelect ]);
     const onFocus = React.useCallback(e => e.target.class = styles.buttonContainerFocused, []);
     const onBlur = React.useCallback(e => e.target.class = styles.buttonContainer, []);
     return jsx('box', {

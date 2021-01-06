@@ -76,6 +76,10 @@ Napi::Value RefPlatformPluginImpl::LoadGameControllerMappings(const Napi::Callba
   return Boolean::New(info.Env(), true);
 }
 
+Napi::Value RefPlatformPluginImpl::GetGameControllerMapping(const Napi::CallbackInfo& info) {
+  return info.Env().Undefined();
+}
+
 void RefPlatformPluginImpl::Finalize() {
   delete this;
 }

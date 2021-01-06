@@ -22,13 +22,10 @@ export const EventNames = {
   focusout: 'focusout',
   rawkeyup: 'rawkeyup',
   rawkeydown: 'rawkeydown',
-  rawhatup: 'rawhatup',
-  rawhatdown: 'rawhatdown',
+  rawhatmotion: 'rawhatmotion',
   rawaxismotion: 'rawaxismotion',
   keyup: 'keyup',
   keydown: 'keydown',
-  hatup: 'hatup',
-  hatdown: 'hatdown',
   axismotion: 'axismotion'
 }
 
@@ -48,13 +45,10 @@ const EventSymbols = {
   focusout: Symbol.for(EventNames.focusout),
   rawkeyup: Symbol.for(EventNames.rawkeyup),
   rawkeydown: Symbol.for(EventNames.rawkeydown),
-  rawhatup: Symbol.for(EventNames.rawhatup),
-  rawhatdown: Symbol.for(EventNames.rawhatdown),
+  rawhatmotion: Symbol.for(EventNames.rawhatmotion),
   rawaxismotion: Symbol.for(EventNames.rawaxismotion),
   keyup: Symbol.for(EventNames.keyup),
   keydown: Symbol.for(EventNames.keydown),
-  hatup: Symbol.for(EventNames.hatup),
-  hatdown: Symbol.for(EventNames.hatdown),
   axismotion: Symbol.for(EventNames.axismotion)
 }
 
@@ -139,10 +133,9 @@ class RawKeyEvent extends Event {
 }
 
 class KeyEvent extends Event {
-  constructor ($type, target, mapping, key, pressed, repeat) {
+  constructor ($type, target, key, pressed, repeat) {
     super($type, target)
 
-    this.mapping = mapping
     this.key = key
     this.pressed = pressed
     this.repeat = repeat
@@ -162,10 +155,9 @@ class RawAxisEvent extends Event {
 }
 
 class AxisEvent extends Event {
-  constructor ($type, target, mapping, axis, value) {
+  constructor ($type, target, axis, value) {
     super($type, target)
 
-    this.mapping = mapping
     this.axis = axis
     this.value = value
     this._state = 0
@@ -173,13 +165,12 @@ class AxisEvent extends Event {
 }
 
 class RawHatEvent extends Event {
-  constructor ($type, target, device, hat, value, pressed) {
+  constructor ($type, target, device, hat, value) {
     super($type, target)
 
     this.device = device
     this.hat = hat
     this.value = value
-    this.pressed = pressed
     this._state = 0
   }
 }
@@ -204,15 +195,11 @@ export const RawKeyUpEvent =
   (target, device, raw) => new RawKeyEvent(EventSymbols.rawkeyup, target, device, raw, false, false)
 export const RawKeyDownEvent =
   (target, device, raw, repeat) => new RawKeyEvent(EventSymbols.rawkeydown, target, device, raw, true, repeat)
-export const KeyUpEvent =
-  (target, mapping, key) => new KeyEvent(EventSymbols.keyup, target, mapping, key, false, false)
+export const KeyUpEvent = (target, key) => new KeyEvent(EventSymbols.keyup, target, key, false, false)
 export const KeyDownEvent =
-  (target, mapping, key, repeat) => new KeyEvent(EventSymbols.keydown, target, mapping, key, true, repeat)
+  (target, key, repeat) => new KeyEvent(EventSymbols.keydown, target, key, true, repeat)
 export const RawAxisMotionEvent =
   (target, device, axis, value) => new RawAxisEvent(EventSymbols.rawaxismotion, target, device, axis, value)
-export const AxisMotionEvent =
-  (target, mapping, axis, value) => new AxisEvent(EventSymbols.axismotion, target, mapping, axis, value)
-export const RawHatUpEvent =
-  (target, device, hat, value) => new RawHatEvent(EventSymbols.rawhatup, target, device, hat, value, false)
-export const RawHatDownEvent =
-  (target, device, hat, value) => new RawHatEvent(EventSymbols.rawhatdown, target, device, hat, value, true)
+export const AxisMotionEvent = (target, axis, value) => new AxisEvent(EventSymbols.axismotion, target, axis, value)
+export const RawHatMotionEvent =
+  (target, device, hat, value) => new RawHatEvent(EventSymbols.rawhatmotion, target, device, hat, value)

@@ -51,4 +51,6 @@ export const emptyArray = Object.freeze([])
 
 export const emptyObject = Object.freeze({})
 
+export const invertMap = (map) => new Map(Array.from(map, entry => entry.reverse()))
+
 export { EventEmitter }

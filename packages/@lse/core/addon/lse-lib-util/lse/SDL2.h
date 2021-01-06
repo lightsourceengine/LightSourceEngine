@@ -9,6 +9,18 @@
 
 #include <SDL.h>
 
+#ifndef SDL_JOYSTICK_AXIS_MIN
+#define SDL_JOYSTICK_AXIS_MIN -32768.f
+#endif
+
+#ifndef SDL_JOYSTICK_AXIS_MAX
+#define SDL_JOYSTICK_AXIS_MAX 32767.f
+#endif
+
+// Note, SDL_JOYSTICK_AXIS_* defines were introduced after 2.0.4.
+constexpr auto SDL_JOYSTICK_AXIS_MIN_F = static_cast<float>(SDL_JOYSTICK_AXIS_MIN);
+constexpr auto SDL_JOYSTICK_AXIS_MAX_F = static_cast<float>(SDL_JOYSTICK_AXIS_MAX);
+
 #if defined(_WIN32)
 constexpr const char* kSDLDefaultLibName = "SDL2.dll";
 #elif defined(__linux__)
@@ -69,11 +81,21 @@ constexpr const char* kSDLFrameworkLib = "SDL2";
     APPLY(SDL_JoystickNumHats)                              \
     APPLY(SDL_JoystickNumButtons)                           \
     APPLY(SDL_JoystickGetGUID)                              \
+    APPLY(SDL_JoystickGetHat)                               \
+    APPLY(SDL_JoystickGetAxis)                              \
     APPLY(SDL_NumJoysticks)                                 \
     APPLY(SDL_JoystickGetGUIDString)                        \
+    APPLY(SDL_JoystickGetGUIDFromString)                    \
     APPLY(SDL_GameControllerEventState)                     \
     APPLY(SDL_GameControllerAddMappingsFromRW)              \
     APPLY(SDL_GameControllerMappingForGUID)                 \
+    APPLY(SDL_IsGameController)                             \
+    APPLY(SDL_GameControllerOpen)                           \
+    APPLY(SDL_GameControllerClose)                          \
+    APPLY(SDL_GameControllerGetJoystick)                    \
+    APPLY(SDL_GameControllerName)                           \
+    APPLY(SDL_GameControllerGetAxis)                        \
+    APPLY(SDL_GameControllerGetButton)                      \
     APPLY(SDL_GetKeyboardState)                             \
     APPLY(SDL_PeepEvents)                                   \
     APPLY(SDL_PumpEvents)                                   \
@@ -85,6 +107,7 @@ constexpr const char* kSDLFrameworkLib = "SDL2";
     APPLY(SDL_ShowCursor)                                   \
     APPLY(SDL_RWFromFile)                                   \
     APPLY(SDL_RWFromMem)                                    \
+    APPLY(SDL_RWFromConstMem)                               \
     APPLY(SDL_LoadWAV_RW)                                   \
     APPLY(SDL_FreeWAV)                                      \
     APPLY(SDL_OpenAudio)                                    \

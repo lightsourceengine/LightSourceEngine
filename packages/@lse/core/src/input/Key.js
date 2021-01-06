@@ -5,41 +5,25 @@
  */
 
 /**
- * Mapped key codes for a 'standard' input device. This mapping closely matches the standard mapping of the Gamepad
- * specification (https://w3c.github.io/gamepad/#remapping).
+ * Enums for identifying the digital inputs (buttons) of a gamepad.
+ *
+ * @type {{A: number, B: number, LEFT_SHOULDER: number, LEFT_STICK: number, GUIDE: number, RIGHT_STICK: number, DPAD_UP: number, DPAD_DOWN: number, DPAD_RIGHT: number, X: number, Y: number, BACK: number, START: number, RIGHT_SHOULDER: number, DPAD_LEFT: number}}
+ * @see AnalogKey
  */
 export const Key = {
-  B: 0,
-  A: 1,
-  Y: 2,
-  X: 3,
-
-  L1: 4,
-  R1: 5,
-  L2: 6,
-  R2: 7,
-
-  SELECT: 8, // back
-  START: 9, // forward
-
-  LS: 10,
-  RS: 11,
-
-  UP: 12,
-  DOWN: 13,
-  LEFT: 14,
-  RIGHT: 15,
-
-  HOME: 16
-
-  // TODO: implement axis handling
-  // LS_UP: 17,
-  // LS_DOWN: 18,
-  // LS_LEFT: 19,
-  // LS_RIGHT: 20,
-  //
-  // RS_UP: 21,
-  // RS_DOWN: 22,
-  // RS_LEFT: 23,
-  // RS_RIGHT: 24
+  A: 0,
+  B: 1,
+  X: 2,
+  Y: 3,
+  BACK: 4,
+  GUIDE: 5,
+  START: 6,
+  LEFT_STICK: 7,
+  RIGHT_STICK: 8,
+  LEFT_SHOULDER: 9,
+  RIGHT_SHOULDER: 10,
+  DPAD_UP: 11,
+  DPAD_DOWN: 12,
+  DPAD_LEFT: 13,
+  DPAD_RIGHT: 14
 }

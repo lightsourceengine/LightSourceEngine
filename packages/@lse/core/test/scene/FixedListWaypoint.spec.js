@@ -9,7 +9,6 @@ import { FixedListWaypoint } from '../../src/scene/FixedListWaypoint.js'
 import { afterSceneTest, beforeSceneTest } from '../test-env.js'
 import { Key } from '../../src/input/Key.js'
 import { KeyDownEvent } from '../../src/event/index.js'
-import { MappingType } from '../../src/input/MappingType.js'
 
 const { assert } = chai
 
@@ -42,34 +41,34 @@ describe('FixedListWaypoint', () => {
       setupSceneRoot(scene, new FixedListWaypoint('horizontal'))
 
       assert.isOk(scene.root.children[0].children[0])
-      sendKey(scene, Key.RIGHT)
+      sendKey(scene, Key.DPAD_RIGHT)
       assert.isOk(scene.root.children[0].children[1])
     })
     it('should stay on left most node on left event', () => {
       setupSceneRoot(scene, new FixedListWaypoint('horizontal'))
 
       assert.isOk(scene.root.children[0].children[0])
-      sendKey(scene, Key.LEFT)
+      sendKey(scene, Key.DPAD_LEFT)
       assert.isOk(scene.root.children[0].children[0])
     })
     it('should move to the next element on down event', () => {
       setupSceneRoot(scene, new FixedListWaypoint('vertical'))
 
       assert.isOk(scene.root.children[0].children[0])
-      sendKey(scene, Key.DOWN)
+      sendKey(scene, Key.DPAD_DOWN)
       assert.isOk(scene.root.children[0].children[1])
     })
     it('should stay on top most node on up event', () => {
       setupSceneRoot(scene, new FixedListWaypoint('vertical'))
 
       assert.isOk(scene.root.children[0].children[0])
-      sendKey(scene, Key.UP)
+      sendKey(scene, Key.DPAD_UP)
       assert.isOk(scene.root.children[0].children[0])
     })
   })
 })
 
-const sendKey = (scene, key) => scene.activeNode?.$bubble(KeyDownEvent(scene.activeNode, MappingType.Standard, key, false))
+const sendKey = (scene, key) => scene.activeNode?.$bubble(KeyDownEvent(scene.activeNode, key, false))
 
 const setupSceneRoot = (scene, waypoint) => {
   const group = scene.createNode('box')

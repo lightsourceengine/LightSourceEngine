@@ -27,7 +27,7 @@ export class EventEmitter {
       } else if (typeof eventType === 'string') {
         eventType = Symbol.for(eventType)
       } else {
-        throw TypeError('event must be s string or symbol')
+        throw TypeError(`Expected eventType to be string or symbol, but got ${typeof eventType}`)
       }
 
       this[eventType] = []

@@ -9,7 +9,6 @@ import { eventCapturePhase } from '../../src/event/eventCapturePhase.js'
 import { Key } from '../../src/input/Key.js'
 import { afterSceneTest, beforeSceneTest } from '../test-env.js'
 import { waypoint } from '../../src/scene/waypoint.js'
-import { MappingType } from '../../src/input/MappingType.js'
 import { KeyDownEvent } from '../../src/event/index.js'
 import { Direction } from '../../src/input/Direction.js'
 
@@ -62,6 +61,6 @@ const setupSceneRoot = (scene) => {
   child1.focus()
 }
 
-const rightKeyEvent = () => KeyDownEvent(null, MappingType.Standard, Key.RIGHT, false)
+const rightKeyEvent = () => KeyDownEvent(null, Key.DPAD_RIGHT, false)
 
-const leftKeyEvent = () => KeyDownEvent(null, MappingType.Standard, Key.LEFT, false)
+const leftKeyEvent = () => KeyDownEvent(null, Key.DPAD_LEFT, false)

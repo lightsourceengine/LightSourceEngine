@@ -5,14 +5,12 @@
  */
 
 import { Key } from './Key.js'
-import { Mapping } from './Mapping.js'
+import { checkInstanceOfMapping, createEmptyGameControllerCsv } from './Mapping.js'
 import { Direction } from './Direction.js'
-import { parseSystemMapping } from './parseSystemMapping.js'
 import { Keyboard } from './Keyboard.js'
 import { eventCapturePhase } from '../event/eventCapturePhase.js'
-import { MappingType } from './MappingType.js'
 import { emptyArray, EventEmitter, now } from '../util/index.js'
-import { InputDeviceType } from './InputDeviceType.js'
+import { promises } from 'fs'
 import {
   AttachedEvent,
   DetachedEvent,
@@ -20,31 +18,25 @@ import {
   GamepadConnectedEvent,
   GamepadDisconnectedEvent,
   KeyDownEvent,
-  KeyUpEvent, RawAxisMotionEvent, RawHatDownEvent, RawHatUpEvent,
+  KeyUpEvent,
+  AxisMotionEvent,
+  RawAxisMotionEvent,
+  RawHatMotionEvent,
   RawKeyDownEvent,
   RawKeyUpEvent
 } from '../event/index.js'
-import { logger } from '../addon/index.js'
+import { kKeyboardUUID } from './InputCommon.js'
 
-/**
- *
- */
 export class InputManager {
-  /**
-   *
-   * @type {number}
-   * @property lastActivity
-   */
-  lastActivity = now()
-
   _stage = null
   _isEnabled = true
   _isAttached = false
   _keyboard = new Keyboard()
   _plugin = null
-  _userMappings = new Map()
-  _systemMappings = new Map()
-  _keyToDirection = new Map()
+  _gamepadMappings = new Map()
+  _navigationMapping = new Map()
+  _loadIntrinsicMappingDbTicket = 0
+  _intrinsicMappingDb = ''
   _emitter = new EventEmitter([
     EventNames.attached,
     EventNames.detached,
@@ -53,23 +45,17 @@ export class InputManager {
     EventNames.rawkeyup,
     EventNames.rawkeydown,
     EventNames.rawaxismotion,
+    EventNames.rawhatmotion,
     EventNames.keyup,
     EventNames.keydown,
-    EventNames.axismotion,
-    EventNames.rawhatup,
-    EventNames.rawhatdown
+    EventNames.axismotion
   ])
+
+  lastActivity = now()
 
   constructor (stage) {
     this._stage = stage
-
-    // add a keyToDirection entry for standard mapping
-    this.setNavigationMapping(MappingType.Standard, [
-      [Key.UP, Direction.UP],
-      [Key.RIGHT, Direction.RIGHT],
-      [Key.DOWN, Direction.DOWN],
-      [Key.LEFT, Direction.LEFT]
-    ])
+    this.resetNavigationMapping()
   }
 
   on (id, listener) {
@@ -91,21 +77,25 @@ export class InputManager {
   setEnabled (value) {
     value = !!value
 
-    if (value !== this._isEnabled) {
-      if (this._isAttached) {
-        if (value) {
-          this._registerDeviceInputCallbacks()
-        } else {
-          this._plugin.resetCallbacks()
-          this._registerDeviceConnectionCallbacks()
-        }
-      }
-
-      this._isEnabled = value
+    if (value === this._isEnabled) {
+      return
     }
+
+    if (this._isAttached) {
+      if (value) {
+        this._registerCallbacks()
+      } else {
+        this._plugin.resetCallbacks()
+      }
+    }
+
+    this._isEnabled = value
   }
 
   /**
+   * Get the system keyboard.
+   *
+   * The keyboard is available when the input manager is detached.
    *
    * @returns {Keyboard}
    */
@@ -114,6 +104,9 @@ export class InputManager {
   }
 
   /**
+   * Get the list of gamepads connected to this device.
+   *
+   * When the input manager is detached, the returned list will be empty.
    *
    * @returns {Gamepad[]}
    */
@@ -122,109 +115,157 @@ export class InputManager {
   }
 
   /**
+   * Set a user mapping for a device.
    *
-   * @param uuid
-   * @param keyMapping
+   * @param mapping {Mapping} mapping to set
    */
-  setMapping (uuid, keyMapping) {
-    if (!uuid || typeof uuid !== 'string') {
-      throw Error(`uuid must be a string. Got: '${uuid}'`)
+  setMapping (mapping) {
+    checkInstanceOfMapping(mapping)
+
+    const { uuid } = mapping
+
+    if (uuid === kKeyboardUUID) {
+      this._keyboard.$setMapping(mapping)
+
+      return
     }
 
-    if (keyMapping !== null && !(keyMapping instanceof Mapping)) {
-      throw Error('keyMapping must be a Mapping instance or null')
+    if (this._gamepadMappings.has(uuid)) {
+      this._gamepadMappings.get(uuid).userMapping = mapping
+    } else {
+      this._gamepadMappings.set(uuid, {
+        userMapping: mapping,
+        intrinsicMapping: this._isAttached ? this._plugin.getGameControllerMapping(uuid) : null
+      })
     }
 
-    this._userMappings.set(uuid, keyMapping)
+    if (this._isAttached) {
+      this._plugin.loadGameControllerMappings()
+    }
   }
 
   /**
+   * Get a user mapping for a device.
    *
-   * @param uuid
-   * @returns {*}
+   * @param uuid {string} Device UUID
+   * @returns {Mapping} mapping instance for the device. if no device exists with uuid, null is returned
    */
   getMapping (uuid) {
-    return this._userMappings.get(uuid) || null
+    if (uuid === kKeyboardUUID) {
+      return this._keyboard._mapping
+    }
+
+    return this._gamepadMappings.get(uuid)?.userMapping ?? null
   }
 
   /**
+   * Remove user mapping associated with a device.
    *
-   * @param uuid
+   * After the user mapping has been removed, the default mapping for the device will be restored.
+   *
+   * @param uuid {string} device UUID
    */
   removeMapping (uuid) {
-    this._userMappings.delete(uuid)
+    if (uuid === kKeyboardUUID) {
+      this._keyboard.$setMapping(null)
+    } else if (this._gamepadMappings.has(uuid) && this._isAttached) {
+      this._plugin.loadGameControllerMappings(
+        this._gamepadMappings.get(uuid)?.intrinsicMapping ?? createEmptyGameControllerCsv(uuid))
+    }
+
+    this._gamepadMappings.delete(uuid)
   }
 
-  getSystemMapping (uuid) {
-    // get from cache (cleared on loadGameControllerDb and $attach)
-    if (this._systemMappings.has(uuid)) {
-      return this._systemMappings.get(uuid)
+  /**
+   * Checks if a device has a user mapping OR intrinsic mapping.
+   *
+   * @param uuid {string} device UUID
+   * @returns {boolean} true, device is mapping; false, otherwise
+   */
+  hasMapping (uuid) {
+    if (uuid === kKeyboardUUID || this._gamepadMappings.has(uuid)) {
+      return true
+    } else if (this._isAttached) {
+      return !!this._plugin.getGameControllerMapping(uuid)
     }
 
-    // lookup device
-    let device
+    return false
+  }
 
-    if (uuid === Keyboard.UUID) {
-      device = this._keyboard
-    } else {
-      device = this.gamepads.find((value) => value.uuid === uuid)
+  /**
+   * Set the spacial navigation mappings.
+   *
+   * Maps Key enums to Direction enums.
+   *
+   * @param entries {array} Array of key-value pairs (same format as Map constructor)
+   *
+   * @example
+   * // entries format
+   * [
+   *   [Key, Direction],
+   *   ...
+   * ])
+   */
+  setNavigationMapping (entries) {
+    if (!Array.isArray(entries)) {
+      throw Error('entries must be an array of [Key, Direction] pairs.')
+    }
+    this._navigationMapping = new Map(entries)
+  }
+
+  /**
+   * Reset to the default spacial navigation mappings.
+   *
+   * @example
+   * // Default mappings
+   * [
+   *   [Key.DPAD_UP, Direction.UP],
+   *   [Key.DPAD_RIGHT, Direction.RIGHT],
+   *   [Key.DPAD_DOWN, Direction.DOWN],
+   *   [Key.DPAD_LEFT, Direction.LEFT]
+   * ])
+   */
+  resetNavigationMapping () {
+    this.setNavigationMapping([
+      [Key.DPAD_UP, Direction.UP],
+      [Key.DPAD_RIGHT, Direction.RIGHT],
+      [Key.DPAD_DOWN, Direction.DOWN],
+      [Key.DPAD_LEFT, Direction.LEFT]
+    ])
+  }
+
+  /**
+   * @ignore
+   */
+  loadIntrinsicMappingDb (options) {
+    const ticket = ++this._loadIntrinsicMappingDbTicket
+
+    if (typeof options === 'string') {
+      options = { file: options }
     }
 
-    // parse game controller csv, if found
-    const gameControllerMapping = device?.$getGameControllerMapping()
-    let mapping = null
+    if (typeof options.file === 'string') {
+      promises.readFile(options.file)
+        .then(contents => {
+          if (ticket === this._loadIntrinsicMappingDbTicket) {
+            this._intrinsicMappingDb = contents
+            if (this._isAttached) {
+              this._plugin.loadGameControllerMappings(this._intrinsicMappingDb)
+            }
+          }
+        })
+        .catch(e => {
+          if (ticket === this._loadIntrinsicMappingDbTicket) {
+            console.log('!!!!')
+          }
+        })
+    } else if (typeof options.csv === 'string') {
+      this._intrinsicMappingDb = Buffer.from(options.csv, 'utf8')
 
-    if (gameControllerMapping) {
-      try {
-        [mapping] = parseSystemMapping(gameControllerMapping)
-      } catch (e) {
-        logger.warn(`Failed to parse mapping from gamepad ${uuid}: ${e.message}`)
+      if (this._isAttached) {
+        this._plugin.loadGameControllerMappings(this._intrinsicMappingDb)
       }
     }
-
-    // cache mapping, even if null
-    this._systemMappings.set(uuid, mapping)
-
-    return mapping
-  }
-
-  /**
-   *
-   * @param uuid
-   * @returns {*}
-   */
-  resolveMapping (uuid) {
-    return this._userMappings.get(uuid) ?? this.getSystemMapping(uuid)
-  }
-
-  /**
-   *
-   * @param mappingName
-   * @param keyToDirectionEntries
-   */
-  setNavigationMapping (mappingName, keyToDirectionEntries) {
-    const keyToDirectionMap = this._keyToDirection
-
-    if (!mappingName || typeof mappingName !== 'string') {
-      throw Error()
-    }
-
-    keyToDirectionMap.set(mappingName, new Map(keyToDirectionEntries))
-  }
-
-  async loadGameControllerDb (path) {
-    if (!this._plugin) {
-      throw Error('InputManager not initialized.')
-    }
-
-    // TODO: make this call asynchronous..
-    if (!this._plugin.loadGameControllerMappings(path)) {
-      throw Error(`Failed to parse game controller mappings from file ${path}`)
-    }
-
-    this._systemMappings.clear()
-
-    return Promise.resolve()
   }
 
   /**
@@ -244,12 +285,16 @@ export class InputManager {
 
     const plugin = this._plugin
 
-    this._systemMappings.clear()
+    if (this._intrinsicMappingDb) {
+      plugin.loadGameControllerMappings(this._intrinsicMappingDb)
+    }
 
-    this._registerDeviceConnectionCallbacks()
+    this._gamepadMappings.forEach(({ intrinsicMapping }) => plugin.loadGameControllerMappings(intrinsicMapping))
 
     if (this._isEnabled) {
-      this._registerDeviceInputCallbacks()
+      this._registerCallbacks()
+    } else {
+      plugin.resetCallbacks()
     }
 
     this._keyboard.$setNative(plugin.getKeyboard())
@@ -285,236 +330,111 @@ export class InputManager {
   /**
    * @ignore
    */
-  _registerDeviceConnectionCallbacks () {
+  _registerCallbacks () {
     const plugin = this._plugin
 
-    plugin.setCallback('connected', (gamepad) => {
-      if (this._isEnabled) {
-        this._emitter.emitEvent(GamepadConnectedEvent(this, gamepad))
+    plugin.setCallback('gamepad:status', (gamepad, connected) => {
+      this.lastActivity = now()
+
+      const eventType = connected ? GamepadConnectedEvent : GamepadDisconnectedEvent
+      this._emitter.emitEvent(eventType(this, gamepad))
+    })
+
+    plugin.setCallback('gamepad:button-mapped', (device, button, pressed) => {
+      this.lastActivity = now()
+
+      if (pressed) {
+        this._sendKeyDown(device, button, false)
+      } else {
+        this._sendKeyUp(device, button)
       }
     })
 
-    plugin.setCallback('disconnected', (gamepad) => {
-      if (this._isEnabled) {
-        this._emitter.emitEvent(GamepadDisconnectedEvent(this, gamepad))
+    plugin.setCallback('gamepad:axis-mapped', (device, axis, value) => {
+      this.lastActivity = now()
+      this._emitter.emitEvent(AxisMotionEvent(device, axis, value))
+    })
+
+    plugin.setCallback('keyboard:button', (device, button, pressed, repeat) => {
+      this.lastActivity = now()
+      device = this._keyboard
+
+      this._emitter.emitEvent(pressed ? RawKeyDownEvent(this, device, button, repeat) : RawKeyUpEvent(this, device, button))
+
+      const key = this._keyboard._mapping.getKeyForButton(button)
+
+      if (key >= 0) {
+        if (pressed) {
+          this._sendKeyDown(device, key, repeat)
+        } else {
+          this._sendKeyUp(device, key)
+        }
       }
+    })
+
+    plugin.setCallback('gamepad:button', (device, button, pressed) => {
+      this.lastActivity = now()
+      this._emitter.emitEvent(pressed ? RawKeyDownEvent(this, device, button, false) : RawKeyUpEvent(this, device, button))
+    })
+
+    plugin.setCallback('gamepad:hat', (device, hat, value) => {
+      this.lastActivity = now()
+      this._emitter.emitEvent(RawHatMotionEvent(this, device, hat, value))
+    })
+
+    plugin.setCallback('gamepad:axis', (device, axis, value) => {
+      this.lastActivity = now()
+      this._emitter.emitEvent(RawAxisMotionEvent(this, device, axis, value))
     })
   }
 
   /**
    * @ignore
    */
-  _mapButtonToKey (button, uuid) {
-    const mapping = this.resolveMapping(uuid)
+  _sendKeyUp (device, key) {
+    // Phase: Dispatch to InputManager listeners
 
-    return [mapping?.getKeyForButton(button), mapping?.name ?? '']
+    const keyUp = KeyUpEvent(this, key)
+
+    this._emitter.emitEvent(KeyUpEvent(this, key))
+
+    if (keyUp.hasStopPropagation()) {
+      return
+    }
+
+    // Phase: Bubble
+
+    const { activeNode } = this._stage.getScene()
+
+    activeNode?.$bubble(keyUp, 'onKeyUp')
   }
 
   /**
    * @ignore
    */
-  _mapHatToKey (hat, value, uuid) {
-    const mapping = this.resolveMapping(uuid)
+  _sendKeyDown (device, key, repeat) {
+    // Phase: Dispatch to InputManager listeners
 
-    return [mapping?.getKeyForHat(hat, value), mapping?.name ?? '']
-  }
+    const keyDown = KeyDownEvent(this, key, repeat)
 
-  /**
-   * @ignore
-   */
-  _registerDeviceInputCallbacks () {
-    const plugin = this._plugin
-    const buttonUp = (device, button) => {
-      this.lastActivity = now()
+    this._emitter.emitEvent(KeyDownEvent(this, key, repeat))
 
-      if (device.type === InputDeviceType.Keyboard) {
-        device = this.keyboard
-      }
-
-      // Phase: Dispatch raw key event
-
-      const rawKeyDown = RawKeyUpEvent(this, device, button)
-
-      this._emitter.emitEvent(rawKeyDown)
-
-      if (rawKeyDown.hasStopPropagation()) {
-        return
-      }
-
-      // Phase: Dispatch mapped key event
-
-      const [key, mapping] = this._mapButtonToKey(button, device.uuid)
-
-      if (key < 0) {
-        return
-      }
-
-      const keyUp = KeyUpEvent(this, mapping, key)
-
-      this._emitter.emitEvent(keyUp)
-
-      if (keyUp.hasStopPropagation()) {
-        return
-      }
-
-      const { activeNode } = this._stage.getScene()
-
-      // Phase: Bubble
-
-      activeNode?.$bubble(keyUp, 'onKeyUp')
-    }
-    const buttonDown = (device, button, repeat) => {
-      this.lastActivity = now()
-
-      if (device.type === InputDeviceType.Keyboard) {
-        device = this.keyboard
-      }
-
-      // Phase: Dispatch raw key event
-
-      const rawKeyDown = RawKeyDownEvent(this, device, button, repeat)
-
-      this._emitter.emitEvent(rawKeyDown)
-
-      if (rawKeyDown.hasStopPropagation()) {
-        return
-      }
-
-      // Phase: Dispatch mapped key event
-
-      const [key, mapping] = this._mapButtonToKey(button, device.uuid)
-
-      if (key < 0) {
-        return
-      }
-
-      const keyDown = KeyDownEvent(this, mapping, key, repeat)
-
-      this._emitter.emitEvent(keyDown)
-
-      if (keyDown.hasStopPropagation()) {
-        return
-      }
-
-      const { activeNode } = this._stage.getScene()
-
-      // Phase: Navigate
-
-      eventCapturePhase(activeNode, this._keyToDirection.get(mapping)?.get(key) || Direction.NONE, keyDown)
-
-      if (keyDown.hasStopPropagation()) {
-        return
-      }
-
-      // Phase: Bubble
-
-      activeNode?.$bubble(keyDown, 'onKeyDown')
-    }
-    const hatUp = (device, hat, value) => {
-      this.lastActivity = now()
-
-      // Phase: Dispatch raw key event
-
-      const rawHatUp = RawHatUpEvent(this, device, hat, value)
-
-      this._emitter.emitEvent(rawHatUp)
-
-      if (rawHatUp.hasStopPropagation()) {
-        return
-      }
-
-      // Phase: Dispatch mapped key event
-
-      const [key, mapping] = this._mapHatToKey(hat, value, device.uuid)
-
-      if (key < 0) {
-        return
-      }
-
-      const keyUp = KeyUpEvent(this, mapping, key)
-
-      this._emitter.emitEvent(keyUp)
-
-      if (keyUp.hasStopPropagation()) {
-        return
-      }
-
-      const { activeNode } = this._stage.getScene()
-
-      // Phase: Bubble
-
-      activeNode?.$bubble(keyUp, 'onKeyUp')
-    }
-    const hatDown = (device, hat, value, repeat) => {
-      this.lastActivity = now()
-
-      // Phase: Dispatch raw key event
-
-      const rawHatDown = RawHatDownEvent(this, device, hat, value, repeat)
-
-      this._emitter.emitEvent(rawHatDown)
-
-      if (rawHatDown.hasStopPropagation()) {
-        return
-      }
-
-      // Phase: Dispatch mapped key event
-
-      const [key, mapping] = this._mapHatToKey(hat, value, device.uuid)
-
-      if (key < 0) {
-        return
-      }
-
-      const keyDown = KeyDownEvent(this, mapping, key, repeat)
-
-      this._emitter.emitEvent(keyDown)
-
-      if (keyDown.hasStopPropagation()) {
-        return
-      }
-
-      const { activeNode } = this._stage.getScene()
-
-      // Phase: Navigate
-
-      eventCapturePhase(activeNode, this._keyToDirection.get(mapping)?.get(key) || Direction.NONE, keyDown)
-
-      if (keyDown.hasStopPropagation()) {
-        return
-      }
-
-      // Phase: Bubble
-
-      activeNode?.$bubble(keyDown, 'onKeyDown')
-    }
-    const axisMotion = (device, axis, value) => {
-      this.lastActivity = now()
-
-      const rawAxisMotionEvent = RawAxisMotionEvent(this, device, axis, value)
-
-      this._emitter.emitEvent(rawAxisMotionEvent)
-
-      // TODO: raw axis motion to mapped keys/axis
+    if (keyDown.hasStopPropagation()) {
+      return
     }
 
-    // Keyboard Key Callbacks
+    const { activeNode } = this._stage.getScene()
 
-    plugin.setCallback('keyup', buttonUp)
-    plugin.setCallback('keydown', buttonDown)
+    // Phase: Navigate
 
-    // Joystick Button Callbacks
+    eventCapturePhase(activeNode, this._navigationMapping.get(key) ?? Direction.NONE, keyDown)
 
-    plugin.setCallback('buttonup', buttonUp)
-    plugin.setCallback('buttondown', buttonDown)
+    if (keyDown.hasStopPropagation()) {
+      return
+    }
 
-    // Joystick Hat Callbacks
+    // Phase: Bubble
 
-    plugin.setCallback('hatup', hatUp)
-    plugin.setCallback('hatdown', hatDown)
-
-    // Joystick Axis Motion Callbacks
-
-    plugin.setCallback('axismotion', axisMotion)
+    activeNode?.$bubble(keyDown, 'onKeyDown')
   }
 }

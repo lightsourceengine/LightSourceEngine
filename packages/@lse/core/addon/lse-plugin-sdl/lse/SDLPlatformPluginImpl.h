@@ -32,55 +32,52 @@ class SDLPlatformPluginImpl final : public PlatformPluginInterface {
   void Detach(const Napi::CallbackInfo& info) override;
   void Destroy(const Napi::CallbackInfo& info) override;
   Napi::Value LoadGameControllerMappings(const Napi::CallbackInfo& info) override;
+  Napi::Value GetGameControllerMapping(const Napi::CallbackInfo& info) override;
   Napi::Value ProcessEvents(const Napi::CallbackInfo& info) override;
   Napi::Value CreateGraphicsContext(const Napi::CallbackInfo& info) override;
 
   void Finalize() override;
 
  private:
-  enum StageCallback {
-    StageCallbackGamepadConnected,
-    StageCallbackGamepadDisconnected,
-    StageCallbackKeyboardKeyUp,
-    StageCallbackKeyboardKeyDown,
-    StageCallbackGamepadButtonUp,
-    StageCallbackGamepadButtonDown,
-    StageCallbackHatUp,
-    StageCallbackHatDown,
-    StageCallbackGamepadAxisMotion,
-    StageCallbackQuit,
-    StageCallbackCount,
+  enum PluginCallback {
+    PluginCallbackKeyboardButton,
+    PluginCallbackGamepadStatus,
+    PluginCallbackGamepadAxis,
+    PluginCallbackGamepadHat,
+    PluginCallbackGamepadButton,
+    PluginCallbackGamepadButtonMapped,
+    PluginCallbackGamepadAxisMapped,
+    PluginCallbackQuit,
+    PluginCallbackCount,
   };
 
-  void Call(StageCallback callbackId, const std::initializer_list<napi_value>& args);
-  bool IsCallbackEmpty(StageCallback callbackId);
+  void Call(PluginCallback callbackId, const std::initializer_list<napi_value>& args);
+  bool IsCallbackEmpty(PluginCallback callbackId);
   void SyncGamepads(Napi::Env env);
   void ClearGamepads();
   SDLGamepad* AddGamepad(Napi::Env env, int32_t index);
   Napi::Value GetGamepad(Napi::Env env, int32_t instanceId);
   bool DispatchQuit(Napi::Env env);
-  void DispatchKeyboardKeyDown(Napi::Env env, int32_t scanCode, bool isRepeat);
-  void DispatchKeyboardKeyUp(Napi::Env env, int32_t scanCode);
-  void DispatchJoystickButtonUp(Napi::Env env, int32_t instanceId, int32_t buttonId);
-  void DispatchJoystickButtonDown(Napi::Env env, int32_t instanceId, int32_t buttonId);
-  void DispatchJoystickAxisMotion(Napi::Env env, int32_t instanceId, uint8_t axisIndex, float value);
-  void DispatchJoystickHatMotion(Napi::Env env, int32_t instanceId, uint8_t hatIndex, uint8_t hatValue);
-  void DispatchJoystickAdded(Napi::Env env, int32_t index);
-  void DispatchJoystickRemoved(Napi::Env env, int32_t instanceId);
+  void DispatchKeyboardButton(Napi::Env env, int32_t scanCode, uint8_t buttonState, bool isRepeat);
+  void DispatchGamepadButton(Napi::Env env, int32_t instanceId, uint8_t buttonId, uint8_t buttonState);
+  void DispatchGamepadAxis(Napi::Env env, int32_t instanceId, uint8_t axisIndex, float value);
+  void DispatchGamepadHat(Napi::Env env, int32_t instanceId, uint8_t hatIndex, uint8_t hatValue);
+  void DispatchGamepadConnected(Napi::Env env, int32_t index);
+  void DispatchGamepadDisconnected(Napi::Env env, int32_t instanceId);
+  void DispatchGamepadButtonMapped(Napi::Env env, int32_t instanceId, uint8_t buttonId, uint8_t buttonState);
+  void DispatchGamepadAxisMapped(Napi::Env env, int32_t instanceId, uint8_t axisIndex, float value);
   void Init(Napi::Env env);
   Capabilities DetermineCapabilities(Napi::Env env);
 
  private:
-  static std::unordered_map<std::string, StageCallback> callbackMap;
+  static std::unordered_map<std::string, PluginCallback> callbackMap;
 
   Capabilities capabilities;
   Napi::ObjectReference capabilitiesRef;
-  std::array<Napi::FunctionReference, StageCallbackCount> callbacks;
+  std::array<Napi::FunctionReference, PluginCallback::PluginCallbackCount> callbacks;
   SDLKeyboard* keyboard{};
   std::unordered_map<int32_t, SDLGamepad*> gamepadsByInstanceId{};
   bool isAttached{ false };
 };
 
 } // namespace lse
-
-#undef DeclareStageCallback

@@ -14,7 +14,6 @@ const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
   focusable = false
   onKeyUp = null
   onKeyDown = null
-  onAxisMotion = null
   onFocus = null
   onBlur = null
   onFocusIn = null
