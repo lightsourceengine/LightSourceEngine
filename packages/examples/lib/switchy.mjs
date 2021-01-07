@@ -402,7 +402,7 @@ const SwitchyApp = () => jsx(ErrorBoundary, {
 
 const settingsContext = React.createContext(new EventEmitter);
 
-stage.input.on('rawkeyup', e => e.button === ScanCode.ESCAPE && stage.quit());
+stage.input.on('rawkeyup', e => e.scanCode === ScanCode.ESCAPE && stage.quit());
 
 letThereBeLight(jsx(SwitchyApp, {}), {
     title: 'Switchy Settings'

@@ -22,11 +22,13 @@ export const EventNames = {
   focusout: 'focusout',
   rawkeyup: 'rawkeyup',
   rawkeydown: 'rawkeydown',
+  rawbuttonup: 'rawbuttonup',
+  rawbuttondown: 'rawbuttondown',
   rawhatmotion: 'rawhatmotion',
   rawaxismotion: 'rawaxismotion',
   keyup: 'keyup',
   keydown: 'keydown',
-  axismotion: 'axismotion'
+  analogmotion: 'analogmotion'
 }
 
 const EventSymbols = {
@@ -45,11 +47,13 @@ const EventSymbols = {
   focusout: Symbol.for(EventNames.focusout),
   rawkeyup: Symbol.for(EventNames.rawkeyup),
   rawkeydown: Symbol.for(EventNames.rawkeydown),
+  rawbuttonup: Symbol.for(EventNames.rawbuttonup),
+  rawbuttondown: Symbol.for(EventNames.rawbuttondown),
   rawhatmotion: Symbol.for(EventNames.rawhatmotion),
   rawaxismotion: Symbol.for(EventNames.rawaxismotion),
   keyup: Symbol.for(EventNames.keyup),
   keydown: Symbol.for(EventNames.keydown),
-  axismotion: Symbol.for(EventNames.axismotion)
+  analogmotion: Symbol.for(EventNames.analogmotion)
 }
 
 class Event {
@@ -113,22 +117,26 @@ class FocusChangeEvent extends Event {
 }
 
 class RawKeyEvent extends Event {
-  constructor ($type, target, device, raw, pressed, repeat) {
+  constructor ($type, target, device, scanCode, pressed, repeat) {
     super($type, target)
 
     this.device = device
     this.pressed = pressed
     this.repeat = repeat
+    this.scanCode = scanCode
     this._state = 0
-    this._raw = raw
   }
+}
 
-  get button () {
-    return this._raw
-  }
+class RawButtonEvent extends Event {
+  constructor ($type, target, device, button, pressed, repeat) {
+    super($type, target)
 
-  get scanCode () {
-    return this._raw
+    this.device = device
+    this.pressed = pressed
+    this.repeat = repeat
+    this.button = button
+    this._state = 0
   }
 }
 
@@ -154,11 +162,11 @@ class RawAxisEvent extends Event {
   }
 }
 
-class AxisEvent extends Event {
-  constructor ($type, target, axis, value) {
+class AnalogEvent extends Event {
+  constructor ($type, target, analogKey, value) {
     super($type, target)
 
-    this.axis = axis
+    this.analogKey = analogKey
     this.value = value
     this._state = 0
   }
@@ -192,14 +200,20 @@ export const BlurEvent = (node) => new FocusChangeEvent(EventSymbols.blur, node)
 export const FocusInEvent = (node) => new FocusChangeEvent(EventSymbols.focusin, node)
 export const FocusOutEvent = (node) => new FocusChangeEvent(EventSymbols.focusout, node)
 export const RawKeyUpEvent =
-  (target, device, raw) => new RawKeyEvent(EventSymbols.rawkeyup, target, device, raw, false, false)
+  (target, device, scanCode) => new RawKeyEvent(EventSymbols.rawkeyup, target, device, scanCode, false, false)
 export const RawKeyDownEvent =
-  (target, device, raw, repeat) => new RawKeyEvent(EventSymbols.rawkeydown, target, device, raw, true, repeat)
-export const KeyUpEvent = (target, key) => new KeyEvent(EventSymbols.keyup, target, key, false, false)
-export const KeyDownEvent =
-  (target, key, repeat) => new KeyEvent(EventSymbols.keydown, target, key, true, repeat)
+  (target, device, scanCode, repeat) => new RawKeyEvent(EventSymbols.rawkeydown, target, device, scanCode, true, repeat)
+export const RawButtonUpEvent =
+  (target, device, button) => new RawButtonEvent(EventSymbols.rawbuttonup, target, device, button, false, false)
+export const RawButtonDownEvent =
+  (target, device, button, repeat) => new RawButtonEvent(EventSymbols.rawbuttondown, target, device, button, true, repeat)
 export const RawAxisMotionEvent =
   (target, device, axis, value) => new RawAxisEvent(EventSymbols.rawaxismotion, target, device, axis, value)
-export const AxisMotionEvent = (target, axis, value) => new AxisEvent(EventSymbols.axismotion, target, axis, value)
 export const RawHatMotionEvent =
   (target, device, hat, value) => new RawHatEvent(EventSymbols.rawhatmotion, target, device, hat, value)
+export const KeyUpEvent =
+  (target, key) => new KeyEvent(EventSymbols.keyup, target, key, false, false)
+export const KeyDownEvent =
+  (target, key, repeat) => new KeyEvent(EventSymbols.keydown, target, key, true, repeat)
+export const AnalogMotionEvent =
+  (target, axis, value) => new AnalogEvent(EventSymbols.analogmotion, target, axis, value)

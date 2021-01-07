@@ -19,13 +19,18 @@ import {
   GamepadDisconnectedEvent,
   KeyDownEvent,
   KeyUpEvent,
-  AxisMotionEvent,
+  AnalogMotionEvent,
   RawAxisMotionEvent,
   RawHatMotionEvent,
   RawKeyDownEvent,
-  RawKeyUpEvent
+  RawKeyUpEvent,
+  RawButtonDownEvent,
+  RawButtonUpEvent
 } from '../event/index.js'
 import { kKeyboardUUID } from './InputCommon.js'
+
+const kOnKeyUp = 'onKeyUp'
+const kOnKeyDown = 'onKeyDown'
 
 export class InputManager {
   _stage = null
@@ -44,11 +49,13 @@ export class InputManager {
     EventNames.disconnected,
     EventNames.rawkeyup,
     EventNames.rawkeydown,
+    EventNames.rawbuttonup,
+    EventNames.rawbuttondown,
     EventNames.rawaxismotion,
     EventNames.rawhatmotion,
     EventNames.keyup,
     EventNames.keydown,
-    EventNames.axismotion
+    EventNames.analogmotion
   ])
 
   lastActivity = now()
@@ -140,7 +147,7 @@ export class InputManager {
     }
 
     if (this._isAttached) {
-      this._plugin.loadGameControllerMappings()
+      this._plugin.loadGameControllerMappings(mapping.toCsv())
     }
   }
 
@@ -352,7 +359,7 @@ export class InputManager {
 
     plugin.setCallback('gamepad:axis-mapped', (device, axis, value) => {
       this.lastActivity = now()
-      this._emitter.emitEvent(AxisMotionEvent(device, axis, value))
+      this._emitter.emitEvent(AnalogMotionEvent(device, axis, value))
     })
 
     plugin.setCallback('keyboard:button', (device, button, pressed, repeat) => {
@@ -374,7 +381,7 @@ export class InputManager {
 
     plugin.setCallback('gamepad:button', (device, button, pressed) => {
       this.lastActivity = now()
-      this._emitter.emitEvent(pressed ? RawKeyDownEvent(this, device, button, false) : RawKeyUpEvent(this, device, button))
+      this._emitter.emitEvent(pressed ? RawButtonDownEvent(this, device, button, false) : RawButtonUpEvent(this, device, button))
     })
 
     plugin.setCallback('gamepad:hat', (device, hat, value) => {
@@ -396,7 +403,7 @@ export class InputManager {
 
     const keyUp = KeyUpEvent(this, key)
 
-    this._emitter.emitEvent(KeyUpEvent(this, key))
+    this._emitter.emitEvent(keyUp)
 
     if (keyUp.hasStopPropagation()) {
       return
@@ -406,7 +413,7 @@ export class InputManager {
 
     const { activeNode } = this._stage.getScene()
 
-    activeNode?.$bubble(keyUp, 'onKeyUp')
+    activeNode?.$bubble(keyUp, kOnKeyUp)
   }
 
   /**
@@ -417,7 +424,7 @@ export class InputManager {
 
     const keyDown = KeyDownEvent(this, key, repeat)
 
-    this._emitter.emitEvent(KeyDownEvent(this, key, repeat))
+    this._emitter.emitEvent(keyDown)
 
     if (keyDown.hasStopPropagation()) {
       return
@@ -435,6 +442,6 @@ export class InputManager {
 
     // Phase: Bubble
 
-    activeNode?.$bubble(keyDown, 'onKeyDown')
+    activeNode?.$bubble(keyDown, kOnKeyDown)
   }
 }

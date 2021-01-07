@@ -201,14 +201,14 @@ describe('InputManager', () => {
       testEventTriggeredByPluginCallback(EventNames.rawaxismotion, 'gamepad:axis', [{}, 0, 1])
     })
   })
-  describe('rawkeydown event', () => {
-    it('should emit rawkeydown event on gamepad:button plugin event', () => {
-      testEventTriggeredByPluginCallback(EventNames.rawkeydown, 'gamepad:button', [{}, 0, 1])
+  describe('rawbuttondown event', () => {
+    it('should emit rawbuttondown event on gamepad:button plugin event', () => {
+      testEventTriggeredByPluginCallback(EventNames.rawbuttondown, 'gamepad:button', [{}, 0, 1])
     })
   })
-  describe('rawkeyup event', () => {
-    it('should emit rawkeyup event on gamepad:button plugin event', () => {
-      testEventTriggeredByPluginCallback(EventNames.rawkeyup, 'gamepad:button', [{}, 0, 0])
+  describe('rawbuttonup event', () => {
+    it('should emit rawbuttonup event on gamepad:button plugin event', () => {
+      testEventTriggeredByPluginCallback(EventNames.rawbuttonup, 'gamepad:button', [{}, 0, 0])
     })
   })
   describe('rawhatmotion event', () => {
@@ -217,17 +217,11 @@ describe('InputManager', () => {
     })
   })
   describe('rawkeyup event', () => {
-    it('should emit rawkeyup event on gamepad:button plugin event', () => {
-      testEventTriggeredByPluginCallback(EventNames.rawkeyup, 'gamepad:button', [{}, 0, 0])
-    })
     it('should emit rawkeyup event on keyboard:button plugin event', () => {
       testEventTriggeredByPluginCallback(EventNames.rawkeyup, 'keyboard:button', [{}, 0, 0, 0])
     })
   })
   describe('rawkeydown callback', () => {
-    it('should emit rawkeydown event on gamepad:button plugin event', () => {
-      testEventTriggeredByPluginCallback(EventNames.rawkeydown, 'gamepad:button', [{}, 0, 1])
-    })
     it('should emit rawkeydown event on keyboard:button plugin event', () => {
       testEventTriggeredByPluginCallback(EventNames.rawkeydown, 'keyboard:button', [{}, 0, 1, 0])
     })
@@ -258,9 +252,9 @@ describe('InputManager', () => {
       testEventTriggeredByPluginCallback(EventNames.keydown, 'keyboard:button', [{}, ScanCode.Z, 1, 0])
     })
   })
-  describe('axismotion event', () => {
-    it('should emit axismotion event on gamepad:hat plugin event', () => {
-      testEventTriggeredByPluginCallback(EventNames.axismotion, 'gamepad:axis-mapped', [{}, 0, 1])
+  describe('analogmotion event', () => {
+    it('should emit analogmotion event on gamepad:hat plugin event', () => {
+      testEventTriggeredByPluginCallback(EventNames.analogmotion, 'gamepad:axis-mapped', [{}, 0, 1])
     })
   })
 
