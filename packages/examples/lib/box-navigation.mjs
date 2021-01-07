@@ -52,7 +52,7 @@ const NavigationApp = () => {
     const ref = createRef();
     useEffect(() => {
         ref.current.node.focus();
-    });
+    }, []);
     return jsxs('box', {
         class: sheet.body,
         waypoint: 'horizontal',

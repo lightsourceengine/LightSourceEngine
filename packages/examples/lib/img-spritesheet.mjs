@@ -60,7 +60,7 @@ const AnimatedSprite = ({spriteSheetRow}) => {
             scene.requestAnimationFrame(onAnimationFrame);
         };
         scene.requestAnimationFrame(onAnimationFrame);
-    });
+    }, []);
     return jsx('img', {
         ref,
         src: spritesheet,

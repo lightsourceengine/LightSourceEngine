@@ -50,7 +50,7 @@ const StreamingAudioApp = () => {
                 console.log(event.error);
             }
         });
-    });
+    }, []);
     return jsx('box', {
         class: sheet.body,
         children: jsx('text', {

@@ -184,7 +184,7 @@ const SystemStatisticsView = () => {
     }, 1000)
 
     return () => clearInterval(handle)
-  })
+  }, [])
 
   return [
     createListItem('cpuLoad', 'Total CPU Utilization', '%'),
@@ -281,7 +281,7 @@ const TabButton = React.forwardRef(({viewId, children}, ref) => {
 const LeftColumn = () => {
   const ref = React.createRef()
 
-  React.useEffect(() => ref.current.node.focus())
+  React.useEffect(() => ref.current.node.focus(), [])
 
   return (
     <box class={styles.leftColumn} waypoint="vertical">
@@ -305,7 +305,7 @@ const RightColumn = () => {
     ctx.addListener('changed', listener)
 
     return () => ctx.removeListener('changed', listener)
-  })
+  }, [])
 
   return (<box waypoint="vertical" class={styles.rightColumn}><View /></box>)
 }

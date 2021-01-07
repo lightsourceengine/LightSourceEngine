@@ -203,7 +203,7 @@ const SystemStatisticsView = () => {
             start = end;
         }, 1e3);
         return () => clearInterval(handle);
-    });
+    }, []);
     return [ createListItem('cpuLoad', 'Total CPU Utilization', '%'), createListItem('heapUsed', 'Heap Used', ' MB'), createListItem('heapTotal', 'Heap Total', ' MB'), createListItem('rss', 'Resident Set Size', ' MB', true) ];
 };
 
@@ -313,7 +313,7 @@ const TabButton = React.forwardRef(({viewId, children}, ref) => {
 
 const LeftColumn = () => {
     const ref = React.createRef();
-    React.useEffect(() => ref.current.node.focus());
+    React.useEffect(() => ref.current.node.focus(), []);
     return jsxs('box', {
         class: styles.leftColumn,
         waypoint: 'vertical',
@@ -345,7 +345,7 @@ const RightColumn = () => {
         const listener = viewId => setViewId(viewId);
         ctx.addListener('changed', listener);
         return () => ctx.removeListener('changed', listener);
-    });
+    }, []);
     return jsx('box', {
         waypoint: 'vertical',
         class: styles.rightColumn,

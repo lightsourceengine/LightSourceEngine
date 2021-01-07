@@ -47,7 +47,7 @@ const StreamingAudioApp = () => {
         console.log(event.error)
       }
     })
-  })
+  }, [])
 
   return (
     <box class={sheet.body}>

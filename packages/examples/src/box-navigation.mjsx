@@ -50,7 +50,7 @@ const NavigationApp = () => {
 
   useEffect(() => {
     ref.current.node.focus()
-  })
+  }, [])
 
   return (
     <box class={sheet.body} waypoint='horizontal'>
