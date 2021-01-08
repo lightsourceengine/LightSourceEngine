@@ -127,7 +127,7 @@ const { join, basename } = require('path')
 const { spawn } = require('child_process')
 const { emptyDir, ensureDir, lstat, pathExists, pathExistsSync, copy, move, createSymlink, createWriteStream,
   unlink, writeFile, readFile, remove } = require('fs-extra')
-const { tmpdir } = require('os')
+const { tmpdir, EOL } = require('os')
 const commandLineArgs = require('command-line-args')
 const fetch = require('node-fetch')
 const tar = require('tar')
@@ -350,6 +350,7 @@ class LightSourceNodePackage {
   #nodeBin = ''
   #nodeLib = ''
   #nodeBuiltin = ''
+  #nodeAssets = ''
 
   async prepare (options, sourceRoot) {
     let { platform: platformAlias } = options
@@ -386,6 +387,7 @@ class LightSourceNodePackage {
     }
 
     this.#nodeBuiltin = join(this.#nodeLib, 'builtin')
+    this.#nodeAssets = join(this.#nodeHome, 'assets')
   }
 
   async installNode (nodePackage, minimal) {
@@ -538,6 +540,31 @@ class LightSourceNodePackage {
 
       log(`staging: ${libcppBasename} installed`)
     }
+  }
+
+  async installGameControllerDb (options) {
+    const complete = logMark('staging: installing gamecontrollerdb.txt...')
+
+    // TODO: consider adding SDL_GameControllerDB as a submodule in the project
+    const csv = await fetch('https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt')
+      .then(res => res.text())
+
+    const platformEntry = {
+      darwin: 'platform:Mac OS X',
+      win32: 'platform:Windows',
+      linux: 'platform:Linux'
+    }
+
+    // gamecontrollerdb.txt is large, so only use mappings for the target platform
+    const gameControllerDb = csv.split(/\r?\n/)
+      .filter(line => line.indexOf(platformEntry[options.platform]) !== -1)
+      .join(EOL)
+
+    // Write gamecontrollerdb.txt to the assets directory
+    await ensureDir(this.#nodeAssets)
+    await writeFile(join(this.#nodeAssets, 'gamecontrollerdb.txt'), gameControllerDb)
+
+    complete()
   }
 
   getName () {
@@ -848,12 +875,12 @@ const createLseNodePackage = async () => {
   const options = getCommandLineOptions()
   const sourceRoot = new SourceRoot()
   const nodePackage = new NodePackage(options)
-  const lightSourceModePackage = new LightSourceNodePackage()
+  const lightSourceNodePackage = new LightSourceNodePackage()
 
   // Create a fresh staging directory.
-  await lightSourceModePackage.prepare(options, sourceRoot)
+  await lightSourceNodePackage.prepare(options, sourceRoot)
 
-  log(`Building ${lightSourceModePackage.getName()} with NodeJS ${options.nodeVersion}`)
+  log(`Building ${lightSourceNodePackage.getName()} with NodeJS ${options.nodeVersion}`)
 
   // Start compilation.
   const compile = sourceRoot.compile(options)
@@ -861,7 +888,7 @@ const createLseNodePackage = async () => {
   // Get node and copy all files to the staging directory that are not compile dependent.
   const staging = nodePackage.sync()
     .then(() => {
-      return lightSourceModePackage.installNode(nodePackage, options.minimalNodeInstall)
+      return lightSourceNodePackage.installNode(nodePackage, options.minimalNodeInstall)
     })
     .then(() => {
       const { sdlProfile } = options
@@ -878,11 +905,12 @@ const createLseNodePackage = async () => {
       }
 
       return Promise.all([
-        lightSourceModePackage.installSDLPackage(sdlPackage, options),
-        lightSourceModePackage.installCppLib(options),
-        lightSourceModePackage.configureNodeExecutable(nodePackage, options),
-        lightSourceModePackage.installNodeWrapperScript(nodePackage, sourceRoot, options),
-        lightSourceModePackage.installLicense(sourceRoot)
+        lightSourceNodePackage.installSDLPackage(sdlPackage, options),
+        lightSourceNodePackage.installCppLib(options),
+        lightSourceNodePackage.configureNodeExecutable(nodePackage, options),
+        lightSourceNodePackage.installNodeWrapperScript(nodePackage, sourceRoot, options),
+        lightSourceNodePackage.installLicense(sourceRoot),
+        lightSourceNodePackage.installGameControllerDb(options)
       ])
     })
 
@@ -891,15 +919,15 @@ const createLseNodePackage = async () => {
     .then(() => {
       // These files are dependent on compile completing and staging creating directories.
       return Promise.all([
-        lightSourceModePackage.installModule(sourceRoot.getLightSourceLoaderModule()),
-        lightSourceModePackage.installModule(sourceRoot.getLightSourceModule()),
-        lightSourceModePackage.installModule(sourceRoot.getLightSourceReactModule()),
-        lightSourceModePackage.installModule(sourceRoot.getReactModule()),
+        lightSourceNodePackage.installModule(sourceRoot.getLightSourceLoaderModule()),
+        lightSourceNodePackage.installModule(sourceRoot.getLightSourceModule()),
+        lightSourceNodePackage.installModule(sourceRoot.getLightSourceReactModule()),
+        lightSourceNodePackage.installModule(sourceRoot.getReactModule()),
       ])
     })
 
   // Finally, creating an archive from the staging directory.
-  await lightSourceModePackage.package(sourceRoot, options)
+  await lightSourceNodePackage.package(sourceRoot, options)
 }
 
 createLseNodePackage()

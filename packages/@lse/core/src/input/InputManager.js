@@ -28,6 +28,7 @@ import {
   RawButtonUpEvent
 } from '../event/index.js'
 import { kKeyboardUUID } from './InputCommon.js'
+import { logger } from '../addon/index.js'
 
 const kOnKeyUp = 'onKeyUp'
 const kOnKeyDown = 'onKeyDown'
@@ -63,6 +64,7 @@ export class InputManager {
   constructor (stage) {
     this._stage = stage
     this.resetNavigationMapping()
+    this.loadIntrinsicMappingDb({ file: process.env.LSE_GAME_CONTROLLER_DB })
   }
 
   on (id, listener) {
@@ -246,32 +248,35 @@ export class InputManager {
    */
   loadIntrinsicMappingDb (options) {
     const ticket = ++this._loadIntrinsicMappingDbTicket
+    const commitMappingDb = (db) => {
+      this._intrinsicMappingDb = db
+      if (this._isAttached) {
+        this._plugin.loadGameControllerMappings(this._intrinsicMappingDb)
+      }
+    }
 
     if (typeof options === 'string') {
       options = { file: options }
     }
 
-    if (typeof options.file === 'string') {
-      promises.readFile(options.file)
+    const { file, csv } = options
+
+    if (typeof file === 'string') {
+      promises.readFile(file)
         .then(contents => {
           if (ticket === this._loadIntrinsicMappingDbTicket) {
-            this._intrinsicMappingDb = contents
-            if (this._isAttached) {
-              this._plugin.loadGameControllerMappings(this._intrinsicMappingDb)
-            }
+            commitMappingDb(contents)
           }
         })
         .catch(e => {
           if (ticket === this._loadIntrinsicMappingDbTicket) {
-            console.log('!!!!')
+            logger.warn(`Failed to load intrinsic mapping file: ${file}`)
           }
         })
-    } else if (typeof options.csv === 'string') {
-      this._intrinsicMappingDb = Buffer.from(options.csv, 'utf8')
-
-      if (this._isAttached) {
-        this._plugin.loadGameControllerMappings(this._intrinsicMappingDb)
-      }
+    } else if (typeof csv === 'string') {
+      commitMappingDb(Buffer.from(csv, 'utf8'))
+    } else if (Buffer.isBuffer(csv)) {
+      commitMappingDb(csv)
     }
   }
 
