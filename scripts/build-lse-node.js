@@ -438,7 +438,7 @@ class LightSourceNodePackage {
     }
 
     if (module.font) {
-      const fontDir = join(this.#nodeBuiltin, module.name, 'font')
+      const fontDir = join(this.#nodeAssets)
 
       await ensureDir(fontDir)
       await copy(module.font, fontDir)

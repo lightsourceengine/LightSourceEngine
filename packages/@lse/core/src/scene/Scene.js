@@ -4,12 +4,14 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { SceneBase } from '../addon/index.js'
+import { SceneBase, logger } from '../addon/index.js'
 import { BoxSceneNode, ImageSceneNode, TextSceneNode, LinkSceneNode, RootSceneNode } from './SceneNode.js'
 import { EventEmitter } from '../util/index.js'
 import { AttachedEvent, DestroyedEvent, DestroyingEvent, DetachedEvent, EventNames } from '../event/index.js'
 import { fileURLToPath } from 'url'
-import { join, dirname } from 'path'
+import { join, dirname, isAbsolute } from 'path'
+import { readFileSync, existsSync } from 'fs'
+import { stringify } from 'querystring'
 
 const kEmptyFrameListener = Object.freeze([0, null])
 let sFrameRequestId = 0
@@ -54,9 +56,7 @@ export class Scene extends SceneBase {
       this.title = config.title
     }
 
-    if (config.defaultFontSet !== false) {
-      loadFontSet(this, config.defaultFontSet)
-    }
+    loadFonts(this)
   }
 
   on (id, listener) {
@@ -228,59 +228,68 @@ const removeAnimationFrameListener = (requestId, listeners) => {
   }
 }
 
-const loadFontSet = (self, fontSet) => {
-  const isFunction = typeof fontSet === 'function'
+const loadFonts = (self) => {
+  let fontManifestFile = process.env.LSE_FONT_MANIFEST
 
-  if (fontSet === undefined || fontSet === true || isFunction) {
-    const base = dirname(fileURLToPath(import.meta.url))
-    let fontDir
+  // for non-lse-node environments (mono-repo and npm install), search for font.manifest relative to
+  // this file. lse-node runs just use the environment variable.
+  if (!fontManifestFile && process.env.LSE_ENV !== 'lse-node') {
+    const dir = dirname(fileURLToPath(import.meta.url))
 
-    try {
-      fontDir = join(base, INTRINSIC_FONT_DIR)
-    } catch (e) {
-      fontDir = join(base, '..', 'font')
+    let p = join(dir, '..', 'font', 'font.manifest')
+
+    if (existsSync(p)) {
+      fontManifestFile = p
+    } else {
+      p = join(dir, 'font', 'font.manifest')
+
+      if (existsSync(p)) {
+        fontManifestFile = p
+      }
     }
-
-    let fonts = [
-      { file: 'Roboto-Regular.ttf', style: 'normal', weight: 'normal' },
-      { file: 'Roboto-Bold.ttf', style: 'normal', weight: 'bold' },
-      { file: 'Roboto-Italic.ttf', style: 'italic', weight: 'normal' },
-      { file: 'Roboto-BoldItalic.ttf', style: 'italic', weight: 'bold' }
-    ]
-
-    if (isFunction) {
-      fonts = fonts.filter(({ style, weight }) => fontSet(style, weight))
-    }
-
-    fontSet = fonts.map(({ file, style, weight }) => `file:${join(fontDir, file)}?family=default&style=${style}&weight=${weight}`)
   }
 
-  if (!Array.isArray(fontSet)) {
-    throw Error('fontSet must be an array of font urls or boolean')
+  let fontManifest
+
+  try {
+    fontManifest = JSON.parse(readFileSync(fontManifestFile, 'utf8'))
+  } catch (e) {
+    logger.warn(`Error loading '${fontManifestFile}': ${e.message}`)
+    return
   }
 
-  for (const font of fontSet) {
+  if (!Array.isArray(fontManifest)) {
+    logger.warn(`Expected array from '${fontManifestFile}'`)
+    return
+  }
+
+  const directory = dirname(fontManifestFile)
+
+  for (let { file, family, style, weight } of fontManifest) {
+    if (typeof file !== 'string') {
+      continue
+    }
+
+    if (!isAbsolute(file)) {
+      file = join(directory, file)
+    }
+
+    family = family?.toString() ?? undefined
+    style = style?.toString() ?? undefined
+    weight = weight?.toString() ?? undefined
+
+    const url = 'file:' + file + '?' + stringify({ family, style, weight })
     const fontLink = new LinkSceneNode(self)
 
-    try {
-      fontLink.href = font
-    } catch (e) {
-      continue
-    }
+    self._fonts.push(fontLink)
 
     try {
+      fontLink.href = url
       fontLink.as = 'font'
-    } catch (e) {
-      continue
-    }
-
-    try {
       fontLink.fetch()
     } catch (e) {
-      continue
+      logger.warn(`Failed to preload font: ${url}`)
     }
-
-    self._fonts.push(fontLink)
   }
 }
 

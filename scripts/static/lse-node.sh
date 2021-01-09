@@ -5,7 +5,8 @@ LIB_DIR="${SCRIPT_DIR}/../lib"
 
 export LSE_PATH="${LIB_DIR}/builtin"
 export LSE_ENV="lse-node"
-export LSE_GAME_CONTROLLER_DB="${LSE_GAME_CONTROLLER_DB:-"${LIB_DIR}/assets"}"
+export LSE_GAME_CONTROLLER_DB="${LSE_GAME_CONTROLLER_DB:-"${LIB_DIR}/../assets/gamecontrollerdb.txt"}"
+export LSE_FONT_MANIFEST="${LSE_FONT_MANIFEST:-"${LIB_DIR}/../assets/font.manifest"}"
 
 # mac only
 export LSE_RUNTIME_FRAMEWORK_PATH="${LSE_RUNTIME_FRAMEWORK_PATH:-"${LIB_DIR}/Frameworks"}"
