@@ -6,11 +6,6 @@
 
 #include <lse/Stage.h>
 
-using Napi::CallbackInfo;
-using Napi::Function;
-using Napi::FunctionReference;
-using Napi::HandleScope;
-
 namespace lse {
 
 void Stage::Update() {
@@ -19,7 +14,6 @@ void Stage::Update() {
 
 void Stage::Destroy() {
   // TODO: cleanup resources
-  this->threadPool.ShutdownNow();
 }
 
 } // namespace lse

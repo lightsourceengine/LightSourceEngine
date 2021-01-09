@@ -7,7 +7,6 @@
 #pragma once
 
 #include <lse/Resources.h>
-#include <lse/ThreadPool.h>
 
 namespace lse {
 
@@ -25,11 +24,9 @@ class Stage {
  public:
   void Update();
   void Destroy();
-  ThreadPool* GetThreadPool() const noexcept { return &this->threadPool; }
   Resources* GetResources() const noexcept { return &this->resources; }
 
  private:
-  mutable ThreadPool threadPool;
   mutable Resources resources;
 };
 
