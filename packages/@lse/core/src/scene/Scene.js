@@ -229,19 +229,23 @@ const removeAnimationFrameListener = (requestId, listeners) => {
 }
 
 const loadFonts = (self) => {
-  let fontManifestFile = process.env.LSE_FONT_MANIFEST
+  const filename = 'font.manifest'
+  const { LSE_FONT_PATH, LSE_ENV } = process.env
+  let fontManifestFile
 
-  // for non-lse-node environments (mono-repo and npm install), search for font.manifest relative to
-  // this file. lse-node runs just use the environment variable.
-  if (!fontManifestFile && process.env.LSE_ENV !== 'lse-node') {
+  if (LSE_FONT_PATH) {
+    fontManifestFile = join(LSE_FONT_PATH, filename)
+  } else if (LSE_ENV !== 'lse-node') {
+    // for non-lse-node environments (mono-repo and npm install), search for font.manifest relative to
+    // this file. lse-node runs just use the environment variable.
     const dir = dirname(fileURLToPath(import.meta.url))
 
-    let p = join(dir, '..', 'font', 'font.manifest')
+    let p = join(dir, '..', 'font', filename)
 
     if (existsSync(p)) {
       fontManifestFile = p
     } else {
-      p = join(dir, 'font', 'font.manifest')
+      p = join(dir, 'font', filename)
 
       if (existsSync(p)) {
         fontManifestFile = p

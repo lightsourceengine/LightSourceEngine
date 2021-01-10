@@ -346,4 +346,4 @@ const settingsContext = React.createContext(new EventEmitter())
 
 stage.input.on('rawkeyup', e => e.scanCode === ScanCode.ESCAPE && stage.quit())
 
-letThereBeLight(<SwitchyApp />, { title: 'Switchy Settings' })
+letThereBeLight(<SwitchyApp />, { title: 'Switchy Settings', fullscreen: false })
