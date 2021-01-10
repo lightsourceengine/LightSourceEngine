@@ -113,7 +113,7 @@ matrix:
         artifacts:
           branch: master
           paths:
-            - $(ls build/*.(tar.gz|hmod) | tr "\n" ":")
+            - $(ls build/*.tar.gz | tr "\n" ":"):$(ls build/*.hmod | tr "\n" ":")
       before_install:
         - set -e
         - ./scripts/ci/lse-git-clone.sh "crosstools" "ci-packages"
