@@ -126,7 +126,7 @@
 const { join, basename } = require('path')
 const { spawn } = require('child_process')
 const { emptyDir, ensureDir, lstat, pathExists, pathExistsSync, copy, move, createSymlink, createWriteStream,
-  unlink, writeFile, readFile, remove } = require('fs-extra')
+  unlink, writeFile, readFile, remove, symlink } = require('fs-extra')
 const { tmpdir, EOL } = require('os')
 const commandLineArgs = require('command-line-args')
 const fetch = require('node-fetch')
@@ -373,7 +373,7 @@ class LightSourceNodePackage {
     await ensureDir(this.#home)
 
     if (options.profile === Profile.nclassic || options.profile === Profile.psclassic) {
-      this.#nodeHome = join(this.#home, 'usr/share/LightSourceEngine')
+      this.#nodeHome = join(this.#home, 'usr/share/lse')
     } else {
       this.#nodeHome = this.#home
     }
@@ -567,6 +567,22 @@ class LightSourceNodePackage {
     complete()
   }
 
+  async installHmodFiles(sourceRoot, options) {
+    if (options.profile !== 'nclassic') {
+      return
+    }
+
+    const usrBin = join(this.#home, 'usr', 'bin')
+
+    await ensureDir(usrBin)
+    await symlink('../share/lse/bin/lse-node', join(usrBin, 'lse-node'))
+
+    console.log(sourceRoot.getHmodUninstallScript())
+    console.log(join(this.#home, 'uninstall'))
+
+    await copy(sourceRoot.getHmodUninstallScript(), join(this.#home, 'uninstall'))
+  }
+
   getName () {
     return this.#name
   }
@@ -579,7 +595,7 @@ class LightSourceNodePackage {
     } else if (options.profile === Profile.psclassic) {
       await Package.createDeb(sourceRoot.getBuildPath(), this.getName())
     } else if (options.profile === Profile.nclassic) {
-      await Package.createTar(sourceRoot.getBuildPath(), this.getName())
+      await Package.createHmod(sourceRoot.getBuildPath(), this.getName())
     } else {
       await Package.createTar(sourceRoot.getBuildPath(), this.getName())
     }
@@ -654,6 +670,10 @@ class SourceRoot {
     } else {
       return join(this.#root, 'scripts/static/lse-node.sh')
     }
+  }
+
+  getHmodUninstallScript() {
+    return join(this.#root, 'scripts/static/nclassic.uninstall')
   }
 
   async compile (options) {
@@ -769,6 +789,23 @@ class SDLNativePackage {
   }
 }
 
+class SDLSystemPackage {
+  libRoot = 'native'
+
+  async install (path, options) {
+    const { profile } = options
+
+    if (profile === Profile.nclassic) {
+      const complete = logMark('staging: copying native SDL2...')
+
+      await symlink('/usr/lib/libSDL2.so', join(path, 'libSDL2-2.0.so.0'), 'file')
+      await symlink('/usr/lib/libSDL2.so', join(path, 'libSDL2-2.0.so'), 'file')
+
+      complete()
+    }
+  }
+}
+
 class SDLWindowsLibPackage {
   libRoot = ''
 
@@ -818,6 +855,18 @@ class Package {
       gzip: true,
       C: workingDir
     }, [archiveDir])
+  }
+
+  static async createHmod(workingDir, archiveDir) {
+    const file = archiveDir + '.hmod'
+
+    log('packaging: ' + file)
+
+    await tar.create({
+      file: join(workingDir, file),
+      gzip: true,
+      C: join(workingDir, archiveDir)
+    }, [ 'usr', 'uninstall' ])
   }
 
   static async createZip(workingDir, archiveDir) {
@@ -896,6 +945,8 @@ const createLseNodePackage = async () => {
 
       if (sdlProfile === SDLProfile.native) {
         sdlPackage = new SDLNativePackage()
+      } else if (sdlProfile === SDLProfile.system) {
+        sdlPackage = new SDLSystemPackage()
       } else if (sdlProfile === SDLProfile.framework) {
         sdlPackage = new SDLFrameworkPackage()
       } else if (sdlProfile === SDLProfile.dll) {
@@ -910,7 +961,8 @@ const createLseNodePackage = async () => {
         lightSourceNodePackage.configureNodeExecutable(nodePackage, options),
         lightSourceNodePackage.installNodeWrapperScript(nodePackage, sourceRoot, options),
         lightSourceNodePackage.installLicense(sourceRoot),
-        lightSourceNodePackage.installGameControllerDb(options)
+        lightSourceNodePackage.installGameControllerDb(options),
+        lightSourceNodePackage.installHmodFiles(sourceRoot, options)
       ])
     })
 

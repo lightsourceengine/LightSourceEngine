@@ -107,7 +107,7 @@ matrix:
           branch: master
           paths:
             - $(ls build/*.tar.gz | tr "\n" ":")
-    - name: "linux-armv7l [lse-node, lse-node-pi]"
+    - name: "linux-armv7l [lse-node, lse-node-pi, nclassic]"
       os: linux
       addons:
         artifacts:
@@ -124,6 +124,7 @@ matrix:
         - (cd scripts && yarn)
         - ./scripts/build-lse-node.js --platform linux --arch armv7l --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
         - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv7l --profile pi --sdl-profile native --sdl-runtime-pkg "${LSE_CACHE}/SDL2-2.0.12-armv7l-pi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
+        - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv7l --profile nclassic --sdl-profile system --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
       script: skip
     - name: "linux-armv6l [lse-node, lse-node-pi]"
       os: linux
