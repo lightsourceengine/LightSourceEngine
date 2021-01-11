@@ -6,19 +6,19 @@
 
 import { Stage } from './stage/Stage.js'
 
-const errorHandler = obj => {
-  if (obj) {
-    obj.message && console.log(obj.message)
-    obj.stack && console.log(obj.stack)
-  }
+for (const eventName of ['uncaughtException', 'unhandledRejection']) {
+  process.on(eventName, ({ message, stack }) => {
+    message && console.log(message)
+    stack && console.log(stack)
 
-  process.exit()
-};
+    process.exit(1)
+  })
+}
 
-['SIGINT', 'uncaughtException', 'unhandledRejection'].forEach(e => process.on(e, errorHandler))
+process.on('SIGINT', () => process.exit(0))
 
 /// ////////////////////////////////////////////////////////////////////////////
-/// Stage Exports
+/// Stage / Scene Exports
 /// ////////////////////////////////////////////////////////////////////////////
 
 export const stage = new Stage()
@@ -63,7 +63,7 @@ export { AudioDecoderType } from './audio/AudioDecoderType.js'
 export { AudioSourceType } from './audio/AudioSourceType.js'
 
 /// ////////////////////////////////////////////////////////////////////////////
-/// Misc Exports
+/// Input Exports
 /// ////////////////////////////////////////////////////////////////////////////
 
 export { ScanCode } from './input/ScanCode.js'
