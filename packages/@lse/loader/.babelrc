@@ -1,6 +1,6 @@
 {
   "presets": [
-    [ "@babel/preset-env", { "targets": { "node": "14" }, "shippedProposals": true, "loose": true, "modules": false } ]
+    [ "@babel/preset-env", { "targets": { "node": "15" }, "shippedProposals": true, "loose": true, "modules": false } ]
   ]
 }
 

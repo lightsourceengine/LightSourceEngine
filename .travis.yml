@@ -1,5 +1,5 @@
 language: node_js
-node_js: 14
+node_js: 15
 dist: bionic
 env:
   global:
@@ -27,14 +27,14 @@ matrix:
       install: (cd scripts && yarn)
       script: ./scripts/create-npm-packages.sh
     - name: "windows-x64 [full-build]"
-      node_js: 14
+      node_js: 15
       os: windows
       env: YARN_GPG=no npm_config_lse_enable_native_tests=1
       before_install: set -e
       install: yarn --force
       script: yarn test
     - name: "windows-x64 [lse-node]"
-      node_js: 14
+      node_js: 15
       os: windows
       env: YARN_GPG=no
       before_install:

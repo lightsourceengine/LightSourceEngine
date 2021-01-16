@@ -12,7 +12,7 @@
     "access": "public"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=15"
   },
   "type": "module",
   "module": "./dist/lse-core.mjs",

@@ -10,7 +10,7 @@
   },
   "author": "Daniel Anderson <dan.anderson.oss@gmail.com>",
   "engines": {
-    "node": ">=14"
+    "node": ">=15"
   },
   "scripts": {
     "bundle": "echo 'Skipping bundle.'",
