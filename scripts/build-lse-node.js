@@ -778,9 +778,9 @@ class SDLNativePackage {
     const complete = logMark('staging: copying native SDL2...')
 
     if (pkgIsDirectory) {
-      await copy(join(sdlRuntimePkg, libSDL2Path), join(path, 'libSDL2-2.0.so.0.12.0'))
-      await createSymlink('libSDL2-2.0.so.0.12.0', join(path, 'libSDL2-2.0.so.0'))
-      await createSymlink('libSDL2-2.0.so.0.12.0', join(path, 'libSDL2-2.0.so'))
+      await copy(join(sdlRuntimePkg, libSDL2Path), join(path, 'libSDL2-2.0.so.0.14.0'))
+      await createSymlink('libSDL2-2.0.so.0.14.0', join(path, 'libSDL2-2.0.so.0'))
+      await createSymlink('libSDL2-2.0.so.0.14.0', join(path, 'libSDL2-2.0.so'))
     } else {
       throw Error('sdl-runtime-pkg must be a directory')
     }
