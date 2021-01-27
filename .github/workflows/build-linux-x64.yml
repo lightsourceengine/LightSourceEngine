@@ -19,7 +19,7 @@ jobs:
         with:
           submodules: recursive
 
-      - uses: ./github/actions/setup-node
+      - uses: .github/actions/setup-node
 
       - name: Linux Packages
         run: |
