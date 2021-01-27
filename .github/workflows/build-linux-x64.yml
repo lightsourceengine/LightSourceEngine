@@ -1,0 +1,47 @@
+name: build-linux-x64
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  npm_config_lse_install_opts: --jobs max
+  npm_config_lse_enable_native_tests: 1
+
+jobs:
+  build-linux-x64-job:
+    if: github.event_name == 'push' && contains(toJson(github.event.commits), '[ci skip]') == false
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 15.6.0
+
+      - name: Linux Packages
+        run: |
+          sudo apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
+          sudo apt-get update
+          sudo apt-get install -y g++-6 gcc-6
+          sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
+          sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
+        shell: bash
+
+      - name: Build
+        run: yarn --force
+        shell: bash
+
+      - name: CPP Lint
+        run: yarn run cpplint
+        working-directory: packages/@lse/core
+        shell: bash
+
+      - name: JS Test (+ JS Lint)
+        run: yarn test
+        shell: bash

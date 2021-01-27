@@ -10,6 +10,7 @@ env:
 
 jobs:
   npm-packages-job:
+    if: github.event_name == 'push' && contains(toJson(github.event.commits), '[ci skip]') == false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

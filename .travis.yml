@@ -42,21 +42,6 @@ matrix:
             export "PATH=/c/Program Files/Amazon/AWSCLIV2:$PATH"
             aws s3 cp build "s3://${ARTIFACTS_BUCKET}${ARTIFACTS_TARGET_PATHS}/build" --recursive || echo "Failed to upload to S3."
           fi
-    - name: "linux-x64 [full-build]"
-      os: linux
-      env: npm_config_lse_enable_native_tests=1
-      addons:
-        apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [gcc-6, g++-6]
-      before_install:
-        - set -e
-        - sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
-        - sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
-      install: yarn --force
-      script:
-        - (cd packages/@lse/core && yarn run cpplint)
-        - yarn test
     - name: "linux-x64 [lse-node]"
       os: linux
       addons:
