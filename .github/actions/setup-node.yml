@@ -1,0 +1,8 @@
+name: 'Setup NodeJS'
+description: 'Install the common NodeJS version use by all workflows.'
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-node@v1
+        with:
+          node-version: 15.6.0
