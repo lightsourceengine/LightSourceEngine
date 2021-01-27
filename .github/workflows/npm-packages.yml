@@ -18,7 +18,9 @@ jobs:
         with:
           submodules: recursive
 
-      - uses: ./.github/actions/setup-node
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 15.6.0
 
       - name: Install Scripts
         shell: bash
