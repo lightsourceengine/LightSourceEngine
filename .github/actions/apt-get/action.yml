@@ -1,0 +1,24 @@
+name: 'apt-get'
+description: 'Install packages with apt-get.'
+inputs:
+  ppa:
+    description: 'Optionally, add a ppa source to the apt repository.'
+    required: false
+    default: ''
+  packages:
+    description: 'Space separated string list of packages to install.'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        if [ "${{ inputs.ppa }}" = "ubuntu-toolchain-r-test" ]; then
+          sudo apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
+          sudo apt-get update
+        elif [ "${{ inputs.ppa }}"x != "x" ]; then
+          sudo apt-add-repository -y "${{ inputs.ppa }}"
+          sudo apt-get update
+        fi
+      shell: bash
+    - run: sudo apt-get install -y ${{ inputs.packages }}
+      shell: bash

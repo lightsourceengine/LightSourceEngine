@@ -1,0 +1,9 @@
+name: 'use-gcc-6'
+description: 'Replace system gcc and g++ with gcc-6 and g++-6.'
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
+        sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
+      shell: bash

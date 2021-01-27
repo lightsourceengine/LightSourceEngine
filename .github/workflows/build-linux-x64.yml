@@ -19,18 +19,19 @@ jobs:
         with:
           submodules: recursive
 
-      - uses: actions/setup-node@v1
+      - name: Install Node
+        uses: actions/setup-node@v1
         with:
           node-version: 15.6.0
 
       - name: Linux Packages
-        run: |
-          sudo apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
-          sudo apt-get update
-          sudo apt-get install -y g++-6 gcc-6
-          sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
-          sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
-        shell: bash
+        uses: ./.github/actions/apt-get
+        with:
+          ppa: 'ubuntu-toolchain-r-test'
+          packages: g++-6 gcc-6
+
+      - name: Use GCC 6
+        uses: ./.github/actions/use-gcc-6
 
       - name: Build
         run: yarn --force
@@ -42,5 +43,5 @@ jobs:
         shell: bash
 
       - name: JS Test (+ JS Lint)
-        run: yarn test
+        run: yarn run test
         shell: bash
