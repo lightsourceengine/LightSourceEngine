@@ -1,4 +1,4 @@
-name: npm-packages
+name: lse-npm-packages
 
 on:
   push:
@@ -35,7 +35,7 @@ jobs:
       - name: Upload NPM Packages
         uses: actions/upload-artifact@v2
         with:
-          name: npm-packages
+          name: lse-npm-packages-artifact
           if-no-files-found: error
           retention-days: 3
           path: build/npm/publishable/*.tgz
