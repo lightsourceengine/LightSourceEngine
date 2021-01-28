@@ -331,8 +331,8 @@ class NodePackage {
         url = `https://unofficial-builds.nodejs.org/download/release/${this.#version}/${tag}${ext}`
         break;
       case NodeBinarySource.custom:
-        tag = `node-v${this.#version}-${this.#customTag}-${this.#platform}-${this.#arch}`
-        url = `https://github.com/lightsourceengine/custom-node-builds/releases/download/v${this.#version}/${tag}${ext}`
+        tag = `node-${this.#version}-${this.#customTag}-${this.#platform}-${this.#arch}`
+        url = `https://github.com/lightsourceengine/custom-node-builds/releases/download/${this.#version}/${tag}${ext}`
         break;
     }
 
