@@ -117,10 +117,6 @@ jobs:
           repository: lightsourceengine/crosstools
           path: crosstools
 
-      - name: Setup crosstools
-        run: . ${CROSSTOOLS_HOME}/bin/x64-gcc-6.3.1.env
-        shell: bash
-
       - name: Checkout ci-packages
         if: contains(matrix.build_lse_node_args, '--sdl-runtime-pkg')
         uses: actions/checkout@v2
@@ -137,7 +133,6 @@ jobs:
         if: contains(matrix.build_lse_node_args, '--compress-node-binary')
         run: |
           curl -L https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz | tar -xJ
-          export PATH="${{ github.workspace }}/upx-3.96-amd64_linux:$PATH"
         shell: bash
 
       - name: Install Node
@@ -148,6 +143,8 @@ jobs:
       - name: Create lse-node Package
         run: |
           yarn
+          export PATH="${{ github.workspace }}/upx-3.96-amd64_linux:$PATH"
+          export CROSS_LIBCPP="${{ github.workspace }}/crosstools/x64-gcc-6.3.1/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/lib/libstdc++.so.6.0.22"
           ./build-lse-node.js --platform linux --arch ${{ matrix.arch }} --crosstools-home ${CROSSTOOLS_HOME} ${{ matrix.build_lse_node_args }}
         shell: bash
         working-directory: srcroot/scripts
