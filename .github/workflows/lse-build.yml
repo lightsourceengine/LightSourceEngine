@@ -72,3 +72,25 @@ jobs:
       - name: JS Test (+ JS Lint)
         run: yarn run test
         shell: bash
+
+  build-win-x64-job:
+    if: github.event_name == 'push' && contains(toJson(github.event.commits), '[ci skip]') == false
+    runs-on: windows-2016
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 15.6.0
+
+      - name: Build
+        run: yarn --force
+        shell: bash
+
+      - name: JS Test (+ JS Lint)
+        run: yarn run test
+        shell: bash

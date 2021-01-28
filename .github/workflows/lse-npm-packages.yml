@@ -1,3 +1,5 @@
+name: lse-npm-packages
+
 on: workflow_dispatch
 
 env:
