@@ -160,19 +160,27 @@ const SDLProfile = {
   dll: 'dll',
 }
 
+const NodeBinarySource = {
+  nodejs: 'nodejs',
+  unofficial: 'unofficial',
+  custom: 'custom'
+}
+
 const commandLineArgSpec = [
   { name: 'platform', type: String, multiple: false, defaultValue: process.platform },
   { name: 'arch', type: String, multiple: false, defaultValue: process.arch },
-  { name: 'profile', type: String, multiple: false, defaultValue: 'none' },
-  { name: 'sdl-profile', type: String, multiple: false, defaultValue: 'system' },
-  { name: 'node-binary-cache', type: String, multiple: false, defaultValue: '' },
-  { name: 'crosstools-home', type: String, multiple: false, defaultValue: '' },
+  { name: 'profile', type: String, multiple: false, defaultValue: Profile.none },
+  { name: 'sdl-profile', type: String, multiple: false, defaultValue: SDLProfile.system },
+  { name: 'crosstools-home', type: String, multiple: false, defaultValue: process.env.CROSSTOOLS_HOME || '' },
   { name: 'sdl-runtime-pkg', type: String, multiple: false, defaultValue: '' },
   { name: 'sdl-mixer-runtime-pkg', type: String, multiple: false, defaultValue: '' },
   { name: 'skip-compile', type: Boolean, defaultValue: false },
   { name: 'compress-node-binary', type: Boolean, defaultValue: false },
   { name: 'strip-node-binary', type: Boolean, defaultValue: false },
-  { name: 'minimal-node-install', type: Boolean, defaultValue: false }
+  { name: 'minimal-node-install', type: Boolean, defaultValue: false },
+  { name: 'node-binary-cache', type: String, multiple: false, defaultValue: '' },
+  { name: 'node-binary-source', type: String, multiple: false, defaultValue: NodeBinarySource.nodejs },
+  { name: 'node-custom-tag', type: String, multiple: false, defaultValue: '' }
 ]
 
 const getCommandLineOptions = () => {
@@ -201,6 +209,14 @@ const getCommandLineOptions = () => {
 
   if (!options.nodeBinaryCache) {
     options.nodeBinaryCache = tmpdir()
+  }
+
+  if (!NodeBinarySource.includes(options.nodeBinarySource)) {
+    throw Error(`--node-binary-source must be one of [${NodeBinarySource.join(', ')}]`)
+  }
+
+  if (options.nodeBinarySource === 'custom' && !options.nodeCustomTag) {
+    throw Error('--node-binary-source custom requires --node-custom-tag to be specified')
   }
 
   if (!pathExistsSync(options.nodeBinaryCache)) {
@@ -264,12 +280,16 @@ class NodePackage {
   #version = ''
   #platform = ''
   #arch = ''
+  #binarySource = ''
+  #customTag = ''
 
   constructor (options) {
     this.#version = options.nodeVersion
     this.#platform = options.platform
     this.#arch = options.arch
     this.#cache = options.nodeBinaryCache
+    this.#binarySource = options.nodeBinarySource
+    this.#customTag = options.nodeCustomTag
   }
 
   getHome () {
@@ -290,12 +310,27 @@ class NodePackage {
 
   async sync () {
     const windows = isWindows(this.#platform)
-    const tag = `node-${this.#version}-${windows ? this.#platform.slice(0, -2) : this.#platform}-${this.#arch}`
+    const ext = windows ? '.zip' : '.tar.gz'
+    let tag
+    let url
+
+    switch (this.#binarySource) {
+      case NodeBinarySource.nodejs:
+        tag = `node-${this.#version}-${windows ? this.#platform.slice(0, -2) : this.#platform}-${this.#arch}`
+        url = `https://nodejs.org/download/release/${this.#version}/${tag}${ext}`
+        break;
+      case NodeBinarySource.unofficial:
+        tag = `node-${this.#version}-${windows ? this.#platform.slice(0, -2) : this.#platform}-${this.#arch}`
+        url = `https://unofficial-builds.nodejs.org/download/release/${this.#version}/${tag}${ext}`
+        break;
+      case NodeBinarySource.custom:
+        tag = `node-v${this.#version}-${this.#customTag}-${this.#platform}-${this.#arch}`
+        url = `https://github.com/lightsourceengine/custom-node-builds/releases/download/v${this.#version}/${tag}${ext}`
+        break;
+    }
+
     const home = join(this.#cache, tag)
     const homeExists = await pathExists(home)
-    const ext = windows ? '.zip' : '.tar.gz'
-    const domain = this.#arch === Architecture.armv6l ? 'unofficial-builds.nodejs.org' : 'nodejs.org'
-    const url = `https://${domain}/download/release/${this.#version}/${tag}${ext}`
 
     if (homeExists) {
       log('node: found node package in cache')
@@ -307,7 +342,7 @@ class NodePackage {
 
     log('node: ' + url)
     
-    const response = await fetch(url)
+    const response = await fetch(url, { redirect: 'follow' })
     const tempFile = join(this.#cache, 'temp')
     let outputStream
 
