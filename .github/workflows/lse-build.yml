@@ -10,9 +10,12 @@ env:
   npm_config_lse_enable_native_tests: 1
 
 jobs:
-  build-linux-x64-job:
+  build-job:
     if: github.event_name == 'push' && contains(toJson(github.event.commits), '[ci skip]') == false
-    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        platform: [ windows-2016, ubuntu-18.04, macos-10.15 ]
+    runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -25,70 +28,27 @@ jobs:
           node-version: 15.6.0
 
       - name: Linux Packages
+        if: contains(matrix.platform, 'ubuntu')
         uses: ./.github/actions/apt-get
         with:
           ppa: 'ubuntu-toolchain-r-test'
           packages: g++-6 gcc-6
 
       - name: Use GCC 6
+        if: contains(matrix.platform, 'ubuntu')
         uses: ./.github/actions/use-gcc-6
 
-      - name: Build
-        run: yarn --force
-        shell: bash
-
-      - name: CPP Lint
-        run: yarn run cpplint
-        working-directory: packages/@lse/core
-        shell: bash
-
-      - name: JS Test (+ JS Lint)
-        run: yarn run test
-        shell: bash
-
-  build-mac-x64-job:
-    if: github.event_name == 'push' && contains(toJson(github.event.commits), '[ci skip]') == false
-    runs-on: macos-10.15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          submodules: recursive
-
-      - name: Install Node
-        uses: actions/setup-node@v1
-        with:
-          node-version: 15.6.0
+      - name: Yarn Cache
+        uses: egordm/gha-yarn-node-cache@v1
 
       - name: Build
         run: yarn --force
         shell: bash
 
       - name: CPP Lint
+        if: contains(matrix.platform, 'windows') == false
         run: yarn run cpplint
         working-directory: packages/@lse/core
-        shell: bash
-
-      - name: JS Test (+ JS Lint)
-        run: yarn run test
-        shell: bash
-
-  build-win-x64-job:
-    if: github.event_name == 'push' && contains(toJson(github.event.commits), '[ci skip]') == false
-    runs-on: windows-2016
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          submodules: recursive
-
-      - name: Install Node
-        uses: actions/setup-node@v1
-        with:
-          node-version: 15.6.0
-
-      - name: Build
-        run: yarn --force
         shell: bash
 
       - name: JS Test (+ JS Lint)
