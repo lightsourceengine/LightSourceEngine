@@ -737,17 +737,22 @@ class SourceRoot {
       ...process.env,
       // use all the power
       npm_config_lse_install_opts: '--jobs max',
-      // enable all plugins, include ref
-      // TODO: disable ref for release builds?
+      // Build SDL plugins
       // TODO: this list must be kept in sync!
       lse_enable_plugin_platform_sdl: 1,
-      lse_enable_plugin_platform_ref: 1,
       lse_enable_plugin_audio_sdl_audio: 1,
       lse_enable_plugin_audio_sdl_mixer: 1,
-      lse_enable_plugin_audio_ref: 1,
+      lse_enable_plugin_platform_ref: 0,
+      lse_enable_plugin_audio_ref: 0,
       // disable tests
       npm_config_lse_enable_native_tests: 0,
       // TODO: (not supported yet) env.npm_config_lse_asmjit_build = 'arm'
+    }
+
+    // Build ref plugins only for desktop builds.
+    if (options.profile === Profile.desktop) {
+      env.lse_enable_plugin_platform_ref = 1
+      env.lse_enable_plugin_audio_ref = 1
     }
 
     let program
@@ -755,11 +760,12 @@ class SourceRoot {
 
     // Setup compile command. Either "cross [profile] yarn --force" or "yarn --force"
     if (options.isArmCrossCompile) {
-      // TODO: use profile to choose a device specific cross target
-      const crossTarget = options.arch
+      let crossTarget
 
-      if (options.arch === Architecture.armv7l) {
-        env.CROSS_MARCH_FLAG = "-march=armv7-a -mfpu=neon"
+      if (options.profile === Profile.nclassic || options.profile === Profile.psclassic) {
+        crossTarget = options.profile
+      } else {
+        crossTarget = options.arch
       }
 
       program = join(options.crosstoolsHome, 'bin', 'cross')
