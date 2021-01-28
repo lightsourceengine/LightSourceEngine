@@ -15,7 +15,7 @@
 // --arch value [Default: process.arch Values: armv6l, armv7l, x64]
 // The target arch id.
 //
-// --profile value [Default: none Value: none, pi, nclassic, psclassic]
+// --profile value [Default: desktop Value: desktop, pi, nclassic, psclassic]
 // The platform profile. An additional specifier of the platform to help the package builder tailor the build for
 // a specific target.
 //
@@ -26,7 +26,15 @@
 // Directory where the official node packages are unarchived and stored on disk. If not specified, a temporary
 // folder is used.
 //
-// --crosstools-home path
+// --node-binary-source value [Default: nodejs Values: nodejs, unofficial, custom]
+// Choose the remote source to download the node binary package. nodejs, official node download site; unofficial,
+// site hosted by nodejs that has unsupported builds, such as armv6l; custom, pulls from lightsourceengine/custom-node-builds
+//
+// --node-custom-tag value
+// If --node-binary-source custom is specified, this is the tag that should be used to select the desired node
+// binary package.
+//
+// --crosstools-home path [Default: CROSSTOOLS_HOME env value]
 // If cross compiling to arm, this path points to the source root of the crosstools project.
 //
 // --sdl-runtime-pkg path
@@ -58,7 +66,6 @@
 // - node
 // - upx
 // - tar
-// - wget
 // - python 2.7 (for node-gyp)
 // - crosstools (https://github.com/lightsourceengine/crosstools)
 // - C++ 14 toolchain (gcc or clang)
@@ -147,7 +154,7 @@ const Architecture = {
 }
 
 const Profile = {
-  none: 'none',
+  desktop: 'desktop',
   pi: 'pi',
   nclassic: 'nclassic',
   psclassic: 'psclassic'
@@ -169,7 +176,7 @@ const NodeBinarySource = {
 const commandLineArgSpec = [
   { name: 'platform', type: String, multiple: false, defaultValue: process.platform },
   { name: 'arch', type: String, multiple: false, defaultValue: process.arch },
-  { name: 'profile', type: String, multiple: false, defaultValue: Profile.none },
+  { name: 'profile', type: String, multiple: false, defaultValue: Profile.desktop },
   { name: 'sdl-profile', type: String, multiple: false, defaultValue: SDLProfile.system },
   { name: 'crosstools-home', type: String, multiple: false, defaultValue: process.env.CROSSTOOLS_HOME || '' },
   { name: 'sdl-runtime-pkg', type: String, multiple: false, defaultValue: '' },
@@ -211,7 +218,7 @@ const getCommandLineOptions = () => {
     options.nodeBinaryCache = tmpdir()
   }
 
-  if (!NodeBinarySource.includes(options.nodeBinarySource)) {
+  if (!Object.keys(NodeBinarySource).includes(options.nodeBinarySource)) {
     throw Error(`--node-binary-source must be one of [${NodeBinarySource.join(', ')}]`)
   }
 
@@ -388,20 +395,27 @@ class LightSourceNodePackage {
   #nodeAssets = ''
 
   async prepare (options, sourceRoot) {
-    let { platform: platformAlias } = options
-    let lightSourceVersion = await sourceRoot.getVersion()
+    const lightSourceVersion = await sourceRoot.getVersion()
+    let platformAlias
+    let prefix
 
     if (options.platform === Platform.darwin) {
       platformAlias = 'mac'
     } else if (options.platform === Platform.win32) {
       platformAlias = 'win'
-    } else if (options.profile === Profile.pi) {
-      platformAlias = 'raspberrypi'
-    } else if (options.profile === Profile.psclassic || options.profile === Profile.nclassic) {
+    } else if ([Profile.pi, Profile.psclassic, Profile.nclassic].includes(options.profile)) {
       platformAlias = options.profile
+    } else {
+      platformAlias = options.platform
     }
 
-    this.#name = `lse-node-v${lightSourceVersion}-${platformAlias}-${options.arch}`
+    if (options.profile === Profile.desktop) {
+      prefix = 'lse-node-desktop'
+    } else {
+      prefix = 'lse-node'
+    }
+
+    this.#name = `${prefix}-v${lightSourceVersion}-${platformAlias}-${options.arch}`
     this.#home = join(sourceRoot.getBuildPath(), this.#name)
 
     await emptyDir(this.#home)
@@ -881,7 +895,7 @@ class SDLWindowsLibPackage {
 
 class Package {
   static async createTar(workingDir, archiveDir) {
-    const file = archiveDir + '.tar.gz'
+    const file = archiveDir + '.tgz'
 
     log('packaging: ' + file)
 
