@@ -1,0 +1,159 @@
+on: workflow_dispatch
+
+env:
+  CROSSTOOLS_HOME: ${{ github.workspace }}/crosstools
+  npm_config_lse_install_opts: --jobs max
+  npm_config_lse_enable_native_tests: 0
+
+jobs:
+  build-lse-node-linux-x64-job:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 15.6.0
+
+      - name: Linux Packages
+        uses: ./.github/actions/apt-get
+        with:
+          ppa: 'ubuntu-toolchain-r-test'
+          packages: g++-6 gcc-6
+
+      - name: Use GCC 6
+        uses: ./.github/actions/use-gcc-6
+
+      - name: Create lse-node Package
+        run: |
+          yarn
+          ./build-lse-node.js --platform linux --arch x64 --sdl-profile system
+        shell: bash
+        working-directory: scripts
+
+      - name: Upload lse-node Package
+        uses: actions/upload-artifact@v2
+        with:
+          name: lse-runtime-packages-artifact
+          if-no-files-found: error
+          retention-days: 3
+          path: build/*.tar.gz
+
+  build-lse-node-linux-arm64-job:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: srcroot
+          submodules: recursive
+
+      - name: Checkout crosstools
+        uses: actions/checkout@v2
+        with:
+          repository: lightsourceengine/crosstools
+          path: crosstools
+
+      - name: Install Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 15.6.0
+
+      - name: Linux Packages
+        uses: ./srcroot/.github/actions/apt-get
+        with:
+          packages: g++-6-aarch64-linux-gnu
+
+      - name: Create lse-node Package
+        run: |
+          yarn
+          ./build-lse-node.js --platform linux --arch arm64 --sdl-profile system --crosstools-home ${CROSSTOOLS_HOME}
+        shell: bash
+        working-directory: srcroot/scripts
+
+      - name: Upload lse-node Package
+        uses: actions/upload-artifact@v2
+        with:
+          name: lse-runtime-packages-artifact
+          if-no-files-found: error
+          retention-days: 3
+          path: srcroot/build/*.tar.gz
+
+  build-lse-node-linux-arm-job:
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        include:
+          - arch: armv7l
+            build_lse_node_args: --sdl-profile system
+          - arch: armv7l
+            build_lse_node_args: --sdl-profile native --profile pi --sdl-runtime-pkg ${GITHUB_WORKSPACE}/SDL2-2.0.14-armv7l-pi --compress-node-binary --strip-node-binary --minimal-node-install
+          - arch: armv7l
+            build_lse_node_args: --sdl-profile system --profile nclassic --compress-node-binary --strip-node-binary --minimal-node-install
+          - arch: armv6l
+            build_lse_node_args: --sdl-profile system
+          - arch: armv6l
+            build_lse_node_args: --sdl-profile native --profile pi --sdl-runtime-pkg ${GITHUB_WORKSPACE}/SDL2-2.0.14-armv6l-pi --compress-node-binary --strip-node-binary --minimal-node-install
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: srcroot
+          submodules: recursive
+
+      - name: Checkout crosstools
+        uses: actions/checkout@v2
+        with:
+          repository: lightsourceengine/crosstools
+          path: crosstools
+
+      - name: Configure crosstools
+        run: |
+          source crosstools/bin/x64-gcc-6.3.1.env
+          echo "CROSS_LIBCPP=${CROSS_LIBCPP}" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Checkout ci-packages
+        if: contains(matrix.build_lse_node_args, '--sdl-runtime-pkg')
+        uses: actions/checkout@v2
+        with:
+          repository: lightsourceengine/ci-packages
+          path: ci-packages
+
+      - name: Extract SDL Package
+        if: contains(matrix.build_lse_node_args, '--sdl-runtime-pkg')
+        run: tar -xzf ci-packages/SDL2-2.0.14-${{ matrix.arch }}-pi.tar.gz
+        shell: bash
+
+      - name: Install UPX
+        if: contains(matrix.build_lse_node_args, '--compress-node-binary')
+        run: |
+          echo "${GITHUB_WORKSPACE}/upx-3.96-amd64_linux" >> $GITHUB_PATH
+          curl -L https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz | tar -xJ
+        shell: bash
+
+      - name: Install Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 15.6.0
+
+      - name: Create lse-node Package
+        run: |
+          yarn
+          ./build-lse-node.js --platform linux --arch ${{ matrix.arch }} --crosstools-home ${CROSSTOOLS_HOME} ${{ matrix.build_lse_node_args }}
+        shell: bash
+        working-directory: srcroot/scripts
+
+      - name: Upload lse-node Package
+        uses: actions/upload-artifact@v2
+        with:
+          name: lse-runtime-packages-artifact
+          if-no-files-found: error
+          retention-days: 3
+          path: |
+            srcroot/build/*.tar.gz
+            srcroot/build/*.hmod

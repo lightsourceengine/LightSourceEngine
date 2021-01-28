@@ -1,9 +1,4 @@
-name: lse-npm-packages
-
-on:
-  push:
-    branches:
-      - master
+on: workflow_dispatch
 
 env:
   npm_config_lse_install_opts: --jobs max
