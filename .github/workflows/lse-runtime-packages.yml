@@ -85,6 +85,76 @@ jobs:
           retention-days: 3
           path: srcroot/build/*.tar.gz
 
+  build-lse-node-mac-x64-job:
+    runs-on: macos-10.15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: srcroot
+          submodules: recursive
+
+      - name: Checkout ci-packages
+        uses: actions/checkout@v2
+        with:
+          repository: lightsourceengine/ci-packages
+          path: ci-packages
+
+      - name: Install Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 15.6.0
+
+      - name: Create lse-node Package
+        run: |
+          yarn
+          ./build-lse-node.js --sdl-profile framework --sdl-runtime-pkg "${GITHUB_WORKSPACE}/ci-packages/SDL2-2.0.14.framework.tar.gz" --sdl-mixer-runtime-pkg "${GITHUB_WORKSPACE}/ci-packages/SDL2_mixer-2.0.4.framework.tar.gz"
+        shell: bash
+        working-directory: srcroot/scripts
+
+      - name: Upload lse-node Package
+        uses: actions/upload-artifact@v2
+        with:
+          name: lse-runtime-packages-artifact
+          if-no-files-found: error
+          retention-days: 3
+          path: srcroot/build/*.tar.gz
+
+  build-lse-node-win-x64-job:
+    runs-on: windows-2016
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: srcroot
+          submodules: recursive
+
+      - name: Checkout ci-packages
+        uses: actions/checkout@v2
+        with:
+          repository: lightsourceengine/ci-packages
+          path: ci-packages
+
+      - name: Install Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 15.6.0
+
+      - name: Create lse-node Package
+        run: |
+          yarn
+          ./scripts/build-lse-node.js --sdl-profile dll --sdl-runtime-pkg "${GITHUB_WORKSPACE}/ci-packages/SDL2-2.0.14-win32-x64.zip" --sdl-mixer-runtime-pkg "${GITHUB_WORKSPACE}/ci-packages/SDL2_mixer-2.0.4-win32-x64.zip"
+        shell: bash
+        working-directory: srcroot/scripts
+
+      - name: Upload lse-node Package
+        uses: actions/upload-artifact@v2
+        with:
+          name: lse-runtime-packages-artifact
+          if-no-files-found: error
+          retention-days: 3
+          path: srcroot/build/*.zip
+
   build-lse-node-linux-arm-job:
     runs-on: ubuntu-18.04
     strategy:
