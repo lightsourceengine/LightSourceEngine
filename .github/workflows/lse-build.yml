@@ -6,6 +6,7 @@ on:
       - master
 
 env:
+  CROSSTOOLS_HOME: ${{ github.workspace }}/crosstools
   npm_config_lse_install_opts: --jobs max
   npm_config_lse_enable_native_tests: 0
 
@@ -86,11 +87,50 @@ jobs:
           retention-days: 3
           path: build/*.tar.gz
 
+  build-lse-node-linux-arm64-job:
+    if: github.event_name == 'push' && contains(toJson(github.event.commits), '[ci skip]') == false
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: srcroot
+          submodules: recursive
+
+      - name: Checkout crosstools
+        uses: actions/checkout@v2
+        with:
+          repository: lightsourceengine/crosstools
+          path: crosstools
+
+      - name: Install Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 15.6.0
+
+      - name: Linux Packages
+        uses: ./.github/actions/apt-get
+        with:
+          packages: g++-6-aarch64-linux-gnu
+
+      - name: Create lse-node Package
+        run: |
+          yarn
+          ./build-lse-node.js --platform linux --arch arm64 --sdl-profile system --crosstools-home ${CROSSTOOLS_HOME}
+        shell: bash
+        working-directory: srcroot/scripts
+
+      - name: Upload lse-node Package
+        uses: actions/upload-artifact@v2
+        with:
+          name: lse-node-artifact
+          if-no-files-found: error
+          retention-days: 3
+          path: srcroot/build/*.tar.gz
+
   build-lse-node-linux-arm-job:
     if: github.event_name == 'push' && contains(toJson(github.event.commits), '[ci skip]') == false
     runs-on: ubuntu-18.04
-    env:
-      CROSSTOOLS_HOME: ${{ github.workspace }}/crosstools
     strategy:
       matrix:
         include:
@@ -117,6 +157,12 @@ jobs:
           repository: lightsourceengine/crosstools
           path: crosstools
 
+      - name: Configure crosstools
+        run: |
+          source crosstools/bin/x64-gcc-6.3.1.env
+          echo "CROSS_LIBCPP=${CROSS_LIBCPP}" >> $GITHUB_ENV
+        shell: bash
+
       - name: Checkout ci-packages
         if: contains(matrix.build_lse_node_args, '--sdl-runtime-pkg')
         uses: actions/checkout@v2
@@ -132,6 +178,7 @@ jobs:
       - name: Install UPX
         if: contains(matrix.build_lse_node_args, '--compress-node-binary')
         run: |
+          echo "${GITHUB_WORKSPACE}/upx-3.96-amd64_linux" >> $GITHUB_PATH
           curl -L https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz | tar -xJ
         shell: bash
 
@@ -143,8 +190,6 @@ jobs:
       - name: Create lse-node Package
         run: |
           yarn
-          export PATH="${{ github.workspace }}/upx-3.96-amd64_linux:$PATH"
-          export CROSS_LIBCPP="${{ github.workspace }}/crosstools/x64-gcc-6.3.1/arm-rpi-linux-gnueabihf/arm-rpi-linux-gnueabihf/sysroot/lib/libstdc++.so.6.0.22"
           ./build-lse-node.js --platform linux --arch ${{ matrix.arch }} --crosstools-home ${CROSSTOOLS_HOME} ${{ matrix.build_lse_node_args }}
         shell: bash
         working-directory: srcroot/scripts

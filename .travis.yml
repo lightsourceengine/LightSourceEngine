@@ -42,24 +42,6 @@ matrix:
             export "PATH=/c/Program Files/Amazon/AWSCLIV2:$PATH"
             aws s3 cp build "s3://${ARTIFACTS_BUCKET}${ARTIFACTS_TARGET_PATHS}/build" --recursive || echo "Failed to upload to S3."
           fi
-    - name: "linux-x64 [lse-node]"
-      os: linux
-      addons:
-        apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [gcc-6, g++-6]
-        artifacts:
-          branch: master
-          paths:
-            - $(ls build/*.tar.gz | tr "\n" ":")
-      before_install:
-        - set -e
-        - sudo ln -s /usr/bin/gcc-6 /usr/local/bin/gcc
-        - sudo ln -s /usr/bin/g++-6 /usr/local/bin/g++
-      install:
-        - (cd scripts && yarn)
-        - ./scripts/build-lse-node.js --sdl-profile system --node-binary-cache "${NODE_DOWNLOADS}"
-      script: skip
     - name: "darwin-x64 [full-build]"
       os: osx
       env: npm_config_lse_enable_native_tests=1
@@ -83,53 +65,3 @@ matrix:
           branch: master
           paths:
             - $(ls build/*.tar.gz | tr "\n" ":")
-    - name: "linux-armv7l [lse-node, lse-node-pi, nclassic]"
-      os: linux
-      addons:
-        artifacts:
-          branch: master
-          paths:
-            - $(ls build/*.tar.gz | tr "\n" ":"):$(ls build/*.hmod | tr "\n" ":")
-      before_install:
-        - set -e
-        - ./scripts/ci/lse-git-clone.sh "crosstools" "ci-packages"
-        - ./scripts/ci/get-upx.sh
-        - . ${CROSSTOOLS_HOME}/bin/x64-gcc-6.3.1.env
-        - tar -xzf "${LSE_CACHE}/ci-packages/SDL2-2.0.14-armv7l-pi.tar.gz" --directory "${LSE_CACHE}"
-      install:
-        - (cd scripts && yarn)
-        - ./scripts/build-lse-node.js --platform linux --arch armv7l --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
-        - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv7l --profile pi --sdl-profile native --sdl-runtime-pkg "${LSE_CACHE}/SDL2-2.0.14-armv7l-pi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
-        - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv7l --profile nclassic --sdl-profile system --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
-      script: skip
-    - name: "linux-armv6l [lse-node, lse-node-pi]"
-      os: linux
-      addons:
-        artifacts:
-          branch: master
-          paths:
-            - $(ls build/*.tar.gz | tr "\n" ":")
-      before_install:
-        - set -e
-        - ./scripts/ci/lse-git-clone.sh "crosstools" "ci-packages"
-        - ./scripts/ci/get-upx.sh
-        - . ${CROSSTOOLS_HOME}/bin/x64-gcc-6.3.1.env
-        - tar -xzf "${LSE_CACHE}/ci-packages/SDL2-2.0.14-armv6l-pi.tar.gz" --directory "${LSE_CACHE}"
-      install:
-        - (cd scripts && yarn)
-        - ./scripts/build-lse-node.js --platform linux --arch armv6l --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
-        - ./scripts/build-lse-node.js --skip-compile --platform linux --arch armv6l --profile pi --sdl-profile native --sdl-runtime-pkg "${LSE_CACHE}/SDL2-2.0.14-armv6l-pi" --compress-node-binary --strip-node-binary --minimal-node-install --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
-      script: skip
-    - name: "linux-arm64 [lse-node]"
-      os: linux
-      addons:
-        apt:
-          packages: [ g++-6-aarch64-linux-gnu ]
-        artifacts:
-          branch: master
-          paths:
-            - $(ls build/*.tar.gz | tr "\n" ":")
-      install:
-        - (cd scripts && yarn)
-        - ./scripts/build-lse-node.js --platform linux --arch arm64 --node-binary-cache "${NODE_DOWNLOADS}" --crosstools-home "${CROSSTOOLS_HOME}"
-      script: skip
