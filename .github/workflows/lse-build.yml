@@ -136,7 +136,7 @@ jobs:
       - name: Install UPX
         if: contains(matrix.build_lse_node_args, '--compress-node-binary')
         run: |
-          curl https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz | tar xJ
+          curl -L https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz | tar -xJ
           export PATH="${{ github.workspace }}/upx-3.96-amd64_linux:$PATH"
         shell: bash
 
