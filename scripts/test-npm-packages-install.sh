@@ -7,12 +7,13 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 SOURCE_ROOT="${SCRIPT_DIR}/.."
-PUBLISHABLE_DIR="${SOURCE_ROOT}/build/npm/publishable"
-PUBLISHING_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('${SOURCE_ROOT}/publishing/version.json', 'utf8')).version")
 TEST_DIR="${SOURCE_ROOT}/build/npm/test"
 
 mkdir -p "${TEST_DIR}"
 cd "${TEST_DIR}"
+
+PUBLISHING_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('../../../publishing/version.json', 'utf8')).version")
+PUBLISHABLE_DIR="../publishable"
 
 rm -rf test*.mjs package*.json node_modules
 
