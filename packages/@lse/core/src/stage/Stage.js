@@ -81,7 +81,7 @@ export class Stage extends StageBase {
     }
 
     const {
-      plugin = [PluginId.SDL, [PluginId.SDL_MIXER, PluginId.SDL_ADIO, PluginId.NULL]],
+      plugin = [PluginId.SDL, [PluginId.SDL_MIXER, PluginId.SDL_AUDIO, PluginId.NULL]],
       scene,
       stage
     } = appConfig
@@ -308,15 +308,27 @@ export class Stage extends StageBase {
    */
   $setupPlugins (config) {
     const site = '$setupPlugins'
+    const ensurePluginConfigObject = (obj) => {
+      if (isPlainObject(obj) && 'id' in obj) {
+        return obj
+      }
+      throw Error(`Invalid plugin config entry: [${obj?.toString()}]`)
+    }
 
     // Convert all string plugin entries to a name/options Object.
-    config = config.map(value => {
-      if (typeof value === 'string') {
-        return { id: value }
-      } else if (Array.isArray(value)) {
-        return value.map(subValue => typeof value === 'string' ? { name: subValue } : value)
+    config = config.map(configEntry => {
+      if (typeof configEntry === 'string') {
+        return { id: configEntry }
+      } else if (Array.isArray(configEntry)) {
+        return configEntry.map(entry => {
+          if (typeof entry === 'string') {
+            return { id: entry }
+          } else {
+            return ensurePluginConfigObject(entry)
+          }
+        })
       } else {
-        return value
+        return ensurePluginConfigObject(configEntry)
       }
     })
 
@@ -325,7 +337,7 @@ export class Stage extends StageBase {
         return
       }
 
-      const plugin = this._loadPluginById(pluginConfig.id)
+      const plugin = this._loadPluginById(pluginConfig.id, pluginConfig.options)
       const { type } = plugin
 
       if (this._plugins.has(type)) {

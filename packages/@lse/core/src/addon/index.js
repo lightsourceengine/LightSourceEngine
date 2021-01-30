@@ -54,7 +54,7 @@ export const {
   LogLevel = {},
   getSceneNodeInstanceCount = (() => 0),
   parseColor = (() => 0),
-  loadPluginById = ((id) => { throw Error('native code not loaded') }),
+  loadPluginById = ((id, options) => { throw Error('native code not loaded') }),
   styleProperties = {}
 } = addon
 

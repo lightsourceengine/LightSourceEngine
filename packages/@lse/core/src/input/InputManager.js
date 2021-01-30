@@ -416,7 +416,7 @@ export class InputManager {
 
     // Phase: Bubble
 
-    const { activeNode } = this._stage.getScene()
+    const { activeNode } = this._stage.getScene(-1)
 
     activeNode?.$bubble(keyUp, kOnKeyUp)
   }
@@ -435,7 +435,7 @@ export class InputManager {
       return
     }
 
-    const { activeNode } = this._stage.getScene()
+    const { activeNode } = this._stage.getScene(-1)
 
     // Phase: Navigate
 
