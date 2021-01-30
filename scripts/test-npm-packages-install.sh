@@ -8,12 +8,19 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 SOURCE_ROOT="${SCRIPT_DIR}/.."
 TEST_DIR="${SOURCE_ROOT}/build/npm/test"
+# paths relative to TEST_DIR to avoid absolute path issues on windows
+PUBLISHABLE_DIR="../publishable"
+GET_VERSION_SCRIPT="JSON.parse(require('fs').readFileSync('../../../publishing/version.json', 'utf8')).version"
 
 mkdir -p "${TEST_DIR}"
 cd "${TEST_DIR}"
 
-PUBLISHING_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('../../../publishing/version.json', 'utf8')).version")
-PUBLISHABLE_DIR="../publishable"
+if [[ "$OSTYPE" == "msys" ]]; then
+  # use node.exe in sub-shell on git bash for windows; otherwise, stdout does not work
+  PUBLISHING_VERSION=$(node.exe -p -e "${GET_VERSION_SCRIPT}")
+else
+  PUBLISHING_VERSION=$(node -p -e "${GET_VERSION_SCRIPT}")
+fi
 
 rm -rf test*.mjs package*.json node_modules
 
