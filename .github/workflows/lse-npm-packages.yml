@@ -28,7 +28,7 @@ jobs:
 
       - uses: actions/setup-node@v1
         with:
-          node-version: ${{ node }}
+          node-version: ${{ matrix.node }}
 
       - name: Install Scripts
         run: yarn
