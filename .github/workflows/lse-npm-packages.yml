@@ -7,8 +7,19 @@ env:
 
 jobs:
   npm-packages-job:
-    if: github.event_name == 'push' && contains(toJson(github.event.commits), '[ci skip]') == false
-    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: scripts
+    strategy:
+      matrix:
+        os: [ windows-2016, ubuntu-18.04, macos-10.15 ]
+        node: [15.0.0, 15.6.0]
+        include:
+          - os: ubuntu-18.04
+            node: 15.6.0
+            upload_artifacts: yes
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -17,19 +28,19 @@ jobs:
 
       - uses: actions/setup-node@v1
         with:
-          node-version: 15.6.0
+          node-version: ${{ node }}
 
       - name: Install Scripts
-        shell: bash
-        working-directory: scripts
         run: yarn
 
       - name: Create NPM Package Tarballs
-        shell: bash
-        working-directory: scripts
         run: ./create-npm-packages.sh
 
+      - name: Test Package Insall
+        run: ./test-npm-packages-install.sh
+
       - name: Upload NPM Packages
+        if: matrix.upload_artifacts == 'yes'
         uses: actions/upload-artifact@v2
         with:
           name: lse-npm-packages-artifact

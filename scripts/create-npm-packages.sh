@@ -61,22 +61,6 @@ create_npm_package() {
   _pushd "${TARGET_DIR}/package"
   tar -czf "${PUBLISHABLE_DIR}/lse-${1}-${PUBLISHING_VERSION}.tgz" .
   _popd
-
-  # TODO: cleanup
-  # rm -rf "${TARGET_DIR}"
-}
-
-test_npm_install() {
-  TEST_DIR="${SOURCE_ROOT}/build/npm/test"
-  mkdir -p "${TEST_DIR}"
-
-  _pushd "${TEST_DIR}"
-  echo "{\"dependencies\": { \"@lse/core\": \"../publishable/lse-core-${PUBLISHING_VERSION}.tgz\" }}" > package.json
-  rm -rf ./empty-cache
-  npm install --cache ./empty-cache
-  _popd
-
-  rm -rf "${TEST_DIR}"
 }
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
@@ -103,7 +87,5 @@ mkdir -p "${PUBLISHABLE_DIR}"
 create_npm_package "core"
 create_npm_package "react"
 create_npm_package "loader"
-
-test_npm_install
 
 rm -r "${SOURCE_ROOT}/build/npm/core" "${SOURCE_ROOT}/build/npm/react" "${SOURCE_ROOT}/build/npm/loader"

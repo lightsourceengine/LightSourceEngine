@@ -12,10 +12,13 @@ env:
 jobs:
   build-job:
     if: github.event_name == 'push' && contains(toJson(github.event.commits), '[ci skip]') == false
+    defaults:
+      run:
+        shell: bash
     strategy:
       matrix:
-        platform: [ windows-2016, ubuntu-18.04, macos-10.15 ]
-    runs-on: ${{ matrix.platform }}
+        os: [ windows-2016, ubuntu-18.04, macos-10.15 ]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -28,14 +31,14 @@ jobs:
           node-version: 15.6.0
 
       - name: Linux Packages
-        if: contains(matrix.platform, 'ubuntu')
+        if: contains(matrix.os, 'ubuntu')
         uses: ./.github/actions/apt-get
         with:
           ppa: 'ubuntu-toolchain-r-test'
           packages: g++-6 gcc-6
 
       - name: Use GCC 6
-        if: contains(matrix.platform, 'ubuntu')
+        if: contains(matrix.os, 'ubuntu')
         uses: ./.github/actions/use-gcc-6
 
       - name: Yarn Cache
@@ -43,14 +46,11 @@ jobs:
 
       - name: Build
         run: yarn --force
-        shell: bash
 
       - name: CPP Lint
-        if: contains(matrix.platform, 'windows') == false
+        if: contains(matrix.os, 'windows') == false
         run: yarn run cpplint
         working-directory: packages/@lse/core
-        shell: bash
 
       - name: JS Test (+ JS Lint)
         run: yarn run test
-        shell: bash
