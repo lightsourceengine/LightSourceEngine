@@ -7,6 +7,7 @@
 
 #include <lse/StyleEnums.h>
 #include <lse/bindings/JSEnums.h>
+#include <lse/Config.h>
 
 using Napi::ClassBuilder;
 
@@ -48,6 +49,17 @@ Napi::Function NewStyleAnchorClass(Napi::Env env) {
       .WithStaticValue("Center", StyleAnchorCenter)
       .WithStaticValue("Top", StyleAnchorTop)
       .WithStaticValue("Bottom", StyleAnchorBottom)
+      .ToConstructor();
+}
+
+Napi::Function NewPluginIdClass(Napi::Env env) {
+  return ClassBuilder(env, "PluginId")
+      .WithStaticValue("SDL", kPluginPlatformSdl)
+      .WithStaticValue("REF", kPluginPlatformRef)
+      .WithStaticValue("SDL_AUDIO", kPluginAudioSdlAudio)
+      .WithStaticValue("SDL_MIXER", kPluginAudioSdlMixer)
+      .WithStaticValue("REF_AUDIO", kPluginRefAudio)
+      .WithStaticValue("NULL", kPluginNull)
       .ToConstructor();
 }
 

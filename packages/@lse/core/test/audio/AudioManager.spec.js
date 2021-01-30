@@ -6,7 +6,7 @@
 
 import chai from 'chai'
 import { AudioManager } from '../../src/audio/AudioManager.js'
-import { loadPlugin } from '../../src/addon/index.js'
+import { loadPluginById } from '../../src/addon/index.js'
 import { AudioSourceType } from '../../src/audio/AudioSourceType.js'
 
 const { assert } = chai
@@ -17,7 +17,7 @@ describe('AudioManager', () => {
   beforeEach(() => {
     const mockStage = {}
     audio = new AudioManager(mockStage)
-    audio.$setPlugin(loadPlugin('audio:ref').createInstance())
+    audio.$setPlugin(loadPluginById('plugin:ref-audio').createInstance())
     audio.$attach()
   })
   afterEach(() => {

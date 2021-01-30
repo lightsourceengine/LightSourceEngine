@@ -121,5 +121,7 @@ const TextAlignApp = () => jsxs('box', {
 });
 
 letThereBeLight(jsx(TextAlignApp, {}), {
-    fullscreen: false
+    scene: {
+        fullscreen: false
+    }
 });

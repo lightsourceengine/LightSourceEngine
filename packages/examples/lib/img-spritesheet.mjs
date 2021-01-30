@@ -79,5 +79,7 @@ const SpritesApp = () => {
 };
 
 letThereBeLight(jsx(SpritesApp, {}), {
-    fullscreen: false
+    scene: {
+        fullscreen: false
+    }
 });

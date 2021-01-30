@@ -63,4 +63,4 @@ const NavigationApp = () => {
   )
 }
 
-letThereBeLight(<NavigationApp />, { fullscreen: false })
+letThereBeLight(<NavigationApp />, { scene: { fullscreen: false } })

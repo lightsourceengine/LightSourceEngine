@@ -42,6 +42,11 @@ class ClassBuilder {
       const Napi::PropertyName& id, int32_t value,
       napi_property_attributes attributes = napi_default);
 
+  // Add a static string to the prototype.
+  ClassBuilder& WithStaticValue(
+      const Napi::PropertyName& id, const char* value,
+      napi_property_attributes attributes = napi_default);
+
   // Create a class constructor Function from the current state of the ClassBuilder.
   Napi::Function ToConstructor();
 

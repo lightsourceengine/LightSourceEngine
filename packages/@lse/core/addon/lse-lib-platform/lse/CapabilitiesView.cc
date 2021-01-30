@@ -8,6 +8,7 @@
 #include "CapabilitiesView.h"
 
 using Napi::Array;
+using Napi::Number;
 using Napi::Object;
 using Napi::String;
 
@@ -34,6 +35,7 @@ Napi::Object ToCapabilitiesView(Napi::Env env, const Capabilities& caps) {
     auto jsModes{ Array::New(env, display.modes.size()) };
     auto j{ 0 };
 
+    jsDisplay["id"] = Number::New(env, display.id);
     jsDisplay["name"] = String::New(env, display.name);
     jsDisplay["defaultMode"] = toObject(env, display.defaultMode);
 
@@ -52,6 +54,8 @@ Napi::Object ToCapabilitiesView(Napi::Env env, const Capabilities& caps) {
   for (const auto& videoDriver : caps.videoDrivers) {
     jsVideoDrivers[i++] = Napi::String::New(env, videoDriver);
   }
+
+  jsCaps["videoDrivers"] = jsVideoDrivers;
 
   return jsCaps;
 }

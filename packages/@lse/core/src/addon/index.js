@@ -39,21 +39,24 @@ const CreateStubLogger = () => ({
 // load failure and deal with the error in their app.
 export const [ addon, addonError ] = loadLightSourceAddon()
 
-export const Style = addon.Style || (class StubStyle {})
-export const StyleClass = addon.StyleClass || (class StubStyleClass {})
-export const StyleUnit = addon.StyleUnit || {}
-export const StyleTransform = addon.StyleTransform || {}
-export const StyleTransformSpec = addon.StyleTransformSpec || StubStyleTransformSpec
-export const StyleAnchor = addon.StyleAnchor || {}
-export const StyleValue = addon.StyleValue || StubStyleValue
-export const SceneBase = addon.SceneBase || (class SceneBase {})
-export const StageBase = addon.StageBase || StubStageBase
-export const logger = addon.logger || CreateStubLogger()
-export const LogLevel  = addon.LogLevel || {}
-export const getSceneNodeInstanceCount = addon.getSceneNodeInstanceCount || (() => 0)
-export const parseColor = addon.parseColor || (() => 0)
-export const loadPlugin = addon.loadPlugin || ((id) => { throw Error('native code not loaded') })
-export const styleProperties = addon.styleProperties || {}
+export const {
+  Style = (class StubStyle {}),
+  StyleClass = (class StubStyleClass {}),
+  StyleUnit = {},
+  StyleTransform = {},
+  StyleTransformSpec = StubStyleTransformSpec,
+  StyleAnchor = {},
+  StyleValue = StubStyleValue,
+  PluginId = {},
+  SceneBase = (class SceneBase {}),
+  StageBase = StubStageBase,
+  logger = CreateStubLogger(),
+  LogLevel = {},
+  getSceneNodeInstanceCount = (() => 0),
+  parseColor = (() => 0),
+  loadPluginById = ((id) => { throw Error('native code not loaded') }),
+  styleProperties = {}
+} = addon
 
 /**
  * @class SceneNode

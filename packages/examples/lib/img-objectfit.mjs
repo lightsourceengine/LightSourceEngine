@@ -73,5 +73,7 @@ const ObjectFitApp = () => jsxs('box', {
 });
 
 letThereBeLight(jsx(ObjectFitApp, {}), {
-    fullscreen: false
+    scene: {
+        fullscreen: false
+    }
 });

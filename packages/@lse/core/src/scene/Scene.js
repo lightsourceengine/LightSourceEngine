@@ -33,9 +33,9 @@ export class Scene extends SceneBase {
   _bgFrameListeners = []
   _attached = false
 
-  constructor (stage, platform, config) {
+  constructor (stage, config) {
     super()
-    const graphicsContext = createGraphicsContext(stage, platform, config)
+    const graphicsContext = stage.system.$createGraphicsContext(config)
     const root = new RootSceneNode(this)
     const { style } = root
 
@@ -162,10 +162,6 @@ export class Scene extends SceneBase {
     }
 
     super.$frame(tick, lastTick)
-  }
-
-  $emit (event) {
-    // this._emitter.emitEvent(event)
   }
 
   $attach () {
@@ -295,45 +291,4 @@ const loadFonts = (self) => {
       logger.warn(`Failed to preload font: ${url}`)
     }
   }
-}
-
-const createGraphicsContext = (stage, platform, { displayIndex, width, height, fullscreen }) => {
-  const { capabilities } = stage
-
-  if (!Number.isInteger(displayIndex)) {
-    displayIndex = 0
-  }
-
-  if (displayIndex < 0 || displayIndex >= capabilities.displays.length) {
-    throw Error(`Invalid displayIndex ${displayIndex}.`)
-  }
-
-  fullscreen = (fullscreen === undefined) || (!!fullscreen)
-
-  if ((width === undefined || width === 0) && (height === undefined || height === 0)) {
-    if (fullscreen) {
-      const { defaultMode } = capabilities.displays[displayIndex]
-
-      width = defaultMode.width
-      height = defaultMode.height
-    } else {
-      width = 1280
-      height = 720
-    }
-  } else if (Number.isInteger(width) && Number.isInteger(height)) {
-    width = width >> 0
-    height = height >> 0
-
-    if (fullscreen) {
-      const i = capabilities.displays[displayIndex].modes.findIndex(mode => mode.width === width && mode.height === height)
-
-      if (i === -1) {
-        throw Error(`Fullscreen size ${width}x${height} is not available on this system.`)
-      }
-    }
-  } else {
-    throw Error('width and height must be integer values.')
-  }
-
-  return platform.createGraphicsContext({ displayIndex, width, height, fullscreen })
 }

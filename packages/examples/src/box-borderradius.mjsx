@@ -59,4 +59,4 @@ const BorderRadiusApp = () => (
   </box>
 )
 
-letThereBeLight(<BorderRadiusApp />, { fullscreen: false })
+letThereBeLight(<BorderRadiusApp />, { scene: { fullscreen: false } })

@@ -63,6 +63,7 @@ Object Init(Env env, Object exports) {
   ExportClass(exports, lse::bindings::NewStyleTransformClass(env));
   ExportClass(exports, lse::bindings::NewStyleUnitClass(env));
   ExportClass(exports, lse::bindings::NewStyleAnchorClass(env));
+  ExportClass(exports, lse::bindings::NewPluginIdClass(env));
 
   ExportClass(exports, lse::bindings::JSStage::GetClass(env));
   ExportClass(exports, lse::bindings::JSScene::GetClass(env));
@@ -78,7 +79,7 @@ Object Init(Env env, Object exports) {
   ExportClass(exports, lse::RootSceneNode::GetClass(env));
 
   ExportFunction(exports, Function::New(env, &lse::bindings::ParseColor, "parseColor"));
-  ExportFunction(exports, Function::New(env, &lse::bindings::LoadPlugin, "loadPlugin"));
+  ExportFunction(exports, Function::New(env, &lse::bindings::LoadPluginById, "loadPluginById"));
   ExportFunction(exports, Function::New(env, &lse::SceneNode::GetInstanceCount, "getSceneNodeInstanceCount"));
 
   exports["logger"] = lse::bindings::NewLoggerClass(env);

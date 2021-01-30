@@ -56,4 +56,4 @@ const StreamingAudioApp = () => {
   )
 }
 
-letThereBeLight(<StreamingAudioApp />, { fullscreen: false })
+letThereBeLight(<StreamingAudioApp />, { scene: { fullscreen: false } })

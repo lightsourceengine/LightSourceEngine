@@ -10,6 +10,8 @@ import { EventEmitter } from 'events'
 import { cpus } from 'os'
 import React from 'react'
 
+const settingsContext = React.createContext(new EventEmitter())
+
 const styles = createStyleSheet({
   body: {
     backgroundColor: 'lightgray',
@@ -195,7 +197,7 @@ const SystemStatisticsView = () => {
 }
 
 const VideoView = () => {
-  return (<Button value={`${stage.scene.width}x${stage.scene.height}`} end={true}>Screen Resolution</Button>)
+  return (<Button value={`${scene.width}x${scene.height}`} end={true}>Screen Resolution</Button>)
 }
 
 const AudioView = () => {
@@ -342,8 +344,6 @@ const SwitchyApp = () => {
   )
 }
 
-const settingsContext = React.createContext(new EventEmitter())
-
 stage.input.on('rawkeyup', e => e.scanCode === ScanCode.ESCAPE && stage.quit())
 
-letThereBeLight(<SwitchyApp />, { title: 'Switchy Settings', fullscreen: false })
+const scene = letThereBeLight(<SwitchyApp />, { scene: { fullscreen: true } })

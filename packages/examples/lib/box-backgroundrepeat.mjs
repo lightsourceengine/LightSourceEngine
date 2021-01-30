@@ -23,5 +23,7 @@ const body = createStyle({
 letThereBeLight(jsx('box', {
     class: body
 }), {
-    fullscreen: false
+    scene: {
+        fullscreen: false
+    }
 });

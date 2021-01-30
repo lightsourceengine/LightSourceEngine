@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { getSceneNodeInstanceCount, logger, LogLevel } from '../src/addon/index.js'
+import { getSceneNodeInstanceCount, logger, LogLevel, PluginId } from '../src/addon/index.js'
 import { Stage } from '../src/stage/Stage.js'
 import chai from 'chai'
 
@@ -16,13 +16,21 @@ before(() => {
   logger.setLogLevel(LogLevel.OFF)
 
   stage = new Stage()
-  stage.loadPlugin('platform:ref')
-  stage.loadPlugin('audio:ref')
-  stage.createScene({ width: 1280, height: 720 })
-  stage.start()
+
+  stage.configure({
+    plugin: [
+      PluginId.REF,
+      PluginId.REF_AUDIO
+    ],
+    scene: {
+      title: 'Test Scene',
+      width: 1280,
+      height: 720
+    }
+  })
 
   test.stage = stage
-  test.scene = stage.getScene()
+  test.scene = stage.getScene(0)
   test.root = test.scene.root
 
   // override createNode so scene tests can clean up nodes after each test

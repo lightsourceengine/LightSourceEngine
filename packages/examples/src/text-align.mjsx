@@ -89,4 +89,4 @@ const TextAlignApp = () => (
   </box>
 )
 
-letThereBeLight(<TextAlignApp />, { fullscreen: false })
+letThereBeLight(<TextAlignApp />, { scene: { fullscreen: false } })

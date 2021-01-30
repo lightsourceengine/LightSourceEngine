@@ -61,5 +61,7 @@ const StreamingAudioApp = () => {
 };
 
 letThereBeLight(jsx(StreamingAudioApp, {}), {
-    fullscreen: false
+    scene: {
+        fullscreen: false
+    }
 });

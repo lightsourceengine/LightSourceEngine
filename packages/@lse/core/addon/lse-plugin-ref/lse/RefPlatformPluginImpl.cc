@@ -30,7 +30,7 @@ RefPlatformPluginImpl::RefPlatformPluginImpl(const CallbackInfo& info) {
   DisplayMode displayMode{ 1280, 720 };
 
   capabilities.displays = {
-      { "mock display", displayMode, { displayMode }}
+      {0, "mock display", displayMode, { displayMode }}
   };
 
   this->capabilitiesRef = Persistent(ToCapabilitiesView(env, capabilities));

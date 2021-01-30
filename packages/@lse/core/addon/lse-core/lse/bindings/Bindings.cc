@@ -21,6 +21,7 @@
 #include <lse/SDL2_mixer.h>
 #include <lse/Config.h>
 #include <std17/filesystem>
+#include <lse/string-ext.h>
 
 namespace lse {
 namespace bindings {
@@ -44,7 +45,7 @@ Napi::Object GetStyleProperties(Napi::Env env) {
   return styleProperties;
 }
 
-Napi::Value LoadPlugin(const Napi::CallbackInfo& info) {
+Napi::Value LoadPluginById(const Napi::CallbackInfo& info) {
   auto env = info.Env();
   auto plugin = Napi::Object::New(info.Env());
   auto name = Napi::CopyUtf8(info[0]);
@@ -61,10 +62,10 @@ Napi::Value LoadPlugin(const Napi::CallbackInfo& info) {
     EnsureSDL2(env);
     EnsureSDL2_mixer(env);
     return lse::AudioPluginInit<lse::SDLMixerAudioPluginImpl>(env, plugin, kPluginAudioSdlMixer);
-  } else if (kEnablePluginAudioRef && strcmp(name, kPluginAudioRef) == 0) {
-    return lse::AudioPluginInit<lse::RefAudioPluginImpl>(env, plugin, kPluginAudioRef);
+  } else if (kEnablePluginAudioRef && strcmp(name, kPluginRefAudio) == 0) {
+    return lse::AudioPluginInit<lse::RefAudioPluginImpl>(env, plugin, kPluginRefAudio);
   } else {
-    throw Napi::Error::New(env, "Unknown plugin name");
+    throw Napi::Error::New(env, Format("Unknown plugin name: %s", name));
   }
 }
 

@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { stage, logger, LogLevel } from '@lse/core'
+import { stage, logger, LogLevel, PluginId } from '@lse/core'
 import { shutdown } from '@lse/react/reconciler'
 import React from 'react'
 import chai from 'chai'
@@ -19,10 +19,15 @@ before(() => {
     shutdown()
   })
 
-  stage.loadPlugin('platform:ref')
-  stage.loadPlugin('audio:ref')
-  stage.createScene()
-  stage.start()
+  stage.configure({
+    plugin: [
+      PluginId.REF,
+      PluginId.REF_AUDIO
+    ],
+    scene: {
+      title: 'Test Scene'
+    }
+  })
 })
 
 after(async () => {
@@ -83,4 +88,4 @@ export const afterEachTestCase = async () => {
   }
 }
 
-export const container = () => stage.getScene().root
+export const container = () => stage.getScene(0).root

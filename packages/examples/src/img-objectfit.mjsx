@@ -57,4 +57,4 @@ const ObjectFitApp = () => (
   </box>
 )
 
-letThereBeLight(<ObjectFitApp />, { fullscreen: false })
+letThereBeLight(<ObjectFitApp />, { scene: { fullscreen: false } })

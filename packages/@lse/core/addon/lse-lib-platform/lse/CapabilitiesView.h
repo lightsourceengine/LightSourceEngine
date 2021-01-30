@@ -17,6 +17,7 @@ struct DisplayMode {
 };
 
 struct Display {
+  int32_t id;
   std::string name;
   DisplayMode defaultMode{};
   std::vector<DisplayMode> modes;

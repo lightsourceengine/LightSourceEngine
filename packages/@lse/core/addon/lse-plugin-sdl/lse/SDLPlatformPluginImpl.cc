@@ -124,6 +124,7 @@ Capabilities SDLPlatformPluginImpl::DetermineCapabilities(Napi::Env env) {
     Display display{};
     auto name{ SDL2::SDL_GetDisplayName(i) };
 
+    display.id = i;
     display.name = name ? name : "";
 
     auto numDisplayModes{ SDL2::SDL_GetNumDisplayModes(i) };

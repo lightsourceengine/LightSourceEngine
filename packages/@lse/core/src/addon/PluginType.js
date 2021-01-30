@@ -5,6 +5,6 @@
  */
 
 export const PluginType = Object.freeze({
-  Platform: 'platform',
-  Audio: 'audio'
+  PLATFORM: 'platform',
+  AUDIO: 'audio'
 })

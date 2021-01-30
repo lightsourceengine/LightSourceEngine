@@ -69,5 +69,7 @@ const BorderRadiusApp = () => jsxs('box', {
 });
 
 letThereBeLight(jsx(BorderRadiusApp, {}), {
-    fullscreen: false
+    scene: {
+        fullscreen: false
+    }
 });

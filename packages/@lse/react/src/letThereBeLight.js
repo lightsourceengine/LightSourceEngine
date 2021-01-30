@@ -18,18 +18,20 @@ import { render } from './renderer.js'
  * objects (even if they are not initialized) that can be used for configuration.
  *
  * @param element {Object} React element to render into the new scene
- * @param sceneConfig {Object} Scene configuration. @see Stage.createScene()
+ * @param options ...
  * @returns {Scene} The application scene
  */
-export const letThereBeLight = (element, sceneConfig = {}) => {
-  let scene
+export const letThereBeLight = (element, options = {}) => {
+  if (!stage.isConfigured()) {
+    stage.configure(options)
+  }
 
-  stage.init()
-  stage.start()
-  render(scene = stage.createScene(sceneConfig), element)
+  const scene = stage.getScene(-1) || stage.createScene()
 
   // XXX: temporary fix so react nodes are cleaned up on exit; need to have render better handle the lifecycle of a container
-  scene.on('destroying', () => render(scene, null))
+  scene.once('destroying', () => render(scene, null))
+
+  render(scene, element, options.callback)
 
   return scene
 }

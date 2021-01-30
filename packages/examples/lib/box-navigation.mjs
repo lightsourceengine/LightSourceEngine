@@ -63,5 +63,7 @@ const NavigationApp = () => {
 };
 
 letThereBeLight(jsx(NavigationApp, {}), {
-    fullscreen: false
+    scene: {
+        fullscreen: false
+    }
 });

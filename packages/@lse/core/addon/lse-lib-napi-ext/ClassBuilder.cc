@@ -43,6 +43,11 @@ ClassBuilder& ClassBuilder::WithStaticValue(
 }
 
 ClassBuilder& ClassBuilder::WithStaticValue(
+    const Napi::PropertyName& id, const char* value, napi_property_attributes attributes) {
+  return WithStaticValue(id, Napi::String::New(this->env, value), attributes);
+}
+
+ClassBuilder& ClassBuilder::WithStaticValue(
     const Napi::PropertyName& id, const Napi::Value& value, napi_property_attributes attributes) {
   this->properties.push_back({
                                  id.utf8Name,

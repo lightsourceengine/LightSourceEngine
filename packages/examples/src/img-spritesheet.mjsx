@@ -77,4 +77,4 @@ const SpritesApp = () => {
   return (<box class={sheet.body}>{sprites}</box>)
 }
 
-letThereBeLight(<SpritesApp />, { fullscreen: false })
+letThereBeLight(<SpritesApp />, { scene: { fullscreen: false } })

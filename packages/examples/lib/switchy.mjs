@@ -20,6 +20,8 @@ import { cpus } from 'os';
 
 import React from 'react';
 
+const settingsContext = React.createContext(new EventEmitter);
+
 const styles = createStyleSheet({
     body: {
         backgroundColor: 'lightgray',
@@ -208,7 +210,7 @@ const SystemStatisticsView = () => {
 };
 
 const VideoView = () => jsx(Button, {
-    value: `${stage.scene.width}x${stage.scene.height}`,
+    value: `${scene.width}x${scene.height}`,
     end: true,
     children: 'Screen Resolution'
 });
@@ -400,10 +402,10 @@ const SwitchyApp = () => jsx(ErrorBoundary, {
     })
 });
 
-const settingsContext = React.createContext(new EventEmitter);
-
 stage.input.on('rawkeyup', e => e.scanCode === ScanCode.ESCAPE && stage.quit());
 
-letThereBeLight(jsx(SwitchyApp, {}), {
-    title: 'Switchy Settings'
+const scene = letThereBeLight(jsx(SwitchyApp, {}), {
+    scene: {
+        fullscreen: true
+    }
 });

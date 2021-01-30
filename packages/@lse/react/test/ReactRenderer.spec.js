@@ -17,7 +17,7 @@ let reactRenderer
 
 describe('ReactRenderer', () => {
   beforeEach(() => {
-    root = stage.getScene().root
+    root = stage.getScene(-1).root
     reactRenderer = new ReactRenderer(root)
   })
   afterEach(async () => {
