@@ -6,24 +6,19 @@
 
 import { SceneBase, logger } from '../addon/index.js'
 import { BoxSceneNode, ImageSceneNode, TextSceneNode, LinkSceneNode, RootSceneNode } from './SceneNode.js'
-import { EventEmitter } from '../util/index.js'
-import { AttachedEvent, DestroyedEvent, DestroyingEvent, DetachedEvent, EventNames } from '../event/index.js'
+import { createAttachedEvent, createDestroyedEvent, createDestroyingEvent, createDetachedEvent } from '../event/index.js'
+import { EventName } from '../event/EventName.js'
 import { fileURLToPath } from 'url'
 import { join, dirname, isAbsolute } from 'path'
 import { readFileSync, existsSync } from 'fs'
 import { stringify } from 'querystring'
+import { EventTarget } from '../event/EventTarget.js'
 
 const kEmptyFrameListener = Object.freeze([0, null])
 let sFrameRequestId = 0
 
-export class Scene extends SceneBase {
+export class Scene extends EventTarget {
   _activeNode = null
-  _emitter = new EventEmitter([
-    EventNames.attached,
-    EventNames.detached,
-    EventNames.destroying,
-    EventNames.destroyed
-  ])
 
   _stage = null
   _root = null
@@ -32,9 +27,16 @@ export class Scene extends SceneBase {
   _fgFrameListeners = []
   _bgFrameListeners = []
   _attached = false
+  $native = new SceneBase()
 
   constructor (stage, config) {
-    super()
+    super([
+      EventName.onAttached,
+      EventName.onDetached,
+      EventName.onDestroying,
+      EventName.onDestroyed
+    ])
+
     const graphicsContext = stage.system.$createGraphicsContext(config)
     const root = new RootSceneNode(this)
     const { style } = root
@@ -46,7 +48,7 @@ export class Scene extends SceneBase {
     style.left = 0
     style.position = 'absolute'
 
-    super.$setup(stage, root, graphicsContext)
+    this.$native.$setup(stage.$native, root, graphicsContext)
 
     this._stage = stage
     this._root = root
@@ -57,18 +59,6 @@ export class Scene extends SceneBase {
     }
 
     loadFonts(this)
-  }
-
-  on (id, listener) {
-    this._emitter.on(id, listener)
-  }
-
-  once (id, listener) {
-    this._emitter.once(id, listener)
-  }
-
-  off (id, listener) {
-    this._emitter.off(id, listener)
   }
 
   get stage () {
@@ -161,7 +151,7 @@ export class Scene extends SceneBase {
       this._bgFrameListeners.length = 0
     }
 
-    super.$frame(tick, lastTick)
+    this.$native.$frame(tick, lastTick)
   }
 
   $attach () {
@@ -170,10 +160,10 @@ export class Scene extends SceneBase {
     }
 
     this._graphicsContext.attach()
-    super.$attach()
+    this.$native.$attach()
 
     this._attached = true
-    this._emitter.emitEvent(AttachedEvent(this))
+    this.dispatchEvent(createAttachedEvent(this))
   }
 
   $detach () {
@@ -181,25 +171,25 @@ export class Scene extends SceneBase {
       return
     }
 
-    super.$detach()
+    this.$native.$detach()
     this._graphicsContext.detach()
 
     this._attached = false
-    this._emitter.emitEvent(DetachedEvent(this))
+    this.dispatchEvent(createDetachedEvent(this))
   }
 
   $destroy () {
-    this._emitter.emitEvent(DestroyingEvent(this))
+    this.dispatchEvent(createDestroyingEvent(this))
 
     this._fonts.forEach(font => font.destroy())
     this._fonts = []
 
-    super.$destroy()
+    this.$native.$destroy()
 
     this.$setActiveNode(null)
     // TODO: graphics context destroy() ?
 
-    this._emitter.emitEvent(DestroyedEvent(this))
+    this.dispatchEvent(createDestroyedEvent(this))
   }
 }
 

@@ -17,6 +17,7 @@ import {
 import sinon from 'sinon'
 import { AudioSourceType } from '../../src/audio/AudioSourceType.js'
 import { test } from '../test-env.js'
+import { EventName } from '../../src/event/EventName.js'
 
 const { assert } = chai
 const testWavFile = 'test/resources/test.wav'
@@ -156,7 +157,7 @@ describe('AudioSource', () => {
 
 const isReadyPromise = (as) => {
   return new Promise((resolve, reject) => {
-    as.once('status', (as) => {
+    as.once(EventName.onStatus, (as) => {
       if (as.target.isReady()) {
         resolve()
       } else {
@@ -168,7 +169,7 @@ const isReadyPromise = (as) => {
 
 const isErrorPromise = (as) => {
   return new Promise((resolve, reject) => {
-    as.once('status', (as) => {
+    as.once(EventName.onStatus, (as) => {
       if (as.target.isError()) {
         resolve()
       } else {

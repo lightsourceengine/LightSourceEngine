@@ -8,44 +8,44 @@ import { Scene } from '../scene/Scene.js'
 import { logger, PluginId, StageBase } from '../addon/index.js'
 import { InputManager } from '../input/InputManager.js'
 import { AudioManager } from '../audio/AudioManager.js'
-import { isNumber, logexcept, EventEmitter, now, isPlainObject } from '../util/index.js'
+import { isNumber, logexcept, now, isPlainObject } from '../util/index.js'
 import { PluginType } from '../addon/PluginType.js'
 import {
-  AttachedEvent,
-  DestroyedEvent,
-  DestroyingEvent,
-  DetachedEvent,
-  StartedEvent,
-  StoppedEvent,
-  EventNames
+  createAttachedEvent,
+  createDestroyedEvent,
+  createDestroyingEvent,
+  createDetachedEvent,
+  createStartedEvent,
+  createStoppedEvent
 } from '../event/index.js'
+import { EventName } from '../event/EventName.js'
 import { readFileSync } from 'fs'
 import { SystemManager } from '../system/SystemManager.js'
 import { loadPlugin } from '../addon/loadPlugin.js'
+import { EventTarget } from '../event/EventTarget.js'
 
 const kFlagWasQuitRequested = 1
 const kFlagIsAttached = 2
 const kFlagIsConfigured = 4
 const kFlagIsRunning = 8
 
-export class Stage extends StageBase {
-  _emitter = new EventEmitter([
-    EventNames.attached,
-    EventNames.detached,
-    EventNames.started,
-    EventNames.stopped,
-    EventNames.destroying,
-    EventNames.destroyed
-  ])
-
+export class Stage extends EventTarget {
   _plugins = new Map()
   _scenes = new Map()
   _flags = 0
   _mainLoopHandle = null
   _frameRate = 0
+  $native = new StageBase()
 
   constructor (loadPluginFunc = loadPlugin) {
-    super()
+    super([
+      EventName.onAttached,
+      EventName.onDetached,
+      EventName.onStarted,
+      EventName.onStopped,
+      EventName.onDestroying,
+      EventName.onDestroyed
+    ])
 
     // loadPlugin injectable for testability
     this._loadPlugin = loadPluginFunc
@@ -57,18 +57,6 @@ export class Stage extends StageBase {
     })
 
     this.resetFrameRate()
-  }
-
-  on (id, listener) {
-    this._emitter.on(id, listener)
-  }
-
-  once (id, listener) {
-    this._emitter.once(id, listener)
-  }
-
-  off (id, listener) {
-    this._emitter.off(id, listener)
   }
 
   configure (appConfig = undefined) {
@@ -140,7 +128,8 @@ export class Stage extends StageBase {
 
     this._flags |= kFlagIsRunning
     queueMicrotask(mainLoop)
-    this._emitter.emitEvent(StartedEvent(this))
+
+    this.dispatchEvent(createStartedEvent(this))
   }
 
   stop () {
@@ -152,7 +141,7 @@ export class Stage extends StageBase {
     this.$detach()
     this.$stopMainLoop()
     this._flags &= ~kFlagIsRunning
-    this._emitter.emitEvent(StoppedEvent(this))
+    this.dispatchEvent(createStoppedEvent(this))
   }
 
   createScene (sceneConfig = {}) {
@@ -166,7 +155,7 @@ export class Stage extends StageBase {
 
     const scene = new Scene(this, sceneConfig)
 
-    scene.once(EventNames.destroying, ({ target }) => this._scenes.delete(target.displayIndex))
+    scene.once(EventName.onDestroying, ({ target }) => this._scenes.delete(target.displayIndex))
 
     this._scenes.set(scene.displayIndex, scene)
 
@@ -244,9 +233,9 @@ export class Stage extends StageBase {
   $destroy () {
     const site = 'stage.$destroy()'
 
-    this._emitter.emitEvent(DestroyingEvent(this))
+    this.dispatchEvent(createDestroyingEvent(this))
 
-    super.$destroy()
+    this.$native.$destroy()
 
     this._scenes.forEach(scene => logexcept(() => scene.$destroy(), site))
     this._scenes.clear()
@@ -259,7 +248,7 @@ export class Stage extends StageBase {
     this.$stopMainLoop()
     this._flags = 0
 
-    this._emitter.emitEvent(DestroyedEvent(this))
+    this.dispatchEvent(createDestroyedEvent(this))
   }
 
   /**
@@ -276,7 +265,7 @@ export class Stage extends StageBase {
     this._scenes.forEach(scene => scene.$attach())
 
     this._flags |= kFlagIsAttached
-    this._emitter.emitEvent(AttachedEvent(this))
+    this.dispatchEvent(createAttachedEvent(this))
   }
 
   /**
@@ -292,7 +281,7 @@ export class Stage extends StageBase {
     listPlugins(this).reverse().forEach(plugin => plugin?.detach())
 
     this._flags &= ~kFlagIsAttached
-    this._emitter.emitEvent(DetachedEvent(this))
+    this.dispatchEvent(createDetachedEvent(this))
   }
 
   /**

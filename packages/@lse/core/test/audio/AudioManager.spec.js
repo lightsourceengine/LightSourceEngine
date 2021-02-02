@@ -8,6 +8,7 @@ import chai from 'chai'
 import { AudioManager } from '../../src/audio/AudioManager.js'
 import { loadPluginById } from '../../src/addon/index.js'
 import { AudioSourceType } from '../../src/audio/AudioSourceType.js'
+import { EventName } from '../../src/event/EventName.js'
 
 const { assert } = chai
 const testWavFile = 'test/resources/test.wav'
@@ -151,12 +152,12 @@ describe('AudioManager', () => {
 
 const attachedEventPromise = (audio) => {
   return new Promise((resolve, reject) => {
-    audio.on('attached', () => resolve())
+    audio.on(EventName.onAttached, () => resolve())
   })
 }
 
 const detachedEventPromise = (audio) => {
   return new Promise((resolve, reject) => {
-    audio.on('detached', () => resolve())
+    audio.on(EventName.onDetached, () => resolve())
   })
 }

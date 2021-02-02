@@ -8,7 +8,7 @@ import chai from 'chai'
 import { FixedListWaypoint } from '../../src/scene/FixedListWaypoint.js'
 import { afterSceneTest, beforeSceneTest } from '../test-env.js'
 import { Key } from '../../src/input/Key.js'
-import { KeyDownEvent } from '../../src/event/index.js'
+import { createKeyDownEvent } from '../../src/event/index.js'
 
 const { assert } = chai
 
@@ -68,7 +68,7 @@ describe('FixedListWaypoint', () => {
   })
 })
 
-const sendKey = (scene, key) => scene.activeNode?.$bubble(KeyDownEvent(scene.activeNode, key, false))
+const sendKey = (scene, key) => scene.activeNode?.$bubble(createKeyDownEvent(scene.activeNode, key, false))
 
 const setupSceneRoot = (scene, waypoint) => {
   const group = scene.createNode('box')

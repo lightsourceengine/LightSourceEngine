@@ -6,37 +6,25 @@
 
 import { NullAudioSource, SampleAudioSource, StreamAudioSource } from './AudioSource.js'
 import { AudioDestination } from './AudioDestination.js'
-import { emptyArray, EventEmitter } from '../util/index.js'
-import { AttachedEvent, DetachedEvent, EventNames } from '../event/index.js'
+import { emptyArray } from '../util/index.js'
+import { createAttachedEvent, createDetachedEvent } from '../event/index.js'
+import { EventName } from '../event/EventName.js'
+import { EventTarget } from '../event/EventTarget.js'
 
 /**
  * Audio API.
  */
-export class AudioManager {
+export class AudioManager extends EventTarget {
   _stage = null
   _plugin = null
   _audioSourceMap = new Map()
   _sampleAudioDestination = new AudioDestination()
   _streamAudioDestination = new AudioDestination()
-  _emitter = new EventEmitter([EventNames.attached, EventNames.detached])
   _nullAudioSource = Object.freeze(new NullAudioSource(this, ''))
 
   constructor (stage) {
+    super([EventName.onAttached, EventName.onDetached])
     this._stage = stage
-  }
-
-  // TODO: document events ('status')
-
-  on (name, callback) {
-    this._emitter.on(name, callback)
-  }
-
-  once (name, callback) {
-    this._emitter.once(name, callback)
-  }
-
-  off (name, callback) {
-    this._emitter.off(name, callback)
   }
 
   isAvailable () {
@@ -170,7 +158,7 @@ export class AudioManager {
     this._sampleAudioDestination.$setNative(this._plugin.createSampleAudioDestination())
     this._streamAudioDestination.$setNative(this._plugin.createStreamAudioDestination())
     this._audioSourceMap.forEach(as => as.$load())
-    this._emitter.emitEvent(AttachedEvent(this))
+    this.dispatchEvent(createAttachedEvent(this))
   }
 
   /**
@@ -185,7 +173,7 @@ export class AudioManager {
     this._sampleAudioDestination.$setNative(null)
     this._streamAudioDestination.$setNative(null)
     this._plugin.detach()
-    this._emitter.emitEvent(DetachedEvent(this))
+    this.dispatchEvent(createDetachedEvent(this))
   }
 
   /**

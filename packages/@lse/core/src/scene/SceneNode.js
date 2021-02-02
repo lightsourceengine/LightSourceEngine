@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { BlurEvent, FocusEvent } from '../event/index.js'
+import { createBlurEvent, createFocusEvent } from '../event/index.js'
 import {
   BoxSceneNodeBase,
   ImageSceneNodeBase,
@@ -33,7 +33,7 @@ const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
   _class = null
 
   constructor (scene) {
-    super(scene)
+    super(scene.$native)
     this._scene = scene
   }
 
@@ -103,7 +103,7 @@ const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
     scene.$setActiveNode(this)
     this._hasFocus = true
 
-    const event = FocusEvent(this)
+    const event = createFocusEvent(this)
 
     onFocus?.(event)
 
@@ -130,7 +130,7 @@ const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
       scene.$setActiveNode(null)
     }
 
-    const event = BlurEvent(this)
+    const event = createBlurEvent(this)
 
     onBlur?.(event)
 

@@ -5,6 +5,7 @@
  */
 
 import { ReactRenderer } from './ReactRenderer.js'
+import { EventName } from '@lse/core'
 
 const renderersByContainer = new Map()
 const nullPrototype = { constructor: { name: 'null' } }
@@ -51,7 +52,7 @@ export const render = (container, element, callback) => {
       renderersByContainer.set(node, renderer = new ReactRenderer(node))
 
       // TODO: this renderer clean up should be scoped to the node, rather than the scene
-      node.scene.on('destroying', renderer.sceneListener = (event) => renderer.render(null))
+      node.scene.on(EventName.onDestroying, renderer.sceneListener = (event) => renderer.render(null))
     }
 
     renderer.render(element, callback)

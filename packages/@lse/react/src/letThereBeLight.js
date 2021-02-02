@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { stage } from '@lse/core'
+import { stage, EventName } from '@lse/core'
 import { render } from './renderer.js'
 
 /**
@@ -29,7 +29,7 @@ export const letThereBeLight = (element, options = {}) => {
   const scene = stage.getScene(-1) || stage.createScene()
 
   // XXX: temporary fix so react nodes are cleaned up on exit; need to have render better handle the lifecycle of a container
-  scene.once('destroying', () => render(scene, null))
+  scene.once(EventName.onDestroying, () => render(scene, null))
 
   render(scene, element, options.callback)
 

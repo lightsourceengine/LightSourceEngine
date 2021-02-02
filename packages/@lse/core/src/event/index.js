@@ -5,56 +5,12 @@
  */
 
 import { now } from '../util/index.js'
+import { EventName } from './EventName.js'
 
-export const EventNames = {
-  attached: 'attached',
-  detached: 'detached',
-  started: 'started',
-  stopped: 'stopped',
-  destroying: 'destroying',
-  destroyed: 'destroyed',
-  status: 'status',
-  connected: 'connected',
-  disconnected: 'disconnected',
-  focus: 'focus',
-  blur: 'blur',
-  focusin: 'focusin',
-  focusout: 'focusout',
-  rawkeyup: 'rawkeyup',
-  rawkeydown: 'rawkeydown',
-  rawbuttonup: 'rawbuttonup',
-  rawbuttondown: 'rawbuttondown',
-  rawhatmotion: 'rawhatmotion',
-  rawaxismotion: 'rawaxismotion',
-  keyup: 'keyup',
-  keydown: 'keydown',
-  analogmotion: 'analogmotion'
-}
-
-const EventSymbols = {
-  attached: Symbol.for(EventNames.attached),
-  detached: Symbol.for(EventNames.detached),
-  started: Symbol.for(EventNames.started),
-  stopped: Symbol.for(EventNames.stopped),
-  destroying: Symbol.for(EventNames.destroying),
-  destroyed: Symbol.for(EventNames.destroyed),
-  status: Symbol.for(EventNames.status),
-  connected: Symbol.for(EventNames.connected),
-  disconnected: Symbol.for(EventNames.disconnected),
-  focus: Symbol.for(EventNames.focus),
-  blur: Symbol.for(EventNames.blur),
-  focusin: Symbol.for(EventNames.focusin),
-  focusout: Symbol.for(EventNames.focusout),
-  rawkeyup: Symbol.for(EventNames.rawkeyup),
-  rawkeydown: Symbol.for(EventNames.rawkeydown),
-  rawbuttonup: Symbol.for(EventNames.rawbuttonup),
-  rawbuttondown: Symbol.for(EventNames.rawbuttondown),
-  rawhatmotion: Symbol.for(EventNames.rawhatmotion),
-  rawaxismotion: Symbol.for(EventNames.rawaxismotion),
-  keyup: Symbol.for(EventNames.keyup),
-  keydown: Symbol.for(EventNames.keydown),
-  analogmotion: Symbol.for(EventNames.analogmotion)
-}
+const EventSymbols = Object.entries(EventName).reduce((symbols, [key, value]) => {
+  symbols[key] = Symbol.for(value)
+  return symbols
+}, {})
 
 class Event {
   _state = -1
@@ -97,7 +53,7 @@ class Event {
 
 class StatusEvent extends Event {
   constructor (target, error = null) {
-    super(EventSymbols.status, target)
+    super(EventSymbols.onStatus, target)
     this.error = error
   }
 }
@@ -116,7 +72,7 @@ class FocusChangeEvent extends Event {
   }
 }
 
-class RawKeyEvent extends Event {
+class ScanCodeEvent extends Event {
   constructor ($type, target, device, scanCode, pressed, repeat) {
     super($type, target)
 
@@ -128,7 +84,7 @@ class RawKeyEvent extends Event {
   }
 }
 
-class RawButtonEvent extends Event {
+class ButtonEvent extends Event {
   constructor ($type, target, device, button, pressed, repeat) {
     super($type, target)
 
@@ -151,7 +107,7 @@ class KeyEvent extends Event {
   }
 }
 
-class RawAxisEvent extends Event {
+class AxisMotionEvent extends Event {
   constructor ($type, target, device, axis, value) {
     super($type, target)
 
@@ -162,7 +118,7 @@ class RawAxisEvent extends Event {
   }
 }
 
-class AnalogEvent extends Event {
+class AnalogMotionEvent extends Event {
   constructor ($type, target, device, analogKey, value) {
     super($type, target)
 
@@ -173,7 +129,7 @@ class AnalogEvent extends Event {
   }
 }
 
-class RawHatEvent extends Event {
+class HatMotionEvent extends Event {
   constructor ($type, target, device, hat, value) {
     super($type, target)
 
@@ -184,37 +140,40 @@ class RawHatEvent extends Event {
   }
 }
 
-export const AttachedEvent = (target) => new Event(EventSymbols.attached, target)
-export const DetachedEvent = (target) => new Event(EventSymbols.detached, target)
-export const StartedEvent = (target) => new Event(EventSymbols.started, target)
-export const StoppedEvent = (target) => new Event(EventSymbols.stopped, target)
-export const DestroyedEvent = (target) => new Event(EventSymbols.destroyed, target)
-export const DestroyingEvent = (target) => new Event(EventSymbols.destroying, target)
-export const GamepadConnectedEvent =
-  (target, gamepad) => new GamepadEvent(EventSymbols.connected, target, gamepad)
-export const GamepadDisconnectedEvent =
-  (target, gamepad) => new GamepadEvent(EventSymbols.disconnected, target, gamepad)
-export const ReadyStatusEvent = (target) => new StatusEvent(target)
-export const ErrorStatusEvent = (target, error) => new StatusEvent(target, error)
-export const FocusEvent = (node) => new FocusChangeEvent(EventSymbols.focus, node)
-export const BlurEvent = (node) => new FocusChangeEvent(EventSymbols.blur, node)
-export const FocusInEvent = (node) => new FocusChangeEvent(EventSymbols.focusin, node)
-export const FocusOutEvent = (node) => new FocusChangeEvent(EventSymbols.focusout, node)
-export const RawKeyUpEvent =
-  (target, device, scanCode) => new RawKeyEvent(EventSymbols.rawkeyup, target, device, scanCode, false, false)
-export const RawKeyDownEvent =
-  (target, device, scanCode, repeat) => new RawKeyEvent(EventSymbols.rawkeydown, target, device, scanCode, true, repeat)
-export const RawButtonUpEvent =
-  (target, device, button) => new RawButtonEvent(EventSymbols.rawbuttonup, target, device, button, false, false)
-export const RawButtonDownEvent =
-  (target, device, button, repeat) => new RawButtonEvent(EventSymbols.rawbuttondown, target, device, button, true, repeat)
-export const RawAxisMotionEvent =
-  (target, device, axis, value) => new RawAxisEvent(EventSymbols.rawaxismotion, target, device, axis, value)
-export const RawHatMotionEvent =
-  (target, device, hat, value) => new RawHatEvent(EventSymbols.rawhatmotion, target, device, hat, value)
-export const KeyUpEvent =
-  (target, key) => new KeyEvent(EventSymbols.keyup, target, key, false, false)
-export const KeyDownEvent =
-  (target, key, repeat) => new KeyEvent(EventSymbols.keydown, target, key, true, repeat)
-export const AnalogMotionEvent =
-  (target, device, axis, value) => new AnalogEvent(EventSymbols.analogmotion, target, device, axis, value)
+export const createAttachedEvent = (target) => new Event(EventSymbols.onAttached, target)
+export const createDetachedEvent = (target) => new Event(EventSymbols.onDetached, target)
+export const createStartedEvent = (target) => new Event(EventSymbols.onStarted, target)
+export const createStoppedEvent = (target) => new Event(EventSymbols.onStopped, target)
+export const createDestroyedEvent = (target) => new Event(EventSymbols.onDestroyed, target)
+export const createDestroyingEvent = (target) => new Event(EventSymbols.onDestroying, target)
+export const createReadyStatusEvent = (target) => new StatusEvent(target)
+export const createErrorStatusEvent = (target, error) => new StatusEvent(target, error)
+
+export const createFocusEvent = (node) => new FocusChangeEvent(EventSymbols.onFocus, node)
+export const createBlurEvent = (node) => new FocusChangeEvent(EventSymbols.onBlur, node)
+export const createFocusInEvent = (node) => new FocusChangeEvent(EventSymbols.onFocusIn, node)
+export const createFocusOutEvent = (node) => new FocusChangeEvent(EventSymbols.onFocusOut, node)
+
+export const createGamepadConnectedEvent =
+  (target, gamepad) => new GamepadEvent(EventSymbols.onConnected, target, gamepad)
+export const createGamepadDisconnectedEvent =
+  (target, gamepad) => new GamepadEvent(EventSymbols.onDisconnected, target, gamepad)
+
+export const createScanCodeUpEvent =
+  (target, device, scanCode) => new ScanCodeEvent(EventSymbols.onScanCodeUp, target, device, scanCode, false, false)
+export const createScanCodeDownEvent =
+  (target, device, scanCode, repeat) => new ScanCodeEvent(EventSymbols.onScanCodeDown, target, device, scanCode, true, repeat)
+export const createButtonUpEvent =
+  (target, device, button) => new ButtonEvent(EventSymbols.onButtonUp, target, device, button, false, false)
+export const createButtonDownEvent =
+  (target, device, button, repeat) => new ButtonEvent(EventSymbols.onButtonDown, target, device, button, true, repeat)
+export const createAxisMotionEvent =
+  (target, device, axis, value) => new AxisMotionEvent(EventSymbols.onAxisMotion, target, device, axis, value)
+export const createHatMotionEvent =
+  (target, device, hat, value) => new HatMotionEvent(EventSymbols.onHatMotion, target, device, hat, value)
+export const createKeyUpEvent =
+  (target, key) => new KeyEvent(EventSymbols.onKeyUp, target, key, false, false)
+export const createKeyDownEvent =
+  (target, key, repeat) => new KeyEvent(EventSymbols.onKeyDown, target, key, true, repeat)
+export const createAnalogMotionEvent =
+  (target, device, axis, value) => new AnalogMotionEvent(EventSymbols.onAnalogMotion, target, device, axis, value)

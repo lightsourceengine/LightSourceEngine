@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { clamp, isNumber, EventEmitter } from '../util/index.js'
+import { clamp, isNumber } from '../util/index.js'
 import { readFileSync, promises } from 'fs'
 import {
   AudioSourceCapabilityFadeIn,
@@ -16,7 +16,9 @@ import {
   AudioSourceStateReady
 } from './constants.js'
 import { AudioSourceType } from './AudioSourceType.js'
-import { ReadyStatusEvent, ErrorStatusEvent, EventNames } from '../event/index.js'
+import { createReadyStatusEvent, createErrorStatusEvent } from '../event/index.js'
+import { EventName } from '../event/EventName.js'
+import { EventTarget } from '../event/EventTarget.js'
 
 let nextAsyncId = 1
 const { readFile } = promises
@@ -24,30 +26,18 @@ const { readFile } = promises
 /**
  * An audio resource that can be rendered to a destination output buffer.
  */
-export class AudioSource {
+export class AudioSource extends EventTarget {
   _audioManager = null
   _id = ''
   _state = AudioSourceStateInit
   _native = null
   _buffer = null
   _asyncId = 0
-  _emitter = new EventEmitter([EventNames.status])
 
   constructor (audio, id) {
+    super([EventName.onStatus])
     this._audioManager = audio
     this._id = id
-  }
-
-  on (name, callback) {
-    this._emitter.on(name, callback)
-  }
-
-  once (name, callback) {
-    this._emitter.once(name, callback)
-  }
-
-  off (name, callback) {
-    this._emitter.off(name, callback)
   }
 
   /**
@@ -216,7 +206,7 @@ export class AudioSource {
     this._state = AudioSourceStateError
     this._buffer = null
 
-    this._emitter.emitEvent(ErrorStatusEvent(this, message), deferred)
+    this.dispatchEvent(createErrorStatusEvent(this, message), deferred)
   }
 
   /**
@@ -256,7 +246,7 @@ export class AudioSource {
 
     this._state = AudioSourceStateReady
 
-    this._emitter.emitEvent(ReadyStatusEvent(this), deferred)
+    this.dispatchEvent(createReadyStatusEvent(this), deferred)
   }
 }
 
