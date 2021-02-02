@@ -9,6 +9,7 @@
 
 #include <stdexcept>
 #include <lse/string-ext.h>
+#include <lse/Log.h>
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -30,6 +31,8 @@ namespace lse {
 namespace internal {
 
 void SharedLibrary::Open(const char* libraryName) {
+  LOG_INFO(libraryName);
+
   if (this->handle != nullptr) {
     throw std::runtime_error(Format("%s has already been opened.", libraryName));
   }
@@ -39,16 +42,18 @@ void SharedLibrary::Open(const char* libraryName) {
   if (!this->handle) {
     throw std::runtime_error(Format("Error loading %s: %s", libraryName, SharedLibraryGetLastError()));
   }
+
+  this->refs++;
 }
 
-void* SharedLibrary::GetSymbol(const char* name) const {
+void* SharedLibrary::GetSymbol(const char* name, bool required) const {
   if (!this->handle) {
     throw std::runtime_error("Cannot get symbol of unopened library.");
   }
 
   auto symbol = SharedLibraryGetSymbol(this->handle, name);
 
-  if (symbol == nullptr) {
+  if (required && symbol == nullptr) {
     throw std::runtime_error(Format("Error retrieving symbol %s", name));
   }
 
@@ -60,9 +65,13 @@ bool SharedLibrary::IsOpen() const noexcept {
 }
 
 void SharedLibrary::Close() noexcept {
-  if (this->handle) {
+  if (--this->refs == 0 && this->handle) {
     SharedLibraryClose(this->handle);
   }
+}
+
+int32_t SharedLibrary::Ref() noexcept {
+  return ++this->refs;
 }
 
 } // namespace internal

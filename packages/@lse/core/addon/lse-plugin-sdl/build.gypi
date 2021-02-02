@@ -13,7 +13,8 @@
         "<(lse_sdl_include)",
         "../deps/cpp17_headers/include",
         "../lse-lib-platform",
-        "../lse-lib-util"
+        "../lse-lib-util",
+        "../deps/parallel-hashmap/repo/parallel_hashmap",
       ],
       "dependencies": [
         "lse-lib-napi-ext",
@@ -24,11 +25,9 @@
       "sources": [
         "lse/SDLRenderer.cc",
         "lse/SDLGraphicsContextImpl.cc",
-        "lse/SDLPlatformPluginImpl.cc",
-        "lse/InputDevice.cc",
-        "lse/SDLKeyboard.cc",
-        "lse/SDLGamepad.cc",
-        "lse/SDLUtil.cc"
+        "lse/SDLPlatformPlugin.cc",
+        "lse/SDLUtil.cc",
+        "lse/bindings/SDLPlatformPluginExports.cc"
       ]
     }
   ]

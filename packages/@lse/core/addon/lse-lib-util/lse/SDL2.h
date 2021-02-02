@@ -34,6 +34,7 @@ static_assert(false, "unknown platform");
 constexpr const char* kSDLFramework = "SDL2.framework";
 constexpr const char* kSDLFrameworkLib = "SDL2";
 
+/* Required SDL functions (API in 2.0.4 or less) */
 #define DYNAMIC_FOR_EACH_SDL_FUNCTION(APPLY)                \
     APPLY(SDL_Init)                                         \
     APPLY(SDL_InitSubSystem)                                \
@@ -120,6 +121,10 @@ constexpr const char* kSDLFrameworkLib = "SDL2";
     APPLY(SDL_SetHint)                                      \
     APPLY(SDL_GetError)
 
+/* Optional SDL functions. API later than 2.0.4 */
+#define DYNAMIC_FOR_EACH_OPTIONAL_SDL_FUNCTION(APPLY)       \
+    APPLY(SDL_JoystickGetDeviceInstanceID)
+
 // Load SDL2 functions manually.
 //
 // The manual load is done for two reasons:
@@ -133,11 +138,11 @@ namespace SDL2 {
 #define DYNAMIC_SDL_DECLARE_FUNCTION_PTR(NAME) extern decltype(&::NAME) NAME;
 
 DYNAMIC_FOR_EACH_SDL_FUNCTION(DYNAMIC_SDL_DECLARE_FUNCTION_PTR)
+DYNAMIC_FOR_EACH_OPTIONAL_SDL_FUNCTION(DYNAMIC_SDL_DECLARE_FUNCTION_PTR)
 
 #undef DYNAMIC_SDL_DECLARE_FUNCTION_PTR
 
-void Open(const char* library);
-bool IsOpen() noexcept;
+void Open();
 void Close() noexcept;
 
 } // namespace SDL2

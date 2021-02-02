@@ -7,7 +7,7 @@
         "../common.gypi",
       ],
       "sources": [
-        "ClassBuilder.cc",
+        "ObjectBuilder.cc",
         "SafeObjectWrap.cc",
         "napi-ext.cc",
       ]
@@ -27,7 +27,7 @@
           ],
           "sources": [
             "test/NapiExtSpec.cc",
-            "test/ClassBuilderSpec.cc",
+            "test/ObjectBuilderSpec.cc",
             "test/SafeObjectWrapSpec.cc",
             "test/NapiExtTestSuite.cc",
           ],

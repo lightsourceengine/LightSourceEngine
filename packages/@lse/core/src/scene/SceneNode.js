@@ -5,7 +5,15 @@
  */
 
 import { BlurEvent, FocusEvent } from '../event/index.js'
-import { addon, Style, StyleClass } from '../addon/index.js'
+import {
+  BoxSceneNodeBase,
+  ImageSceneNodeBase,
+  LinkSceneNodeBase,
+  RootSceneNodeBase,
+  Style,
+  StyleClass,
+  TextSceneNodeBase
+} from '../addon/index.js'
 
 const $bindStyle = Symbol.for('bindStyle')
 const $bindStyleClass = Symbol.for('bindStyleClass')
@@ -155,8 +163,8 @@ const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
   }
 }
 
-export const BoxSceneNode = SceneNodeMixin(addon.BoxSceneNode || class {})
-export const ImageSceneNode = SceneNodeMixin(addon.ImageSceneNode || class {})
-export const LinkSceneNode = SceneNodeMixin(addon.LinkSceneNode || class {})
-export const RootSceneNode = SceneNodeMixin(addon.RootSceneNode || class {})
-export const TextSceneNode = SceneNodeMixin(addon.TextSceneNode || class {})
+export const BoxSceneNode = SceneNodeMixin(BoxSceneNodeBase)
+export const ImageSceneNode = SceneNodeMixin(ImageSceneNodeBase)
+export const LinkSceneNode = SceneNodeMixin(LinkSceneNodeBase)
+export const RootSceneNode = SceneNodeMixin(RootSceneNodeBase)
+export const TextSceneNode = SceneNodeMixin(TextSceneNodeBase)

@@ -133,7 +133,7 @@ class SDLAudioSampleAudioDestinationImpl final : public AudioDestinationInterfac
   }
 
   Value GetDecoders(const CallbackInfo& info) override {
-    return Napi::NewStringArray(info.Env(), this->decoders);
+    return Napi::ToArray<Napi::String>(info.Env(), this->decoders);
   }
 
   Value GetVolume(const CallbackInfo& info) override {
@@ -173,7 +173,7 @@ Value SDLAudioPluginImpl::IsAttached(const CallbackInfo& info) {
 }
 
 Value SDLAudioPluginImpl::GetAudioDevices(const CallbackInfo& info) {
-  return NewStringArray(info.Env(), this->audioDevices);
+  return Napi::ToArray<Napi::String>(info.Env(), this->audioDevices);
 }
 
 void SDLAudioPluginImpl::Destroy(const Napi::CallbackInfo& info) {

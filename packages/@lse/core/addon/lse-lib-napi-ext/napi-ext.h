@@ -8,7 +8,6 @@
 
 #include <napi.h>
 #include "SafeObjectWrap.h"
-#include "ClassBuilder.h"
 
 // Convert std::exception to Napi::Error
 #define NAPI_TRY(ENV, EXPR) try { EXPR; } catch (std::exception& e) { throw Napi::Error::New(ENV, e.what()); }
@@ -74,12 +73,6 @@ std::string ToLowerCase(const Napi::String& text);
  * Call text.toUpperCase().
  */
 std::string ToUpperCase(const Napi::String& text);
-
-/**
- * Create a javascript Array of Strings from an iterable list of C++ strings.
- */
-template<typename Iterable>
-Napi::Array NewStringArray(const Napi::Env& env, const Iterable& iterable);
 
 /**
  * Safely call a javascript void function.
@@ -193,6 +186,44 @@ bool IsNullish(const Napi::Env& env, const Napi::Value& value) noexcept;
  */
 template<typename T>
 T CastNumberOrDefault(const Napi::Value& value, T defaultValue) noexcept;
+
+/**
+ * Convert a vector of C++ primitives to a JS Array.
+ *
+ * @tparam SourceType C++ primitive type
+ * @tparam ToType JS Value that has a constructor that accepts SourceType
+ * @param env JS environment
+ * @param source input vector
+ * @return array
+ */
+template<typename SourceType, typename ToType>
+Napi::Array ToArray(const Napi::Env& env, const std::vector<SourceType>& source);
+
+/**
+ * Call Object.freeze() on the passed in object.
+ */
+void ObjectFreeze(const Napi::Object& object);
+
+/**
+ * Implementation of Napi::HandleScope that does not throw in destructor.
+ */
+class SafeHandleScope {
+ public:
+  explicit SafeHandleScope(napi_env env) noexcept;
+  ~SafeHandleScope() noexcept;
+
+  NAPI_DISALLOW_ASSIGN_COPY(SafeHandleScope)
+
+ private:
+  napi_env env;
+  napi_handle_scope scope;
+};
+
+// The napi Number constructor only supports doubles. Patch in support for other primitives.
+Napi::Number NewNumber(const Napi::Env& env, uint32_t value);
+Napi::Number NewNumber(const Napi::Env& env, int32_t value);
+Napi::Number NewNumber(const Napi::Env& env, int64_t value);
+Napi::Number NewNumber(const Napi::Env& env, float value);
 
 } // namespace Napi
 

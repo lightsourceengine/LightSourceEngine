@@ -40,18 +40,6 @@ T ObjectGetNumberOrDefault(const Object& object, uint32_t index, T defaultValue)
   return value.As<Number>();
 }
 
-template<typename Iterable>
-Napi::Array NewStringArray(const Napi::Env& env, const Iterable& iterable) {
-  auto result{ Array::New(env) };
-  const auto appendString = [&env, &result](const std::string& value) {
-    result[result.Length()] = String::New(env, value);
-  };
-
-  std::for_each(std::begin(iterable), std::end(iterable), appendString);
-
-  return result;
-}
-
 template<typename T, typename F>
 T* ConstructorWithExternalFactory(const Napi::CallbackInfo& info, const char* className) {
   auto env{ info.Env() };
@@ -81,6 +69,18 @@ T CastNumberOrDefault(const Napi::Value& value, T defaultValue) noexcept {
   }
 
   return defaultValue;
+}
+
+template<typename ToType, typename SourceType>
+Napi::Array ToArray(const Napi::Env& env, const std::vector<SourceType>& source) {
+  uint32_t i{0};
+  auto result{ Napi::Array::New(env, source.size()) };
+
+  for (const auto& item : source) {
+    result.Set(i++, ToType::New(env, item));
+  }
+
+  return result;
 }
 
 } // namespace Napi

@@ -8,7 +8,7 @@
 
 namespace Napi {
 
-static const size_t kCopyUtf8BufferSize = 256;
+constexpr size_t kCopyUtf8BufferSize = 256;
 static char sCopyUtf8Buffer[kCopyUtf8BufferSize]{};
 
 Symbol SymbolFor(const Napi::Env& env, const std::string& key) {
@@ -162,7 +162,7 @@ Napi::Value RunScript(const Napi::Env& env, const std::string& script) {
 }
 
 char* CopyUtf8(const Napi::Value& value, char* buffer, size_t bufferSize) noexcept {
-  if (value.IsString()) {
+  if (!value.IsEmpty()) {
     napi_status status = napi_get_value_string_utf8(value.Env(), value, buffer, bufferSize, nullptr);
 
     if (status == napi_ok) {
@@ -186,7 +186,7 @@ size_t SizeOfCopyUtf8Buffer() noexcept {
 }
 
 size_t StringByteLength(const Napi::Value& value) noexcept {
-  if (value.IsString()) {
+  if (!value.IsEmpty()) {
     size_t length{};
     napi_status status = napi_get_value_string_utf8(value.Env(), value, nullptr, 0, &length);
 
@@ -206,6 +206,61 @@ bool IsNullish(const Napi::Env& env, const Napi::Value& value) noexcept {
   }
 
   return false;
+}
+
+void ObjectFreeze(const Napi::Object& object) {
+  auto env{ object.Env() };
+  auto objectClass{ env.Global().Get("Object") };
+
+  if (!objectClass.IsFunction()) {
+    return;
+  }
+
+  auto freeze{ objectClass.As<Napi::Function>().Get("freeze") };
+
+  if (!freeze.IsFunction()) {
+    return;
+  }
+
+  freeze.As<Napi::Function>().Call({ object });
+}
+
+SafeHandleScope::SafeHandleScope(napi_env env) noexcept : env(env), scope(nullptr) {
+  napi_open_handle_scope(this->env, &this->scope);
+}
+
+SafeHandleScope::~SafeHandleScope() noexcept {
+  if (this->scope) {
+    napi_close_handle_scope(this->env, this->scope);
+  }
+}
+
+Napi::Number NewNumber(const Napi::Env& env, uint32_t value) {
+  napi_value number;
+  napi_status status = napi_create_uint32(env, value, &number);
+  NAPI_THROW_IF_FAILED(env, status, Number());
+  return { env, number };
+}
+
+Napi::Number NewNumber(const Napi::Env& env, int32_t value) {
+  napi_value number;
+  napi_status status = napi_create_int32(env, value, &number);
+  NAPI_THROW_IF_FAILED(env, status, Number());
+  return { env, number };
+}
+
+Napi::Number NewNumber(const Napi::Env& env, int64_t value) {
+  napi_value number;
+  napi_status status = napi_create_int32(env, value, &number);
+  NAPI_THROW_IF_FAILED(env, status, Number());
+  return { env, number };
+}
+
+Napi::Number NewNumber(const Napi::Env& env, float value) {
+  napi_value number;
+  napi_status status = napi_create_double(env, value, &number);
+  NAPI_THROW_IF_FAILED(env, status, Number());
+  return { env, number };
 }
 
 } // namespace Napi

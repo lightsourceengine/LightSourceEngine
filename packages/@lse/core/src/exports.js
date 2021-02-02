@@ -67,10 +67,11 @@ export { AudioSourceType } from './audio/AudioSourceType.js'
 /// Input Exports
 /// ////////////////////////////////////////////////////////////////////////////
 
-export { ScanCode } from './input/ScanCode.js'
 export { Mapping } from './input/Mapping.js'
+export { ScanCode } from './input/ScanCode.js'
 export { Key } from './input/Key.js'
 export { AnalogKey } from './input/AnalogKey.js'
+export { Hat } from './input/Hat.js'
 
 /// ////////////////////////////////////////////////////////////////////////////
 /// Misc Exports

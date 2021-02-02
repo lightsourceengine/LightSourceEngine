@@ -23,8 +23,8 @@ export class SystemManager {
    * @ignore
    */
   $setPlugin (plugin) {
-    this._displays = plugin.capabilities.displays
-    this._videoDrivers = plugin.capabilities.videoDrivers
+    this._displays = plugin.getDisplays()
+    this._videoDrivers = plugin.getVideoDriverNames()
     this._plugin = plugin
   }
 

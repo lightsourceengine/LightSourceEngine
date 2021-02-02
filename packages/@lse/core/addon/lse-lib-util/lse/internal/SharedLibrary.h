@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include <cstdint>
 
 namespace lse {
 namespace internal {
@@ -13,11 +14,13 @@ namespace internal {
 class SharedLibrary {
  public:
   void Open(const char* libraryName);
-  void* GetSymbol(const char* name) const;
+  void* GetSymbol(const char* name, bool required = true) const;
   bool IsOpen() const noexcept;
   void Close() noexcept;
+  int32_t Ref() noexcept;
 
  private:
+  int32_t refs{0};
   void* handle{};
 };
 

@@ -177,7 +177,7 @@ class SDLMixerSampleAudioDestinationImpl final : public AudioDestinationInterfac
   }
 
   Value GetDecoders(const CallbackInfo& info) override {
-    return Napi::NewStringArray(info.Env(), this->decoders);
+    return Napi::ToArray<Napi::String>(info.Env(), this->decoders);
   }
 
   void Finalize() override {
@@ -314,7 +314,7 @@ class SDLMixerStreamAudioDestinationImpl final : public AudioDestinationInterfac
   }
 
   Value GetDecoders(const CallbackInfo& info) override {
-    return Napi::NewStringArray(info.Env(), this->decoders);
+    return Napi::ToArray<Napi::String>(info.Env(), this->decoders);
   }
 
   void Finalize() override {
@@ -379,7 +379,7 @@ Value SDLMixerAudioPluginImpl::IsAttached(const CallbackInfo& info) {
 }
 
 Value SDLMixerAudioPluginImpl::GetAudioDevices(const CallbackInfo& info) {
-  return NewStringArray(info.Env(), this->audioDevices);
+  return Napi::ToArray<Napi::String>(info.Env(), this->audioDevices);
 }
 
 void SDLMixerAudioPluginImpl::Destroy(const Napi::CallbackInfo& info) {

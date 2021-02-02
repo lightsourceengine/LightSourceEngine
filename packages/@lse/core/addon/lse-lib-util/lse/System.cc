@@ -7,6 +7,7 @@
 
 #include <lse/System.h>
 #include <cstdlib>
+#include <cstring>
 
 namespace lse {
 
@@ -26,6 +27,10 @@ const char* GetEnv(const char* name) noexcept {
 
 const char* GetEnvOrDefault(const char* name, const char* defaultValue) noexcept {
   return HasEnv(name) ? GetEnv(name) : defaultValue;
+}
+
+bool EnvEquals(const char* env, const char* expectedValue) noexcept {
+  return strcmp(GetEnv(env), expectedValue) == 0;
 }
 
 } // namespace lse

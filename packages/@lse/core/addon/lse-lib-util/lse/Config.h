@@ -46,11 +46,9 @@ constexpr bool kEnablePluginAudioRef
 
 constexpr const char* kPluginPlatformSdl = "plugin:sdl";
 constexpr const char* kPluginPlatformRef = "plugin:ref";
-
 constexpr const char* kPluginAudioSdlAudio = "plugin:sdl-audio";
 constexpr const char* kPluginAudioSdlMixer = "plugin:sdl-mixer";
 constexpr const char* kPluginRefAudio = "plugin:ref-audio";
-
 constexpr const char* kPluginNull = "plugin:null";
 
 constexpr const char* kDefaultRuntimeFrameworkPath = "/Library/Frameworks";

@@ -10,7 +10,6 @@
 #include <lse/SceneNode.h>
 
 using Napi::AssignFunctionReference;
-using Napi::Call;
 using Napi::Env;
 using Napi::Error;
 using Napi::HandleScope;

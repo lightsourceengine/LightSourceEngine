@@ -8,8 +8,9 @@ import { Key } from './Key.js'
 import { checkInstanceOfMapping, createEmptyGameControllerCsv } from './Mapping.js'
 import { Direction } from './Direction.js'
 import { Keyboard } from './Keyboard.js'
+import { Gamepad } from './Gamepad.js'
 import { eventCapturePhase } from '../event/eventCapturePhase.js'
-import { emptyArray, EventEmitter, now } from '../util/index.js'
+import { EventEmitter, now } from '../util/index.js'
 import { promises } from 'fs'
 import {
   AttachedEvent,
@@ -38,6 +39,7 @@ export class InputManager {
   _isEnabled = true
   _isAttached = false
   _keyboard = new Keyboard()
+  _gamepads = new Map()
   _plugin = null
   _gamepadMappings = new Map()
   _navigationMapping = new Map()
@@ -120,7 +122,7 @@ export class InputManager {
    * @returns {Gamepad[]}
    */
   get gamepads () {
-    return this._plugin?.getGamepads() ?? emptyArray
+    return Array.from(this._gamepads.values())
   }
 
   /**
@@ -285,6 +287,7 @@ export class InputManager {
    */
   $setPlugin (plugin) {
     this._plugin = plugin
+    this._keyboard.$setApi(plugin)
   }
 
   /**
@@ -295,25 +298,28 @@ export class InputManager {
       return
     }
 
-    const plugin = this._plugin
+    const { _plugin, _intrinsicMappingDb, _gamepadMappings, _gamepads, _isEnabled, _emitter } = this
 
-    if (this._intrinsicMappingDb) {
-      plugin.loadGameControllerMappings(this._intrinsicMappingDb)
+    if (_intrinsicMappingDb) {
+      _plugin.loadGameControllerMappings(_intrinsicMappingDb)
     }
 
-    this._gamepadMappings.forEach(({ intrinsicMapping }) => plugin.loadGameControllerMappings(intrinsicMapping))
+    _gamepadMappings.forEach(({ intrinsicMapping }) => _plugin.loadGameControllerMappings(intrinsicMapping))
 
-    if (this._isEnabled) {
+    _gamepads.clear()
+
+    for (const id of _plugin.getGamepadInstanceIds()) {
+      _gamepads.set(id, new Gamepad(id, _plugin))
+    }
+
+    if (_isEnabled) {
       this._registerCallbacks()
-    } else {
-      plugin.resetCallbacks()
     }
 
-    this._keyboard.$setNative(plugin.getKeyboard())
     this.lastActivity = now()
     this._isAttached = true
 
-    this._emitter.emitEvent(AttachedEvent(this))
+    _emitter.emitEvent(AttachedEvent(this))
   }
 
   /**
@@ -324,18 +330,21 @@ export class InputManager {
       return
     }
 
-    this._keyboard.$setNative(null)
-    this._plugin.resetCallbacks()
+    const { _keyboard, _gamepads, _plugin, _emitter } = this
+
+    _keyboard.$setApi(null)
+    _gamepads.forEach(gamepad => { gamepad.$connected = false })
+    _gamepads.clear()
+    _plugin.resetCallbacks()
     this._isAttached = false
 
-    this._emitter.emitEvent(DetachedEvent(this))
+    _emitter.emitEvent(DetachedEvent(this))
   }
 
   /**
    * @ignore
    */
   $destroy () {
-    // TODO: don't call detach
     this.$detach()
   }
 
@@ -343,61 +352,72 @@ export class InputManager {
    * @ignore
    */
   _registerCallbacks () {
-    const plugin = this._plugin
+    const { _plugin } = this
 
-    plugin.setCallback('gamepad:status', (gamepad, connected) => {
+    _plugin.onGamepadStatus = (id, connected) => {
       this.lastActivity = now()
 
-      const eventType = connected ? GamepadConnectedEvent : GamepadDisconnectedEvent
-      this._emitter.emitEvent(eventType(this, gamepad))
-    })
+      const { _gamepads, _emitter } = this
+      let Event
+      let gamepad
 
-    plugin.setCallback('gamepad:button-mapped', (device, button, pressed) => {
-      this.lastActivity = now()
-
-      if (pressed) {
-        this._sendKeyDown(device, button, false)
-      } else {
-        this._sendKeyUp(device, button)
+      if (connected) {
+        gamepad = new Gamepad(id, _plugin)
+        _gamepads.set(id, gamepad)
+        Event = GamepadConnectedEvent
+      } else if (_gamepads.has(id)) {
+        gamepad = _gamepads.get(id)
+        gamepad.$connected = false
+        Event = GamepadDisconnectedEvent
       }
-    })
 
-    plugin.setCallback('gamepad:axis-mapped', (device, axis, value) => {
+      Event && _emitter.emitEvent(Event(this, gamepad))
+    }
+
+    _plugin.onKeyboardScanCode = (button, pressed, repeat) => {
       this.lastActivity = now()
-      this._emitter.emitEvent(AnalogMotionEvent(device, axis, value))
-    })
+      const { _keyboard } = this
 
-    plugin.setCallback('keyboard:button', (device, button, pressed, repeat) => {
-      this.lastActivity = now()
-      device = this._keyboard
+      this._emitter.emitEvent(pressed ? RawKeyDownEvent(this, _keyboard, button, repeat) : RawKeyUpEvent(this, _keyboard, button))
 
-      this._emitter.emitEvent(pressed ? RawKeyDownEvent(this, device, button, repeat) : RawKeyUpEvent(this, device, button))
-
-      const key = this._keyboard._mapping.getKeyForButton(button)
+      const key = _keyboard._mapping.getKeyForButton(button)
 
       if (key >= 0) {
         if (pressed) {
-          this._sendKeyDown(device, key, repeat)
+          this._sendKeyDown(_keyboard, key, repeat)
         } else {
-          this._sendKeyUp(device, key)
+          this._sendKeyUp(_keyboard, key)
         }
       }
-    })
+    }
 
-    plugin.setCallback('gamepad:button', (device, button, pressed) => {
+    _plugin.onGamepadButton = (id, button, pressed) => {
       this.lastActivity = now()
-      this._emitter.emitEvent(pressed ? RawButtonDownEvent(this, device, button, false) : RawButtonUpEvent(this, device, button))
-    })
 
-    plugin.setCallback('gamepad:hat', (device, hat, value) => {
-      this.lastActivity = now()
-      this._emitter.emitEvent(RawHatMotionEvent(this, device, hat, value))
-    })
+      const gamepad = this._gamepads.get(id)
 
-    plugin.setCallback('gamepad:axis', (device, axis, value) => {
+      this._emitter.emitEvent(pressed ? RawButtonDownEvent(this, gamepad, button, false) : RawButtonUpEvent(this, gamepad, button))
+    }
+
+    _plugin.onGamepadButtonMapped = (id, button, pressed) => {
       this.lastActivity = now()
-      this._emitter.emitEvent(RawAxisMotionEvent(this, device, axis, value))
-    })
+
+      const gamepad = this._gamepads.get(id)
+
+      pressed ? this._sendKeyDown(gamepad, button, false) : this._sendKeyUp(gamepad, button)
+    }
+
+    const createAxisLikeCallback = (eventType) => {
+      const self = this
+      return (id, axisId, value) => {
+        this.lastActivity = now()
+        self._emitter.emitEvent(eventType(self, self._gamepads.get(id), axisId, value))
+      }
+    }
+
+    _plugin.onGamepadHat = createAxisLikeCallback(RawHatMotionEvent)
+    _plugin.onGamepadAxis = createAxisLikeCallback(RawAxisMotionEvent)
+    _plugin.onGamepadAxisMapped = createAxisLikeCallback(AnalogMotionEvent)
   }
 
   /**

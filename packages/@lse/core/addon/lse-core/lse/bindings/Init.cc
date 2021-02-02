@@ -14,6 +14,7 @@
 #include <lse/TextSceneNode.h>
 #include <lse/System.h>
 #include <lse/Log.h>
+#include <lse/RefGraphicsContextImpl.h>
 #include <lse/bindings/Bindings.h>
 #include <lse/bindings/JSEnums.h>
 #include <lse/bindings/JSScene.h>
@@ -59,11 +60,11 @@ Object Init(Env env, Object exports) {
 
   Event::subscribe(lse::SceneNode::YogaNodeLayoutEvent);
 
-  ExportClass(exports, lse::bindings::NewLogLevelClass(env));
-  ExportClass(exports, lse::bindings::NewStyleTransformClass(env));
-  ExportClass(exports, lse::bindings::NewStyleUnitClass(env));
-  ExportClass(exports, lse::bindings::NewStyleAnchorClass(env));
-  ExportClass(exports, lse::bindings::NewPluginIdClass(env));
+  exports["LogLevel"] = lse::bindings::NewLogLevelEnum(env);
+  exports["StyleTransform"] = lse::bindings::NewStyleTransformEnum(env);
+  exports["StyleUnit"] = lse::bindings::NewStyleUnitEnum(env);
+  exports["StyleAnchor"] = lse::bindings::NewStyleAnchorEnum(env);
+  exports["PluginId"] = lse::bindings::NewPluginIdEnum(env);
 
   ExportClass(exports, lse::bindings::JSStage::GetClass(env));
   ExportClass(exports, lse::bindings::JSScene::GetClass(env));
@@ -82,7 +83,13 @@ Object Init(Env env, Object exports) {
   ExportFunction(exports, Function::New(env, &lse::bindings::LoadPluginById, "loadPluginById"));
   ExportFunction(exports, Function::New(env, &lse::SceneNode::GetInstanceCount, "getSceneNodeInstanceCount"));
 
-  exports["logger"] = lse::bindings::NewLoggerClass(env);
+  // TODO: temporary patch to get ref plugin working with new plugin strategy
+  auto createRefGraphicsContext = [](const Napi::CallbackInfo& info) -> Napi::Value {
+    return lse::GraphicsContext::Create<lse::RefGraphicsContextImpl>(info.Env(), info[0]);
+  };
+  ExportFunction(exports, Function::New(env, createRefGraphicsContext, "createRefGraphicsContext"));
+
+  exports["logger"] = lse::bindings::NewLoggerObject(env);
   exports["styleProperties"] = lse::bindings::GetStyleProperties(env);
 
 #if defined(LSE_ENABLE_NATIVE_TESTS)

@@ -5,7 +5,7 @@
  */
 
 import { Scene } from '../scene/Scene.js'
-import { addonError, loadPluginById, logger, PluginId, StageBase } from '../addon/index.js'
+import { logger, PluginId, StageBase } from '../addon/index.js'
 import { InputManager } from '../input/InputManager.js'
 import { AudioManager } from '../audio/AudioManager.js'
 import { isNumber, logexcept, EventEmitter, now, isPlainObject } from '../util/index.js'
@@ -21,6 +21,7 @@ import {
 } from '../event/index.js'
 import { readFileSync } from 'fs'
 import { SystemManager } from '../system/SystemManager.js'
+import { loadPlugin } from '../addon/loadPlugin.js'
 
 const kFlagWasQuitRequested = 1
 const kFlagIsAttached = 2
@@ -43,15 +44,18 @@ export class Stage extends StageBase {
   _mainLoopHandle = null
   _frameRate = 0
 
-  constructor (loadPluginByIdFunc = loadPluginById) {
+  constructor (loadPluginFunc = loadPlugin) {
     super()
-    // injected for testability
-    this._loadPluginById = loadPluginByIdFunc
+
+    // loadPlugin injectable for testability
+    this._loadPlugin = loadPluginFunc
+
     Object.defineProperties(this, {
       input: { value: new InputManager(this) },
       audio: { value: new AudioManager(this) },
       system: { value: new SystemManager() }
     })
+
     this.resetFrameRate()
   }
 
@@ -68,10 +72,6 @@ export class Stage extends StageBase {
   }
 
   configure (appConfig = undefined) {
-    if (addonError) {
-      throw Error(`Failed to load lse-core.node: ${addonError.message}`)
-    }
-
     if (this.isConfigured()) {
       throw Error('stage can only be configured once')
     }
@@ -337,7 +337,7 @@ export class Stage extends StageBase {
         return
       }
 
-      const plugin = this._loadPluginById(pluginConfig.id, pluginConfig.options)
+      const plugin = this._loadPlugin(pluginConfig.id, pluginConfig.options)
       const { type } = plugin
 
       if (this._plugins.has(type)) {

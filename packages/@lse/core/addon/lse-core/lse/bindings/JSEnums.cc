@@ -8,59 +8,64 @@
 #include <lse/StyleEnums.h>
 #include <lse/bindings/JSEnums.h>
 #include <lse/Config.h>
+#include <ObjectBuilder.h>
 
-using Napi::ClassBuilder;
+using Napi::ObjectBuilder;
 
 namespace lse {
 namespace bindings {
 
-Napi::Function NewStyleUnitClass(Napi::Env env) {
-  return ClassBuilder(env, "StyleUnit")
-      .WithStaticValue("Undefined", StyleNumberUnitUndefined)
-      .WithStaticValue("Point", StyleNumberUnitPoint)
-      .WithStaticValue("Percent", StyleNumberUnitPercent)
-      .WithStaticValue("ViewportWidth", StyleNumberUnitViewportWidth)
-      .WithStaticValue("ViewportHeight", StyleNumberUnitViewportHeight)
-      .WithStaticValue("ViewportMin", StyleNumberUnitViewportMin)
-      .WithStaticValue("ViewportMax", StyleNumberUnitViewportMax)
-      .WithStaticValue("Auto", StyleNumberUnitAuto)
-      .WithStaticValue("Anchor", StyleNumberUnitAnchor)
-      .WithStaticValue("RootEm", StyleNumberUnitRootEm)
-      .WithStaticValue("Radian", StyleNumberUnitRadian)
-      .WithStaticValue("Degree", StyleNumberUnitDegree)
-      .WithStaticValue("Gradian", StyleNumberUnitGradian)
-      .WithStaticValue("Turn", StyleNumberUnitTurn)
-      .ToConstructor();
+Napi::Object NewStyleUnitEnum(Napi::Env env) {
+  return ObjectBuilder(env)
+      .WithValue("Undefined", StyleNumberUnitUndefined)
+      .WithValue("Point", StyleNumberUnitPoint)
+      .WithValue("Percent", StyleNumberUnitPercent)
+      .WithValue("ViewportWidth", StyleNumberUnitViewportWidth)
+      .WithValue("ViewportHeight", StyleNumberUnitViewportHeight)
+      .WithValue("ViewportMin", StyleNumberUnitViewportMin)
+      .WithValue("ViewportMax", StyleNumberUnitViewportMax)
+      .WithValue("Auto", StyleNumberUnitAuto)
+      .WithValue("Anchor", StyleNumberUnitAnchor)
+      .WithValue("RootEm", StyleNumberUnitRootEm)
+      .WithValue("Radian", StyleNumberUnitRadian)
+      .WithValue("Degree", StyleNumberUnitDegree)
+      .WithValue("Gradian", StyleNumberUnitGradian)
+      .WithValue("Turn", StyleNumberUnitTurn)
+      .Freeze()
+      .ToObject();
 }
 
-Napi::Function NewStyleTransformClass(Napi::Env env) {
-  return ClassBuilder(env, "StyleTransform")
-      .WithStaticValue("Identity", StyleTransformIdentity)
-      .WithStaticValue("Translate", StyleTransformTranslate)
-      .WithStaticValue("Rotate", StyleTransformRotate)
-      .WithStaticValue("Scale", StyleTransformScale)
-      .ToConstructor();
+Napi::Object NewStyleTransformEnum(Napi::Env env) {
+  return ObjectBuilder(env)
+      .WithValue("Identity", StyleTransformIdentity)
+      .WithValue("Translate", StyleTransformTranslate)
+      .WithValue("Rotate", StyleTransformRotate)
+      .WithValue("Scale", StyleTransformScale)
+      .Freeze()
+      .ToObject();
 }
 
-Napi::Function NewStyleAnchorClass(Napi::Env env) {
-  return ClassBuilder(env, "StyleAnchor")
-      .WithStaticValue("Left", StyleAnchorLeft)
-      .WithStaticValue("Right", StyleAnchorRight)
-      .WithStaticValue("Center", StyleAnchorCenter)
-      .WithStaticValue("Top", StyleAnchorTop)
-      .WithStaticValue("Bottom", StyleAnchorBottom)
-      .ToConstructor();
+Napi::Object NewStyleAnchorEnum(Napi::Env env) {
+  return ObjectBuilder(env)
+      .WithValue("Left", StyleAnchorLeft)
+      .WithValue("Right", StyleAnchorRight)
+      .WithValue("Center", StyleAnchorCenter)
+      .WithValue("Top", StyleAnchorTop)
+      .WithValue("Bottom", StyleAnchorBottom)
+      .Freeze()
+      .ToObject();
 }
 
-Napi::Function NewPluginIdClass(Napi::Env env) {
-  return ClassBuilder(env, "PluginId")
-      .WithStaticValue("SDL", kPluginPlatformSdl)
-      .WithStaticValue("REF", kPluginPlatformRef)
-      .WithStaticValue("SDL_AUDIO", kPluginAudioSdlAudio)
-      .WithStaticValue("SDL_MIXER", kPluginAudioSdlMixer)
-      .WithStaticValue("REF_AUDIO", kPluginRefAudio)
-      .WithStaticValue("NULL", kPluginNull)
-      .ToConstructor();
+Napi::Object NewPluginIdEnum(Napi::Env env) {
+  return ObjectBuilder(env)
+      .WithValue("SDL", kPluginPlatformSdl)
+      .WithValue("REF", kPluginPlatformRef)
+      .WithValue("SDL_AUDIO", kPluginAudioSdlAudio)
+      .WithValue("SDL_MIXER", kPluginAudioSdlMixer)
+      .WithValue("REF_AUDIO", kPluginRefAudio)
+      .WithValue("NULL", kPluginNull)
+      .Freeze()
+      .ToObject();
 }
 
 } // namespace bindings

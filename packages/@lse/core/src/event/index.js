@@ -163,9 +163,10 @@ class RawAxisEvent extends Event {
 }
 
 class AnalogEvent extends Event {
-  constructor ($type, target, analogKey, value) {
+  constructor ($type, target, device, analogKey, value) {
     super($type, target)
 
+    this.device = device
     this.analogKey = analogKey
     this.value = value
     this._state = 0
@@ -216,4 +217,4 @@ export const KeyUpEvent =
 export const KeyDownEvent =
   (target, key, repeat) => new KeyEvent(EventSymbols.keydown, target, key, true, repeat)
 export const AnalogMotionEvent =
-  (target, axis, value) => new AnalogEvent(EventSymbols.analogmotion, target, axis, value)
+  (target, device, axis, value) => new AnalogEvent(EventSymbols.analogmotion, target, device, axis, value)

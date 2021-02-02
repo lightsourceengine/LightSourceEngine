@@ -16,7 +16,7 @@ using Napi::Error;
 using Napi::EscapableHandleScope;
 using Napi::Function;
 using Napi::HandleScope;
-using Napi::NewStringArray;
+using Napi::ToArray;
 using Napi::Number;
 using Napi::Value;
 
@@ -49,7 +49,9 @@ class RefAudioDestinationImpl final : public AudioDestinationInterface {
   Napi::Value HasCapability(const CallbackInfo& info) override { return Boolean::New(info.Env(), true); }
   Napi::Value GetVolume(const CallbackInfo& info) override { return Number::New(info.Env(), 0); }
   void Destroy(const CallbackInfo& info) override {}
-  Value GetDecoders(const CallbackInfo& info) override { return NewStringArray(info.Env(), this->decoders); }
+  Value GetDecoders(const CallbackInfo& info) override {
+    return ToArray<Napi::String>(info.Env(), this->decoders);
+  }
   void Resume(const CallbackInfo& info) override {}
   void Pause(const CallbackInfo& info) override {}
   void Stop(const CallbackInfo& info) override {}
@@ -81,7 +83,7 @@ Value RefAudioPluginImpl::IsAttached(const CallbackInfo& info) {
 }
 
 Value RefAudioPluginImpl::GetAudioDevices(const CallbackInfo& info) {
-  return NewStringArray(info.Env(), this->audioDevices);
+  return ToArray<Napi::String>(info.Env(), this->audioDevices);
 }
 
 Value RefAudioPluginImpl::CreateSampleAudioDestination(const CallbackInfo& info) {

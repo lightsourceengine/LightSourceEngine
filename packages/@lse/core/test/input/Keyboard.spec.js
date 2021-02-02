@@ -21,8 +21,8 @@ describe('Keyboard', () => {
   beforeEach(() => {
     state.clear()
     keyboard = new Keyboard()
-    keyboard.$setNative({
-      isButtonDown (scanCode) {
+    keyboard.$setApi({
+      getScanCodeState (scanCode) {
         return state.get(scanCode) ?? false
       }
     })

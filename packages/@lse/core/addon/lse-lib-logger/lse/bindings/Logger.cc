@@ -5,98 +5,95 @@
  */
 
 #include <lse/bindings/Logger.h>
+#include <ObjectBuilder.h>
 
 using Napi::CallbackInfo;
-using Napi::ClassBuilder;
 using Napi::Error;
 using Napi::Function;
 using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Number;
+using Napi::Object;
+using Napi::ObjectBuilder;
 using Napi::String;
 using Napi::Value;
+using lse::internal::LogCustomSite;
 
 namespace lse {
 namespace bindings {
 
-Function NewLoggerClass(Napi::Env env) {
-  return ClassBuilder(env, "Logger")
-      .WithStaticMethod("info", &Logger::LogInfo)
-      .WithStaticMethod("warn", &Logger::LogWarn)
-      .WithStaticMethod("debug", &Logger::LogDebug)
-      .WithStaticMethod("error", &Logger::LogError)
-      .WithStaticMethod("getLogLevel", &Logger::GetLogLevel)
-      .WithStaticMethod("setLogLevel", &Logger::SetLogLevel)
-      .ToConstructor();
-}
+static void Log(LogLevel logLevel, napi_env env, napi_callback_info info);
 
-Function NewLogLevelClass(Napi::Env env) {
-  return ClassBuilder(env, "LogLevel")
-      .WithStaticValue("OFF", lse::LogLevel::LogLevelOff)
-      .WithStaticValue("ERROR", lse::LogLevel::LogLevelError)
-      .WithStaticValue("WARN", lse::LogLevel::LogLevelWarn)
-      .WithStaticValue("INFO", lse::LogLevel::LogLevelInfo)
-      .WithStaticValue("DEBUG", lse::LogLevel::LogLevelDebug)
-      .WithStaticValue("ALL", lse::LogLevel::LogLevelAll)
-      .ToConstructor();
-}
-
-void Logger::LogInfo(const Napi::CallbackInfo& info) {
+static napi_value LogInfo(napi_env env, napi_callback_info info) {
   if (lse::GetLogLevel() >= LogLevelInfo) {
-    Log(LogLevelInfo, info);
+    Log(LogLevelInfo, env, info);
   }
+  return {};
 }
 
-void Logger::LogError(const Napi::CallbackInfo& info) {
+static napi_value LogError(napi_env env, napi_callback_info info) {
   if (lse::GetLogLevel() >= LogLevelError) {
-    Log(LogLevelError, info);
+    Log(LogLevelError, env, info);
   }
+  return {};
 }
 
-void Logger::LogDebug(const Napi::CallbackInfo& info) {
+static napi_value LogDebug(napi_env env, napi_callback_info info) {
   if (lse::GetLogLevel() >= LogLevelDebug) {
-    Log(LogLevelDebug, info);
+    Log(LogLevelDebug, env, info);
   }
+  return {};
 }
 
-void Logger::LogWarn(const Napi::CallbackInfo& info) {
+static napi_value LogWarn(napi_env env, napi_callback_info info) {
   if (lse::GetLogLevel() >= LogLevelWarn) {
-    Log(LogLevelWarn, info);
+    Log(LogLevelWarn, env, info);
   }
+  return {};
 }
 
-void Logger::Log(LogLevel logLevel, const CallbackInfo& info) {
-  auto env{ info.Env() };
-  HandleScope scope(env);
+static void Log(LogLevel logLevel, napi_env env, napi_callback_info info) {
+  constexpr auto siteBufferSize = 32;
+  constexpr auto messageBufferSize = 1024;
 
-  std::string site;
-  std::string message;
+  static char siteBuffer[siteBufferSize];
+  static char messageBuffer[messageBufferSize];
 
-  switch (info.Length()) {
-    case 2:
-      message = info[0].ToString();
-      site = info[1].As<String>();
+  Napi::CallbackInfo ci(env, info);
+
+  switch (ci.Length()) {
+    case 2: {
+      auto site = Napi::StringByteLength(ci[1]) < siteBufferSize ?
+          Napi::CopyUtf8(ci[1], siteBuffer, siteBufferSize) : "js";
+
+      if (Napi::StringByteLength(ci[0]) < messageBufferSize) {
+        LogCustomSite(logLevel, site, Napi::CopyUtf8(ci[0], messageBuffer, messageBufferSize));
+      } else {
+        LogCustomSite(logLevel, site, ci[0].IsString() ? ci[0].As<Napi::String>().Utf8Value().c_str() : nullptr);
+      }
+    }
       break;
     case 1:
-    default:
-      if (info.Length() > 0) {
-        message = info[0].ToString();
+      if (Napi::StringByteLength(ci[0]) < messageBufferSize) {
+        LogCustomSite(logLevel, "js", Napi::CopyUtf8(ci[0], messageBuffer, messageBufferSize));
+      } else {
+        LogCustomSite(logLevel, "js", ci[0].IsString() ? ci[0].As<Napi::String>().Utf8Value().c_str() : nullptr);
       }
       break;
+    case 0:
+      internal::LogCustomSite(logLevel, "js", nullptr);
+      break;
+    default:
+      break;
   }
-
-  internal::LogCustomSite(logLevel, site.empty() ? "js" : site.c_str(), message.c_str());
 }
 
-void Logger::Close(const CallbackInfo& info) {
+static napi_value GetLogLevel(napi_env env, napi_callback_info info) {
+  return Number::New(env, lse::GetLogLevel());
 }
 
-Value Logger::GetLogLevel(const CallbackInfo& info) {
-  return Number::New(info.Env(), lse::GetLogLevel());
-}
-
-void Logger::SetLogLevel(const CallbackInfo& info) {
-  auto env{ info.Env() };
+static napi_value SetLogLevel(napi_env env, napi_callback_info callback_info) {
+  Napi::CallbackInfo info(env, callback_info);
 
   switch (info[0].Type()) {
     case napi_number: {
@@ -122,38 +119,64 @@ void Logger::SetLogLevel(const CallbackInfo& info) {
     default:
       throw Error::New(env, "LogLevel must be a string or integer.");
   }
+
+  return {};
 }
 
-Value Logger::GetSink(const CallbackInfo& info) {
-  auto sink{ GetLogSink() };
+//Value Logger::GetSink(const CallbackInfo& info) {
+//  auto sink{ GetLogSink() };
+//
+//  if (sink == stdout) {
+//    return String::New(info.Env(), "stdout");
+//  } else {
+//    return info.Env().Null();
+//  }
+//}
+//
+//void Logger::SetSink(const CallbackInfo& info) {
+//  auto env{ info.Env() };
+//  // TODO: use optional
+//  FILE* sink{ stderr };
+//
+//  if (info[0].IsString()) {
+//    auto path{ info[0].As<String>().Utf8Value() };
+//
+//    if (path == "stdout") {
+//      sink = stdout;
+//    }
+//  } else if (info[0].IsNull()) {
+//    sink = nullptr;
+//  }
+//
+//  if (sink == stderr) {
+//    throw Error::New(env, "stdout or null is the only supported log sink");
+//  }
+//
+//  lse::SetLogSink(nullptr);
+//}
 
-  if (sink == stdout) {
-    return String::New(info.Env(), "stdout");
-  } else {
-    return info.Env().Null();
-  }
+Object NewLoggerObject(Napi::Env env) {
+  return ObjectBuilder(env)
+      .WithMethod("info", &LogInfo)
+      .WithMethod("warn", &LogWarn)
+      .WithMethod("debug", &LogDebug)
+      .WithMethod("error", &LogError)
+      .WithMethod("getLogLevel", &GetLogLevel)
+      .WithMethod("setLogLevel", &SetLogLevel)
+      .Freeze()
+      .ToObject();
 }
 
-void Logger::SetSink(const CallbackInfo& info) {
-  auto env{ info.Env() };
-  // TODO: use optional
-  FILE* sink{ stderr };
-
-  if (info[0].IsString()) {
-    auto path{ info[0].As<String>().Utf8Value() };
-
-    if (path == "stdout") {
-      sink = stdout;
-    }
-  } else if (info[0].IsNull()) {
-    sink = nullptr;
-  }
-
-  if (sink == stderr) {
-    throw Error::New(env, "stdout or null is the only supported log sink");
-  }
-
-  lse::SetLogSink(nullptr);
+Object NewLogLevelEnum(Napi::Env env) {
+  return ObjectBuilder(env)
+      .WithValue("OFF", lse::LogLevel::LogLevelOff)
+      .WithValue("ERROR", lse::LogLevel::LogLevelError)
+      .WithValue("WARN", lse::LogLevel::LogLevelWarn)
+      .WithValue("INFO", lse::LogLevel::LogLevelInfo)
+      .WithValue("DEBUG", lse::LogLevel::LogLevelDebug)
+      .WithValue("ALL", lse::LogLevel::LogLevelAll)
+      .Freeze()
+      .ToObject();
 }
 
 } // namespace bindings

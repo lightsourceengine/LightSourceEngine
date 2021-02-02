@@ -17,26 +17,30 @@ import { Key } from '../../src/input/Key.js'
 
 const { assert } = chai
 
-const createMockStage = () => {
-  const scene = {
-    $emit: sinon.stub()
-  }
+const uuid = ''.padStart(32, '1')
 
+const callbackProperties = [
+  'onKeyboardScanCode',
+  'onGamepadStatus',
+  'onGamepadAxis',
+  'onGamepadHat',
+  'onGamepadButton',
+  'onGamepadButtonMapped',
+  'onGamepadAxisMapped'
+]
+
+const createMockStage = () => {
   const plugin = {
     keyboard: {},
     gamepads: [],
-    callbacks: new Map(),
-    getKeyboard () {
-      return this.keyboard
+    getGamepadInstanceIds () {
+      return []
     },
-    getGamepads () {
-      return this.gamepads
-    },
-    setCallback (type, callback) {
-      this.callbacks.set(type, callback)
+    getGamepadInfo (id) {
+      return { id }
     },
     resetCallbacks () {
-      this.callbacks.clear()
+      callbackProperties.forEach(callbackProperty => { this[callbackProperty] = null })
     },
     loadGameControllerMappings (file) {
       try {
@@ -48,28 +52,30 @@ const createMockStage = () => {
     },
     getGameControllerMapping (uuid) {
       return null
+    },
+    testAddGamepad (instanceId) {
+      this.onGamepadStatus(instanceId, true)
     }
   }
 
   return {
     plugin,
-    scene,
+    scene: {
+      $emit: sinon.stub()
+    },
     $emit: sinon.stub(),
-    getScene () {
-      return scene
+    getScene (displayId) {
+      return this.scene
     }
   }
 }
+
 const assertCallbacksRegistered = (plugin) => {
-  assert.containsAllKeys(plugin.callbacks, [
-    'keyboard:button',
-    'gamepad:status',
-    'gamepad:axis',
-    'gamepad:hat',
-    'gamepad:button',
-    'gamepad:button-mapped',
-    'gamepad:axis-mapped'
-  ])
+  callbackProperties.forEach(prop => assert.isFunction(plugin[prop]))
+}
+
+const assertCallbacksUnregistered = (plugin) => {
+  callbackProperties.forEach(prop => assert.isNull(plugin[prop]))
 }
 
 describe('InputManager', () => {
@@ -98,7 +104,7 @@ describe('InputManager', () => {
       inputManager.$detach()
       assert.isTrue(inputManager.isEnabled())
       assert.isOk(inputManager.keyboard)
-      assert.lengthOf(stage.plugin.callbacks, 0)
+      assertCallbacksUnregistered(stage.plugin)
     })
   })
   describe('keyboard', () => {
@@ -107,9 +113,9 @@ describe('InputManager', () => {
     })
   })
   describe('gamepads', () => {
-    it('should return gamepads retrieved from adapter', () => {
+    it('should return connected gamepads', () => {
       assert.lengthOf(inputManager.gamepads, 0)
-      stage.plugin.gamepads = [{}]
+      stage.plugin.testAddGamepad(1)
       assert.lengthOf(inputManager.gamepads, 1)
     })
   })
@@ -197,74 +203,73 @@ describe('InputManager', () => {
     })
   })
   describe('rawaxismotion event', () => {
-    it('should emit rawaxismotion event on gamepad:axis plugin event', () => {
-      testEventTriggeredByPluginCallback(EventNames.rawaxismotion, 'gamepad:axis', [{}, 0, 1])
+    it('should emit rawaxismotion event for onGamepadAxis plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventNames.rawaxismotion, 'onGamepadAxis', [0, 0, 1])
     })
   })
   describe('rawbuttondown event', () => {
-    it('should emit rawbuttondown event on gamepad:button plugin event', () => {
-      testEventTriggeredByPluginCallback(EventNames.rawbuttondown, 'gamepad:button', [{}, 0, 1])
+    it('should emit rawbuttondown event for onGamepadButton plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventNames.rawbuttondown, 'onGamepadButton', [0, 0, 1])
     })
   })
   describe('rawbuttonup event', () => {
-    it('should emit rawbuttonup event on gamepad:button plugin event', () => {
-      testEventTriggeredByPluginCallback(EventNames.rawbuttonup, 'gamepad:button', [{}, 0, 0])
+    it('should emit rawbuttonup event for onGamepadButton plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventNames.rawbuttonup, 'onGamepadButton', [0, 0, 0])
     })
   })
   describe('rawhatmotion event', () => {
-    it('should emit rawhatmotion event on gamepad:hat plugin event', () => {
-      testEventTriggeredByPluginCallback(EventNames.rawhatmotion, 'gamepad:hat', [{}, 0, 1])
+    it('should emit rawhatmotion event for onGamepadHat plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventNames.rawhatmotion, 'onGamepadHat', [0, 0, 1])
     })
   })
   describe('rawkeyup event', () => {
-    it('should emit rawkeyup event on keyboard:button plugin event', () => {
-      testEventTriggeredByPluginCallback(EventNames.rawkeyup, 'keyboard:button', [{}, 0, 0, 0])
+    it('should emit rawkeyup event for onKeyboardScanCode plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventNames.rawkeyup, 'onKeyboardScanCode', [0, 0, 0])
     })
   })
   describe('rawkeydown callback', () => {
-    it('should emit rawkeydown event on keyboard:button plugin event', () => {
-      testEventTriggeredByPluginCallback(EventNames.rawkeydown, 'keyboard:button', [{}, 0, 1, 0])
+    it('should emit rawkeydown event for onKeyboardScanCode plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventNames.rawkeydown, 'onKeyboardScanCode', [0, 1, 0])
     })
   })
   describe('connected event', () => {
-    it('should emit connected event on gamepad:status plugin event', () => {
-      testEventTriggeredByPluginCallback(EventNames.connected, 'gamepad:status', [{}, true])
+    it('should emit connected event for onGamepadStatus plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventNames.connected, 'onGamepadStatus', [0, true])
     })
   })
   describe('disconnected event', () => {
-    it('should emit disconnected event on gamepad:status plugin event', () => {
-      testEventTriggeredByPluginCallback(EventNames.disconnected, 'gamepad:status', [{}, false])
+    it('should emit disconnected event for onGamepadStatus plugin callback', () => {
+      stage.plugin.testAddGamepad(1)
+      testEventTriggeredByPluginCallback(EventNames.disconnected, 'onGamepadStatus', [1, false])
     })
   })
   describe('keyup event', () => {
-    it('should emit keyup event on gamepad:button-mapped plugin event', () => {
-      testEventTriggeredByPluginCallback(EventNames.keyup, 'gamepad:button-mapped', [{}, 0, 0])
+    it('should emit keyup event for onGamepadButtonMapped plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventNames.keyup, 'onGamepadButtonMapped', [0, 0, 0])
     })
-    it('should emit keyup event on keyboard:button plugin event', () => {
-      testEventTriggeredByPluginCallback(EventNames.keyup, 'keyboard:button', [{}, ScanCode.Z, 0, 0])
+    it('should emit keyup event for onKeyboardScanCode plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventNames.keyup, 'onKeyboardScanCode', [ScanCode.Z, 0, 0])
     })
   })
   describe('keydown event', () => {
-    it('should emit keydown event on gamepad:button-mapped plugin event', () => {
-      testEventTriggeredByPluginCallback(EventNames.keydown, 'gamepad:button-mapped', [{}, 0, 1, 0])
+    it('should emit keydown event for onGamepadButtonMapped plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventNames.keydown, 'onGamepadButtonMapped', [0, 0, 1, 0])
     })
-    it('should emit keydown event on keyboard:button plugin event', () => {
-      testEventTriggeredByPluginCallback(EventNames.keydown, 'keyboard:button', [{}, ScanCode.Z, 1, 0])
+    it('should emit keydown event for onKeyboardScanCode plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventNames.keydown, 'onKeyboardScanCode', [ScanCode.Z, 1, 0])
     })
   })
   describe('analogmotion event', () => {
-    it('should emit analogmotion event on gamepad:hat plugin event', () => {
-      testEventTriggeredByPluginCallback(EventNames.analogmotion, 'gamepad:axis-mapped', [{}, 0, 1])
+    it('should emit analogmotion event for onGamepadAxisMapped plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventNames.analogmotion, 'onGamepadAxisMapped', [0, 0, 1])
     })
   })
-
-  const uuid = ''.padStart(32, '1')
 
   const testEventTriggeredByPluginCallback = (event, callbackId, callbackArgs) => {
     const callback = sinon.stub()
 
     inputManager.once(event, callback)
-    stage.plugin.callbacks.get(callbackId)(...callbackArgs)
+    stage.plugin[callbackId](...callbackArgs)
     assert.isTrue(callback.called)
   }
 })

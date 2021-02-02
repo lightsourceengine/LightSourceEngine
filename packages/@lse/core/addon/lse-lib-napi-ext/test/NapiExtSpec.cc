@@ -13,7 +13,7 @@ using Napi::Call;
 using Napi::Error;
 using Napi::Function;
 using Napi::FunctionReference;
-using Napi::NewStringArray;
+using Napi::ToArray;
 using Napi::Number;
 using Napi::RunScript;
 using Napi::String;
@@ -25,12 +25,12 @@ namespace lse {
 void NapiExtSpec(TestSuite* parent) {
   auto spec{ parent->Describe("napi-ext") };
 
-  spec->Describe("NewStringArray()")->tests = {
+  spec->Describe("ToArray()")->tests = {
       {
           "should create an Array from a list of strings",
           [](const TestInfo& info) {
             std::vector<std::string> strings{ "test1", "test2" };
-            auto array{ NewStringArray(info.Env(), strings) };
+            auto array{ ToArray<String>(info.Env(), strings) };
 
             Assert::Equal(array.Length(), static_cast<uint32_t>(strings.size()));
             Assert::Equal(array.Get(0u).As<String>().Utf8Value(), strings[0]);

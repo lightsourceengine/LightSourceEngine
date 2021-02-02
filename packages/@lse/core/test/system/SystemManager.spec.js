@@ -15,8 +15,8 @@ describe('SystemManager', () => {
   let plugin
   beforeEach(() => {
     plugin = {
-      capabilities: {
-        displays: [{
+      getDisplays () {
+        return [{
           id: 0,
           defaultMode: {
             width: 1920,
@@ -28,8 +28,10 @@ describe('SystemManager', () => {
               height: 1080
             }
           ]
-        }],
-        videoDrivers: ['test']
+        }]
+      },
+      getVideoDriverNames () {
+        return ['test']
       },
       createGraphicsContext (options) {
         return {}

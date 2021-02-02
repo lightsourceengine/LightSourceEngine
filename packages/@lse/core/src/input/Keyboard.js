@@ -9,6 +9,7 @@ import { Key } from './Key.js'
 import { AnalogKey } from './AnalogKey.js'
 import { ScanCode } from './ScanCode.js'
 import { kKeyboardUUID } from './InputCommon.js'
+import { InputDevice } from './InputDevice.js'
 
 const kDefaultKeyboardMapping = Mapping.forKeyboard([
   [Key.A, ScanCode.Z],
@@ -37,40 +38,15 @@ const kAnalogMaxValue = new Map([
 /**
  * Keyboard input device.
  */
-export class Keyboard {
-  _nativeKeyboard = null
-  _mapping = kDefaultKeyboardMapping
+export class Keyboard extends InputDevice {
+  _api
+  _mapping
 
-  /**
-   * @returns {string} an instance type of 'keyboard'
-   */
-  get type () {
-    return 'keyboard'
-  }
-
-  /**
-   * @returns {number} the internal, unique id of this keyboard.
-   */
-  get id () {
-    return 0
-  }
-
-  /**
-   * @returns {string} the UUID or class of device hardware
-   */
-  get uuid () {
-    return kKeyboardUUID
-  }
-
-  /**
-   * The UI displayable keyboard name.
-   *
-   * The default name is 'System Keyboard', but the name can be overridden by mapping.
-   *
-   * @returns {string} the keyboard name
-   */
-  get name () {
-    return this._mapping.name
+  constructor () {
+    super({ id: 0, type: 'keyboard', uuid: kKeyboardUUID })
+    this.$setApi(null)
+    this.$setMapping(kDefaultKeyboardMapping)
+    this.$connected = true
   }
 
   /**
@@ -82,43 +58,21 @@ export class Keyboard {
    * @returns {boolean} state of the button; true for pressed, false for not-pressed or invalid scanCode
    */
   getScanCodeState (scanCode) {
-    return this._nativeKeyboard?.isButtonDown(scanCode) ?? false
+    return this._api.getScanCodeState(scanCode)
   }
 
   /**
-   * Checks if a mapped key is currently pressed down.
-   *
-   * Note, the state of the keyboard is updated every frame. So, this method returns the state of key from the
-   * last time input events were processed (either last frame or beginning of current frame).
-   *
-   * @param key {Key} Mapped key.
-   * @returns {boolean} true if key is pressed; otherwise, false
+   * @override
    */
   isKeyDown (key) {
     return this.getScanCodeState(this._mapping.getValue(key).button)
   }
 
   /**
-   * Gets the value of a mapped analog input, such as a control stick or trigger.
-   *
-   * Keyboards do not typically have analog inputs, but this method is provided so the keyboard can function with
-   * the rest of the library as a gamepad.
-   *
-   * Note, the state of the keyboard is updated every frame. So, this method returns the state of analog input from the
-   * last time input events were processed (either last frame or beginning of current frame).
-   *
-   * @param analog {AnalogKey} Analog input key.
-   * @returns {number} value of the analog input
+   * @override
    */
   getAnalogValue (analog) {
     return this.getScanCodeState(this._mapping.getValue(analog).button) ? kAnalogMaxValue.get(analog) : 0
-  }
-
-  /**
-   * @ignore
-   */
-  $setNative (nativeKeyboard) {
-    this._nativeKeyboard = nativeKeyboard
   }
 
   /**
@@ -132,6 +86,14 @@ export class Keyboard {
     } else {
       this._mapping = kDefaultKeyboardMapping
     }
+    this._name = this._mapping.name
+  }
+
+  /**
+   * @ignore
+   */
+  $setApi (api) {
+    this._api = api || { getScanCodeState (value) { return false } }
   }
 }
 

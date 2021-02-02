@@ -69,8 +69,7 @@ DYNAMIC_FOR_EACH_MIX_FUNCTION(DYNAMIC_MIX_DECLARE_FUNCTION_PTR)
 
 #undef DYNAMIC_MIX_DECLARE_FUNCTION_PTR
 
-void Open(const char* library);
-bool IsOpen() noexcept;
+void Open();
 void Close() noexcept;
 
 } // namespace mixer

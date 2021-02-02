@@ -7,6 +7,10 @@
 
 #include <lse/SDL2_mixer.h>
 #include <lse/internal//SharedLibrary.h>
+#include <lse/Log.h>
+#include <lse/System.h>
+#include <lse/Config.h>
+#include <std17/filesystem>
 
 #define DYNAMIC_MIX_FUNCTION_PTR(NAME) decltype(&::NAME) NAME{};
 #define DYNAMIC_LOAD_MIX_FUNCTION(NAME) \
@@ -19,13 +23,23 @@ namespace mixer {
 static internal::SharedLibrary sLibrary{};
 DYNAMIC_FOR_EACH_MIX_FUNCTION(DYNAMIC_MIX_FUNCTION_PTR)
 
-void Open(const char* library) {
-  sLibrary.Open(library);
-  DYNAMIC_FOR_EACH_MIX_FUNCTION(DYNAMIC_LOAD_MIX_FUNCTION)
-}
+void Open() {
+  if (sLibrary.IsOpen()) {
+    sLibrary.Ref();
+    return;
+  }
 
-bool IsOpen() noexcept {
-  return sLibrary.IsOpen();
+  if (kIsMac && !EnvEquals(kEnvSdlMixerUseDylib, "1")) {
+    std17::filesystem::path p(GetEnvOrDefault(kEnvRuntimeFrameworkPath, kDefaultRuntimeFrameworkPath));
+
+    sLibrary.Open(p.append(kSDLMixerFramework).append(kSDLMixerFrameworkLib).c_str());
+  } else {
+    sLibrary.Open(GetEnvOrDefault(kEnvSdlMixerLibName, kSDLMixerDefaultLibName));
+  }
+
+  DYNAMIC_FOR_EACH_MIX_FUNCTION(DYNAMIC_LOAD_MIX_FUNCTION)
+
+  LOG_INFO("Successfully loaded SDL2 Mixer API");
 }
 
 void Close() noexcept {

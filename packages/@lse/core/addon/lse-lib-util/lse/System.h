@@ -46,8 +46,15 @@ constexpr const bool kIsLittleEndian = true;
 
 // Environment Variable API
 
+constexpr const char* kEnvSdlLibName = "LSE_SDL_LIB_NAME";
+constexpr const char* kEnvRuntimeFrameworkPath = "LSE_RUNTIME_FRAMEWORK_PATH";
+constexpr const char* kEnvSdlUseDylib = "LSE_SDL_USE_DYLIB";
+constexpr const char* kEnvSdlMixerLibName = "LSE_SDL_MIXER_LIB_NAME";
+constexpr const char* kEnvSdlMixerUseDylib = "LSE_SDL_MIXER_USE_DYLIB";
+
 bool HasEnv(const char* name) noexcept;
 const char* GetEnv(const char* name) noexcept;
 const char* GetEnvOrDefault(const char* name, const char* defaultValue) noexcept;
+bool EnvEquals(const char* env, const char* expectedValue) noexcept;
 
 } // namespace lse

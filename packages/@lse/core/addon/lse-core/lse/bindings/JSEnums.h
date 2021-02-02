@@ -12,10 +12,10 @@
 namespace lse {
 namespace bindings {
 
-Napi::Function NewStyleUnitClass(Napi::Env env);
-Napi::Function NewStyleTransformClass(Napi::Env env);
-Napi::Function NewStyleAnchorClass(Napi::Env env);
-Napi::Function NewPluginIdClass(Napi::Env env);
+Napi::Object NewStyleUnitEnum(Napi::Env env);
+Napi::Object NewStyleTransformEnum(Napi::Env env);
+Napi::Object NewStyleAnchorEnum(Napi::Env env);
+Napi::Object NewPluginIdEnum(Napi::Env env);
 
 } // namespace bindings
 } // namespace lse
