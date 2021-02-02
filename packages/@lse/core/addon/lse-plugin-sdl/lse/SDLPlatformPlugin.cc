@@ -286,7 +286,7 @@ GamepadInfo SDLPlatformPlugin::GetGamepadInfo(int32_t instanceId) {
   }
 
   if (joystickName == nullptr) {
-    LOG_ERROR("SDL_JoystickName(%i): %s", instanceId, SDL_GetError());
+    LOG_ERROR("SDL_JoystickName(%i): %s", instanceId, SDL2::SDL_GetError());
   }
 
   auto joystickGUID{ SDL2::SDL_JoystickGetGUID(gamepad.joystick) };
@@ -298,21 +298,21 @@ GamepadInfo SDLPlatformPlugin::GetGamepadInfo(int32_t instanceId) {
   auto buttonCount = SDL2::SDL_JoystickNumButtons(gamepad.joystick);
 
   if (buttonCount < 0) {
-    LOG_ERROR("SDL_JoystickNumButtons(%i): %s", instanceId, SDL_GetError());
+    LOG_ERROR("SDL_JoystickNumButtons(%i): %s", instanceId, SDL2::SDL_GetError());
     buttonCount = 0;
   }
 
   auto axisCount = SDL2::SDL_JoystickNumAxes(gamepad.joystick);
 
   if (axisCount < 0) {
-    LOG_ERROR("SDL_JoystickNumAxes(%i): %s", instanceId, SDL_GetError());
+    LOG_ERROR("SDL_JoystickNumAxes(%i): %s", instanceId, SDL2::SDL_GetError());
     axisCount = 0;
   }
 
   auto hatCount = SDL2::SDL_JoystickNumHats(gamepad.joystick);
 
   if (hatCount < 0) {
-    LOG_ERROR("SDL_JoystickNumHats(%i): %s", instanceId, SDL_GetError());
+    LOG_ERROR("SDL_JoystickNumHats(%i): %s", instanceId, SDL2::SDL_GetError());
     hatCount = 0;
   }
 
