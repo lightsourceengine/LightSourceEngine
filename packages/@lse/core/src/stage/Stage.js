@@ -5,11 +5,12 @@
  */
 
 import { Scene } from '../scene/Scene.js'
-import { logger, PluginId, StageBase } from '../addon/index.js'
+import { logger, StageBase } from '../addon/index.js'
 import { InputManager } from '../input/InputManager.js'
 import { AudioManager } from '../audio/AudioManager.js'
 import { isNumber, logexcept, now, isPlainObject } from '../util/index.js'
 import { PluginType } from '../addon/PluginType.js'
+import { PluginId } from '../addon/PluginId.js'
 import {
   createAttachedEvent,
   createDestroyedEvent,
@@ -333,32 +334,24 @@ export class Stage extends EventTarget {
         throw Error(`plugin of type ${type} has already been loaded.`)
       }
 
-      let instance
+      plugin.attach()
 
-      // TODO: check is here while plugin api is being refactored
-      if (plugin.createInstance) {
-        instance = plugin.createInstance()
-      } else {
-        instance = plugin
-      }
-
-      this._plugins.set(type, instance)
+      this._plugins.set(type, plugin)
 
       // TODO: review lifecycle management of plugins.
       switch (type) {
         case PluginType.PLATFORM:
           try {
-            instance?.attach()
-            this.system.$setPlugin(instance)
+            this.system.$setPlugin(plugin)
             this.system.$attach()
-            this.input.$setPlugin(instance)
+            this.input.$setPlugin(plugin)
             this.input.$attach()
           } catch (e) {
             logexcept(() => this.system.$detach(), site)
             logexcept(() => this.system.$setPlugin(null), site)
             logexcept(() => this.input.$detach(), site)
             logexcept(() => this.input.$setPlugin(null), site)
-            logexcept(() => instance?.detach(), site)
+            logexcept(() => plugin.detach(), site)
             this._plugins.delete(type)
             throw e
           }
@@ -366,12 +359,12 @@ export class Stage extends EventTarget {
         case PluginType.AUDIO:
           try {
             // TODO: plugin attached inside audio manager (need to move here)
-            this.audio.$setPlugin(instance)
+            this.audio.$setPlugin(plugin)
             this.audio.$attach()
           } catch (e) {
             logexcept(() => this.audio.$detach(), site)
             logexcept(() => this.audio.$setPlugin(null), site)
-            logexcept(() => instance?.detach(), site)
+            logexcept(() => plugin.detach(), site)
             this._plugins.delete(type)
             throw e
           }

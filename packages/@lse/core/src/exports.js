@@ -23,7 +23,7 @@ process.on('SIGINT', () => process.exit(0))
 
 export const stage = new Stage()
 export { PluginType } from './addon/PluginType.js'
-export { PluginId } from './addon/index.js'
+export { PluginId } from './addon/PluginId.js'
 export { Direction } from './input/Direction.js'
 export { waypoint } from './scene/waypoint.js'
 

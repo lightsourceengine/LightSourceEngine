@@ -10,7 +10,7 @@
 
 import { jsx } from '@lse/react/jsx-runtime';
 
-import { createStyleSheet, stage, AudioDecoderType } from '@lse/core';
+import { createStyleSheet, stage, AudioDecoderType, EventName } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
 
@@ -41,7 +41,7 @@ const StreamingAudioApp = () => {
             setLoadingStatus('not ready');
             return;
         }
-        stage.audio.addStream(path).once('status', event => {
+        stage.audio.addStream(path).once(EventName.onStatus, event => {
             if (event.target.isReady()) {
                 event.target.play();
                 setLoadingStatus('ready');

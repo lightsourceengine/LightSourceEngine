@@ -18,12 +18,13 @@ Napi::Function AudioPlugin::GetClass(Napi::Env env) {
     Napi::HandleScope scope(env);
 
     constructor = AudioPlugin::DefineClass(env, "AudioPlugin", true, {
+        AudioPlugin::InstanceValue("type", Napi::String::New(env, "audio")),
         AudioPlugin::InstanceMethod("attach", &AudioPlugin::Attach),
         AudioPlugin::InstanceMethod("detach", &AudioPlugin::Detach),
         AudioPlugin::InstanceMethod("destroy", &AudioPlugin::Destroy),
         AudioPlugin::InstanceMethod("createStreamAudioDestination", &AudioPlugin::CreateStreamAudioDestination),
         AudioPlugin::InstanceMethod("createSampleAudioDestination", &AudioPlugin::CreateSampleAudioDestination),
-        AudioPlugin::InstanceAccessor("attached", &AudioPlugin::IsAttached),
+        AudioPlugin::InstanceMethod("isAttached", &AudioPlugin::IsAttached),
         AudioPlugin::InstanceAccessor("devices", &AudioPlugin::GetAudioDevices),
     });
   }

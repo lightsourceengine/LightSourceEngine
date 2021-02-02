@@ -7,6 +7,7 @@
 import { createRequire } from 'module'
 import { resolve } from 'path'
 import bindings from 'bindings'
+import { PluginId } from './PluginId.js'
 
 // Load the native portions of Light Source Engine from @lse/core.
 
@@ -48,7 +49,6 @@ export const {
   StyleUnit,
   StyleTransform,
   StyleAnchor,
-  PluginId,
   LogLevel,
 } = addon
 
@@ -57,7 +57,9 @@ export const {
   logger,
   getSceneNodeInstanceCount,
   parseColor,
-  loadPluginById,
+  loadSDLPlugin,
+  loadSDLAudioPlugin,
+  loadSDLMixerPlugin,
   styleProperties,
   createRefGraphicsContext
 } = addon

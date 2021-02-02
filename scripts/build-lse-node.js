@@ -742,17 +742,9 @@ class SourceRoot {
       lse_enable_plugin_platform_sdl: 1,
       lse_enable_plugin_audio_sdl_audio: 1,
       lse_enable_plugin_audio_sdl_mixer: 1,
-      lse_enable_plugin_platform_ref: 0,
-      lse_enable_plugin_audio_ref: 0,
       // disable tests
       npm_config_lse_enable_native_tests: 0,
       // TODO: (not supported yet) env.npm_config_lse_asmjit_build = 'arm'
-    }
-
-    // Build ref plugins only for desktop builds.
-    if (options.profile === Profile.desktop) {
-      env.lse_enable_plugin_platform_ref = 1
-      env.lse_enable_plugin_audio_ref = 1
     }
 
     let program

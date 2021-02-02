@@ -21,6 +21,7 @@ export class AudioManager extends EventTarget {
   _sampleAudioDestination = new AudioDestination()
   _streamAudioDestination = new AudioDestination()
   _nullAudioSource = Object.freeze(new NullAudioSource(this, ''))
+  _isAttached = false
 
   constructor (stage) {
     super([EventName.onAttached, EventName.onDetached])
@@ -38,7 +39,7 @@ export class AudioManager extends EventTarget {
    * @returns true if attached to platform audio subsystem; otherwise, false
    */
   isAttached () {
-    return !!this._plugin?.attached
+    return this._isAttached
   }
 
   /**
@@ -150,14 +151,15 @@ export class AudioManager extends EventTarget {
    * @ignore
    */
   $attach () {
-    if (!this._plugin || this._plugin.attached) {
+    if (!this._plugin || this._isAttached) {
       return
     }
 
-    this._plugin.attach()
     this._sampleAudioDestination.$setNative(this._plugin.createSampleAudioDestination())
     this._streamAudioDestination.$setNative(this._plugin.createStreamAudioDestination())
     this._audioSourceMap.forEach(as => as.$load())
+
+    this._isAttached = true
     this.dispatchEvent(createAttachedEvent(this))
   }
 
@@ -165,14 +167,15 @@ export class AudioManager extends EventTarget {
    * @ignore
    */
   $detach () {
-    if (!this._plugin || !this._plugin.attached) {
+    if (!this._plugin || !this._isAttached) {
       return
     }
 
     this._unloadAudioSources()
     this._sampleAudioDestination.$setNative(null)
     this._streamAudioDestination.$setNative(null)
-    this._plugin.detach()
+
+    this._isAttached = false
     this.dispatchEvent(createDetachedEvent(this))
   }
 

@@ -4,18 +4,28 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { loadPluginById, PluginId, createRefGraphicsContext } from './index.js'
+import { createRefGraphicsContext, loadSDLPlugin, loadSDLAudioPlugin, loadSDLMixerPlugin } from './index.js'
 import { PluginType } from './PluginType.js'
+import { PluginId } from './PluginId.js'
 
 export const loadPlugin = (id, options) => {
-  if (id === PluginId.REF) {
-    return loadRefPlatformPlugin()
-  } else {
-    return loadPluginById(id, options)
+  switch (id) {
+    case PluginId.SDL:
+      return loadSDLPlugin(options)
+    case PluginId.SDL_AUDIO:
+      return loadSDLAudioPlugin(options)
+    case PluginId.SDL_MIXER:
+      return loadSDLMixerPlugin(options)
+    case PluginId.REF:
+      return loadRefPlugin()
+    case PluginId.REF_AUDIO:
+      return loadRefAudioPlugin()
+    default:
+      throw Error(`Unsupported plugin: ${id}`)
   }
 }
 
-const loadRefPlatformPlugin = () => {
+const loadRefPlugin = () => {
   let attached = true
 
   return {
@@ -85,6 +95,57 @@ const loadRefPlatformPlugin = () => {
           this[key] = undefined
         }
       }
+    }
+  }
+}
+
+const loadRefAudioPlugin = () => {
+  let attached
+
+  class RefAudioDestination {
+    decoders = [ "WAVE" ]
+    volume = 0
+    createAudioSource() {
+      return {
+        volume: 0,
+        load() {
+        },
+        destroy() {
+        },
+        play() {
+        },
+        hasCapability() {
+          return true
+        }
+      }
+    }
+    hasCapability() { return true }
+    destroy() {}
+    resume() {}
+    pause() {}
+    stop() {}
+  }
+
+  return {
+    type: PluginType.AUDIO,
+    devices: [ "Reference" ],
+    attach() {
+      attached = true
+    },
+    detach() {
+      attached = false
+    },
+    destroy() {
+      attached = false
+    },
+    isAttached() {
+      return attached
+    },
+    createSampleAudioDestination() {
+      return new RefAudioDestination()
+    },
+    createStreamAudioDestination() {
+      return new RefAudioDestination()
     }
   }
 }

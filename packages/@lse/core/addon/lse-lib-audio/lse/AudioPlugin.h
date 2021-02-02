@@ -50,28 +50,17 @@ class AudioPlugin : public Napi::SafeObjectWrap<AudioPlugin>, public AudioPlugin
 };
 
 template<typename T>
-Napi::Object AudioPluginInit(Napi::Env env, Napi::Object exports, const char* name) {
-  auto createInstance{
-      [](const Napi::CallbackInfo& info) -> Napi::Value {
-        const AudioPluginInterfaceFactory factory{
-            [](const Napi::CallbackInfo& info) -> AudioPluginInterface* {
-              return new T(info);
-            }
-        };
-
-        Napi::EscapableHandleScope scope(info.Env());
-
-        auto external{ Napi::External<void>::New(info.Env(), reinterpret_cast<void*>(factory)) };
-
-        return scope.Escape(AudioPlugin::GetClass(info.Env()).New({ external }));
+Napi::Value AudioPluginInit(Napi::Env env) {
+  const AudioPluginInterfaceFactory factory{
+      [](const Napi::CallbackInfo& info) -> AudioPluginInterface* {
+        return new T(info);
       }
   };
 
-  exports.Set("name", Napi::String::New(env, name));
-  exports.Set("type", Napi::String::New(env, "audio"));
-  exports.Set("createInstance", Napi::Function::New(env, createInstance));
+  Napi::EscapableHandleScope scope(env);
+  auto external{ Napi::External<void>::New(env, reinterpret_cast<void*>(factory)) };
 
-  return exports;
+  return scope.Escape(AudioPlugin::GetClass(env).New({ external }));
 }
 
 } // namespace lse

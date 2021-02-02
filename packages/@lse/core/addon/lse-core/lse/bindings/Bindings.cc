@@ -10,13 +10,11 @@
 #include <lse/StyleEnums.h>
 #include <lse/bindings/Convert.h>
 #include <lse/AudioPlugin.h>
-#include <lse/RefAudioPluginImpl.h>
 #include <lse/SDLAudioPluginImpl.h>
 #include <lse/SDLMixerAudioPluginImpl.h>
 #include <lse/SDL2.h>
 #include <lse/SDL2_mixer.h>
 #include <lse/Config.h>
-#include <lse/string-ext.h>
 #include <lse/bindings/SDLPlatformPluginExports.h>
 
 namespace lse {
@@ -38,24 +36,30 @@ Napi::Object GetStyleProperties(Napi::Env env) {
   return styleProperties;
 }
 
-Napi::Value LoadPluginById(const Napi::CallbackInfo& info) {
-  auto env = info.Env();
-  auto plugin = Napi::Object::New(info.Env());
-  auto name = Napi::CopyUtf8(info[0]);
+Napi::Value LoadSDLPlugin(const Napi::CallbackInfo& info) {
+  if (kEnablePluginPlatformSdl) {
+    return SDLPlatformPluginExports(info.Env());
+  } else {
+    throw Napi::Error::New(info.Env(), "SDL plugin is not available.");
+  }
+}
 
-  if (kEnablePluginPlatformSdl && strcmp(name, kPluginPlatformSdl) == 0) {
-    return SDLPlatformPluginExports(env);
-  } else if (kEnablePluginAudioSdlAudio && strcmp(name, kPluginAudioSdlAudio) == 0) {
+Napi::Value LoadSDLAudioPlugin(const Napi::CallbackInfo& info) {
+  if (kEnablePluginAudioSdlAudio) {
     SDL2::Open();
-    return lse::AudioPluginInit<lse::SDLAudioPluginImpl>(env, plugin, kPluginAudioSdlAudio);
-  } else if (kEnablePluginAudioSdlMixer && strcmp(name, kPluginAudioSdlMixer) == 0) {
+    return lse::AudioPluginInit<lse::SDLAudioPluginImpl>(info.Env());
+  } else {
+    throw Napi::Error::New(info.Env(), "SDL Audio plugin is not available.");
+  }
+}
+
+Napi::Value LoadSDLMixerPlugin(const Napi::CallbackInfo& info) {
+  if (kEnablePluginAudioSdlMixer) {
     SDL2::Open();
     SDL2::mixer::Open();
-    return lse::AudioPluginInit<lse::SDLMixerAudioPluginImpl>(env, plugin, kPluginAudioSdlMixer);
-  } else if (kEnablePluginAudioRef && strcmp(name, kPluginRefAudio) == 0) {
-    return lse::AudioPluginInit<lse::RefAudioPluginImpl>(env, plugin, kPluginRefAudio);
+    return lse::AudioPluginInit<lse::SDLMixerAudioPluginImpl>(info.Env());
   } else {
-    throw Napi::Error::New(env, Format("Unknown plugin name: %s", name));
+    throw Napi::Error::New(info.Env(), "SDL Audio plugin is not available.");
   }
 }
 

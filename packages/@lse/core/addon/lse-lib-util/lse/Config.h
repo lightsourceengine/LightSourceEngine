@@ -16,13 +16,6 @@ constexpr bool kEnablePluginPlatformSdl
 = false;
 #endif
 
-constexpr bool kEnablePluginPlatformRef
-#if defined(LSE_ENABLE_PLUGIN_PLATFORM_REF)
-    = true;
-#else
-= false;
-#endif
-
 constexpr bool kEnablePluginAudioSdlAudio
 #if defined(LSE_ENABLE_PLUGIN_AUDIO_SDL_AUDIO)
     = true;
@@ -32,13 +25,6 @@ constexpr bool kEnablePluginAudioSdlAudio
 
 constexpr bool kEnablePluginAudioSdlMixer
 #if defined(LSE_ENABLE_PLUGIN_AUDIO_SDL_MIXER)
-    = true;
-#else
-= false;
-#endif
-
-constexpr bool kEnablePluginAudioRef
-#if defined(LSE_ENABLE_PLUGIN_AUDIO_REF)
     = true;
 #else
 = false;

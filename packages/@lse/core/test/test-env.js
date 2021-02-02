@@ -4,7 +4,8 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { getSceneNodeInstanceCount, logger, LogLevel, PluginId } from '../src/addon/index.js'
+import { getSceneNodeInstanceCount, logger, LogLevel } from '../src/addon/index.js'
+import { PluginId } from '../src/addon/PluginId.js'
 import { Stage } from '../src/stage/Stage.js'
 import chai from 'chai'
 

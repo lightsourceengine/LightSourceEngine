@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { stage, createStyleSheet, AudioDecoderType } from '@lse/core'
+import { stage, createStyleSheet, AudioDecoderType, EventName } from '@lse/core'
 import { letThereBeLight } from '@lse/react'
 import { useEffect, useState } from 'react'
 
@@ -38,7 +38,7 @@ const StreamingAudioApp = () => {
       return
     }
 
-    stage.audio.addStream(path).once('status', (event) => {
+    stage.audio.addStream(path).once(EventName.onStatus, (event) => {
       if (event.target.isReady()) {
         event.target.play()
         setLoadingStatus('ready')

@@ -40,7 +40,7 @@ export const render = (container, element, callback) => {
       renderersByContainer.delete(node)
       renderer.render(null, callback)
 
-      node.scene.off('destroying', renderer.sceneListener)
+      node.scene.off(EventName.onDestroying, renderer.sceneListener)
       renderer.sceneListener = null
     } else if (callback) {
       queueMicrotask(callback)

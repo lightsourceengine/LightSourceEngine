@@ -1,10 +1,8 @@
 {
   "variables": {
     "lse_enable_plugin_platform_sdl%": "1",
-    "lse_enable_plugin_platform_ref%": "1",
     "lse_enable_plugin_audio_sdl_audio%": "1",
     "lse_enable_plugin_audio_sdl_mixer%": "1",
-    "lse_enable_plugin_audio_ref%": "1",
     "lse_sdl_include%": "addon/deps/SDL/repo/include",
     "lse_sdl_mixer_include%": "addon/deps/SDL_mixer/repo",
     # note: enable_native_tests variable is set in set-enable-native-tests.gypi
@@ -16,10 +14,8 @@
     ],
     "conditions": [
       [ "lse_enable_plugin_platform_sdl==1", { "defines": [ "LSE_ENABLE_PLUGIN_PLATFORM_SDL" ] } ],
-      [ "lse_enable_plugin_platform_ref==1", { "defines": [ "LSE_ENABLE_PLUGIN_PLATFORM_REF" ] } ],
       [ "lse_enable_plugin_audio_sdl_audio==1", { "defines": [ "LSE_ENABLE_PLUGIN_AUDIO_SDL_AUDIO" ] } ],
       [ "lse_enable_plugin_audio_sdl_mixer==1", { "defines": [ "LSE_ENABLE_PLUGIN_AUDIO_SDL_MIXER" ] } ],
-      [ "lse_enable_plugin_audio_ref==1", { "defines": [ "LSE_ENABLE_PLUGIN_AUDIO_REF" ] } ],
     ]
   },
   "includes": [
@@ -40,7 +36,6 @@
     "addon/lse-lib-util/build.gypi",
     "addon/lse-lib-logger/build.gypi",
     "addon/lse-plugin-ref/build.gypi",
-    "addon/lse-plugin-ref-audio/build.gypi",
     "addon/lse-plugin-sdl/build.gypi",
     "addon/lse-plugin-sdl-audio/build.gypi",
     "addon/lse-plugin-sdl-mixer/build.gypi",

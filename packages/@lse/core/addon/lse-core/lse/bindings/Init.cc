@@ -80,7 +80,9 @@ Object Init(Env env, Object exports) {
   ExportClass(exports, lse::RootSceneNode::GetClass(env));
 
   ExportFunction(exports, Function::New(env, &lse::bindings::ParseColor, "parseColor"));
-  ExportFunction(exports, Function::New(env, &lse::bindings::LoadPluginById, "loadPluginById"));
+  ExportFunction(exports, Function::New(env, &lse::bindings::LoadSDLPlugin, "loadSDLPlugin"));
+  ExportFunction(exports, Function::New(env, &lse::bindings::LoadSDLAudioPlugin, "loadSDLAudioPlugin"));
+  ExportFunction(exports, Function::New(env, &lse::bindings::LoadSDLMixerPlugin, "loadSDLMixerPlugin"));
   ExportFunction(exports, Function::New(env, &lse::SceneNode::GetInstanceCount, "getSceneNodeInstanceCount"));
 
   // TODO: temporary patch to get ref plugin working with new plugin strategy

@@ -10,7 +10,7 @@
 
 import { jsx, jsxs, Fragment } from '@lse/react/jsx-runtime';
 
-import { createStyleSheet, stage, ScanCode, Key } from '@lse/core';
+import { createStyleSheet, stage, EventName, ScanCode, Key } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
 
@@ -402,10 +402,6 @@ const SwitchyApp = () => jsx(ErrorBoundary, {
     })
 });
 
-stage.input.on('rawkeyup', e => e.scanCode === ScanCode.ESCAPE && stage.quit());
+stage.input.on(EventName.onScanCodeUp, e => e.scanCode === ScanCode.ESCAPE && stage.quit());
 
-const scene = letThereBeLight(jsx(SwitchyApp, {}), {
-    scene: {
-        fullscreen: true
-    }
-});
+const scene = letThereBeLight(jsx(SwitchyApp, {}));
