@@ -257,8 +257,36 @@ static void InvokeCallback(const char* name, T callbackType, Args ... args) noex
   }
 }
 
-static bool InvokeCallback(const char* name, PluginCallback callbackType, bool defaultReturn) noexcept {
-  auto& callback{ sPluginCallbacks[callbackType] };
+static void BindOnKeyboardScanCode(int32_t scanCode, bool pressed , bool repeat) noexcept {
+  InvokeCallback("onKeyboardScanCode", OnKeyboardScanCode, scanCode, pressed, repeat);
+}
+
+static void BindOnGamepadStatus(int32_t instanceId, bool connected) noexcept {
+  InvokeCallback("onGamepadStatus", OnGamepadStatus, instanceId, connected);
+}
+
+static void BindOnGamepadAxis(int32_t instanceId, int32_t axis, float value) noexcept {
+  InvokeCallback("onGamepadAxis", OnGamepadAxis, instanceId, axis, value);
+};
+
+static void BindOnGamepadAxisMapped(int32_t instanceId, int32_t axis, float value) noexcept {
+  InvokeCallback("onGamepadAxisMapped", OnGamepadAxisMapped, instanceId, axis, value);
+};
+
+static void BindOnGamepadHat(int32_t instanceId, int32_t hat, int32_t value) noexcept {
+  InvokeCallback("onGamepadHat", OnGamepadHat, instanceId, hat, value);
+};
+
+static void BindOnGamepadButton(int32_t instanceId, int32_t button, bool pressed) noexcept {
+  InvokeCallback("onGamepadButton", OnGamepadButton, instanceId, button, pressed);
+};
+
+static void BindOnGamepadButtonMapped(int32_t instanceId, int32_t button, bool pressed) noexcept {
+  InvokeCallback("onGamepadButtonMapped", OnGamepadButtonMapped, instanceId, button, pressed);
+};
+
+static bool BindOnQuit() noexcept {
+  auto& callback{ sPluginCallbacks[OnQuit] };
 
   if (!callback.IsEmpty()) {
     try {
@@ -267,13 +295,13 @@ static bool InvokeCallback(const char* name, PluginCallback callbackType, bool d
 
       return result.ToBoolean();
     } catch (const std::exception& e) {
-      auto LAMBDA_FUNCTION = name;
+      auto LAMBDA_FUNCTION = "onQuit";
       LOG_ERROR_LAMBDA("Unhanded JS exception: %s", e.what());
     }
   }
 
-  return defaultReturn;
-}
+  return true;
+};
 
 static void Init(const Napi::Env& env) {
   if (sPlugin) {
@@ -284,39 +312,14 @@ static void Init(const Napi::Env& env) {
 
   sPlugin = new SDLPlatformPlugin();
 
-  sPlugin->onKeyboardScanCode = [](int32_t scanCode, bool pressed , bool repeat) noexcept {
-    InvokeCallback("onKeyboardScanCode", OnKeyboardScanCode, scanCode, pressed, repeat);
-  };
-
-  sPlugin->onGamepadStatus = [](int32_t instanceId, bool connected) noexcept {
-    InvokeCallback("onGamepadStatus", OnGamepadStatus, instanceId, connected);
-  };
-
-  sPlugin->onGamepadAxis = [](int32_t instanceId, int32_t axis, float value) noexcept {
-    InvokeCallback("onGamepadAxis", OnGamepadAxis, instanceId, axis, value);
-  };
-
-  sPlugin->onGamepadAxisMapped = [](int32_t instanceId, int32_t axis, float value) noexcept {
-    InvokeCallback("onGamepadAxisMapped", OnGamepadAxisMapped, instanceId, axis, value);
-  };
-
-  sPlugin->onGamepadHat = [](int32_t instanceId, int32_t hat, int32_t value) noexcept {
-    InvokeCallback("onGamepadHat", OnGamepadHat, instanceId, hat, value);
-  };
-
-  sPlugin->onGamepadButton = [](int32_t instanceId, int32_t button, bool pressed) noexcept {
-    InvokeCallback("onGamepadButton", OnGamepadButton, instanceId, button, pressed);
-  };
-
-  sPlugin->onGamepadButtonMapped = [](int32_t instanceId, int32_t button, bool pressed) noexcept {
-    InvokeCallback("onGamepadButtonMapped", OnGamepadButtonMapped, instanceId, button, pressed);
-  };
-
-  sPlugin->onQuit = []() noexcept -> bool {
-    InvokeCallback("onQuit", OnQuit, true);
-
-    return true;
-  };
+  sPlugin->onKeyboardScanCode = &BindOnKeyboardScanCode;
+  sPlugin->onGamepadStatus = &BindOnGamepadStatus;
+  sPlugin->onGamepadAxis = &BindOnGamepadAxis;
+  sPlugin->onGamepadAxisMapped = &BindOnGamepadAxisMapped;
+  sPlugin->onGamepadHat = &BindOnGamepadHat;
+  sPlugin->onGamepadButton = &BindOnGamepadButton;
+  sPlugin->onGamepadButtonMapped = &BindOnGamepadButtonMapped;
+  sPlugin->onQuit = &BindOnQuit;
 
   napi_add_env_cleanup_hook(env, [](void*) { ResetCallbacks(); }, nullptr);
 }
