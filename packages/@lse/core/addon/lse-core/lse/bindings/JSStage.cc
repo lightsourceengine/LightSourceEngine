@@ -5,46 +5,34 @@
  * tree.
  */
 
-#include <lse/bindings/JSStage.h>
+#include "JSStage.h"
 
+#include <napix.h>
+#include <ObjectBuilder.h>
 #include <lse/Stage.h>
-
-using Napi::CallbackInfo;
-using Napi::Function;
-using Napi::FunctionReference;
-using Napi::HandleScope;
-
-static FunctionReference jsStageConstructor;
 
 namespace lse {
 namespace bindings {
 
-void JSStage::Constructor(const CallbackInfo& info) {
-  this->native = std::make_shared<Stage>();
+static napi_value Update(napi_env env, napi_callback_info info) noexcept {
+  NAPIX_TRY_STD(napix::get_data<Stage>(env, info)->Update())
+  return {};
 }
 
-Function JSStage::GetClass(Napi::Env env) {
-  if (jsStageConstructor.IsEmpty()) {
-    HandleScope scope(env);
-
-    jsStageConstructor = DefineClass(env, "StageBase", true, {
-        InstanceMethod("$destroy", &JSStage::Destroy),
-    });
-  }
-
-  return jsStageConstructor.Value();
+static napi_value Destroy(napi_env env, napi_callback_info info) noexcept {
+  NAPIX_TRY_STD(napix::get_data<Stage>(env, info)->Destroy())
+  return {};
 }
 
-StageRef JSStage::GetNative() const noexcept {
-  return this->native;
-}
+Napi::Value JSStage::New(const Napi::Env& env) {
+  auto stage = std::make_shared<Stage>();
 
-void JSStage::Update(const CallbackInfo& info) {
-  this->native->Update();
-}
-
-void JSStage::Destroy(const CallbackInfo& info) {
-  this->native->Destroy();
+  return Napi::ObjectBuilder(env, stage.get())
+      .WithValue("$native", napix::new_external_shared(env, stage))
+      .WithMethod("update", &Update)
+      .WithMethod("destroy", &Destroy)
+      .Freeze()
+      .ToObject();
 }
 
 } // namespace bindings

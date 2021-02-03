@@ -28,7 +28,7 @@ class ObjectBuilder final {
   ObjectBuilder& WithMethod(const Napi::PropertyName& id, napi_callback method);
 
   ObjectBuilder& WithValue(
-      const Napi::PropertyName& id, const Napi::Value& value,
+      const Napi::PropertyName& id, napi_value value,
       napi_property_attributes attributes = napi_default);
 
   ObjectBuilder& WithValue(

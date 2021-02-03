@@ -68,6 +68,7 @@ constexpr const char* kSDLFrameworkLib = "SDL2";
     APPLY(SDL_RenderPresent)                                \
     APPLY(SDL_RenderSetClipRect)                            \
     APPLY(SDL_GetDesktopDisplayMode)                        \
+    APPLY(SDL_GetCurrentDisplayMode)                        \
     APPLY(SDL_GetDisplayName)                               \
     APPLY(SDL_GetDisplayMode)                               \
     APPLY(SDL_GetNumDisplayModes)                           \

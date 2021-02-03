@@ -16,8 +16,6 @@
 #include <lse/Log.h>
 #include <lse/bindings/Bindings.h>
 #include <lse/bindings/JSEnums.h>
-#include <lse/bindings/JSScene.h>
-#include <lse/bindings/JSStage.h>
 #include <lse/bindings/JSStyle.h>
 #include <lse/bindings/JSStyleClass.h>
 #include <lse/bindings/JSStyleTransformSpec.h>
@@ -65,8 +63,6 @@ Object Init(Env env, Object exports) {
   exports["StyleAnchor"] = lse::bindings::NewStyleAnchorEnum(env);
   exports["PluginId"] = lse::bindings::NewPluginIdEnum(env);
 
-  ExportClass(exports, lse::bindings::JSStage::GetClass(env));
-  ExportClass(exports, lse::bindings::JSScene::GetClass(env));
   ExportClass(exports, lse::bindings::JSStyle::GetClass(env));
   ExportClass(exports, lse::bindings::JSStyleClass::GetClass(env));
   ExportClass(exports, lse::bindings::JSStyleValue::GetClass(env));
@@ -83,6 +79,8 @@ Object Init(Env env, Object exports) {
   ExportFunction(exports, Function::New(env, &lse::bindings::LoadSDLMixerPlugin, "loadSDLMixerPlugin"));
 
   ExportFunction(exports, Function::New(env, &lse::bindings::CreateRefGraphicsContext, "createRefGraphicsContext"));
+  ExportFunction(exports, Function::New(env, &lse::bindings::CreateSceneComposite, "createSceneComposite"));
+  ExportFunction(exports, Function::New(env, &lse::bindings::CreateStageComposite, "createStageComposite"));
 
   ExportFunction(exports, Function::New(env, &lse::bindings::ParseColor, "parseColor"));
   ExportFunction(exports, Function::New(env, &lse::SceneNode::GetInstanceCount, "getSceneNodeInstanceCount"));

@@ -31,7 +31,7 @@ ObjectBuilder& ObjectBuilder::WithMethod(const Napi::PropertyName& id, napi_call
 
 ObjectBuilder& ObjectBuilder::WithValue(
     const Napi::PropertyName& id, int32_t value, napi_property_attributes attributes) {
-  return WithValue(id, Napi::Number::New(this->env, value), attributes);
+  return WithValue(id, (napi_value)Napi::Number::New(this->env, value), attributes);
 }
 
 ObjectBuilder& ObjectBuilder::WithValue(
@@ -56,16 +56,17 @@ ObjectBuilder& ObjectBuilder::WithProperty(const Napi::PropertyName& id, napi_ca
 }
 
 ObjectBuilder& ObjectBuilder::WithValue(
-    const Napi::PropertyName& id, const Napi::Value& value, napi_property_attributes attributes) {
+    const Napi::PropertyName& id, napi_value value,
+    napi_property_attributes attributes) {
   return this->SetPropertyDescriptor({
-      id.utf8Name,
-      id.name,
-      nullptr,
-      nullptr,
-      nullptr,
-      value,
-      napi_default,
-      nullptr
+    id.utf8Name,
+    id.name,
+    nullptr,
+    nullptr,
+    nullptr,
+    value,
+    napi_default,
+    nullptr
   });
 }
 

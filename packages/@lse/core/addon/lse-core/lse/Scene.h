@@ -27,17 +27,16 @@ class SceneNode;
  */
 class Scene {
  public:
+  Scene(StageRef& stage, GraphicsContextRef& context);
   ~Scene() noexcept;
 
-  void Attach() noexcept;
-  void Detach() noexcept;
+  void Attach();
+  void Detach();
   void Destroy() noexcept;
 
   void Frame();
 
   void SetRoot(RootSceneNode* root);
-  void SetStage(const StageRef& stage);
-  void SetGraphicsContext(GraphicsContextRef& context);
   Stage* GetStage() const noexcept { return this->stage.get(); }
   int32_t GetWidth() const noexcept { return this->width; }
   int32_t GetHeight() const noexcept { return this->height; }
@@ -60,9 +59,9 @@ class Scene {
   bool SyncStyleContext();
 
  private:
-  SceneNode* root{};
   StageRef stage{};
   GraphicsContextRef graphicsContext{};
+  SceneNode* root{};
   mutable StyleContext styleContext{ 0, 0, 0 };
   int32_t width{};
   int32_t height{};

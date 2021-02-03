@@ -35,8 +35,6 @@ export const {
   StyleClass,
   StyleTransformSpec,
   StyleValue,
-  SceneBase,
-  StageBase,
   BoxSceneNode:BoxSceneNodeBase,
   ImageSceneNode:ImageSceneNodeBase,
   LinkSceneNode:LinkSceneNodeBase,
@@ -61,5 +59,7 @@ export const {
   loadSDLAudioPlugin,
   loadSDLMixerPlugin,
   styleProperties,
-  createRefGraphicsContext
+  createRefGraphicsContext,
+  createSceneComposite,
+  createStageComposite,
 } = addon

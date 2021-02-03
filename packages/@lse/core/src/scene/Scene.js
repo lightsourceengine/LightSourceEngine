@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { SceneBase, logger } from '../addon/index.js'
+import { createSceneComposite, logger } from '../addon/index.js'
 import { BoxSceneNode, ImageSceneNode, TextSceneNode, LinkSceneNode, RootSceneNode } from './SceneNode.js'
 import { createAttachedEvent, createDestroyedEvent, createDestroyingEvent, createDetachedEvent } from '../event/index.js'
 import { EventName } from '../event/EventName.js'
@@ -18,16 +18,15 @@ const kEmptyFrameListener = Object.freeze([0, null])
 let sFrameRequestId = 0
 
 export class Scene extends EventTarget {
-  _activeNode = null
-
-  _stage = null
-  _root = null
-  _fonts = []
+  _composite = null
   _context = null
+  _root = null
+  _stage = null
+  _activeNode = null
+  _fonts = []
   _fgFrameListeners = []
   _bgFrameListeners = []
   _attached = false
-  $native = new SceneBase()
 
   constructor (stage, config) {
     super([
@@ -37,9 +36,11 @@ export class Scene extends EventTarget {
       EventName.onDestroyed
     ])
 
-    const context = stage.system.$createGraphicsContext(config)
-    const root = new RootSceneNode(this)
-    const { style } = root
+    this._stage = stage
+    this._context = stage.system.$createGraphicsContext(config)
+    this._composite = createSceneComposite(this._stage.$native, this._context.$native)
+    this._root = new RootSceneNode(this)
+    const { style } = this._root
 
     style.backgroundColor = 'black'
     style.top = 0
@@ -48,11 +49,7 @@ export class Scene extends EventTarget {
     style.left = 0
     style.position = 'absolute'
 
-    this.$native.$setup(stage.$native, root, context.$native)
-
-    this._stage = stage
-    this._root = root
-    this._context = context
+    this._composite.setRoot(this._root)
 
     if (typeof config?.title === 'string') {
       this.title = config.title
@@ -151,44 +148,72 @@ export class Scene extends EventTarget {
       this._bgFrameListeners.length = 0
     }
 
-    this.$native.$frame(tick, lastTick)
+    this._composite.render(tick, lastTick)
   }
 
+  /**
+   * @ignore
+   */
   $attach () {
     if (this._attached) {
       return
     }
 
-    this.$native.$attach()
+    this._composite.attach()
 
     this._attached = true
     this.dispatchEvent(createAttachedEvent(this))
   }
 
+  /**
+   * @ignore
+   */
   $detach () {
     if (!this._attached) {
       return
     }
 
-    this.$native.$detach()
+    this._composite.detach()
 
     this._attached = false
     this.dispatchEvent(createDetachedEvent(this))
   }
 
+  /**
+   * @ignore
+   */
   $destroy () {
+    if (!this._stage) {
+      return
+    }
+
+    this.$detach()
+
     this.dispatchEvent(createDestroyingEvent(this))
 
     this._fonts.forEach(font => font.destroy())
     this._fonts = []
 
+    this._fgFrameListeners = []
+    this._fgFrameListeners = []
+    this._activeNode = null
+    this._root?.destroy()
+    this._root = null
+    this._composite?.destroy()
+    this._composite = null
     this._context = null
-    this.$native.$destroy()
-
-    this.$setActiveNode(null)
-    // TODO: graphics context destroy() ?
+    this._stage = null
 
     this.dispatchEvent(createDestroyedEvent(this))
+
+    // TODO: clear event target listeners?
+  }
+
+  /**
+   * @ignore
+   */
+  get $native () {
+    return this._composite.$native
   }
 }
 

@@ -18,23 +18,12 @@
 
 #include <lse/bindings/JSStage.h>
 
-using Napi::Boolean;
-using Napi::CallbackInfo;
-using Napi::Env;
-using Napi::Error;
-using Napi::EscapableHandleScope;
-using Napi::Function;
-using Napi::FunctionReference;
-using Napi::HandleScope;
-using Napi::Number;
-using Napi::Object;
 using Napi::SafeObjectWrap;
-using Napi::Reference;
-using Napi::String;
-using Napi::SymbolFor;
-using Napi::Value;
 
 namespace lse {
+
+Scene::Scene(StageRef& stage, GraphicsContextRef& context) : stage(stage), graphicsContext(context) {
+}
 
 Scene::~Scene() noexcept {
   if (isAttached) {
@@ -42,7 +31,12 @@ Scene::~Scene() noexcept {
   }
 }
 
-void Scene::Attach() noexcept {
+void Scene::SetRoot(RootSceneNode* root) {
+  root->Ref();
+  this->root = root;
+}
+
+void Scene::Attach() {
   this->graphicsContext->Attach();
 
   const auto w{ this->graphicsContext->GetWidth() };
@@ -62,7 +56,7 @@ void Scene::Attach() noexcept {
   this->RequestComposite();
 }
 
-void Scene::Detach() noexcept {
+void Scene::Detach() {
   this->graphicsContext->Detach();
   this->renderingContext2D.renderer = nullptr;
   this->isAttached = false;
@@ -80,27 +74,7 @@ void Scene::Frame() {
   this->Composite();
 }
 
-void Scene::SetRoot(RootSceneNode* rootSceneNode) {
-  LSE_EXPECT_NULL(this->root, "root has already been set");
-
-  this->root = rootSceneNode;
-  this->root->Ref();
-}
-
-void Scene::SetStage(const StageRef& stageRef) {
-  LSE_EXPECT_NULL(this->stage, "stage has already been set");
-
-  this->stage = stageRef;
-}
-
-void Scene::SetGraphicsContext(GraphicsContextRef& context) {
-  LSE_EXPECT_NULL(this->graphicsContext, "graphics context has already been set");
-
-  this->graphicsContext = context;
-}
-
 void Scene::Destroy() noexcept {
-  // TODO: destroy graphics context?
   this->isAttached = false;
   this->root = SafeObjectWrap<SceneNode>::RemoveRef(this->root, [](SceneNode* node) { node->Destroy(); });
   this->graphicsContext = nullptr;

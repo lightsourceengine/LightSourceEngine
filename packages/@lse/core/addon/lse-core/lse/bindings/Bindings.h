@@ -20,6 +20,8 @@ Napi::Value LoadSDLAudioPlugin(const Napi::CallbackInfo& info);
 Napi::Value LoadSDLMixerPlugin(const Napi::CallbackInfo& info);
 
 Napi::Value CreateRefGraphicsContext(const Napi::CallbackInfo& info);
+Napi::Value CreateSceneComposite(const Napi::CallbackInfo& info);
+Napi::Value CreateStageComposite(const Napi::CallbackInfo& info);
 
 } // namespace bindings
 } // namespace lse

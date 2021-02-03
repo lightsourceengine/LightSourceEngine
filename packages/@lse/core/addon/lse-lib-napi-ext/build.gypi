@@ -10,6 +10,7 @@
         "ObjectBuilder.cc",
         "SafeObjectWrap.cc",
         "napi-ext.cc",
+        "napix.cc",
       ]
     }
   ],

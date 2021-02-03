@@ -18,6 +18,8 @@
 #include <lse/bindings/JSGraphicsContext.h>
 #include <lse/RefGraphicsContext.h>
 #include <lse/bindings/SDLPlatformPluginExports.h>
+#include <lse/bindings/JSScene.h>
+#include <lse/bindings/JSStage.h>
 
 namespace lse {
 namespace bindings {
@@ -67,6 +69,14 @@ Napi::Value LoadSDLMixerPlugin(const Napi::CallbackInfo& info) {
 
 Napi::Value CreateRefGraphicsContext(const Napi::CallbackInfo& info) {
   return JSGraphicsContext::New<RefGraphicsContext>(info.Env(), info[0]);
+}
+
+Napi::Value CreateSceneComposite(const Napi::CallbackInfo& info) {
+  return JSScene::New(info.Env(), info[0], info[1]);
+}
+
+Napi::Value CreateStageComposite(const Napi::CallbackInfo& info) {
+  return JSStage::New(info.Env());
 }
 
 } // namespace bindings

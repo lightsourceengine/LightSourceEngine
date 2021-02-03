@@ -5,7 +5,7 @@
  */
 
 import { Scene } from '../scene/Scene.js'
-import { logger, StageBase } from '../addon/index.js'
+import { createStageComposite, logger } from '../addon/index.js'
 import { InputManager } from '../input/InputManager.js'
 import { AudioManager } from '../audio/AudioManager.js'
 import { isNumber, logexcept, now, isPlainObject } from '../util/index.js'
@@ -31,12 +31,13 @@ const kFlagIsConfigured = 4
 const kFlagIsRunning = 8
 
 export class Stage extends EventTarget {
+  _composite = createStageComposite()
   _plugins = new Map()
   _scenes = new Map()
   _flags = 0
   _mainLoopHandle = null
   _frameRate = 0
-  $native = new StageBase()
+  _loadPlugin = null
 
   constructor (loadPluginFunc = loadPlugin) {
     super([
@@ -76,7 +77,6 @@ export class Stage extends EventTarget {
     } = appConfig
 
     this.$setupPlugins(plugin)
-
     this._flags |= kFlagIsConfigured
 
     let createdScene
@@ -232,11 +232,17 @@ export class Stage extends EventTarget {
    * @ignore
    */
   $destroy () {
+    if (!this._composite) {
+      return
+    }
+
+    this.$detach()
+
     const site = 'stage.$destroy()'
 
     this.dispatchEvent(createDestroyingEvent(this))
 
-    this.$native.$destroy()
+    this.$stopMainLoop()
 
     this._scenes.forEach(scene => logexcept(() => scene.$destroy(), site))
     this._scenes.clear()
@@ -246,10 +252,13 @@ export class Stage extends EventTarget {
     listPlugins(this).reverse().forEach(plugin => logexcept(() => plugin?.destroy(), site))
     this._plugins.clear()
 
-    this.$stopMainLoop()
     this._flags = 0
+    this._composite.destroy()
+    this._composite = null
 
     this.dispatchEvent(createDestroyedEvent(this))
+
+    // TODO: clear event target listeners?
   }
 
   /**
@@ -393,6 +402,13 @@ export class Stage extends EventTarget {
         logger.info(`Loaded plugin ${pluginConfig.id}`)
       }
     }
+  }
+
+  /**
+   * @ignore
+   */
+  get $native () {
+    return this._composite.$native
   }
 }
 

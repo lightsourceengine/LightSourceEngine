@@ -7,8 +7,7 @@
 
 #pragma once
 
-#include <napi-ext.h>
-#include <lse/types.h>
+#include <napi.h>
 
 namespace lse {
 namespace bindings {
@@ -16,26 +15,11 @@ namespace bindings {
 /**
  * Bindings for a javascript Scene object.
  */
-class JSScene : public Napi::SafeObjectWrap<JSScene> {
+class JSScene {
  public:
-  using Napi::SafeObjectWrap<JSScene>::SafeObjectWrap;
-  ~JSScene() override = default;
-
-  static Napi::Function GetClass(Napi::Env env);
-  SceneRef GetNative() const noexcept;
-
- private:
-  void Constructor(const Napi::CallbackInfo& info) override;
-  void Attach(const Napi::CallbackInfo& info);
-  void Detach(const Napi::CallbackInfo& info);
-  void Destroy(const Napi::CallbackInfo& info);
-  void Frame(const Napi::CallbackInfo& info);
-  void Setup(const Napi::CallbackInfo& info);
-
- private:
-  SceneRef native{};
-
-  friend Napi::SafeObjectWrap<JSScene>;
+  static Napi::Value New(const Napi::Env& env,
+                         const Napi::Value& stage,
+                         const Napi::Value& context);
 };
 
 } // namespace bindings
