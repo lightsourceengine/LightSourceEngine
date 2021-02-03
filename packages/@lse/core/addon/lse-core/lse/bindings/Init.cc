@@ -14,7 +14,6 @@
 #include <lse/TextSceneNode.h>
 #include <lse/System.h>
 #include <lse/Log.h>
-#include <lse/RefGraphicsContextImpl.h>
 #include <lse/bindings/Bindings.h>
 #include <lse/bindings/JSEnums.h>
 #include <lse/bindings/JSScene.h>
@@ -79,17 +78,14 @@ Object Init(Env env, Object exports) {
   ExportClass(exports, lse::TextSceneNode::GetClass(env));
   ExportClass(exports, lse::RootSceneNode::GetClass(env));
 
-  ExportFunction(exports, Function::New(env, &lse::bindings::ParseColor, "parseColor"));
   ExportFunction(exports, Function::New(env, &lse::bindings::LoadSDLPlugin, "loadSDLPlugin"));
   ExportFunction(exports, Function::New(env, &lse::bindings::LoadSDLAudioPlugin, "loadSDLAudioPlugin"));
   ExportFunction(exports, Function::New(env, &lse::bindings::LoadSDLMixerPlugin, "loadSDLMixerPlugin"));
-  ExportFunction(exports, Function::New(env, &lse::SceneNode::GetInstanceCount, "getSceneNodeInstanceCount"));
 
-  // TODO: temporary patch to get ref plugin working with new plugin strategy
-  auto createRefGraphicsContext = [](const Napi::CallbackInfo& info) -> Napi::Value {
-    return lse::GraphicsContext::Create<lse::RefGraphicsContextImpl>(info.Env(), info[0]);
-  };
-  ExportFunction(exports, Function::New(env, createRefGraphicsContext, "createRefGraphicsContext"));
+  ExportFunction(exports, Function::New(env, &lse::bindings::CreateRefGraphicsContext, "createRefGraphicsContext"));
+
+  ExportFunction(exports, Function::New(env, &lse::bindings::ParseColor, "parseColor"));
+  ExportFunction(exports, Function::New(env, &lse::SceneNode::GetInstanceCount, "getSceneNodeInstanceCount"));
 
   exports["logger"] = lse::bindings::NewLoggerObject(env);
   exports["styleProperties"] = lse::bindings::GetStyleProperties(env);

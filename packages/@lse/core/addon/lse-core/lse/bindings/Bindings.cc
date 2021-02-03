@@ -15,6 +15,8 @@
 #include <lse/SDL2.h>
 #include <lse/SDL2_mixer.h>
 #include <lse/Config.h>
+#include <lse/bindings/JSGraphicsContext.h>
+#include <lse/RefGraphicsContext.h>
 #include <lse/bindings/SDLPlatformPluginExports.h>
 
 namespace lse {
@@ -61,6 +63,10 @@ Napi::Value LoadSDLMixerPlugin(const Napi::CallbackInfo& info) {
   } else {
     throw Napi::Error::New(info.Env(), "SDL Audio plugin is not available.");
   }
+}
+
+Napi::Value CreateRefGraphicsContext(const Napi::CallbackInfo& info) {
+  return JSGraphicsContext::New<RefGraphicsContext>(info.Env(), info[0]);
 }
 
 } // namespace bindings

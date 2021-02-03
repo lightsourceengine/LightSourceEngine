@@ -10,6 +10,7 @@
 #include <lse/CompositeContext.h>
 #include <lse/StyleContext.h>
 #include <lse/RenderingContext2D.h>
+#include <lse/GraphicsContext.h>
 
 #include <algorithm>
 #include <memory>
@@ -17,7 +18,6 @@
 
 namespace lse {
 
-class GraphicsContext;
 class Renderer;
 class RootSceneNode;
 class SceneNode;
@@ -37,7 +37,7 @@ class Scene {
 
   void SetRoot(RootSceneNode* root);
   void SetStage(const StageRef& stage);
-  void SetGraphicsContext(GraphicsContext* graphicsContext);
+  void SetGraphicsContext(GraphicsContextRef& context);
   Stage* GetStage() const noexcept { return this->stage.get(); }
   int32_t GetWidth() const noexcept { return this->width; }
   int32_t GetHeight() const noexcept { return this->height; }
@@ -62,7 +62,7 @@ class Scene {
  private:
   SceneNode* root{};
   StageRef stage{};
-  GraphicsContext* graphicsContext{};
+  GraphicsContextRef graphicsContext{};
   mutable StyleContext styleContext{ 0, 0, 0 };
   int32_t width{};
   int32_t height{};

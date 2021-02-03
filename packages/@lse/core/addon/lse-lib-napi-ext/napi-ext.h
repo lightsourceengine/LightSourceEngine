@@ -19,6 +19,9 @@
 #define NAPI_EXPECT_NULL(ENV, EXPR, MESSAGE) if ((EXPR) != nullptr) { throw Napi::Error::New(ENV, MESSAGE); }
 // if expr is null, throw a Napi::Error
 #define NAPI_EXPECT_NOT_NULL(ENV, EXPR, MESSAGE) if ((EXPR) == nullptr) { throw Napi::Error::New(ENV, MESSAGE); }
+// tries an expression. if an error occurs, "throw" error through the JS env rather than C++. intended for
+// use in C napi callbacks
+#define NAPI_TRY_C(EXPR) try { EXPR; } catch (const Napi::Error& e) { e.ThrowAsJavaScriptException(); return {}; }
 
 namespace Napi {
 

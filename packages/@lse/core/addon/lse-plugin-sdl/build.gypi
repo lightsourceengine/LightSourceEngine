@@ -24,7 +24,7 @@
       ],
       "sources": [
         "lse/SDLRenderer.cc",
-        "lse/SDLGraphicsContextImpl.cc",
+        "lse/SDLGraphicsContext.cc",
         "lse/SDLPlatformPlugin.cc",
         "lse/SDLUtil.cc",
         "lse/bindings/SDLPlatformPluginExports.cc"

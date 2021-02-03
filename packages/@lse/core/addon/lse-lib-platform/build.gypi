@@ -20,11 +20,10 @@
       ],
       "sources": [
         "lse/GraphicsContext.cc",
-        "lse/PlatformPlugin.cc",
-        "lse/CapabilitiesView.cc",
         "lse/PixelConversion.cc",
         "lse/Texture.cc",
-        "lse/Rect.cc"
+        "lse/Rect.cc",
+        "lse/bindings/JSGraphicsContext.cc"
       ]
     }
   ],

@@ -22,37 +22,49 @@ using lse::internal::LogCustomSite;
 namespace lse {
 namespace bindings {
 
-static void Log(LogLevel logLevel, napi_env env, napi_callback_info info);
+static void Log(LogLevel logLevel, napi_env env, napi_callback_info info) noexcept;
 
-static napi_value LogInfo(napi_env env, napi_callback_info info) {
+static napi_value LogInfo(napi_env env, napi_callback_info info) noexcept {
   if (lse::GetLogLevel() >= LogLevelInfo) {
     Log(LogLevelInfo, env, info);
   }
   return {};
 }
 
-static napi_value LogError(napi_env env, napi_callback_info info) {
+static napi_value LogError(napi_env env, napi_callback_info info) noexcept {
   if (lse::GetLogLevel() >= LogLevelError) {
     Log(LogLevelError, env, info);
   }
   return {};
 }
 
-static napi_value LogDebug(napi_env env, napi_callback_info info) {
+static napi_value LogDebug(napi_env env, napi_callback_info info) noexcept {
   if (lse::GetLogLevel() >= LogLevelDebug) {
     Log(LogLevelDebug, env, info);
   }
   return {};
 }
 
-static napi_value LogWarn(napi_env env, napi_callback_info info) {
+static napi_value LogWarn(napi_env env, napi_callback_info info) noexcept {
   if (lse::GetLogLevel() >= LogLevelWarn) {
     Log(LogLevelWarn, env, info);
   }
   return {};
 }
 
-static void Log(LogLevel logLevel, napi_env env, napi_callback_info info) {
+static std::string ToString(const Napi::Value& value) {
+  try {
+    if (value.IsString()) {
+      return value.As<Napi::String>().Utf8Value();
+    }
+  } catch (const Error& e) {
+    // ignore
+  }
+
+  return {};
+}
+
+static void Log(LogLevel logLevel, napi_env env, napi_callback_info info) noexcept {
   constexpr auto siteBufferSize = 32;
   constexpr auto messageBufferSize = 1024;
 
@@ -69,7 +81,8 @@ static void Log(LogLevel logLevel, napi_env env, napi_callback_info info) {
       if (Napi::StringByteLength(ci[0]) < messageBufferSize) {
         LogCustomSite(logLevel, site, Napi::CopyUtf8(ci[0], messageBuffer, messageBufferSize));
       } else {
-        LogCustomSite(logLevel, site, ci[0].IsString() ? ci[0].As<Napi::String>().Utf8Value().c_str() : nullptr);
+        auto message{ ToString(ci[0]) };
+        LogCustomSite(logLevel, site, !message.empty() ? message.c_str() : nullptr);
       }
     }
       break;
@@ -77,7 +90,8 @@ static void Log(LogLevel logLevel, napi_env env, napi_callback_info info) {
       if (Napi::StringByteLength(ci[0]) < messageBufferSize) {
         LogCustomSite(logLevel, "js", Napi::CopyUtf8(ci[0], messageBuffer, messageBufferSize));
       } else {
-        LogCustomSite(logLevel, "js", ci[0].IsString() ? ci[0].As<Napi::String>().Utf8Value().c_str() : nullptr);
+        auto message{ ToString(ci[0]) };
+        LogCustomSite(logLevel, "js", !message.empty() ? message.c_str() : nullptr);
       }
       break;
     case 0:
@@ -88,11 +102,11 @@ static void Log(LogLevel logLevel, napi_env env, napi_callback_info info) {
   }
 }
 
-static napi_value GetLogLevel(napi_env env, napi_callback_info info) {
-  return Number::New(env, lse::GetLogLevel());
+static napi_value GetLogLevel(napi_env env, napi_callback_info info) noexcept {
+  NAPI_TRY_C(return Number::New(env, lse::GetLogLevel()))
 }
 
-static napi_value SetLogLevel(napi_env env, napi_callback_info callback_info) {
+static void SetLogLevelThrows(napi_env env, napi_callback_info callback_info) {
   Napi::CallbackInfo info(env, callback_info);
 
   switch (info[0].Type()) {
@@ -119,7 +133,10 @@ static napi_value SetLogLevel(napi_env env, napi_callback_info callback_info) {
     default:
       throw Error::New(env, "LogLevel must be a string or integer.");
   }
+}
 
+static napi_value SetLogLevel(napi_env env, napi_callback_info callback_info) noexcept {
+  NAPI_TRY_C(SetLogLevelThrows(env, callback_info))
   return {};
 }
 

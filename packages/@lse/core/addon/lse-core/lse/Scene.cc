@@ -43,6 +43,8 @@ Scene::~Scene() noexcept {
 }
 
 void Scene::Attach() noexcept {
+  this->graphicsContext->Attach();
+
   const auto w{ this->graphicsContext->GetWidth() };
   const auto h{ this->graphicsContext->GetHeight() };
 
@@ -58,13 +60,10 @@ void Scene::Attach() noexcept {
   this->isAttached = true;
 
   this->RequestComposite();
-
-  // TODO: attach graphics context?
 }
 
 void Scene::Detach() noexcept {
-  // TODO: detach graphics context?
-
+  this->graphicsContext->Detach();
   this->renderingContext2D.renderer = nullptr;
   this->isAttached = false;
 }
@@ -94,18 +93,17 @@ void Scene::SetStage(const StageRef& stageRef) {
   this->stage = stageRef;
 }
 
-void Scene::SetGraphicsContext(GraphicsContext* graphicsContext) {
+void Scene::SetGraphicsContext(GraphicsContextRef& context) {
   LSE_EXPECT_NULL(this->graphicsContext, "graphics context has already been set");
 
-  this->graphicsContext = graphicsContext;
-  this->graphicsContext->Ref();
+  this->graphicsContext = context;
 }
 
 void Scene::Destroy() noexcept {
   // TODO: destroy graphics context?
   this->isAttached = false;
   this->root = SafeObjectWrap<SceneNode>::RemoveRef(this->root, [](SceneNode* node) { node->Destroy(); });
-  this->graphicsContext = GraphicsContext::RemoveRef(this->graphicsContext);
+  this->graphicsContext = nullptr;
   this->stage = nullptr;
 }
 

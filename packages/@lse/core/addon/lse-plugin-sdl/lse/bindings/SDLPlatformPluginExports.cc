@@ -10,11 +10,26 @@
 #include <ObjectBuilder.h>
 #include <lse/Config.h>
 #include <napi-ext.h>
-#include <lse/SDLGraphicsContextImpl.h>
+#include <lse/SDLGraphicsContext.h>
 #include <lse/Log.h>
+#include <lse/bindings/JSGraphicsContext.h>
 
 using Napi::Boolean;
 using Napi::Number;
+
+/*
+ * Dev Notes
+ *
+ * SDLPlatformPlugin does not use ObjectWrap for bindings. ObjectWrap bloats the code size due
+ * to templates and wrappers to interop with C add runtime overhead. Since the plugin is a
+ * singleton, I opted to use a static variable for the native SDLPlatform plugin instance. I
+ * create an Object and add wrapped native functions that call the singleton. This is a bit
+ * messy, but it works (won't work for multiple contexts).
+ *
+ * The object creation is through the C NAPI, to reduce overhead. However, NAPI exceptions are
+ * enabled, so the native wrappers have to deal with exceptions. In the future, exceptions should
+ * be turned off to simplify this code.
+ */
 
 namespace lse {
 namespace bindings {
@@ -36,8 +51,12 @@ static Napi::FunctionReference sPluginCallbacks[PluginCallbackCount]{};
 
 static void ResetCallbacks() noexcept;
 
-static napi_value Attach(napi_env env, napi_callback_info info) {
-  NAPI_TRY(env, sPlugin->Attach());
+static napi_value Attach(napi_env env, napi_callback_info info) noexcept {
+  try {
+    sPlugin->Attach();
+  } catch (const std::exception& e) {
+    Napi::Error::New(env, e.what()).ThrowAsJavaScriptException();
+  }
   return nullptr;
 }
 
@@ -47,8 +66,8 @@ static napi_value Detach(napi_env env, napi_callback_info info) noexcept {
   return nullptr;
 }
 
-static napi_value IsAttached(napi_env env, napi_callback_info info) {
-  return Napi::Boolean::New(env, sPlugin->IsAttached());
+static napi_value IsAttached(napi_env env, napi_callback_info info) noexcept {
+  NAPI_TRY_C(return Napi::Boolean::New(env, sPlugin->IsAttached()))
 }
 
 static napi_value Destroy(napi_env env, napi_callback_info info) noexcept {
@@ -57,16 +76,16 @@ static napi_value Destroy(napi_env env, napi_callback_info info) noexcept {
   return nullptr;
 }
 
-static napi_value GetDisplays(napi_env env, napi_callback_info info) {
+static napi_value GetDisplaysThrows(napi_env env) {
   Napi::ObjectBuilder builder(env);
   auto result{ Napi::Array::New(env) };
 
   auto NewDisplayMode = [](napi_env env, const SDLDisplayMode& displayMode) {
     return Napi::ObjectBuilder(env)
-      .WithValue("width", displayMode.width)
-      .WithValue("height", displayMode.height)
-      .Freeze()
-      .ToObject();
+        .WithValue("width", displayMode.width)
+        .WithValue("height", displayMode.height)
+        .Freeze()
+        .ToObject();
   };
 
   for (const auto& display : sPlugin->GetDisplays()) {
@@ -88,8 +107,12 @@ static napi_value GetDisplays(napi_env env, napi_callback_info info) {
   return result;
 }
 
-static napi_value GetVideoDriverNames(napi_env env, napi_callback_info info) {
-  return Napi::ToArray<Napi::String>(env, sPlugin->GetVideoDriverNames());
+static napi_value GetDisplays(napi_env env, napi_callback_info info) noexcept {
+  NAPI_TRY_C(return GetDisplaysThrows(env))
+}
+
+static napi_value GetVideoDriverNames(napi_env env, napi_callback_info info) noexcept {
+  NAPI_TRY_C(return Napi::ToArray<Napi::String>(env, sPlugin->GetVideoDriverNames()))
 }
 
 static void ResetCallbacks() noexcept {
@@ -103,131 +126,181 @@ static napi_value ResetCallbacks(napi_env env, napi_callback_info info) noexcept
   return nullptr;
 }
 
-static napi_value CreateGraphicsContext(napi_env env, napi_callback_info info) {
-  Napi::CallbackInfo ci{ env, info };
+static napi_value CreateGraphicsContext(napi_env env, napi_callback_info info) noexcept {
+  try {
+    Napi::CallbackInfo ci{ env, info };
 
-  return GraphicsContext::Create<SDLGraphicsContextImpl>(env, ci[0]);
+    return JSGraphicsContext::New<SDLGraphicsContext>(env, ci[0]);
+  } catch (const Napi::Error& e) {
+    e.ThrowAsJavaScriptException();
+    return {};
+  }
 }
 
-static napi_value GetScanCodeState(napi_env env, napi_callback_info info) {
-  Napi::CallbackInfo ci{ env, info };
-  bool result = ci[0].IsNumber() && sPlugin->GetScanCodeState(ci[0].As<Napi::Number>().Int32Value());
+static napi_value GetScanCodeState(napi_env env, napi_callback_info info) noexcept {
+  try {
+    Napi::CallbackInfo ci{ env, info };
+    bool result = ci[0].IsNumber() && sPlugin->GetScanCodeState(ci[0].As<Napi::Number>().Int32Value());
 
-  return Napi::Boolean::New(env, result);
+    return Napi::Boolean::New(env, result);
+  } catch (const Napi::Error& e) {
+    e.ThrowAsJavaScriptException();
+    return {};
+  }
 }
 
-static napi_value LoadGameControllerMappings(napi_env env, napi_callback_info info) {
-  Napi::CallbackInfo ci{ env, info };
-  auto value{ ci[0] };
-  int32_t count;
+static napi_value LoadGameControllerMappings(napi_env env, napi_callback_info info) noexcept {
+  try {
+    Napi::CallbackInfo ci{ env, info };
+    auto value{ ci[0] };
+    int32_t count;
 
-  if (value.IsString()) {
-    auto valueLen{ Napi::StringByteLength(value) };
+    if (value.IsString()) {
+      auto valueLen{ Napi::StringByteLength(value) };
 
-    if (valueLen < Napi::SizeOfCopyUtf8Buffer()) {
-      count = sPlugin->LoadGameControllerMappings(Napi::CopyUtf8(value), valueLen);
+      if (valueLen < Napi::SizeOfCopyUtf8Buffer()) {
+        count = sPlugin->LoadGameControllerMappings(Napi::CopyUtf8(value), valueLen);
+      } else {
+        std::string tempString = value.As<Napi::String>();
+        count = sPlugin->LoadGameControllerMappings(tempString.c_str(), tempString.size());
+      }
+    } else if (value.IsBuffer()) {
+      auto buffer{ value.As<Napi::Buffer<uint8_t>>() };
+
+      count = sPlugin->LoadGameControllerMappings(buffer.Data(), buffer.Length());
     } else {
-      std::string tempString = value.As<Napi::String>();
-      count = sPlugin->LoadGameControllerMappings(tempString.c_str(), tempString.size());
+      count = 0;
     }
-  } else if (value.IsBuffer()) {
-    auto buffer{ value.As<Napi::Buffer<uint8_t>>() };
 
-    count = sPlugin->LoadGameControllerMappings(buffer.Data(), buffer.Length());
-  } else {
-    count = 0;
+    return Napi::NewNumber(env, count);
+  } catch (const Napi::Error& e) {
+    e.ThrowAsJavaScriptException();
+    return {};
   }
-
-  return Napi::NewNumber(env, count);
 }
 
-static napi_value GetGameControllerMapping(napi_env env, napi_callback_info info) {
-  Napi::CallbackInfo ci{ env, info };
-  auto mapping{ sPlugin->GetGameControllerMapping(Napi::CopyUtf8(ci[0])) };
+static napi_value GetGameControllerMapping(napi_env env, napi_callback_info info) noexcept {
+  try {
+    Napi::CallbackInfo ci{ env, info };
+    auto mapping{ sPlugin->GetGameControllerMapping(Napi::CopyUtf8(ci[0])) };
 
-  return Napi::String::New(env, mapping);
-}
-
-static napi_value ProcessEvents(napi_env env, napi_callback_info info) {
-  return Napi::Boolean::New(env, sPlugin->ProcessEvents());
-}
-
-static napi_value GetGamepadInstanceIds(napi_env env, napi_callback_info info) {
-  return Napi::ToArray<Napi::Number>(env, sPlugin->GetGamepadInstanceIds());
-}
-
-static napi_value IsKeyDown(napi_env env, napi_callback_info info) {
-  Napi::CallbackInfo ci(env, info);
-
-  bool result = ci[0].IsNumber()
-      && ci[1].IsNumber()
-      && sPlugin->IsKeyDown(ci[0].As<Number>(), ci[1].As<Number>());
-
-  return Napi::Boolean::New(env, result);
-}
-
-static napi_value GetAnalogValue(napi_env env, napi_callback_info info) {
-  Napi::CallbackInfo ci(env, info);
-
-  if (ci[0].IsNumber() && ci[1].IsNumber()) {
-    return Napi::NewNumber(env, sPlugin->GetAnalogValue(ci[0].As<Number>(), ci[1].As<Number>()));
+    return Napi::String::New(env, mapping);
+  } catch (const Napi::Error& e) {
+    e.ThrowAsJavaScriptException();
+    return {};
   }
-
-  return Napi::NewNumber(env, 0.f);
 }
 
-static napi_value GetButtonState(napi_env env, napi_callback_info info) {
-  Napi::CallbackInfo ci(env, info);
-
-  bool result = ci[0].IsNumber()
-      && ci[1].IsNumber()
-      && sPlugin->GetButtonState(ci[0].As<Number>(), ci[1].As<Number>());
-
-  return Napi::Boolean::New(env, result);
+static napi_value ProcessEvents(napi_env env, napi_callback_info info) noexcept {
+  NAPI_TRY_C(return Napi::Boolean::New(env, sPlugin->ProcessEvents()))
 }
 
-static napi_value GetAxisState(napi_env env, napi_callback_info info) {
-  Napi::CallbackInfo ci(env, info);
+static napi_value GetGamepadInstanceIds(napi_env env, napi_callback_info info) noexcept {
+  NAPI_TRY_C(return Napi::ToArray<Napi::Number>(env, sPlugin->GetGamepadInstanceIds()))
+}
 
-  if (ci[0].IsNumber() && ci[1].IsNumber()) {
-    return Napi::NewNumber(env, sPlugin->GetAxisState(ci[0].As<Number>(), ci[1].As<Number>()));
+static napi_value IsKeyDown(napi_env env, napi_callback_info info) noexcept {
+  try {
+    Napi::CallbackInfo ci(env, info);
+
+    bool result = ci[0].IsNumber()
+        && ci[1].IsNumber()
+        && sPlugin->IsKeyDown(ci[0].As<Number>(), ci[1].As<Number>());
+
+    return Napi::Boolean::New(env, result);
+  } catch (const Napi::Error& e) {
+    e.ThrowAsJavaScriptException();
+    return {};
   }
-
-  return Napi::NewNumber(env, 0.f);
 }
 
-static napi_value GetHatState(napi_env env, napi_callback_info info) {
-  Napi::CallbackInfo ci(env, info);
+static napi_value GetAnalogValue(napi_env env, napi_callback_info info) noexcept {
+  try {
+    Napi::CallbackInfo ci(env, info);
 
-  if (ci[0].IsNumber() && ci[1].IsNumber()) {
-    return Napi::NewNumber(env, sPlugin->GetHatState(ci[0].As<Number>(), ci[1].As<Number>()));
+    if (ci[0].IsNumber() && ci[1].IsNumber()) {
+      return Napi::NewNumber(env, sPlugin->GetAnalogValue(ci[0].As<Number>(), ci[1].As<Number>()));
+    }
+
+    return Napi::NewNumber(env, 0.f);
+  } catch (const Napi::Error& e) {
+    e.ThrowAsJavaScriptException();
+    return {};
   }
-
-  return Napi::NewNumber(env, 0);
 }
 
-static napi_value GetGamepadInfo(napi_env env, napi_callback_info info) {
-  Napi::CallbackInfo ci(env, info);
-  int32_t instanceId;
+static napi_value GetButtonState(napi_env env, napi_callback_info info) noexcept {
+  try {
+    Napi::CallbackInfo ci(env, info);
 
-  if (ci[0].IsNumber()) {
-    instanceId = ci[0].As<Number>();
-  } else {
-    instanceId = -1;
+    bool result = ci[0].IsNumber()
+        && ci[1].IsNumber()
+        && sPlugin->GetButtonState(ci[0].As<Number>(), ci[1].As<Number>());
+
+    return Napi::Boolean::New(env, result);
+  } catch (const Napi::Error& e) {
+    e.ThrowAsJavaScriptException();
+    return {};
   }
+}
 
-  auto gamepadInfo{ sPlugin->GetGamepadInfo(instanceId) };
+static napi_value GetAxisState(napi_env env, napi_callback_info info) noexcept {
+  try {
+    Napi::CallbackInfo ci(env, info);
 
-  return Napi::ObjectBuilder(env)
-    .WithValue("id", gamepadInfo.instanceId)
-    .WithValue("type", "gamepad")
-    .WithValue("name", gamepadInfo.name)
-    .WithValue("buttonCount", gamepadInfo.buttonCount)
-    .WithValue("hatCount", gamepadInfo.hatCount)
-    .WithValue("axisCount", gamepadInfo.axisCount)
-    .WithValue("uuid", gamepadInfo.uuid)
-    .Freeze()
-    .ToObject();
+    if (ci[0].IsNumber() && ci[1].IsNumber()) {
+      return Napi::NewNumber(env, sPlugin->GetAxisState(ci[0].As<Number>(), ci[1].As<Number>()));
+    }
+
+    return Napi::NewNumber(env, 0.f);
+  } catch (const Napi::Error& e) {
+    e.ThrowAsJavaScriptException();
+    return {};
+  }
+}
+
+static napi_value GetHatState(napi_env env, napi_callback_info info) noexcept {
+  try {
+    Napi::CallbackInfo ci(env, info);
+
+    if (ci[0].IsNumber() && ci[1].IsNumber()) {
+      return Napi::NewNumber(env, sPlugin->GetHatState(ci[0].As<Number>(), ci[1].As<Number>()));
+    }
+
+    return Napi::NewNumber(env, 0);
+  } catch (const Napi::Error& e) {
+    e.ThrowAsJavaScriptException();
+    return {};
+  }
+}
+
+static napi_value GetGamepadInfo(napi_env env, napi_callback_info info) noexcept {
+  try {
+    Napi::CallbackInfo ci(env, info);
+    int32_t instanceId;
+
+    if (ci[0].IsNumber()) {
+      instanceId = ci[0].As<Number>();
+    } else {
+      instanceId = -1;
+    }
+
+    auto gamepadInfo{ sPlugin->GetGamepadInfo(instanceId) };
+
+    return Napi::ObjectBuilder(env)
+      .WithValue("id", gamepadInfo.instanceId)
+      .WithValue("type", "gamepad")
+      .WithValue("name", gamepadInfo.name)
+      .WithValue("buttonCount", gamepadInfo.buttonCount)
+      .WithValue("hatCount", gamepadInfo.hatCount)
+      .WithValue("axisCount", gamepadInfo.axisCount)
+      .WithValue("uuid", gamepadInfo.uuid)
+      .Freeze()
+      .ToObject();
+  } catch (const Napi::Error& e) {
+    e.ThrowAsJavaScriptException();
+    return {};
+  }
 }
 
 static napi_value MakeArg(const Napi::Env& env, int32_t value) {
@@ -340,31 +413,32 @@ Napi::Object SDLPlatformPluginExports(const Napi::Env& env) {
     })
 
   return Napi::ObjectBuilder(env)
+      // Plugin API
       .WithValue("id", kPluginPlatformSdl)
       .WithValue("type", "platform")
       .WithMethod("attach", &Attach)
       .WithMethod("detach", &Detach)
       .WithMethod("destroy", &Destroy)
       .WithMethod("isAttached", &IsAttached)
-
+      // System / Capabilities API
       .WithMethod("getDisplays", &GetDisplays)
       .WithMethod("getVideoDriverNames", &GetVideoDriverNames)
-
-      .WithMethod("createGraphicsContext", &CreateGraphicsContext)
-      .WithMethod("processEvents", &ProcessEvents)
-
-      .WithMethod("getScanCodeState", &GetScanCodeState)
-
+      .WithMethod("loadGameControllerMappings", &LoadGameControllerMappings)
       .WithMethod("getGameControllerMapping", &GetGameControllerMapping)
       .WithMethod("getGamepadInstanceIds", &GetGamepadInstanceIds)
-      .WithMethod("loadGameControllerMappings", &LoadGameControllerMappings)
+      // Window API
+      .WithMethod("createGraphicsContext", &CreateGraphicsContext)
+      .WithMethod("processEvents", &ProcessEvents)
+      // Keyboard API
+      .WithMethod("getScanCodeState", &GetScanCodeState)
+      // Gamepad API
       .WithMethod("isKeyDown", &IsKeyDown)
       .WithMethod("getAnalogValue", &GetAnalogValue)
       .WithMethod("getButtonState", &GetButtonState)
       .WithMethod("getAxisState", &GetAxisState)
       .WithMethod("getHatState", &GetHatState)
       .WithMethod("getGamepadInfo", &GetGamepadInfo)
-
+      // Plugin Event Handlers
       .WithPluginEventProperty("onKeyboardScanCode", OnKeyboardScanCode)
       .WithPluginEventProperty("onGamepadStatus", OnGamepadStatus)
       .WithPluginEventProperty("onGamepadAxis", OnGamepadAxis)

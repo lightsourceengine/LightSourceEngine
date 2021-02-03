@@ -23,7 +23,7 @@ namespace Napi {
  */
 class ObjectBuilder final {
  public:
-  ObjectBuilder(const Napi::Env& env);
+  ObjectBuilder(const Napi::Env& env, void* data = nullptr) noexcept;
 
   ObjectBuilder& WithMethod(const Napi::PropertyName& id, napi_callback method);
 
@@ -51,6 +51,7 @@ class ObjectBuilder final {
 
  private:
   Napi::Env env;
+  void* data;
   Napi::Object object{};
   bool freeze{};
 };

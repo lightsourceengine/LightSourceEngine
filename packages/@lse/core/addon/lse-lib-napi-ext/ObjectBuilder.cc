@@ -11,10 +11,12 @@
 
 namespace Napi {
 
-ObjectBuilder::ObjectBuilder(const Napi::Env& env) : env(env) {
+ObjectBuilder::ObjectBuilder(const Napi::Env& env, void* data) noexcept : env(env), data(data) {
 }
 
 ObjectBuilder& ObjectBuilder::WithMethod(const Napi::PropertyName& id, napi_callback method) {
+  static_assert(noexcept(method), "method must be declared with noexcept");
+
   return this->SetPropertyDescriptor({
     id.utf8Name,
     id.name,
@@ -23,7 +25,7 @@ ObjectBuilder& ObjectBuilder::WithMethod(const Napi::PropertyName& id, napi_call
     nullptr,
     nullptr,
     napi_default,
-    nullptr
+    this->data
   });
 }
 
@@ -38,6 +40,9 @@ ObjectBuilder& ObjectBuilder::WithValue(
 }
 
 ObjectBuilder& ObjectBuilder::WithProperty(const Napi::PropertyName& id, napi_callback getter, napi_callback setter) {
+  static_assert(noexcept(getter), "property getter must be declared with noexcept");
+  static_assert(noexcept(setter), "property getter must be declared with noexcept");
+
   return this->SetPropertyDescriptor({
     id.utf8Name,
     id.name,
@@ -46,7 +51,7 @@ ObjectBuilder& ObjectBuilder::WithProperty(const Napi::PropertyName& id, napi_ca
     setter,
     nullptr,
     napi_writable,
-nullptr
+    this->data
   });
 }
 

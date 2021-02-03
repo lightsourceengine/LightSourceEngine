@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { createStyleSheet, stage, Key, ScanCode } from '@lse/core'
+import { createStyleSheet, stage, Key, ScanCode, EventName } from '@lse/core'
 import { letThereBeLight } from '@lse/react'
 import { EventEmitter } from 'events'
 import { cpus } from 'os'
@@ -344,6 +344,6 @@ const SwitchyApp = () => {
   )
 }
 
-stage.input.on('rawkeyup', e => e.scanCode === ScanCode.ESCAPE && stage.quit())
+stage.input.on(EventName.onScanCodeUp, e => e.scanCode === ScanCode.ESCAPE && stage.quit())
 
-const scene = letThereBeLight(<SwitchyApp />, { scene: { fullscreen: true } })
+const scene = letThereBeLight(<SwitchyApp />)

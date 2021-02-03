@@ -59,6 +59,7 @@ void JSScene::Frame(const Napi::CallbackInfo& info) {
 }
 
 void JSScene::Setup(const Napi::CallbackInfo& info) {
+  auto env{ info.Env() };
   StageRef stage;
   auto classInstance{ JSStage::Cast(info[0]) };
 
@@ -66,19 +67,21 @@ void JSScene::Setup(const Napi::CallbackInfo& info) {
     stage = classInstance->GetNative();
   }
 
-  NAPI_EXPECT_NOT_NULL(info.Env(), stage, "stage arg must be a Stage instance");
-  NAPI_TRY(info.Env(), this->native->SetStage(stage));
+  NAPI_EXPECT_NOT_NULL(env, stage, "stage arg must be a Stage instance");
+  NAPI_TRY(env, this->native->SetStage(stage));
 
   auto root{ RootSceneNode::Cast(info[1]) };
 
-  NAPI_EXPECT_NOT_NULL(info.Env(), root, "root arg must be a RootSceneNode instance");
-  NAPI_TRY(info.Env(), this->native->SetRoot(root));
+  NAPI_EXPECT_NOT_NULL(env, root, "root arg must be a RootSceneNode instance");
+  NAPI_TRY(env, this->native->SetRoot(root));
 
-  auto graphicsContext{ GraphicsContext::Cast(info[2]) };
+  NAPI_EXPECT_TRUE(env, info[2].IsExternal(), "context must be an External value");
 
-  NAPI_EXPECT_NOT_NULL(
-      info.Env(), graphicsContext, "graphicsContext arg must be a GraphicsContext instance");
-  NAPI_TRY(info.Env(), this->native->SetGraphicsContext(graphicsContext));
+  auto graphicsContextPtr{ info[2].As<Napi::External<GraphicsContextRef>>().Data() };
+
+  NAPI_EXPECT_NOT_NULL(env, graphicsContextPtr, "context contains a null External value");
+
+  NAPI_TRY(info.Env(), this->native->SetGraphicsContext(*graphicsContextPtr));
 }
 
 void JSScene::Destroy(const CallbackInfo& info) {

@@ -23,7 +23,7 @@ export class Scene extends EventTarget {
   _stage = null
   _root = null
   _fonts = []
-  _graphicsContext = null
+  _context = null
   _fgFrameListeners = []
   _bgFrameListeners = []
   _attached = false
@@ -37,7 +37,7 @@ export class Scene extends EventTarget {
       EventName.onDestroyed
     ])
 
-    const graphicsContext = stage.system.$createGraphicsContext(config)
+    const context = stage.system.$createGraphicsContext(config)
     const root = new RootSceneNode(this)
     const { style } = root
 
@@ -48,11 +48,11 @@ export class Scene extends EventTarget {
     style.left = 0
     style.position = 'absolute'
 
-    this.$native.$setup(stage.$native, root, graphicsContext)
+    this.$native.$setup(stage.$native, root, context.$native)
 
     this._stage = stage
     this._root = root
-    this._graphicsContext = graphicsContext
+    this._context = context
 
     if (typeof config?.title === 'string') {
       this.title = config.title
@@ -74,27 +74,27 @@ export class Scene extends EventTarget {
   }
 
   get fullscreen () {
-    return this._graphicsContext.fullscreen
+    return this._context.isFullscreen()
   }
 
   get width () {
-    return this._graphicsContext.width
+    return this._context.getWidth()
   }
 
   get height () {
-    return this._graphicsContext.height
+    return this._context.getHeight()
   }
 
   get displayIndex () {
-    return this._graphicsContext.displayIndex
+    return this._context.getDisplayIndex()
   }
 
   get title () {
-    return this._graphicsContext.title
+    return this._context.getTitle()
   }
 
   set title (value) {
-    this._graphicsContext.title = value
+    this._context.setTitle(value)
   }
 
   get activeNode () {
@@ -114,7 +114,7 @@ export class Scene extends EventTarget {
   }
 
   resize (width, height, fullscreen = true) {
-    this._graphicsContext.resize(width, height, fullscreen)
+    this._context.resize(width, height, fullscreen)
   }
 
   requestAnimationFrame (callback) {
@@ -159,7 +159,6 @@ export class Scene extends EventTarget {
       return
     }
 
-    this._graphicsContext.attach()
     this.$native.$attach()
 
     this._attached = true
@@ -172,7 +171,6 @@ export class Scene extends EventTarget {
     }
 
     this.$native.$detach()
-    this._graphicsContext.detach()
 
     this._attached = false
     this.dispatchEvent(createDetachedEvent(this))
@@ -184,6 +182,7 @@ export class Scene extends EventTarget {
     this._fonts.forEach(font => font.destroy())
     this._fonts = []
 
+    this._context = null
     this.$native.$destroy()
 
     this.$setActiveNode(null)
