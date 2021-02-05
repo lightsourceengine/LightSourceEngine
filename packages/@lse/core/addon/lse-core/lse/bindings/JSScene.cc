@@ -39,12 +39,10 @@ static napi_value Destroy(napi_env env, napi_callback_info info) noexcept {
 }
 
 static napi_value SetRoot(napi_env env, napi_callback_info info) noexcept {
-  napi_value arg;
-
-  napix::get_args(env, info, &arg);
+  auto call{ napix::get_callback_info<1>(env, info) };
 
   try {
-    auto root = RootSceneNode::Cast(Napi::Value(env, arg));
+    auto root = RootSceneNode::Cast(Napi::Value(env, call[0]));
 
     if (!root) {
       Napi::Error::New(env, "root arg must be a RootSceneNode instance").ThrowAsJavaScriptException();

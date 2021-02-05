@@ -24,6 +24,7 @@ import { readFileSync } from 'fs'
 import { SystemManager } from '../system/SystemManager.js'
 import { loadPlugin } from '../addon/loadPlugin.js'
 import { EventTarget } from '../event/EventTarget.js'
+import { FontManager } from '../font/FontManager.js'
 
 const kFlagWasQuitRequested = 1
 const kFlagIsAttached = 2
@@ -53,6 +54,7 @@ export class Stage extends EventTarget {
     this._loadPlugin = loadPluginFunc
 
     Object.defineProperties(this, {
+      font: { value: new FontManager() },
       input: { value: new InputManager(this) },
       audio: { value: new AudioManager(this) },
       system: { value: new SystemManager() }
@@ -449,4 +451,4 @@ const loadAppConfigFromFile = (filename) => {
 
 const listPlugins = ({ _plugins }) => [_plugins.get(PluginType.PLATFORM), _plugins.get(PluginType.AUDIO)]
 
-const listManagers = (stage) => [stage.system, stage.input, stage.audio]
+const listManagers = (stage) => [stage.font, stage.system, stage.input, stage.audio]

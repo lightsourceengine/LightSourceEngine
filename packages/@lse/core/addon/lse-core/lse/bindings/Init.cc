@@ -21,6 +21,8 @@
 #include <lse/bindings/JSStyleTransformSpec.h>
 #include <lse/bindings/JSStyleValue.h>
 #include <lse/bindings/Logger.h>
+#include <lse/bindings/JSFontEnums.h>
+
 #include <napi.h>
 
 #if defined(LSE_ENABLE_NATIVE_TESTS)
@@ -62,6 +64,9 @@ Object Init(Env env, Object exports) {
   exports["StyleUnit"] = lse::bindings::NewStyleUnitEnum(env);
   exports["StyleAnchor"] = lse::bindings::NewStyleAnchorEnum(env);
   exports["PluginId"] = lse::bindings::NewPluginIdEnum(env);
+  exports["FontStatus"] = lse::bindings::NewFontStatusEnum(env);
+  exports["FontStyle"] = lse::bindings::NewFontStyleEnum(env);
+  exports["FontWeight"] = lse::bindings::NewFontWeightEnum(env);
 
   ExportClass(exports, lse::bindings::JSStyle::GetClass(env));
   ExportClass(exports, lse::bindings::JSStyleClass::GetClass(env));
@@ -81,6 +86,7 @@ Object Init(Env env, Object exports) {
   ExportFunction(exports, Function::New(env, &lse::bindings::CreateRefGraphicsContext, "createRefGraphicsContext"));
   ExportFunction(exports, Function::New(env, &lse::bindings::CreateSceneComposite, "createSceneComposite"));
   ExportFunction(exports, Function::New(env, &lse::bindings::CreateStageComposite, "createStageComposite"));
+  ExportFunction(exports, Function::New(env, &lse::bindings::CreateFontManagerComposite, "createFontManagerComposite"));
 
   ExportFunction(exports, Function::New(env, &lse::bindings::ParseColor, "parseColor"));
   ExportFunction(exports, Function::New(env, &lse::SceneNode::GetInstanceCount, "getSceneNodeInstanceCount"));

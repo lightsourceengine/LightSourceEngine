@@ -33,10 +33,9 @@ static napi_value IsFullscreen(napi_env env, napi_callback_info info) noexcept {
 }
 
 static napi_value SetTitle(napi_env env, napi_callback_info info) noexcept {
-  napi_value title;
+  auto call{ napix::get_callback_info<1>(env, info) };
 
-  napix::get_args(env, info, &title);
-  napix::get_data<GraphicsContext>(env, info)->SetTitle(napix::as_string_utf8(env, title).c_str());
+  call.data_as<GraphicsContext>()->SetTitle(napix::as_string_utf8(env, call[0]).c_str());
 
   return {};
 }

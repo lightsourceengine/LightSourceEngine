@@ -17,9 +17,11 @@
 #include <lse/Config.h>
 #include <lse/bindings/JSGraphicsContext.h>
 #include <lse/RefGraphicsContext.h>
+#include <lse/Blend2DFontDriver.h>
 #include <lse/bindings/SDLPlatformPluginExports.h>
 #include <lse/bindings/JSScene.h>
 #include <lse/bindings/JSStage.h>
+#include <lse/bindings/JSFontManager.h>
 
 namespace lse {
 namespace bindings {
@@ -77,6 +79,10 @@ Napi::Value CreateSceneComposite(const Napi::CallbackInfo& info) {
 
 Napi::Value CreateStageComposite(const Napi::CallbackInfo& info) {
   return JSStage::New(info.Env());
+}
+
+Napi::Value CreateFontManagerComposite(const Napi::CallbackInfo& info) {
+  return JSFontManager::New(info.Env(), std::make_unique<Blend2DFontDriver>());
 }
 
 } // namespace bindings

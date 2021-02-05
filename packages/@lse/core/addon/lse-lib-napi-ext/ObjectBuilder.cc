@@ -65,7 +65,7 @@ ObjectBuilder& ObjectBuilder::WithValue(
     nullptr,
     nullptr,
     value,
-    napi_default,
+    attributes,
     nullptr
   });
 }

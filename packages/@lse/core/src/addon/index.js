@@ -7,7 +7,6 @@
 import { createRequire } from 'module'
 import { resolve } from 'path'
 import bindings from 'bindings'
-import { PluginId } from './PluginId.js'
 
 // Load the native portions of Light Source Engine from @lse/core.
 
@@ -48,6 +47,9 @@ export const {
   StyleTransform,
   StyleAnchor,
   LogLevel,
+  FontStatus,
+  FontStyle,
+  FontWeight
 } = addon
 
 // Function / Object Exports
@@ -62,4 +64,5 @@ export const {
   createRefGraphicsContext,
   createSceneComposite,
   createStageComposite,
+  createFontManagerComposite
 } = addon

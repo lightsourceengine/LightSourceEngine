@@ -35,6 +35,7 @@
     "addon/lse-lib-platform/build.gypi",
     "addon/lse-lib-util/build.gypi",
     "addon/lse-lib-logger/build.gypi",
+    "addon/lse-lib-font/build.gypi",
     "addon/lse-plugin-ref/build.gypi",
     "addon/lse-plugin-sdl/build.gypi",
     "addon/lse-plugin-sdl-audio/build.gypi",

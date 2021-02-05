@@ -41,5 +41,6 @@ bindTestSuite([
   'lse-core',
   'lse-lib-napi-ext-test',
   'lse-lib-util-test',
-  'lse-lib-platform-test'
+  'lse-lib-platform-test',
+  'lse-lib-font-test'
 ], bindTestSuiteOptions)

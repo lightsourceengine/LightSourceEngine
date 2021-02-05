@@ -52,7 +52,7 @@ class Event {
 }
 
 class StatusEvent extends Event {
-  constructor (target, error = null) {
+  constructor (target, error = undefined) {
     super(EventSymbols.onStatus, target)
     this.error = error
   }

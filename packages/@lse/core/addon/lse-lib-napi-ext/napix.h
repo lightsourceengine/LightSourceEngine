@@ -9,6 +9,7 @@
 #include <node_api.h>
 #include <string>
 #include <memory>
+#include <array>
 
 #define NAPIX_TRY_STD(EXPR) \
   try { \
@@ -31,9 +32,77 @@
 class napix final {
  public:
   /**
-   * Get a arguments from callback info. If the argument is unavailable, it will be set to null.
+   * Structure containing callback information, including args and function data pointer.
+   *
+   * @tparam N Maximum number of arguments supported.
    */
-  static void get_args(napi_env env, napi_callback_info info, napi_value* arg) noexcept;
+  template<size_t N>
+  struct callback_info {
+    std::array<napi_value, N> args{};
+    void* data{};
+    size_t arg_count{N};
+
+    /**
+     * The number of arguments passed to the function.
+     *
+     * If the arguments passed exceeds N, the length will still be N.
+     */
+    int32_t length() const noexcept {
+      return this->args.size();
+    }
+
+    /**
+     * Access an argument by index.
+     *
+     * If the index is out of range, null is returned.
+     */
+    napi_value operator[](int32_t index) noexcept {
+      if (index >= 0 && index < static_cast<int32_t>(this->args.size())) {
+        return this->args[index];
+      }
+      return {};
+    }
+
+    /**
+     * Cast the function data pointer to another object.
+     *
+     * @tparam T Type to cast data as
+     */
+    template<typename T>
+    T* data_as() const noexcept {
+      return static_cast<T*>(this->data);
+    }
+  };
+
+  /**
+   * Structure containing Buffer data.
+   */
+  struct buffer_info {
+    void* data{};
+    size_t size{};
+
+    template<typename T>
+    T* as() const noexcept {
+      return static_cast<T*>(this->data);
+    }
+
+    bool empty() const noexcept {
+      return !this->data;
+    }
+  };
+
+ public:
+  /**
+   * Get callback info, including arguments and function data field, as a struct.
+   */
+  template<size_t N>
+  static callback_info<N> get_callback_info(napi_env env, napi_callback_info info) noexcept {
+    napix::callback_info<N> callback_info;
+
+    napi_get_cb_info(env, info, &callback_info.arg_count, &callback_info.args[0], nullptr, &callback_info.data);
+
+    return callback_info;
+  }
 
   /**
    * Extract the data field from callback info and cast it to T. If data is not available, nullptr is
@@ -51,6 +120,18 @@ class napix final {
   static napi_value to_value_or_null(napi_env env, bool value) noexcept;
   static napi_value to_value_or_null(napi_env env, float value) noexcept;
   static napi_value to_value_or_null(napi_env env, const char* value) noexcept;
+
+  /**
+   * Creates a js value from a primitive. If the creation fails, a js exception is thrown.
+   */
+  static napi_value to_value(napi_env env, int32_t value) noexcept;
+  static napi_value to_value(napi_env env, bool value) noexcept;
+  static napi_value to_value(napi_env env, float value) noexcept;
+  static napi_value to_value(napi_env env, const char* value) noexcept;
+
+  static napix::buffer_info as_buffer(napi_env env, napi_value value) noexcept;
+
+  static int32_t as_int32(napi_env env, napi_value value, int32_t defaultValue) noexcept;
 
   /**
    * Convert a js string to a native utf8 string.

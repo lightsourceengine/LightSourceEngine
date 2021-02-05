@@ -16,54 +16,62 @@ namespace lse {
 namespace bindings {
 
 Napi::Object NewStyleUnitEnum(Napi::Env env) {
+  auto attributes{ napi_enumerable };
+
   return ObjectBuilder(env)
-      .WithValue("Undefined", StyleNumberUnitUndefined)
-      .WithValue("Point", StyleNumberUnitPoint)
-      .WithValue("Percent", StyleNumberUnitPercent)
-      .WithValue("ViewportWidth", StyleNumberUnitViewportWidth)
-      .WithValue("ViewportHeight", StyleNumberUnitViewportHeight)
-      .WithValue("ViewportMin", StyleNumberUnitViewportMin)
-      .WithValue("ViewportMax", StyleNumberUnitViewportMax)
-      .WithValue("Auto", StyleNumberUnitAuto)
-      .WithValue("Anchor", StyleNumberUnitAnchor)
-      .WithValue("RootEm", StyleNumberUnitRootEm)
-      .WithValue("Radian", StyleNumberUnitRadian)
-      .WithValue("Degree", StyleNumberUnitDegree)
-      .WithValue("Gradian", StyleNumberUnitGradian)
-      .WithValue("Turn", StyleNumberUnitTurn)
+      .WithValue("Undefined", StyleNumberUnitUndefined, attributes)
+      .WithValue("Point", StyleNumberUnitPoint, attributes)
+      .WithValue("Percent", StyleNumberUnitPercent, attributes)
+      .WithValue("ViewportWidth", StyleNumberUnitViewportWidth, attributes)
+      .WithValue("ViewportHeight", StyleNumberUnitViewportHeight, attributes)
+      .WithValue("ViewportMin", StyleNumberUnitViewportMin, attributes)
+      .WithValue("ViewportMax", StyleNumberUnitViewportMax, attributes)
+      .WithValue("Auto", StyleNumberUnitAuto, attributes)
+      .WithValue("Anchor", StyleNumberUnitAnchor, attributes)
+      .WithValue("RootEm", StyleNumberUnitRootEm, attributes)
+      .WithValue("Radian", StyleNumberUnitRadian, attributes)
+      .WithValue("Degree", StyleNumberUnitDegree, attributes)
+      .WithValue("Gradian", StyleNumberUnitGradian, attributes)
+      .WithValue("Turn", StyleNumberUnitTurn, attributes)
       .Freeze()
       .ToObject();
 }
 
 Napi::Object NewStyleTransformEnum(Napi::Env env) {
+  auto attributes{ napi_enumerable };
+
   return ObjectBuilder(env)
-      .WithValue("Identity", StyleTransformIdentity)
-      .WithValue("Translate", StyleTransformTranslate)
-      .WithValue("Rotate", StyleTransformRotate)
-      .WithValue("Scale", StyleTransformScale)
+      .WithValue("Identity", StyleTransformIdentity, attributes)
+      .WithValue("Translate", StyleTransformTranslate, attributes)
+      .WithValue("Rotate", StyleTransformRotate, attributes)
+      .WithValue("Scale", StyleTransformScale, attributes)
       .Freeze()
       .ToObject();
 }
 
 Napi::Object NewStyleAnchorEnum(Napi::Env env) {
+  auto attributes{ napi_enumerable };
+
   return ObjectBuilder(env)
-      .WithValue("Left", StyleAnchorLeft)
-      .WithValue("Right", StyleAnchorRight)
-      .WithValue("Center", StyleAnchorCenter)
-      .WithValue("Top", StyleAnchorTop)
-      .WithValue("Bottom", StyleAnchorBottom)
+      .WithValue("Left", StyleAnchorLeft, attributes)
+      .WithValue("Right", StyleAnchorRight, attributes)
+      .WithValue("Center", StyleAnchorCenter, attributes)
+      .WithValue("Top", StyleAnchorTop, attributes)
+      .WithValue("Bottom", StyleAnchorBottom, attributes)
       .Freeze()
       .ToObject();
 }
 
 Napi::Object NewPluginIdEnum(Napi::Env env) {
+  auto attributes{ napi_enumerable };
+
   return ObjectBuilder(env)
-      .WithValue("SDL", kPluginPlatformSdl)
-      .WithValue("REF", kPluginPlatformRef)
-      .WithValue("SDL_AUDIO", kPluginAudioSdlAudio)
-      .WithValue("SDL_MIXER", kPluginAudioSdlMixer)
-      .WithValue("REF_AUDIO", kPluginRefAudio)
-      .WithValue("NULL", kPluginNull)
+      .WithValue("SDL", kPluginPlatformSdl, attributes)
+      .WithValue("REF", kPluginPlatformRef, attributes)
+      .WithValue("SDL_AUDIO", kPluginAudioSdlAudio, attributes)
+      .WithValue("SDL_MIXER", kPluginAudioSdlMixer, attributes)
+      .WithValue("REF_AUDIO", kPluginRefAudio, attributes)
+      .WithValue("NULL", kPluginNull, attributes)
       .Freeze()
       .ToObject();
 }
