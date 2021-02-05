@@ -53,4 +53,5 @@ jobs:
         working-directory: packages/@lse/core
 
       - name: JS Test (+ JS Lint)
+        if: contains(matrix.os, 'windows') == false
         run: yarn run test
