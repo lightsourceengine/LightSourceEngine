@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { createSceneComposite, logger } from '../addon/index.js'
+import { CScene, logger } from '../addon/index.js'
 import { BoxSceneNode, ImageSceneNode, TextSceneNode, LinkSceneNode, RootSceneNode } from './SceneNode.js'
 import { createAttachedEvent, createDestroyedEvent, createDestroyingEvent, createDetachedEvent } from '../event/index.js'
 import { EventName } from '../event/EventName.js'
@@ -18,7 +18,7 @@ const kEmptyFrameListener = Object.freeze([0, null])
 let sFrameRequestId = 0
 
 export class Scene extends EventTarget {
-  _composite = null
+  _native = null
   _context = null
   _root = null
   _stage = null
@@ -38,7 +38,7 @@ export class Scene extends EventTarget {
 
     this._stage = stage
     this._context = stage.system.$createGraphicsContext(config)
-    this._composite = createSceneComposite(this._stage.$native, this._context.$native)
+    this._native = new CScene(stage.$native, this._context.$native)
     this._root = new RootSceneNode(this)
     const { style } = this._root
 
@@ -49,7 +49,7 @@ export class Scene extends EventTarget {
     style.left = 0
     style.position = 'absolute'
 
-    this._composite.setRoot(this._root)
+    this._native.setRoot(this._root)
 
     if (typeof config?.title === 'string') {
       this.title = config.title
@@ -148,7 +148,7 @@ export class Scene extends EventTarget {
       this._bgFrameListeners.length = 0
     }
 
-    this._composite.render(tick, lastTick)
+    this._native.render(tick, lastTick)
   }
 
   /**
@@ -159,7 +159,7 @@ export class Scene extends EventTarget {
       return
     }
 
-    this._composite.attach()
+    this._native.attach()
 
     this._attached = true
     this.dispatchEvent(createAttachedEvent(this))
@@ -173,7 +173,7 @@ export class Scene extends EventTarget {
       return
     }
 
-    this._composite.detach()
+    this._native.detach()
 
     this._attached = false
     this.dispatchEvent(createDetachedEvent(this))
@@ -199,8 +199,8 @@ export class Scene extends EventTarget {
     this._activeNode = null
     this._root?.destroy()
     this._root = null
-    this._composite?.destroy()
-    this._composite = null
+    this._native?.destroy()
+    this._native = null
     this._context = null
     this._stage = null
 
@@ -213,7 +213,7 @@ export class Scene extends EventTarget {
    * @ignore
    */
   get $native () {
-    return this._composite.$native
+    return this._native
   }
 }
 

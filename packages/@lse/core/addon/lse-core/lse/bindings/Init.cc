@@ -7,45 +7,21 @@
 #include <event/event.h>
 #include <lse/Style.h>
 #include <lse/StyleValidator.h>
-#include <lse/BoxSceneNode.h>
-#include <lse/ImageSceneNode.h>
-#include <lse/LinkSceneNode.h>
-#include <lse/RootSceneNode.h>
-#include <lse/TextSceneNode.h>
 #include <lse/System.h>
+#include <lse/SceneNode.h>
 #include <lse/Log.h>
-#include <lse/bindings/Bindings.h>
-#include <lse/bindings/JSEnums.h>
-#include <lse/bindings/JSStyle.h>
-#include <lse/bindings/JSStyleClass.h>
-#include <lse/bindings/JSStyleTransformSpec.h>
-#include <lse/bindings/JSStyleValue.h>
-#include <lse/bindings/Logger.h>
-#include <lse/bindings/JSFontEnums.h>
+#include <lse/Blend2DFontDriver.h>
+#include <lse/Habitat.h>
+#include <lse/bindings/CoreExports.h>
 
 #include <napi.h>
 
-#if defined(LSE_ENABLE_NATIVE_TESTS)
-#include <test/LightSourceTestSuite.h>
-#endif
-
 using Napi::Env;
 using Napi::Function;
-using Napi::HandleScope;
 using Napi::Object;
 using facebook::yoga::Event;
 
-void ExportFunction(Object exports, const Function& function) {
-  exports.Set(function.Get("name").ToString(), function);
-}
-
-void ExportClass(Object exports, const Function& constructor) {
-  ExportFunction(exports, constructor);
-}
-
 Object Init(Env env, Object exports) {
-  HandleScope scope(env);
-
   auto logLevel = lse::GetEnvOrDefault("LSE_LOG_LEVEL", "INFO");
 
   if (!lse::SetLogLevel(logLevel)) {
@@ -53,50 +29,25 @@ Object Init(Env env, Object exports) {
     LOG_ERROR("LSE_LOG_LEVEL contains invalid value of %s. Defaulting to INFO.", logLevel);
   }
 
+  if (!lse::Habitat::Init(env)) {
+    // TODO: throw?
+    return {};
+  }
+
+  lse::Habitat::SetAppData(
+      env,
+      lse::FontDriver::APP_DATA_KEY,
+      new lse::Blend2DFontDriver(),
+      [](void* data) {
+        delete static_cast<lse::Blend2DFontDriver*>(data);
+      });
+
   lse::Style::Init();
   lse::StyleValidator::Init();
   lse::StylePropertyValueInit();
-
   Event::subscribe(lse::SceneNode::YogaNodeLayoutEvent);
 
-  exports["LogLevel"] = lse::bindings::NewLogLevelEnum(env);
-  exports["StyleTransform"] = lse::bindings::NewStyleTransformEnum(env);
-  exports["StyleUnit"] = lse::bindings::NewStyleUnitEnum(env);
-  exports["StyleAnchor"] = lse::bindings::NewStyleAnchorEnum(env);
-  exports["PluginId"] = lse::bindings::NewPluginIdEnum(env);
-  exports["FontStatus"] = lse::bindings::NewFontStatusEnum(env);
-  exports["FontStyle"] = lse::bindings::NewFontStyleEnum(env);
-  exports["FontWeight"] = lse::bindings::NewFontWeightEnum(env);
-
-  ExportClass(exports, lse::bindings::JSStyle::GetClass(env));
-  ExportClass(exports, lse::bindings::JSStyleClass::GetClass(env));
-  ExportClass(exports, lse::bindings::JSStyleValue::GetClass(env));
-  ExportClass(exports, lse::bindings::JSStyleTransformSpec::GetClass(env));
-
-  ExportClass(exports, lse::BoxSceneNode::GetClass(env));
-  ExportClass(exports, lse::ImageSceneNode::GetClass(env));
-  ExportClass(exports, lse::LinkSceneNode::GetClass(env));
-  ExportClass(exports, lse::TextSceneNode::GetClass(env));
-  ExportClass(exports, lse::RootSceneNode::GetClass(env));
-
-  ExportFunction(exports, Function::New(env, &lse::bindings::LoadSDLPlugin, "loadSDLPlugin"));
-  ExportFunction(exports, Function::New(env, &lse::bindings::LoadSDLAudioPlugin, "loadSDLAudioPlugin"));
-  ExportFunction(exports, Function::New(env, &lse::bindings::LoadSDLMixerPlugin, "loadSDLMixerPlugin"));
-
-  ExportFunction(exports, Function::New(env, &lse::bindings::CreateRefGraphicsContext, "createRefGraphicsContext"));
-  ExportFunction(exports, Function::New(env, &lse::bindings::CreateSceneComposite, "createSceneComposite"));
-  ExportFunction(exports, Function::New(env, &lse::bindings::CreateStageComposite, "createStageComposite"));
-  ExportFunction(exports, Function::New(env, &lse::bindings::CreateFontManagerComposite, "createFontManagerComposite"));
-
-  ExportFunction(exports, Function::New(env, &lse::bindings::ParseColor, "parseColor"));
-  ExportFunction(exports, Function::New(env, &lse::SceneNode::GetInstanceCount, "getSceneNodeInstanceCount"));
-
-  exports["logger"] = lse::bindings::NewLoggerObject(env);
-  exports["styleProperties"] = lse::bindings::GetStyleProperties(env);
-
-#if defined(LSE_ENABLE_NATIVE_TESTS)
-  exports["test"] = lse::LightSourceTestSuite(env);
-#endif
+  lse::bindings::CoreExports(env, exports);
 
   return exports;
 }

@@ -7,22 +7,14 @@
 
 #pragma once
 
-#include <napi-ext.h>
-#include <lse/FontDriver.h>
+#include <node_api.h>
 
 namespace lse {
 namespace bindings {
 
-/**
- * Javascript bindings for FontManager.
- */
-class JSFontManager {
- public:
-  /**
-   * Create a new FontManager object.
-   */
-  static Napi::Value New(const Napi::Env& env, std::unique_ptr<FontDriver>&& fontDriver);
-};
+napi_value NewStyleUnitEnum(napi_env env) noexcept;
+napi_value NewStyleTransformEnum(napi_env env) noexcept;
+napi_value NewStyleAnchorEnum(napi_env env) noexcept;
 
 } // namespace bindings
 } // namespace lse

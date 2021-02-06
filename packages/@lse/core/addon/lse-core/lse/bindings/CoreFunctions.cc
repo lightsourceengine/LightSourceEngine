@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2020 Daniel Anderson
+ * Copyright (C) 2021 Daniel Anderson
  *
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source
  * tree.
  */
 
-#include <lse/bindings/Bindings.h>
+#include <lse/bindings/CoreFunctions.h>
 
 #include <lse/StyleEnums.h>
 #include <lse/bindings/Convert.h>
@@ -17,11 +17,7 @@
 #include <lse/Config.h>
 #include <lse/bindings/JSGraphicsContext.h>
 #include <lse/RefGraphicsContext.h>
-#include <lse/Blend2DFontDriver.h>
 #include <lse/bindings/SDLPlatformPluginExports.h>
-#include <lse/bindings/JSScene.h>
-#include <lse/bindings/JSStage.h>
-#include <lse/bindings/JSFontManager.h>
 
 namespace lse {
 namespace bindings {
@@ -71,18 +67,6 @@ Napi::Value LoadSDLMixerPlugin(const Napi::CallbackInfo& info) {
 
 Napi::Value CreateRefGraphicsContext(const Napi::CallbackInfo& info) {
   return JSGraphicsContext::New<RefGraphicsContext>(info.Env(), info[0]);
-}
-
-Napi::Value CreateSceneComposite(const Napi::CallbackInfo& info) {
-  return JSScene::New(info.Env(), info[0], info[1]);
-}
-
-Napi::Value CreateStageComposite(const Napi::CallbackInfo& info) {
-  return JSStage::New(info.Env());
-}
-
-Napi::Value CreateFontManagerComposite(const Napi::CallbackInfo& info) {
-  return JSFontManager::New(info.Env(), std::make_unique<Blend2DFontDriver>());
 }
 
 } // namespace bindings

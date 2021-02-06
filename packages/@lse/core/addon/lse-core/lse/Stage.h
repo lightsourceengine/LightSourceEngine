@@ -7,6 +7,7 @@
 #pragma once
 
 #include <lse/Resources.h>
+#include <lse/Reference.h>
 
 namespace lse {
 
@@ -20,7 +21,7 @@ namespace lse {
  * The Stage abject can be instanced, but in practice Light Source Engine has a single instance of a Stage. The
  * instance is controlled by a shared_ptr that is owned by JSStage and Scene.
  */
-class Stage {
+class Stage : public Reference {
  public:
   void Update();
   void Destroy();

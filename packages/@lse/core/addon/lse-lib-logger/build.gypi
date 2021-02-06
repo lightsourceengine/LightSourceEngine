@@ -27,7 +27,7 @@
           "lse-lib-napi-ext",
       ],
       "sources": [
-        "lse/bindings/Logger.cc",
+        "lse/bindings/LoggerExports.cc",
       ]
     }
   ]

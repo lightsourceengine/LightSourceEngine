@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { createFontManagerComposite, FontStatus, FontStyle, FontWeight, logger } from '../addon/index.js'
+import { CFontManager, FontStatus, FontStyle, FontWeight, logger } from '../addon/index.js'
 import { promises } from 'fs'
 import { Font } from './Font.js'
 import { createErrorStatusEvent, createReadyStatusEvent } from '../event/index.js'
@@ -16,8 +16,12 @@ const { readFile } = promises
  */
 export class FontManager {
   _fonts = new Map()
-  _composite = createFontManagerComposite()
+  _native = null
   _defaultFontFamily = ''
+
+  constructor () {
+    this._native = new CFontManager()
+  }
 
   /**
    * List of fonts currently available in the font manager. The fonts in this array are no particular order.
@@ -39,7 +43,7 @@ export class FontManager {
     if (typeof value !== 'string') {
       throw Error('defaultFontFamily - expected: string')
     }
-    this._composite?.setDefaultFontFamily(value)
+    this._native?.setDefaultFontFamily(value)
     this._defaultFontFamily = value
   }
 
@@ -50,7 +54,7 @@ export class FontManager {
    * @returns {Font}
    */
   add (spec) {
-    const { _composite, _fonts } = this
+    const { _native, _fonts } = this
     const { src, family, style = 'normal', weight = 'normal', index = 0 } = spec
 
     if (!Buffer.isBuffer(src) && !(typeof src === 'string')) {
@@ -86,13 +90,13 @@ export class FontManager {
       throw Error(`'${family}':${style}:${weight} - already exists`)
     }
 
-    const id = _composite.createFont(family, fontStyleToInt.get(style), fontWeightToInt.get(weight))
+    const id = _native.createFont(family, fontStyleToInt.get(style), fontWeightToInt.get(weight))
 
     if (!id) {
       throw Error(`'${family}':${style}:${weight} - create failed`)
     }
 
-    const font = new Font(id, family, style, weight, statusToString(_composite.getStatus(id)))
+    const font = new Font(id, family, style, weight, statusToString(_native.getStatus(id)))
 
     _fonts.set(id, font)
 
@@ -102,7 +106,7 @@ export class FontManager {
     }
 
     if (typeof src === 'string') {
-      font.$status = statusToString(_composite.getStatus(id))
+      font.$status = statusToString(_native.getStatus(id))
 
       logger.info(`'${family}':${style}:${weight} - ${src}`, 'font')
 
@@ -116,7 +120,7 @@ export class FontManager {
           const font = _fonts.get(id)
 
           if (font) {
-            _composite.setError(id)
+            _native.setError(id)
             font.$status = statusToString(FontStatus.ERROR)
             font.dispatchEvent(createErrorStatusEvent(font, e.message))
           }
@@ -146,13 +150,13 @@ export class FontManager {
    * @ignore
    */
   $destroy () {
-    if (!this._composite) {
+    if (!this._native) {
       return
     }
 
     this._fonts.clear()
-    this._composite.destroy()
-    this._composite = null
+    this._native.destroy()
+    this._native = null
   }
 }
 
@@ -181,9 +185,9 @@ const statusToString = (statusEnum) => {
 }
 
 const setBufferAndDispatch = (self, id, buffer, index, defer) => {
-  const { _composite, _fonts } = self
+  const { _native, _fonts } = self
 
-  if (!_composite || !_fonts.has(id)) {
+  if (!_native || !_fonts.has(id)) {
     // it's possible the font manager could have been destroyed while fetching font file or the font
     // was removed. if so, bail.
     return
@@ -192,9 +196,9 @@ const setBufferAndDispatch = (self, id, buffer, index, defer) => {
   const font = _fonts.get(id)
 
   // setBuffer will move the font resource to a terminal state, either ready or error
-  _composite.setBuffer(id, buffer)
+  _native.setBuffer(id, buffer)
 
-  const status = _composite.getStatus(id)
+  const status = _native.getStatus(id)
 
   font.$status = statusToString(status)
 

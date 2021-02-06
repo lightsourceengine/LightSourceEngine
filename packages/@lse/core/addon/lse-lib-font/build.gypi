@@ -9,6 +9,7 @@
       "include_dirs": [
         ".",
         "../lse-lib-util",
+        "../lse-lib-habitat",
         "../lse-lib-napi-ext",
         "../lse-lib-logger",
         "../deps/cpp17_headers/include",
@@ -17,13 +18,14 @@
       "dependencies": [
         "lse-lib-napi-ext",
         "lse-lib-logger",
-        "lse-lib-util"
+        "lse-lib-util",
+        "lse-lib-habitat",
       ],
       "sources": [
         "lse/Font.cc",
         "lse/FontManager.cc",
-        "lse/bindings/JSFontEnums.cc",
-        "lse/bindings/JSFontManager.cc",
+        "lse/bindings/FontEnums.cc",
+        "lse/bindings/CFontManager.cc",
       ]
     }
   ],
@@ -39,6 +41,7 @@
             ".",
             "../lse-lib-napi-ext",
             "../lse-lib-util",
+            "../lse-lib-habitat",
             "../lse-lib-logger",
             "../deps/cpp17_headers/include",
             "../deps/parallel-hashmap/repo/parallel_hashmap",
@@ -48,6 +51,7 @@
             "lse-lib-napi-ext",
             "lse-lib-logger",
             "lse-lib-util",
+            "lse-lib-habitat",
             "lse-lib-platform",
             "lse-lib-font",
           ],

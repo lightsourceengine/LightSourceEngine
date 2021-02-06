@@ -7,18 +7,18 @@
 
 #pragma once
 
-#include <napi.h>
+#include <lse/Habitat.h>
 
 namespace lse {
 namespace bindings {
 
-/**
- * Javascript bindings for Font related enums.
- */
+class CFontManager {
+ public:
+  static constexpr auto NAME = "CFontManager";
+  static constexpr auto CLASS_ID = Habitat::Class::CFontManager;
 
-Napi::Value NewFontStatusEnum(const Napi::Env& env);
-Napi::Value NewFontStyleEnum(const Napi::Env& env);
-Napi::Value NewFontWeightEnum(const Napi::Env& env);
+  static napi_value CreateClass(napi_env env) noexcept;
+};
 
 } // namespace bindings
 } // namespace lse

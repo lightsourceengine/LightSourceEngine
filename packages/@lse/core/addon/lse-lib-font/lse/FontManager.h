@@ -8,7 +8,7 @@
 #pragma once
 
 #include <lse/Font.h>
-#include <memory>
+#include <lse/Reference.h>
 
 namespace lse {
 
@@ -32,9 +32,9 @@ namespace lse {
  *
  * The FontManager is owned by the stage, so it effectively a singleton.
  */
-class FontManager {
+class FontManager : public Reference {
  public:
-  explicit FontManager(std::unique_ptr<FontDriver>&& fontDriver) noexcept;
+  explicit FontManager(FontDriver* fontDriver) noexcept;
 
   /**
    * Find a font.
@@ -63,7 +63,7 @@ class FontManager {
   Font* FindFontInternal(const std::string& family, int32_t style, int32_t weight) noexcept;
 
  private:
-  std::unique_ptr<FontDriver> fontDriver;
+  FontDriver* fontDriver;
   int32_t nextResourceId{1};
   mutable phmap::flat_hash_map<int32_t, std::unique_ptr<Font>> fonts{};
   phmap::flat_hash_map<std::string, std::array<std::array<Font*, Count<FontStyle>()>, Count<FontWeight>()>> fontTable{};

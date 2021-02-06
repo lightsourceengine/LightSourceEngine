@@ -18,7 +18,31 @@ static napi_value throw_error(napi_env env, napi_status status, const char* mess
   return {};
 }
 
-void* napix::get_data_raw(napi_env env, napi_callback_info info) noexcept {
+namespace napix {
+
+napi_value get_this(napi_env env, napi_callback_info info) noexcept {
+  size_t argc{};
+  napi_value self{};
+
+  if (napi_get_cb_info(env, info, &argc, nullptr, &self, nullptr) == napi_ok) {
+    return self;
+  }
+
+  return {};
+}
+
+void* unwrap_this_as(napi_env env, napi_callback_info info) noexcept {
+  napi_value self{get_this(env, info)};
+  void* unwrapped;
+
+  if (napi_unwrap(env, self, &unwrapped) == napi_ok) {
+    return unwrapped;
+  }
+
+  return {};
+}
+
+void* get_data_raw(napi_env env, napi_callback_info info) noexcept {
   size_t argc{};
   void* data{};
 
@@ -29,32 +53,32 @@ void* napix::get_data_raw(napi_env env, napi_callback_info info) noexcept {
   return {};
 }
 
-napi_value napix::to_value_or_null(napi_env env, int32_t value) noexcept {
+napi_value to_value_or_null(napi_env env, int32_t value) noexcept {
   napi_value v;
   return napi_create_int32(env, value, &v) == napi_ok ? v : nullptr;
 }
 
-napi_value napix::to_value_or_null(napi_env env, bool value) noexcept {
+napi_value to_value_or_null(napi_env env, bool value) noexcept {
   napi_value v;
   return napi_get_boolean(env, value, &v) == napi_ok ? v : nullptr;
 }
 
-napi_value napix::to_value_or_null(napi_env env, float value) noexcept {
+napi_value to_value_or_null(napi_env env, float value) noexcept {
   napi_value v;
   return napi_create_double(env, value, &v) == napi_ok ? v : nullptr;
 }
 
-napi_value napix::to_value_or_null(napi_env env, const char* value) noexcept {
+napi_value to_value_or_null(napi_env env, const char* value) noexcept {
   napi_value v;
 
   if (!value) {
     value = "";
   }
 
-  return napi_create_string_utf8(env, value, strlen(value), &v) == napi_ok ? v : nullptr;
+  return napi_create_string_utf8(env, value, NAPI_AUTO_LENGTH, &v) == napi_ok ? v : nullptr;
 }
 
-napi_value napix::to_value(napi_env env, int32_t value) noexcept {
+napi_value to_value(napi_env env, int32_t value) noexcept {
   napi_value v;
   napi_status status = napi_create_int32(env, value, &v);
 
@@ -65,7 +89,7 @@ napi_value napix::to_value(napi_env env, int32_t value) noexcept {
   return v;
 }
 
-napi_value napix::to_value(napi_env env, bool value) noexcept {
+napi_value to_value(napi_env env, bool value) noexcept {
   napi_value v;
   napi_status status = napi_get_boolean(env, value, &v);
 
@@ -76,7 +100,7 @@ napi_value napix::to_value(napi_env env, bool value) noexcept {
   return v;
 }
 
-napi_value napix::to_value(napi_env env, float value) noexcept {
+napi_value to_value(napi_env env, float value) noexcept {
   napi_value v;
   napi_status status = napi_create_double(env, value, &v);
 
@@ -87,13 +111,13 @@ napi_value napix::to_value(napi_env env, float value) noexcept {
   return v;
 }
 
-napi_value napix::to_value(napi_env env, const char* value) noexcept {
+napi_value to_value(napi_env env, const char* value) noexcept {
   if (!value) {
     value = "";
   }
 
   napi_value v;
-  napi_status status = napi_create_string_utf8(env, value, strlen(value), &v);
+  napi_status status = napi_create_string_utf8(env, value, NAPI_AUTO_LENGTH, &v);
 
   if (status != napi_ok) {
     return throw_error(env, status, "napi_create_string_utf8");
@@ -102,8 +126,8 @@ napi_value napix::to_value(napi_env env, const char* value) noexcept {
   return v;
 }
 
-napix::buffer_info napix::as_buffer(napi_env env, napi_value value) noexcept {
-  napix::buffer_info bi;
+buffer_info as_buffer(napi_env env, napi_value value) noexcept {
+  buffer_info bi;
 
   if (value) {
     napi_get_buffer_info(env, value, &bi.data, &bi.size);
@@ -112,7 +136,7 @@ napix::buffer_info napix::as_buffer(napi_env env, napi_value value) noexcept {
   return bi;
 }
 
-int32_t napix::as_int32(napi_env env, napi_value value, int32_t defaultValue) noexcept {
+int32_t as_int32(napi_env env, napi_value value, int32_t defaultValue) noexcept {
   int32_t v;
 
   if (napi_get_value_int32(env, value, &v) != napi_ok) {
@@ -122,7 +146,7 @@ int32_t napix::as_int32(napi_env env, napi_value value, int32_t defaultValue) no
   return v;
 }
 
-std::string napix::as_string_utf8(napi_env env, napi_value str) noexcept {
+std::string as_string_utf8(napi_env env, napi_value str) noexcept {
   if (!str) {
     return {};
   }
@@ -146,7 +170,7 @@ std::string napix::as_string_utf8(napi_env env, napi_value str) noexcept {
   return value;
 }
 
-napi_value napix::new_external(napi_env env, void* data, napi_finalize finalizer) noexcept {
+napi_value new_external(napi_env env, void* data, napi_finalize finalizer) noexcept {
   napi_value value;
   napi_status status;
 
@@ -158,3 +182,154 @@ napi_value napix::new_external(napi_env env, void* data, napi_finalize finalizer
 
   return value;
 }
+
+void throw_error(napi_env env, const char* message) noexcept {
+  if (!has_pending_exception(env)) {
+    napi_throw_error(env, "", message);
+  }
+}
+
+bool has_pending_exception(napi_env env) noexcept {
+  bool result{};
+
+  return (napi_is_exception_pending(env, &result) != napi_ok) || result;
+}
+
+napi_value object_new(napi_env env, const std::initializer_list<napi_property_descriptor>& props) noexcept {
+  napi_value obj{};
+
+  if (napi_create_object(env, &obj) != napi_ok) {
+    // TODO: throw
+    return {};
+  }
+
+  if (napi_define_properties(env, obj, props.size(), props.begin()) != napi_ok) {
+    // TODO: throw
+    return {};
+  }
+
+  return obj;
+}
+
+namespace js_class {
+
+napi_value define(
+    napi_env env,
+    const char* name,
+    napi_callback constructor,
+    const std::initializer_list<napi_property_descriptor>& props) noexcept {
+  napi_value value{};
+  napi_status status = napi_define_class(
+      env,
+      name,
+      NAPI_AUTO_LENGTH,
+      constructor,
+      nullptr,
+      props.size(),
+      props.begin(),
+      &value);
+
+  if (status != napi_ok) {
+    // TODO: throw!
+  }
+
+  return value;
+}
+
+napi_value constructor_helper(napi_env env,
+                              napi_callback_info info,
+                              create_native_callback create,
+                              napi_finalize finalizer) noexcept {
+  if (has_pending_exception(env)) {
+    return {};
+  }
+
+  napi_value newTarget{};
+
+  if (napi_get_new_target(env, info, &newTarget) != napi_ok || !newTarget) {
+    // TODO: THROW!
+    return {};
+  }
+
+  napi_value thisObj = get_this(env, info);
+
+  if (!thisObj) {
+    // TODO: THROW!
+    return {};
+  }
+
+  auto native{ create(env, info) };
+
+  if (!native || has_pending_exception(env)) {
+    if (native) {
+      finalizer(env, native, nullptr);
+    }
+
+    // TODO: THROW!
+    return {};
+  }
+
+  auto status = napi_wrap(
+      env,
+      thisObj,
+      native,
+      finalizer,
+      nullptr,
+      nullptr);
+
+  if (status != napi_ok) {
+    finalizer(env, native, nullptr);
+    // THROW!
+    return {};
+  }
+
+  return thisObj;
+}
+
+} // namespace js_class
+
+namespace descriptor {
+
+napi_property_descriptor instance_method(const name& name, napi_callback method) noexcept {
+  return {
+      name.utf8,
+      name.value,
+      method,
+      nullptr,
+      nullptr,
+      nullptr,
+      napi_default,
+      nullptr
+  };
+}
+
+napi_property_descriptor instance_value(
+    napi_env env, const name& name, int32_t value, napi_property_attributes attr) noexcept {
+  return {
+      name.utf8,
+      name.value,
+      nullptr,
+      nullptr,
+      nullptr,
+      to_value(env, value),
+      attr,
+      nullptr
+  };
+}
+
+napi_property_descriptor instance_value(
+    napi_env env, const name& name, const char* value, napi_property_attributes attr) noexcept {
+  return {
+      name.utf8,
+      name.value,
+      nullptr,
+      nullptr,
+      nullptr,
+      to_value(env, value),
+      attr,
+      nullptr
+  };
+}
+
+} // namespace descriptor
+} // namespace napix

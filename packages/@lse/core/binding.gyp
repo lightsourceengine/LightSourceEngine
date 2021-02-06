@@ -31,6 +31,7 @@
 
     # static libraries
     "addon/lse-lib-napi-ext/build.gypi",
+    "addon/lse-lib-habitat/build.gypi",
     "addon/lse-lib-audio/build.gypi",
     "addon/lse-lib-platform/build.gypi",
     "addon/lse-lib-util/build.gypi",

@@ -20,6 +20,8 @@ using FontSource = void;
  */
 class FontDriver {
  public:
+  static constexpr auto APP_DATA_KEY = "FontDriver";
+
   virtual ~FontDriver() = default;
 
   virtual FontSource* LoadFontSource(void* data, size_t dataSize, int32_t index) = 0;

@@ -26,6 +26,7 @@ class TestFontDriver : public FontDriver {
 
 constexpr auto kDefaultFamily = "default";
 constexpr auto kTestFamily = "test";
+static std::unique_ptr<FontDriver> sFontDriver;
 static FontManager sFontManager{ nullptr };
 
 // Note: Focus on native specific behavior here, as some test coverage happens in Font.spec.js and FontManager.spec.js
@@ -33,8 +34,16 @@ static FontManager sFontManager{ nullptr };
 void FontManagerSpec(TestSuite* parent) {
   auto spec{ parent->Describe("FontManager") };
 
+  spec->before = [](const Napi::Env& env) {
+    sFontDriver = std::make_unique<TestFontDriver>();
+  };
+
+  spec->after = [](const Napi::Env& env) {
+    sFontDriver = nullptr;
+  };
+
   spec->beforeEach = [](const Napi::Env& env) {
-    sFontManager = FontManager{ std::make_unique<TestFontDriver>() };
+    sFontManager = FontManager(sFontDriver.get());
   };
 
   spec->afterEach = [](const Napi::Env& env) {

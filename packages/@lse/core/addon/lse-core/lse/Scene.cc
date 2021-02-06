@@ -16,16 +16,14 @@
 #include <lse/yoga-ext.h>
 #include <lse/StyleContext.h>
 
-#include <lse/bindings/JSStage.h>
-
 using Napi::SafeObjectWrap;
 
 namespace lse {
 
-Scene::Scene(StageRef& stage, GraphicsContextRef& context) : stage(stage), graphicsContext(context) {
+Scene::Scene(Stage* stage, GraphicsContextRef& context) : stage(stage), graphicsContext(context) {
 }
 
-Scene::~Scene() noexcept {
+Scene::~Scene() {
   if (isAttached) {
     LOG_WARN("scene is still attached");
   }

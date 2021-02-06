@@ -9,8 +9,7 @@
 
 namespace lse {
 
-FontManager::FontManager(std::unique_ptr<FontDriver>&& fontDriver) noexcept
-  : fontDriver(std::move(fontDriver)) {
+FontManager::FontManager(FontDriver* fontDriver) noexcept : fontDriver(fontDriver) {
 }
 
 void FontManager::SetDefaultFontFamily(std::string&& family) {

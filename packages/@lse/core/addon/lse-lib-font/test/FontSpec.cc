@@ -7,7 +7,6 @@
 #include <napi-unit.h>
 
 #include <lse/Font.h>
-#include <lse/bindings/JSFontEnums.h>
 
 using Napi::Assert;
 using Napi::TestInfo;
@@ -130,42 +129,6 @@ void FontSpec(TestSuite* parent) {
       "should tolerate nullptr as listener arg",
       [](const TestInfo& ti) {
         sFont.AddListener(sTestListener, nullptr);
-      }
-    }
-  };
-
-  spec->Describe("FontStatus")->tests = {
-    {
-        "should contain Count<FontStatus>() properties",
-      [](const TestInfo& ti) {
-        auto fontStatus{ bindings::NewFontStatusEnum(ti.Env()) };
-        auto obj{ fontStatus.As<Napi::Object>() };
-
-        Assert::Equal(obj.GetPropertyNames().Length(), static_cast<uint32_t>(Count<FontStatus>()));
-      }
-    }
-  };
-
-  spec->Describe("FontStyle")->tests = {
-    {
-        "should contain Count<FontStyle>() properties",
-      [](const TestInfo& ti) {
-        auto fontStatus{ bindings::NewFontStyleEnum(ti.Env()) };
-        auto obj{ fontStatus.As<Napi::Object>() };
-
-        Assert::Equal(obj.GetPropertyNames().Length(), static_cast<uint32_t>(Count<FontStyle>()));
-      }
-    }
-  };
-
-  spec->Describe("FontWeight")->tests = {
-    {
-        "should contain Count<FontWeight>() properties",
-      [](const TestInfo& ti) {
-        auto fontStatus{ bindings::NewFontWeightEnum(ti.Env()) };
-        auto obj{ fontStatus.As<Napi::Object>() };
-
-        Assert::Equal(obj.GetPropertyNames().Length(), static_cast<uint32_t>(Count<FontWeight>()));
       }
     }
   };

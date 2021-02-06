@@ -23,6 +23,7 @@
 #include <lse/Timer.h>
 #include <lse/yoga-ext.h>
 #include <napix.h>
+#include <lse/Habitat.h>
 
 // TODO: bindings should not be included here. scene nodes need to be refactored first
 #include <lse/bindings/JSStyle.h>
@@ -43,11 +44,15 @@ namespace lse {
 int32_t SceneNode::instanceCount{ 0 };
 
 void SceneNode::SceneNodeConstructor(const Napi::CallbackInfo& info) {
-  auto jsScene{ napix::get_external_shared<Scene>(info.Env(), info[0]) };
+  Scene* scenePtr{};
 
-  NAPI_EXPECT_NOT_NULL(info.Env(), jsScene, "scene arg must be a Scene instance");
+  if (Habitat::InstanceOf(info.Env(), info[0], Habitat::Class::CScene)) {
+    scenePtr = napix::unwrap_as<Scene>(info.Env(), info[0]);
+  }
 
-  this->scene = jsScene;
+  NAPI_EXPECT_NOT_NULL(info.Env(), scenePtr, "scene arg must be a Scene instance");
+
+  this->scene = scenePtr;
   this->flags.set(FlagLayoutOnly, true);
   this->ygNode = YGNodeNew();
   YGNodeSetContext(this->ygNode, this);

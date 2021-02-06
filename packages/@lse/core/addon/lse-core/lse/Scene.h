@@ -11,10 +11,11 @@
 #include <lse/StyleContext.h>
 #include <lse/RenderingContext2D.h>
 #include <lse/GraphicsContext.h>
+#include <lse/Reference.h>
 
 #include <algorithm>
 #include <memory>
-#include <unordered_set>
+#include <phmap.h>
 
 namespace lse {
 
@@ -25,10 +26,10 @@ class SceneNode;
 /**
  * Manages the SceneNode graph and renders frames to the screen.
  */
-class Scene {
+class Scene : public Reference {
  public:
-  Scene(StageRef& stage, GraphicsContextRef& context);
-  ~Scene() noexcept;
+  Scene(Stage* stage, GraphicsContextRef& context);
+  ~Scene() override;
 
   void Attach();
   void Detach();
@@ -37,7 +38,7 @@ class Scene {
   void Frame();
 
   void SetRoot(RootSceneNode* root);
-  Stage* GetStage() const noexcept { return this->stage.get(); }
+  Stage* GetStage() const noexcept { return this->stage.Get(); }
   int32_t GetWidth() const noexcept { return this->width; }
   int32_t GetHeight() const noexcept { return this->height; }
   StyleContext* GetStyleContext() const noexcept { return &this->styleContext; }
@@ -59,7 +60,7 @@ class Scene {
   bool SyncStyleContext();
 
  private:
-  StageRef stage{};
+  ReferenceHolder<Stage> stage{};
   GraphicsContextRef graphicsContext{};
   SceneNode* root{};
   mutable StyleContext styleContext{ 0, 0, 0 };
@@ -70,8 +71,8 @@ class Scene {
   bool isRootFontSizeDirty{ false };
   bool isAttached{ false };
   bool hasCompositeRequest{ false };
-  std::unordered_set<SceneNode*> paintRequests;
-  std::unordered_set<SceneNode*> styleLayoutRequests;
+  phmap::flat_hash_set<SceneNode*> paintRequests;
+  phmap::flat_hash_set<SceneNode*> styleLayoutRequests;
   CompositeContext compositeContext;
   RenderingContext2D renderingContext2D{};
 };

@@ -30,6 +30,9 @@ try {
 
 // Class Exports
 export const {
+  CStage,
+  CScene,
+  CFontManager,
   Style,
   StyleClass,
   StyleTransformSpec,
@@ -62,7 +65,4 @@ export const {
   loadSDLMixerPlugin,
   styleProperties,
   createRefGraphicsContext,
-  createSceneComposite,
-  createStageComposite,
-  createFontManagerComposite
 } = addon

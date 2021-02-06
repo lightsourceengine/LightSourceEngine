@@ -7,6 +7,8 @@
 #pragma once
 
 #include <lse/types.h>
+#include <lse/Reference.h>
+#include <lse/Scene.h>
 #include <lse/yoga-ext.h>
 #include <event/event.h>
 #include <napi-ext.h>
@@ -103,7 +105,7 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
  protected:
   static int instanceCount;
   YGNodeRef ygNode{};
-  SceneRef scene{};
+  ReferenceHolder<Scene> scene{};
   StyleRef style{};
   std::vector<SceneNode*> sortedChildren;
   std::bitset<8> flags;

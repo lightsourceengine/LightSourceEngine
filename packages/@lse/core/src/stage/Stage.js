@@ -5,7 +5,7 @@
  */
 
 import { Scene } from '../scene/Scene.js'
-import { createStageComposite, logger } from '../addon/index.js'
+import { CStage, logger } from '../addon/index.js'
 import { InputManager } from '../input/InputManager.js'
 import { AudioManager } from '../audio/AudioManager.js'
 import { isNumber, logexcept, now, isPlainObject } from '../util/index.js'
@@ -32,7 +32,7 @@ const kFlagIsConfigured = 4
 const kFlagIsRunning = 8
 
 export class Stage extends EventTarget {
-  _composite = createStageComposite()
+  _native = new CStage()
   _plugins = new Map()
   _scenes = new Map()
   _flags = 0
@@ -234,7 +234,7 @@ export class Stage extends EventTarget {
    * @ignore
    */
   $destroy () {
-    if (!this._composite) {
+    if (!this._native) {
       return
     }
 
@@ -255,8 +255,8 @@ export class Stage extends EventTarget {
     this._plugins.clear()
 
     this._flags = 0
-    this._composite.destroy()
-    this._composite = null
+    this._native.destroy()
+    this._native = null
 
     this.dispatchEvent(createDestroyedEvent(this))
 
@@ -410,7 +410,7 @@ export class Stage extends EventTarget {
    * @ignore
    */
   get $native () {
-    return this._composite.$native
+    return this._native
   }
 }
 

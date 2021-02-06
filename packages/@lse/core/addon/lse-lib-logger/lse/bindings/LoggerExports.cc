@@ -1,11 +1,14 @@
 /*
- * Copyright (C) 2019 Daniel Anderson
+ * Copyright (C) 2021 Daniel Anderson
  *
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <lse/bindings/Logger.h>
-#include <ObjectBuilder.h>
+#include "LoggerExports.h"
+
+#include <napix.h>
+#include <napi-ext.h>
+#include <lse/Log.h>
 
 using Napi::CallbackInfo;
 using Napi::Error;
@@ -14,10 +17,13 @@ using Napi::FunctionReference;
 using Napi::HandleScope;
 using Napi::Number;
 using Napi::Object;
-using Napi::ObjectBuilder;
 using Napi::String;
 using Napi::Value;
 using lse::internal::LogCustomSite;
+
+using napix::object_new;
+using napix::descriptor::instance_value;
+using napix::descriptor::instance_method;
 
 namespace lse {
 namespace bindings {
@@ -52,18 +58,6 @@ static napi_value LogWarn(napi_env env, napi_callback_info info) noexcept {
   return {};
 }
 
-static std::string ToString(const Napi::Value& value) {
-  try {
-    if (value.IsString()) {
-      return value.As<Napi::String>().Utf8Value();
-    }
-  } catch (const Error& e) {
-    // ignore
-  }
-
-  return {};
-}
-
 static void Log(LogLevel logLevel, napi_env env, napi_callback_info info) noexcept {
   constexpr auto siteBufferSize = 32;
   constexpr auto messageBufferSize = 1024;
@@ -81,7 +75,7 @@ static void Log(LogLevel logLevel, napi_env env, napi_callback_info info) noexce
       if (Napi::StringByteLength(ci[0]) < messageBufferSize) {
         LogCustomSite(logLevel, site, Napi::CopyUtf8(ci[0], messageBuffer, messageBufferSize));
       } else {
-        auto message{ ToString(ci[0]) };
+        auto message{ napix::as_string_utf8(env, ci[0]) };
         LogCustomSite(logLevel, site, !message.empty() ? message.c_str() : nullptr);
       }
     }
@@ -90,7 +84,7 @@ static void Log(LogLevel logLevel, napi_env env, napi_callback_info info) noexce
       if (Napi::StringByteLength(ci[0]) < messageBufferSize) {
         LogCustomSite(logLevel, "js", Napi::CopyUtf8(ci[0], messageBuffer, messageBufferSize));
       } else {
-        auto message{ ToString(ci[0]) };
+        auto message{ napix::as_string_utf8(env, ci[0]) };
         LogCustomSite(logLevel, "js", !message.empty() ? message.c_str() : nullptr);
       }
       break;
@@ -103,7 +97,7 @@ static void Log(LogLevel logLevel, napi_env env, napi_callback_info info) noexce
 }
 
 static napi_value GetLogLevel(napi_env env, napi_callback_info info) noexcept {
-  NAPI_TRY_C(return Number::New(env, lse::GetLogLevel()))
+  return napix::to_value_or_null(env, lse::GetLogLevel());
 }
 
 static void SetLogLevelThrows(napi_env env, napi_callback_info callback_info) {
@@ -172,28 +166,26 @@ static napi_value SetLogLevel(napi_env env, napi_callback_info callback_info) no
 //  lse::SetLogSink(nullptr);
 //}
 
-Object NewLoggerObject(Napi::Env env) {
-  return ObjectBuilder(env)
-      .WithMethod("info", &LogInfo)
-      .WithMethod("warn", &LogWarn)
-      .WithMethod("debug", &LogDebug)
-      .WithMethod("error", &LogError)
-      .WithMethod("getLogLevel", &GetLogLevel)
-      .WithMethod("setLogLevel", &SetLogLevel)
-      .Freeze()
-      .ToObject();
+napi_value NewLoggerObject(napi_env env) noexcept {
+  return object_new(env, {
+      instance_method("info", &LogInfo),
+      instance_method("warn", &LogWarn),
+      instance_method("debug", &LogDebug),
+      instance_method("error", &LogError),
+      instance_method("getLogLevel", &GetLogLevel),
+      instance_method("setLogLevel", &SetLogLevel),
+  });
 }
 
-Object NewLogLevelEnum(Napi::Env env) {
-  return ObjectBuilder(env)
-      .WithValue("OFF", lse::LogLevel::LogLevelOff)
-      .WithValue("ERROR", lse::LogLevel::LogLevelError)
-      .WithValue("WARN", lse::LogLevel::LogLevelWarn)
-      .WithValue("INFO", lse::LogLevel::LogLevelInfo)
-      .WithValue("DEBUG", lse::LogLevel::LogLevelDebug)
-      .WithValue("ALL", lse::LogLevel::LogLevelAll)
-      .Freeze()
-      .ToObject();
+napi_value NewLogLevelEnum(napi_env env) noexcept {
+  return object_new(env, {
+      instance_value(env, "OFF", LogLevelOff, napi_enumerable),
+      instance_value(env, "ERROR", LogLevelError, napi_enumerable),
+      instance_value(env, "WARN", LogLevelWarn, napi_enumerable),
+      instance_value(env, "INFO", LogLevelInfo, napi_enumerable),
+      instance_value(env, "DEBUG", LogLevelDebug, napi_enumerable),
+      instance_value(env, "ALL", LogLevelAll, napi_enumerable),
+  });
 }
 
 } // namespace bindings

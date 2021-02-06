@@ -414,7 +414,6 @@ Napi::Object SDLPlatformPluginExports(const Napi::Env& env) {
 
   return Napi::ObjectBuilder(env)
       // Plugin API
-      .WithValue("id", kPluginPlatformSdl)
       .WithValue("type", "platform")
       .WithMethod("attach", &Attach)
       .WithMethod("detach", &Detach)
