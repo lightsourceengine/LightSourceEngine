@@ -57,15 +57,15 @@ class ReferenceHolder {
  public:
   // constructors
   ReferenceHolder() = default;
-  ReferenceHolder(T* reference) { this->Acquire(reference); }
+  inline ReferenceHolder(T* reference);
   ReferenceHolder(const ReferenceHolder<T>&) = delete;
 
   // destructor
-  ~ReferenceHolder() { this->Release(); }
+  inline ~ReferenceHolder();
 
   // assignment
-  ReferenceHolder<T>& operator=(std::nullptr_t) noexcept { this->Release(); return *this; }
-  ReferenceHolder<T>& operator=(T* ref) noexcept { this->Acquire(ref); return *this; }
+  inline ReferenceHolder<T>& operator=(std::nullptr_t) noexcept;
+  inline ReferenceHolder<T>& operator=(T* ref) noexcept;
   ReferenceHolder<T>& operator=(ReferenceHolder<T>&& other) = delete;
   void operator=(const ReferenceHolder<T>&) = delete;
 
@@ -76,23 +76,44 @@ class ReferenceHolder {
   explicit operator T*() const noexcept { return this->reference; }
 
  private:
-  void Release() {
-    if (this->reference) {
-      this->reference->Unref();
-      this->reference = nullptr;
-    }
-  }
-
-  void Acquire(T* ref) {
-    this->Release();
-    if (ref) {
-      this->reference = ref;
-      this->reference->Ref();
-    }
-  }
+  inline void Release() noexcept;
+  inline void Acquire(T* ref) noexcept;
 
  private:
   T* reference{};
 };
+
+template<class T>
+inline ReferenceHolder<T>::ReferenceHolder(T* reference) { this->Acquire(reference); }
+
+template<class T>
+inline ReferenceHolder<T>::~ReferenceHolder() { this->Release(); }
+
+template<class T>
+inline ReferenceHolder<T>& ReferenceHolder<T>::operator=(std::nullptr_t) noexcept {
+  this->Release(); return *this;
+}
+
+template<class T>
+inline ReferenceHolder<T>& ReferenceHolder<T>::operator=(T* ref) noexcept {
+  this->Acquire(ref); return *this;
+}
+
+template<class T>
+inline void ReferenceHolder<T>::Release() noexcept {
+  if (this->reference) {
+    this->reference->Unref();
+    this->reference = nullptr;
+  }
+}
+
+template<class T>
+inline void ReferenceHolder<T>::Acquire(T* ref) noexcept {
+  this->Release();
+  if (ref) {
+    this->reference = ref;
+    this->reference->Ref();
+  }
+}
 
 } // namespace lse

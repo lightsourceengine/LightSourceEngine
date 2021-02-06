@@ -22,7 +22,6 @@ class CompositeContext;
 class GraphicsContext;
 class Renderer;
 class RenderingContext2D;
-class Scene;
 class SceneNode;
 class Stage;
 class StyleContext;

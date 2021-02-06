@@ -12,6 +12,7 @@
 #include <lse/RenderingContext2D.h>
 #include <lse/GraphicsContext.h>
 #include <lse/Reference.h>
+#include <lse/Stage.h>
 
 #include <algorithm>
 #include <memory>
