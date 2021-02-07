@@ -19,7 +19,7 @@ export const loadPlugin = (id, options) => {
     case PluginId.REF:
       return loadRefPluginJs()
     case PluginId.REF_AUDIO:
-      return loadRefAudioPlugin()
+      return loadRefAudioPluginJs()
     default:
       throw Error(`Unsupported plugin: ${id}`)
   }
@@ -31,7 +31,6 @@ const loadRefPluginJs = () => {
   const GraphicsContext = loadRefPlugin()
 
   return {
-    id: PluginId.REF,
     type: PluginType.PLATFORM,
     attach() {
       attached = true
@@ -101,7 +100,7 @@ const loadRefPluginJs = () => {
   }
 }
 
-const loadRefAudioPlugin = () => {
+const loadRefAudioPluginJs = () => {
   let attached
 
   class RefAudioDestination {

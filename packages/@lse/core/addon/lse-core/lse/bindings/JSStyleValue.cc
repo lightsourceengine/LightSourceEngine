@@ -7,7 +7,7 @@
 
 #include <lse/bindings/JSStyleValue.h>
 
-#include <lse/bindings/Convert.h>
+#include <lse/bindings/CStyleUtil.h>
 
 static Napi::FunctionReference jsStyleValueClass;
 static Napi::ObjectReference jsStyleValueUndefined;
@@ -18,20 +18,20 @@ namespace bindings {
 Napi::Function JSStyleValue::GetClass(const Napi::Env& env) {
   if (jsStyleValueClass.IsEmpty()) {
     const char* script = R"(
-            const StyleValue = class StyleValue {
-                constructor(value, unit) {
-                    this.unit = unit || 0
-                    this.value = value || 0
-                    Object.freeze(this)
-                }
+        const StyleValue = class StyleValue {
+          constructor(value, unit) {
+            this.unit = unit || 0
+            this.value = value || 0
+            Object.freeze(this)
+          }
 
-                isUndefined () {
-                    return this.unit === 0
-                }
-            }
+          isUndefined () {
+            return this.unit === 0
+          }
+        }
 
-            /*return*/ StyleValue
-        )";
+        /*return*/ StyleValue
+    )";
 
     auto result{ Napi::RunScript(env, script) };
 

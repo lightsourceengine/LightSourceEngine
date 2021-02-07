@@ -9,8 +9,7 @@
 
 #include <napix.h>
 #include <lse/Habitat.h>
-#include <lse/StyleEnums.h>
-#include <lse/bindings/Convert.h>
+#include <lse/bindings/CStyleUtil.h>
 #include <lse/AudioPlugin.h>
 #include <lse/SDLAudioPluginImpl.h>
 #include <lse/SDLMixerAudioPluginImpl.h>
@@ -29,23 +28,12 @@ Napi::Value ParseColor(const Napi::CallbackInfo& info) {
   return BoxColor(env, UnboxColor(env, info[0]));
 }
 
-Napi::Object GetStyleProperties(Napi::Env env) {
-  auto styleProperties{ Napi::Object::New(env) };
-
-  for (int32_t i = 0; i < Count<StyleProperty>(); i++) {
-    styleProperties[ToString(static_cast<StyleProperty>(i))] = Napi::Number::New(env, i);
-  }
-
-  return styleProperties;
-}
-
 napi_value LoadSDLPlugin(napi_env env, napi_callback_info) noexcept {
   if (kEnablePluginPlatformSdl) {
     return LoadSDLPlatformPlugin(env);
   }
 
   napix::throw_error(env, "SDL plugin is not available.");
-  return {};
 }
 
 napi_value LoadRefPlugin(napi_env env, napi_callback_info) noexcept {
@@ -61,9 +49,9 @@ Napi::Value LoadSDLAudioPlugin(const Napi::CallbackInfo& info) {
   if (kEnablePluginAudioSdlAudio) {
     SDL2::Open();
     return lse::AudioPluginInit<lse::SDLAudioPluginImpl>(info.Env());
-  } else {
-    throw Napi::Error::New(info.Env(), "SDL Audio plugin is not available.");
   }
+
+  throw Napi::Error::New(info.Env(), "SDL Audio plugin is not available.");
 }
 
 Napi::Value LoadSDLMixerPlugin(const Napi::CallbackInfo& info) {
@@ -71,9 +59,72 @@ Napi::Value LoadSDLMixerPlugin(const Napi::CallbackInfo& info) {
     SDL2::Open();
     SDL2::mixer::Open();
     return lse::AudioPluginInit<lse::SDLMixerAudioPluginImpl>(info.Env());
-  } else {
-    throw Napi::Error::New(info.Env(), "SDL Audio plugin is not available.");
   }
+
+  throw Napi::Error::New(info.Env(), "SDL Audio plugin is not available.");
+}
+
+napi_value LockStyle(napi_env env, napi_callback_info info) noexcept {
+  auto ci{napix::get_callback_info<1>(env, info)};
+  Style* style{};
+
+  if (Habitat::InstanceOf(env, ci[0], Habitat::Class::CStyle)) {
+    style = napix::unwrap_as<Style>(env, ci[0]);
+  }
+
+  NAPIX_EXPECT_NOT_NULL(env, style, "Not a Style instance.", {})
+
+  style->Lock();
+
+  return {};
+}
+
+napi_value SetStyleParent(napi_env env, napi_callback_info info) noexcept {
+  auto ci{napix::get_callback_info<2>(env, info)};
+  Style* style{};
+  Style* parent{};
+
+  if (Habitat::InstanceOf(env, ci[0], Habitat::Class::CStyle)) {
+    style = napix::unwrap_as<Style>(env, ci[0]);
+  }
+
+  NAPIX_EXPECT_TRUE(env, style && !style->IsLocked(), "arg is not a Style instance.", {})
+
+  if (napix::is_nullish(env, ci[1])) {
+    parent = nullptr;
+  } else if (Habitat::InstanceOf(env, ci[1], Habitat::Class::CStyle)) {
+    parent = napix::unwrap_as<Style>(env, ci[1]);
+    NAPIX_EXPECT_TRUE(env, parent && parent->IsLocked(), "arg is not a StyleClass instance.", {})
+  } else {
+    napix::throw_error(env, "Expected StyleClass, null or undefined");
+  }
+
+  style->SetParent(parent);
+
+  return {};
+}
+
+napi_value ResetStyle(napi_env env, napi_callback_info info) noexcept {
+  auto ci{napix::get_callback_info<1>(env, info)};
+  Style* style{};
+
+  if (Habitat::InstanceOf(env, ci[0], Habitat::Class::CStyle)) {
+    style = napix::unwrap_as<Style>(env, ci[0]);
+  }
+
+  NAPIX_EXPECT_TRUE(env, style && !style->IsLocked(), "arg is not a Style instance.", {})
+
+  style->Reset();
+
+  return {};
+}
+
+napi_value InstallStyleValue(napi_env env, napi_callback_info info) noexcept {
+  return {};
+}
+
+napi_value InstallStyleTransformSpec(napi_env env, napi_callback_info info) noexcept {
+  return {};
 }
 
 } // namespace bindings

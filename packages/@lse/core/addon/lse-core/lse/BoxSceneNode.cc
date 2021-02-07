@@ -100,7 +100,7 @@ void BoxSceneNode::OnStyleLayout() {
 
     if (!IsEmpty(box)) {
       auto fit{ this->GetStyleContext()->ComputeBackgroundFit(
-          this->style.get(), box, this->backgroundImage.get()) };
+          this->style, box, this->backgroundImage.get()) };
 
       this->backgroundImageRect = ClipImage(box, fit,
                                             this->backgroundImage->WidthF(), this->backgroundImage->HeightF());
@@ -256,7 +256,7 @@ void BoxSceneNode::PaintBackgroundRepeat(RenderingContext2D* context) {
 }
 
 void BoxSceneNode::Composite(CompositeContext* composite) {
-  const auto boxStyle{ this->style };
+  const auto boxStyle{ this->style.Get() };
 
   if (boxStyle == nullptr /* TODO: || boxStyle->IsLayoutOnly() */) {
     return;

@@ -14,8 +14,6 @@
 #include <lse/LinkSceneNode.h>
 #include <lse/RootSceneNode.h>
 #include <lse/TextSceneNode.h>
-#include <lse/bindings/JSStyle.h>
-#include <lse/bindings/JSStyleClass.h>
 #include <lse/bindings/JSStyleTransformSpec.h>
 #include <lse/bindings/JSStyleValue.h>
 
@@ -34,6 +32,14 @@ class CScene {
  public:
   static constexpr auto NAME = "CScene";
   static constexpr auto CLASS_ID = Habitat::Class::CScene;
+
+  static napi_value CreateClass(napi_env env);
+};
+
+class CStyle {
+ public:
+  static constexpr auto NAME = "CStyle";
+  static constexpr auto CLASS_ID = Habitat::Class::CStyle;
 
   static napi_value CreateClass(napi_env env);
 };

@@ -25,6 +25,7 @@ class Habitat {
       CStage,
       CFontManager,
       CScene,
+      CStyle,
       CGraphicsContext,
       Count
     };

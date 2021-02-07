@@ -83,7 +83,7 @@ void TextSceneNode::OnBoundingBoxChanged() {
 
 void TextSceneNode::OnStyleLayout() {
   // TODO: review logic..
-  if (!this->SetFont(this->style.get())) {
+  if (!this->SetFont(this->style)) {
 //        this->block.Invalidate();
     // YGNodeMarkDirty(this->ygNode);
     // TODO: shape?
@@ -101,7 +101,7 @@ YGSize TextSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float heig
     height = this->scene->GetHeight();
   }
 
-  this->block.Shape(this->text, this->fontFace, this->style.get(), this->GetStyleContext(), width, height);
+  this->block.Shape(this->text, this->fontFace, this->style, this->GetStyleContext(), width, height);
 
   return { this->block.WidthF(), this->block.HeightF() };
 }

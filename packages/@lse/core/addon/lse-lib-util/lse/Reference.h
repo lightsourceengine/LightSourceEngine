@@ -73,7 +73,7 @@ class ReferenceHolder {
   T* Get() const noexcept { return this->reference; }
   T* operator->() const noexcept { return this->reference; }
   explicit operator bool() const noexcept { return this->reference != nullptr; }
-  explicit operator T*() const noexcept { return this->reference; }
+  operator T*() const noexcept { return this->reference; }
 
  private:
   inline void Release() noexcept;

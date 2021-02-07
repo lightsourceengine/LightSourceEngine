@@ -4,10 +4,11 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { StyleClass, styleProperties } from '../addon/index.js'
+import { lockStyle } from '../addon/index.js'
 import { ShorthandRegistry } from './ShorthandRegistry.js'
 import { emptyObject, isPlainObject } from '../util/index.js'
 import { MixinRegistry } from './MixinRegistry.js'
+import { StyleClass } from './StyleClass.js'
 
 /**
  * Create a Style instance from plain Object of style properties.
@@ -31,7 +32,7 @@ export const createStyle = (properties) => {
   if (properties instanceof StyleClass) {
     return properties
   }
-  return Object.freeze(createStyleInternal(properties, '', emptyObject))
+  return createStyleInternal(properties, '', emptyObject)
 }
 
 /**
@@ -56,16 +57,17 @@ const createStyleInternal = (style, key, styleSheet) => {
   }
 
   const instance = new StyleClass()
+  const { prototype } = StyleClass
 
   for (const prop in style) {
-    const propId = styleProperties[prop]
-
-    if (propId !== undefined) {
-      instance[kStyleClassSet](propId, style[prop])
+    if (prop in prototype) {
+      instance[prop] = style[prop]
     }
 
     // ignore unknown property
   }
+
+  lockStyle(instance)
 
   return instance
 }
@@ -197,4 +199,3 @@ const hasExtendCycle = (style, styleId, styleSheet) => {
 }
 
 const kExtendKey = '@extend'
-const kStyleClassSet = Symbol.for('set')

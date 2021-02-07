@@ -254,6 +254,16 @@ napi_value array_new(napi_env env, size_t length) noexcept {
   return status == napi_ok ? array : nullptr;
 }
 
+bool is_nullish(napi_env env, napi_value value) noexcept {
+  napi_valuetype type{};
+
+  if (value) {
+    napi_typeof(env, value, &type);
+  }
+
+  return type == napi_undefined || type == napi_null;
+}
+
 namespace js_class {
 
 napi_value define(
@@ -261,6 +271,15 @@ napi_value define(
     const char* name,
     napi_callback constructor,
     const std::initializer_list<napi_property_descriptor>& props) noexcept {
+  return define(env, name, constructor, props.size(), props.begin());
+}
+
+napi_value define(
+    napi_env env,
+    const char* name,
+    napi_callback constructor,
+    size_t propCount,
+    const napi_property_descriptor* props) noexcept {
   napi_value value{};
   napi_status status = napi_define_class(
       env,
@@ -268,12 +287,12 @@ napi_value define(
       NAPI_AUTO_LENGTH,
       constructor,
       nullptr,
-      props.size(),
-      props.begin(),
+      propCount,
+      props,
       &value);
 
   if (status != napi_ok) {
-    // TODO: throw!
+    throw_error(env, "Failed to define class.");
   }
 
   return value;
@@ -360,6 +379,24 @@ napi_property_descriptor instance_accessor(
       nullptr,
       attr,
       nullptr
+  };
+}
+
+napi_property_descriptor instance_accessor(
+    const name& name,
+    napi_callback getter,
+    napi_callback setter,
+    intptr_t data,
+    napi_property_attributes attr) noexcept {
+  return {
+      name.utf8,
+      name.value,
+      nullptr,
+      getter,
+      setter,
+      nullptr,
+      attr,
+      reinterpret_cast<void*>(data)
   };
 }
 

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <napi-ext.h>
+#include <lse/Reference.h>
 #include <lse/StyleEnums.h>
 #include <lse/types.h>
 #include <lse/Color.h>
@@ -82,8 +82,10 @@ struct StyleTransformSpec {
 bool operator==(const StyleTransformSpec& a, const StyleTransformSpec& b) noexcept;
 bool operator!=(const StyleTransformSpec& a, const StyleTransformSpec& b) noexcept;
 
-class Style {
+class Style : public Reference {
  public:
+  ~Style() override;
+
   // enum based properties
   void SetEnum(StyleProperty property, const char* value);
   const char* GetEnumString(StyleProperty property);
@@ -125,13 +127,16 @@ class Style {
   void ClearChangeListener() noexcept;
 
   // Set the parent. If a value in this style is undefined, the parent will be queried.
-  void SetParent(const StyleRef& parent) noexcept;
+  void SetParent(Style* parent) noexcept;
 
   // Handle root font size and viewport changes. The method will force a change on properties that use rem, vw, vmin,
   // etc units.
   void OnMediaChange(bool remChange, bool viewportChange) noexcept;
 
   void Reset();
+
+  void Lock() noexcept { this->locked = true; }
+  bool IsLocked() const noexcept { return this->locked; }
 
   static void Init();
   static Style* Or(Style* style) noexcept;
@@ -144,6 +149,12 @@ class Style {
   bool IsEmpty(StyleProperty property, bool includeParent) const noexcept;
 
  private:
+  // Style state
+
+  bool locked{false};
+  Style* parent{};
+  std::function<void(StyleProperty)> onChange;
+
   // Property buckets
 
   phmap::flat_hash_map<StyleProperty, color_t> colorMap;
@@ -151,11 +162,6 @@ class Style {
   phmap::flat_hash_map<StyleProperty, StyleValue> numberMap;
   phmap::flat_hash_map<StyleProperty, int32_t> enumMap;
   std::vector<StyleTransformSpec> transform;
-
-  // Style state
-
-  StyleRef parent;
-  std::function<void(StyleProperty)> onChange;
 
   // Static helpers
 

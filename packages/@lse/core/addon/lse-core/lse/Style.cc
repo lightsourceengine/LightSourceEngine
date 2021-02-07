@@ -53,6 +53,12 @@ bool operator!=(const std::vector<StyleTransformSpec>& a, const std::vector<Styl
   return !(a == b);
 }
 
+Style::~Style() {
+  if (this->parent) {
+    this->parent->Unref();
+  }
+}
+
 void Style::SetEnum(StyleProperty property, const char* value) {
   int32_t intValue = StylePropertyValueFromString(property, value);
 
@@ -293,7 +299,7 @@ void Style::ClearChangeListener() noexcept {
   this->onChange = nullptr;
 }
 
-void Style::SetParent(const StyleRef& parent) noexcept {
+void Style::SetParent(Style* parent) noexcept {
   assert(tempDefinedProperties.empty());
 
   if (this->onChange) {
@@ -306,7 +312,15 @@ void Style::SetParent(const StyleRef& parent) noexcept {
     }
   }
 
+  if (this->parent) {
+    this->parent->Unref();
+  }
+
   this->parent = parent;
+
+  if (this->parent) {
+    this->parent->Ref();
+  }
 
   for (auto property : tempDefinedProperties) {
     // TODO: check exists/isempty

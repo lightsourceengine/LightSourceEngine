@@ -6,8 +6,9 @@
 
 import chai from 'chai'
 import { createStyleSheet } from '../../src/style/createStyleSheet.js'
-import { StyleClass, StyleValue } from '../../src/addon/index.js'
+import { StyleValue } from '../../src/addon/index.js'
 import { rgb } from '../../src/style/rgb.js'
+import { StyleClass } from '../../src/style/StyleClass.js'
 
 const { assert } = chai
 

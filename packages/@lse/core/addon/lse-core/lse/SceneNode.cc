@@ -25,10 +25,6 @@
 #include <napix.h>
 #include <lse/Habitat.h>
 
-// TODO: bindings should not be included here. scene nodes need to be refactored first
-#include <lse/bindings/JSStyle.h>
-#include <lse/bindings/JSStyleClass.h>
-
 using Napi::Array;
 using Napi::Boolean;
 using Napi::CallbackInfo;
@@ -100,16 +96,18 @@ Napi::Value SceneNode::GetChildren(const Napi::CallbackInfo& info) {
 Napi::Value SceneNode::BindStyle(const Napi::CallbackInfo& info) {
   auto env{ info.Env() };
 
-  NAPI_EXPECT_NULL(env, this->style, "SceneNode has already been bound to a Style");
+  Style* stylePtr{};
 
-  auto jsStyle = bindings::JSStyle::Cast(info[0]);
+  if (Habitat::InstanceOf(env, info[0], Habitat::Class::CStyle)) {
+    stylePtr = napix::unwrap_as<Style>(info.Env(), info[0]);
+  }
 
-  NAPI_EXPECT_NOT_NULL(env, jsStyle, "bindStyle expects a Style instance");
+  NAPI_EXPECT_NOT_NULL(info.Env(), stylePtr, "bindStyle target must be a Style instance");
 
-  this->style = jsStyle->GetNative();
+  this->style = stylePtr;
   this->style->SetChangeListener([this](StyleProperty property) {
     if (IsYogaProperty(property)) {
-      this->GetStyleContext()->SetYogaPropertyValue(this->style.get(), property, this->ygNode);
+      this->GetStyleContext()->SetYogaPropertyValue(this->style, property, this->ygNode);
     } else {
       this->OnStylePropertyChanged(property);
     }

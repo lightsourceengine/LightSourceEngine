@@ -18,59 +18,59 @@ namespace bindings {
 Napi::Function JSStyleTransformSpec::GetClass(const Napi::Env& env) {
   if (jsStyleTransformSpecClass.IsEmpty()) {
     const char* script = R"(
-            const StyleTransformSpec = class StyleTransformSpec {
-                constructor(transform, ...args) {
-                    switch (transform) {
-                        case 0:
-                            this.x = this.y = this.angle = undefined
-                            break;
-                        case 2:
-                            this.x = this.y = undefined
-                            this.angle = Object.freeze(args[0])
-                            break;
-                        case 1:
-                        case 3:
-                            this.x = Object.freeze(args[0])
-                            this.y = Object.freeze(args[1])
-                            this.angle = undefined
-                            break;
-                        default:
-                            this.x = this.y = this.angle = undefined
-                            transform = -1
-                            break;
-                    }
+      const StyleTransformSpec = class StyleTransformSpec {
+        constructor(transform, ...args) {
+          switch (transform) {
+            case 0:
+              this.x = this.y = this.angle = undefined
+              break;
+            case 2:
+              this.x = this.y = undefined
+              this.angle = args[0]
+              break;
+            case 1:
+            case 3:
+              this.x = args[0]
+              this.y = args[1]
+              this.angle = undefined
+              break;
+            default:
+              this.x = this.y = this.angle = undefined
+              transform = -1
+              break;
+          }
 
-                    this.transform = transform
-                    
-                    Object.freeze(this)
-                }
+          this.transform = transform
 
-                isUndefined() {
-                    return this.transform < 0
-                }
+          Object.freeze(this)
+        }
 
-                static rotate(angle) {
-                    const spec = new StyleTransformSpec(2, angle)
-                    return StyleTransformSpec.validate(spec) ? spec : undefined
-                }
+        isUndefined() {
+          return this.transform < 0
+        }
 
-                static identity(angle) {
-                    return new StyleTransformSpec(0)
-                }
+        static rotate(angle) {
+          const spec = new StyleTransformSpec(2, angle)
+          return StyleTransformSpec.validate(spec) ? spec : undefined
+        }
 
-                static translate(x, y) {
-                    const spec = new StyleTransformSpec(1, x, y)
-                    return StyleTransformSpec.validate(spec) ? spec : undefined
-                }
+        static identity(angle) {
+          return new StyleTransformSpec(0)
+        }
 
-                static scale(x, y) {
-                    const spec = new StyleTransformSpec(3, x, y)
-                    return StyleTransformSpec.validate(spec) ? spec : undefined
-                }
-            }
+        static translate(x, y) {
+          const spec = new StyleTransformSpec(1, x, y)
+          return StyleTransformSpec.validate(spec) ? spec : undefined
+        }
 
-            /*return*/ StyleTransformSpec
-        )";
+        static scale(x, y) {
+          const spec = new StyleTransformSpec(3, x, y)
+          return StyleTransformSpec.validate(spec) ? spec : undefined
+        }
+      }
+
+      /*return*/ StyleTransformSpec
+    )";
 
     auto result{ Napi::RunScript(env, script) };
 

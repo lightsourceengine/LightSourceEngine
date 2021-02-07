@@ -9,14 +9,12 @@ import {
   BoxSceneNodeBase,
   ImageSceneNodeBase,
   LinkSceneNodeBase,
-  RootSceneNodeBase,
-  Style,
-  StyleClass,
+  RootSceneNodeBase, setStyleParent,
   TextSceneNodeBase
 } from '../addon/index.js'
+import { Style } from '../style/Style.js'
 
 const $bindStyle = Symbol.for('bindStyle')
-const $bindStyleClass = Symbol.for('bindStyleClass')
 
 const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
   focusable = false
@@ -67,9 +65,8 @@ const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
   }
 
   set class (styleClass) {
-    if (styleClass === null || styleClass === undefined || styleClass instanceof StyleClass) {
-      this._class = this.style[$bindStyleClass](styleClass || null)
-    }
+    setStyleParent(this.style, styleClass)
+    this._class = styleClass ?? null
   }
 
   /**

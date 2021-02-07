@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Daniel Anderson
+ * Copyright (C) 2021 Daniel Anderson
  *
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source
  * tree.
@@ -17,6 +17,9 @@ Napi::Value BoxColor(const Napi::Env& env, const std17::optional<color_t>& color
 
 std17::optional<color_t> UnboxColor(const Napi::Env& env, const Napi::Value& value);
 std17::optional<StyleValue> UnboxStyleValue(const Napi::Env& env, const Napi::Value& value);
+
+napi_value StyleGetter(napi_env env, Style* style, StyleProperty property);
+void StyleSetter(napi_env env, Style* style, StyleProperty property, napi_value value);
 
 } // namespace bindings
 } // namespace lse

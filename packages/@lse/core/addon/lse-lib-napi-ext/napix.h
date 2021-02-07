@@ -211,6 +211,8 @@ napi_value array_new(napi_env env, size_t length = 0) noexcept;
 template<class T, class Iterable>
 napi_value array_from(napi_env env, Iterable iterable, napi_value(*toValue)(napi_env, T));
 
+bool is_nullish(napi_env env, napi_value value) noexcept;
+
 namespace js_class {
 
 typedef void* (*create_native_callback)(napi_env env, napi_callback_info info);
@@ -220,6 +222,13 @@ napi_value define(
     const char* name,
     napi_callback constructor,
     const std::initializer_list<napi_property_descriptor>& props) noexcept;
+
+napi_value define(
+    napi_env env,
+    const char* name,
+    napi_callback constructor,
+    size_t propCount,
+    const napi_property_descriptor* props) noexcept;
 
 napi_value constructor_helper(
     napi_env env,
@@ -237,6 +246,13 @@ napi_property_descriptor instance_accessor(
     napi_callback getter,
     napi_callback setter,
     napi_property_attributes attr = napi_writable) noexcept;
+
+napi_property_descriptor instance_accessor(
+    const name& name,
+    napi_callback getter,
+    napi_callback setter,
+    intptr_t data,
+    napi_property_attributes attr) noexcept;
 
 napi_property_descriptor instance_method(const name& name, napi_callback method) noexcept;
 napi_property_descriptor instance_value(

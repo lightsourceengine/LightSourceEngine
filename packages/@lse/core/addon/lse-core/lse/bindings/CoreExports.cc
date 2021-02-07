@@ -40,7 +40,6 @@ napi_value CoreExports(napi_env env, napi_value exports) noexcept {
 
   // Objects
   Export(env, exports, "logger", NewLoggerObject(env));
-  Export(env, exports, "styleProperties", GetStyleProperties(env));
 #if defined(LSE_ENABLE_NATIVE_TESTS)
   Export(env, exports, "test", LightSourceTestSuite(env));
 #endif
@@ -48,6 +47,13 @@ napi_value CoreExports(napi_env env, napi_value exports) noexcept {
   // Functions
   Export(env, exports, "loadSDLPlugin", &LoadSDLPlugin);
   Export(env, exports, "loadRefPlugin", &LoadRefPlugin);
+
+  Export(env, exports, "lockStyle", &LockStyle);
+  Export(env, exports, "resetStyle", &ResetStyle);
+  Export(env, exports, "setStyleParent", &SetStyleParent);
+  Export(env, exports, "installStyleValue", &InstallStyleValue);
+  Export(env, exports, "installStyleTransformSpec", &InstallStyleTransformSpec);
+
   Export(env, exports, Function(env, "loadSDLAudioPlugin", &LoadSDLAudioPlugin));
   Export(env, exports, Function(env, "loadSDLMixerPlugin", &LoadSDLMixerPlugin));
   Export(env, exports, Function(env, "parseColor", &ParseColor));
@@ -58,8 +64,7 @@ napi_value CoreExports(napi_env env, napi_value exports) noexcept {
   Export(env, exports, CStage::CLASS_ID);
   Export(env, exports, CScene::CLASS_ID);
   Export(env, exports, CFontManager::CLASS_ID);
-  Export(env, exports, JSStyle::GetClass(env));
-  Export(env, exports, JSStyleClass::GetClass(env));
+  Export(env, exports, CStyle::CLASS_ID);
   Export(env, exports, JSStyleValue::GetClass(env));
   Export(env, exports, JSStyleTransformSpec::GetClass(env));
   Export(env, exports, BoxSceneNode::GetClass(env));
@@ -110,6 +115,7 @@ static void LoadHabitatClasses(napi_env env) noexcept {
   Habitat::SetClass(env, Habitat::Class::CStage, CStage::CreateClass(env));
   Habitat::SetClass(env, Habitat::Class::CScene, CScene::CreateClass(env));
   Habitat::SetClass(env, Habitat::Class::CFontManager, CFontManager::CreateClass(env));
+  Habitat::SetClass(env, Habitat::Class::CStyle, CStyle::CreateClass(env));
 }
 
 } // namespace bindings

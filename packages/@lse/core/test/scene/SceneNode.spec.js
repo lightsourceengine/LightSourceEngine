@@ -7,8 +7,9 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import { afterSceneTest, beforeSceneTest } from '../test-env.js'
-import { Style, StyleClass } from '../../src/addon/index.js'
 import { createStyle } from '../../src/style/createStyle.js'
+import { Style } from '../../src/style/Style.js'
+import { StyleClass } from '../../src/style/StyleClass.js'
 
 const { assert } = chai
 
@@ -167,12 +168,11 @@ describe('SceneNode', () => {
 
       assert.isNull(node.class)
     })
-    it('should ignore non-StyleClass objects', () => {
+    it('should throw Error for non-StyleClass objects', () => {
       const node = scene.createNode('box')
 
       for (const input of [{}, '', [], NaN]) {
-        node.class = input
-        assert.isNull(node.class)
+        assert.throws(() => { node.class = input })
       }
     })
   })
