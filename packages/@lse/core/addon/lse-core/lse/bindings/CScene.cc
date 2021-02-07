@@ -33,10 +33,15 @@ static void* CreateScene(napi_env env, napi_callback_info info) noexcept {
 
   NAPIX_EXPECT_NOT_NULL(env, stage, "stage arg must be a CStage instance", {});
 
-  auto contextPtr = napix::get_external_shared<GraphicsContext>(env, ci[1]);
-  NAPIX_EXPECT_NOT_NULL(env, contextPtr, "context arg must be an External", {});
+  GraphicsContext* context{};
 
-  return new Scene(stage, contextPtr);
+  if (Habitat::InstanceOf(env, ci[1], Habitat::Class::CGraphicsContext)) {
+    context = unwrap_as<GraphicsContext>(env, ci[1]);
+  }
+
+  NAPIX_EXPECT_NOT_NULL(env, context, "context arg must be a GraphicsContext instance", {});
+
+  return new Scene(stage, context);
 }
 
 static napi_value Constructor(napi_env env, napi_callback_info info) noexcept {
@@ -50,22 +55,22 @@ static napi_value Constructor(napi_env env, napi_callback_info info) noexcept {
 }
 
 static napi_value Attach(napi_env env, napi_callback_info info) noexcept {
-  NAPIX_TRY_STD(unwrap_this_as<Scene>(env, info)->Attach())
+  NAPIX_TRY_STD(env, unwrap_this_as<Scene>(env, info)->Attach(), {});
   return {};
 }
 
 static napi_value Detach(napi_env env, napi_callback_info info) noexcept {
-  NAPIX_TRY_STD(unwrap_this_as<Scene>(env, info)->Detach())
+  NAPIX_TRY_STD(env, unwrap_this_as<Scene>(env, info)->Detach(), {});
   return {};
 }
 
 static napi_value Render(napi_env env, napi_callback_info info) noexcept {
-  NAPIX_TRY_STD(unwrap_this_as<Scene>(env, info)->Frame())
+  NAPIX_TRY_STD(env, unwrap_this_as<Scene>(env, info)->Frame(), {});
   return {};
 }
 
 static napi_value Destroy(napi_env env, napi_callback_info info) noexcept {
-  NAPIX_TRY_STD(unwrap_this_as<Scene>(env, info)->Destroy())
+  NAPIX_TRY_STD(env, unwrap_this_as<Scene>(env, info)->Destroy(), {})
   return {};
 }
 

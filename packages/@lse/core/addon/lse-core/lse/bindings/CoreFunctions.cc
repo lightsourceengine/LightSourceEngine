@@ -7,6 +7,8 @@
 
 #include <lse/bindings/CoreFunctions.h>
 
+#include <napix.h>
+#include <lse/Habitat.h>
 #include <lse/StyleEnums.h>
 #include <lse/bindings/Convert.h>
 #include <lse/AudioPlugin.h>
@@ -15,9 +17,8 @@
 #include <lse/SDL2.h>
 #include <lse/SDL2_mixer.h>
 #include <lse/Config.h>
-#include <lse/bindings/JSGraphicsContext.h>
-#include <lse/RefGraphicsContext.h>
 #include <lse/bindings/SDLPlatformPluginExports.h>
+#include <lse/bindings/CoreClasses.h>
 
 namespace lse {
 namespace bindings {
@@ -38,12 +39,22 @@ Napi::Object GetStyleProperties(Napi::Env env) {
   return styleProperties;
 }
 
-Napi::Value LoadSDLPlugin(const Napi::CallbackInfo& info) {
+napi_value LoadSDLPlugin(napi_env env, napi_callback_info) noexcept {
   if (kEnablePluginPlatformSdl) {
-    return SDLPlatformPluginExports(info.Env());
-  } else {
-    throw Napi::Error::New(info.Env(), "SDL plugin is not available.");
+    return LoadSDLPlatformPlugin(env);
   }
+
+  napix::throw_error(env, "SDL plugin is not available.");
+  return {};
+}
+
+napi_value LoadRefPlugin(napi_env env, napi_callback_info) noexcept {
+  if (Habitat::HasClass(env, Habitat::Class::CGraphicsContext)) {
+    napix::throw_error(env, "");
+    return {};
+  }
+
+  return Habitat::SetClass(env, Habitat::Class::CGraphicsContext, CRefGraphicsContext::CreateClass(env));
 }
 
 Napi::Value LoadSDLAudioPlugin(const Napi::CallbackInfo& info) {
@@ -63,10 +74,6 @@ Napi::Value LoadSDLMixerPlugin(const Napi::CallbackInfo& info) {
   } else {
     throw Napi::Error::New(info.Env(), "SDL Audio plugin is not available.");
   }
-}
-
-Napi::Value CreateRefGraphicsContext(const Napi::CallbackInfo& info) {
-  return JSGraphicsContext::New<RefGraphicsContext>(info.Env(), info[0]);
 }
 
 } // namespace bindings

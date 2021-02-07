@@ -20,7 +20,7 @@ using Napi::SafeObjectWrap;
 
 namespace lse {
 
-Scene::Scene(Stage* stage, GraphicsContextRef& context) : stage(stage), graphicsContext(context) {
+Scene::Scene(Stage* stage, GraphicsContext* context) : stage(stage), graphicsContext(context) {
 }
 
 Scene::~Scene() {

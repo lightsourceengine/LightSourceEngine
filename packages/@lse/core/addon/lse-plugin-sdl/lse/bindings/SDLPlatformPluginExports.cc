@@ -6,16 +6,20 @@
 
 #include "SDLPlatformPluginExports.h"
 
-#include <lse/SDLPlatformPlugin.h>
-#include <ObjectBuilder.h>
-#include <lse/Config.h>
+#include <algorithm>
+#include <napix.h>
 #include <napi-ext.h>
-#include <lse/SDLGraphicsContext.h>
+#include <lse/Habitat.h>
 #include <lse/Log.h>
-#include <lse/bindings/JSGraphicsContext.h>
+#include <lse/SDLGraphicsContext.h>
+#include <lse/SDLPlatformPlugin.h>
+#include <lse/bindings/CSDLGraphicsContext.h>
 
 using Napi::Boolean;
 using Napi::Number;
+
+using napix::descriptor::instance_value;
+using napix::descriptor::instance_method;
 
 /*
  * Dev Notes
@@ -52,67 +56,58 @@ static Napi::FunctionReference sPluginCallbacks[PluginCallbackCount]{};
 static void ResetCallbacks() noexcept;
 
 static napi_value Attach(napi_env env, napi_callback_info info) noexcept {
-  try {
-    sPlugin->Attach();
-  } catch (const std::exception& e) {
-    Napi::Error::New(env, e.what()).ThrowAsJavaScriptException();
-  }
-  return nullptr;
+  NAPIX_TRY_STD(env, sPlugin->Attach(), {});
+  return {};
 }
 
 static napi_value Detach(napi_env env, napi_callback_info info) noexcept {
   ResetCallbacks();
-  sPlugin->Detach();
-  return nullptr;
+  NAPIX_TRY_STD(env, sPlugin->Detach(), {});
+  return {};
 }
 
 static napi_value IsAttached(napi_env env, napi_callback_info info) noexcept {
-  NAPI_TRY_C(return Napi::Boolean::New(env, sPlugin->IsAttached()))
+  return napix::to_value(env, sPlugin->IsAttached());
 }
 
 static napi_value Destroy(napi_env env, napi_callback_info info) noexcept {
   ResetCallbacks();
-  sPlugin->Destroy();
-  return nullptr;
+  NAPIX_TRY_STD(env, sPlugin->Destroy(), {});
+  return {};
 }
 
-static napi_value GetDisplaysThrows(napi_env env) {
-  Napi::ObjectBuilder builder(env);
-  auto result{ Napi::Array::New(env) };
-
+static napi_value GetDisplays(napi_env env, napi_callback_info info) noexcept {
   auto NewDisplayMode = [](napi_env env, const SDLDisplayMode& displayMode) {
-    return Napi::ObjectBuilder(env)
-        .WithValue("width", displayMode.width)
-        .WithValue("height", displayMode.height)
-        .Freeze()
-        .ToObject();
+    return napix::object_new(env, {
+        napix::descriptor::instance_value(env, "width", displayMode.width),
+        napix::descriptor::instance_value(env, "height", displayMode.height),
+    });
   };
 
+  auto displays{sPlugin->GetDisplays()};
+  auto result{napix::array_new(env, displays.size())};
+  uint32_t resultIndex{0};
+
   for (const auto& display : sPlugin->GetDisplays()) {
-    auto modes{ Napi::Array::New(env) };
+    auto modes = napix::array_from<const SDLDisplayMode&>(env, display.modes, NewDisplayMode);
 
-    for (const auto& mode : display.modes) {
-      modes.Set(modes.Length(), NewDisplayMode(env, mode));
-    }
+    auto displayMode = napix::object_new(env, {
+        napix::descriptor::instance_value(env, "id", display.id),
+        napix::descriptor::instance_value(env, "name", display.name.c_str()),
+        napix::descriptor::instance_value("defaultMode", NewDisplayMode(env, display.defaultMode)),
+        napix::descriptor::instance_value("modes", modes),
+    });
 
-    result.Set(result.Length(), builder
-        .WithValue("id", display.id)
-        .WithValue("name", display.name.c_str())
-        .WithValue("defaultMode", NewDisplayMode(env, display.defaultMode))
-        .WithValue("modes", modes)
-        .Freeze()
-        .ToObject());
+    napi_set_element(env, result, resultIndex++, displayMode);
   }
 
   return result;
 }
 
-static napi_value GetDisplays(napi_env env, napi_callback_info info) noexcept {
-  NAPI_TRY_C(return GetDisplaysThrows(env))
-}
-
 static napi_value GetVideoDriverNames(napi_env env, napi_callback_info info) noexcept {
-  NAPI_TRY_C(return Napi::ToArray<Napi::String>(env, sPlugin->GetVideoDriverNames()))
+  auto names{sPlugin->GetVideoDriverNames()};
+
+  return napix::array_from<const std::string&>(env, names, napix::to_value);
 }
 
 static void ResetCallbacks() noexcept {
@@ -123,30 +118,35 @@ static void ResetCallbacks() noexcept {
 
 static napi_value ResetCallbacks(napi_env env, napi_callback_info info) noexcept {
   ResetCallbacks();
-  return nullptr;
+  return {};
 }
 
 static napi_value CreateGraphicsContext(napi_env env, napi_callback_info info) noexcept {
-  try {
-    Napi::CallbackInfo ci{ env, info };
+  auto constructor{Habitat::GetClass(env, Habitat::Class::CGraphicsContext)};
 
-    return JSGraphicsContext::New<SDLGraphicsContext>(env, ci[0]);
-  } catch (const Napi::Error& e) {
-    e.ThrowAsJavaScriptException();
-    return {};
+  NAPIX_EXPECT_NOT_NULL(env, constructor, "No GraphicsContext class installed", {});
+
+  auto ci{napix::get_callback_info<1>(env, info)};
+  napi_value graphicsContext{};
+
+  auto status = napi_new_instance(env, constructor, ci.arg_count, &ci.args[0], &graphicsContext);
+
+  if (status == napi_ok) {
+    return graphicsContext;
   }
+
+  if (!napix::has_pending_exception(env)) {
+    napix::throw_error(env, "Could not create GraphicsContext instance");
+  }
+
+  return {};
 }
 
 static napi_value GetScanCodeState(napi_env env, napi_callback_info info) noexcept {
-  try {
-    Napi::CallbackInfo ci{ env, info };
-    bool result = ci[0].IsNumber() && sPlugin->GetScanCodeState(ci[0].As<Napi::Number>().Int32Value());
+  auto ci{ napix::get_callback_info<2>(env, info) };
+  auto state{ sPlugin->GetScanCodeState(napix::as_int32(env, ci[0], -1)) };
 
-    return Napi::Boolean::New(env, result);
-  } catch (const Napi::Error& e) {
-    e.ThrowAsJavaScriptException();
-    return {};
-  }
+  return napix::to_value_or_null(env, state);
 }
 
 static napi_value LoadGameControllerMappings(napi_env env, napi_callback_info info) noexcept {
@@ -180,139 +180,69 @@ static napi_value LoadGameControllerMappings(napi_env env, napi_callback_info in
 }
 
 static napi_value GetGameControllerMapping(napi_env env, napi_callback_info info) noexcept {
-  try {
-    Napi::CallbackInfo ci{ env, info };
-    auto mapping{ sPlugin->GetGameControllerMapping(Napi::CopyUtf8(ci[0])) };
+  auto ci{napix::get_callback_info<1>(env, info)};
+  auto mapping{ sPlugin->GetGameControllerMapping(napix::as_string_utf8(env, ci[0]).c_str()) };
 
-    return Napi::String::New(env, mapping);
-  } catch (const Napi::Error& e) {
-    e.ThrowAsJavaScriptException();
-    return {};
-  }
+  return napix::to_value_or_null(env, mapping);
 }
 
 static napi_value ProcessEvents(napi_env env, napi_callback_info info) noexcept {
-  NAPI_TRY_C(return Napi::Boolean::New(env, sPlugin->ProcessEvents()))
+  return napix::to_value_or_null(env, sPlugin->ProcessEvents());
 }
 
 static napi_value GetGamepadInstanceIds(napi_env env, napi_callback_info info) noexcept {
-  NAPI_TRY_C(return Napi::ToArray<Napi::Number>(env, sPlugin->GetGamepadInstanceIds()))
+  return napix::array_from<int32_t>(env, sPlugin->GetGamepadInstanceIds(), napix::to_value);
 }
 
 static napi_value IsKeyDown(napi_env env, napi_callback_info info) noexcept {
-  try {
-    Napi::CallbackInfo ci(env, info);
+  auto ci{ napix::get_callback_info<2>(env, info) };
+  auto state{ sPlugin->IsKeyDown(napix::as_int32(env, ci[0], -1), napix::as_int32(env, ci[1], -1)) };
 
-    bool result = ci[0].IsNumber()
-        && ci[1].IsNumber()
-        && sPlugin->IsKeyDown(ci[0].As<Number>(), ci[1].As<Number>());
-
-    return Napi::Boolean::New(env, result);
-  } catch (const Napi::Error& e) {
-    e.ThrowAsJavaScriptException();
-    return {};
-  }
+  return napix::to_value_or_null(env, state);
 }
 
 static napi_value GetAnalogValue(napi_env env, napi_callback_info info) noexcept {
-  try {
-    Napi::CallbackInfo ci(env, info);
+  auto ci{ napix::get_callback_info<2>(env, info) };
+  auto state{ sPlugin->GetAnalogValue(napix::as_int32(env, ci[0], -1), napix::as_int32(env, ci[1], -1)) };
 
-    if (ci[0].IsNumber() && ci[1].IsNumber()) {
-      return Napi::NewNumber(env, sPlugin->GetAnalogValue(ci[0].As<Number>(), ci[1].As<Number>()));
-    }
-
-    return Napi::NewNumber(env, 0.f);
-  } catch (const Napi::Error& e) {
-    e.ThrowAsJavaScriptException();
-    return {};
-  }
+  return napix::to_value_or_null(env, state);
 }
 
 static napi_value GetButtonState(napi_env env, napi_callback_info info) noexcept {
-  try {
-    Napi::CallbackInfo ci(env, info);
+  auto ci{ napix::get_callback_info<2>(env, info) };
+  auto state{ sPlugin->GetButtonState(napix::as_int32(env, ci[0], -1), napix::as_int32(env, ci[1], -1)) };
 
-    bool result = ci[0].IsNumber()
-        && ci[1].IsNumber()
-        && sPlugin->GetButtonState(ci[0].As<Number>(), ci[1].As<Number>());
-
-    return Napi::Boolean::New(env, result);
-  } catch (const Napi::Error& e) {
-    e.ThrowAsJavaScriptException();
-    return {};
-  }
+  return napix::to_value_or_null(env, state);
 }
 
 static napi_value GetAxisState(napi_env env, napi_callback_info info) noexcept {
-  try {
-    Napi::CallbackInfo ci(env, info);
+  auto ci{ napix::get_callback_info<2>(env, info) };
+  auto state{ sPlugin->GetAxisState(napix::as_int32(env, ci[0], -1), napix::as_int32(env, ci[1], -1)) };
 
-    if (ci[0].IsNumber() && ci[1].IsNumber()) {
-      return Napi::NewNumber(env, sPlugin->GetAxisState(ci[0].As<Number>(), ci[1].As<Number>()));
-    }
-
-    return Napi::NewNumber(env, 0.f);
-  } catch (const Napi::Error& e) {
-    e.ThrowAsJavaScriptException();
-    return {};
-  }
+  return napix::to_value_or_null(env, state);
 }
 
 static napi_value GetHatState(napi_env env, napi_callback_info info) noexcept {
-  try {
-    Napi::CallbackInfo ci(env, info);
+  auto ci{ napix::get_callback_info<2>(env, info) };
+  auto state{ sPlugin->GetHatState(napix::as_int32(env, ci[0], -1), napix::as_int32(env, ci[1], -1)) };
 
-    if (ci[0].IsNumber() && ci[1].IsNumber()) {
-      return Napi::NewNumber(env, sPlugin->GetHatState(ci[0].As<Number>(), ci[1].As<Number>()));
-    }
-
-    return Napi::NewNumber(env, 0);
-  } catch (const Napi::Error& e) {
-    e.ThrowAsJavaScriptException();
-    return {};
-  }
+  return napix::to_value_or_null(env, state);
 }
 
 static napi_value GetGamepadInfo(napi_env env, napi_callback_info info) noexcept {
-  try {
-    Napi::CallbackInfo ci(env, info);
-    int32_t instanceId;
+  auto ci{ napix::get_callback_info<1>(env, info) };
+  auto instanceId{ napix::as_int32(env, ci[0], -1) };
+  auto gamepadInfo{ sPlugin->GetGamepadInfo(instanceId) };
 
-    if (ci[0].IsNumber()) {
-      instanceId = ci[0].As<Number>();
-    } else {
-      instanceId = -1;
-    }
-
-    auto gamepadInfo{ sPlugin->GetGamepadInfo(instanceId) };
-
-    return Napi::ObjectBuilder(env)
-      .WithValue("id", gamepadInfo.instanceId)
-      .WithValue("type", "gamepad")
-      .WithValue("name", gamepadInfo.name)
-      .WithValue("buttonCount", gamepadInfo.buttonCount)
-      .WithValue("hatCount", gamepadInfo.hatCount)
-      .WithValue("axisCount", gamepadInfo.axisCount)
-      .WithValue("uuid", gamepadInfo.uuid)
-      .Freeze()
-      .ToObject();
-  } catch (const Napi::Error& e) {
-    e.ThrowAsJavaScriptException();
-    return {};
-  }
-}
-
-static napi_value MakeArg(const Napi::Env& env, int32_t value) {
-  return Napi::NewNumber(env, value);
-}
-
-static napi_value MakeArg(const Napi::Env& env, bool value) {
-  return Napi::Boolean::New(env, value);
-}
-
-static napi_value MakeArg(const Napi::Env& env, float value) {
-  return Napi::NewNumber(env, value);
+  return napix::object_new(env, {
+    napix::descriptor::instance_value(env, "id", gamepadInfo.instanceId),
+    napix::descriptor::instance_value(env, "type", "gamepad"),
+    napix::descriptor::instance_value(env, "name", gamepadInfo.name),
+    napix::descriptor::instance_value(env, "buttonCount", gamepadInfo.buttonCount),
+    napix::descriptor::instance_value(env, "hatCount", gamepadInfo.hatCount),
+    napix::descriptor::instance_value(env, "axisCount", gamepadInfo.axisCount),
+    napix::descriptor::instance_value(env, "uuid", gamepadInfo.uuid),
+  });
 }
 
 template<typename T, typename ... Args>
@@ -322,7 +252,7 @@ static void InvokeCallback(const char* name, T callbackType, Args ... args) noex
   if (!callback.IsEmpty()) {
     try {
       Napi::SafeHandleScope scope(callback.Env());
-      callback({ MakeArg(callback.Env(), args)... });
+      callback({ napix::to_value_or_null(callback.Env(), args)... });
     } catch (const std::exception& e) {
       auto LAMBDA_FUNCTION = name;
       LOG_ERROR_LAMBDA("Unhanded JS exception: %s", e.what());
@@ -376,12 +306,87 @@ static bool BindOnQuit() noexcept {
   return true;
 };
 
-static void Init(const Napi::Env& env) {
-  if (sPlugin) {
-    throw Napi::Error::New(env, "SDL platform plugin has already been loaded.");
+static napi_value CreatePluginInstance(napi_env env) {
+#define InstanceAccessor(PROP, EVENT)                                       \
+  napix::descriptor::instance_accessor(                                     \
+    PROP,                                                                   \
+    [](napi_env, napi_callback_info) -> napi_value {                        \
+      return sPluginCallbacks[EVENT].Value();                               \
+    },                                                                      \
+    [](napi_env env, napi_callback_info info) -> napi_value {               \
+      Napi::CallbackInfo ci{ env, info };                                   \
+      Napi::AssignFunctionReference(sPluginCallbacks[EVENT], ci[0]);        \
+      return nullptr;                                                       \
+    })
+
+  auto pluginInstance = napix::object_new(env, {
+      // Plugin API
+      instance_value(env, "type", "platform"),
+      instance_method("attach", &Attach),
+      instance_method("detach", &Detach),
+      instance_method("destroy", &Destroy),
+      instance_method("isAttached", &IsAttached),
+      // System / Capabilities API
+      instance_method("getDisplays", &GetDisplays),
+      instance_method("getVideoDriverNames", &GetVideoDriverNames),
+      instance_method("loadGameControllerMappings", &LoadGameControllerMappings),
+      instance_method("getGameControllerMapping", &GetGameControllerMapping),
+      instance_method("getGamepadInstanceIds", &GetGamepadInstanceIds),
+      // Window API
+      instance_method("createGraphicsContext", &CreateGraphicsContext),
+      instance_method("processEvents", &ProcessEvents),
+      // Keyboard API
+      instance_method("getScanCodeState", &GetScanCodeState),
+      // Gamepad API
+      instance_method("isKeyDown", &IsKeyDown),
+      instance_method("getAnalogValue", &GetAnalogValue),
+      instance_method("getButtonState", &GetButtonState),
+      instance_method("getAxisState", &GetAxisState),
+      instance_method("getHatState", &GetHatState),
+      instance_method("getGamepadInfo", &GetGamepadInfo),
+      // Plugin Event Handlers
+      instance_method("resetCallbacks", &ResetCallbacks),
+      InstanceAccessor("onKeyboardScanCode", OnKeyboardScanCode),
+      InstanceAccessor("onGamepadStatus", OnGamepadStatus),
+      InstanceAccessor("onGamepadAxis", OnGamepadAxis),
+      InstanceAccessor("onGamepadAxisMapped", OnGamepadAxisMapped),
+      InstanceAccessor("onGamepadHat", OnGamepadHat),
+      InstanceAccessor("onGamepadButton", OnGamepadButton),
+      InstanceAccessor("onGamepadButtonMapped", OnGamepadButtonMapped),
+      InstanceAccessor("onQuit", OnQuit)
+  });
+
+  return pluginInstance;
+
+#undef InstanceAccessor
+}
+
+napi_value LoadSDLPlatformPlugin(napi_env env) noexcept {
+  auto hasGraphicsContext{Habitat::HasClass(env, Habitat::Class::CGraphicsContext)};
+
+  NAPIX_EXPECT_FALSE(env, hasGraphicsContext, "GraphicsContext class already installed.", {});
+  NAPIX_EXPECT_NULL(env, sPlugin, "SDL platform plugin has already been loaded.", {});
+
+  try {
+    SDL2::Open();
+  } catch (const std::exception& e) {
+    napix::throw_error(env, e.what());
+    return {};
   }
 
-  NAPI_TRY(env, SDL2::Open());
+  auto jsPluginInstance = CreatePluginInstance(env);
+
+  if (napix::has_pending_exception(env)) {
+    return {};
+  }
+
+  NAPIX_EXPECT_NOT_NULL(env, jsPluginInstance, "Failed to create SDL platform plugin instance", {});
+
+  Habitat::SetClass(env, Habitat::Class::CGraphicsContext, CSDLGraphicsContext::CreateClass(env));
+
+  if (napix::has_pending_exception(env)) {
+    return {};
+  }
 
   sPlugin = new SDLPlatformPlugin();
 
@@ -395,62 +400,8 @@ static void Init(const Napi::Env& env) {
   sPlugin->onQuit = &BindOnQuit;
 
   napi_add_env_cleanup_hook(env, [](void*) { ResetCallbacks(); }, nullptr);
-}
 
-Napi::Object SDLPlatformPluginExports(const Napi::Env& env) {
-  Init(env);
-
-#define WithPluginEventProperty(PROP, EVENT)                                \
-  WithProperty(                                                             \
-    PROP,                                                                   \
-    [](napi_env, napi_callback_info) -> napi_value {                        \
-      return sPluginCallbacks[EVENT].Value();                               \
-    },                                                                      \
-    [](napi_env env, napi_callback_info info) -> napi_value {               \
-      Napi::CallbackInfo ci{ env, info };                                   \
-      Napi::AssignFunctionReference(sPluginCallbacks[EVENT], ci[0]);        \
-      return nullptr;                                                       \
-    })
-
-  return Napi::ObjectBuilder(env)
-      // Plugin API
-      .WithValue("type", "platform")
-      .WithMethod("attach", &Attach)
-      .WithMethod("detach", &Detach)
-      .WithMethod("destroy", &Destroy)
-      .WithMethod("isAttached", &IsAttached)
-      // System / Capabilities API
-      .WithMethod("getDisplays", &GetDisplays)
-      .WithMethod("getVideoDriverNames", &GetVideoDriverNames)
-      .WithMethod("loadGameControllerMappings", &LoadGameControllerMappings)
-      .WithMethod("getGameControllerMapping", &GetGameControllerMapping)
-      .WithMethod("getGamepadInstanceIds", &GetGamepadInstanceIds)
-      // Window API
-      .WithMethod("createGraphicsContext", &CreateGraphicsContext)
-      .WithMethod("processEvents", &ProcessEvents)
-      // Keyboard API
-      .WithMethod("getScanCodeState", &GetScanCodeState)
-      // Gamepad API
-      .WithMethod("isKeyDown", &IsKeyDown)
-      .WithMethod("getAnalogValue", &GetAnalogValue)
-      .WithMethod("getButtonState", &GetButtonState)
-      .WithMethod("getAxisState", &GetAxisState)
-      .WithMethod("getHatState", &GetHatState)
-      .WithMethod("getGamepadInfo", &GetGamepadInfo)
-      // Plugin Event Handlers
-      .WithPluginEventProperty("onKeyboardScanCode", OnKeyboardScanCode)
-      .WithPluginEventProperty("onGamepadStatus", OnGamepadStatus)
-      .WithPluginEventProperty("onGamepadAxis", OnGamepadAxis)
-      .WithPluginEventProperty("onGamepadAxisMapped", OnGamepadAxisMapped)
-      .WithPluginEventProperty("onGamepadHat", OnGamepadHat)
-      .WithPluginEventProperty("onGamepadButton", OnGamepadButton)
-      .WithPluginEventProperty("onGamepadButtonMapped", OnGamepadButtonMapped)
-      .WithPluginEventProperty("onQuit", OnQuit)
-      .WithMethod("resetCallbacks", &ResetCallbacks)
-
-      .ToObject();
-
-#undef WithPluginEventProperty
+  return jsPluginInstance;
 }
 
 } // namespace bindings

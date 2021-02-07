@@ -25,6 +25,7 @@ class Habitat {
       CStage,
       CFontManager,
       CScene,
+      CGraphicsContext,
       Count
     };
   };
@@ -54,7 +55,7 @@ class Habitat {
    * @param classId class to install
    * @param constructor class constructor
    */
-  static napi_value LoadClass(napi_env env, Class::Enum classId, napi_value constructor) noexcept;
+  static napi_value SetClass(napi_env env, Class::Enum classId, napi_value constructor) noexcept;
 
   /**
    * Get a class for the given class id.
@@ -66,6 +67,15 @@ class Habitat {
    * @return class constructor or nullptr on failure
    */
   static napi_value GetClass(napi_env env, Class::Enum classId) noexcept;
+
+  /**
+   * Check if a class id has been installed.
+   *
+   * @param env node environment
+   * @param classId class to test
+   * @return boolean
+   */
+  static bool HasClass(napi_env env, Class::Enum classId) noexcept;
 
   /**
    * Checks if an object is an instance of a class.
@@ -80,22 +90,33 @@ class Habitat {
   static bool InstanceOf(napi_env env, napi_value obj, Class::Enum classId) noexcept;
 
   /**
+   * Stores app data in the environment by a string key.
    *
-   * @param env
-   * @param key
-   * @param data
-   * @param finalizer
+   * @param env node environment
+   * @param key app data name
+   * @param data data to store
+   * @param finalizer function to clean up the data when the environment shuts down
+   * @return true if the store was successful; false otherwise
    */
   static bool SetAppData(napi_env env, const char* key, void* data, AppDataFinalizer finalizer) noexcept;
 
   /**
+   * Retrieve app data by a string key.
    *
-   * @param env
-   * @param key
-   * @return
+   * @param env node environment
+   * @param key app data name
+   * @return the app data; null is returned on error
    */
   static void* GetAppData(napi_env env, const char* key) noexcept;
 
+  /**
+   * Retrieve app data by a string key, and casts the data to a specific type.
+   *
+   * @param T the type to cast the data to
+   * @param env node environment
+   * @param key app data name
+   * @return the app data; null is returned on error
+   */
   template<typename T>
   static T* GetAppDataAs(napi_env env, const char* key) noexcept {
     return static_cast<T*>(GetAppData(env, key));

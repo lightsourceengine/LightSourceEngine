@@ -79,6 +79,7 @@
         "lse/bindings/CoreEnums.cc",
         "lse/bindings/CoreExports.cc",
         "lse/bindings/CoreFunctions.cc",
+        "lse/bindings/CRefGraphicsContext.cc",
         "lse/bindings/CScene.cc",
         "lse/bindings/CStage.cc",
         "lse/bindings/Init.cc",

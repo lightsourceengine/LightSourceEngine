@@ -273,7 +273,7 @@ int32_t SDLPlatformPlugin::GetHatState(int32_t instanceId, int32_t hat) noexcept
 
 GamepadInfo SDLPlatformPlugin::GetGamepadInfo(int32_t instanceId) {
   if (!this->gamepads.contains(instanceId)) {
-    return {};
+    return { -1 };
   }
 
   const auto& gamepad{ this->gamepads[instanceId] };

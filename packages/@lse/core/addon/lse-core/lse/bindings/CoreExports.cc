@@ -23,6 +23,7 @@ using NapiFunction = Napi::Value (*)(const Napi::CallbackInfo&);
 
 static napi_value Function(napi_env env, const char* name, NapiFunction func) noexcept;
 static void Export(napi_env env, napi_value exports, const char* name, napi_value value) noexcept;
+static void Export(napi_env env, napi_value exports, const char* name, napi_callback func) noexcept;
 static void Export(napi_env env, napi_value exports, napi_value value) noexcept;
 static void Export(napi_env env, napi_value exports, Habitat::Class::Enum classId) noexcept;
 static void LoadHabitatClasses(napi_env env) noexcept;
@@ -45,10 +46,10 @@ napi_value CoreExports(napi_env env, napi_value exports) noexcept {
 #endif
 
   // Functions
-  Export(env, exports, Function(env, "loadSDLPlugin", &LoadSDLPlugin));
+  Export(env, exports, "loadSDLPlugin", &LoadSDLPlugin);
+  Export(env, exports, "loadRefPlugin", &LoadRefPlugin);
   Export(env, exports, Function(env, "loadSDLAudioPlugin", &LoadSDLAudioPlugin));
   Export(env, exports, Function(env, "loadSDLMixerPlugin", &LoadSDLMixerPlugin));
-  Export(env, exports, Function(env, "createRefGraphicsContext", &CreateRefGraphicsContext));
   Export(env, exports, Function(env, "parseColor", &ParseColor));
   Export(env, exports, Function(env, "getSceneNodeInstanceCount", &SceneNode::GetInstanceCount));
 
@@ -83,6 +84,14 @@ static void Export(napi_env env, napi_value exports, const char* name, napi_valu
   napi_set_named_property(env, exports, name, value);
 }
 
+static void Export(napi_env env, napi_value exports, const char* name, napi_callback func) noexcept {
+  napi_value value{};
+
+  napi_create_function(env, name, NAPI_AUTO_LENGTH, func, nullptr, &value);
+
+  Export(env, exports, name, value);
+}
+
 static void Export(napi_env env, napi_value exports, napi_value value) noexcept {
   napi_value name{};
 
@@ -98,9 +107,9 @@ static void Export(napi_env env, napi_value exports, Habitat::Class::Enum classI
 }
 
 static void LoadHabitatClasses(napi_env env) noexcept {
-  Habitat::LoadClass(env, Habitat::Class::CStage, CStage::CreateClass(env));
-  Habitat::LoadClass(env, Habitat::Class::CScene, CScene::CreateClass(env));
-  Habitat::LoadClass(env, Habitat::Class::CFontManager, CFontManager::CreateClass(env));
+  Habitat::SetClass(env, Habitat::Class::CStage, CStage::CreateClass(env));
+  Habitat::SetClass(env, Habitat::Class::CScene, CScene::CreateClass(env));
+  Habitat::SetClass(env, Habitat::Class::CFontManager, CFontManager::CreateClass(env));
 }
 
 } // namespace bindings

@@ -126,6 +126,10 @@ napi_value to_value(napi_env env, const char* value) noexcept {
   return v;
 }
 
+napi_value to_value(napi_env env, const std::string& value) noexcept {
+  return to_value(env, value.c_str());
+}
+
 buffer_info as_buffer(napi_env env, napi_value value) noexcept {
   buffer_info bi;
 
@@ -140,6 +144,16 @@ int32_t as_int32(napi_env env, napi_value value, int32_t defaultValue) noexcept 
   int32_t v;
 
   if (napi_get_value_int32(env, value, &v) != napi_ok) {
+    return defaultValue;
+  }
+
+  return v;
+}
+
+bool as_bool(napi_env env, napi_value value, bool defaultValue) noexcept {
+  bool v;
+
+  if (napi_get_value_bool(env, value, &v) != napi_ok) {
     return defaultValue;
   }
 
@@ -209,6 +223,35 @@ napi_value object_new(napi_env env, const std::initializer_list<napi_property_de
   }
 
   return obj;
+}
+
+int32_t object_get_or(napi_env env, napi_value value, const char* prop, int32_t defaultValue) noexcept {
+  napi_value v{};
+
+  napi_get_named_property(env, value, prop, &v);
+
+  return as_int32(env, v, defaultValue);
+}
+
+bool object_get_or(napi_env env, napi_value value, const char* prop, bool defaultValue) noexcept {
+  napi_value v{};
+
+  napi_get_named_property(env, value, prop, &v);
+
+  return as_bool(env, v, defaultValue);
+}
+
+napi_value array_new(napi_env env, size_t length) noexcept {
+  napi_value array{};
+  napi_status status;
+
+  if (length == 0) {
+    status = napi_create_array(env, &array);
+  } else {
+    status = napi_create_array_with_length(env, length, &array);
+  }
+
+  return status == napi_ok ? array : nullptr;
 }
 
 namespace js_class {
@@ -303,6 +346,23 @@ napi_property_descriptor instance_method(const name& name, napi_callback method)
   };
 }
 
+napi_property_descriptor instance_accessor(
+    const name& name,
+    napi_callback getter,
+    napi_callback setter,
+    napi_property_attributes attr) noexcept {
+  return {
+      name.utf8,
+      name.value,
+      nullptr,
+      getter,
+      setter,
+      nullptr,
+      attr,
+      nullptr
+  };
+}
+
 napi_property_descriptor instance_value(
     napi_env env, const name& name, int32_t value, napi_property_attributes attr) noexcept {
   return {
@@ -326,6 +386,20 @@ napi_property_descriptor instance_value(
       nullptr,
       nullptr,
       to_value(env, value),
+      attr,
+      nullptr
+  };
+}
+
+napi_property_descriptor instance_value(
+    const name& name, napi_value value, napi_property_attributes attr) noexcept {
+  return {
+      name.utf8,
+      name.value,
+      nullptr,
+      nullptr,
+      nullptr,
+      value,
       attr,
       nullptr
   };

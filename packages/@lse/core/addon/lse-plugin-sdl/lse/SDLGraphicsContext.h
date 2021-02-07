@@ -16,7 +16,7 @@ namespace lse {
  */
 class SDLGraphicsContext final : public GraphicsContext {
  public:
-  SDLGraphicsContext();
+  SDLGraphicsContext(const GraphicsContextConfig& config);
 
   void Attach() override;
   void Detach() override;

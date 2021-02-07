@@ -8,6 +8,7 @@
 #pragma once
 
 #include <lse/Renderer.h>
+#include <lse/Reference.h>
 #include <string>
 
 namespace lse {
@@ -26,7 +27,7 @@ struct GraphicsContextConfig {
  * renderer (OpenGL, DirectX, etc drawing). The Scene will use this interface to render the
  * scene graph and allow an app to change properties, like display resolution, etc.
  */
-class GraphicsContext {
+class GraphicsContext : public Reference {
  public:
   virtual ~GraphicsContext() noexcept = default;
 

@@ -9,12 +9,10 @@
       "include_dirs": [
         ".",
         "../lse-lib-util",
-        "../lse-lib-napi-ext",
         "../lse-lib-logger",
         "../deps/cpp17_headers/include"
       ],
       "dependencies": [
-        "lse-lib-napi-ext",
         "lse-lib-logger",
         "lse-lib-util"
       ],
@@ -22,8 +20,7 @@
         "lse/GraphicsContext.cc",
         "lse/PixelConversion.cc",
         "lse/Texture.cc",
-        "lse/Rect.cc",
-        "lse/bindings/JSGraphicsContext.cc"
+        "lse/Rect.cc"
       ]
     }
   ],

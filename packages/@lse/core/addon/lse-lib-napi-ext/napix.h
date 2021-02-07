@@ -12,12 +12,12 @@
 #include <array>
 #include <cstdio>
 
-#define NAPIX_TRY_STD(EXPR) \
+#define NAPIX_TRY_STD(ENV, EXPR, RET) \
   try { \
     (EXPR); \
   } catch (const std::exception& e) { \
-    napix::throw_error(env, e.what()); \
-    return {};\
+    napix::throw_error(ENV, e.what()); \
+    return RET;\
   }
 // if expr == true, throw Error
 #define NAPIX_EXPECT_TRUE(ENV, EXPR, MESSAGE, RET) \
@@ -150,10 +150,12 @@ napi_value to_value(napi_env env, int32_t value) noexcept;
 napi_value to_value(napi_env env, bool value) noexcept;
 napi_value to_value(napi_env env, float value) noexcept;
 napi_value to_value(napi_env env, const char* value) noexcept;
+napi_value to_value(napi_env env, const std::string& value) noexcept;
 
 napix::buffer_info as_buffer(napi_env env, napi_value value) noexcept;
 
 int32_t as_int32(napi_env env, napi_value value, int32_t defaultValue) noexcept;
+bool as_bool(napi_env env, napi_value value, bool defaultValue) noexcept;
 
 /**
  * Convert a js string to a native utf8 string.
@@ -200,6 +202,15 @@ std::shared_ptr<T> get_external_shared(napi_env env, napi_value external) noexce
 
 napi_value object_new(napi_env env, const std::initializer_list<napi_property_descriptor>& props) noexcept;
 
+int32_t object_get_or(napi_env env, napi_value value, const char* prop, int32_t defaultValue) noexcept;
+
+bool object_get_or(napi_env env, napi_value value, const char* prop, bool defaultValue) noexcept;
+
+napi_value array_new(napi_env env, size_t length = 0) noexcept;
+
+template<class T, class Iterable>
+napi_value array_from(napi_env env, Iterable iterable, napi_value(*toValue)(napi_env, T));
+
 namespace js_class {
 
 typedef void* (*create_native_callback)(napi_env env, napi_callback_info info);
@@ -220,17 +231,20 @@ napi_value constructor_helper(
 
 namespace descriptor {
 
+
+napi_property_descriptor instance_accessor(
+    const name& name,
+    napi_callback getter,
+    napi_callback setter,
+    napi_property_attributes attr = napi_writable) noexcept;
+
 napi_property_descriptor instance_method(const name& name, napi_callback method) noexcept;
 napi_property_descriptor instance_value(
-    napi_env env,
-    const name& name,
-    int32_t value,
-    napi_property_attributes attr = napi_default) noexcept;
+    napi_env env, const name& name, int32_t value, napi_property_attributes attr = napi_default) noexcept;
 napi_property_descriptor instance_value(
-    napi_env env,
-    const name& name,
-    const char* value,
-    napi_property_attributes attr = napi_default) noexcept;
+    napi_env env, const name& name, const char* value, napi_property_attributes attr = napi_default) noexcept;
+napi_property_descriptor instance_value(
+    const name& name, napi_value value, napi_property_attributes attr = napi_default) noexcept;
 
 } // namespace descriptor
 

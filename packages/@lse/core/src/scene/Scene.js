@@ -38,7 +38,7 @@ export class Scene extends EventTarget {
 
     this._stage = stage
     this._context = stage.system.$createGraphicsContext(config)
-    this._native = new CScene(stage.$native, this._context.$native)
+    this._native = new CScene(stage.$native, this._context)
     this._root = new RootSceneNode(this)
     const { style } = this._root
 

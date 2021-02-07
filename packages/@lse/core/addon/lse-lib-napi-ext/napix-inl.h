@@ -69,4 +69,20 @@ callback_info<N> get_callback_info(napi_env env, napi_callback_info info) noexce
   return callback_info;
 }
 
+template<class T, class Iterable>
+napi_value array_from(napi_env env, Iterable iterable, napi_value(*toValue)(napi_env, T)) {
+  napi_value target{array_new(env, iterable.size())};
+  uint32_t index{0};
+
+  if (!target) {
+    return {};
+  }
+
+  for (auto& i : iterable) {
+    napi_set_element(env, target, index++, toValue(env, i));
+  }
+
+  return target;
+}
+
 } // namespace napix

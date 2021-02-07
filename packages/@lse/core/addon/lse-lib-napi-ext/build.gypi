@@ -7,7 +7,6 @@
         "../common.gypi",
       ],
       "sources": [
-        "ObjectBuilder.cc",
         "SafeObjectWrap.cc",
         "napi-ext.cc",
         "napix.cc",
@@ -28,7 +27,6 @@
           ],
           "sources": [
             "test/NapiExtSpec.cc",
-            "test/ObjectBuilderSpec.cc",
             "test/SafeObjectWrapSpec.cc",
             "test/NapiExtTestSuite.cc",
           ],

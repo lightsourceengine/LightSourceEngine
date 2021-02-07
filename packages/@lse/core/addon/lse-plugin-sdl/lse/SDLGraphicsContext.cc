@@ -11,8 +11,9 @@
 
 namespace lse {
 
-SDLGraphicsContext::SDLGraphicsContext() : GraphicsContext() {
+SDLGraphicsContext::SDLGraphicsContext(const GraphicsContextConfig& config) : GraphicsContext() {
   this->renderer = std::make_shared<SDLRenderer>();
+  this->SetConfig(config);
 }
 
 void SDLGraphicsContext::Attach() {

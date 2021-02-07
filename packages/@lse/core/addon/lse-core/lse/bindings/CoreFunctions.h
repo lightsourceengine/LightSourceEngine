@@ -15,11 +15,10 @@ namespace bindings {
 Napi::Value ParseColor(const Napi::CallbackInfo& info);
 Napi::Object GetStyleProperties(Napi::Env env);
 
-Napi::Value LoadSDLPlugin(const Napi::CallbackInfo& info);
+napi_value LoadSDLPlugin(napi_env env, napi_callback_info) noexcept;
+napi_value LoadRefPlugin(napi_env env, napi_callback_info) noexcept;
 Napi::Value LoadSDLAudioPlugin(const Napi::CallbackInfo& info);
 Napi::Value LoadSDLMixerPlugin(const Napi::CallbackInfo& info);
-
-Napi::Value CreateRefGraphicsContext(const Napi::CallbackInfo& info);
 
 } // namespace bindings
 } // namespace lse

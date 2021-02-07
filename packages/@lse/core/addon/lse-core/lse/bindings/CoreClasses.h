@@ -38,5 +38,13 @@ class CScene {
   static napi_value CreateClass(napi_env env);
 };
 
+class CRefGraphicsContext {
+ public:
+  static constexpr auto NAME = "CRefGraphicsContext";
+  static constexpr auto CLASS_ID = Habitat::Class::CGraphicsContext;
+
+  static napi_value CreateClass(napi_env env);
+};
+
 } // namespace bindings
 } // namespace lse

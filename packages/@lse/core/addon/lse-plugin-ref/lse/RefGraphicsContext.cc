@@ -11,8 +11,9 @@
 
 namespace lse {
 
-RefGraphicsContext::RefGraphicsContext() : GraphicsContext() {
+RefGraphicsContext::RefGraphicsContext(const GraphicsContextConfig& config) : GraphicsContext() {
   this->renderer = std::make_shared<RefRenderer>();
+  this->SetConfig(config);
 }
 void RefGraphicsContext::Attach() {
   this->width = this->config.width;

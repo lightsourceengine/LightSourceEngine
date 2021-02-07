@@ -79,7 +79,7 @@ bool Habitat::Init(napi_env env) noexcept {
   return false;
 }
 
-napi_value Habitat::LoadClass(napi_env env, Class::Enum classId, napi_value constructor) noexcept {
+napi_value Habitat::SetClass(napi_env env, Class::Enum classId, napi_value constructor) noexcept {
   if (HasPendingException(env)) {
     return {};
   }
@@ -134,6 +134,12 @@ napi_value Habitat::GetClass(napi_env env, Class::Enum classId) noexcept {
   return {};
 }
 
+bool Habitat::HasClass(napi_env env, Class::Enum classId) noexcept {
+  auto instanceData{ GetInstanceData(env) };
+
+  return (instanceData && instanceData->classRefs[classId]);
+}
+
 bool Habitat::InstanceOf(napi_env env, napi_value obj, Class::Enum classId) noexcept {
   auto constructor{ Habitat::GetClass(env, classId) };
   bool result{};
@@ -145,6 +151,7 @@ bool Habitat::SetAppData(napi_env env, const char* key, void* data, Habitat::App
   auto instanceData{ GetInstanceData(env) };
 
   if (instanceData) {
+    // TODO: if app data is set twice, the first store will not be finalized
     instanceData->appData.insert_or_assign(key, { data, finalizer });
     return true;
   }

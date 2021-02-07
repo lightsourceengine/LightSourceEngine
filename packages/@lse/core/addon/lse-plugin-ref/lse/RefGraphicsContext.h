@@ -17,7 +17,7 @@ namespace lse {
  */
 class RefGraphicsContext final : public GraphicsContext {
  public:
-  RefGraphicsContext();
+  RefGraphicsContext(const GraphicsContextConfig& config);
 
   void Attach() override;
   void Detach() override;

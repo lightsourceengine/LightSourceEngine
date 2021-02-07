@@ -11,7 +11,7 @@
 namespace lse {
 namespace bindings {
 
-Napi::Object SDLPlatformPluginExports(const Napi::Env& env);
+napi_value LoadSDLPlatformPlugin(napi_env env) noexcept;
 
 } // namespace bindings
 } // namespace lse

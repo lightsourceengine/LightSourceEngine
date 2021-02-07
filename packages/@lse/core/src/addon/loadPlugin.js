@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { createRefGraphicsContext, loadSDLPlugin, loadSDLAudioPlugin, loadSDLMixerPlugin } from './index.js'
+import { loadRefPlugin, loadSDLPlugin, loadSDLAudioPlugin, loadSDLMixerPlugin } from './index.js'
 import { PluginType } from './PluginType.js'
 import { PluginId } from './PluginId.js'
 
@@ -17,7 +17,7 @@ export const loadPlugin = (id, options) => {
     case PluginId.SDL_MIXER:
       return loadSDLMixerPlugin(options)
     case PluginId.REF:
-      return loadRefPlugin()
+      return loadRefPluginJs()
     case PluginId.REF_AUDIO:
       return loadRefAudioPlugin()
     default:
@@ -25,8 +25,10 @@ export const loadPlugin = (id, options) => {
   }
 }
 
-const loadRefPlugin = () => {
+const loadRefPluginJs = () => {
   let attached = true
+
+  const GraphicsContext = loadRefPlugin()
 
   return {
     id: PluginId.REF,
@@ -55,7 +57,7 @@ const loadRefPlugin = () => {
       return ['Test Video Driver']
     },
     createGraphicsContext (options) {
-      return createRefGraphicsContext(options)
+      return new GraphicsContext(options)
     },
     processEvents() {
       return true

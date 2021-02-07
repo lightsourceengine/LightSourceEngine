@@ -29,7 +29,7 @@ class SceneNode;
  */
 class Scene : public Reference {
  public:
-  Scene(Stage* stage, GraphicsContextRef& context);
+  Scene(Stage* stage, GraphicsContext* context);
   ~Scene() override;
 
   void Attach();
@@ -62,7 +62,7 @@ class Scene : public Reference {
 
  private:
   ReferenceHolder<Stage> stage{};
-  GraphicsContextRef graphicsContext{};
+  ReferenceHolder<GraphicsContext> graphicsContext{};
   SceneNode* root{};
   mutable StyleContext styleContext{ 0, 0, 0 };
   int32_t width{};

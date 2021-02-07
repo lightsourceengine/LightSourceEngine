@@ -63,6 +63,7 @@ export const {
   loadSDLPlugin,
   loadSDLAudioPlugin,
   loadSDLMixerPlugin,
+  loadRefPlugin,
   styleProperties,
   createRefGraphicsContext,
 } = addon
