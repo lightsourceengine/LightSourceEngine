@@ -20,6 +20,10 @@ class TestFontDriver : public FontDriver {
     return {};
   }
 
+  void* LoadFontSource(const char* file, int32_t index) override {
+    return {};
+  }
+
   void DestroyFontSource(FontSource* fontSource) override {
   }
 };

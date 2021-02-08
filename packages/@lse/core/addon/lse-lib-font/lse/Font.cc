@@ -8,6 +8,7 @@
 #include "Font.h"
 
 #include <lse/Log.h>
+#include <cassert>
 
 namespace lse {
 
@@ -33,13 +34,15 @@ void Font::RemoveListener(void* listener) noexcept {
   this->callbacks.erase(listener);
 }
 
-void Font::Update(FontStatus status, FontSource* fontSource) noexcept {
-  if (this->status == FontStatusReady || this->status == FontStatusError) {
-    LOG_ERROR("font terminal state has already been set");
-    return;
-  }
+void Font::SetLoading() noexcept {
+  assert(this->status == FontStatusInit);
+  this->status = FontStatusLoading;
+}
 
-  this->status = status;
+void Font::SetFontSource(FontSource* fontSource) noexcept {
+  assert(this->status == FontStatusInit || this->status == FontStatusLoading);
+
+  this->status = fontSource ? FontStatusReady : FontStatusError;
   this->fontSource = fontSource;
 
   for (const auto& p : this->callbacks) {

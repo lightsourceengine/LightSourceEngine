@@ -49,13 +49,12 @@ class FontManager : public Reference {
    */
   Font* FindFont(const std::string& family, int32_t style, int32_t weight) noexcept;
 
+  FontDriver* GetFontDriver() const noexcept { return this->fontDriver; }
+
   // Methods used mostly by javascript
 
   int32_t CreateFont(std::string&& family, int32_t style, int32_t weight);
   void SetDefaultFontFamily(std::string&& family);
-  void SetBuffer(int32_t id, void* buffer, size_t bufferSize, int32_t index);
-  void SetError(int32_t id);
-  FontStatus GetStatus(int32_t id);
   Font* GetFont(int32_t id) const noexcept;
   void Destroy();
 

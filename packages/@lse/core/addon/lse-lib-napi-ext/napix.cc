@@ -264,6 +264,11 @@ bool is_nullish(napi_env env, napi_value value) noexcept {
   return type == napi_undefined || type == napi_null;
 }
 
+bool is_function(napi_env env, napi_value value) noexcept {
+  napi_valuetype type{};
+  return (napi_typeof(env, value, &type) == napi_ok && type == napi_function);
+}
+
 namespace js_class {
 
 napi_value define(

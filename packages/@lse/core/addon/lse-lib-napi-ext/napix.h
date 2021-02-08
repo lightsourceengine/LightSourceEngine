@@ -212,6 +212,7 @@ template<class T, class Iterable>
 napi_value array_from(napi_env env, Iterable iterable, napi_value(*toValue)(napi_env, T));
 
 bool is_nullish(napi_env env, napi_value value) noexcept;
+bool is_function(napi_env env, napi_value value) noexcept;
 
 namespace js_class {
 

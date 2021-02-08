@@ -18,7 +18,6 @@ export class Font extends EventTarget {
   _family = ''
   _style = ''
   _weight = ''
-  $buffer = null
   $status = ''
 
   constructor (id, family, style, weight, status) {

@@ -84,10 +84,14 @@ class ReferenceHolder {
 };
 
 template<class T>
-inline ReferenceHolder<T>::ReferenceHolder(T* reference) { this->Acquire(reference); }
+inline ReferenceHolder<T>::ReferenceHolder(T* reference) {
+  this->Acquire(reference);
+}
 
 template<class T>
-inline ReferenceHolder<T>::~ReferenceHolder() { this->Release(); }
+inline ReferenceHolder<T>::~ReferenceHolder() {
+  this->Release();
+}
 
 template<class T>
 inline ReferenceHolder<T>& ReferenceHolder<T>::operator=(std::nullptr_t) noexcept {

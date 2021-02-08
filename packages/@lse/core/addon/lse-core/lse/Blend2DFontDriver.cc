@@ -11,6 +11,8 @@
 
 namespace lse {
 
+static FontSource* LoadBLFontFaceCore(BLFontDataCore* fontData, int32_t index) noexcept;
+
 FontSource* Blend2DFontDriver::LoadFontSource(void* data, size_t dataSize, int32_t index) {
   BLResult result;
   BLFontDataCore fontData{};
@@ -22,7 +24,41 @@ FontSource* Blend2DFontDriver::LoadFontSource(void* data, size_t dataSize, int32
     return {};
   }
 
-  result = blFontDataCreateFromData(&fontData, data, dataSize, nullptr, nullptr);
+  auto dataCopy{new uint8_t[dataSize]};
+
+  memccpy(dataCopy, static_cast<uint8_t*>(data), 1, dataSize);
+
+  result = blFontDataCreateFromData(
+      &fontData,
+      data,
+      dataSize,
+      [](void* impl, void* destroyData) {
+        delete [] static_cast<uint8_t*>(destroyData);
+      },
+      dataCopy);
+
+  if (result != BL_SUCCESS) {
+    LOG_ERROR("blFontDataCreateFromData: %#010x", result);
+    blFontDataDestroy(&fontData);
+    delete [] dataCopy;
+    return {};
+  }
+
+  return LoadBLFontFaceCore(&fontData, index);
+}
+
+FontSource* Blend2DFontDriver::LoadFontSource(const char* file, int32_t index) {
+  BLResult result;
+  BLFontDataCore fontData{};
+
+  result = blFontDataInit(&fontData);
+
+  if (result != BL_SUCCESS) {
+    LOG_ERROR("blFontDataInit: %#010x", result);
+    return {};
+  }
+
+  result = blFontDataCreateFromFile(&fontData, file, 0);
 
   if (result != BL_SUCCESS) {
     LOG_ERROR("blFontDataCreateFromData: %#010x", result);
@@ -30,26 +66,7 @@ FontSource* Blend2DFontDriver::LoadFontSource(void* data, size_t dataSize, int32
     return {};
   }
 
-  BLFontFaceCore fontFace{};
-
-  result = blFontFaceInit(&fontFace);
-
-  if (result != BL_SUCCESS) {
-    LOG_ERROR("blFontFaceInit: %#010x", result);
-    blFontDataDestroy(&fontData);
-    return {};
-  }
-
-
-  result = blFontFaceCreateFromData(&fontFace, &fontData, index);
-
-  if (result != BL_SUCCESS) {
-    LOG_ERROR("blFontFaceCreateFromData: %#010x", result);
-    blFontDataDestroy(&fontData);
-    return {};
-  }
-
-  return fontFace.impl;
+  return LoadBLFontFaceCore(&fontData, index);
 }
 
 void Blend2DFontDriver::DestroyFontSource(FontSource* fontSource) {
@@ -57,6 +74,28 @@ void Blend2DFontDriver::DestroyFontSource(FontSource* fontSource) {
     BLFontFaceCore fontFace{ static_cast<BLFontFaceImpl*>(fontSource) };
     blFontFaceDestroy(&fontFace);
   }
+}
+
+static FontSource* LoadBLFontFaceCore(BLFontDataCore* fontData, int32_t index) noexcept {
+  BLFontFaceCore fontFace{};
+
+  BLResult result = blFontFaceInit(&fontFace);
+
+  if (result != BL_SUCCESS) {
+    LOG_ERROR("blFontFaceInit: %#010x", result);
+    blFontDataDestroy(fontData);
+    return {};
+  }
+
+  result = blFontFaceCreateFromData(&fontFace, fontData, index);
+
+  if (result != BL_SUCCESS) {
+    LOG_ERROR("blFontFaceCreateFromData: %#010x", result);
+    blFontDataDestroy(fontData);
+    return {};
+  }
+
+  return fontFace.impl;
 }
 
 } // namespace lse

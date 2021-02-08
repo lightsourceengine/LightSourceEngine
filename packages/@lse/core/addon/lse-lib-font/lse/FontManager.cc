@@ -58,39 +58,6 @@ int32_t FontManager::CreateFont(std::string&& family, int32_t style, int32_t wei
   return id;
 }
 
-void FontManager::SetBuffer(int32_t id, void* buffer, size_t bufferSize, int32_t index) {
-  if (!this->fonts.contains(id)) {
-    return;
-  }
-
-  FontStatus status;
-  auto fontSource{ this->fontDriver->LoadFontSource(buffer, bufferSize, index) };
-
-  if (fontSource) {
-    status = FontStatusReady;
-  } else {
-    status = FontStatusError;
-  }
-
-  this->fonts[id]->Update(status, fontSource);
-}
-
-void FontManager::SetError(int32_t id) {
-  if (!this->fonts.contains(id)) {
-    return;
-  }
-
-  this->fonts[id]->Update(FontStatusError, nullptr);
-}
-
-FontStatus FontManager::GetStatus(int32_t id) {
-  if (this->fonts.contains(id)) {
-    return this->fonts[id]->GetFontStatus();
-  }
-
-  return FontStatusError;
-}
-
 Font* FontManager::GetFont(int32_t id) const noexcept {
   return this->fonts.contains(id) ? this->fonts[id].get() : nullptr;
 }

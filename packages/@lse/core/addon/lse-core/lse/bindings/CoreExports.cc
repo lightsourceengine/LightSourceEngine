@@ -47,6 +47,8 @@ napi_value CoreExports(napi_env env, napi_value exports) noexcept {
   // Functions
   Export(env, exports, "loadSDLPlugin", &LoadSDLPlugin);
   Export(env, exports, "loadRefPlugin", &LoadRefPlugin);
+  Export(env, exports, Function(env, "loadSDLAudioPlugin", &LoadSDLAudioPlugin));
+  Export(env, exports, Function(env, "loadSDLMixerPlugin", &LoadSDLMixerPlugin));
 
   Export(env, exports, "lockStyle", &LockStyle);
   Export(env, exports, "resetStyle", &ResetStyle);
@@ -54,8 +56,6 @@ napi_value CoreExports(napi_env env, napi_value exports) noexcept {
   Export(env, exports, "installStyleValue", &InstallStyleValue);
   Export(env, exports, "installStyleTransformSpec", &InstallStyleTransformSpec);
 
-  Export(env, exports, Function(env, "loadSDLAudioPlugin", &LoadSDLAudioPlugin));
-  Export(env, exports, Function(env, "loadSDLMixerPlugin", &LoadSDLMixerPlugin));
   Export(env, exports, Function(env, "parseColor", &ParseColor));
   Export(env, exports, Function(env, "getSceneNodeInstanceCount", &SceneNode::GetInstanceCount));
 

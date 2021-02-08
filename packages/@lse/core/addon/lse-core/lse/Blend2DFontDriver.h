@@ -16,6 +16,7 @@ namespace lse {
 class Blend2DFontDriver : public FontDriver {
  public:
   FontSource* LoadFontSource(void* data, size_t dataSize, int32_t index) override;
+  FontSource* LoadFontSource(const char* file, int32_t index) override;
   void DestroyFontSource(FontSource* fontSource) override;
 };
 

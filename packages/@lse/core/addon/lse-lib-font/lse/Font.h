@@ -61,7 +61,12 @@ class Font {
    * Re-entrant listener calls are not a concern, as Update is only invoked from javascript
    * and the native listeners don't call back into Font or FontManager.
    */
-  void Update(FontStatus status, FontSource* fontSource) noexcept;
+  void SetFontSource(FontSource* fontSource) noexcept;
+
+  /**
+   * Puts the font in the loading state. No listeners are notified.
+   */
+  void SetLoading() noexcept;
 
   const std::string& GetFamily() const noexcept { return this->family; }
   FontStyle GetStyle() const noexcept { return this->style; }
@@ -77,7 +82,7 @@ class Font {
   std::string family{};
   FontStyle style{};
   FontWeight weight{};
-  FontStatus status{FontStatusLoading};
+  FontStatus status{FontStatusInit};
   FontSource* fontSource{};
 };
 

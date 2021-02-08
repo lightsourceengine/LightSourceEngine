@@ -33,22 +33,22 @@ void FontSpec(TestSuite* parent) {
 
   spec->Describe("constructor")->tests = {
     {
-      "should create font in loading state",
+      "should create font in init state",
       [](const TestInfo& ti) {
         Assert::CStringEqual(sFont.GetFamily().c_str(), sTestFamily);
         Assert::Equal(sFont.GetStyle(), FontStyleNormal);
         Assert::Equal(sFont.GetWeight(), FontWeightNormal);
-        Assert::Equal(sFont.GetFontStatus(), FontStatusLoading);
+        Assert::Equal(sFont.GetFontStatus(), FontStatusInit);
         Assert::IsNull(sFont.GetFontSource());
       }
     }
   };
 
-  spec->Describe("Update()")->tests = {
+  spec->Describe("SetFontSource()")->tests = {
     {
         "should update status and source",
       [](const TestInfo& ti) {
-        sFont.Update(FontStatusReady, sTestFontSource);
+        sFont.SetFontSource(sTestFontSource);
 
         Assert::Equal(sFont.GetFontStatus(), FontStatusReady);
         Assert::Equal(sFont.GetFontSource(), sTestFontSource);
@@ -64,7 +64,7 @@ void FontSpec(TestSuite* parent) {
           sCalled = true;
         });
 
-        sFont.Update(FontStatusError, nullptr);
+        sFont.SetFontSource(nullptr);
 
         Assert::IsTrue(sCalled);
       }
@@ -76,7 +76,7 @@ void FontSpec(TestSuite* parent) {
           sCalled = true;
         });
 
-        sFont.Update(FontStatusReady, sTestFontSource);
+        sFont.SetFontSource(sTestFontSource);
 
         Assert::IsFalse(sCalled);
         Assert::Equal(sFont.GetFontStatus(), FontStatusReady);
@@ -88,7 +88,7 @@ void FontSpec(TestSuite* parent) {
       [](const TestInfo& ti) {
         sFont.AddListener(sTestListener, nullptr);
 
-        sFont.Update(FontStatusReady, sTestFontSource);
+        sFont.SetFontSource(sTestFontSource);
 
         Assert::Equal(sFont.GetFontStatus(), FontStatusReady);
         Assert::Equal(sFont.GetFontSource(), sTestFontSource);
@@ -102,7 +102,7 @@ void FontSpec(TestSuite* parent) {
         });
         sFont.RemoveListener(sTestListener);
 
-        sFont.Update(FontStatusReady, sTestFontSource);
+        sFont.SetFontSource(sTestFontSource);
 
         Assert::IsFalse(sCalled);
       }

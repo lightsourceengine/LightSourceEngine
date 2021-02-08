@@ -25,6 +25,7 @@ class FontDriver {
   virtual ~FontDriver() = default;
 
   virtual FontSource* LoadFontSource(void* data, size_t dataSize, int32_t index) = 0;
+  virtual FontSource* LoadFontSource(const char* file, int32_t index) = 0;
   virtual void DestroyFontSource(FontSource* fontSource) = 0;
 };
 

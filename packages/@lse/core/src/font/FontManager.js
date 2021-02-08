@@ -5,11 +5,8 @@
  */
 
 import { CFontManager, FontStatus, FontStyle, FontWeight, logger } from '../addon/index.js'
-import { promises } from 'fs'
 import { Font } from './Font.js'
 import { createErrorStatusEvent, createReadyStatusEvent } from '../event/index.js'
-
-const { readFile } = promises
 
 /**
  * Font Manager.
@@ -105,29 +102,19 @@ export class FontManager {
       this.defaultFontFamily = family
     }
 
+    let status
+
     if (typeof src === 'string') {
-      font.$status = statusToString(_native.getStatus(id))
+      const callback = (id, fontStatus) => {
+        processStatusChange(this, id, fontStatus, false)
+      }
 
-      logger.info(`'${family}':${style}:${weight} - ${src}`, 'font')
-
-      readFile(src)
-        .then((buffer) => {
-          setBufferAndDispatch(this, id, buffer, index, false)
-        })
-        .catch((e) => {
-          logger.error(`'${family}':${style}:${weight}: ${e.message}`, 'font')
-
-          const font = _fonts.get(id)
-
-          if (font) {
-            _native.setError(id)
-            font.$status = statusToString(FontStatus.ERROR)
-            font.dispatchEvent(createErrorStatusEvent(font, e.message))
-          }
-        })
+      status = _native.loadFontFromFile(id, src, index, callback)
     } else {
-      setBufferAndDispatch(this, id, src, index, true)
+      status = _native.loadFontFromBuffer(id, src, index)
     }
+
+    processStatusChange(this, id, status, true)
 
     return font
   }
@@ -184,41 +171,34 @@ const statusToString = (statusEnum) => {
   }
 }
 
-const setBufferAndDispatch = (self, id, buffer, index, defer) => {
-  const { _native, _fonts } = self
+const processStatusChange = (self, id, newStatus, defer) => {
+  const font = self._fonts.get(id)
 
-  if (!_native || !_fonts.has(id)) {
-    // it's possible the font manager could have been destroyed while fetching font file or the font
-    // was removed. if so, bail.
+  if (!font) {
     return
   }
 
-  const font = _fonts.get(id)
+  newStatus = newStatus ?? FontStatus.ERROR
+  font.$status = statusToString(newStatus)
+  logger.info(`'${font.family}':${font.style}:${font.weight} - ${font.status}`, 'font')
 
-  // setBuffer will move the font resource to a terminal state, either ready or error
-  _native.setBuffer(id, buffer)
-
-  const status = _native.getStatus(id)
-
-  font.$status = statusToString(status)
-
-  logger.info(`'${font.family}':${font.style}:${font.weight}: ${font.$status}`, 'font')
-
-  let event
-
-  if (status === FontStatus.READY) {
-    // Note:
-    // The native layer needs this buffer. I prefer to hold it here, rather than trying to manage
-    // references at the native layer.
-    font.$buffer = buffer
-    event = createReadyStatusEvent(font)
-  } else {
-    event = createErrorStatusEvent(font, `'${font.family}':${font.style}:${font.weight} - not a valid font src`)
-  }
-
-  if (defer) {
-    queueMicrotask(() => font.dispatchEvent(event))
-  } else {
-    font.dispatchEvent(event)
+  switch (newStatus) {
+    case FontStatus.READY:
+      if (defer) {
+        queueMicrotask(() => font.dispatchEvent(createReadyStatusEvent(font)))
+      } else {
+        font.dispatchEvent(createReadyStatusEvent(font))
+      }
+      break
+    case FontStatus.ERROR:
+      if (defer) {
+        queueMicrotask(() => font.dispatchEvent(createErrorStatusEvent(font, 'Failed to load font.')))
+      } else {
+        font.dispatchEvent(createErrorStatusEvent(font, 'Failed to load font.'))
+      }
+      break
+    default:
+      // wait for a terminal state font status
+      break
   }
 }
