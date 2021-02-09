@@ -19,6 +19,7 @@
   "exports": "./dist/lse-core.mjs",
   "files": [
     "dist/lse-core.mjs",
+    "dist/Roboto-Regular.ttf",
 
     "binding.gyp",
 
