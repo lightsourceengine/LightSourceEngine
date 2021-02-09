@@ -8,8 +8,8 @@ import { createBlurEvent, createFocusEvent } from '../event/index.js'
 import {
   BoxSceneNodeBase,
   ImageSceneNodeBase,
-  LinkSceneNodeBase,
-  RootSceneNodeBase, setStyleParent,
+  RootSceneNodeBase,
+  setStyleParent,
   TextSceneNodeBase
 } from '../addon/index.js'
 import { Style } from '../style/Style.js'
@@ -162,6 +162,5 @@ const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
 
 export const BoxSceneNode = SceneNodeMixin(BoxSceneNodeBase)
 export const ImageSceneNode = SceneNodeMixin(ImageSceneNodeBase)
-export const LinkSceneNode = SceneNodeMixin(LinkSceneNodeBase)
 export const RootSceneNode = SceneNodeMixin(RootSceneNodeBase)
 export const TextSceneNode = SceneNodeMixin(TextSceneNodeBase)

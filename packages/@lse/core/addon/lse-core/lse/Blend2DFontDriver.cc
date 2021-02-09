@@ -7,95 +7,60 @@
 #include "Blend2DFontDriver.h"
 
 #include <blend2d.h>
+#include <lse/Blend2DFontFace.h>
 #include <lse/Log.h>
 
 namespace lse {
 
-static FontSource* LoadBLFontFaceCore(BLFontDataCore* fontData, int32_t index) noexcept;
-
 FontSource* Blend2DFontDriver::LoadFontSource(void* data, size_t dataSize, int32_t index) {
-  BLResult result;
-  BLFontDataCore fontData{};
+  uint8_t* dataCopy{new (std::nothrow) uint8_t[dataSize]};
 
-  result = blFontDataInit(&fontData);
-
-  if (result != BL_SUCCESS) {
-    LOG_ERROR("blFontDataInit: %#010x", result);
+  if (!dataCopy) {
+    LOG_ERROR("Failed to allocate memory for TTF file.");
     return {};
   }
 
-  auto dataCopy{new uint8_t[dataSize]};
+  memcpy(dataCopy, data, dataSize);
 
-  memccpy(dataCopy, static_cast<uint8_t*>(data), 1, dataSize);
-
-  result = blFontDataCreateFromData(
-      &fontData,
-      data,
-      dataSize,
-      [](void* impl, void* destroyData) {
-        delete [] static_cast<uint8_t*>(destroyData);
-      },
-      dataCopy);
+  BLFontData fontData{};
+  BLDestroyImplFunc destroy = [](void* impl, void* destroyData) {
+    delete [] static_cast<uint8_t*>(destroyData);
+  };
+  BLResult result{fontData.createFromData(dataCopy, dataSize, destroy, dataCopy)};
 
   if (result != BL_SUCCESS) {
-    LOG_ERROR("blFontDataCreateFromData: %#010x", result);
-    blFontDataDestroy(&fontData);
+    LOG_ERROR("BLFontData.createFromData: %#010x", result);
     delete [] dataCopy;
     return {};
   }
 
-  return LoadBLFontFaceCore(&fontData, index);
+  BLFontFace fontFace{};
+  result = fontFace.createFromData(fontData, index);
+
+  if (result != BL_SUCCESS) {
+    LOG_ERROR("createFromFile: %#010x", result);
+    return {};
+  }
+
+  return new Blend2DFontFace(std::move(fontFace));
 }
 
 FontSource* Blend2DFontDriver::LoadFontSource(const char* file, int32_t index) {
-  BLResult result;
-  BLFontDataCore fontData{};
-
-  result = blFontDataInit(&fontData);
+  BLFontFace fontFace{};
+  auto result{fontFace.createFromFile(file, index)};
 
   if (result != BL_SUCCESS) {
-    LOG_ERROR("blFontDataInit: %#010x", result);
+    LOG_ERROR("createFromFile: %#010x", result);
     return {};
   }
 
-  result = blFontDataCreateFromFile(&fontData, file, 0);
-
-  if (result != BL_SUCCESS) {
-    LOG_ERROR("blFontDataCreateFromData: %#010x", result);
-    blFontDataDestroy(&fontData);
-    return {};
-  }
-
-  return LoadBLFontFaceCore(&fontData, index);
+  return new Blend2DFontFace(std::move(fontFace));
 }
 
 void Blend2DFontDriver::DestroyFontSource(FontSource* fontSource) {
   if (fontSource) {
-    BLFontFaceCore fontFace{ static_cast<BLFontFaceImpl*>(fontSource) };
-    blFontFaceDestroy(&fontFace);
+    delete static_cast<Blend2DFontFace*>(fontSource);
   }
-}
-
-static FontSource* LoadBLFontFaceCore(BLFontDataCore* fontData, int32_t index) noexcept {
-  BLFontFaceCore fontFace{};
-
-  BLResult result = blFontFaceInit(&fontFace);
-
-  if (result != BL_SUCCESS) {
-    LOG_ERROR("blFontFaceInit: %#010x", result);
-    blFontDataDestroy(fontData);
-    return {};
-  }
-
-  result = blFontFaceCreateFromData(&fontFace, fontData, index);
-
-  if (result != BL_SUCCESS) {
-    LOG_ERROR("blFontFaceCreateFromData: %#010x", result);
-    blFontDataDestroy(fontData);
-    return {};
-  }
-
-  return fontFace.impl;
 }
 
 } // namespace lse

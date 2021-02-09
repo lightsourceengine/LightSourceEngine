@@ -13,6 +13,7 @@
 #include <lse/GraphicsContext.h>
 #include <lse/Reference.h>
 #include <lse/Stage.h>
+#include <lse/FontManager.h>
 
 #include <algorithm>
 #include <memory>
@@ -29,7 +30,7 @@ class SceneNode;
  */
 class Scene : public Reference {
  public:
-  Scene(Stage* stage, GraphicsContext* context);
+  Scene(Stage* stage, FontManager* fontManager, GraphicsContext* context);
   ~Scene() override;
 
   void Attach();
@@ -44,6 +45,7 @@ class Scene : public Reference {
   int32_t GetHeight() const noexcept { return this->height; }
   StyleContext* GetStyleContext() const noexcept { return &this->styleContext; }
   Renderer* GetRenderer() const noexcept;
+  FontManager* GetFontManager() const noexcept;
 
   void OnRootFontSizeChange() noexcept;
   void RequestPaint(SceneNode* node);
@@ -62,6 +64,7 @@ class Scene : public Reference {
 
  private:
   ReferenceHolder<Stage> stage{};
+  ReferenceHolder<FontManager> fontManager{};
   ReferenceHolder<GraphicsContext> graphicsContext{};
   SceneNode* root{};
   mutable StyleContext styleContext{ 0, 0, 0 };

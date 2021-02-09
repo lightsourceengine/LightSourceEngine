@@ -195,40 +195,36 @@ bool TextSceneNode::SetFont(Style* style) {
     return dirty;
   }
 
-  const auto& fontFamily{
-      style->IsEmpty(StyleProperty::fontFamily) ? kDefaultFontFamily : style->GetString(StyleProperty::fontFamily)
-  };
-  const auto fontStyle{ style->GetEnum<StyleFontStyle>(StyleProperty::fontStyle) };
-  const auto fontWeight{ style->GetEnum<StyleFontWeight>(StyleProperty::fontWeight) };
+  auto findFontResult = this->scene->GetFontManager()->FindFont(
+      style->GetString(StyleProperty::fontFamily),
+      style->GetEnum<StyleFontStyle>(StyleProperty::fontStyle),
+      style->GetEnum<StyleFontWeight>(StyleProperty::fontWeight));
 
-  if (FontFace::Equals(this->fontFace, fontFamily, fontStyle, fontWeight)) {
+  if (this->fontFace == findFontResult) {
     return false;
   }
 
+  // TODO: ResetFont() ?
   this->ClearFontFaceResource();
-  this->fontFace = this->GetResources()->AcquireFontFaceByStyle(fontFamily, fontStyle, fontWeight);
+  this->fontFace = findFontResult;
 
   if (!this->fontFace) {
     return true;
   }
 
-  switch (this->fontFace->GetState()) {
-    case Resource::State::Ready:
+  switch (this->fontFace->GetFontStatus()) {
+    case FontStatusReady:
       dirty = true;
       break;
-    case Resource::State::Loading:
-      this->fontFace->AddListener(this, [this](Resource::Owner owner, Resource* res) {
-        if (this != owner || this->fontFace.get() != res) {
-          return;
-        }
-
-        if (this->fontFace->GetState() == Resource::State::Ready) {
-          this->block.Invalidate();
-          YGNodeMarkDirty(this->ygNode);
-          this->fontFace->RemoveListener(owner);
+    case FontStatusLoading:
+      this->fontFace->AddListener(this, [](Font* font, void* listener, FontStatus status) {
+        auto self{static_cast<TextSceneNode*>(listener)};
+        if (status == FontStatusReady) {
+          self->block.Invalidate();
+          YGNodeMarkDirty(self->ygNode);
+          font->RemoveListener(listener);
         } else {
-          // TODO: clear?
-          this->ClearFontFaceResource();
+          self->ClearFontFaceResource();
         }
       });
       break;
@@ -244,11 +240,8 @@ bool TextSceneNode::SetFont(Style* style) {
 
 void TextSceneNode::ClearFontFaceResource() {
   if (this->fontFace) {
-    auto resource = this->fontFace.get();
     this->fontFace->RemoveListener(this);
     this->fontFace = nullptr;
-
-    this->GetResources()->ReleaseResource(resource);
   }
 }
 

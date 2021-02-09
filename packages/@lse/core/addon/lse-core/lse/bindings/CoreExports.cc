@@ -69,7 +69,6 @@ napi_value CoreExports(napi_env env, napi_value exports) noexcept {
   Export(env, exports, JSStyleTransformSpec::GetClass(env));
   Export(env, exports, BoxSceneNode::GetClass(env));
   Export(env, exports, ImageSceneNode::GetClass(env));
-  Export(env, exports, LinkSceneNode::GetClass(env));
   Export(env, exports, TextSceneNode::GetClass(env));
   Export(env, exports, RootSceneNode::GetClass(env));
 

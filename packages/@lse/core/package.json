@@ -19,7 +19,6 @@
   "exports": "./dist/lse-core.mjs",
   "files": [
     "dist/lse-core.mjs",
-    "dist/font",
 
     "binding.gyp",
 

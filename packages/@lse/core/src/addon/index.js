@@ -38,7 +38,6 @@ export const {
   StyleValue,
   BoxSceneNode:BoxSceneNodeBase,
   ImageSceneNode:ImageSceneNodeBase,
-  LinkSceneNode:LinkSceneNodeBase,
   RootSceneNode:RootSceneNodeBase,
   TextSceneNode:TextSceneNodeBase
 } = addon

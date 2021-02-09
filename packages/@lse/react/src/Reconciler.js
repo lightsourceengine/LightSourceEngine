@@ -8,7 +8,6 @@ import { ReactReconciler } from '@lse/react/reconciler'
 import { TextElement } from './TextElement.js'
 import { BoxElement } from './BoxElement.js'
 import { ImageElement } from './ImageElement.js'
-import { LinkElement } from './LinkElement.js'
 import { performance } from 'perf_hooks'
 
 const kText = 'text'
@@ -17,7 +16,6 @@ const kElementNameToElementClass = {
   box: BoxElement,
   div: BoxElement,
   img: ImageElement,
-  link: LinkElement,
   [kText]: TextElement
 }
 

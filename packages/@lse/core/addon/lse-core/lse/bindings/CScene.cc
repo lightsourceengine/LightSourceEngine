@@ -24,7 +24,7 @@ namespace lse {
 namespace bindings {
 
 static void* CreateScene(napi_env env, napi_callback_info info) noexcept {
-  auto ci{ napix::get_callback_info<2>(env, info) };
+  auto ci{ napix::get_callback_info<3>(env, info) };
   Stage* stage{};
 
   if (Habitat::InstanceOf(env, ci[0], Habitat::Class::CStage)) {
@@ -33,15 +33,23 @@ static void* CreateScene(napi_env env, napi_callback_info info) noexcept {
 
   NAPIX_EXPECT_NOT_NULL(env, stage, "stage arg must be a CStage instance", {});
 
-  GraphicsContext* context{};
+  FontManager* fontManager{};
 
-  if (Habitat::InstanceOf(env, ci[1], Habitat::Class::CGraphicsContext)) {
-    context = unwrap_as<GraphicsContext>(env, ci[1]);
+  if (Habitat::InstanceOf(env, ci[1], Habitat::Class::CFontManager)) {
+    fontManager = unwrap_as<FontManager>(env, ci[1]);
   }
 
-  NAPIX_EXPECT_NOT_NULL(env, context, "context arg must be a GraphicsContext instance", {});
+  NAPIX_EXPECT_NOT_NULL(env, fontManager, "font manager arg must be a CFontManager instance", {});
 
-  return new Scene(stage, context);
+  GraphicsContext* context{};
+
+  if (Habitat::InstanceOf(env, ci[2], Habitat::Class::CGraphicsContext)) {
+    context = unwrap_as<GraphicsContext>(env, ci[2]);
+  }
+
+  NAPIX_EXPECT_NOT_NULL(env, context, "context arg must be a CGraphicsContext instance", {});
+
+  return new Scene(stage, fontManager, context);
 }
 
 static napi_value Constructor(napi_env env, napi_callback_info info) noexcept {

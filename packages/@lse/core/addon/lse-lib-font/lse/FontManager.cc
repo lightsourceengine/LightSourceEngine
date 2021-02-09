@@ -87,8 +87,8 @@ Font* FontManager::FindFont(const std::string& family, int32_t style, int32_t we
 }
 
 Font* FontManager::FindFontInternal(const std::string& family, int32_t style, int32_t weight) noexcept {
-  // TODO: style/weight range
-  if (!this->fontTable.contains(family)) {
+  if (family.empty() || !this->fontTable.contains(family)
+      || !IsEnum<FontStyle>(style) || !IsEnum<FontWeight>(weight)) {
     return {};
   }
 

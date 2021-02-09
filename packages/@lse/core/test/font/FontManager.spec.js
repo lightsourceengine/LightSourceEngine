@@ -18,7 +18,7 @@ const testImageFile = 'test/resources/300x300.svg'
 describe('FontManager', () => {
   let manager
   beforeEach(() => {
-    manager = new FontManager()
+    manager = new FontManager(false)
   })
   afterEach(() => {
     manager.$destroy()
@@ -28,7 +28,7 @@ describe('FontManager', () => {
     it('should return create and return new font from file', () => {
       testAddTestFont(testFontFile, 'loading')
     })
-    it('should return create and return new font from file', () => {
+    it('should return create and return new font from buffer', () => {
       testAddTestFont(readFileSync(testFontFile), 'ready')
     })
     it('should dispatch ready event after add from file', async () => {

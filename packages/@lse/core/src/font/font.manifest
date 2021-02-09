@@ -1,7 +1,7 @@
 [
   {
-    "file": "./Roboto-Regular.ttf",
-    "family": "default",
+    "src": "./Roboto-Regular.ttf",
+    "family": "roboto-builtin",
     "style": "normal",
     "weight": "normal"
   }

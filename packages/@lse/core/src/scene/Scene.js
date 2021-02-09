@@ -4,14 +4,10 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { CScene, logger } from '../addon/index.js'
-import { BoxSceneNode, ImageSceneNode, TextSceneNode, LinkSceneNode, RootSceneNode } from './SceneNode.js'
+import { CScene } from '../addon/index.js'
+import { BoxSceneNode, ImageSceneNode, TextSceneNode, RootSceneNode } from './SceneNode.js'
 import { createAttachedEvent, createDestroyedEvent, createDestroyingEvent, createDetachedEvent } from '../event/index.js'
 import { EventName } from '../event/EventName.js'
-import { fileURLToPath } from 'url'
-import { join, dirname, isAbsolute } from 'path'
-import { readFileSync, existsSync } from 'fs'
-import { stringify } from 'querystring'
 import { EventTarget } from '../event/EventTarget.js'
 
 const kEmptyFrameListener = Object.freeze([0, null])
@@ -23,7 +19,6 @@ export class Scene extends EventTarget {
   _root = null
   _stage = null
   _activeNode = null
-  _fonts = []
   _fgFrameListeners = []
   _bgFrameListeners = []
   _attached = false
@@ -38,7 +33,7 @@ export class Scene extends EventTarget {
 
     this._stage = stage
     this._context = stage.system.$createGraphicsContext(config)
-    this._native = new CScene(stage.$native, this._context)
+    this._native = new CScene(stage.$native, stage.font.$native, this._context)
     this._root = new RootSceneNode(this)
     const { style } = this._root
 
@@ -55,7 +50,7 @@ export class Scene extends EventTarget {
       this.title = config.title
     }
 
-    loadFonts(this)
+    // loadFonts(this)
   }
 
   get stage () {
@@ -191,9 +186,6 @@ export class Scene extends EventTarget {
 
     this.dispatchEvent(createDestroyingEvent(this))
 
-    this._fonts.forEach(font => font.destroy())
-    this._fonts = []
-
     this._fgFrameListeners = []
     this._fgFrameListeners = []
     this._activeNode = null
@@ -221,7 +213,6 @@ const nodeClass = new Map([
   ['box', BoxSceneNode],
   ['div', BoxSceneNode],
   ['img', ImageSceneNode],
-  ['link', LinkSceneNode],
   ['text', TextSceneNode]
 ])
 
@@ -235,74 +226,5 @@ const removeAnimationFrameListener = (requestId, listeners) => {
   if (index >= 0) {
     // Just clear the listener and preserve the array structure, as the frame may be processing this list right now
     listeners[index] = kEmptyFrameListener
-  }
-}
-
-const loadFonts = (self) => {
-  const filename = 'font.manifest'
-  const { LSE_FONT_PATH, LSE_ENV } = process.env
-  let fontManifestFile
-
-  if (LSE_FONT_PATH) {
-    fontManifestFile = join(LSE_FONT_PATH, filename)
-  } else if (LSE_ENV !== 'lse-node') {
-    // for non-lse-node environments (mono-repo and npm install), search for font.manifest relative to
-    // this file. lse-node runs just use the environment variable.
-    const dir = dirname(fileURLToPath(import.meta.url))
-
-    let p = join(dir, '..', 'font', filename)
-
-    if (existsSync(p)) {
-      fontManifestFile = p
-    } else {
-      p = join(dir, 'font', filename)
-
-      if (existsSync(p)) {
-        fontManifestFile = p
-      }
-    }
-  }
-
-  let fontManifest
-
-  try {
-    fontManifest = JSON.parse(readFileSync(fontManifestFile, 'utf8'))
-  } catch (e) {
-    logger.warn(`Error loading '${fontManifestFile}': ${e.message}`)
-    return
-  }
-
-  if (!Array.isArray(fontManifest)) {
-    logger.warn(`Expected array from '${fontManifestFile}'`)
-    return
-  }
-
-  const directory = dirname(fontManifestFile)
-
-  for (let { file, family, style, weight } of fontManifest) {
-    if (typeof file !== 'string') {
-      continue
-    }
-
-    if (!isAbsolute(file)) {
-      file = join(directory, file)
-    }
-
-    family = family?.toString() ?? undefined
-    style = style?.toString() ?? undefined
-    weight = weight?.toString() ?? undefined
-
-    const url = 'file:' + file + '?' + stringify({ family, style, weight })
-    const fontLink = new LinkSceneNode(self)
-
-    self._fonts.push(fontLink)
-
-    try {
-      fontLink.href = url
-      fontLink.as = 'font'
-      fontLink.fetch()
-    } catch (e) {
-      logger.warn(`Failed to preload font: ${url}`)
-    }
   }
 }

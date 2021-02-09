@@ -53,6 +53,7 @@
       "sources": [
         "lse/yoga-ext.cc",
         "lse/Blend2DFontDriver.cc",
+        "lse/Blend2DFontFace.cc",
         "lse/BoxSceneNode.cc",
         "lse/CompositeContext.cc",
         "lse/DecodeFont.cc",
@@ -74,7 +75,6 @@
         "lse/RootSceneNode.cc",
         "lse/ImageSceneNode.cc",
         "lse/TextSceneNode.cc",
-        "lse/LinkSceneNode.cc",
         "lse/bindings/CoreEnums.cc",
         "lse/bindings/CoreExports.cc",
         "lse/bindings/CoreFunctions.cc",
@@ -94,7 +94,6 @@
               "<!@(node -p \"require('napi-unit').include\")"
             ],
             "sources": [
-              "test/FontFaceSpec.cc",
               "test/ImageSpec.cc",
               "test/ResourcesSpec.cc",
               "test/ThreadPoolSpec.cc",

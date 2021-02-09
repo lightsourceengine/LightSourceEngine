@@ -8,20 +8,45 @@
 #include "Habitat.h"
 
 #include <array>
+#include <string>
 #include <memory>
-#include <phmap.h>
+#include <cassert>
 
 namespace lse {
 
+constexpr size_t MAX_APP_DATA_ENTRIES = 3;
+
 struct AppDataEntry {
+  std::string key{};
   void* data{};
   Habitat::AppDataFinalizer finalizer{};
 };
 
 struct InstanceData {
-  phmap::flat_hash_map<std::string, AppDataEntry> appData{};
+  // app data is searched by key, but the list is so small a map is too much overhead
+  std::array<AppDataEntry, MAX_APP_DATA_ENTRIES> appData{};
   std::array<napi_ref, Habitat::Class::Count> classRefs{};
 };
+
+static AppDataEntry* FindByKey(InstanceData* instanceData, const char* key) noexcept {
+  for (auto& entry : instanceData->appData) {
+    if (key != nullptr && entry.key == key) {
+      return &entry;
+    }
+  }
+
+  return {};
+}
+
+static AppDataEntry* FindEmpty(InstanceData* instanceData) noexcept {
+  for (auto& entry : instanceData->appData) {
+    if (entry.key.empty()) {
+      return &entry;
+    }
+  }
+
+  return {};
+}
 
 static InstanceData* GetInstanceData(napi_env env) noexcept {
   void* data{};
@@ -56,8 +81,8 @@ bool Habitat::Init(napi_env env) noexcept {
         auto instanceData{ static_cast<InstanceData*>(data) };
 
         for (auto& entry : instanceData->appData) {
-          if (entry.second.finalizer) {
-            entry.second.finalizer(entry.second.data);
+          if (entry.finalizer) {
+            entry.finalizer(entry.data);
           }
         }
 
@@ -70,6 +95,7 @@ bool Habitat::Init(napi_env env) noexcept {
       nullptr);
 
   if (status == napi_ok) {
+    // NOLINTNEXTLINE ptr owned by node now
     instanceData.release();
     return true;
   }
@@ -148,12 +174,35 @@ bool Habitat::InstanceOf(napi_env env, napi_value obj, Class::Enum classId) noex
 }
 
 bool Habitat::SetAppData(napi_env env, const char* key, void* data, Habitat::AppDataFinalizer finalizer) noexcept {
+  if (!key) {
+    return false;
+  }
+
   auto instanceData{ GetInstanceData(env) };
 
   if (instanceData) {
-    // TODO: if app data is set twice, the first store will not be finalized
-    instanceData->appData.insert_or_assign(key, { data, finalizer });
-    return true;
+    auto entry{FindByKey(instanceData, key)};
+
+    if (entry) {
+      if (entry->data && entry->finalizer) {
+        entry->finalizer(entry->data);
+      }
+
+      entry->data = data;
+      entry->finalizer = finalizer;
+
+      return true;
+    }
+
+    entry = FindEmpty(instanceData);
+
+    assert(entry);
+
+    if (entry) {
+      *entry = { key, data, finalizer };
+
+      return true;
+    }
   }
 
   return false;
@@ -162,11 +211,15 @@ bool Habitat::SetAppData(napi_env env, const char* key, void* data, Habitat::App
 void* Habitat::GetAppData(napi_env env, const char* key) noexcept {
   auto instanceData{ GetInstanceData(env) };
 
-  if (instanceData && instanceData->appData.contains(key)) {
-    return instanceData->appData[key].data;
+  if (instanceData) {
+    auto entry{FindByKey(instanceData, key)};
+
+    if (entry) {
+      return entry->data;
+    }
   }
 
-  return nullptr;
+  return {};
 }
 
 } // namespace lse

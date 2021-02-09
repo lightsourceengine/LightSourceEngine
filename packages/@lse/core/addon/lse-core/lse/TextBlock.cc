@@ -9,7 +9,7 @@
 
 #include <lse/Renderer.h>
 #include <lse/RenderingContext2D.h>
-#include <lse/Resources.h>
+#include <lse/FontManager.h>
 #include <lse/Style.h>
 #include <lse/StyleContext.h>
 #include <lse/Timer.h>
@@ -25,7 +25,7 @@ static std::size_t StringLength(const std::string& utf8) noexcept;
 static void ApplyTransform(uint32_t* codepoints, std::size_t size, StyleTextTransform transform) noexcept;
 
 void TextBlock::Shape(
-    const std::string& utf8, const FontFaceRef& fontFace, Style* style, StyleContext* context,
+    const std::string& utf8, Font* font, Style* style, StyleContext* context,
     float maxWidth, float maxHeight) {
   /*
    * Blend2D does not directly expose font metrics per character nor detailed glyph information. The context fill
@@ -52,7 +52,7 @@ void TextBlock::Shape(
 
   this->Invalidate();
 
-  if (utf8.empty() || !fontFace || !style || fontFace->GetState() != Resource::Ready) {
+  if (utf8.empty() || !style || !font || font->GetFontStatus() != FontStatusReady) {
     return;
   }
 
@@ -62,11 +62,7 @@ void TextBlock::Shape(
     return;
   }
 
-  this->font = fontFace->GetFont(fontSize);
-
-  if (this->font.empty()) {
-    return;
-  }
+  this->font = static_cast<Blend2DFontFace*>(font->GetFontSource())->GetFontBySize(fontSize);
 
   result = this->glyphBuffer.setUtf8Text(utf8.c_str(), utf8.size());
 
@@ -268,7 +264,8 @@ float TextBlock::HeightF() const noexcept {
 
 void TextBlock::Invalidate() noexcept {
   this->calculatedWidth = this->calculatedHeight = 0;
-  lines.clear();
+  this->lines.clear();
+  this->font.blFont.reset();
 }
 
 bool TextBlock::IsEmpty() const noexcept {

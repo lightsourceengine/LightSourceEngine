@@ -490,7 +490,10 @@ class LightSourceNodePackage {
       const fontDir = join(this.#nodeAssets)
 
       await ensureDir(fontDir)
-      await copy(module.font, fontDir)
+
+      for (const entry of module.font) {
+        await copy(entry, join(fontDir, basename(entry)))
+      }
     }
 
     log(`staging: ${module.name} module installed`)
@@ -677,7 +680,10 @@ class SourceRoot {
       name: '@lse/core',
       js: [ { source: join(this.#root, 'packages/@lse/core/dist/lse-core.standalone.mjs'), rename: 'index.mjs' } ],
       native: join(this.#root, 'packages/@lse/core/build/Release/lse-core.node'),
-      font: join(this.#root, 'packages/@lse/core/src/font')
+      font: [
+        join(this.#root, 'packages/@lse/core/src/font/Roboto-Regular.ttf'),
+        join(this.#root, 'packages/@lse/core/src/font/font.manifest')
+      ]
     }
   }
 

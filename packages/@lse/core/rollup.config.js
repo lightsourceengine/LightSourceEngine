@@ -10,7 +10,6 @@ import copy from 'rollup-plugin-copy'
 import { beautify, onwarn, minify, inlineModule, getPublishingVersion } from '../../rollup/plugins.js'
 import replace from 'rollup-plugin-re'
 
-const intro = 'const INTRINSIC_FONT_DIR = \'font\';'
 const publishingVersion = getPublishingVersion()
 const lseVersion = () => replace({
   replaces: {
@@ -29,15 +28,14 @@ const lightSourceNpm = (input) => (
     output: {
       format: 'esm',
       file: 'dist/lse-core.mjs',
-      preferConst: true,
-      intro
+      preferConst: true
     },
     plugins: [
       autoExternal(),
       resolve(),
       lseVersion(),
       beautify(),
-      copy({ targets: [{ src: 'src/font/*', dest: 'dist/font' }] })
+      copy({ targets: [{ src: 'src/font/*.ttf', dest: 'dist' }] })
     ]
   }
 )
@@ -48,8 +46,7 @@ const lightSourceStandalone = (input) => ({
   output: {
     format: 'esm',
     file: 'dist/lse-core.standalone.mjs',
-    preferConst: true,
-    intro
+    preferConst: true
   },
   plugins: [
     autoExternal({

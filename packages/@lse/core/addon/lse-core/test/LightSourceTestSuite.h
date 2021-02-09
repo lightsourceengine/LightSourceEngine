@@ -13,7 +13,6 @@ namespace lse {
 void ThreadPoolSpec(Napi::TestSuite* parent);
 void StyleSpec(Napi::TestSuite* parent);
 void StyleContextSpec(Napi::TestSuite* parent);
-void FontFaceSpec(Napi::TestSuite* parent);
 void ImageSpec(Napi::TestSuite* parent);
 void ResourcesSpec(Napi::TestSuite* parent);
 
@@ -23,7 +22,6 @@ Napi::Value LightSourceTestSuite(Napi::Env env) {
       &ThreadPoolSpec,
       &StyleSpec,
       &StyleContextSpec,
-      &FontFaceSpec,
       &ImageSpec,
       &ResourcesSpec,
   });

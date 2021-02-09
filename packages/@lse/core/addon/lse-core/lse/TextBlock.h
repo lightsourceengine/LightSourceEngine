@@ -13,6 +13,7 @@
 #include <lse/Paintable.h>
 #include <lse/Resources.h>
 #include <lse/StyleEnums.h>
+#include <lse/Blend2DFontFace.h>
 
 namespace lse {
 
@@ -20,7 +21,7 @@ class Renderer;
 class RenderingContext2D;
 class Style;
 class StyleContext;
-struct Font;
+class Font;
 
 /**
  * Drawing and layout of text strings for the content area of text elements.
@@ -35,7 +36,7 @@ class TextBlock final : public Paintable {
    * Layout the text according to the style policy and dimensions.
    */
   void Shape(
-      const std::string& utf8, const FontFaceRef& fontFace, Style* style, StyleContext* context,
+      const std::string& utf8, Font* font, Style* style, StyleContext* context,
       float maxWidth, float maxHeight);
 
   // Calculated bounds of the text. Set after call to Shape().
@@ -69,7 +70,7 @@ class TextBlock final : public Paintable {
 
     bool operator!=(const TextIterator& other) const noexcept;
     bool operator==(const TextIterator& other) const noexcept;
-    TextIterator operator++(int32_t) noexcept;
+    TextBlock::TextIterator operator++(int32_t) noexcept;
 
    private:
     std::size_t glyphBufferIndex{};
@@ -100,7 +101,7 @@ class TextBlock final : public Paintable {
   void EllipsizeIfNecessary(Style* style, float maxWidth) noexcept;
 
  private:
-  Font font{};
+  Blend2DFont font;
   BLGlyphBuffer glyphBuffer{};
   int32_t calculatedWidth{ 0 };
   int32_t calculatedHeight{ 0 };

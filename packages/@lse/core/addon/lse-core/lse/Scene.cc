@@ -20,7 +20,8 @@ using Napi::SafeObjectWrap;
 
 namespace lse {
 
-Scene::Scene(Stage* stage, GraphicsContext* context) : stage(stage), graphicsContext(context) {
+Scene::Scene(Stage* stage, FontManager* fontManager, GraphicsContext* context)
+: stage(stage), fontManager(fontManager), graphicsContext(context) {
 }
 
 Scene::~Scene() {
@@ -99,6 +100,10 @@ void Scene::RequestStyleLayout(SceneNode* node) {
 
 Renderer* Scene::GetRenderer() const noexcept {
   return this->graphicsContext->GetRenderer();
+}
+
+FontManager* Scene::GetFontManager() const noexcept {
+  return this->fontManager;
 }
 
 void Scene::RequestComposite() {

@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include <blend2d.h>
 #include <lse/AsyncWork.h>
 #include <lse/StyleEnums.h>
 #include <lse/Texture.h>
@@ -103,56 +102,10 @@ class Image final : public Resource {
   int32_t height{};
 };
 
-struct Font {
-  BLFont blFont{};
-  float _ellipsisWidth{};
-
-  auto ellipsisWidth() const noexcept { return this->_ellipsisWidth; }
-  auto scaleX() const noexcept { return this->blFont.matrix().m00; }
-  auto ascent() const noexcept { return this->blFont.metrics().ascent; }
-  auto lineHeight() const noexcept {
-    return this->blFont.metrics().ascent + this->blFont.metrics().descent + this->blFont.metrics().lineGap;
-  }
-  bool empty() const noexcept { return this->blFont.empty(); }
-};
-
-class FontFace final : public Resource {
- public:
-  FontFace(const std::string& tag);
-  ~FontFace() override = default;
-
-  static bool Equals(
-      const FontFaceRef& fontFace, const std::string& family, StyleFontStyle style,
-      StyleFontWeight weight) noexcept;
-
-  void Load(Napi::Env env) override;
-  Napi::Value Summarize(const Napi::Env& env) const override;
-
-  const std::string& GetFamily() const;
-  StyleFontStyle GetStyle() const noexcept;
-  StyleFontWeight GetWeight() const noexcept;
-  Font GetFont(float fontSize);
-
- private:
-  AsyncWork<BLFontFace> work{};
-  BLFontFace resource{};
-  std::string family{};
-  StyleFontStyle style{ StyleFontStyleNormal };
-  StyleFontWeight weight{ StyleFontWeightNormal };
-  int32_t index{ 0 };
-  BLGlyphBuffer ellipsis{};
-  // LRU cache of fonts by size
-  std::list<Font> fontsBySize{};
-};
-
 class Resources {
  public:
   bool HasImage(const std::string& tag) const;
   ImageRef AcquireImage(const std::string& tag);
-
-  bool HasFontFace(const std::string& tag) const;
-  FontFaceRef AcquireFontFace(const std::string& tag);
-  FontFaceRef AcquireFontFaceByStyle(const std::string& family, StyleFontStyle style, StyleFontWeight weight);
 
   void ReleaseResource(Resource* resource, bool immediateDelete = false);
 
@@ -160,10 +113,8 @@ class Resources {
 
  private:
   using ImageDataMap = phmap::flat_hash_map<std::string, ImageRef>;
-  using FontFaceMap = phmap::flat_hash_map<std::string, FontFaceRef>;
 
   ImageDataMap images;
-  FontFaceMap fonts;
   phmap::flat_hash_set<Resource*> pendingDeletions;
 };
 

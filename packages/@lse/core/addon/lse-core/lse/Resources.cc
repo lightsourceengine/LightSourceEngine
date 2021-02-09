@@ -9,16 +9,13 @@
 
 #include <cassert>
 #include <lse/DecodeImage.h>
-#include <lse/DecodeFont.h>
 #include <lse/Log.h>
 #include <lse/Renderer.h>
-#include <lse/Math.h>
 #include <lse/Uri.h>
 
 namespace lse {
 
 Resource::ResourceId Resource::nextResourceId{ 1 };
-constexpr const std::size_t kMaxFonts = 9;
 
 Resource::Resource(const std::string& tag) : id(nextResourceId++), tag(tag) {
   const auto t{ GetUriScheme(tag) };
@@ -211,140 +208,6 @@ Image Image::Mock(const std::string& tag, int32_t width, int32_t height) {
   return image;
 }
 
-FontFace::FontFace(const std::string& tag) : Resource(tag) {
-  const auto t{ GetUriScheme(tag) };
-
-  if (t == UriSchemeFile) {
-    this->family = GetQueryParam(tag, "family");
-    this->index = GetQueryParamInteger(tag, "index", 0);
-
-    auto value{ GetQueryParam(tag, "style") };
-
-    if (!value.empty()) {
-      try {
-        this->style = FromString<StyleFontStyle>(value.c_str());
-      } catch (const std::invalid_argument& e) {
-        LOG_WARN("Invalid font style parameter: %s", value);
-      }
-    }
-
-    value = GetQueryParam(tag, "weight");
-
-    if (!value.empty()) {
-      try {
-        this->weight = FromString<StyleFontWeight>(value.c_str());
-      } catch (const std::invalid_argument& e) {
-        LOG_WARN("Invalid font weight parameter: %s", value);
-      }
-    }
-  }
-
-  if (this->family.empty()) {
-    this->family = this->path.stem();
-  }
-}
-
-bool FontFace::Equals(
-    const FontFaceRef& fontFace, const std::string& family, StyleFontStyle style,
-    StyleFontWeight weight) noexcept {
-  return fontFace && fontFace->family == family && fontFace->style == style && fontFace->weight == weight;
-}
-
-void FontFace::Load(Napi::Env env) {
-  this->work.Reset(
-      env,
-      [path = this->path, index = this->index]() {
-        return DecodeFontFromFile(path, index);
-      },
-      [this](Napi::Env env, AsyncWorkResult<BLFontFace>* result) {
-        constexpr auto LAMBDA_FUNCTION = "ResourceLoadComplete";
-
-        if (this->state != Resource::State::Loading) {
-          return;
-        }
-
-        if (result->HasError()) {
-          this->state = Resource::State::Error;
-          this->errorMessage = result->TakeError();
-          LOG_ERROR_LAMBDA("%s", this->errorMessage);
-        } else {
-          this->state = Resource::State::Ready;
-          this->resource = result->TakeValue();
-          LOG_INFO_LAMBDA("%s", this->tag);
-        }
-
-        this->NotifyListeners();
-      });
-
-  this->state = Resource::State::Loading;
-  this->errorMessage.clear();
-  this->resource.reset();
-
-  this->work.Queue();
-}
-
-Napi::Value FontFace::Summarize(const Napi::Env& env) const {
-  auto summary{ Napi::Object::New(env) };
-
-  if (!this->resource.empty() && this->resource.familyNameSize() > 0) {
-    summary.Set("family", Napi::String::New(env, this->family));
-    summary.Set("style", Napi::String::New(env, ToString(this->style)));
-    summary.Set("weight", Napi::String::New(env, ToString(this->weight)));
-  }
-
-  return summary;
-}
-
-const std::string& FontFace::GetFamily() const {
-  return this->family;
-}
-
-StyleFontStyle FontFace::GetStyle() const noexcept {
-  return this->style;
-}
-
-StyleFontWeight FontFace::GetWeight() const noexcept {
-  return this->weight;
-}
-
-Font FontFace::GetFont(float fontSize) {
-  if (std::isnan(fontSize) || fontSize <= 0.f) {
-    return {};
-  }
-
-  for (auto p = this->fontsBySize.begin(); p != this->fontsBySize.end(); p++) {
-    if (lse::Equals(fontSize, p->blFont.size())) {
-      Font font = *p;
-
-      this->fontsBySize.erase(p);
-      this->fontsBySize.push_back(font);
-
-      return font;
-    }
-  }
-
-  Font font{};
-
-  if (font.blFont.createFromFace(this->resource, fontSize) == BL_SUCCESS) {
-    BLTextMetrics ellipsisTextMetrics{};
-
-    this->ellipsis.setUtf8Text("...");
-    font.blFont.shape(this->ellipsis);
-    font.blFont.getTextMetrics(this->ellipsis, ellipsisTextMetrics);
-    font._ellipsisWidth = static_cast<float>(ellipsisTextMetrics.advance.x);
-
-    this->fontsBySize.push_front(font);
-
-    if (this->fontsBySize.size() > kMaxFonts) {
-      this->fontsBySize.pop_back();
-    }
-  } else {
-    LOG_WARN("Failed to load font %s for size %f", this->family, fontSize);
-  }
-
-  return font;
-}
-
 bool Resources::HasImage(const std::string& tag) const {
   return this->images.contains(tag);
 }
@@ -365,52 +228,14 @@ ImageRef Resources::AcquireImage(const std::string& tag) {
   return resource;
 }
 
-bool Resources::HasFontFace(const std::string& tag) const {
-  return this->fonts.contains(tag);
-}
 
-FontFaceRef Resources::AcquireFontFace(const std::string& tag) {
-  if (tag.empty()) {
-    return nullptr;
-  }
-
-  if (this->fonts.contains(tag)) {
-    return this->fonts[tag];
-  }
-
-  auto resource{ std::make_shared<FontFace>(tag) };
-
-  this->fonts[tag] = resource;
-
-  return resource;
-}
-
-FontFaceRef Resources::AcquireFontFaceByStyle(const std::string& family, StyleFontStyle style, StyleFontWeight weight) {
-  for (auto& entry : this->fonts) {
-    if (FontFace::Equals(entry.second, family, style, weight)) {
-      return entry.second;
-    }
-  }
-
-  // TODO: if exact match fails, find a substitute
-  return nullptr;
-}
 
 void Resources::ReleaseResource(Resource* resource, bool immediateDelete) {
   if (!resource) {
     return;
   }
 
-  if (HasFontFace(resource->tag)) {
-    if (this->fonts[resource->tag].use_count() == 1) {
-      if (immediateDelete) {
-        this->pendingDeletions.erase(resource);
-        this->fonts.erase(resource->tag);
-      } else {
-        this->pendingDeletions.insert(resource);
-      }
-    }
-  } else if (HasImage(resource->tag)) {
+  if (HasImage(resource->tag)) {
     if (this->images[resource->tag].use_count() == 1) {
       if (immediateDelete) {
         this->pendingDeletions.erase(resource);
@@ -431,10 +256,6 @@ void Resources::Compact() {
     if (this->images.contains(resource->tag)) {
       if (this->images[resource->tag].use_count() == 1) {
         this->images.erase(resource->tag);
-      }
-    } else if (this->fonts.contains(resource->tag)) {
-      if (this->fonts[resource->tag].use_count() == 1) {
-        this->fonts.erase(resource->tag);
       }
     }
   }

@@ -39,7 +39,7 @@ class TextSceneNode final : public Napi::SafeObjectWrap<TextSceneNode>, public S
 
  private:
   std::string text{};
-  FontFaceRef fontFace{};
+  Font* fontFace{};
   TextBlock block{};
 };
 

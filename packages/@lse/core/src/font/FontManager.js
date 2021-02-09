@@ -7,17 +7,20 @@
 import { CFontManager, FontStatus, FontStyle, FontWeight, logger } from '../addon/index.js'
 import { Font } from './Font.js'
 import { createErrorStatusEvent, createReadyStatusEvent } from '../event/index.js'
+import { join, dirname, isAbsolute, normalize } from 'path'
+import { fileURLToPath } from 'url'
+import { readFileSync } from 'fs'
 
 /**
  * Font Manager.
  */
 export class FontManager {
   _fonts = new Map()
-  _native = null
+  _native = new CFontManager()
   _defaultFontFamily = ''
 
-  constructor () {
-    this._native = new CFontManager()
+  constructor (enableBootstrapFonts = true) {
+    enableBootstrapFonts && bootstrapFonts(this)
   }
 
   /**
@@ -145,6 +148,13 @@ export class FontManager {
     this._native.destroy()
     this._native = null
   }
+
+  /**
+   * @ignore
+   */
+  get $native () {
+    return this._native
+  }
 }
 
 const fontStyleToInt = new Map([
@@ -182,23 +192,71 @@ const processStatusChange = (self, id, newStatus, defer) => {
   font.$status = statusToString(newStatus)
   logger.info(`'${font.family}':${font.style}:${font.weight} - ${font.status}`, 'font')
 
+  let event
+
   switch (newStatus) {
     case FontStatus.READY:
-      if (defer) {
-        queueMicrotask(() => font.dispatchEvent(createReadyStatusEvent(font)))
-      } else {
-        font.dispatchEvent(createReadyStatusEvent(font))
-      }
+      event = createReadyStatusEvent(font)
       break
     case FontStatus.ERROR:
-      if (defer) {
-        queueMicrotask(() => font.dispatchEvent(createErrorStatusEvent(font, 'Failed to load font.')))
-      } else {
-        font.dispatchEvent(createErrorStatusEvent(font, 'Failed to load font.'))
-      }
+      event = createErrorStatusEvent(font, 'Failed to load font.')
       break
     default:
       // wait for a terminal state font status
       break
+  }
+
+  if (event) {
+    if (defer) {
+      queueMicrotask(() => font.dispatchEvent(event))
+    } else {
+      font.dispatchEvent(event)
+    }
+  }
+}
+
+const bootstrapFonts = (self) => {
+  const { LSE_FONT_PATH, LSE_ENV } = process.env
+  let fontManifest
+
+  if (LSE_FONT_PATH) {
+    // If LSE_FONT_PATH is set, load the font manifest in this directory.
+    const fontManifestFile = join(LSE_FONT_PATH, 'font.manifest')
+
+    try {
+      fontManifest = JSON.parse(readFileSync(fontManifestFile, 'utf8'))
+    } catch (e) {
+      logger.warn(`Error loading '${fontManifestFile}': ${e.message}`)
+      return
+    }
+
+    if (!Array.isArray(fontManifest)) {
+      logger.warn(`Expected array from '${fontManifestFile}'`)
+      return
+    }
+
+    for (const entry of fontManifest) {
+      if (typeof entry.src === 'string' && !isAbsolute(entry.src)) {
+        entry.src = normalize(join(LSE_FONT_PATH, entry.src))
+      }
+    }
+  } else if (LSE_ENV !== 'lse-node') {
+    // If LSE_FONT_PATH is NOT set and the environment is NOT lse-node, load the specific
+    // "builtin" ttf. This is to cover the use case of running from the mono repo or an
+    // project that installs @lse/core from npm.
+    fontManifest = [
+      {
+        src: join(dirname(fileURLToPath(import.meta.url)), 'Roboto-Regular.ttf'),
+        family: 'roboto-builtin'
+      }
+    ]
+  }
+
+  for (const spec of fontManifest) {
+    try {
+      self.add(spec)
+    } catch (e) {
+      logger.warn(`font.manifest contains invalid spec: ${spec.src}`)
+    }
   }
 }

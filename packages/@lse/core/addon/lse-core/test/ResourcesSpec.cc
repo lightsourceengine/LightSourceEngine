@@ -14,7 +14,6 @@ using Napi::TestSuite;
 namespace lse {
 
 static const char* kImageFile = "image.png";
-static const char* kFontFile = "font.ttf";
 static Resources resources;
 
 void ResourcesSpec(TestSuite* parent) {
@@ -36,43 +35,6 @@ void ResourcesSpec(TestSuite* parent) {
           "should return false if image does not exist",
           [](const TestInfo&) {
             Assert::IsFalse(resources.HasImage(kImageFile));
-          },
-      }
-  };
-
-  spec->Describe("HasFontFace()")->tests = {
-      {
-          "should return true if font face exists",
-          [](const TestInfo&) {
-            resources.AcquireFontFace(kFontFile);
-            Assert::IsTrue(resources.HasFontFace(kFontFile));
-          }
-      },
-      {
-          "should return false if font face does not exist",
-          [](const TestInfo&) {
-            Assert::IsFalse(resources.HasFontFace(kFontFile));
-          },
-      }
-  };
-
-  spec->Describe("AcquireFontFace()")->tests = {
-      {
-          "should return a new font face",
-          [](const TestInfo&) {
-            auto fontFace = resources.AcquireFontFace(kFontFile);
-
-            Assert::IsNotNull(fontFace);
-            Assert::Equal(fontFace->GetTag(), kFontFile);
-            Assert::IsTrue(resources.HasFontFace(kFontFile));
-          }
-      },
-      {
-          "should return an existing font face",
-          [](const TestInfo&) {
-            auto fontFace = resources.AcquireFontFace(kFontFile);
-
-            Assert::Equal(resources.AcquireFontFace(kFontFile), fontFace);
           },
       }
   };
@@ -116,22 +78,6 @@ void ResourcesSpec(TestSuite* parent) {
           }
       },
       {
-          "should delete font face",
-          [](const TestInfo&) {
-            auto fontFace = resources.AcquireFontFace(kFontFile);
-
-            Assert::IsTrue(resources.HasFontFace(kFontFile));
-
-            auto resource = fontFace.get();
-
-            fontFace = nullptr;
-
-            resources.ReleaseResource(resource, true);
-
-            Assert::IsFalse(resources.HasFontFace(kFontFile));
-          },
-      },
-      {
           "should be a no-op when resource is nullptr",
           [](const TestInfo&) {
             resources.ReleaseResource(nullptr, true);
@@ -145,20 +91,15 @@ void ResourcesSpec(TestSuite* parent) {
           "should defer resource delete to Compact()",
           [](const TestInfo&) {
             auto image = resources.AcquireImage(kImageFile);
-            auto fontFace = resources.AcquireFontFace(kFontFile);
             auto imageResource = image.get();
-            auto fontFaceResource = fontFace.get();
 
-            image = nullptr;
-            fontFace = nullptr;
+            image.reset();
 
             resources.ReleaseResource(imageResource, false);
-            resources.ReleaseResource(fontFaceResource, false);
 
             resources.Compact();
 
             Assert::IsFalse(resources.HasImage(kImageFile));
-            Assert::IsFalse(resources.HasFontFace(kFontFile));
           }
       }
   };

@@ -19,7 +19,6 @@
 #include <lse/BoxSceneNode.h>
 #include <lse/ImageSceneNode.h>
 #include <lse/TextSceneNode.h>
-#include <lse/LinkSceneNode.h>
 #include <lse/Timer.h>
 #include <lse/yoga-ext.h>
 #include <napix.h>
@@ -381,8 +380,6 @@ SceneNode* SceneNode::QueryInterface(Napi::Value value) {
     return ImageSceneNode::Cast(value);
   } else if (object.InstanceOf(TextSceneNode::GetClass(env))) {
     return TextSceneNode::Cast(value);
-  } else if (object.InstanceOf(LinkSceneNode::GetClass(env))) {
-    return LinkSceneNode::Cast(value);
   } else if (object.InstanceOf(RootSceneNode::GetClass(env))) {
     return RootSceneNode::Cast(value);
   }

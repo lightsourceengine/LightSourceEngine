@@ -11,7 +11,6 @@
 
 #include <lse/BoxSceneNode.h>
 #include <lse/ImageSceneNode.h>
-#include <lse/LinkSceneNode.h>
 #include <lse/RootSceneNode.h>
 #include <lse/TextSceneNode.h>
 #include <lse/bindings/JSStyleTransformSpec.h>

@@ -6,7 +6,7 @@
 
 import chai from 'chai'
 import sinon from 'sinon'
-import { BoxSceneNode, TextSceneNode, ImageSceneNode, LinkSceneNode, RootSceneNode } from '../../src/scene/SceneNode.js'
+import { BoxSceneNode, TextSceneNode, ImageSceneNode, RootSceneNode } from '../../src/scene/SceneNode.js'
 import { afterSceneTest, beforeSceneTest } from '../test-env.js'
 
 const { assert } = chai
@@ -27,8 +27,7 @@ describe('Scene', () => {
         ['div', BoxSceneNode],
         ['box', BoxSceneNode],
         ['text', TextSceneNode],
-        ['img', ImageSceneNode],
-        ['link', LinkSceneNode]
+        ['img', ImageSceneNode]
       ]
 
       for (const [tag, cls] of inputs) {
