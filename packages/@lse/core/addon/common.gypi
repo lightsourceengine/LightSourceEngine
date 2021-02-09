@@ -8,7 +8,6 @@
   ],
   "cflags_cc+": [
     "-std=gnu++14",
-    "-flto",
     "-fvisibility=hidden",
     "-fvisibility-inlines-hidden",
     "-ffunction-sections",
