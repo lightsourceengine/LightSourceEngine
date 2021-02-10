@@ -22,10 +22,29 @@
 namespace lse {
 namespace bindings {
 
-Napi::Value ParseColor(const Napi::CallbackInfo& info) {
-  auto env{ info.Env() };
+static Style* GetStyle(napi_env env, napi_value value) noexcept {
+  Style* style{};
 
-  return BoxColor(env, UnboxColor(env, info[0]));
+  if (Habitat::InstanceOf(env, value, Habitat::Class::CStyle)) {
+    style = napix::unwrap_as<Style>(env, value);
+  }
+
+  NAPIX_EXPECT_NOT_NULL(env, style, "Expected a Style instance", {})
+
+  return style;
+}
+
+napi_value ParseColor(napi_env env, napi_callback_info info) noexcept {
+  auto ci{napix::get_callback_info<1>(env, info)};
+
+  return BoxColor(env, UnboxColor(env, ci[0]));
+}
+
+napi_value ParseValue(napi_env env, napi_callback_info info) noexcept {
+  auto ci{napix::get_callback_info<1>(env, info)};
+  auto styleValue{ UnboxStyleValue(env, ci[0])};
+
+  return BoxStyleValue(env, styleValue.value_or(StyleValue::OfUndefined()));
 }
 
 napi_value LoadSDLPlugin(napi_env env, napi_callback_info) noexcept {
@@ -66,15 +85,11 @@ Napi::Value LoadSDLMixerPlugin(const Napi::CallbackInfo& info) {
 
 napi_value LockStyle(napi_env env, napi_callback_info info) noexcept {
   auto ci{napix::get_callback_info<1>(env, info)};
-  Style* style{};
+  auto style{GetStyle(env, ci[0])};
 
-  if (Habitat::InstanceOf(env, ci[0], Habitat::Class::CStyle)) {
-    style = napix::unwrap_as<Style>(env, ci[0]);
+  if (style) {
+    style->Lock();
   }
-
-  NAPIX_EXPECT_NOT_NULL(env, style, "Not a Style instance.", {})
-
-  style->Lock();
 
   return {};
 }
@@ -106,25 +121,29 @@ napi_value SetStyleParent(napi_env env, napi_callback_info info) noexcept {
 
 napi_value ResetStyle(napi_env env, napi_callback_info info) noexcept {
   auto ci{napix::get_callback_info<1>(env, info)};
-  Style* style{};
+  auto style{GetStyle(env, ci[0])};
 
-  if (Habitat::InstanceOf(env, ci[0], Habitat::Class::CStyle)) {
-    style = napix::unwrap_as<Style>(env, ci[0]);
+  if (style) {
+    style->Reset();
   }
-
-  NAPIX_EXPECT_TRUE(env, style && !style->IsLocked(), "arg is not a Style instance.", {})
-
-  style->Reset();
 
   return {};
 }
 
 napi_value InstallStyleValue(napi_env env, napi_callback_info info) noexcept {
-  return {};
+  auto ci{napix::get_callback_info<1>(env, info)};
+
+  return Habitat::SetClass(env, Habitat::Class::StyleValue, ci[0]);
 }
 
 napi_value InstallStyleTransformSpec(napi_env env, napi_callback_info info) noexcept {
-  return {};
+  auto ci{napix::get_callback_info<1>(env, info)};
+
+  return Habitat::SetClass(env, Habitat::Class::StyleTransformSpec, ci[0]);
+}
+
+napi_value GetSceneNodeInstanceCount(napi_env env, napi_callback_info info) noexcept {
+  return napix::to_value(env, SceneNode::GetInstanceCount());
 }
 
 } // namespace bindings

@@ -34,8 +34,6 @@ export const {
   CScene,
   CStyle,
   CFontManager,
-  StyleTransformSpec,
-  StyleValue,
   BoxSceneNode:BoxSceneNodeBase,
   ImageSceneNode:ImageSceneNodeBase,
   RootSceneNode:RootSceneNodeBase,
@@ -58,6 +56,7 @@ export const {
   logger,
   getSceneNodeInstanceCount,
   parseColor,
+  parseValue,
   lockStyle,
   resetStyle,
   setStyleParent,
@@ -65,4 +64,6 @@ export const {
   loadRefPlugin,
   loadSDLAudioPlugin,
   loadSDLMixerPlugin,
+  installStyleValue,
+  installStyleTransformSpec
 } = addon

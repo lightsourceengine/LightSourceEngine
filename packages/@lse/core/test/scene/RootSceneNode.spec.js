@@ -16,6 +16,7 @@ describe('RootSceneNode', () => {
   beforeEach(() => { scene = beforeSceneTest() })
   afterEach(() => {
     node && node.destroy()
+    node = null
     scene = afterSceneTest()
   })
   describe('constructor()', () => {
@@ -28,7 +29,7 @@ describe('RootSceneNode', () => {
   describe('style property', () => {
     it('should be empty after constructor', () => {
       node = new RootSceneNode(scene)
-      assert.isUndefined(node.style.fontSize[0])
+      assert.isTrue(node.style.fontSize.isUndefined())
     })
   })
 })

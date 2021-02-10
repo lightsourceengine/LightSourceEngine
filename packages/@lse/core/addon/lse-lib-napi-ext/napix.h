@@ -139,6 +139,7 @@ bool has_pending_exception(napi_env env) noexcept;
  * Creates a js value from a primitive. If the creation fails, nullptr is returned.
  */
 napi_value to_value_or_null(napi_env env, int32_t value) noexcept;
+napi_value to_value_or_null(napi_env env, uint32_t value) noexcept;
 napi_value to_value_or_null(napi_env env, bool value) noexcept;
 napi_value to_value_or_null(napi_env env, float value) noexcept;
 napi_value to_value_or_null(napi_env env, const char* value) noexcept;
@@ -147,6 +148,7 @@ napi_value to_value_or_null(napi_env env, const char* value) noexcept;
  * Creates a js value from a primitive. If the creation fails, a js exception is thrown.
  */
 napi_value to_value(napi_env env, int32_t value) noexcept;
+napi_value to_value(napi_env env, uint32_t value) noexcept;
 napi_value to_value(napi_env env, bool value) noexcept;
 napi_value to_value(napi_env env, float value) noexcept;
 napi_value to_value(napi_env env, const char* value) noexcept;
@@ -155,7 +157,9 @@ napi_value to_value(napi_env env, const std::string& value) noexcept;
 napix::buffer_info as_buffer(napi_env env, napi_value value) noexcept;
 
 int32_t as_int32(napi_env env, napi_value value, int32_t defaultValue) noexcept;
+int32_t as_uint32(napi_env env, napi_value value, uint32_t defaultValue) noexcept;
 bool as_bool(napi_env env, napi_value value, bool defaultValue) noexcept;
+float as_float(napi_env env, napi_value value, float defaultValue) noexcept;
 
 /**
  * Convert a js string to a native utf8 string.
@@ -203,8 +207,12 @@ std::shared_ptr<T> get_external_shared(napi_env env, napi_value external) noexce
 napi_value object_new(napi_env env, const std::initializer_list<napi_property_descriptor>& props) noexcept;
 
 int32_t object_get_or(napi_env env, napi_value value, const char* prop, int32_t defaultValue) noexcept;
-
+float object_get_or(napi_env env, napi_value value, const char* prop, float defaultValue) noexcept;
 bool object_get_or(napi_env env, napi_value value, const char* prop, bool defaultValue) noexcept;
+
+napi_value object_at(napi_env env, napi_value value, uint32_t index) noexcept;
+int32_t object_at_or(napi_env env, napi_value value, uint32_t index, int32_t defaultValue) noexcept;
+float object_at_or(napi_env env, napi_value value, uint32_t index, float defaultValue) noexcept;
 
 napi_value array_new(napi_env env, size_t length = 0) noexcept;
 
@@ -213,6 +221,8 @@ napi_value array_from(napi_env env, Iterable iterable, napi_value(*toValue)(napi
 
 bool is_nullish(napi_env env, napi_value value) noexcept;
 bool is_function(napi_env env, napi_value value) noexcept;
+bool is_string(napi_env env, napi_value value) noexcept;
+bool is_number(napi_env env, napi_value value) noexcept;
 
 namespace js_class {
 

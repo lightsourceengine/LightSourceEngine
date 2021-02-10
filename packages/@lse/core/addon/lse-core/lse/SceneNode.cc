@@ -54,8 +54,8 @@ void SceneNode::SceneNodeConstructor(const Napi::CallbackInfo& info) {
   instanceCount++;
 }
 
-Value SceneNode::GetInstanceCount(const CallbackInfo& info) {
-  return Number::New(info.Env(), instanceCount);
+int32_t SceneNode::GetInstanceCount() noexcept {
+  return SceneNode::instanceCount;
 }
 
 Value SceneNode::GetX(const CallbackInfo& info) {

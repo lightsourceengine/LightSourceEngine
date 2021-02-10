@@ -7,16 +7,20 @@
 
 #pragma once
 
-#include <napi-ext.h>
+#include <node_api.h>
 #include <lse/Style.h>
 
 namespace lse {
 namespace bindings {
 
-Napi::Value BoxColor(const Napi::Env& env, const std17::optional<color_t>& color);
+napi_value BoxColor(napi_env env, const std17::optional<color_t>& color) noexcept;
+std17::optional<color_t> UnboxColor(napi_env env, napi_value value) noexcept;
 
-std17::optional<color_t> UnboxColor(const Napi::Env& env, const Napi::Value& value);
-std17::optional<StyleValue> UnboxStyleValue(const Napi::Env& env, const Napi::Value& value);
+napi_value BoxStyleValue(napi_env env, const StyleValue& value) noexcept;
+std17::optional<StyleValue> UnboxStyleValue(napi_env env, napi_value value) noexcept;
+
+napi_value BoxStyleTransformSpec(napi_env env, const std::vector<StyleTransformSpec>& transform) noexcept;
+std::vector<StyleTransformSpec> UnboxStyleTransformSpec(napi_env env, napi_value value) noexcept;
 
 napi_value StyleGetter(napi_env env, Style* style, StyleProperty property);
 void StyleSetter(napi_env env, Style* style, StyleProperty property, napi_value value);

@@ -21,10 +21,11 @@ std::string& ToLowercase(std::string& str) noexcept {
 
 char* ToLowercase(char* str) noexcept {
   if (str) {
-    size_t len = strlen(str);
+    char* current = str;
 
-    for (size_t i = 0; i < len; i++) {
-      str[i] = static_cast<char>(::tolower(str[i]));
+    while (*current != '\0') {
+      *current = static_cast<char>(::tolower(*current));
+      current++;
     }
   }
 

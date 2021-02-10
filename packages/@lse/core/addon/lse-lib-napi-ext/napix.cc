@@ -58,6 +58,11 @@ napi_value to_value_or_null(napi_env env, int32_t value) noexcept {
   return napi_create_int32(env, value, &v) == napi_ok ? v : nullptr;
 }
 
+napi_value to_value_or_null(napi_env env, uint32_t value) noexcept {
+  napi_value v;
+  return napi_create_uint32(env, value, &v) == napi_ok ? v : nullptr;
+}
+
 napi_value to_value_or_null(napi_env env, bool value) noexcept {
   napi_value v;
   return napi_get_boolean(env, value, &v) == napi_ok ? v : nullptr;
@@ -84,6 +89,17 @@ napi_value to_value(napi_env env, int32_t value) noexcept {
 
   if (status != napi_ok) {
     return throw_error(env, status, "napi_create_int32");
+  }
+
+  return v;
+}
+
+napi_value to_value(napi_env env, uint32_t value) noexcept {
+  napi_value v;
+  napi_status status = napi_create_uint32(env, value, &v);
+
+  if (status != napi_ok) {
+    return throw_error(env, status, "napi_create_uint32");
   }
 
   return v;
@@ -150,6 +166,16 @@ int32_t as_int32(napi_env env, napi_value value, int32_t defaultValue) noexcept 
   return v;
 }
 
+int32_t as_uint32(napi_env env, napi_value value, uint32_t defaultValue) noexcept {
+  uint32_t v;
+
+  if (napi_get_value_uint32(env, value, &v) != napi_ok) {
+    return defaultValue;
+  }
+
+  return v;
+}
+
 bool as_bool(napi_env env, napi_value value, bool defaultValue) noexcept {
   bool v;
 
@@ -158,6 +184,16 @@ bool as_bool(napi_env env, napi_value value, bool defaultValue) noexcept {
   }
 
   return v;
+}
+
+float as_float(napi_env env, napi_value value, float defaultValue) noexcept {
+  double v;
+
+  if (napi_get_value_double(env, value, &v) != napi_ok) {
+    return defaultValue;
+  }
+
+  return static_cast<float>(v);
 }
 
 std::string as_string_utf8(napi_env env, napi_value str) noexcept {
@@ -233,6 +269,30 @@ int32_t object_get_or(napi_env env, napi_value value, const char* prop, int32_t 
   return as_int32(env, v, defaultValue);
 }
 
+float object_get_or(napi_env env, napi_value value, const char* prop, float defaultValue) noexcept {
+  napi_value v{};
+
+  napi_get_named_property(env, value, prop, &v);
+
+  return as_float(env, v, defaultValue);
+}
+
+napi_value object_at(napi_env env, napi_value value, uint32_t index) noexcept {
+  napi_value v{};
+
+  napi_get_element(env, value, index, &v);
+
+  return v;
+}
+
+int32_t object_at_or(napi_env env, napi_value value, uint32_t index, int32_t defaultValue) noexcept {
+  return as_int32(env, object_at(env, value, index), defaultValue);
+}
+
+float object_at_or(napi_env env, napi_value value, uint32_t index, float defaultValue) noexcept {
+  return as_float(env, object_at(env, value, index), defaultValue);
+}
+
 bool object_get_or(napi_env env, napi_value value, const char* prop, bool defaultValue) noexcept {
   napi_value v{};
 
@@ -267,6 +327,16 @@ bool is_nullish(napi_env env, napi_value value) noexcept {
 bool is_function(napi_env env, napi_value value) noexcept {
   napi_valuetype type{};
   return (napi_typeof(env, value, &type) == napi_ok && type == napi_function);
+}
+
+bool is_string(napi_env env, napi_value value) noexcept {
+  napi_valuetype type{};
+  return (napi_typeof(env, value, &type) == napi_ok && type == napi_string);
+}
+
+bool is_number(napi_env env, napi_value value) noexcept {
+  napi_valuetype type{};
+  return (napi_typeof(env, value, &type) == napi_ok && type == napi_number);
 }
 
 namespace js_class {

@@ -84,8 +84,6 @@
         "lse/bindings/CStyle.cc",
         "lse/bindings/CStyleUtil.cc",
         "lse/bindings/Init.cc",
-        "lse/bindings/JSStyleTransformSpec.cc",
-        "lse/bindings/JSStyleValue.cc",
       ],
       "conditions": [
         [

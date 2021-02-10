@@ -27,6 +27,8 @@ class Habitat {
       CScene,
       CStyle,
       CGraphicsContext,
+      StyleValue,
+      StyleTransformSpec,
       Count
     };
   };

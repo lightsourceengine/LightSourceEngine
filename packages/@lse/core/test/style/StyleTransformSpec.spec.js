@@ -5,9 +5,13 @@
  */
 
 import chai from 'chai'
-import { StyleUnit, StyleTransformSpec, StyleTransform, StyleValue } from '../../src/addon/index.js'
+import { StyleTransform } from '../../src/addon/index.js'
+import { StyleTransformSpec } from '../../src/style/StyleTransformSpec.js'
+import { StyleValue } from '../../src/style/StyleValue.js'
 
 const { assert } = chai
+
+const invalidStyleValues = ['test', '', {}, [], null, undefined]
 
 // StyleTransformSpec defined in JSStyleTransformSpec.cc
 describe('StyleTransformSpec', () => {
@@ -16,92 +20,179 @@ describe('StyleTransformSpec', () => {
       const xform = new StyleTransformSpec(StyleTransform.Identity)
 
       assert.equal(xform.transform, StyleTransform.Identity)
-      assert.isUndefined(xform.x)
-      assert.isUndefined(xform.y)
-      assert.isUndefined(xform.angle)
-      assert.isFalse(xform.isUndefined())
+      assert.isTrue(xform.isIdentity())
+      assert.isNaN(xform.x)
+      assert.isNaN(xform.y)
+      assert.isNaN(xform.angle)
       assert.isFrozen(xform)
     })
     it('should construct a rotate StyleTransformSpec', () => {
-      const xform = new StyleTransformSpec(StyleTransform.Rotate, new StyleValue(90, StyleUnit.Degree))
+      const xform = new StyleTransformSpec(StyleTransform.Rotate, StyleValue.of('90deg'))
 
       assert.equal(xform.transform, StyleTransform.Rotate)
-      assert.isUndefined(xform.x)
-      assert.isUndefined(xform.y)
-      assert.deepEqual(xform.angle, { value: 90, unit: StyleUnit.Degree })
-      assert.isFalse(xform.isUndefined())
+      assert.isTrue(xform.isRotate())
+      assert.isNaN(xform.x)
+      assert.isNaN(xform.y)
+      assert.deepEqual(xform.angle, StyleValue.of('90deg'))
       assert.isFrozen(xform)
     })
     it('should construct a translate StyleTransformSpec', () => {
-      const xform = new StyleTransformSpec(StyleTransform.Translate,
-        new StyleValue(10, StyleUnit.Point), new StyleValue(15, StyleUnit.Point))
+      const xform = new StyleTransformSpec(StyleTransform.Translate, StyleValue.of(10), StyleValue.of(15))
 
       assert.equal(xform.transform, StyleTransform.Translate)
-      assert.deepEqual(xform.x, { value: 10, unit: StyleUnit.Point })
-      assert.deepEqual(xform.y, { value: 15, unit: StyleUnit.Point })
-      assert.isUndefined(xform.angle)
-      assert.isFalse(xform.isUndefined())
+      assert.isTrue(xform.isTranslate())
+      assert.deepEqual(xform.x, StyleValue.of(10))
+      assert.deepEqual(xform.y, StyleValue.of(15))
+      assert.isNaN(xform.angle)
       assert.isFrozen(xform)
     })
     it('should construct a scale StyleTransformSpec', () => {
-      const xform = new StyleTransformSpec(StyleTransform.Scale,
-        new StyleValue(10, StyleUnit.Point), new StyleValue(15, StyleUnit.Point))
+      const xform = new StyleTransformSpec(StyleTransform.Scale, StyleValue.of(10), StyleValue.of(15))
 
       assert.equal(xform.transform, StyleTransform.Scale)
-      assert.deepEqual(xform.x, { value: 10, unit: StyleUnit.Point })
-      assert.deepEqual(xform.y, { value: 15, unit: StyleUnit.Point })
-      assert.isUndefined(xform.angle)
-      assert.isFalse(xform.isUndefined())
+      assert.isTrue(xform.isScale())
+      assert.deepEqual(xform.x, StyleValue.of(10))
+      assert.deepEqual(xform.y, StyleValue.of(15))
+      assert.isNaN(xform.angle)
       assert.isFrozen(xform)
     })
-    it('should construct an undefined StyleTransformSpec', () => {
-      const xform = new StyleTransformSpec()
-
-      assert.equal(xform.transform, -1)
-      assert.isUndefined(xform.x)
-      assert.isUndefined(xform.y)
-      assert.isUndefined(xform.angle)
-      assert.isTrue(xform.isUndefined())
-      assert.isFrozen(xform)
+    it('should throw error when no arguments', () => {
+      assert.throws(() => new StyleTransformSpec())
     })
-  })
-  describe('validate()', () => {
-    it('should return true for a rotate transform', () => {
-      const spec = new StyleTransformSpec(StyleTransform.Rotate, StyleValue.of(90))
-
-      assert.isTrue(StyleTransformSpec.validate(spec))
+    it('should throw error when transform is invalid', () => {
+      for (const input of [[-1, 999, NaN, '', {}, [], null, undefined]]) {
+        assert.throws(() => new StyleTransformSpec(input))
+      }
+    })
+    it('should throw error when rotate has no angle', () => {
+      assert.throws(() => new StyleTransformSpec(StyleTransform.ROTATE))
+    })
+    it('should throw error when rotate angle is invalid', () => {
+      for (const value of invalidStyleValues) {
+        assert.throws(() => new StyleTransformSpec(StyleTransform.ROTATE, value))
+      }
+    })
+    it('should throw error when translate is missing args', () => {
+      assert.throws(() => new StyleTransformSpec(StyleTransform.TRANSLATE))
+    })
+    it('should throw error when translate is missing y arg', () => {
+      assert.throws(() => new StyleTransformSpec(StyleTransform.TRANSLATE, StyleValue.of(10)))
+    })
+    it('should throw error when translate args are invalid', () => {
+      for (const value of invalidStyleValues) {
+        assert.throws(() => new StyleTransformSpec(StyleTransform.TRANSLATE, value, value))
+      }
+    })
+    it('should throw error when scale is missing args', () => {
+      assert.throws(() => new StyleTransformSpec(StyleTransform.SCALE))
+    })
+    it('should throw error when scale is missing y arg', () => {
+      assert.throws(() => new StyleTransformSpec(StyleTransform.SCALE, StyleValue.of(10)))
+    })
+    it('should throw error when scale args are invalid', () => {
+      for (const value of invalidStyleValues) {
+        assert.throws(() => new StyleTransformSpec(StyleTransform.SCALE, value, value))
+      }
     })
   })
   describe('rotate()', () => {
-    it('should return rotate transform', () => {
+    it('should return rotate transform for number angle', () => {
+      const spec = StyleTransformSpec.rotate(90)
+
+      assert.isTrue(spec.isRotate())
+    })
+    it('should return rotate transform for StyleValue angle', () => {
       const spec = StyleTransformSpec.rotate(StyleValue.of(90))
 
-      assert.equal(spec.transform, StyleTransform.Rotate)
-      assert.isTrue(StyleTransformSpec.validate(spec))
+      assert.isTrue(spec.isRotate())
+    })
+    it('should return undefined when no angle is passed', () => {
+      assert.isUndefined(StyleTransformSpec.rotate())
+    })
+    it('should return undefined when angle is an unsupported unit', () => {
+      assert.isUndefined(StyleTransformSpec.rotate(StyleValue.of('1rem')))
+    })
+    it('should return undefined when passed an invalid angle', () => {
+      for (const value of invalidStyleValues) {
+        assert.isUndefined(StyleTransformSpec.rotate(StyleValue.of(value)))
+      }
     })
   })
   describe('translate()', () => {
-    it('should return translate transform', () => {
-      const spec = StyleTransformSpec.translate(StyleValue.of(1), StyleValue.of(2))
+    it('should return translate transform for x,y', () => {
+      const spec = StyleTransformSpec.translate(10, 11)
 
-      assert.equal(spec.transform, StyleTransform.Translate)
-      assert.isTrue(StyleTransformSpec.validate(spec))
+      assert.isTrue(spec.isTranslate())
+      assert.deepEqual(spec.x, StyleValue.of(10))
+      assert.deepEqual(spec.y, StyleValue.of(11))
+    })
+    it('should return translate transform for x,y as StyleValue', () => {
+      const spec = StyleTransformSpec.translate(StyleValue.of(10), StyleValue.of(11))
+
+      assert.isTrue(spec.isTranslate())
+      assert.deepEqual(spec.x, StyleValue.of(10))
+      assert.deepEqual(spec.y, StyleValue.of(11))
+    })
+    it('should return undefined when no x or y is passed', () => {
+      assert.isUndefined(StyleTransformSpec.translate())
+    })
+    it('should return undefined when no y is passed', () => {
+      assert.isUndefined(StyleTransformSpec.translate(10))
+    })
+    it('should return undefined when x,y is an unsupported unit', () => {
+      assert.isUndefined(StyleTransformSpec.translate(StyleValue.of('1grad'), StyleValue.of('1grad')))
+    })
+    it('should return undefined when passed an invalid x', () => {
+      for (const value of invalidStyleValues) {
+        assert.isUndefined(StyleTransformSpec.translate(StyleValue.of(value), 11))
+      }
+    })
+    it('should return undefined when passed an invalid y', () => {
+      for (const value of invalidStyleValues) {
+        assert.isUndefined(StyleTransformSpec.translate(11, StyleValue.of(value)))
+      }
     })
   })
   describe('scale()', () => {
-    it('should return scale transform', () => {
-      const spec = StyleTransformSpec.scale(StyleValue.of(1), StyleValue.of(2))
+    it('should return scale transform for x,y', () => {
+      const spec = StyleTransformSpec.scale(2, 3)
 
-      assert.equal(spec.transform, StyleTransform.Scale)
-      assert.isTrue(StyleTransformSpec.validate(spec))
+      assert.isTrue(spec.isScale())
+      assert.deepEqual(spec.x, StyleValue.of(2))
+      assert.deepEqual(spec.y, StyleValue.of(3))
+    })
+    it('should return scale transform for x,y as StyleValue', () => {
+      const spec = StyleTransformSpec.scale(StyleValue.of(2), StyleValue.of(3))
+
+      assert.isTrue(spec.isScale())
+      assert.deepEqual(spec.x, StyleValue.of(2))
+      assert.deepEqual(spec.y, StyleValue.of(3))
+    })
+    it('should return undefined when no x or y is passed', () => {
+      assert.isUndefined(StyleTransformSpec.scale())
+    })
+    it('should return undefined when no y is passed', () => {
+      assert.isUndefined(StyleTransformSpec.scale(10))
+    })
+    it('should return undefined when x,y is an unsupported unit', () => {
+      assert.isUndefined(StyleTransformSpec.scale(StyleValue.of('1grad'), StyleValue.of('1grad')))
+    })
+    it('should return undefined when passed an invalid x', () => {
+      for (const value of invalidStyleValues) {
+        assert.isUndefined(StyleTransformSpec.scale(StyleValue.of(value), 11))
+      }
+    })
+    it('should return undefined when passed an invalid y', () => {
+      for (const value of invalidStyleValues) {
+        assert.isUndefined(StyleTransformSpec.scale(11, StyleValue.of(value)))
+      }
     })
   })
   describe('identity()', () => {
     it('should return identity transform', () => {
       const spec = StyleTransformSpec.identity()
 
-      assert.equal(spec.transform, StyleTransform.Identity)
-      assert.isTrue(StyleTransformSpec.validate(spec))
+      assert.isTrue(spec.isIdentity())
     })
   })
 })

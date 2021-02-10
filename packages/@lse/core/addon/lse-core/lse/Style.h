@@ -22,8 +22,26 @@ namespace lse {
  * Number Style property value. Wraps a float value with a unit type.
  */
 struct StyleValue {
-  StyleNumberUnit unit{ StyleNumberUnitUndefined };
   float value{ kUndefined };
+  StyleNumberUnit unit{ StyleNumberUnitUndefined };
+
+  StyleValue() = default;
+
+  StyleValue(float value, StyleNumberUnit unit) : value(value), unit(unit) {
+    if (std::isnan(value)) {
+      this->value = kUndefined;
+      this->unit = StyleNumberUnitUndefined;
+    }
+  }
+
+  StyleValue(float value, int32_t unit) : value(value) {
+    if (!IsEnum<StyleNumberUnit>(unit) || std::isnan(value)) {
+      this->value = kUndefined;
+      this->unit = StyleNumberUnitUndefined;
+    }
+
+    this->unit = static_cast<StyleNumberUnit>(unit);
+  }
 
   bool IsUndefined() const noexcept {
     return this->unit == StyleNumberUnitUndefined;
@@ -34,7 +52,7 @@ struct StyleValue {
   }
 
   static StyleValue OfAuto() noexcept {
-    return { StyleNumberUnitAuto, 0 };
+    return { 0, StyleNumberUnitAuto };
   }
 
   static StyleValue OfUndefined() noexcept {
@@ -42,11 +60,11 @@ struct StyleValue {
   }
 
   static StyleValue OfPoint(float value) noexcept {
-    return { StyleNumberUnitPoint, value };
+    return { value, StyleNumberUnitPoint };
   }
 
   static StyleValue OfAnchor(StyleAnchor anchor) noexcept {
-    return { StyleNumberUnitAnchor, static_cast<float>(anchor) };
+    return { static_cast<float>(anchor), StyleNumberUnitAnchor };
   }
 };
 

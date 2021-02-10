@@ -5,7 +5,7 @@
  */
 
 import chai from 'chai'
-import { StyleUnit, StyleTransform, StyleTransformSpec } from '../../src/addon/index.js'
+import { StyleUnit, StyleTransform } from '../../src/addon/index.js'
 import {
   translate,
   scale,
@@ -23,6 +23,7 @@ import {
   getScaleX,
   getScaleY
 } from '../../src/style/transform.js'
+import { StyleTransformSpec } from '../../src/style/StyleTransformSpec.js'
 
 const { assert } = chai
 

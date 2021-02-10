@@ -7,19 +7,25 @@
 
 #include <lse/bindings/CStyleUtil.h>
 
-#include <napi-ext.h>
+#include <napi.h>
+#include <napix.h>
 #include <lse/StyleValidator.h>
-#include <lse/bindings/JSStyleValue.h>
-#include <lse/bindings/JSStyleTransformSpec.h>
 #include <lse/string-ext.h>
+#include <lse/Habitat.h>
 #include <lse/CStringHashMap.h>
-
-using Napi::Number;
-using Napi::Object;
-using Napi::String;
 
 namespace lse {
 namespace bindings {
+
+constexpr auto kStyleValueUndefinedObjectIndex = 0;
+constexpr auto kStyleValueValueIndex = 0;
+constexpr auto kStyleValueUnitIndex = 1;
+
+constexpr auto kStyleTransformSpecUndefinedObjectIndex = 0;
+constexpr auto kStyleTransformSpecTransformIndex = 0;
+constexpr auto kStyleTransformSpecXIndex = 1;
+constexpr auto kStyleTransformSpecYIndex = 2;
+constexpr auto kStyleTransformSpecAngleIndex = 3;
 
 static std17::optional<color_t> ParseHexHashColorString(const char* str) noexcept;
 static std17::optional<StyleValue> ParseStyleNumberString(const char* value) noexcept;
@@ -191,24 +197,35 @@ static CStringHashMap<uint32_t> sColorMap{
   { "transparent", 0 },
 };
 
-Napi::Value BoxColor(const Napi::Env& env, const std17::optional<color_t>& color) {
+napi_value BoxColor(napi_env env, const std17::optional<color_t>& color) noexcept {
   if (color.has_value()) {
-    return Napi::Number::New(env, color->value);
+    return napix::to_value(env, color->value);
   } else {
-    return env.Undefined();
+    return {};
   }
 }
 
-std17::optional<color_t> UnboxColor(const Napi::Env& env, const Napi::Value& value) {
-  switch (value.Type()) {
-    case napi_string: {
-      // 256 bytes is more than enough space for the longest css color name and # colors
-      char* str = Napi::CopyUtf8(value);
+std17::optional<color_t> UnboxColor(napi_env env, napi_value value) noexcept {
+  napi_valuetype type{};
+  napi_typeof(env, value, &type);
 
-      if (str[0] == '#') {
-        return ParseHexHashColorString(ToLowercase(str));
+  switch (type) {
+    case napi_string: {
+      // 24 bytes is more than enough space for the longest css color name and # colors
+      static constexpr size_t kBufferSize{24};
+      char buffer[kBufferSize];
+
+      if (napi_get_value_string_utf8(env, value, buffer, kBufferSize, nullptr) != napi_ok) {
+        return {};
+      }
+
+      // no utf8 encoded strings in valid css color or hex strings, so this simple tolower is sufficient
+      ToLowercase(buffer);
+
+      if (buffer[0] == '#') {
+        return ParseHexHashColorString(buffer);
       } else {
-        auto it{ sColorMap.find(ToLowercase(str)) };
+        auto it{ sColorMap.find(buffer) };
 
         if (it != sColorMap.end()) {
           return { it->second };
@@ -218,35 +235,213 @@ std17::optional<color_t> UnboxColor(const Napi::Env& env, const Napi::Value& val
       }
     }
     case napi_number:
-      return { value.As<Number>().Uint32Value() };
+      return { napix::as_uint32(env, value, 0) };
     default:
       return {};
   }
 }
 
-std17::optional<StyleValue> UnboxStyleValue(const Napi::Env& env, const Napi::Value& value) {
-  switch (value.Type()) {
-    case napi_string:
-      return ParseStyleNumberString(ToLowercase(Napi::CopyUtf8(value)));
-    case napi_number: {
-      const float floatValue{ value.As<Number>() };
+napi_value BoxStyleValue(napi_env env, const StyleValue& value) noexcept {
+  auto constructor{Habitat::GetClass(env, Habitat::Class::StyleValue)};
 
-      if (std::isnan(floatValue)) {
+  if (!constructor) {
+    return {};
+  }
+
+  if (value.IsUndefined()) {
+    napi_value undefined{};
+    napi_get_element(env, constructor, kStyleValueUndefinedObjectIndex, &undefined);
+
+    return undefined;
+  }
+
+  napi_value instance{};
+  static constexpr size_t argc{2};
+  napi_value argv[argc]{
+    napix::to_value_or_null(env, value.value),
+    napix::to_value_or_null(env, value.unit)
+  };
+
+  napi_new_instance(env, constructor, argc, argv, &instance);
+
+  return instance;
+}
+
+std17::optional<StyleValue> UnboxStyleValue(napi_env env, napi_value value) noexcept {
+  bool isArray{};
+
+  // use case: style.prop = otherStyle.prop
+  // use case: style.prop = [ 100, StyleUnit.POINT ]
+  if (Habitat::InstanceOf(env, value, Habitat::Class::StyleValue)
+      || (napi_is_array(env, value, &isArray) == napi_ok && isArray)) {
+    return StyleValue(
+      napix::object_at_or(env, value, kStyleValueValueIndex, kUndefined),
+      napix::object_at_or(env, value, kStyleValueUnitIndex, StyleNumberUnitUndefined));
+  }
+
+  napi_valuetype type{};
+  napi_typeof(env, value, &type);
+
+  switch (type) {
+    // use case: style.prop = { value: 100, unit: StyleUnit.POINT }
+    case napi_object:
+      return StyleValue(napix::object_get_or(env, value, "value", kUndefined),
+          napix::object_get_or(env, value, "unit", StyleNumberUnitUndefined));
+    // use case: style.prop = '100vw'
+    case napi_string: {
+      static constexpr size_t kBufferSize{32};
+      char buffer[kBufferSize];
+
+      if (napi_get_value_string_utf8(env, value, buffer, kBufferSize, nullptr) != napi_ok) {
         return {};
       }
 
-      return StyleValue::OfPoint(floatValue);
+      return ParseStyleNumberString(ToLowercase(buffer));
+    }
+    // use case: style.prop = 50
+    case napi_number: {
+      return StyleValue(napix::as_float(env, value, kUndefined), StyleNumberUnitPoint);
     }
     default: {
-      auto styleValue = JSStyleValue::ToStyleValue(value);
+      // garbage in, undefined out
+      return {};
+    }
+  }
+}
 
-      if (styleValue.IsUndefined()) {
+napi_value BoxStyleTransformSpec(napi_env env, const std::vector<StyleTransformSpec>& transform) noexcept {
+  auto constructor{Habitat::GetClass(env, Habitat::Class::StyleTransformSpec)};
+
+  if (!constructor) {
+    return {};
+  }
+
+  napi_value result{};
+
+  if (!transform.empty()) {
+    result = napix::array_new(env, transform.size());
+  }
+
+  if (!result) {
+    napi_value undefined{};
+    napi_get_element(env, constructor, kStyleTransformSpecUndefinedObjectIndex, &undefined);
+
+    return undefined;
+  }
+
+  static constexpr size_t kMaxArgs{3};
+  napi_value argv[kMaxArgs]{};
+  size_t i{0};
+
+  for (const auto& t : transform) {
+    size_t argc{1};
+
+    argv[0] = napix::to_value_or_null(env, t.transform);
+
+    switch (t.transform) {
+      case StyleTransformIdentity:
+        break;
+      case StyleTransformRotate:
+        argv[argc++] = BoxStyleValue(env, t.angle);
+        break;
+      case StyleTransformScale:
+      case StyleTransformTranslate:
+        argv[argc++] = BoxStyleValue(env, t.x);
+        argv[argc++] = BoxStyleValue(env, t.y);
+        break;
+      default:
+        break;
+    }
+
+    napi_value instance{};
+    napi_new_instance(env, constructor, argc, argv, &instance);
+
+    if (napix::has_pending_exception(env)) {
+      return {};
+    }
+
+    napi_set_element(env, result, i++, instance);
+  }
+
+  return result;
+}
+
+std17::optional<StyleTransformSpec> UnboxStyleTransformSpec(
+    napi_env env, napi_value value, napi_value constructor) noexcept {
+  bool instanceOf{};
+  napi_instanceof(env, value, constructor, &instanceOf);
+
+  if (!instanceOf) {
+    return {};
+  }
+
+  auto transform{napix::object_at_or(env, value, kStyleTransformSpecTransformIndex, -1)};
+
+  if (!IsEnum<StyleTransform>(transform)) {
+    return {};
+  }
+
+  auto x{UnboxStyleValue(env, napix::object_at(env, value, kStyleTransformSpecXIndex))};
+  auto y{UnboxStyleValue(env, napix::object_at(env, value, kStyleTransformSpecYIndex))};
+  auto angle{UnboxStyleValue(env, napix::object_at(env, value, kStyleTransformSpecAngleIndex))};
+  auto undefined{StyleValue::OfUndefined()};
+
+  return StyleTransformSpec{
+      static_cast<StyleTransform>(transform),
+      x.value_or(undefined),
+      y.value_or(undefined),
+      angle.value_or(undefined)
+  };
+}
+
+std::vector<StyleTransformSpec> UnboxStyleTransformSpec(napi_env env, napi_value value) noexcept {
+  auto constructor{Habitat::GetClass(env, Habitat::Class::StyleTransformSpec)};
+
+  if (!constructor) {
+    if (napix::has_pending_exception(env)) {
+      napi_value ignore;
+      napi_get_and_clear_last_exception(env, &ignore);
+    }
+    return {};
+  }
+
+  auto transform{ UnboxStyleTransformSpec(env, value, constructor) };
+
+  if (transform.has_value()) {
+    return { transform.value() };
+  }
+
+  bool isArray{};
+
+  if (napi_is_array(env, value, &isArray) == napi_ok && isArray) {
+    uint32_t len{0};
+    auto status{napi_get_array_length(env, value, &len)};
+
+    if (status != napi_ok || len == 0) {
+      return {};
+    }
+
+    std::vector<StyleTransformSpec> result;
+
+    result.reserve(len);
+
+    for (uint32_t i = 0; i < len; i++) {
+      napi_value element{};
+      napi_get_element(env, value, i, &element);
+
+      transform = UnboxStyleTransformSpec(env, element, constructor);
+
+      if (!transform) {
         return {};
       }
 
-      return styleValue;
+      result.push_back(transform.value());
     }
+
+    return result;
   }
+
+  return {};
 }
 
 static std17::optional<StyleValue> ParseStyleNumberString(const char* value) noexcept {
@@ -267,7 +462,7 @@ static std17::optional<StyleValue> ParseStyleNumberString(const char* value) noe
     auto it{ sUnitMap.find(end) };
 
     if (it != sUnitMap.end()) {
-      return {{ it->second, parsed }};
+      return StyleValue(parsed, it->second);
     }
   }
 
@@ -275,22 +470,22 @@ static std17::optional<StyleValue> ParseStyleNumberString(const char* value) noe
 }
 
 static std17::optional<color_t> ParseHexHashColorString(const char* str) noexcept {
-  static const std::size_t bufferSize{ 11 };
-  static char buffer[bufferSize];
+  static constexpr std::size_t kBufferSize{ 11 };
+  char buffer[kBufferSize];
 
   switch (strlen(str)) {
     case 4: // #RGB
-      snprintf(buffer, bufferSize, "0xFF%c%c%c%c%c%c", str[1], str[1], str[2], str[2], str[3], str[3]);
+      snprintf(buffer, kBufferSize, "0xFF%c%c%c%c%c%c", str[1], str[1], str[2], str[2], str[3], str[3]);
       break;
     case 5: // #RGBA
-      snprintf(buffer, bufferSize, "0x%c%c%c%c%c%c%c%c",
+      snprintf(buffer, kBufferSize, "0x%c%c%c%c%c%c%c%c",
                str[4], str[4], str[1], str[1], str[2], str[2], str[3], str[3]);
       break;
     case 7: // #RRGGBB
-      snprintf(buffer, bufferSize, "0xFF%s", &str[1]);
+      snprintf(buffer, kBufferSize, "0xFF%s", &str[1]);
       break;
     case 9: // #RRGGBBAA
-      snprintf(buffer, bufferSize, "0x%c%c%c%c%c%c%c%c",
+      snprintf(buffer, kBufferSize, "0x%c%c%c%c%c%c%c%c",
                str[7], str[8], str[1], str[2], str[3], str[4], str[5], str[6]);
       break;
     default:
@@ -310,112 +505,120 @@ static std17::optional<color_t> ParseHexHashColorString(const char* str) noexcep
 napi_value StyleGetter(napi_env env, Style* style, StyleProperty property) {
   switch (StylePropertyMetaGetType(property)) {
     case StylePropertyMetaTypeEnum:
-      return Napi::String::New(env, style->GetEnumString(property));
+      return napix::to_value(env, style->GetEnumString(property));
     case StylePropertyMetaTypeColor:
       return BoxColor(env, style->GetColor(property));
     case StylePropertyMetaTypeString:
       if (style->IsEmpty(property)) {
         return {};
       } else {
-        return Napi::String::New(env, style->GetString(property));
+        return napix::to_value(env, style->GetString(property));
       }
     case StylePropertyMetaTypeNumber:
       if (style->IsEmpty(property)) {
-        return JSStyleValue::Undefined(env);
+        return BoxStyleValue(env, StyleValue::OfUndefined());
       } else {
-        return JSStyleValue::New(env, style->GetNumber(property));
+        return BoxStyleValue(env, style->GetNumber(property));
       }
     case StylePropertyMetaTypeTransform:
       if (style->IsEmpty(property)) {
-        return JSStyleTransformSpec::Undefined(env);
+        return BoxStyleTransformSpec(env, {});
       } else {
-        return JSStyleTransformSpec::New(env, style->GetTransform());
+        return BoxStyleTransformSpec(env, style->GetTransform());
       }
     case StylePropertyMetaTypeInteger:
       if (style->IsEmpty(property)) {
         return {};
       } else {
-        return Napi::Number::New(env, *style->GetInteger(property));
+        return napix::to_value(env, style->GetInteger(property).value());
       }
     default:
       assert(false);
-      throw Napi::Error::New(env, "style property has no type!");
+      napix::throw_error(env, "style property has no type!");
   }
 }
 
-void StyleSetter(napi_env env, Style* style, StyleProperty property, napi_value napiValue) {
-  Napi::Value value(env, napiValue);
+static void StyleSetterEnum(napi_env env, Style* style, StyleProperty property, napi_value value) noexcept {
+  if (napix::is_string(env, value)) {
+    // 24 bytes is more than enough space for the longest style enum
+    constexpr size_t kBufferSize{24};
+    char buffer[kBufferSize];
 
+    if (napi_get_value_string_utf8(env, value, buffer, kBufferSize, nullptr) == napi_ok) {
+      // no utf8 encoded characters in valid style enums, so tolower is ok
+      ToLowercase(buffer);
+
+      if (StyleValidator::IsValidValue(property, buffer)) {
+        style->SetEnum(property, buffer);
+        return;
+      }
+    }
+  }
+
+  style->SetUndefined(property);
+}
+
+static void StyleSetterColor(napi_env env, Style* style, StyleProperty property, napi_value value) noexcept {
+  auto color{ UnboxColor(env, value) };
+
+  if (color.has_value()) {
+    style->SetColor(property, color.value());
+  } else {
+    style->SetUndefined(property);
+  }
+}
+
+static void StyleSetterNumber(napi_env env, Style* style, StyleProperty property, napi_value value) noexcept {
+  auto number{ UnboxStyleValue(env, value) };
+
+  if (number.has_value() && !number->IsUndefined() && StyleValidator::IsValidValue(property, number.value())) {
+    style->SetNumber(property, number.value());
+  } else {
+    style->SetUndefined(property);
+  }
+}
+
+static void StyleSetterInteger(napi_env env, Style* style, StyleProperty property, napi_value value) noexcept {
+  if (napix::is_number(env, value)) {
+    auto integer{ napix::as_int32(env, value, INT32_MAX) };
+
+    if (StyleValidator::IsValidValue(property, integer)) {
+      style->SetInteger(property, integer);
+      return;
+    }
+  }
+
+  style->SetUndefined(property);
+}
+
+void StyleSetter(napi_env env, Style* style, StyleProperty property, napi_value value) {
   switch (StylePropertyMetaGetType(property)) {
     case StylePropertyMetaTypeEnum:
-      if (value.IsString()) {
-        auto stringValue{ ToLowercase(Napi::CopyUtf8(value)) };
-
-        if (StyleValidator::IsValidValue(property, stringValue)) {
-          style->SetEnum(property, Napi::CopyUtf8(value));
-        } else {
-          style->SetUndefined(property);
-        }
-      } else {
-        style->SetUndefined(property);
-      }
+      StyleSetterEnum(env, style, property, value);
       break;
     case StylePropertyMetaTypeString:
-      if (value.IsString()) {
-        style->SetString(property, value.As<Napi::String>());
+      if (napix::is_string(env, value)) {
+        style->SetString(property, napix::as_string_utf8(env, value));
       } else {
         style->SetUndefined(property);
       }
       break;
     case StylePropertyMetaTypeColor:
-      if (Napi::IsNullish(env, value)) {
-        style->SetUndefined(property);
-      } else {
-        auto color{ UnboxColor(env, value) };
-
-        if (color.has_value()) {
-          style->SetColor(property, *color);
-        } else {
-          style->SetUndefined(property);
-        }
-      }
+      StyleSetterColor(env, style, property, value);
       break;
     case StylePropertyMetaTypeNumber: {
-      auto number{ UnboxStyleValue(env, value) };
-
-      if (number.has_value()) {
-        if (number->IsUndefined()) {
-          style->SetUndefined(property);
-        } else if (StyleValidator::IsValidValue(property, *number)) {
-          style->SetNumber(property, *number);
-        } else {
-          style->SetUndefined(property);
-        }
-      } else {
-        style->SetUndefined(property);
-      }
-
+      StyleSetterNumber(env, style, property, value);
       break;
     }
     case StylePropertyMetaTypeInteger:
-      if (value.IsNumber()) {
-        auto intValue{ value.As<Napi::Number>().Int32Value() };
-
-        if (StyleValidator::IsValidValue(property, intValue)) {
-          style->SetInteger(property, intValue);
-        } else {
-          style->SetUndefined(property);
-        }
-      } else {
-        style->SetUndefined(property);
-      }
+      StyleSetterInteger(env, style, property, value);
       break;
     case StylePropertyMetaTypeTransform:
-      style->SetTransform(JSStyleTransformSpec::ToStyleTransformSpecList(value));
+      style->SetTransform(UnboxStyleTransformSpec(env, value));
       break;
     default:
       assert(false);
-      throw Napi::Error::New(env, "style property has no type!");
+      napix::throw_error(env, "style property has no type!");
   }
 }
 

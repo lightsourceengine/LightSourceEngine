@@ -76,7 +76,7 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
   static void YogaNodeLayoutEvent(
       const YGNode& node, facebook::yoga::Event::Type event, const facebook::yoga::Event::Data& data);
 
-  static Napi::Value GetInstanceCount(const Napi::CallbackInfo& info);
+  static int32_t GetInstanceCount() noexcept;
 
  protected:
   enum Flag : uint32_t {
@@ -103,7 +103,7 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
   int32_t GetChildIndex(SceneNode* node) const noexcept;
 
  protected:
-  static int instanceCount;
+  static int32_t instanceCount;
   YGNodeRef ygNode{};
   ReferenceHolder<Scene> scene{};
   ReferenceHolder<Style> style{};

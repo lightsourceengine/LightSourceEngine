@@ -56,8 +56,10 @@ napi_value CoreExports(napi_env env, napi_value exports) noexcept {
   Export(env, exports, "installStyleValue", &InstallStyleValue);
   Export(env, exports, "installStyleTransformSpec", &InstallStyleTransformSpec);
 
-  Export(env, exports, Function(env, "parseColor", &ParseColor));
-  Export(env, exports, Function(env, "getSceneNodeInstanceCount", &SceneNode::GetInstanceCount));
+  Export(env, exports, "parseValue", &ParseValue);
+  Export(env, exports, "parseColor", &ParseColor);
+
+  Export(env, exports, "getSceneNodeInstanceCount", &GetSceneNodeInstanceCount);
 
   // Classes
   LoadHabitatClasses(env);
@@ -65,8 +67,6 @@ napi_value CoreExports(napi_env env, napi_value exports) noexcept {
   Export(env, exports, CScene::CLASS_ID);
   Export(env, exports, CFontManager::CLASS_ID);
   Export(env, exports, CStyle::CLASS_ID);
-  Export(env, exports, JSStyleValue::GetClass(env));
-  Export(env, exports, JSStyleTransformSpec::GetClass(env));
   Export(env, exports, BoxSceneNode::GetClass(env));
   Export(env, exports, ImageSceneNode::GetClass(env));
   Export(env, exports, TextSceneNode::GetClass(env));

@@ -36,11 +36,7 @@ static napi_value Get(napi_env env, napi_callback_info info) {
   auto prop{reinterpret_cast<intptr_t>(napix::get_data_raw(env, info))};
 
   if (IsEnum<StyleProperty>(prop)) {
-    try {
-      return StyleGetter(env, style, static_cast<StyleProperty>(prop));
-    } catch (const Napi::Error& e) {
-      napix::throw_error(env, e.what());
-    }
+    return StyleGetter(env, style, static_cast<StyleProperty>(prop));
   }
 
   return {};
@@ -55,11 +51,7 @@ static napi_value Set(napi_env env, napi_callback_info info) {
   auto prop{reinterpret_cast<intptr_t>(napix::get_data_raw(env, info))};
 
   if (IsEnum<StyleProperty>(prop)) {
-    try {
-      StyleSetter(env, style, static_cast<StyleProperty>(prop), ci[0]);
-    } catch (const Napi::Error& e) {
-      napix::throw_error(env, e.what());
-    }
+    StyleSetter(env, style, static_cast<StyleProperty>(prop), ci[0]);
   }
 
   return {};

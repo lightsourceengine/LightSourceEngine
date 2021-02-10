@@ -13,8 +13,6 @@
 #include <lse/ImageSceneNode.h>
 #include <lse/RootSceneNode.h>
 #include <lse/TextSceneNode.h>
-#include <lse/bindings/JSStyleTransformSpec.h>
-#include <lse/bindings/JSStyleValue.h>
 
 namespace lse {
 namespace bindings {

@@ -12,7 +12,8 @@
 namespace lse {
 namespace bindings {
 
-Napi::Value ParseColor(const Napi::CallbackInfo& info);
+napi_value ParseColor(napi_env env, napi_callback_info info) noexcept;
+napi_value ParseValue(napi_env env, napi_callback_info info) noexcept;
 
 napi_value LoadSDLPlugin(napi_env env, napi_callback_info) noexcept;
 napi_value LoadRefPlugin(napi_env env, napi_callback_info) noexcept;
@@ -24,6 +25,8 @@ napi_value SetStyleParent(napi_env env, napi_callback_info info) noexcept;
 napi_value ResetStyle(napi_env env, napi_callback_info info) noexcept;
 napi_value InstallStyleValue(napi_env env, napi_callback_info info) noexcept;
 napi_value InstallStyleTransformSpec(napi_env env, napi_callback_info info) noexcept;
+
+napi_value GetSceneNodeInstanceCount(napi_env env, napi_callback_info info) noexcept;
 
 } // namespace bindings
 } // namespace lse

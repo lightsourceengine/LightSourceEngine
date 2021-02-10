@@ -5,11 +5,12 @@
  */
 
 import chai from 'chai'
-import { StyleAnchor, StyleUnit, StyleValue } from '../../src/addon/index.js'
+import { StyleAnchor, StyleUnit } from '../../src/addon/index.js'
 import { getRotateAngle, isRotate, rotate } from '../../src/style/transform.js'
 import { fileuri } from '../../src/util/index.js'
 import { Style } from '../../src/style/Style.js'
 import { StyleClass } from '../../src/style/StyleClass.js'
+import { StyleValue } from '../../src/style/StyleValue.js'
 
 const { assert } = chai
 
@@ -437,6 +438,54 @@ describe('Style', () => {
       ]
 
       inputs.forEach(i => testStyleValueUndefined(property, i))
+    })
+  })
+  describe('assignment', () => {
+    let style
+    beforeEach(() => {
+      style = new Style()
+    })
+    afterEach(() => {
+      style = null
+    })
+    it('should be assignable by plain object with value and unit', () => {
+      style.width = { value: 100, unit: StyleUnit.Point }
+      assert.deepEqual(style.width, StyleValue.of(100))
+    })
+    it('should be undefined if plain object has invalid unit', () => {
+      style.width = { value: 100, unit: -1 }
+      assert.isTrue(style.width.isUndefined())
+    })
+    it('should be undefined if plain object has invalid value', () => {
+      style.width = { unit: StyleUnit.Point }
+      assert.isTrue(style.width.isUndefined())
+    })
+    it('should be assignable by array of value and unit', () => {
+      style.width = [100, StyleUnit.Point]
+      assert.deepEqual(style.width, StyleValue.of(100))
+    })
+    it('should be undefined if array has invalid unit', () => {
+      style.width = [100, -1]
+      assert.isTrue(style.width.isUndefined())
+    })
+    it('should be undefined if array has invalid value', () => {
+      style.width = [{}, StyleUnit.Point]
+      assert.isTrue(style.width.isUndefined())
+    })
+    it('should be assignable by StyleValue', () => {
+      style.width = StyleValue.of(100)
+      assert.deepEqual(style.width, StyleValue.of(100))
+    })
+    it('should be assignable by other property', () => {
+      style.width = 100
+      style.height = style.width
+      assert.deepEqual(style.height, StyleValue.of(100))
+    })
+    it('should be undefined for non-StyleValue values', () => {
+      for (const input of [null, undefined, '', 'test', {}, [], NaN]) {
+        style.width = StyleValue.of(input)
+        assert.isTrue(style.width.isUndefined())
+      }
     })
   })
 })
