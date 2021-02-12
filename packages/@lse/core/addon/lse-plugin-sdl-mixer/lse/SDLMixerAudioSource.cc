@@ -119,7 +119,7 @@ void SDLMixerStreamSource::Load(SDL_RWops* rw) {
   this->music = SDL2::mixer::Mix_LoadMUS_RW(rw, SDL_TRUE);
 
   if (!this->music) {
-    throw std::runtime_error(SDL_GetError());
+    throw std::runtime_error(SDL2::SDL_GetError());
   }
 }
 

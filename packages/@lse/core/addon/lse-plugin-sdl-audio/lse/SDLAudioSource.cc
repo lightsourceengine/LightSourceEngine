@@ -35,7 +35,7 @@ void SDLAudioSource::Load(SDL_RWops* rw) {
   auto result{ SDL2::SDL_LoadWAV_RW(rw, SDL_TRUE, &spec, &this->audioBuffer, &this->audioBufferLen) };
 
   if (!result) {
-    throw std::runtime_error(SDL_GetError());
+    throw std::runtime_error(SDL2::SDL_GetError());
   }
 }
 
