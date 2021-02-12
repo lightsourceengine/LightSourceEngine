@@ -13,160 +13,380 @@ import {
   AudioDestinationCapabilityVolume
 } from './constants.js'
 import { clamp, isNumber, emptyArray } from '../util/index.js'
+import { AudioType } from './AudioType.js'
+import { AudioSource } from './AudioSource.js'
+
+const nullAudioDestination = {
+  getDecoders () { return emptyArray },
+  destroy () {},
+  resume () {},
+  setVolume (value) {},
+  getVolume () { return 0 },
+  stop () {},
+  pause () {},
+  hasCapability () { return false }
+}
 
 /**
  * An audio output buffer.
  */
 export class AudioDestination {
-  _native = NullNativeAudioDestination.instance // eslint-disable-line
+  _type = AudioType.NULL
+  _native = nullAudioDestination
   _decoders = emptyArray
   _rawDecoders = emptyArray
+  _sources = new Map()
+  _isAttached = false
 
-  /**
-   * @returns {boolean} true if audio sources can be rendered to this destination; false if no audio can
-   * be loaded or played with this destination.
-   */
-  isAvailable () {
-    return this._native !== NullNativeAudioDestination.instance
+  constructor (type) {
+    this._type = type
   }
 
   /**
-   * @returns {string[]} List of audio decoders this destination supports.
+   * Is this destination buffer available?
+   *
+   * Availability for a destination buffer means that the system or app configuration does not support
+   * this type of audio destination buffer.
+   *
+   * @returns {boolean}
    */
-  getDecoders () {
+  isAvailable () {
+    return this._native && this._native !== nullAudioDestination
+  }
+
+  /**
+   * List of audio decoders this destination supports.
+   *
+   * @type{string[]}
+   */
+  get decoders () {
     return this._decoders
   }
 
   /**
-   * @ignore
+   * Get the audio destination buffer type.
+   *
+   * @type {AudioType}
    */
-  getRawDecoders () {
-    return this._rawDecoders
+  get type () {
+    return this._type
   }
 
   /**
-   * Checks if an audio decoder, defined in AudioDecoder, is supported.
+   * Checks if an audio decoder is supported.
    *
-   * @param decoder {string} Name of decoder to check. Should be a name from AudioDecoder.
+   * @param decoder {string} Case-insensitive decoder name. Known decoder names can be found in AudioDecoder.
    * @returns {boolean} true if decoder is supported; otherwise, false
    */
   hasDecoder (decoder) {
-    return this._rawDecoders.indexOf(decoder) >= 0
+    return this._decoders.includes(decoder?.toUpperCase())
   }
 
   /**
-   * @returns {boolean} true if the audio destination can be pause()'d; otherwise, false
+   * Does this audio destination buffer support pausing of playback?
+   *
+   * @returns {boolean}
    */
   canPause () {
     return this._native.hasCapability(AudioDestinationCapabilityPause)
   }
 
   /**
-   * @returns {boolean} true if the audio destination can be resume()'d; otherwise, false
+   * Does this audio destination buffer support resuming of paused playback?
+   *
+   * @returns {boolean}
    */
   canResume () {
     return this._native.hasCapability(AudioDestinationCapabilityResume)
   }
 
   /**
-   * @returns {boolean} true if the audio destination can be stop()'d; otherwise, false
+   * Does this audio destination buffer support stopping of playback?
+   *
+   * @returns {boolean}
    */
   canStop () {
     return this._native.hasCapability(AudioDestinationCapabilityStop)
   }
 
   /**
-   * @returns {boolean} true if the audio destination can be faded out; otherwise, false
+   * Does this audio destination buffer support fading out of playback on stop?
+   *
+   * @returns {boolean}
    */
   canFadeOut () {
     return this._native.hasCapability(AudioDestinationCapabilityFadeOut)
   }
 
   /**
-   * @returns {boolean} true if the audio destination has volume controls; otherwise, false
+   * Does this audio destination buffer support volume controls?
+   *
+   * @returns {boolean}
    */
   hasVolume () {
     return this._native.hasCapability(AudioDestinationCapabilityVolume)
   }
 
   /**
-   * @returns volume {number} Current value [0-1] of the volume of the audio destination.
+   * Get the volume of this audio destination buffer.
+   *
+   * If hasVolume() returns false, 0 is returned.
+   *
+   * @returns volume {number} Range [0-1]
    */
-  getVolume () {
-    return this._native.volume
+  get volume () {
+    return this._native.getVolume()
   }
 
   /**
-   * Sets the volume.
+   * Sets the volume of this audio destination buffer.
    *
-   * @param value {number} A value between [0-1]. If the value is not a number, volume is set to 0. If the value is
+   * If hasVolume() returns false, this method is a no-op.
+   *
+   * @param value {number} A number between [0-1]. If the value is not a number, volume is set to 0. If the value is
    * out of range, it is Math.clamp()'d to [0-1].
    */
-  setVolume (value) {
-    this._native.volume = isNumber(value) ? clamp(value, 0, 1) : 0
+  set volume (value) {
+    this._native.setVolume(isNumber(value) ? clamp(value, 0, 1) : 0)
   }
 
   /**
-   * Pause playback of the output buffer.
+   * Pause playback of this buffer.
+   *
+   * If canPause() returns false, this method is a no-op.
    */
   pause () {
     this._native.pause()
   }
 
   /**
-   * Resume playback of the output buffer.
+   * Resume playback of this buffer.
+   *
+   * If canResume() returns false, this method is a no-op.
    */
   resume () {
     this._native.resume()
   }
 
   /**
-   * Stop playback of the audio buffer.
+   * Stop playback of this buffer.
    *
-   * @param {Number} [opts.fadeOutMs] Time in milliseconds to fade out the audio before stopping. Only available if
-   * canFadeOut is true.
+   * If canStop() returns false, this method is a no-op.
+   *
+   * @param {Number} [opts.fadeOutMs] Time in milliseconds to fade out the audio before stopping.
    */
   stop (opts) {
     this._native.stop(opts)
   }
 
   /**
-   * @ignore
+   * List all cached audio sources owned by this audio buffer.
+   *
+   * The returned list is not stable (order and position).
+   *
+   * @returns {AudioSource[]}
    */
-  $createNativeAudioSource () {
-    return this._native.createAudioSource()
+  all () {
+    return Array.from(this._sources.values())
+  }
+
+  /**
+   * Load and cache an audio source.
+   *
+   * @param {string} options Filename
+   * @param {Object} options
+   * @param {string|Buffer} [options.src] The audio file to load
+   * @param {string} [options.key] Cache key. If not set, the src parameter will be used. If src is a buffer, this
+   * parameter must be provided
+   * @param {bool} [options.sync] Flag to load audio source synchronously
+   *
+   * @returns {AudioSource}
+   * @throws {Error} if options arg is malformed
+   */
+  add (options) {
+    if (typeof options === 'string') {
+      options = { src: options }
+    }
+
+    let { key, src, sync } = options
+
+    if (Buffer.isBuffer(src)) {
+      if (!key || typeof key !== 'string') {
+        throw Error('key is required')
+      }
+    } else if (typeof src === 'string') {
+      if (!key || typeof key !== 'string') {
+        key = src
+      }
+    } else {
+      throw Error('src must be a filename or Buffer')
+    }
+
+    if (this.has(key)) {
+      throw Error(`source key '${key}' already exists`)
+    }
+
+    const source = this._createAudioSource(src)
+
+    this._sources.set(key, source)
+
+    if (this._isAttached) {
+      source.$load(sync, true)
+    }
+
+    return source
+  }
+
+  /**
+   * Checks if an audio source is cached by cache key.
+   *
+   * @param key {string} Cache key to search on
+   * @returns {boolean}
+   */
+  has (key) {
+    return this._sources.has(key)
+  }
+
+  /**
+   * Gets a cached audio source by cache key.
+   *
+   * @param key {string} Cache key to search on
+   * @returns {boolean}
+   */
+  get (key) {
+    return this._sources.get(key)
+  }
+
+  /**
+   * Remove an audio source by cache key.
+   *
+   * @param key {string} Cache key to search on
+   */
+  delete (key) {
+    const { _sources } = this
+
+    _sources.get(key)?.$destroy()
+    _sources.delete(key)
+  }
+
+  /**
+   * Shorthand function for adding a source to the cache synchronously playing it. If the source is cached,
+   * it will be used for playback.
+   *
+   * @param {string} options filename of cache key
+   * @param {object} options
+   * @param {string|Buffer} [options.src]
+   * @param {string} [options.key] cache key
+   * @param {Number} [options.loops] The number of times to repeat playback. If 0, playback will loop forever.
+   * @param {Number} [options.fadeInMs] The time in milliseconds to fade in (volume) playback.
+   * @returns {AudioSource}
+   */
+  play (options) {
+    let source
+
+    if (typeof options === 'string') {
+      source = this.get(options)
+
+      if (!source) {
+        source = this.add({ src: options, sync: true })
+      }
+
+      source.play()
+    } else {
+      source = this.get(options.key ?? options.src)
+
+      if (!source) {
+        source = this.add({ ...options, sync: true })
+      }
+
+      source.play(options)
+    }
+
+    return source
   }
 
   /**
    * @ignore
    */
-  $setNative (nativeDestination) {
-    this._native = nativeDestination || NullNativeAudioDestination.instance
-    this._decoders = []
+  get rawDecoders () {
+    return this._rawDecoders
+  }
 
-    for (const rawDecoder of this._native.decoders) {
-      if (rawDecoder in AudioDecoderType) {
-        this._decoders.push(rawDecoder)
-      }
+  /**
+   * @ignore
+   */
+  $setPlugin (plugin) {
+    let native = null
+
+    switch (this._type) {
+      case AudioType.SAMPLE:
+        native = plugin.createSampleAudioDestination()
+        break
+      case AudioType.STREAM:
+        native = plugin.createStreamAudioDestination()
+        break
     }
 
-    this._rawDecoders = [...this._native.decoders]
+    this._native = native ?? nullAudioDestination
 
-    Object.freeze(this._rawDecoders)
-    Object.freeze(this._decoders)
+    const nativeDecoders = this._native.getDecoders()
+    const knownDecoders = nativeDecoders
+      .map(decoder => decoder.toUpperCase())
+      .filter(decoder => decoder in AudioDecoderType)
+
+    this._decoders = Object.freeze(knownDecoders)
+    this._rawDecoders = Object.freeze(nativeDecoders)
   }
-}
 
-/**
- * @ignore
- */
-class NullNativeAudioDestination {
-  static instance = new NullNativeAudioDestination()
-  decoders = emptyArray
-  resume () {}
-  setVolume (value) {}
-  getVolume () { return 0 }
-  stop () {}
-  pause () {}
-  hasCapability () { return false }
+  /**
+   * @ignore
+   */
+  $attach () {
+    const { _isAttached, _sources } = this
+
+    if (_isAttached) {
+      return
+    }
+
+    _sources.forEach(source => source.$load(true, false))
+
+    this._isAttached = true
+  }
+
+  /**
+   * @ignore
+   */
+  $detach () {
+    const { _isAttached, _sources } = this
+
+    if (!_isAttached) {
+      return
+    }
+
+    _sources.forEach(source => source.$unload())
+
+    this._isAttached = false
+  }
+
+  /**
+   * @ignore
+   */
+  $destroy () {
+    const { _native, _sources } = this
+
+    if (_native) {
+      _sources.forEach(source => source.$destroy())
+      _sources.clear()
+      _native.destroy()
+
+      this._native = null
+    }
+  }
+
+  /**
+   * @ignore
+   */
+  _createAudioSource (src) {
+    return new AudioSource(this._native.createAudioSource(), this._type, src)
+  }
 }

@@ -56,7 +56,7 @@ export class Stage extends EventTarget {
     Object.defineProperties(this, {
       font: { value: new FontManager() },
       input: { value: new InputManager(this) },
-      audio: { value: new AudioManager(this) },
+      audio: { value: new AudioManager() },
       system: { value: new SystemManager() }
     })
 

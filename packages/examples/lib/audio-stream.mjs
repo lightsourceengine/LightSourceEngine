@@ -30,32 +30,32 @@ const sheet = createStyleSheet({
 });
 
 const StreamingAudioApp = () => {
-    const [loadingStatus, setLoadingStatus] = useState('loading');
+    const [message, setMessage] = useState('Loading background music...');
     useEffect(() => {
-        let path;
+        let music;
         if (stage.audio.stream.hasDecoder(AudioDecoderType.OGG)) {
-            path = 'resource/bensound-ukulele.ogg';
+            music = stage.audio.stream.add('resource/bensound-ukulele.ogg');
         } else if (stage.audio.stream.hasDecoder(AudioDecoderType.MP3)) {
-            path = 'resource/bensound-ukulele.mp3';
-        } else {
-            setLoadingStatus('not ready');
-            return;
+            music = stage.audio.stream.add('resource/bensound-ukulele.mp3');
         }
-        stage.audio.addStream(path).once(EventName.onStatus, event => {
-            if (event.target.isReady()) {
-                event.target.play();
-                setLoadingStatus('ready');
-            } else {
-                setLoadingStatus('not ready');
-                console.log(event.error);
-            }
-        });
+        if (music) {
+            music.on(EventName.onStatus, event => {
+                if (event.error) {
+                    setMessage('Error loading background music.');
+                } else {
+                    music.play();
+                    setMessage('Playing background music from file.');
+                }
+            });
+        } else {
+            setMessage('No mp3 or ogg decoder available.');
+        }
     }, []);
     return jsx('box', {
         class: sheet.body,
         children: jsx('text', {
             class: sheet.label,
-            children: `Background music is ${loadingStatus}.`
+            children: message
         })
     });
 };

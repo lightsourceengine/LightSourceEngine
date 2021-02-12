@@ -148,8 +148,9 @@ napi_value to_value(napi_env env, const std::string& value) noexcept {
 
 buffer_info as_buffer(napi_env env, napi_value value) noexcept {
   buffer_info bi{};
+  bool result{};
 
-  if (value) {
+  if (value && napi_is_buffer(env, value, &result) == napi_ok && result) {
     napi_get_buffer_info(env, value, &bi.data, &bi.size);
   }
 

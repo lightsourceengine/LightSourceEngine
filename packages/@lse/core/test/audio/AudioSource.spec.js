@@ -5,176 +5,158 @@
  */
 
 import chai from 'chai'
-import { StreamAudioSource } from '../../src/audio/AudioSource.js'
+import { AudioSource } from '../../src/audio/AudioSource.js'
 import {
   AudioSourceCapabilityFadeIn,
   AudioSourceCapabilityLoop,
-  AudioSourceCapabilityVolume,
-  AudioSourceStateError,
-  AudioSourceStateLoading,
-  AudioSourceStateReady
+  AudioSourceCapabilityVolume
 } from '../../src/audio/constants.js'
 import sinon from 'sinon'
-import { AudioSourceType } from '../../src/audio/AudioSourceType.js'
-import { test } from '../test-env.js'
+import { AudioType } from '../../src/audio/AudioType.js'
 import { EventName } from '../../src/event/EventName.js'
+import { readFileSync } from 'fs'
 
 const { assert } = chai
 const testWavFile = 'test/resources/test.wav'
+const testAudioType = AudioType.STREAM
 
 describe('AudioSource', () => {
-  let audioSource
+  let source
+  let mockNativeAudioSource
   beforeEach(() => {
-    audioSource = new StreamAudioSource({}, 'test')
+    mockNativeAudioSource = createMockNativeAudioSource()
+    source = new AudioSource(mockNativeAudioSource, testAudioType, testWavFile)
   })
   afterEach(() => {
-    for (const as of test.stage.audio.all()) {
-      test.stage.audio.delete(as.getId())
-    }
-    audioSource = null
+    source = null
+    mockNativeAudioSource = null
   })
   describe('constructor', () => {
     it('should initialize a new AudioSource', () => {
-      assert.isFalse(audioSource.isLoading())
-      assert.isFalse(audioSource.isReady())
-      assert.isFalse(audioSource.isError())
-      assert.equal(audioSource.getId(), 'test')
-      assert.equal(audioSource.getType(), AudioSourceType.Stream)
+      assert.isFalse(source.isLoading())
+      assert.isFalse(source.isReady())
+      assert.isFalse(source.isError())
+      assert.equal(source.src, testWavFile)
+      assert.equal(source.type, testAudioType)
     })
   })
-  describe('getId()', () => {
-    it('should return audio source id', () => {
-      assert.equal(audioSource.getId(), 'test')
+  describe('$load', () => {
+    it('should ...', async () => {
+      source.$load(true, true)
+
+      assert.isTrue(source.isReady())
+
+      const event = await getEvent(source)
+
+      assert.equal(event.type, EventName.onStatus)
     })
-  })
-  describe('getType()', () => {
-    it('should return audio source type', () => {
-      assert.equal(audioSource.getType(), AudioSourceType.Stream)
+    it('should ...', async () => {
+      source.$load(false, true)
+
+      assert.isTrue(source.isLoading())
+
+      const event = await getEvent(source)
+
+      assert.isTrue(source.isReady())
+      assert.equal(event.type, EventName.onStatus)
     })
-  })
-  describe('isReady()', () => {
-    it('should return true when in ready state', () => {
-      audioSource.$setState(AudioSourceStateReady)
-      assert.isTrue(audioSource.isReady())
+    it('should ...', async () => {
+      source = new AudioSource(mockNativeAudioSource, testAudioType, readFileSync(testWavFile))
+
+      source.$load(true, true)
+
+      assert.isTrue(source.isReady())
+
+      const event = await getEvent(source)
+
+      assert.equal(event.type, EventName.onStatus)
     })
-  })
-  describe('isLoading()', () => {
-    it('should return true when in loading state', () => {
-      audioSource.$setState(AudioSourceStateLoading)
-      assert.isTrue(audioSource.isLoading())
+    it('should ...', async () => {
+      source = new AudioSource(mockNativeAudioSource, testAudioType, readFileSync(testWavFile))
+
+      source.$load(false, true)
+
+      assert.isTrue(source.isReady())
+
+      const event = await getEvent(source)
+
+      assert.equal(event.type, EventName.onStatus)
     })
-  })
-  describe('isError()', () => {
-    it('should return true when in error state', () => {
-      audioSource.$setState(AudioSourceStateError)
-      assert.isTrue(audioSource.isError())
+    it('should ...', async () => {
+      source = new AudioSource(mockNativeAudioSource, testAudioType, 'file-not-found')
+
+      source.$load(false, true)
+
+      assert.isTrue(source.isLoading())
+
+      const event = await getEvent(source)
+
+      assert.isTrue(source.isError())
+      assert.equal(event.type, EventName.onStatus)
+      assert.isDefined(event.error)
     })
   })
   describe('volume', () => {
     it('should get volume from native source', () => {
-      audioSource.$setNative({ volume: 1 })
-      assert.equal(audioSource.getVolume(), 1)
+      const volume = source.volume
+
+      assert.isUndefined(volume)
+      assert.isTrue(mockNativeAudioSource.getVolume.called)
     })
-    it('should set volume of native source', () => {
-      audioSource.$setNative({ volume: 0 })
-      assert.equal(audioSource.getVolume(), 0)
-      audioSource.setVolume(1)
-      assert.equal(audioSource.getVolume(), 1)
+    it('should set volume with native source', () => {
+      source.volume = 1
+      assert.isTrue(mockNativeAudioSource.setVolume.calledWith(1))
     })
-    it('should constrain value to 0-1 range (upper bound)', () => {
-      audioSource.$setNative({ volume: 0 })
-      audioSource.setVolume(1.5)
-      assert.equal(audioSource.getVolume(), 1)
+    it('should set volume with native source and clamp +', () => {
+      source.volume = 3
+      assert.isTrue(mockNativeAudioSource.setVolume.calledWith(1))
     })
-    it('should constrain value to 0-1 range (lower bound)', () => {
-      audioSource.$setNative({ volume: 0 })
-      audioSource.setVolume(-1)
-      assert.equal(audioSource.getVolume(), 0)
+    it('should set volume with native source and clamp -', () => {
+      source.volume = -2
+      assert.isTrue(mockNativeAudioSource.setVolume.calledWith(0))
     })
   })
   describe('canLoop()', () => {
     it('should return native dest capability state', () => {
-      audioSource.$setNative({ hasCapability (which) { return which === AudioSourceCapabilityLoop } })
-      assert.isTrue(audioSource.canLoop())
+      mockNativeAudioSource.capabilities.set(AudioSourceCapabilityLoop, true)
+      assert.isTrue(source.canLoop())
     })
   })
   describe('canFadeIn()', () => {
     it('should return native dest capability state', () => {
-      audioSource.$setNative({ hasCapability (which) { return which === AudioSourceCapabilityFadeIn } })
-      assert.isTrue(audioSource.canFadeIn())
+      mockNativeAudioSource.capabilities.set(AudioSourceCapabilityFadeIn, true)
+      assert.isTrue(source.canFadeIn())
     })
   })
   describe('hasVolume()', () => {
     it('should return native dest capability state', () => {
-      audioSource.$setNative({ hasCapability (which) { return which === AudioSourceCapabilityVolume } })
-      assert.isTrue(audioSource.hasVolume())
+      mockNativeAudioSource.capabilities.set(AudioSourceCapabilityVolume, true)
+      assert.isTrue(source.hasVolume())
     })
   })
   describe('play()', () => {
     it('should call native destination play', () => {
-      const mock = { play: sinon.stub() }
-
-      audioSource.$setNative(mock)
-      audioSource.play()
-      assert.isTrue(mock.play.called)
-    })
-  })
-  describe('status event', () => {
-    it('should dispatch isReady() status event for async load', async () => {
-      const as = test.stage.audio.addSample(testWavFile)
-
-      await isReadyPromise(as)
-
-      assert.isTrue(as.isReady())
-    })
-    it('should dispatch isError() status event for async load', async () => {
-      const as = test.stage.audio.addSample('invalid')
-
-      await isErrorPromise(as)
-
-      assert.isTrue(as.isError())
-    })
-    it('should dispatch isReady() status event for sync load', async () => {
-      const as = test.stage.audio.addSample(testWavFile, { sync: true })
-
-      assert.isTrue(as.isReady())
-
-      await isReadyPromise(as)
-
-      assert.isTrue(as.isReady())
-    })
-    it('should dispatch isError() status event for sync load', async () => {
-      const as = test.stage.audio.addSample('invalid', { sync: true })
-
-      assert.isTrue(as.isError())
-
-      await isErrorPromise(as)
-
-      assert.isTrue(as.isError())
+      source.play()
+      assert.isTrue(mockNativeAudioSource.play.called)
     })
   })
 })
 
-const isReadyPromise = (as) => {
+const getEvent = async (source) => {
   return new Promise((resolve, reject) => {
-    as.once(EventName.onStatus, (as) => {
-      if (as.target.isReady()) {
-        resolve()
-      } else {
-        reject(Error('expected isReady() change event'))
-      }
-    })
+    source.once(EventName.onStatus, resolve)
   })
 }
 
-const isErrorPromise = (as) => {
-  return new Promise((resolve, reject) => {
-    as.once(EventName.onStatus, (as) => {
-      if (as.target.isError()) {
-        resolve()
-      } else {
-        reject(Error('expected isError() change event'))
-      }
-    })
-  })
-}
+const createMockNativeAudioSource = () => ({
+  getVolume: sinon.stub(),
+  setVolume: sinon.stub(),
+  load: sinon.stub(),
+  unload: sinon.stub(),
+  destroy: sinon.stub(),
+  play: sinon.stub(),
+  hasCapability (capability) {
+    return this.capabilities.get(capability) ?? false
+  },
+  capabilities: new Map()
+})

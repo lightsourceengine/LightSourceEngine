@@ -15,127 +15,222 @@ import {
 } from '../../src/audio/constants.js'
 import sinon from 'sinon'
 import { AudioDecoderType } from '../../src/audio/AudioDecoderType.js'
+import { AudioType } from '../../src/audio/AudioType.js'
 
 const { assert } = chai
-const kTestDecoders = [AudioDecoderType.OGG, 'MOCK']
 
 describe('AudioDestination', () => {
   let dest
+  let plugin
   beforeEach(() => {
-    dest = new AudioDestination()
+    dest = new AudioDestination(AudioType.STREAM)
+    plugin = mockPlugin()
+    dest.$setPlugin(plugin)
   })
   afterEach(() => {
     dest = null
+    plugin = null
+  })
+  describe('constructor', () => {
+    it('should set type', () => {
+      assert.equal(dest.type, AudioType.STREAM)
+    })
   })
   describe('isAvailable()', () => {
     it('should be false with no native destination', () => {
+      dest = new AudioDestination(AudioType.STREAM)
       assert.isFalse(dest.isAvailable())
     })
     it('should be true with native destination', () => {
-      dest.$setNative({ decoders: kTestDecoders })
       assert.isTrue(dest.isAvailable())
     })
   })
   describe('volume', () => {
     it('should get volume from native destination', () => {
-      dest.$setNative({ decoders: kTestDecoders, volume: 1 })
-      assert.equal(dest.getVolume(), 1)
+      Array.isArray(dest.volume)
+      assert.isTrue(plugin.native.getVolume.called)
     })
     it('should set volume of native destination', () => {
-      dest.$setNative({ decoders: kTestDecoders, volume: 0 })
-      assert.equal(dest.getVolume(), 0)
-      dest.setVolume(1)
-      assert.equal(dest.getVolume(), 1)
+      dest.volume = 1
+      assert.isTrue(plugin.native.setVolume.calledWith(1))
     })
     it('should constrain value to 0-1 range (upper bound)', () => {
-      dest.$setNative({ decoders: kTestDecoders, volume: 0 })
-      dest.setVolume(1.5)
-      assert.equal(dest.getVolume(), 1)
+      dest.volume = 10
+      assert.isTrue(plugin.native.setVolume.calledWith(1))
     })
     it('should constrain value to 0-1 range (lower bound)', () => {
-      dest.$setNative({ decoders: kTestDecoders, volume: 0 })
-      dest.setVolume(-1)
-      assert.equal(dest.getVolume(), 0)
+      dest.volume = -10
+      assert.isTrue(plugin.native.setVolume.calledWith(0))
     })
   })
-  describe('getDecoders()', () => {
+  describe('decoders', () => {
     it('should return decoders from native destination', () => {
-      dest.$setNative({ decoders: kTestDecoders })
-      assert.lengthOf(dest.getDecoders(), 1)
-      assert.include(dest.getDecoders(), AudioDecoderType.OGG)
+      assert.lengthOf(dest.decoders, 1)
+      assert.include(dest.decoders, AudioDecoderType.OGG)
     })
   })
-  describe('getRawDecoders()', () => {
+  describe('rawDecoders', () => {
     it('should return raw decoders from native destination', () => {
-      dest.$setNative({ decoders: kTestDecoders })
-      assert.lengthOf(dest.getRawDecoders(), 2)
-      assert.include(dest.getRawDecoders(), AudioDecoderType.OGG)
-      assert.include(dest.getRawDecoders(), 'MOCK')
+      assert.lengthOf(dest.rawDecoders, 2)
+      assert.include(dest.rawDecoders, testDecoder)
+      assert.include(dest.rawDecoders, AudioDecoderType.OGG)
     })
   })
   describe('hasDecoder()', () => {
     it('should return true if decoder exists', () => {
-      dest.$setNative({ decoders: kTestDecoders })
-
       assert.isTrue(dest.hasDecoder(AudioDecoderType.OGG))
-      assert.isTrue(dest.hasDecoder('MOCK'))
     })
   })
   describe('canPause()', () => {
     it('should return native dest capability state', () => {
-      dest.$setNative({ decoders: kTestDecoders, hasCapability (which) { return which === AudioDestinationCapabilityPause } })
+      plugin.native.capabilities.set(AudioDestinationCapabilityPause, true)
       assert.isTrue(dest.canPause())
     })
   })
   describe('canResume()', () => {
     it('should return native dest capability state', () => {
-      dest.$setNative({ decoders: kTestDecoders, hasCapability (which) { return which === AudioDestinationCapabilityResume } })
+      plugin.native.capabilities.set(AudioDestinationCapabilityResume, true)
       assert.isTrue(dest.canResume())
     })
   })
   describe('canStop()', () => {
     it('should return native dest capability state', () => {
-      dest.$setNative({ decoders: kTestDecoders, hasCapability (which) { return which === AudioDestinationCapabilityStop } })
+      plugin.native.capabilities.set(AudioDestinationCapabilityStop, true)
       assert.isTrue(dest.canStop())
     })
   })
   describe('canFadeOut()', () => {
     it('should return native dest capability state', () => {
-      dest.$setNative({ decoders: kTestDecoders, hasCapability (which) { return which === AudioDestinationCapabilityFadeOut } })
+      plugin.native.capabilities.set(AudioDestinationCapabilityFadeOut, true)
       assert.isTrue(dest.canFadeOut())
     })
   })
   describe('hasVolume()', () => {
     it('should return native dest capability state', () => {
-      dest.$setNative({ decoders: kTestDecoders, hasCapability (which) { return which === AudioDestinationCapabilityVolume } })
+      plugin.native.capabilities.set(AudioDestinationCapabilityVolume, true)
       assert.isTrue(dest.hasVolume())
     })
   })
   describe('pause()', () => {
     it('should call native destination pause', () => {
-      const mock = { decoders: kTestDecoders, pause: sinon.stub() }
-
-      dest.$setNative(mock)
       dest.pause()
-      assert.isTrue(mock.pause.called)
+      assert.isTrue(plugin.native.pause.called)
     })
   })
   describe('resume()', () => {
     it('should call native destination resume', () => {
-      const mock = { decoders: kTestDecoders, resume: sinon.stub() }
-
-      dest.$setNative(mock)
       dest.resume()
-      assert.isTrue(mock.resume.called)
+      assert.isTrue(plugin.native.resume.called)
     })
   })
   describe('stop()', () => {
     it('should call native destination stop', () => {
-      const mock = { decoders: kTestDecoders, stop: sinon.stub() }
-
-      dest.$setNative(mock)
       dest.stop()
-      assert.isTrue(mock.stop.called)
+      assert.isTrue(plugin.native.stop.called)
     })
   })
+  describe('all()', () => {
+    it('should return no sources', () => {
+      assert.lengthOf(dest.all(), 0)
+    })
+    it('should return 1 source', () => {
+      dest.add('file.wav')
+      assert.lengthOf(dest.all(), 1)
+    })
+  })
+  describe('get()', () => {
+    it('should return undefined if source does not exist', () => {
+      assert.isUndefined(dest.get('file.wav'))
+    })
+    it('should return source for cache key', () => {
+      const source = dest.add('file.wav')
+      assert.strictEqual(dest.get('file.wav'), source)
+    })
+  })
+  describe('add()', () => {
+    it('should add source from filename string', () => {
+      dest.add('file.wav')
+      assert.lengthOf(dest.all(), 1)
+    })
+    it('should throw Error for buffer argument', () => {
+      assert.throws(() => dest.add(Buffer.from('')))
+    })
+    it('should add source from src filename', () => {
+      dest.add({ src: 'file.wav' })
+      assert.lengthOf(dest.all(), 1)
+    })
+    it('should add source from src buffer', () => {
+      const buffer = Buffer.from('')
+      dest.add({ src: buffer, key: 'asset' })
+      assert.lengthOf(dest.all(), 1)
+      assert.equal(buffer, dest.get('asset').src)
+    })
+    it('should use cache key', () => {
+      const source = dest.add({ src: 'file.wav', key: 'asset' })
+      assert.lengthOf(dest.all(), 1)
+      assert.strictEqual(dest.get('asset'), source)
+      assert.isUndefined(dest.get('file.wav'))
+    })
+    it('should throw if key already exists in cache', () => {
+      dest.add('file.wav')
+      assert.throws(() => dest.add('file.wav'))
+    })
+    it('should throw if options invalid type', () => {
+      for (const input of [1, [], NaN, true]) {
+        assert.throws(() => dest.add(input))
+      }
+    })
+  })
+  describe('delete()', () => {
+    it('should return source for cache key', () => {
+      dest.add('file.wav')
+      assert.lengthOf(dest.all(), 1)
+      dest.delete('file.wav')
+      assert.lengthOf(dest.all(), 0)
+    })
+  })
+  describe('has()', () => {
+    it('should return true if key exists', () => {
+      dest.add('file.wav')
+      assert.isTrue(dest.has('file.wav'))
+    })
+    it('should return false if key does not exist', () => {
+      assert.isFalse(dest.has('file.wav'))
+    })
+  })
+})
+
+const testDecoder = 'TEST'
+
+const mockNativeDestination = () => ({
+  capabilities: new Map(),
+  getDecoders () {
+    return [testDecoder, AudioDecoderType.OGG]
+  },
+  getVolume: sinon.stub(),
+  setVolume: sinon.stub(),
+  hasCapability (capability) {
+    return this.capabilities.get(capability)
+  },
+  createAudioSource () {
+    return {
+      destroy () {
+      }
+    }
+  },
+  pause: sinon.stub(),
+  resume: sinon.stub(),
+  stop: sinon.stub()
+})
+
+const mockPlugin = () => ({
+  native: null,
+  createSampleAudioDestination () {
+    this.native = mockNativeDestination()
+    return this.native
+  },
+  createStreamAudioDestination () {
+    this.native = mockNativeDestination()
+    return this.native
+  }
 })

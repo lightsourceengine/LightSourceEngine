@@ -5,12 +5,14 @@
  * tree.
  */
 
-#include "AudioPlugin.h"
+#pragma once
+
+#include <string>
+#include <vector>
 
 namespace lse {
 
-bool AudioPlugin::IsAttached() const noexcept {
-  return this->isAttached;
-}
+float ConstrainVolume(const float volume) noexcept;
+std::vector<std::string> ListDecoders(int32_t count, const char*(*toString)(int32_t index));
 
 } // namespace lse

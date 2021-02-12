@@ -10,15 +10,22 @@
         ".",
         "../lse-lib-napi-ext",
         "../lse-lib-logger",
+        "../lse-lib-util",
+        "../lse-lib-habitat",
+        "../deps/cpp17_headers/include",
       ],
       "dependencies": [
         "lse-lib-napi-ext",
         "lse-lib-logger",
+        "lse-lib-util",
+        "lse-lib-habitat"
       ],
       "sources": [
         "lse/AudioPlugin.cc",
-        "lse/AudioSource.cc",
-        "lse/AudioDestination.cc",
+        "lse/AudioUtil.cc",
+        "lse/bindings/CAudioPlugin.cc",
+        "lse/bindings/CAudioSource.cc",
+        "lse/bindings/CAudioDestination.cc",
       ]
     },
   ]

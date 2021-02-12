@@ -17,8 +17,8 @@ napi_value ParseValue(napi_env env, napi_callback_info info) noexcept;
 
 napi_value LoadSDLPlugin(napi_env env, napi_callback_info) noexcept;
 napi_value LoadRefPlugin(napi_env env, napi_callback_info) noexcept;
-Napi::Value LoadSDLAudioPlugin(const Napi::CallbackInfo& info);
-Napi::Value LoadSDLMixerPlugin(const Napi::CallbackInfo& info);
+napi_value LoadSDLAudioPlugin(napi_env env, napi_callback_info) noexcept;
+napi_value LoadSDLMixerPlugin(napi_env env, napi_callback_info) noexcept;
 
 napi_value LockStyle(napi_env env, napi_callback_info info) noexcept;
 napi_value SetStyleParent(napi_env env, napi_callback_info info) noexcept;

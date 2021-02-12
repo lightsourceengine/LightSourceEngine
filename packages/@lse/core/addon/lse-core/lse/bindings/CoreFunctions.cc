@@ -10,13 +10,10 @@
 #include <napix.h>
 #include <lse/Habitat.h>
 #include <lse/bindings/CStyleUtil.h>
-#include <lse/AudioPlugin.h>
-#include <lse/SDLAudioPluginImpl.h>
-#include <lse/SDLMixerAudioPluginImpl.h>
-#include <lse/SDL2.h>
-#include <lse/SDL2_mixer.h>
 #include <lse/Config.h>
 #include <lse/bindings/SDLPlatformPluginExports.h>
+#include <lse/bindings/SDLAudioExports.h>
+#include <lse/bindings/SDLMixerExports.h>
 #include <lse/bindings/CoreClasses.h>
 
 namespace lse {
@@ -53,34 +50,34 @@ napi_value LoadSDLPlugin(napi_env env, napi_callback_info) noexcept {
   }
 
   napix::throw_error(env, "SDL plugin is not available.");
+  return {};
 }
 
 napi_value LoadRefPlugin(napi_env env, napi_callback_info) noexcept {
   if (Habitat::HasClass(env, Habitat::Class::CGraphicsContext)) {
-    napix::throw_error(env, "");
+    napix::throw_error(env, "graphics plugin already installed?");
     return {};
   }
 
   return Habitat::SetClass(env, Habitat::Class::CGraphicsContext, CRefGraphicsContext::CreateClass(env));
 }
 
-Napi::Value LoadSDLAudioPlugin(const Napi::CallbackInfo& info) {
+napi_value LoadSDLAudioPlugin(napi_env env, napi_callback_info) noexcept {
   if (kEnablePluginAudioSdlAudio) {
-    SDL2::Open();
-    return lse::AudioPluginInit<lse::SDLAudioPluginImpl>(info.Env());
+    return CreateSDLAudioPlugin(env);
   }
 
-  throw Napi::Error::New(info.Env(), "SDL Audio plugin is not available.");
+  napix::throw_error(env, "SDL Audio plugin is not available.");
+  return {};
 }
 
-Napi::Value LoadSDLMixerPlugin(const Napi::CallbackInfo& info) {
+napi_value LoadSDLMixerPlugin(napi_env env, napi_callback_info) noexcept {
   if (kEnablePluginAudioSdlMixer) {
-    SDL2::Open();
-    SDL2::mixer::Open();
-    return lse::AudioPluginInit<lse::SDLMixerAudioPluginImpl>(info.Env());
+    return CreateSDLMixerAudioPlugin(env);
   }
 
-  throw Napi::Error::New(info.Env(), "SDL Audio plugin is not available.");
+  napix::throw_error(env, "SDL Mixer plugin is not available.");
+  return {};
 }
 
 napi_value LockStyle(napi_env env, napi_callback_info info) noexcept {

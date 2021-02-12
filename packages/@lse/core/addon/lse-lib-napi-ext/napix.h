@@ -223,6 +223,7 @@ bool is_nullish(napi_env env, napi_value value) noexcept;
 bool is_function(napi_env env, napi_value value) noexcept;
 bool is_string(napi_env env, napi_value value) noexcept;
 bool is_number(napi_env env, napi_value value) noexcept;
+bool is_buffer(napi_env env, napi_value value) noexcept;
 
 namespace js_class {
 

@@ -5,7 +5,6 @@
  */
 
 import { clamp, isNumber } from '../util/index.js'
-import { readFileSync, promises } from 'fs'
 import {
   AudioSourceCapabilityFadeIn,
   AudioSourceCapabilityLoop,
@@ -15,61 +14,75 @@ import {
   AudioSourceStateLoading,
   AudioSourceStateReady
 } from './constants.js'
-import { AudioSourceType } from './AudioSourceType.js'
 import { createReadyStatusEvent, createErrorStatusEvent } from '../event/index.js'
 import { EventName } from '../event/EventName.js'
 import { EventTarget } from '../event/EventTarget.js'
+import { promises } from 'fs'
+import { AudioType } from './AudioType.js'
 
-let nextAsyncId = 1
 const { readFile } = promises
 
 /**
  * An audio resource that can be rendered to a destination output buffer.
  */
 export class AudioSource extends EventTarget {
-  _audioManager = null
-  _id = ''
+  _type = AudioType.NULL
+  _src = ''
   _state = AudioSourceStateInit
   _native = null
   _buffer = null
-  _asyncId = 0
 
-  constructor (audio, id) {
+  constructor (native, type, src) {
     super([EventName.onStatus])
-    this._audioManager = audio
-    this._id = id
+
+    this._native = native
+    this._type = type
+    this._src = src
+    this._buffer = Buffer.isBuffer(src) ? src : null
   }
 
   /**
-   * @returns {string}
+   * Get the destination buffer type this audio source renders to.
+   *
+   * @type {AudioType}
    */
-  getType () {
-    return ''
+  get type () {
+    return this._type
   }
 
   /**
-   * @returns {string} AudioManager resource ID.
+   * Get the filename or buffer used to load this audio source.
+   *
+   * @type {string|buffer}
    */
-  getId () {
-    return this._id
+  get src () {
+    return this._src
   }
 
   /**
-   * @returns {boolean} true if the audio source is ready for use (playback, etc); otherwise, false
+   * Is the audio source in the ready state?
+   *
+   * In the ready state, playback can be initiated.
+   *
+   * @returns {boolean}
    */
   isReady () {
     return this._state === AudioSourceStateReady
   }
 
   /**
-   * @returns {boolean} true if the audio source is currently being loaded; otherwise, false
+   * Is the audio source in the loading state?
+   *
+   * @returns {boolean}
    */
   isLoading () {
     return this._state === AudioSourceStateLoading
   }
 
   /**
-   * @returns {boolean} true if the audio source failed to load it's file; otherwise, false
+   * Is the audio source in the error state?
+   *
+   * @returns {boolean}
    */
   isError () {
     return this._state === AudioSourceStateError
@@ -78,96 +91,111 @@ export class AudioSource extends EventTarget {
   /**
    * Start playback of the source from the beginning.
    *
-   * @param {Number} [opts.loops=1] The number of times to repeat playback. If 0, playback will loop foreever.
+   * @param {Number} [opts.loops=1] The number of times to repeat playback. If 0, playback will loop forever.
    * @param {Number} [opts.fadeInMs=0] The time in milliseconds to fade in (volume) playback.
    */
   play (opts = {}) {
-    this._native.play(opts)
+    this._native?.play(opts)
   }
 
   /**
-   * @returns volume {number} Current value [0-1] of the volume of the audio source.
-   */
-  getVolume () {
-    return this._native.volume
-  }
-
-  /**
-   * Sets the volume.
+   * Get the volume of this audio source.
    *
-   * @param value {number} A value between [0-1]. If the value is not a number, volume is set to 0. If the value is
+   * If hasVolume() returns false, 0 is returned.
+   *
+   * @returns volume {number} Range [0-1]
+   */
+  get volume () {
+    return this._native?.getVolume()
+  }
+
+  /**
+   * Sets the volume of this audio sources.
+   *
+   * If hasVolume() returns false, this method is a no-op
+   *
+   * @param value {number} A number between [0-1]. If the value is not a number, volume is set to 0. If the value is
    * out of range, it is Math.clamp()'d to [0-1].
    */
-  setVolume (value) {
-    this._native.volume = isNumber(value) ? clamp(value, 0, 1) : 0
+  set volume (value) {
+    this._native?.setVolume(isNumber(value) ? clamp(value, 0, 1) : 0)
   }
 
   /**
-   * @returns {boolean} true if this audio source supports volume controls; otherwise, false
+   * Does this source support changing volume?
+   *
+   * If true, the volume property of AudioSource is honored.
+   *
+   * @returns {boolean}
    */
   hasVolume () {
-    return this._native.hasCapability(AudioSourceCapabilityVolume)
+    return this._hasCapability(AudioSourceCapabilityVolume)
   }
 
   /**
-   * @returns {boolean} true if this audio source supports the loop option of play(); otherwise, false
+   * Does this support looping playback?
+   *
+   * If true, the loops argument of play is honored.
+   *
+   * @returns {boolean}
    */
   canLoop () {
-    return this._native.hasCapability(AudioSourceCapabilityLoop)
+    return this._hasCapability(AudioSourceCapabilityLoop)
   }
 
   /**
-   * @returns {boolean} true if this audio source supports fadeIn; otherwise, false
+   * Does this support fading in on the start of playback?
+   *
+   * If true, the fadeInMs argument of play is honored.
+   *
+   * @returns {boolean}
    */
   canFadeIn () {
-    return this._native.hasCapability(AudioSourceCapabilityFadeIn)
+    return this._hasCapability(AudioSourceCapabilityFadeIn)
   }
 
   /**
    * @ignore
    */
-  $load (sync) {
-    switch (this._state) {
-      case AudioSourceStateInit:
-        if (this._buffer) {
-          this._setBuffer(this._buffer, true)
-          return
-        }
-        break
-      case AudioSourceStateLoading:
-        this._buffer && this._setBuffer(this._buffer, true)
-        return
-      case AudioSourceStateError:
-        break
-      default:
-        throw Error('AudioSource must be in init or error state to load')
+  $load (sync, defer) {
+    if (this._state !== AudioSourceStateInit) {
+      throw Error('expected init state')
     }
 
-    const path = parseUri(this._id)
+    const { _native } = this
 
-    if (sync) {
-      let buffer
-
-      try {
-        buffer = readFileSync(path)
-      } catch (e) {
-        this._setError(e, true)
-        return
-      }
-
-      this._setBuffer(buffer, true)
+    if (!_native) {
+      // No native source installed. Just error out. The audio type is probably not supported.
+      this._state = AudioSourceStateError
+      this.dispatchEvent(createErrorStatusEvent(this, { message: 'no native source' }), defer)
+    } else if (this._buffer) {
+      // A backing buffer exists, use that, regardless of sync
+      this._loadAndDispatch(this._buffer, defer)
+    } else if (sync) {
+      // synchronously load the src. this is a filename
+      this._loadAndDispatch(this._src, defer)
     } else {
-      const asyncId = this._asyncId = nextAsyncId++
-      const cancelled = () => this._asyncId !== asyncId || this._state !== AudioSourceStateLoading
-
+      // asynchronously load the src. set the state to loading in the meantime.
       this._state = AudioSourceStateLoading
 
-      readFile(path)
-        .then((buffer) => {
-          cancelled() || this._setBuffer(buffer, false)
+      readFile(this._src)
+        .then(buffer => {
+          if (this._state !== AudioSourceStateLoading) {
+            // if no longer in loading state, $unload was called, cancelling this read request
+            return
+          }
+
+          this._buffer = buffer
+          this._loadAndDispatch(buffer, defer)
         })
-        .catch((e) => {
-          cancelled() || this._setError(e, false)
+        .catch(error => {
+          if (this._state !== AudioSourceStateLoading) {
+            // if no longer in loading state, $unload was called, cancelling this read request
+            return
+          }
+
+          this._state = AudioSourceStateError
+          this.dispatchEvent(createErrorStatusEvent(this, error), defer)
         })
     }
   }
@@ -177,107 +205,38 @@ export class AudioSource extends EventTarget {
    */
   $unload () {
     this._state = AudioSourceStateInit
-    this._asyncId = 0
-    this._native?.destroy()
-    this._native = null
+    this._native?.unload()
   }
 
   /**
    * @ignore
    */
-  $setNative (nativeAudioSource) {
-    this._native = nativeAudioSource
+  $destroy () {
+    this._native.destroy()
+    this._state = -1
+    this._src = this._buffer = this._native = null
   }
 
   /**
    * @ignore
    */
-  $setState (state) {
-    this._state = state
+  _hasCapability (capability) {
+    return this._native?.hasCapability(capability) ?? false
   }
 
   /**
    * @ignore
    */
-  _setError (error, deferred) {
-    const message = typeof error === 'string' ? error : error.message
-
-    this.$unload()
-    this._state = AudioSourceStateError
-    this._buffer = null
-
-    this.dispatchEvent(createErrorStatusEvent(this, message), deferred)
-  }
-
-  /**
-   * @ignore
-   */
-  _setBuffer (buffer, deferred) {
-    const audioManager = this._audioManager
-
-    this._buffer = buffer
-
-    if (!this._native) {
-      if (!audioManager.isAttached()) {
-        return
-      }
-
-      const dest = audioManager[this.getType()]
-
-      if (!dest || !dest.isAvailable()) {
-        this._setError(`${this.getType()} type is not loadable for this audio plugin.`, deferred)
-        return
-      }
-
-      try {
-        this._native = dest.$createNativeAudioSource()
-      } catch (e) {
-        this._setError(e, deferred)
-        return
-      }
-    }
-
+  _loadAndDispatch (src, defer) {
     try {
-      this._native.load(buffer)
+      this._native.load(src)
     } catch (e) {
-      this._setError(e, deferred)
+      this._state = AudioSourceStateError
+      this.dispatchEvent(createErrorStatusEvent(this, e), defer)
       return
     }
 
     this._state = AudioSourceStateReady
-
-    this.dispatchEvent(createReadyStatusEvent(this), deferred)
+    this.dispatchEvent(createReadyStatusEvent(this), defer)
   }
 }
-
-/**
- * @ignore
- */
-export class SampleAudioSource extends AudioSource {
-  getType () {
-    return AudioSourceType.Sample
-  }
-}
-
-/**
- * @ignore
- */
-export class StreamAudioSource extends AudioSource {
-  getType () {
-    return AudioSourceType.Stream
-  }
-}
-
-/**
- * @ignore
- */
-export class NullAudioSource extends AudioSource {
-  getType () {
-    return AudioSourceType.Null
-  }
-}
-
-/**
- * @ignore
- */
-const parseUri = (uri) => uri.startsWith('file:') ? uri.substr(5, uri.length - uri.search('?')) : uri

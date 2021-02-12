@@ -217,7 +217,7 @@ const VideoView = () => jsx(Button, {
 
 const AudioView = () => {
     const enabled = destination => destination.isAvailable() ? 'ENABLED' : 'DISABLED';
-    const decoders = destination => destination.getDecoders().join(', ');
+    const decoders = destination => destination.decoders.join(', ');
     const {sample, stream} = stage.audio;
     return jsxs(Fragment, {
         children: [ jsx(Button, {

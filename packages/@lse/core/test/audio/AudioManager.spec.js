@@ -7,12 +7,10 @@
 import chai from 'chai'
 import { AudioManager } from '../../src/audio/AudioManager.js'
 import { loadPlugin } from '../../src/addon/loadPlugin.js'
-import { AudioSourceType } from '../../src/audio/AudioSourceType.js'
 import { EventName } from '../../src/event/EventName.js'
 import { PluginId } from '../../src/addon/PluginId.js'
 
 const { assert } = chai
-const testWavFile = 'test/resources/test.wav'
 
 describe('AudioManager', () => {
   let audio
@@ -25,6 +23,12 @@ describe('AudioManager', () => {
   afterEach(() => {
     audio.$destroy()
     audio = null
+  })
+  describe('property: devices', () => {
+    it('should return Reference audio device name', () => {
+      assert.lengthOf(audio.devices, 1)
+      assert.include(audio.devices, 'Reference')
+    })
   })
   describe('attached event', () => {
     it('should emit attached event', async () => {
@@ -63,90 +67,6 @@ describe('AudioManager', () => {
   describe('stream', () => {
     it('should be available', () => {
       assert.isTrue(audio.stream.isAvailable())
-    })
-  })
-  describe('getDevices()', () => {
-    it('should return Reference audio device name', () => {
-      assert.lengthOf(audio.getDevices(), 1)
-      assert.include(audio.getDevices(), 'Reference')
-    })
-  })
-  describe('all()', () => {
-    it('should return an empty array when no audio sources are loaded', () => {
-      assert.lengthOf(audio.all(), 0)
-    })
-    it('should return all loaded audio sources', () => {
-      const audioSource = audio.addSample(testWavFile, { sync: true })
-      assert.lengthOf(audio.all(), 1)
-      assert.include(audio.all(), audioSource)
-    })
-    it('should update when audio source is removed', () => {
-      const audioSource = audio.addSample(testWavFile, { sync: true })
-      assert.lengthOf(audio.all(), 1)
-      audio.delete(audioSource.getId())
-      assert.lengthOf(audio.all(), 0)
-    })
-  })
-  describe('addSample()', () => {
-    it('should create a new sample audio source synchronously', () => {
-      const audioSource = audio.addSample(testWavFile, { sync: true })
-      assert.equal(audioSource.getId(), testWavFile)
-      assert.equal(audioSource.getType(), AudioSourceType.Sample)
-      assert.isTrue(audioSource.isReady())
-    })
-    it('should create a new sample audio source asynchronously', () => {
-      const audioSource = audio.addSample(testWavFile)
-      assert.equal(audioSource.getId(), testWavFile)
-      assert.equal(audioSource.getType(), AudioSourceType.Sample)
-      assert.isTrue(audioSource.isLoading())
-    })
-  })
-  describe('addStream()', () => {
-    it('should create a new stream audio source synchronously', () => {
-      const audioSource = audio.addStream(testWavFile, { sync: true })
-      assert.equal(audioSource.getId(), testWavFile)
-      assert.equal(audioSource.getType(), AudioSourceType.Stream)
-      assert.isTrue(audioSource.isReady())
-    })
-    it('should create a new stream audio source asynchronously', () => {
-      const audioSource = audio.addStream(testWavFile)
-      assert.equal(audioSource.getId(), testWavFile)
-      assert.equal(audioSource.getType(), AudioSourceType.Stream)
-      assert.isTrue(audioSource.isLoading())
-    })
-  })
-  describe('get()', () => {
-    it('should return Null-type AudioSource if id does not exist', () => {
-      assert.equal(audio.get('unknown').getType(), AudioSourceType.Null)
-    })
-    it('should return audio source matching id', () => {
-      const audioSource = audio.addSample(testWavFile, { sync: true })
-
-      assert.equal(audio.get(testWavFile), audioSource)
-    })
-  })
-  describe('has()', () => {
-    it('should return true for registered audio source', () => {
-      const audioSource = audio.addSample(testWavFile, { sync: true })
-
-      assert.isTrue(audio.has(audioSource.getId()))
-    })
-    it('should return false for unregistered audio source', () => {
-      assert.isFalse(audio.has('unknown'))
-    })
-  })
-  describe('delete()', () => {
-    it('should remove audio source', () => {
-      const audioSource = audio.addSample(testWavFile, { sync: true })
-
-      assert.strictEqual(audio.get(audioSource.getId()), audioSource)
-
-      audio.delete(audioSource.getId())
-
-      assert.equal(audio.get(audioSource.getId()).getType(), AudioSourceType.Null)
-    })
-    it('should be a no-op for unregistered id', () => {
-      audio.delete('unknown')
     })
   })
 })

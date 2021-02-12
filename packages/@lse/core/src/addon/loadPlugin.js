@@ -104,12 +104,24 @@ const loadRefAudioPluginJs = () => {
   let attached
 
   class RefAudioDestination {
-    decoders = [ "WAVE" ]
-    volume = 0
+    getDecoders() {
+      return [ "WAVE" ]
+    }
+    getVolume() {
+      return 0
+    }
+    setVolume(volume) {
+    }
     createAudioSource() {
       return {
-        volume: 0,
+        getVolume() {
+          return 0
+        },
+        setVolume(volume) {
+        },
         load() {
+        },
+        unload() {
         },
         destroy() {
         },
@@ -129,7 +141,9 @@ const loadRefAudioPluginJs = () => {
 
   return {
     type: PluginType.AUDIO,
-    devices: [ "Reference" ],
+    getDevices() {
+      return [ "Reference" ]
+    },
     attach() {
       attached = true
     },

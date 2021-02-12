@@ -12,6 +12,7 @@
         "../lse-lib-logger",
         "../lse-lib-audio",
         "../lse-lib-util",
+        "../lse-lib-habitat",
         "../deps/cpp17_headers/include",
         "<(lse_sdl_include)",
         "<(lse_sdl_mixer_include)"
@@ -21,9 +22,13 @@
           "lse-lib-logger",
           "lse-lib-audio",
           "lse-lib-util",
+          "lse-lib-habitat",
       ],
       "sources": [
-        "lse/SDLMixerAudioPluginImpl.cc"
+        "lse/SDLMixerAudioPlugin.cc",
+        "lse/SDLMixerAudioSource.cc",
+        "lse/SDLMixerAudioDestination.cc",
+        "lse/bindings/SDLMixerExports.cc",
       ]
     }
   ]
