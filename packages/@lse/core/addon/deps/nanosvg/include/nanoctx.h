@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 typedef void* nctx;
 
 // Expose a Canvas Context2D like API.
