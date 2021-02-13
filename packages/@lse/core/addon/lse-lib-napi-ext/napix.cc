@@ -340,6 +340,11 @@ bool is_number(napi_env env, napi_value value) noexcept {
   return (napi_typeof(env, value, &type) == napi_ok && type == napi_number);
 }
 
+bool is_buffer(napi_env env, napi_value value) noexcept {
+  bool result{};
+  return (napi_is_buffer(env, value, &result) == napi_ok && result);
+}
+
 namespace js_class {
 
 napi_value define(
