@@ -15,9 +15,8 @@
 #include <lse/Log.h>
 #include <lse/Color.h>
 #include <lse/yoga-ext.h>
-#include <lse/GraphicsContext.h>
-#include <lse/Timer.h>
 #include <lse/PixelConversion.h>
+#include <nanoctx.h>
 
 namespace lse {
 
@@ -127,38 +126,46 @@ void BoxSceneNode::PaintBorderRadius(RenderingContext2D* context) {
   }
 
   auto pixels{ this->paintTarget.Lock() };
-  Timer t("border radius render");
 
-  context->Begin(pixels.Data(), pixels.Width(), pixels.Height(), pixels.Pitch());
+  // Length proportional to radius of a cubic bezier handle for 90deg arcs.
+  constexpr auto KAPPA = 1.f - 0.5522847493f;
+  const float x = box.x;
+  const float y = box.y;
+  const float w = box.width;
+  const float h = box.height;
+  const float tl = borderRadius.topLeft;
+  const float tr = borderRadius.topRight;
+  const float bl = borderRadius.bottomLeft;
+  const float br = borderRadius.bottomRight;
 
-  // Fill entire texture surface with transparent to start from a known state.
-  context->SetColor(0);
-  context->FillAll();
+  auto ctx{nctx_new(pixels.Width(), pixels.Height())};
 
-  context->SetColor(boxStyle->GetColor(StyleProperty::backgroundColor).value());
+  // XXX: fix bug in color_t that is causing malformed colors
+  auto color{boxStyle->GetColor(StyleProperty::backgroundColor).value_or(0)};
 
-  context->BeginPath();
-  context->MoveTo(box.x + borderRadius.topLeft, box.y);
-  context->LineTo(box.x + box.width - borderRadius.topRight, box.y);
-  context->QuadTo(box.x + box.width, box.y, box.x + box.width, box.y + borderRadius.topRight);
-  context->LineTo(box.x + box.width, box.y + box.height - borderRadius.bottomRight);
-  context->QuadTo(box.x + box.width, box.y + box.height,
-                  box.x + box.width - borderRadius.bottomRight, box.y + box.height);
-  context->LineTo(box.x + borderRadius.bottomLeft, box.y + box.height);
-  context->QuadTo(box.x, box.y + box.height, box.x, box.y + box.height - borderRadius.bottomLeft);
-  context->LineTo(box.x, box.y + borderRadius.topLeft);
-  context->QuadTo(box.x, box.y, box.x + borderRadius.topLeft, box.y);
-  context->ClosePath();
+  nctx_set_fill_color(ctx, (color.b << 16) | (color.g << 8) | color.r);
+  nctx_begin_path(ctx);
 
-  context->FillPath();
+  nctx_move_to(ctx, x+tl, y);
+  nctx_line_to(ctx, x+w-tr, y);
+  nctx_cubic_bezier_to(ctx, x+w-tr*KAPPA, y, x+w, y+tl*KAPPA, x+w, y+tr);
+  nctx_line_to(ctx, x+w, y+h-br);
+  nctx_cubic_bezier_to(ctx, x+w, y+h-br*KAPPA, x+w-tr*KAPPA, y+h, x+w-br, y+h);
+  nctx_line_to(ctx, x+bl, y+h);
+  nctx_cubic_bezier_to(ctx, x+bl*KAPPA, y+h, x, y+h-bl*KAPPA, x, y+h-bl);
+  nctx_line_to(ctx, x, y+tl);
+  nctx_cubic_bezier_to(ctx, x, y+tl*KAPPA, x+tl*KAPPA, y, x+tl, y);
 
-  context->End();
+  nctx_close_path(ctx);
+  nctx_fill(ctx);
+
+  nctx_render(ctx, pixels.Data(), pixels.Width(), pixels.Height(), pixels.Pitch());
+
+  nctx_delete(ctx);
 
   ConvertToFormat(reinterpret_cast<color_t*>(pixels.Data()), pixels.Width() * pixels.Height(), paintTarget.Format());
 
   pixels.Release();
-
-  // TODO: convert context pixels, if necessary
 
   this->RequestComposite();
 }
