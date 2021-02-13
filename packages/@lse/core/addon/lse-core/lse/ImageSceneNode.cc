@@ -6,6 +6,9 @@
 
 #include <lse/ImageSceneNode.h>
 
+// TODO: remove after image loading depends are removed
+#include <napix.h>
+
 #include <lse/Style.h>
 #include <lse/Scene.h>
 #include <lse/Stage.h>
@@ -14,43 +17,11 @@
 #include <lse/CompositeContext.h>
 #include <lse/yoga-ext.h>
 
-using Napi::Array;
-using Napi::Call;
-using Napi::CallbackInfo;
-using Napi::Error;
-using Napi::EscapableHandleScope;
-using Napi::Function;
-using Napi::FunctionReference;
-using Napi::HandleScope;
-using Napi::SafeObjectWrap;
-using Napi::String;
-using Napi::Value;
-
 namespace lse {
 
-void ImageSceneNode::Constructor(const Napi::CallbackInfo& info) {
-  this->SceneNodeConstructor(info);
+ImageSceneNode::ImageSceneNode(napi_env env, Scene* scene) : SceneNode(env, scene) {
   this->SetFlag(FlagLeaf, true);
   YGNodeSetMeasureFunc(this->ygNode, SceneNode::YogaMeasureCallback);
-}
-
-Function ImageSceneNode::GetClass(Napi::Env env) {
-  static FunctionReference constructor;
-
-  if (constructor.IsEmpty()) {
-    HandleScope scope(env);
-
-    constructor = DefineClass(
-        env,
-        "ImageSceneNode", true,
-        SceneNode::Extend<ImageSceneNode>(env, {
-            InstanceAccessor("src", &ImageSceneNode::GetSource, &ImageSceneNode::SetSource),
-            InstanceAccessor("onLoad", &ImageSceneNode::GetOnLoadCallback, &ImageSceneNode::SetOnLoadCallback),
-            InstanceAccessor("onError", &ImageSceneNode::GetOnErrorCallback, &ImageSceneNode::SetOnErrorCallback),
-        }));
-  }
-
-  return constructor.Value();
 }
 
 void ImageSceneNode::OnStylePropertyChanged(StyleProperty property) {
@@ -140,31 +111,16 @@ YGSize ImageSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float hei
   return { 0.f, 0.f };
 }
 
-Value ImageSceneNode::GetSource(const CallbackInfo& info) {
-  return String::New(info.Env(), this->src);
+const std::string& ImageSceneNode::GetSource() const noexcept {
+  return this->src;
 }
 
-void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& value) {
-  auto env{ info.Env() };
-  std::string newSrc{};
-
-  switch (value.Type()) {
-    case napi_string:
-      newSrc = value.As<String>();
-      break;
-    case napi_null:
-    case napi_undefined:
-      break;
-    default:
-      LOG_WARN("src must be a string")
-      return;
-  }
-
-  if (newSrc == this->src) {
+void ImageSceneNode::SetSource(napi_env env, std::string&& value) noexcept {
+  if (value == this->src) {
     return;
   }
 
-  if (newSrc.empty()) {
+  if (value.empty()) {
     if (!this->src.empty()) {
       this->src.clear();
       this->ClearResource();
@@ -178,7 +134,7 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
   }
 
   this->ClearResource();
-  this->src = newSrc;
+  this->src = std::move(value);
   this->image = this->GetResources()->AcquireImage(this->src);
 
   auto listener{ [this](Resource::Owner owner, Resource* res) {
@@ -211,20 +167,40 @@ void ImageSceneNode::SetSource(const CallbackInfo& info, const Napi::Value& valu
   }
 }
 
-Value ImageSceneNode::GetOnLoadCallback(const CallbackInfo& info) {
-  return this->resourceProgress.GetOnLoad(info.Env());
+napi_value ImageSceneNode::GetOnLoadCallback(napi_env env) noexcept {
+  try {
+    return this->resourceProgress.GetOnLoad(env);
+  } catch (const Napi::Error& e) {
+    napix::throw_error(env, e.what());
+  }
+
+  return {};
 }
 
-void ImageSceneNode::SetOnLoadCallback(const CallbackInfo& info, const Napi::Value& value) {
-  return this->resourceProgress.SetOnLoad(info.Env(), value);
+void ImageSceneNode::SetOnLoadCallback(napi_env env, napi_value value) noexcept {
+  try {
+    this->resourceProgress.SetOnLoad(env, Napi::Value(env, value));
+  } catch (const Napi::Error& e) {
+    napix::throw_error(env, e.what());
+  }
 }
 
-Value ImageSceneNode::GetOnErrorCallback(const CallbackInfo& info) {
-  return this->resourceProgress.GetOnError(info.Env());
+napi_value ImageSceneNode::GetOnErrorCallback(napi_env env) noexcept {
+  try {
+    return this->resourceProgress.GetOnError(env);
+  } catch (const Napi::Error& e) {
+    napix::throw_error(env, e.what());
+  }
+
+  return {};
 }
 
-void ImageSceneNode::SetOnErrorCallback(const CallbackInfo& info, const Napi::Value& value) {
-  return this->resourceProgress.SetOnError(info.Env(), value);
+void ImageSceneNode::SetOnErrorCallback(napi_env env, napi_value value) noexcept {
+  try {
+    this->resourceProgress.SetOnError(env, Napi::Value(env, value));
+  } catch (const Napi::Error& e) {
+    napix::throw_error(env, e.what());
+  }
 }
 
 void ImageSceneNode::Destroy() {

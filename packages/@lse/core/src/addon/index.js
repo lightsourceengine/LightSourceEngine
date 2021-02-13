@@ -34,10 +34,10 @@ export const {
   CScene,
   CStyle,
   CFontManager,
-  BoxSceneNode:BoxSceneNodeBase,
-  ImageSceneNode:ImageSceneNodeBase,
-  RootSceneNode:RootSceneNodeBase,
-  TextSceneNode:TextSceneNodeBase
+  CBoxSceneNode,
+  CImageSceneNode,
+  CRootSceneNode,
+  CTextSceneNode
 } = addon
 
 // Enum Exports

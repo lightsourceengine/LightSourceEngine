@@ -6,7 +6,6 @@
 
 #include <lse/TextSceneNode.h>
 
-#include <lse/Stage.h>
 #include <lse/Scene.h>
 #include <lse/yoga-ext.h>
 #include <lse/Style.h>
@@ -15,43 +14,12 @@
 #include <lse/Renderer.h>
 #include <lse/PixelConversion.h>
 
-using Napi::Array;
-using Napi::CallbackInfo;
-using Napi::Error;
-using Napi::Function;
-using Napi::FunctionReference;
-using Napi::HandleScope;
-using Napi::Object;
-using Napi::SafeObjectWrap;
-using Napi::String;
-using Napi::Value;
-
 namespace lse {
 
-static const std::string kDefaultFontFamily = "default";
-
-void TextSceneNode::Constructor(const Napi::CallbackInfo& info) {
-  this->SceneNodeConstructor(info);
+TextSceneNode::TextSceneNode(napi_env env, Scene* scene) : SceneNode(env, scene) {
   this->SetFlag(FlagLeaf, true);
   YGNodeSetMeasureFunc(this->ygNode, SceneNode::YogaMeasureCallback);
   YGNodeSetNodeType(this->ygNode, YGNodeTypeText);
-}
-
-Function TextSceneNode::GetClass(Napi::Env env) {
-  static FunctionReference constructor;
-
-  if (constructor.IsEmpty()) {
-    HandleScope scope(env);
-
-    constructor = DefineClass(
-        env,
-        "TextSceneNode", true,
-        SceneNode::Extend<TextSceneNode>(env, {
-            InstanceAccessor("text", &TextSceneNode::GetText, &TextSceneNode::SetText),
-        }));
-  }
-
-  return constructor.Value();
 }
 
 void TextSceneNode::OnStylePropertyChanged(StyleProperty property) {
@@ -160,23 +128,13 @@ void TextSceneNode::Composite(CompositeContext* composite) {
   }
 }
 
-Value TextSceneNode::GetText(const CallbackInfo& info) {
-  return String::New(info.Env(), this->text);
+const std::string& TextSceneNode::GetText() const {
+  return this->text;
 }
 
-void TextSceneNode::SetText(const CallbackInfo& info, const Napi::Value& value) {
-  std::string str;
-
-  if (value.IsString()) {
-    str = value.As<String>();
-  } else if (value.IsNull() || value.IsUndefined()) {
-    str = "";
-  } else {
-    throw Error::New(info.Env(), "Cannot assign non-string value to text property.");
-  }
-
-  if (this->text != str) {
-    this->text = str;
+void TextSceneNode::SetText(std::string&& text) {
+  if (this->text != text) {
+    this->text = std::move(text);
     this->block.Invalidate();
     YGNodeMarkDirty(this->ygNode);
   }
@@ -247,6 +205,7 @@ void TextSceneNode::ClearFontFaceResource() {
 
 void TextSceneNode::Destroy() {
   this->ClearFontFaceResource();
+  this->block.Destroy();
 
   SceneNode::Destroy();
 }

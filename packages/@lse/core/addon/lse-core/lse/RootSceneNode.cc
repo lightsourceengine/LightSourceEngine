@@ -11,31 +11,9 @@
 #include <lse/Renderer.h>
 #include <lse/CompositeContext.h>
 
-using Napi::CallbackInfo;
-using Napi::Error;
-using Napi::Function;
-using Napi::FunctionReference;
-using Napi::HandleScope;
-using Napi::SafeObjectWrap;
-using Napi::String;
-using Napi::Value;
-
 namespace lse {
 
-void RootSceneNode::Constructor(const Napi::CallbackInfo& info) {
-  this->SceneNodeConstructor(info);
-}
-
-Function RootSceneNode::GetClass(Napi::Env env) {
-  static FunctionReference constructor;
-
-  if (constructor.IsEmpty()) {
-    HandleScope scope(env);
-
-    constructor = DefineClass(env, "RootSceneNode", true, SceneNode::Extend<RootSceneNode>(env, {}));
-  }
-
-  return constructor.Value();
+RootSceneNode::RootSceneNode(napi_env env, Scene* scene) : SceneNode(env, scene) {
 }
 
 void RootSceneNode::OnStylePropertyChanged(StyleProperty property) {

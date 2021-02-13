@@ -19,30 +19,9 @@
 #include <lse/Timer.h>
 #include <lse/PixelConversion.h>
 
-using Napi::CallbackInfo;
-using Napi::Function;
-using Napi::FunctionReference;
-using Napi::HandleScope;
-using Napi::SafeObjectWrap;
-
 namespace lse {
 
-void BoxSceneNode::Constructor(const Napi::CallbackInfo& info) {
-  this->SceneNodeConstructor(info);
-}
-
-Function BoxSceneNode::GetClass(Napi::Env env) {
-  static FunctionReference constructor;
-
-  if (constructor.IsEmpty()) {
-    HandleScope scope(env);
-
-    constructor = DefineClass(env, "BoxSceneNode", true, SceneNode::Extend<BoxSceneNode>(env, {
-        InstanceValue("waypoint", env.Null(), napi_writable),
-    }));
-  }
-
-  return constructor.Value();
+BoxSceneNode::BoxSceneNode(napi_env env, Scene* scene) : SceneNode(env, scene) {
 }
 
 void BoxSceneNode::OnStylePropertyChanged(StyleProperty property) {
@@ -340,7 +319,7 @@ void BoxSceneNode::UpdateBackgroundImage(const std::string& backgroundUri) {
   switch (this->backgroundImage->GetState()) {
     case Resource::State::Init:
       this->backgroundImage->AddListener(this, listener);
-      this->backgroundImage->Load(this->Env());
+      this->backgroundImage->Load(this->env);
       break;
     case Resource::State::Loading:
       this->backgroundImage->AddListener(this, listener);

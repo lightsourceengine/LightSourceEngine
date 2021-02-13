@@ -59,7 +59,9 @@ describe('TextSceneNode', () => {
       const node = scene.createNode('text')
 
       for (const input of [{}, 3]) {
-        assert.throws(() => { node.text = input })
+        node.text = 'test'
+        node.text = input
+        assert.isEmpty(node.text)
       }
     })
   })

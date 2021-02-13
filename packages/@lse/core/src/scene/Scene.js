@@ -44,13 +44,11 @@ export class Scene extends EventTarget {
     style.left = 0
     style.position = 'absolute'
 
-    this._native.setRoot(this._root)
+    this._native.setRoot(this._root.$native)
 
     if (typeof config?.title === 'string') {
       this.title = config.title
     }
-
-    // loadFonts(this)
   }
 
   get stage () {

@@ -84,9 +84,14 @@ static napi_value Destroy(napi_env env, napi_callback_info info) noexcept {
 
 static napi_value SetRoot(napi_env env, napi_callback_info info) noexcept {
   auto ci{ napix::get_callback_info<1>(env, info) };
-  auto root{ RootSceneNode::Cast(Napi::Value(env, ci[0])) };
 
-  NAPIX_EXPECT_NOT_NULL(env, root, "root arg is not a RootSceneNode instance", {});
+  RootSceneNode* root{};
+
+  if (Habitat::InstanceOf(env, ci[0], Habitat::Class::CRootSceneNode)) {
+    root = napix::unwrap_as<RootSceneNode>(env, ci[0]);
+  }
+
+  NAPIX_EXPECT_NOT_NULL(env, root, "root arg is not a CRootSceneNode instance", {});
 
   unwrap_this_as<Scene>(env, info)->SetRoot(root);
 

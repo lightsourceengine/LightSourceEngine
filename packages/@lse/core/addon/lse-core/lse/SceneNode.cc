@@ -14,14 +14,8 @@
 #include <lse/Stage.h>
 #include <lse/CompositeContext.h>
 #include <lse/Renderer.h>
-#include <lse/Log.h>
 #include <lse/RootSceneNode.h>
-#include <lse/BoxSceneNode.h>
-#include <lse/ImageSceneNode.h>
-#include <lse/TextSceneNode.h>
-#include <lse/Timer.h>
 #include <lse/yoga-ext.h>
-#include <napix.h>
 #include <lse/Habitat.h>
 
 using Napi::Array;
@@ -38,16 +32,11 @@ namespace lse {
 
 int32_t SceneNode::instanceCount{ 0 };
 
-void SceneNode::SceneNodeConstructor(const Napi::CallbackInfo& info) {
-  Scene* scenePtr{};
+SceneNode::SceneNode(napi_env env, Scene* scene) {
+  assert(scene != nullptr);
 
-  if (Habitat::InstanceOf(info.Env(), info[0], Habitat::Class::CScene)) {
-    scenePtr = napix::unwrap_as<Scene>(info.Env(), info[0]);
-  }
-
-  NAPI_EXPECT_NOT_NULL(info.Env(), scenePtr, "scene arg must be a Scene instance");
-
-  this->scene = scenePtr;
+  this->env = env;
+  this->scene = scene;
   this->flags.set(FlagLayoutOnly, true);
   this->ygNode = YGNodeNew();
   YGNodeSetContext(this->ygNode, this);
@@ -58,52 +47,27 @@ int32_t SceneNode::GetInstanceCount() noexcept {
   return SceneNode::instanceCount;
 }
 
-Value SceneNode::GetX(const CallbackInfo& info) {
-  return Number::New(info.Env(), YGNodeLayoutGetLeft(this->ygNode));
+float SceneNode::GetX() const noexcept {
+  return YGNodeLayoutGetLeft(this->ygNode);
 }
 
-Value SceneNode::GetY(const CallbackInfo& info) {
-  return Number::New(info.Env(), YGNodeLayoutGetTop(this->ygNode));
+float SceneNode::GetY() const noexcept {
+  return YGNodeLayoutGetTop(this->ygNode);
 }
 
-Value SceneNode::GetWidth(const CallbackInfo& info) {
-  return Number::New(info.Env(), YGNodeLayoutGetWidth(this->ygNode));
+float SceneNode::GetWidth() const noexcept {
+  return YGNodeLayoutGetWidth(this->ygNode);
 }
 
-Value SceneNode::GetHeight(const CallbackInfo& info) {
-  return Number::New(info.Env(), YGNodeLayoutGetHeight(this->ygNode));
+float SceneNode::GetHeight() const noexcept {
+  return YGNodeLayoutGetHeight(this->ygNode);
 }
 
-Value SceneNode::GetParent(const CallbackInfo& info) {
-  auto parent{ this->GetParent() };
-  return parent ? parent->Value() : info.Env().Null();
-}
+void SceneNode::BindStyle(Style* style) noexcept {
+  assert(style != nullptr);
 
-Napi::Value SceneNode::GetChildren(const Napi::CallbackInfo& info) {
-  auto env{ info.Env() };
-  EscapableHandleScope scope(env);
-  auto childArray{ Array::New(env, YGNodeGetChildCount(this->ygNode)) };
-  auto i{ 0u };
-
-  for (const auto& child : YGNodeGetChildren(this->ygNode)) {
-    childArray[i++] = YGNodeGetContextAs<SceneNode>(child)->Value();
-  }
-
-  return scope.Escape(childArray);
-}
-
-Napi::Value SceneNode::BindStyle(const Napi::CallbackInfo& info) {
-  auto env{ info.Env() };
-
-  Style* stylePtr{};
-
-  if (Habitat::InstanceOf(env, info[0], Habitat::Class::CStyle)) {
-    stylePtr = napix::unwrap_as<Style>(info.Env(), info[0]);
-  }
-
-  NAPI_EXPECT_NOT_NULL(info.Env(), stylePtr, "bindStyle target must be a Style instance");
-
-  this->style = stylePtr;
+  this->style = style;
+  // TODO: remove std::function allocation?
   this->style->SetChangeListener([this](StyleProperty property) {
     if (IsYogaProperty(property)) {
       this->GetStyleContext()->SetYogaPropertyValue(this->style, property, this->ygNode);
@@ -111,16 +75,10 @@ Napi::Value SceneNode::BindStyle(const Napi::CallbackInfo& info) {
       this->OnStylePropertyChanged(property);
     }
   });
-
-  return info[0];
 }
 
-Napi::Value SceneNode::GetHidden(const CallbackInfo& info) {
-  return Boolean::New(info.Env(), this->IsHidden());
-}
-
-void SceneNode::SetHidden(const CallbackInfo& info, const Napi::Value& value) {
-  this->flags.set(FlagHidden, value.ToBoolean());
+void SceneNode::SetHidden(bool value) noexcept {
+  this->flags.set(FlagHidden, value);
 }
 
 Resources* SceneNode::GetResources() const noexcept {
@@ -134,94 +92,81 @@ SceneNode* SceneNode::GetParent() const noexcept {
   return parent ? YGNodeGetContextAs<SceneNode>(parent) : nullptr;
 }
 
-void SceneNode::AppendChild(const CallbackInfo& info) {
-  auto env{ info.Env() };
-
+void SceneNode::AppendChild(SceneNode* node) {
   if (this->IsLeaf()) {
-    throw Error::New(env, "appendChild: leaf nodes cannot have children");
+    throw std::runtime_error("leaf nodes cannot have children");
   }
 
-  HandleScope scope(env);
-  auto child{ SceneNode::QueryInterface(info[0]) };
-
-  if (child == nullptr || child == this) {
-    throw Error::New(env, "appendChild: invalid child argument");
+  if (node == nullptr || node == this) {
+    throw std::runtime_error("invalid node argument");
   }
 
-  if (child->GetParent() != nullptr) {
-    throw Error::New(env, "appendChild: child already has a parent");
+  if (node->scene != this->scene) {
+    throw std::runtime_error("node was created by another scene");
   }
 
-  YGNodeInsertChild(this->ygNode, child->ygNode, YGNodeGetChildCount(this->ygNode));
+  if (node->GetParent() != nullptr) {
+    throw std::runtime_error("node already has a parent");
+  }
+
+  YGNodeInsertChild(this->ygNode, node->ygNode, YGNodeGetChildCount(this->ygNode));
   this->sortedChildren.clear();
 
   // Add reference for the added child.
-  child->Ref();
+  node->Ref();
   // Add reference for the parent.
   this->Ref();
 }
 
-void SceneNode::InsertBefore(const CallbackInfo& info) {
-  auto env{ info.Env() };
-
+void SceneNode::InsertBefore(SceneNode* node, SceneNode* before) {
   if (this->IsLeaf()) {
-    throw Error::New(env, "insertBefore: leaf nodes cannot have children");
+    throw std::runtime_error("leaf nodes cannot have children");
   }
 
-  auto child{ SceneNode::QueryInterface(info[0]) };
-
-  if (child == nullptr || child == this) {
-    throw Error::New(env, "insertBefore: invalid child argument");
+  if (node == nullptr || node == this) {
+    throw std::runtime_error("invalid node argument");
   }
 
-  if (child->GetParent() != nullptr) {
-    throw Error::New(env, "insertBefore: child already has a parent");
+  if (node->scene != this->scene) {
+    throw std::runtime_error("node was created by another scene");
   }
 
-  auto before{ SceneNode::QueryInterface(info[1]) };
+  if (node->GetParent() != nullptr) {
+    throw std::runtime_error("child already has a parent");
+  }
 
   if (before == nullptr) {
-    throw Error::New(env, "insertBefore: before must be a SceneNode");
+    throw std::runtime_error("before must be a SceneNode");
   }
 
   auto beforeIndex{ this->GetChildIndex(before) };
 
   if (beforeIndex < 0) {
-    throw Error::New(env, "insertBefore: before argument is not a child");
+    throw std::runtime_error("before argument is not a child");
   }
 
-  YGNodeInsertChild(this->ygNode, child->ygNode, beforeIndex);
+  YGNodeInsertChild(this->ygNode, node->ygNode, beforeIndex);
   this->sortedChildren.clear();
 
   // Add reference for the added child.
-  child->Ref();
+  node->Ref();
   // Add reference for the parent.
   this->Ref();
 }
 
-void SceneNode::RemoveChild(const CallbackInfo& info) {
-  HandleScope scope(info.Env());
-
-  this->RemoveChild(SceneNode::QueryInterface(info[0]));
-}
-
-void SceneNode::RemoveChild(SceneNode* child) noexcept {
-  if (GetChildIndex(child) < 0) {
+void SceneNode::RemoveChild(SceneNode* node) noexcept {
+  if (!node || GetChildIndex(node) < 0) {
     return;
   }
 
-  YGNodeRemoveChild(this->ygNode, child->ygNode);
+  YGNodeRemoveChild(this->ygNode, node->ygNode);
   this->sortedChildren.clear();
 
   // Remove reference for the child.
-  child->Unref();
+  node->Unref();
 
   // Remove reference for the parent
   this->Unref();
-}
-
-void SceneNode::Destroy(const Napi::CallbackInfo& info) {
-  this->Destroy();
 }
 
 void SceneNode::Destroy() {
@@ -229,15 +174,13 @@ void SceneNode::Destroy() {
     return;
   }
 
-  instanceCount--;
-
-  this->scene->Remove(this);
-
   const auto& children{ YGNodeGetChildren(this->ygNode) };
 
-  while (!children.empty()) {
-    YGNodeGetContextAs<SceneNode>(children.back())->Destroy();
+  if (!children.empty()) {
+    throw std::runtime_error("Cannot destroy node with children");
   }
+
+  instanceCount--;
 
   auto parent{ this->GetParent() };
 
@@ -250,6 +193,10 @@ void SceneNode::Destroy() {
     this->style->SetParent(nullptr);
     this->style = nullptr;
   }
+
+  this->scene->Remove(this);
+  this->scene = nullptr;
+
   this->sortedChildren.clear();
   YGNodeFree(this->ygNode);
   this->ygNode = nullptr;
@@ -362,29 +309,6 @@ void SceneNode::SetFlag(Flag flag, bool value) noexcept {
 StyleContext* SceneNode::GetStyleContext() const noexcept {
   assert(this->scene);
   return this->scene->GetStyleContext();
-}
-
-SceneNode* SceneNode::QueryInterface(Napi::Value value) {
-  if (!value.IsObject()) {
-    return nullptr;
-  }
-
-  auto env{ value.Env() };
-  HandleScope scope(env);
-  auto object{ value.As<Object>() };
-
-  // This is probably expensive, but instanceOf appears to be the cleanest way of getting the SceneNode instance.
-  if (object.InstanceOf(BoxSceneNode::GetClass(env))) {
-    return BoxSceneNode::Cast(value);
-  } else if (object.InstanceOf(ImageSceneNode::GetClass(env))) {
-    return ImageSceneNode::Cast(value);
-  } else if (object.InstanceOf(TextSceneNode::GetClass(env))) {
-    return TextSceneNode::Cast(value);
-  } else if (object.InstanceOf(RootSceneNode::GetClass(env))) {
-    return RootSceneNode::Cast(value);
-  }
-
-  return nullptr;
 }
 
 YGSize SceneNode::YogaMeasureCallback(

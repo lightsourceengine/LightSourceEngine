@@ -28,7 +28,7 @@ static napi_value Load(napi_env env, napi_callback_info info) noexcept {
     } catch (const std::exception& e) {
       napix::throw_error(env, e.what());
     }
-  } else {
+  } else if (napix::is_buffer(env, ci[0])) {
     auto buffer{napix::as_buffer(env, ci[0])};
 
     if (buffer.empty()) {

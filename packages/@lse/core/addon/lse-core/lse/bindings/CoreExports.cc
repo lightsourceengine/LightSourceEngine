@@ -7,6 +7,7 @@
 
 #include "CoreExports.h"
 
+#include <napix.h>
 #include <lse/bindings/CoreFunctions.h>
 #include <lse/bindings/CoreClasses.h>
 #include <lse/bindings/CoreEnums.h>
@@ -19,9 +20,6 @@
 namespace lse {
 namespace bindings {
 
-using NapiFunction = Napi::Value (*)(const Napi::CallbackInfo&);
-
-static napi_value Function(napi_env env, const char* name, NapiFunction func) noexcept;
 static void Export(napi_env env, napi_value exports, const char* name, napi_value value) noexcept;
 static void Export(napi_env env, napi_value exports, const char* name, napi_callback func) noexcept;
 static void Export(napi_env env, napi_value exports, napi_value value) noexcept;
@@ -67,28 +65,27 @@ napi_value CoreExports(napi_env env, napi_value exports) noexcept {
   Export(env, exports, CScene::CLASS_ID);
   Export(env, exports, CFontManager::CLASS_ID);
   Export(env, exports, CStyle::CLASS_ID);
-  Export(env, exports, BoxSceneNode::GetClass(env));
-  Export(env, exports, ImageSceneNode::GetClass(env));
-  Export(env, exports, TextSceneNode::GetClass(env));
-  Export(env, exports, RootSceneNode::GetClass(env));
+  Export(env, exports, CBoxSceneNode::CLASS_ID);
+  Export(env, exports, CImageSceneNode::CLASS_ID);
+  Export(env, exports, CRootSceneNode::CLASS_ID);
+  Export(env, exports, CTextSceneNode::CLASS_ID);
 
   return exports;
 }
 
-static napi_value Function(napi_env env, const char* name, NapiFunction func) noexcept {
-  try {
-    return Napi::Function::New(env, func, name);
-  } catch (const Napi::Error& e) {
-    // TODO: rethrow napi error
-    return {};
-  }
-}
-
 static void Export(napi_env env, napi_value exports, const char* name, napi_value value) noexcept {
+  if (napix::has_pending_exception(env)) {
+    return;
+  }
+
   napi_set_named_property(env, exports, name, value);
 }
 
 static void Export(napi_env env, napi_value exports, const char* name, napi_callback func) noexcept {
+  if (napix::has_pending_exception(env)) {
+    return;
+  }
+
   napi_value value{};
 
   napi_create_function(env, name, NAPI_AUTO_LENGTH, func, nullptr, &value);
@@ -97,6 +94,10 @@ static void Export(napi_env env, napi_value exports, const char* name, napi_call
 }
 
 static void Export(napi_env env, napi_value exports, napi_value value) noexcept {
+  if (napix::has_pending_exception(env)) {
+    return;
+  }
+
   napi_value name{};
 
   if (napi_get_named_property(env, value, "name", &name) != napi_ok || !name) {
@@ -107,14 +108,22 @@ static void Export(napi_env env, napi_value exports, napi_value value) noexcept 
 }
 
 static void Export(napi_env env, napi_value exports, Habitat::Class::Enum classId) noexcept {
+  if (napix::has_pending_exception(env)) {
+    return;
+  }
+
   return Export(env, exports, Habitat::GetClass(env, classId));
 }
 
 static void LoadHabitatClasses(napi_env env) noexcept {
-  Habitat::SetClass(env, Habitat::Class::CStage, CStage::CreateClass(env));
-  Habitat::SetClass(env, Habitat::Class::CScene, CScene::CreateClass(env));
-  Habitat::SetClass(env, Habitat::Class::CFontManager, CFontManager::CreateClass(env));
-  Habitat::SetClass(env, Habitat::Class::CStyle, CStyle::CreateClass(env));
+  Habitat::SetClass(env, CStage::CLASS_ID, CStage::CreateClass(env));
+  Habitat::SetClass(env, CScene::CLASS_ID, CScene::CreateClass(env));
+  Habitat::SetClass(env, CFontManager::CLASS_ID, CFontManager::CreateClass(env));
+  Habitat::SetClass(env, CStyle::CLASS_ID, CStyle::CreateClass(env));
+  Habitat::SetClass(env, CBoxSceneNode::CLASS_ID, CBoxSceneNode::CreateClass(env));
+  Habitat::SetClass(env, CImageSceneNode::CLASS_ID, CImageSceneNode::CreateClass(env));
+  Habitat::SetClass(env, CRootSceneNode::CLASS_ID, CRootSceneNode::CreateClass(env));
+  Habitat::SetClass(env, CTextSceneNode::CLASS_ID, CTextSceneNode::CreateClass(env));
 }
 
 } // namespace bindings

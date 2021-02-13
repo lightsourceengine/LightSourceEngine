@@ -16,8 +16,6 @@
 #include <lse/yoga-ext.h>
 #include <lse/StyleContext.h>
 
-using Napi::SafeObjectWrap;
-
 namespace lse {
 
 Scene::Scene(Stage* stage, FontManager* fontManager, GraphicsContext* context)
@@ -75,7 +73,10 @@ void Scene::Frame() {
 
 void Scene::Destroy() noexcept {
   this->isAttached = false;
-  this->root = SafeObjectWrap<SceneNode>::RemoveRef(this->root, [](SceneNode* node) { node->Destroy(); });
+  if (this->root) {
+    this->root->Unref();
+    this->root = nullptr;
+  }
   this->graphicsContext = nullptr;
   this->stage = nullptr;
 }

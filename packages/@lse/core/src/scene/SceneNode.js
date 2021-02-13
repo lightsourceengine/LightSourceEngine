@@ -6,17 +6,16 @@
 
 import { createBlurEvent, createFocusEvent } from '../event/index.js'
 import {
-  BoxSceneNodeBase,
-  ImageSceneNodeBase,
-  RootSceneNodeBase,
-  setStyleParent,
-  TextSceneNodeBase
+  CBoxSceneNode,
+  CImageSceneNode,
+  CRootSceneNode,
+  CTextSceneNode,
+  setStyleParent
 } from '../addon/index.js'
 import { Style } from '../style/Style.js'
+import { emptyArray } from '../util/index.js'
 
-const $bindStyle = Symbol.for('bindStyle')
-
-const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
+class SceneNode {
   focusable = false
   onKeyUp = null
   onKeyDown = null
@@ -24,15 +23,21 @@ const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
   onBlur = null
   onFocusIn = null
   onFocusOut = null
-  waypoint = null
   _hasFocus = false
+  _parent = null
   _scene = null
   _style = null
   _class = null
+  _children = emptyArray
+  _native
 
-  constructor (scene) {
-    super(scene.$native)
+  constructor (scene, native) {
+    this._native = native
     this._scene = scene
+
+    if (!this.isLeaf()) {
+      this._children = []
+    }
   }
 
   /**
@@ -45,10 +50,7 @@ const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
    * @returns {Style} Instance to the style object of this node.
    */
   get style () {
-    if (!this._style) {
-      this._style = this[$bindStyle](new Style())
-    }
-    return this._style
+    return this._style || (this._style = nativeBindStyle(this._native))
   }
 
   /**
@@ -74,6 +76,14 @@ const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
    */
   get scene () {
     return this._scene
+  }
+
+  get parent () {
+    return this._parent
+  }
+
+  get children () {
+    return this._children
   }
 
   /**
@@ -141,6 +151,46 @@ const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
     return this._hasFocus
   }
 
+  appendChild (node) {
+    this.isLeaf() && throwAddChildError()
+
+    nativeAppendChild(this._native, node?._native)
+    this._children.push(node)
+    node._parent = this
+  }
+
+  insertBefore (node, before) {
+    this.isLeaf() && throwAddChildError()
+
+    const { _children, _native } = this
+    const index = _children.findIndex(value => value === before)
+
+    index >= 0 || throwBeforeArgError()
+
+    _native.insertBefore(node?._native, before?._native)
+    _children.splice(index, 0, node)
+    node._parent = this
+  }
+
+  removeChild (node) {
+    const { _children, _native } = this
+    const index = _children.findIndex(value => value === node)
+
+    if (index !== -1) {
+      nativeRemoveChild(_native, node._native)
+      _children[index]._parent = null
+      _children.splice(index, 1)
+    }
+  }
+
+  isLeaf () {
+    return false
+  }
+
+  destroy () {
+    this._native && this._destroy()
+  }
+
   /**
    * @ignore
    */
@@ -158,9 +208,111 @@ const SceneNodeMixin = (SceneNodeClass) => class extends SceneNodeClass {
       walker = walker.parent
     }
   }
+
+  /**
+   * @ignore
+   */
+  get $native () {
+    return this._native
+  }
+
+  /**
+   * @ignore
+   */
+  _destroy () {
+    const { _parent, _children, _native } = this
+
+    _parent?.removeChild(this)
+
+    while (_children.length) {
+      _children[_children.length - 1]._destroy()
+    }
+
+    nativeDestroy(_native)
+
+    this._children = emptyArray
+    this._scene = this._style = this._class = this._native = null
+    this.onKeyUp = this.onKeyDown = this.onFocus = this.onBlur = this.onFocusIn = this.onFocusOut = null
+  }
 }
 
-export const BoxSceneNode = SceneNodeMixin(BoxSceneNodeBase)
-export const ImageSceneNode = SceneNodeMixin(ImageSceneNodeBase)
-export const RootSceneNode = SceneNodeMixin(RootSceneNodeBase)
-export const TextSceneNode = SceneNodeMixin(TextSceneNodeBase)
+export class BoxSceneNode extends SceneNode {
+  waypoint = null
+
+  constructor (scene) {
+    super(scene, new CBoxSceneNode(scene.$native))
+  }
+}
+
+export class ImageSceneNode extends SceneNode {
+  constructor (scene) {
+    super(scene, new CImageSceneNode(scene.$native))
+  }
+
+  get src () {
+    return this._native.src
+  }
+
+  set src (value) {
+    this._native.src = value
+  }
+
+  get onLoad () {
+    return this._native.onLoad
+  }
+
+  set onLoad (value) {
+    this._native.onLoad = value
+  }
+
+  get onError () {
+    return this._native.onError
+  }
+
+  set onError (value) {
+    this._native.onError = value
+  }
+
+  isLeaf () {
+    return true
+  }
+}
+
+export class RootSceneNode extends SceneNode {
+  constructor (scene) {
+    super(scene, new CRootSceneNode(scene.$native))
+  }
+}
+
+export class TextSceneNode extends SceneNode {
+  constructor (scene) {
+    super(scene, new CTextSceneNode(scene.$native))
+  }
+
+  get text () {
+    return this._native.text
+  }
+
+  set text (value) {
+    this._native.text = value
+  }
+
+  isLeaf () {
+    return true
+  }
+}
+
+const throwAddChildError = () => {
+  throw Error('leaf nodes cannot have children')
+}
+
+const throwBeforeArgError = () => {
+  throw Error('before is not a child')
+}
+
+// if native calls are present in a function, the function will not be eligible for v8 jit. isolate the calls into
+// separate function so the callers can be eligible for optimization. (Just doing this for frequently called functions)
+const nativeBindStyle = (native) => native.bindStyle(new Style())
+const nativeAppendChild = (native, child) => native.appendChild(child)
+const nativeRemoveChild = (native, child) => native.removeChild(child)
+const nativeDestroy = (native) => native.destroy()

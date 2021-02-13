@@ -7,7 +7,6 @@
 #pragma once
 
 #include <napi.h>
-#include "SafeObjectWrap.h"
 
 // Convert std::exception to Napi::Error
 #define NAPI_TRY(ENV, EXPR) try { EXPR; } catch (std::exception& e) { throw Napi::Error::New(ENV, e.what()); }

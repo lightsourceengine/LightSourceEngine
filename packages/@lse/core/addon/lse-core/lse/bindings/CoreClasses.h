@@ -49,5 +49,46 @@ class CRefGraphicsContext {
   static napi_value CreateClass(napi_env env);
 };
 
+class CSceneNode {
+ public:
+  static constexpr auto NAME = "CSceneNode";
+
+  // inheritance does not work with native class objects: https://github.com/nodejs/node-addon-api/issues/229
+  // as a workaround, each scene node class has it's own copy of the CSceneNode base class properties
+  static std::vector<napi_property_descriptor> GetClassProperties(napi_env env) noexcept;
+};
+
+class CBoxSceneNode {
+ public:
+  static constexpr auto NAME = "CBoxSceneNode";
+  static constexpr auto CLASS_ID = Habitat::Class::CBoxSceneNode;
+
+  static napi_value CreateClass(napi_env env) noexcept;
+};
+
+class CImageSceneNode {
+ public:
+  static constexpr auto NAME = "CImageSceneNode";
+  static constexpr auto CLASS_ID = Habitat::Class::CImageSceneNode;
+
+  static napi_value CreateClass(napi_env env) noexcept;
+};
+
+class CRootSceneNode {
+ public:
+  static constexpr auto NAME = "CRootSceneNode";
+  static constexpr auto CLASS_ID = Habitat::Class::CRootSceneNode;
+
+  static napi_value CreateClass(napi_env env) noexcept;
+};
+
+class CTextSceneNode {
+ public:
+  static constexpr auto NAME = "CTextSceneNode";
+  static constexpr auto CLASS_ID = Habitat::Class::CTextSceneNode;
+
+  static napi_value CreateClass(napi_env env) noexcept;
+};
+
 } // namespace bindings
 } // namespace lse

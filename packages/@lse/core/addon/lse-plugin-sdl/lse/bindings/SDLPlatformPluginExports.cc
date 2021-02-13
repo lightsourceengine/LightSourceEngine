@@ -150,33 +150,26 @@ static napi_value GetScanCodeState(napi_env env, napi_callback_info info) noexce
 }
 
 static napi_value LoadGameControllerMappings(napi_env env, napi_callback_info info) noexcept {
-  try {
-    Napi::CallbackInfo ci{ env, info };
-    auto value{ ci[0] };
-    int32_t count;
+  auto ci{napix::get_callback_info<1>(env, info)};
+  int32_t count;
 
-    if (value.IsString()) {
-      auto valueLen{ Napi::StringByteLength(value) };
+  if (napix::is_string(env, ci[0])) {
+    auto mappings{napix::as_string_utf8(env, ci[0])};
 
-      if (valueLen < Napi::SizeOfCopyUtf8Buffer()) {
-        count = sPlugin->LoadGameControllerMappings(Napi::CopyUtf8(value), valueLen);
-      } else {
-        std::string tempString = value.As<Napi::String>();
-        count = sPlugin->LoadGameControllerMappings(tempString.c_str(), tempString.size());
-      }
-    } else if (value.IsBuffer()) {
-      auto buffer{ value.As<Napi::Buffer<uint8_t>>() };
+    count = sPlugin->LoadGameControllerMappings(mappings.c_str(), mappings.size());
+  } else if (napix::is_buffer(env, ci[0])) {
+    auto buffer{napix::as_buffer(env, ci[0])};
 
-      count = sPlugin->LoadGameControllerMappings(buffer.Data(), buffer.Length());
-    } else {
+    if (buffer.empty()) {
       count = 0;
+    } else {
+      count = sPlugin->LoadGameControllerMappings(buffer.data, buffer.size);
     }
-
-    return Napi::NewNumber(env, count);
-  } catch (const Napi::Error& e) {
-    e.ThrowAsJavaScriptException();
-    return {};
+  } else {
+    count = 0;
   }
+
+  return napix::to_value(env, count);
 }
 
 static napi_value GetGameControllerMapping(napi_env env, napi_callback_info info) noexcept {

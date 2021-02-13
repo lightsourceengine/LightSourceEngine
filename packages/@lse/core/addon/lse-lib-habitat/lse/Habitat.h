@@ -31,6 +31,10 @@ class Habitat {
       CSampleAudioSource,
       CStreamAudioSource,
       CGraphicsContext,
+      CRootSceneNode,
+      CImageSceneNode,
+      CBoxSceneNode,
+      CTextSceneNode,
       StyleValue,
       StyleTransformSpec,
       Count

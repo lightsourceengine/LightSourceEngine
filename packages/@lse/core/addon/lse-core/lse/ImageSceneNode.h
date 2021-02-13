@@ -10,23 +10,22 @@
 #include <lse/ResourceProgress.h>
 #include <lse/types.h>
 #include <lse/SceneNode.h>
-#include <napi-ext.h>
 
 namespace lse {
 
-class ImageSceneNode final : public Napi::SafeObjectWrap<ImageSceneNode>, public SceneNode {
+class ImageSceneNode final : public SceneNode {
  public:
-  ImageSceneNode(const Napi::CallbackInfo& info) : Napi::SafeObjectWrap<ImageSceneNode>(info) {}
+  explicit ImageSceneNode(napi_env env, Scene* scene);
   ~ImageSceneNode() override = default;
 
-  static Napi::Function GetClass(Napi::Env env);
-  void Constructor(const Napi::CallbackInfo& info) override;
-  Napi::Value GetSource(const Napi::CallbackInfo& info);
-  void SetSource(const Napi::CallbackInfo& info, const Napi::Value& value);
-  Napi::Value GetOnLoadCallback(const Napi::CallbackInfo& info);
-  void SetOnLoadCallback(const Napi::CallbackInfo& info, const Napi::Value& value);
-  Napi::Value GetOnErrorCallback(const Napi::CallbackInfo& info);
-  void SetOnErrorCallback(const Napi::CallbackInfo& info, const Napi::Value& value);
+  const std::string& GetSource() const noexcept;
+  void SetSource(napi_env env, std::string&& value) noexcept;
+
+  napi_value GetOnLoadCallback(napi_env env) noexcept;
+  void SetOnLoadCallback(napi_env env, napi_value value) noexcept;
+
+  napi_value GetOnErrorCallback(napi_env env) noexcept;
+  void SetOnErrorCallback(napi_env env, napi_value value) noexcept;
 
   void OnStylePropertyChanged(StyleProperty property) override;
   void OnBoundingBoxChanged() override;

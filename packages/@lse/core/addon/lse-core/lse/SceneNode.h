@@ -28,24 +28,22 @@ class Stage;
 class StyleContext;
 class Texture;
 
-class SceneNode : public virtual Napi::SafeObjectWrapReference {
+class SceneNode : public Reference {
  public:
+  // TODO: remove env when image loading no longer needs it
+  explicit SceneNode(napi_env env, Scene* scene);
   ~SceneNode() override = default;
 
-  Napi::Value GetX(const Napi::CallbackInfo& info);
-  Napi::Value GetY(const Napi::CallbackInfo& info);
-  Napi::Value GetWidth(const Napi::CallbackInfo& info);
-  Napi::Value GetHeight(const Napi::CallbackInfo& info);
-  Napi::Value GetParent(const Napi::CallbackInfo& info);
-  Napi::Value GetChildren(const Napi::CallbackInfo& info);
-  Napi::Value BindStyle(const Napi::CallbackInfo& info);
-  Napi::Value GetHidden(const Napi::CallbackInfo& info);
-  void SetHidden(const Napi::CallbackInfo& info, const Napi::Value& value);
+  float GetX() const noexcept;
+  float GetY() const noexcept;
+  float GetWidth() const noexcept;
+  float GetHeight() const noexcept;
+  void BindStyle(Style* style) noexcept;
+  void SetHidden(bool value) noexcept;
 
-  void AppendChild(const Napi::CallbackInfo& info);
-  void InsertBefore(const Napi::CallbackInfo& info);
-  void RemoveChild(const Napi::CallbackInfo& info);
-  void Destroy(const Napi::CallbackInfo& info);
+  void AppendChild(SceneNode* node);
+  void InsertBefore(SceneNode* node, SceneNode* before);
+  void RemoveChild(SceneNode* node) noexcept;
 
   virtual void OnStylePropertyChanged(StyleProperty property);
   virtual void OnStyleReset() {}
@@ -65,8 +63,6 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
 
   bool HasChildren() const noexcept;
 
-  static SceneNode* QueryInterface(Napi::Value value);
-
   template<typename Callable>
   static void Visit(SceneNode* node, const Callable& func);
 
@@ -85,12 +81,6 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
     FlagLeaf
   };
 
-  template<typename T>
-  static std::vector<napi_property_descriptor> Extend(
-      const Napi::Env& env,
-      const std::initializer_list<napi_property_descriptor>& subClassProperties);
-
-  void SceneNodeConstructor(const Napi::CallbackInfo& info);
   void RequestPaint();
   void RequestStyleLayout();
   void RequestComposite();
@@ -99,11 +89,11 @@ class SceneNode : public virtual Napi::SafeObjectWrapReference {
   StyleContext* GetStyleContext() const noexcept;
 
  private:
-  void RemoveChild(SceneNode* child) noexcept;
   int32_t GetChildIndex(SceneNode* node) const noexcept;
 
  protected:
   static int32_t instanceCount;
+  napi_env env{};
   YGNodeRef ygNode{};
   ReferenceHolder<Scene> scene{};
   ReferenceHolder<Style> style{};
@@ -120,32 +110,6 @@ void SceneNode::Visit(SceneNode* node, const Callable& func) {
   for (const auto& child : YGNodeGetChildren(node->ygNode)) {
     Visit(YGNodeGetContextAs<SceneNode>(child), func);
   }
-}
-
-template<typename T>
-std::vector<napi_property_descriptor> SceneNode::Extend(
-    const Napi::Env& env,
-    const std::initializer_list<napi_property_descriptor>& subClassProperties) {
-  std::vector<napi_property_descriptor> result = {
-      T::InstanceAccessor("x", &SceneNode::GetX),
-      T::InstanceAccessor("y", &SceneNode::GetY),
-      T::InstanceAccessor("width", &SceneNode::GetWidth),
-      T::InstanceAccessor("height", &SceneNode::GetHeight),
-      T::InstanceAccessor("parent", &SceneNode::GetParent),
-      T::InstanceAccessor("children", &SceneNode::GetChildren),
-      T::InstanceAccessor("hidden", &SceneNode::GetHidden, &SceneNode::SetHidden),
-      T::InstanceMethod("destroy", &SceneNode::Destroy),
-      T::InstanceMethod("appendChild", &SceneNode::AppendChild),
-      T::InstanceMethod("insertBefore", &SceneNode::InsertBefore),
-      T::InstanceMethod("removeChild", &SceneNode::RemoveChild),
-      T::InstanceMethod(Napi::SymbolFor(env, "bindStyle"), &SceneNode::BindStyle),
-  };
-
-  for (auto& property : subClassProperties) {
-    result.push_back(property);
-  }
-
-  return result;
 }
 
 } // namespace lse

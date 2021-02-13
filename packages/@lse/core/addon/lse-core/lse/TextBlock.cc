@@ -195,13 +195,21 @@ void TextBlock::Paint(RenderingContext2D* context) {
     return;
   }
 
+  // Fill entire texture surface with transparent to start from a known state.
   auto pixels{ target.Lock() };
 
-  context->Begin(pixels.Data(), pixels.Width(), pixels.Height(), pixels.Pitch());
+  if (pixels.Pitch() == pixels.Width() * pixels.Height() * 4) {
+    memset(pixels.Data(), 0, pixels.Width() * pixels.Height() * 4);
+  } else {
+    auto ptr{pixels.Data()};
 
-  // Fill entire texture surface with transparent to start from a known state.
-  context->SetColor(0);
-  context->FillAll();
+    for (int32_t i = 0; i < pixels.Height(); i++) {
+      memset(ptr, 0, pixels.Width() * 4);
+      ptr += pixels.Pitch();
+    }
+  }
+
+  context->Begin(pixels.Data(), pixels.Width(), pixels.Height(), pixels.Pitch());
 
   auto y{ this->font.ascent() };
 

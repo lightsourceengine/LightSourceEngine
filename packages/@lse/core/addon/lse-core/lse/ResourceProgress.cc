@@ -20,11 +20,11 @@ void ResourceProgress::Dispatch(SceneNode* node, Resource* resource) const {
   switch (resource->GetState()) {
     case Resource::Ready:
       if (!this->onLoad.IsEmpty()) {
-        Env env(node->Env());
+        Env env(this->onLoad.Env());
         HandleScope scope(env);
 
         try {
-          this->onLoad.Call({ node->Value(), resource->Summarize(env) });
+          this->onLoad.Call({ env.Null(), resource->Summarize(env) });
         } catch (std::exception& e) {
           LOG_WARN("onLoad unhandled exception: %s", e);
         }
@@ -32,11 +32,11 @@ void ResourceProgress::Dispatch(SceneNode* node, Resource* resource) const {
       break;
     case Resource::Error:
       if (!this->onError.IsEmpty()) {
-        Env env(node->Env());
+        Env env(onError.Env());
         HandleScope scope(env);
 
         try {
-          this->onError.Call({ node->Value(), resource->GetErrorMessage(env) });
+          this->onError.Call({ env.Null(), resource->GetErrorMessage(env) });
         } catch (std::exception& e) {
           LOG_WARN("onError unhandled exception: %s", e);
         }

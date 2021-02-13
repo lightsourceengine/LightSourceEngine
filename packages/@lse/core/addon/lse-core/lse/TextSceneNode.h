@@ -6,23 +6,19 @@
 
 #pragma once
 
-#include <napi-ext.h>
 #include <lse/SceneNode.h>
 #include <lse/TextBlock.h>
 #include <lse/types.h>
 
 namespace lse {
 
-class TextSceneNode final : public Napi::SafeObjectWrap<TextSceneNode>, public SceneNode {
+class TextSceneNode final : public SceneNode {
  public:
-  TextSceneNode(const Napi::CallbackInfo& info) : Napi::SafeObjectWrap<TextSceneNode>(info) {}
+  explicit TextSceneNode(napi_env env, Scene* scene);
   ~TextSceneNode() override = default;
 
-  void Constructor(const Napi::CallbackInfo& info) override;
-
-  static Napi::Function GetClass(Napi::Env env);
-  Napi::Value GetText(const Napi::CallbackInfo& info);
-  void SetText(const Napi::CallbackInfo& info, const Napi::Value& value);
+  const std::string& GetText() const;
+  void SetText(std::string&& text);
 
   void OnStylePropertyChanged(StyleProperty property) override;
   void OnBoundingBoxChanged() override;

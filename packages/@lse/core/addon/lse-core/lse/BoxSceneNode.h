@@ -14,13 +14,10 @@
 
 namespace lse {
 
-class BoxSceneNode final : public Napi::SafeObjectWrap<BoxSceneNode>, public SceneNode {
+class BoxSceneNode final : public SceneNode {
  public:
-  BoxSceneNode(const Napi::CallbackInfo& info) : SafeObjectWrap<BoxSceneNode>(info) {}
+  explicit BoxSceneNode(napi_env env, Scene* scene);
   ~BoxSceneNode() override = default;
-
-  static Napi::Function GetClass(Napi::Env env);
-  void Constructor(const Napi::CallbackInfo& info) override;
 
   void OnStylePropertyChanged(StyleProperty property) override;
   void OnStyleReset() override;

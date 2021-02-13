@@ -12,7 +12,6 @@ using Napi::Object;
 
 namespace lse {
 void NapiExtSpec(Napi::TestSuite* parent);
-void SafeObjectWrapSpec(Napi::TestSuite* parent);
 }
 
 Object Init(Env env, Object exports) {
@@ -20,7 +19,6 @@ Object Init(Env env, Object exports) {
 
   exports["test"] = Napi::TestSuite::Build(env, "lse-lib-napi-ext native tests", {
       &lse::NapiExtSpec,
-      &lse::SafeObjectWrapSpec,
   });
 
   return exports;
