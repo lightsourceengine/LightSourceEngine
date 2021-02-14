@@ -221,19 +221,6 @@ std::string as_string_utf8(napi_env env, napi_value str) noexcept {
   return value;
 }
 
-napi_value new_external(napi_env env, void* data, napi_finalize finalizer) noexcept {
-  napi_value value;
-  napi_status status;
-
-  status = napi_create_external(env, data, finalizer, nullptr, &value);
-
-  if (status != napi_ok) {
-    return throw_error(env, status, "napi_create_external");
-  }
-
-  return value;
-}
-
 void throw_error(napi_env env, const char* message) noexcept {
   if (!has_pending_exception(env)) {
     napi_throw_error(env, "", message);
@@ -329,7 +316,7 @@ napi_value array_new(napi_env env, size_t length) noexcept {
 }
 
 bool is_nullish(napi_env env, napi_value value) noexcept {
-  napi_valuetype type{};
+  napi_valuetype type{napi_undefined};
 
   if (value) {
     napi_typeof(env, value, &type);

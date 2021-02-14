@@ -154,57 +154,15 @@ napi_value to_value(napi_env env, float value) noexcept;
 napi_value to_value(napi_env env, const char* value) noexcept;
 napi_value to_value(napi_env env, const std::string& value) noexcept;
 
-napix::buffer_info as_buffer(napi_env env, napi_value value) noexcept;
-
+/**
+ * Conversion from napi_value to primitives
+ */
 int32_t as_int32(napi_env env, napi_value value, int32_t defaultValue) noexcept;
 int32_t as_uint32(napi_env env, napi_value value, uint32_t defaultValue) noexcept;
 bool as_bool(napi_env env, napi_value value, bool defaultValue) noexcept;
 float as_float(napi_env env, napi_value value, float defaultValue) noexcept;
-
-/**
- * Convert a js string to a native utf8 string.
- *
- * If str is not a js string type or an error occurs, empty string is returned.
- */
 std::string as_string_utf8(napi_env env, napi_value str) noexcept;
-
-/**
- * Create a new js External object, a wrapper around a native pointer.
- */
-napi_value new_external(napi_env env, void* data, napi_finalize finalizer) noexcept;
-
-/**
- * Create a new js External containing a pointer to a shared pointer.
- */
-template<typename T>
-napi_value new_external_shared(napi_env env, std::shared_ptr<T>& ptr) noexcept {
-  auto wrapper{ new std::shared_ptr<T>(ptr) };
-
-  auto external = napix::new_external(env, wrapper,
-    [](napi_env, void* data, void*) { delete static_cast<std::shared_ptr<T>*>(data); });
-
-  if (!external) {
-    delete wrapper;
-  }
-
-  return external;
-}
-
-/**
- * Get a share pointer from an External (created by new_external_shared).
- */
-template<typename T>
-std::shared_ptr<T> get_external_shared(napi_env env, napi_value external) noexcept {
-  void* result;
-
-  if (!external || napi_get_value_external(env, external, &result) != napi_ok) {
-    return {};
-  }
-
-  return *static_cast<std::shared_ptr<T>*>(result);
-}
-
-napi_value object_new(napi_env env, const std::initializer_list<napi_property_descriptor>& props) noexcept;
+napix::buffer_info as_buffer(napi_env env, napi_value value) noexcept;
 
 std::string object_get(napi_env env, napi_value value, const char* prop) noexcept;
 
@@ -216,8 +174,8 @@ napi_value object_at(napi_env env, napi_value value, uint32_t index) noexcept;
 int32_t object_at_or(napi_env env, napi_value value, uint32_t index, int32_t defaultValue) noexcept;
 float object_at_or(napi_env env, napi_value value, uint32_t index, float defaultValue) noexcept;
 
+napi_value object_new(napi_env env, const std::initializer_list<napi_property_descriptor>& props) noexcept;
 napi_value array_new(napi_env env, size_t length = 0) noexcept;
-
 template<class T, class Iterable>
 napi_value array_from(napi_env env, Iterable iterable, napi_value(*toValue)(napi_env, T));
 
@@ -254,13 +212,11 @@ napi_value constructor_helper(
 
 namespace descriptor {
 
-
 napi_property_descriptor instance_accessor(
     const name& name,
     napi_callback getter,
     napi_callback setter,
     napi_property_attributes attr = napi_writable) noexcept;
-
 napi_property_descriptor instance_accessor(
     const name& name,
     napi_callback getter,
@@ -269,6 +225,7 @@ napi_property_descriptor instance_accessor(
     napi_property_attributes attr) noexcept;
 
 napi_property_descriptor instance_method(const name& name, napi_callback method) noexcept;
+
 napi_property_descriptor instance_value(
     napi_env env, const name& name, int32_t value, napi_property_attributes attr = napi_default) noexcept;
 napi_property_descriptor instance_value(

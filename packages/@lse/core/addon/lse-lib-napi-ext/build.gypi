@@ -26,6 +26,7 @@
           ],
           "sources": [
             "test/NapiExtSpec.cc",
+            "test/napixSpec.cc",
             "test/NapiExtTestSuite.cc",
           ],
           "dependencies": [
