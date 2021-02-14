@@ -210,6 +210,12 @@ void ImageSceneNode::Destroy() {
   SceneNode::Destroy();
 }
 
+// TODO: temporary hack due to scene and renderer shutdown conflicts
+void ImageSceneNode::OnDetach() {
+  this->ClearResource();
+  this->resourceProgress.Reset();
+}
+
 void ImageSceneNode::ClearResource() {
   if (this->image) {
     auto resource = this->image.get();

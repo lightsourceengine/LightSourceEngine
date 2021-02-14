@@ -99,10 +99,15 @@ static Uint32 GetFullscreenFlag(const GraphicsContextConfig& config) noexcept {
   if (!config.fullscreen) {
     return 0;
   } else if (EqualsIgnoreCase(config.fullscreenMode, "exclusive")) {
-    LOG_INFO("exclusive");
     return SDL_WINDOW_FULLSCREEN;
   } else {
-    LOG_INFO("desktop");
+    std::string driver{SDL2::SDL_GetCurrentVideoDriver()};
+
+    // default to exclusive on systems without a window manager
+    if (EqualsIgnoreCase(driver, "rpi") || EqualsIgnoreCase(driver, "kmsdrm")) {
+      return SDL_WINDOW_FULLSCREEN;
+    }
+
     return SDL_WINDOW_FULLSCREEN_DESKTOP;
   }
 }

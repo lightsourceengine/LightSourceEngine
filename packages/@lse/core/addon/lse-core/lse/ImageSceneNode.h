@@ -30,6 +30,7 @@ class ImageSceneNode final : public SceneNode {
   void OnStylePropertyChanged(StyleProperty property) override;
   void OnBoundingBoxChanged() override;
   void OnStyleLayout() override;
+  void OnDetach() override;
   YGSize OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) override;
 
   void Paint(RenderingContext2D* context) override;

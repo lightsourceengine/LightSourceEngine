@@ -49,6 +49,7 @@ class SceneNode : public Reference {
   virtual void OnStyleReset() {}
   virtual void OnBoundingBoxChanged() {}
   virtual void OnStyleLayout() {}
+  virtual void OnDetach() = 0;
 
   virtual YGSize OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode);
   virtual void Paint(RenderingContext2D* context) = 0;

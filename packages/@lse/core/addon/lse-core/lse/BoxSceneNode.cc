@@ -367,4 +367,10 @@ void BoxSceneNode::Destroy() {
   SceneNode::Destroy();
 }
 
+// TODO: temporary hack due to scene and renderer shutdown conflicts
+void BoxSceneNode::OnDetach() {
+  this->paintTarget.Destroy();
+  this->ClearBackgroundImageResource();
+}
+
 } // namespace lse

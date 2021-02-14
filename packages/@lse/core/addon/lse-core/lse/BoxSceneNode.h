@@ -23,6 +23,8 @@ class BoxSceneNode final : public SceneNode {
   void OnStyleReset() override;
   void OnBoundingBoxChanged() override;
   void OnStyleLayout() override;
+  void OnDetach() override;
+
   void Paint(RenderingContext2D* context) override;
   void Composite(CompositeContext* composite) override;
   void Destroy() override;

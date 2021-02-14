@@ -210,4 +210,10 @@ void TextSceneNode::Destroy() {
   SceneNode::Destroy();
 }
 
+// TODO: temporary hack due to scene and renderer shutdown conflicts
+void TextSceneNode::OnDetach() {
+  this->ClearFontFaceResource();
+  this->block.Destroy();
+}
+
 } // namespace lse
