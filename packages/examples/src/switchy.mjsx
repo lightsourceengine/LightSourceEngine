@@ -185,7 +185,16 @@ const SystemStatisticsView = () => {
       start = end
     }, 1000)
 
-    return () => clearInterval(handle)
+    const stopInterval = () => {
+      clearInterval(handle)
+      stage.off(EventName.onDestroying, stopInterval)
+    }
+
+    // XXX: scene is being destroyed properly, but when the react container associated with root
+    //      is rendered with null, the effect clean up is not getting called.
+    stage.on(EventName.onDestroying, stopInterval)
+
+    return stopInterval
   }, [])
 
   return [

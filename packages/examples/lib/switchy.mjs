@@ -204,7 +204,12 @@ const SystemStatisticsView = () => {
             setSystemStats(createSystemStats(end.idle - start.idle, end.total - start.total));
             start = end;
         }, 1e3);
-        return () => clearInterval(handle);
+        const stopInterval = () => {
+            clearInterval(handle);
+            stage.off(EventName.onDestroying, stopInterval);
+        };
+        stage.on(EventName.onDestroying, stopInterval);
+        return stopInterval;
     }, []);
     return [ createListItem('cpuLoad', 'Total CPU Utilization', '%'), createListItem('heapUsed', 'Heap Used', ' MB'), createListItem('heapTotal', 'Heap Total', ' MB'), createListItem('rss', 'Resident Set Size', ' MB', true) ];
 };
