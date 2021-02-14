@@ -57,6 +57,7 @@ class FontManager : public Reference {
   void SetDefaultFontFamily(std::string&& family);
   Font* GetFont(int32_t id) const noexcept;
   void Destroy();
+  bool IsDestroyed() const noexcept { return this->destroyed; }
 
  private:
   Font* FindFontInternal(const std::string& family, int32_t style, int32_t weight) noexcept;

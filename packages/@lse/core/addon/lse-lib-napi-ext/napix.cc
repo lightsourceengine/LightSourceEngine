@@ -20,6 +20,18 @@ static napi_value throw_error(napi_env env, napi_status status, const char* mess
 
 namespace napix {
 
+struct _async_work {
+  void* magic{};
+  void* data{};
+  finalize finalizer{};
+  on_execute onExecute{};
+  on_complete onComplete{};
+  napi_async_work work{};
+  bool cancelled{};
+};
+
+static char asyncWorkMagic{};
+
 napi_value get_this(napi_env env, napi_callback_info info) noexcept {
   size_t argc{};
   napi_value self{};
@@ -343,6 +355,139 @@ bool is_number(napi_env env, napi_value value) noexcept {
 bool is_buffer(napi_env env, napi_value value) noexcept {
   bool result{};
   return (napi_is_buffer(env, value, &result) == napi_ok && result);
+}
+
+napi_status call_function(
+    napi_env env,
+    napi_ref functionRef,
+    const std::initializer_list<napi_value>& args,
+    napi_value* result) noexcept {
+  napi_value function{};
+  if (napi_get_reference_value(env, functionRef, &function) != napi_ok || !function) {
+    return napi_status::napi_function_expected;
+  }
+
+  napi_value undefined{};
+  napi_get_undefined(env, &undefined);
+
+  if (!undefined) {
+    return napi_status::napi_generic_failure;
+  }
+
+  return napi_call_function(env, undefined, function, args.size(), args.begin(), result);
+}
+
+static bool check_async_work(async_work work) noexcept {
+  return (work && work->magic == &asyncWorkMagic);
+}
+
+static void async_work_delete(napi_env env, async_work work) noexcept {
+  if (check_async_work(work)) {
+    if (work->data && work->finalizer) {
+      work->finalizer(env, work->data);
+    }
+
+    if (work->work) {
+      napi_delete_async_work(env, work->work);
+    }
+
+    work->magic = nullptr;
+    delete work;
+  }
+}
+
+static void async_work_execute_wrapper(napi_env env, void* data) noexcept {
+  auto work{static_cast<async_work>(data)};
+
+  if (check_async_work(work)) {
+    work->onExecute(work->data);
+  }
+}
+
+static void async_work_complete_wrapper(napi_env env, napi_status status, void* data) noexcept {
+  auto work{static_cast<async_work>(data)};
+
+  if (!check_async_work(work)) {
+    return;
+  }
+
+  if (work->onComplete) {
+    work->onComplete(env, work->cancelled || status == napi_cancelled, work->data);
+  }
+
+  async_work_delete(env, work);
+}
+
+async_work create_async_work(
+    napi_env env,
+    const char* resourceName,
+    void* data,
+    finalize finalizer,
+    on_execute onExecute,
+    on_complete onComplete) noexcept {
+  napi_value name{to_value_or_null(env, resourceName)};
+
+  if (!name) {
+    return {};
+  }
+
+  auto state = new (std::nothrow) _async_work{
+    &asyncWorkMagic,
+    data,
+    finalizer,
+    onExecute,
+    onComplete
+  };
+
+  if (!state) {
+    if (data && finalizer) {
+      finalizer(env, data);
+    }
+    return {};
+  }
+
+  napi_async_work work{};
+  auto status = napi_create_async_work(
+      env,
+      nullptr,
+      name,
+      async_work_execute_wrapper,
+      async_work_complete_wrapper,
+      state,
+      &work);
+
+  if (status != napi_ok) {
+    async_work_delete(env, state);
+    return {};
+  }
+
+  state->work = work;
+
+  return state;
+}
+
+void cancel_async_work(napi_env env, async_work work) noexcept {
+  if (work && work->magic == &asyncWorkMagic) {
+    auto status = napi_cancel_async_work(env, work->work);
+
+    if (status == napi_ok) {
+      async_work_delete(env, work);
+    } else if (status == napi_generic_failure) {
+      // inflight, complete callback will delete work
+
+      // set the cancelled flag for the case of the complete callback in the
+      // microtask queue and napi_status not set.
+      work->cancelled = true;
+    }
+  }
+}
+
+napi_status queue_async_work(napi_env env, async_work work) noexcept {
+  if (check_async_work(work)) {
+    return napi_queue_async_work(env, work->work);
+  }
+
+  return napi_invalid_arg;
 }
 
 namespace js_class {

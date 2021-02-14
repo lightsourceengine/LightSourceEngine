@@ -107,6 +107,20 @@ struct name {
   name(const napi_value& value) noexcept: utf8(nullptr), value(value) {}
 };
 
+typedef struct _async_work* async_work;
+typedef void (*on_execute)(void* data);
+typedef void (*on_complete)(napi_env env, bool cancelled, void* data);
+
+typedef void (*finalize)(napi_env env, void* finalize_data);
+
+/**
+ * Trivial implementation of finalize callback function that just casts and deletes.
+ */
+template<typename T>
+void finalize_impl(napi_env env, void* data) noexcept {
+  delete static_cast<T*>(data);
+}
+
 /**
  * Get callback info, including arguments and function data field, as a struct.
  */
@@ -184,6 +198,47 @@ bool is_function(napi_env env, napi_value value) noexcept;
 bool is_string(napi_env env, napi_value value) noexcept;
 bool is_number(napi_env env, napi_value value) noexcept;
 bool is_buffer(napi_env env, napi_value value) noexcept;
+
+/**
+ * Call a function contained by a reference.
+ */
+napi_status call_function(
+    napi_env env,
+    napi_ref functionRef,
+    const std::initializer_list<napi_value>& args,
+    napi_value* result) noexcept;
+
+/**
+ * Create a simple async work task.
+ *
+ * This is a wrapper around napi_create_async_work() that better manages the lifecycle
+ * of the work object. When on complete finishes or the work is cancelled, the work is deleted
+ * data is finalized if necessary.
+ */
+async_work create_async_work(
+    napi_env env,
+    const char* resourceName,
+    void* data,
+    finalize finalizer,
+    on_execute onExecute,
+    on_complete onComplete) noexcept;
+
+/**
+ * Cancel a work object.
+ *
+ * If the work is already inflight or executing, the job may continue to execute. In that
+ * case, a cancelled flag is set. on execute will not honor the flag, but on complete has
+ * the option of changing logic due to a cancel. The work will be deleted after on complete
+ * has finished (normal lifecycle of async work).
+ *
+ * If not inflight, the work is deleted here.
+ */
+void cancel_async_work(napi_env env, async_work work) noexcept;
+
+/**
+ * Queue the execution of the async work.
+ */
+napi_status queue_async_work(napi_env env, async_work work) noexcept;
 
 namespace js_class {
 
