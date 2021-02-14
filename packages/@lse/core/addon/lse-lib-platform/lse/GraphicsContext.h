@@ -18,6 +18,7 @@ struct GraphicsContextConfig {
   int32_t height{};
   int32_t displayIndex{};
   bool fullscreen{};
+  std::string fullscreenMode{};
 };
 
 /**

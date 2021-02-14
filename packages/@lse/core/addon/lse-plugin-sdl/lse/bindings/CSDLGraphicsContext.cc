@@ -24,7 +24,8 @@ static void* CreateNative(napi_env env, napi_callback_info info) noexcept {
     napix::object_get_or(env, ci[0], "width", 0),
     napix::object_get_or(env, ci[0], "height", 0),
     napix::object_get_or(env, ci[0], "displayIndex", 0),
-    napix::object_get_or(env, ci[0], "fullscreen", false)
+    napix::object_get_or(env, ci[0], "fullscreen", false),
+    napix::object_get(env, ci[0], "fullscreenMode")
   });
 }
 

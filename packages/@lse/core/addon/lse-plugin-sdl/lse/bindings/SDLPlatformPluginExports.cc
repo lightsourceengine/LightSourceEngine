@@ -88,7 +88,7 @@ static napi_value GetDisplays(napi_env env, napi_callback_info info) noexcept {
   auto result{napix::array_new(env, displays.size())};
   uint32_t resultIndex{0};
 
-  for (const auto& display : sPlugin->GetDisplays()) {
+  for (const auto& display : displays) {
     auto modes = napix::array_from<const SDLDisplayMode&>(env, display.modes, NewDisplayMode);
 
     auto displayMode = napix::object_new(env, {

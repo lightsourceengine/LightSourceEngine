@@ -33,14 +33,18 @@ char* ToLowercase(char* str) noexcept {
 }
 
 bool EqualsIgnoreCase(const std::string& a, const char* b) noexcept {
-  if (!b) {
+  const auto len = a.size();
+
+  if (!b || b[0] == '\0') {
+    return len == 0;
+  }
+
+  if (len == 0) {
     return false;
   }
 
-  const auto len = a.size();
-
   for (size_t i = 0; i < len; i++) {
-    if (b[i] == '\0' || tolower(a[i]) == tolower(b[i])) {
+    if (b[i] == '\0' || tolower(a[i]) != tolower(b[i])) {
       return false;
     }
   }

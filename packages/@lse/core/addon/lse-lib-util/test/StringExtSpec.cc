@@ -40,6 +40,38 @@ void StringExtSpec(TestSuite* parent) {
           }
       }
   };
+
+  spec->Describe("EqualsIgnoreCase()")->tests = {
+      {
+          "should return true when strings match",
+          [](const TestInfo&) {
+            Assert::IsTrue(EqualsIgnoreCase("test", "test"));
+            Assert::IsTrue(EqualsIgnoreCase("test", "TEST"));
+            Assert::IsTrue(EqualsIgnoreCase("TEST", "TEST"));
+            Assert::IsTrue(EqualsIgnoreCase("TEST", "test"));
+          }
+      },
+      {
+          "should true for empty string comparison",
+          [](const TestInfo&) {
+            Assert::IsTrue(EqualsIgnoreCase("", ""));
+            Assert::IsTrue(EqualsIgnoreCase("", nullptr));
+            Assert::IsTrue(EqualsIgnoreCase(std::string(), ""));
+            Assert::IsTrue(EqualsIgnoreCase(std::string(), nullptr));
+          }
+      },
+      {
+          "should return false when strings don't match",
+          [](const TestInfo&) {
+            Assert::IsFalse(EqualsIgnoreCase("test", ""));
+            Assert::IsFalse(EqualsIgnoreCase("test", nullptr));
+            Assert::IsFalse(EqualsIgnoreCase("", "test"));
+            Assert::IsFalse(EqualsIgnoreCase(std::string(), "test"));
+            Assert::IsFalse(EqualsIgnoreCase("xxxxxxxxxxxx", "shorter"));
+            Assert::IsFalse(EqualsIgnoreCase("x", "longer"));
+          }
+      }
+  };
 }
 
 } // namespace lse

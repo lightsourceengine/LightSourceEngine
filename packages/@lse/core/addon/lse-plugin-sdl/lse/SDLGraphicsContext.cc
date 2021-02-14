@@ -8,8 +8,11 @@
 
 #include <lse/SDLRenderer.h>
 #include <lse/Log.h>
+#include <lse/string-ext.h>
 
 namespace lse {
+
+static Uint32 GetFullscreenFlag(const GraphicsContextConfig& config) noexcept;
 
 SDLGraphicsContext::SDLGraphicsContext(const GraphicsContextConfig& config) : GraphicsContext() {
   this->renderer = std::make_shared<SDLRenderer>();
@@ -32,7 +35,7 @@ void SDLGraphicsContext::Attach() {
         SDL_WINDOWPOS_CENTERED_DISPLAY(displayIndex),
         this->config.width,
         this->config.height,
-        this->config.fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
+        GetFullscreenFlag(this->config));
 
     if (!this->window) {
       LOG_ERROR("SDL_CreateWindow(): %s", SDL2::SDL_GetError());
@@ -40,7 +43,7 @@ void SDLGraphicsContext::Attach() {
     }
 
     isWindowFullscreen = (SDL2::SDL_GetWindowFlags(this->window)
-        & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP));
+        & (SDL_WINDOW_FULLSCREEN));
 
     if (isWindowFullscreen) {
       // TODO: if mouse events are ever supported, this should be configurable.
@@ -90,6 +93,18 @@ void SDLGraphicsContext::SetTitle(const char* title) {
 
 const char* SDLGraphicsContext::GetTitle() const noexcept {
   return GraphicsContext::GetTitle();
+}
+
+static Uint32 GetFullscreenFlag(const GraphicsContextConfig& config) noexcept {
+  if (!config.fullscreen) {
+    return 0;
+  } else if (EqualsIgnoreCase(config.fullscreenMode, "exclusive")) {
+    LOG_INFO("exclusive");
+    return SDL_WINDOW_FULLSCREEN;
+  } else {
+    LOG_INFO("desktop");
+    return SDL_WINDOW_FULLSCREEN_DESKTOP;
+  }
 }
 
 } // namespace lse
