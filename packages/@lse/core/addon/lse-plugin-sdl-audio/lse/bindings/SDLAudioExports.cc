@@ -18,6 +18,20 @@
 namespace lse {
 namespace bindings {
 
+static napi_value PluginConstructor(napi_env env, napi_callback_info info) noexcept {
+  return napix::js_class::constructor_helper(
+      env,
+      info,
+      [](napi_env env, napi_callback_info info) -> void* {
+        auto ci{napix::get_callback_info<1>(env, info)};
+
+        return new (std::nothrow) SDLAudioPlugin(ToAudioPluginConfig(env, ci[0]));
+      },
+      [](napi_env env, void* instance, void* hint) {
+        delete static_cast<SDLAudioPlugin*>(instance);
+      });
+}
+
 template<class T>
 static napi_value Constructor(napi_env env, napi_callback_info info) noexcept {
   return napix::js_class::constructor_helper(
@@ -31,7 +45,7 @@ static napi_value Constructor(napi_env env, napi_callback_info info) noexcept {
       });
 }
 
-napi_value CreateSDLAudioPlugin(napi_env env) noexcept {
+napi_value CreateSDLAudioPlugin(napi_env env, napi_value options) noexcept {
   if (Habitat::HasClass(env, Habitat::Class::CSampleAudioSource)
       || Habitat::HasClass(env, Habitat::Class::CSampleAudioDestination)) {
     napix::throw_error(env, "audio plugin already installed?");
@@ -47,9 +61,12 @@ napi_value CreateSDLAudioPlugin(napi_env env) noexcept {
   }
 
   // Create Plugin instance from class
-  auto pluginConstructor{CreateAudioPluginClass(env, &Constructor<SDLAudioPlugin>, "SDLAudioPlugin")};
+  auto pluginConstructor{CreateAudioPluginClass(env, &PluginConstructor, "SDLAudioPlugin")};
   napi_value plugin{};
-  napi_new_instance(env, pluginConstructor, 0, nullptr, &plugin);
+  size_t argc = options ? 1 : 0;
+  napi_value argv[1]{options};
+
+  napi_new_instance(env, pluginConstructor, argc, argv, &plugin);
 
   if (!plugin || napix::has_pending_exception(env)) {
     SDL2::Close();

@@ -302,6 +302,19 @@ bool object_get_or(napi_env env, napi_value value, const char* prop, bool defaul
   return as_bool(env, v, defaultValue);
 }
 
+std::string object_get(napi_env env, napi_value value, const char* prop) noexcept {
+  napi_valuetype type{};
+  napi_typeof(env, value, &type);
+
+  if (type == napi_object) {
+    napi_value v{};
+    napi_get_named_property(env, value, prop, &v);
+    return as_string_utf8(env, v);
+  }
+
+  return {};
+}
+
 napi_value array_new(napi_env env, size_t length) noexcept {
   napi_value array{};
   napi_status status;

@@ -12,6 +12,8 @@ namespace lse {
 
 class SDLAudioPlugin final : public AudioPlugin {
  public:
+  explicit SDLAudioPlugin(const AudioPluginConfig& config);
+
   void Attach() override;
   void Detach() override;
   void Destroy() override;

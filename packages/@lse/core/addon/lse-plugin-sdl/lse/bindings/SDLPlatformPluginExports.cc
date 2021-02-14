@@ -354,7 +354,7 @@ static napi_value CreatePluginInstance(napi_env env) {
 #undef InstanceAccessor
 }
 
-napi_value LoadSDLPlatformPlugin(napi_env env) noexcept {
+napi_value LoadSDLPlatformPlugin(napi_env env, napi_value options) noexcept {
   auto hasGraphicsContext{Habitat::HasClass(env, Habitat::Class::CGraphicsContext)};
 
   NAPIX_EXPECT_FALSE(env, hasGraphicsContext, "GraphicsContext class already installed.", {});
@@ -380,6 +380,8 @@ napi_value LoadSDLPlatformPlugin(napi_env env) noexcept {
   if (napix::has_pending_exception(env)) {
     return {};
   }
+
+  // TODO: parse options
 
   sPlugin = new SDLPlatformPlugin();
 

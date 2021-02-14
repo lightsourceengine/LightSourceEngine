@@ -22,7 +22,9 @@
       ],
       "sources": [
         "lse/AudioPlugin.cc",
+        "lse/AudioPluginConfig.cc",
         "lse/AudioUtil.cc",
+        "lse/bindings/AudioExports.cc",
         "lse/bindings/CAudioPlugin.cc",
         "lse/bindings/CAudioSource.cc",
         "lse/bindings/CAudioDestination.cc",

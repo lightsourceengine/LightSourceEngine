@@ -206,6 +206,8 @@ std::shared_ptr<T> get_external_shared(napi_env env, napi_value external) noexce
 
 napi_value object_new(napi_env env, const std::initializer_list<napi_property_descriptor>& props) noexcept;
 
+std::string object_get(napi_env env, napi_value value, const char* prop) noexcept;
+
 int32_t object_get_or(napi_env env, napi_value value, const char* prop, int32_t defaultValue) noexcept;
 float object_get_or(napi_env env, napi_value value, const char* prop, float defaultValue) noexcept;
 bool object_get_or(napi_env env, napi_value value, const char* prop, bool defaultValue) noexcept;

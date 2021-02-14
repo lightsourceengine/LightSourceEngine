@@ -10,6 +10,11 @@
 
 namespace lse {
 
+static Uint16 ToSDLAudioFormat(const std::string& audioFormat) noexcept;
+
+SDLAudioPlugin::SDLAudioPlugin(const AudioPluginConfig& config) : AudioPlugin(config) {
+}
+
 void SDLAudioPlugin::Attach() {
   if (this->isAttached) {
     return;
@@ -23,10 +28,10 @@ void SDLAudioPlugin::Attach() {
   // Open an audio device.
   SDL_AudioSpec desired{};
 
-  desired.freq = 44100;
-  desired.format = AUDIO_S16SYS;
-  desired.channels = 2;
-  desired.samples = 512;
+  desired.freq = this->config.frequency;
+  desired.format = ToSDLAudioFormat(this->config.audioFormat);
+  desired.channels = this->config.channels;
+  desired.samples = this->config.bytesPerSample;
 
   if (SDL2::SDL_OpenAudio(&desired, nullptr) != 0) {
     throw std::runtime_error(Format("Cannot open audio. SDL_OpenAudio: %s", SDL2::SDL_GetError()));
@@ -64,6 +69,42 @@ std::vector<std::string> SDLAudioPlugin::GetDevices() const noexcept {
   }
 
   return audioDeviceNames;
+}
+
+static Uint16 ToSDLAudioFormat(const std::string& audioFormat) noexcept {
+  if (audioFormat.empty()) {
+    // fallthrough to default
+  } else if (EqualsIgnoreCase(audioFormat, "U16LSB")) {
+    return AUDIO_U16LSB;
+  } else if (EqualsIgnoreCase(audioFormat, "S16LSB")) {
+    return AUDIO_S16LSB;
+  } else if (EqualsIgnoreCase(audioFormat, "U16MSB")) {
+    return AUDIO_U16MSB;
+  } else if (EqualsIgnoreCase(audioFormat, "S16MSB")) {
+    return AUDIO_S16MSB;
+  } else if (EqualsIgnoreCase(audioFormat, "S32LSB")) {
+    return AUDIO_S32LSB;
+  } else if (EqualsIgnoreCase(audioFormat, "S32MSB")) {
+    return AUDIO_S32MSB;
+  } else if (EqualsIgnoreCase(audioFormat, "F32LSB")) {
+    return AUDIO_F32LSB;
+  } else if (EqualsIgnoreCase(audioFormat, "F32MSB")) {
+    return AUDIO_F32MSB;
+  } else if (EqualsIgnoreCase(audioFormat, "S8")) {
+    return AUDIO_S8;
+  } else if (EqualsIgnoreCase(audioFormat, "U8")) {
+    return AUDIO_U8;
+  } else if (EqualsIgnoreCase(audioFormat, "U16SYS")) {
+    return AUDIO_U16SYS;
+  } else if (EqualsIgnoreCase(audioFormat, "S16SYS")) {
+    return AUDIO_S16SYS;
+  } else if (EqualsIgnoreCase(audioFormat, "S32SYS")) {
+    return AUDIO_S32SYS;
+  } else if (EqualsIgnoreCase(audioFormat, "F32SYS")) {
+    return AUDIO_F32SYS;
+  }
+
+  return AUDIO_U16SYS;
 }
 
 } // namespace lse

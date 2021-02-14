@@ -9,6 +9,9 @@
 
 namespace lse {
 
+AudioPlugin::AudioPlugin(const AudioPluginConfig& config) : config(config) {
+}
+
 bool AudioPlugin::IsAttached() const noexcept {
   return this->isAttached;
 }

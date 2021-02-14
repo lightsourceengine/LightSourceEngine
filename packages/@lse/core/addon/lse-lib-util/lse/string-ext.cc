@@ -32,6 +32,22 @@ char* ToLowercase(char* str) noexcept {
   return str;
 }
 
+bool EqualsIgnoreCase(const std::string& a, const char* b) noexcept {
+  if (!b) {
+    return false;
+  }
+
+  const auto len = a.size();
+
+  for (size_t i = 0; i < len; i++) {
+    if (b[i] == '\0' || tolower(a[i]) == tolower(b[i])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 } // namespace lse
 
 namespace lse {

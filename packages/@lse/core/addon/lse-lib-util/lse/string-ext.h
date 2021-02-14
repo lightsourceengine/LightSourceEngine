@@ -18,6 +18,9 @@ std::string& ToLowercase(std::string& str) noexcept;
 // Simple ascii cstring conversion to lowercase, no intl or encoding considered. If str is null, null is returned.
 char* ToLowercase(char* str) noexcept;
 
+// Case insensitive string compare.
+bool EqualsIgnoreCase(const std::string& a, const char* b) noexcept;
+
 namespace internal {
 
 template<typename T>

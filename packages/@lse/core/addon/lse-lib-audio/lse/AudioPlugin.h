@@ -9,11 +9,13 @@
 
 #include <vector>
 #include <string>
+#include <lse/AudioPluginConfig.h>
 
 namespace lse {
 
 class AudioPlugin {
  public:
+  explicit AudioPlugin(const AudioPluginConfig& config);
   virtual ~AudioPlugin() = default;
 
  public:
@@ -24,6 +26,7 @@ class AudioPlugin {
   bool IsAttached() const noexcept;
 
  protected:
+  AudioPluginConfig config{};
   bool isAttached{};
 };
 

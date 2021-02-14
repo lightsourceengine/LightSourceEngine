@@ -13,6 +13,12 @@
 
 namespace lse {
 
+static Uint16 ToSDLAudioFormat(const std::string& audioFormat) noexcept;
+static void MixInitFromConfig(const std::vector<std::string>& decoders) noexcept;
+
+SDLMixerAudioPlugin::SDLMixerAudioPlugin(const AudioPluginConfig& config) : AudioPlugin(config) {
+}
+
 void SDLMixerAudioPlugin::Attach() {
   if (this->isAttached) {
     return;
@@ -22,14 +28,15 @@ void SDLMixerAudioPlugin::Attach() {
     throw std::runtime_error(Format("Failed to init SDL audio. SDL Error: %s", SDL2::SDL_GetError()));
   }
 
-  if (SDL2::mixer::Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 512) < 0) {
+  if (SDL2::mixer::Mix_OpenAudio(
+      this->config.frequency,
+      ToSDLAudioFormat(this->config.audioFormat),
+      this->config.channels,
+      this->config.bytesPerSample) < 0) {
     throw std::runtime_error(Format("Cannot open mixer. Error: %s", SDL2::SDL_GetError()));
   }
 
-  SDL2::mixer::Mix_Init(MIX_INIT_FLAC | MIX_INIT_MOD | MIX_INIT_MP3 | MIX_INIT_OGG
-      // MIX_INIT_OPUS and MIX_INIT_MID not available in 2.0.0 headers..it's harmless to pass
-      // in the new values
-      | /*MIX_INIT_MID*/ 0x00000020 | /*MIX_INIT_OPUS*/ 0x00000040);
+  MixInitFromConfig(this->config.decoders);
 
   this->isAttached = true;
 }
@@ -58,6 +65,71 @@ void SDLMixerAudioPlugin::Destroy() {
 std::vector<std::string> SDLMixerAudioPlugin::GetDevices() const noexcept {
   return ListDecoders(SDL2::SDL_GetNumAudioDevices(0),
     [](int32_t i){ return SDL2::SDL_GetAudioDeviceName(i, 0); });
+}
+
+static Uint16 ToSDLAudioFormat(const std::string& audioFormat) noexcept {
+  if (audioFormat.empty()) {
+    // fallthrough to default
+  } else if (EqualsIgnoreCase(audioFormat, "U16LSB")) {
+    return AUDIO_U16LSB;
+  } else if (EqualsIgnoreCase(audioFormat, "S16LSB")) {
+    return AUDIO_S16LSB;
+  } else if (EqualsIgnoreCase(audioFormat, "U16MSB")) {
+    return AUDIO_U16MSB;
+  } else if (EqualsIgnoreCase(audioFormat, "S16MSB")) {
+    return AUDIO_S16MSB;
+  } else if (EqualsIgnoreCase(audioFormat, "S32LSB")) {
+    return AUDIO_S32LSB;
+  } else if (EqualsIgnoreCase(audioFormat, "S32MSB")) {
+    return AUDIO_S32MSB;
+  } else if (EqualsIgnoreCase(audioFormat, "F32LSB")) {
+    return AUDIO_F32LSB;
+  } else if (EqualsIgnoreCase(audioFormat, "F32MSB")) {
+    return AUDIO_F32MSB;
+  } else if (EqualsIgnoreCase(audioFormat, "S8")) {
+    return AUDIO_S8;
+  } else if (EqualsIgnoreCase(audioFormat, "U8")) {
+    return AUDIO_U8;
+  } else if (EqualsIgnoreCase(audioFormat, "U16SYS")) {
+    return AUDIO_U16SYS;
+  } else if (EqualsIgnoreCase(audioFormat, "S16SYS")) {
+    return AUDIO_S16SYS;
+  } else if (EqualsIgnoreCase(audioFormat, "S32SYS")) {
+    return AUDIO_S32SYS;
+  } else if (EqualsIgnoreCase(audioFormat, "F32SYS")) {
+    return AUDIO_F32SYS;
+  }
+
+  return AUDIO_U16SYS;
+}
+
+static void MixInitFromConfig(const std::vector<std::string>& decoders) noexcept {
+  // if no decoders specified, default to ogg
+  if (decoders.empty()) {
+    SDL2::mixer::Mix_Init(MIX_INIT_OGG);
+    return;
+  }
+
+  int32_t flags{};
+
+  // note: MIX_INIT_OPUS and MIX_INIT_MID not available in 2.0.0 headers
+  for (const auto& decoder : decoders) {
+    if (EqualsIgnoreCase(decoder, "OGG")) {
+      flags |= MIX_INIT_OGG;
+    } else if (EqualsIgnoreCase(decoder, "MP3")) {
+      flags |= MIX_INIT_MP3;
+    } else if (EqualsIgnoreCase(decoder, "FLAC")) {
+      flags |= MIX_INIT_FLAC;
+    } else if (EqualsIgnoreCase(decoder, "MOD")) {
+      flags |= MIX_INIT_MOD;
+    } else if (EqualsIgnoreCase(decoder, "OPUS")) {
+      flags |= /*MIX_INIT_OPUS*/ 0x00000040;
+    } else if (EqualsIgnoreCase(decoder, "MID")) {
+      flags |= /*MIX_INIT_MID*/ 0x00000020;
+    }
+  }
+
+  SDL2::mixer::Mix_Init(flags);
 }
 
 } // namespace lse

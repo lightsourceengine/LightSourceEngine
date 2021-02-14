@@ -12,6 +12,8 @@ namespace lse {
 
 class SDLMixerAudioPlugin final : public AudioPlugin {
  public:
+  explicit SDLMixerAudioPlugin(const AudioPluginConfig& config);
+
   void Attach() override;
   void Detach() override;
   void Destroy() override;

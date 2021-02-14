@@ -44,9 +44,11 @@ napi_value ParseValue(napi_env env, napi_callback_info info) noexcept {
   return BoxStyleValue(env, styleValue.value_or(StyleValue::OfUndefined()));
 }
 
-napi_value LoadSDLPlugin(napi_env env, napi_callback_info) noexcept {
+napi_value LoadSDLPlugin(napi_env env, napi_callback_info info) noexcept {
   if (kEnablePluginPlatformSdl) {
-    return LoadSDLPlatformPlugin(env);
+    auto ci{napix::get_callback_info<1>(env, info)};
+
+    return LoadSDLPlatformPlugin(env, ci[0]);
   }
 
   napix::throw_error(env, "SDL plugin is not available.");
@@ -62,18 +64,22 @@ napi_value LoadRefPlugin(napi_env env, napi_callback_info) noexcept {
   return Habitat::SetClass(env, Habitat::Class::CGraphicsContext, CRefGraphicsContext::CreateClass(env));
 }
 
-napi_value LoadSDLAudioPlugin(napi_env env, napi_callback_info) noexcept {
+napi_value LoadSDLAudioPlugin(napi_env env, napi_callback_info info) noexcept {
   if (kEnablePluginAudioSdlAudio) {
-    return CreateSDLAudioPlugin(env);
+    auto ci{napix::get_callback_info<1>(env, info)};
+
+    return CreateSDLAudioPlugin(env, ci[0]);
   }
 
   napix::throw_error(env, "SDL Audio plugin is not available.");
   return {};
 }
 
-napi_value LoadSDLMixerPlugin(napi_env env, napi_callback_info) noexcept {
+napi_value LoadSDLMixerPlugin(napi_env env, napi_callback_info info) noexcept {
   if (kEnablePluginAudioSdlMixer) {
-    return CreateSDLMixerAudioPlugin(env);
+    auto ci{napix::get_callback_info<1>(env, info)};
+
+    return CreateSDLMixerAudioPlugin(env, ci[0]);
   }
 
   napix::throw_error(env, "SDL Mixer plugin is not available.");

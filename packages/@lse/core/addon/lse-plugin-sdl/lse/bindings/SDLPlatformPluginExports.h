@@ -11,7 +11,7 @@
 namespace lse {
 namespace bindings {
 
-napi_value LoadSDLPlatformPlugin(napi_env env) noexcept;
+napi_value LoadSDLPlatformPlugin(napi_env env, napi_value options) noexcept;
 
 } // namespace bindings
 } // namespace lse
