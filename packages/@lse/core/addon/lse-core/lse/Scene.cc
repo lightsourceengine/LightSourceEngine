@@ -56,7 +56,7 @@ void Scene::Attach() {
 void Scene::Detach() {
   if (this->root) {
     SceneNode::Visit(this->root, [](SceneNode* node){ node->OnDetach(); });
-  };
+  }
 
   this->graphicsContext->Detach();
   this->renderingContext2D.renderer = nullptr;
