@@ -104,9 +104,11 @@ static Uint16 ToSDLAudioFormat(const std::string& audioFormat) noexcept {
 }
 
 static void MixInitFromConfig(const std::vector<std::string>& decoders) noexcept {
-  // if no decoders specified, default to ogg
+  // if no decoders specified, try mp3, if not available, try ogg.
   if (decoders.empty()) {
-    SDL2::mixer::Mix_Init(MIX_INIT_OGG);
+    if (SDL2::mixer::Mix_Init(MIX_INIT_MP3) == 0) {
+        SDL2::mixer::Mix_Init(MIX_INIT_OGG);
+    }
     return;
   }
 
