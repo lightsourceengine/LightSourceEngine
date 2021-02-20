@@ -20,7 +20,7 @@ void RootSceneNode::OnStylePropertyChanged(StyleProperty property) {
   switch (property) {
     case StyleProperty::backgroundColor:
     case StyleProperty::opacity:
-      this->RequestComposite();
+      this->MarkCompositeDirty();
       break;
     case StyleProperty::fontSize:
       this->scene->OnRootFontSizeChange();
@@ -30,12 +30,10 @@ void RootSceneNode::OnStylePropertyChanged(StyleProperty property) {
   }
 }
 
-void RootSceneNode::Composite(CompositeContext* composite) {
-  const auto style = Style::Or(this->style);
-  const auto backgroundColor = style->GetColor(StyleProperty::backgroundColor);
-
-  if (backgroundColor.has_value()) {
-    composite->renderer->FillRenderTarget(backgroundColor.value());
+void RootSceneNode::OnComposite(CompositeContext* composite) {
+  if (this->style && !this->style->IsEmpty(StyleProperty::backgroundColor)) {
+    composite->renderer->Clear(
+        this->style->GetColor(StyleProperty::backgroundColor)->MixAlpha(composite->CurrentOpacity()));
   }
 }
 

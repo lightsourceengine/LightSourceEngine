@@ -20,26 +20,22 @@ class BoxSceneNode final : public SceneNode {
   ~BoxSceneNode() override = default;
 
   void OnStylePropertyChanged(StyleProperty property) override;
-  void OnStyleReset() override;
-  void OnBoundingBoxChanged() override;
-  void OnStyleLayout() override;
+  void OnFlexBoxLayoutChanged() override;
   void OnDetach() override;
+  void OnComputeStyle() override;
+  void OnComposite(CompositeContext* composite) override;
 
-  void Paint(RenderingContext2D* context) override;
-  void Composite(CompositeContext* composite) override;
-  void Destroy() override;
+  void OnDestroy() override;
 
  private:
-  void PaintBorderRadius(RenderingContext2D* context);
-  void PaintBackgroundRepeat(RenderingContext2D* context);
+//  void PaintBorderRadius(RenderingContext2D* context);
+//  void PaintBackgroundRepeat(RenderingContext2D* context);
   void UpdateBackgroundImage(const std::string& backgroundUri);
   void ClearBackgroundImageResource();
-  Rect GetBackgroundClipBox(StyleBackgroundClip value) const noexcept;
 
  private:
   ImageRef backgroundImage{};
   ImageRect backgroundImageRect{};
-  Texture paintTarget{};
 };
 
 } // namespace lse

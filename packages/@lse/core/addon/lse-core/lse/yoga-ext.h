@@ -13,6 +13,8 @@
 
 namespace lse {
 
+bool YGNodeHasDimensions(YGNodeConstRef node) noexcept;
+
 /**
  * Gets the bounding box of an element. The position is relative to the element's parent. The dimensions include
  * the border, padding and content.

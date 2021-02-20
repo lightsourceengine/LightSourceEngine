@@ -32,50 +32,25 @@ struct RefTexture {
   Texture::Type type{ Texture::Type::Updatable };
 };
 
-int32_t RefRenderer::GetWidth() const {
+int32_t RefRenderer::GetWidth() const noexcept {
   return 0;
 }
 
-int32_t RefRenderer::GetHeight() const {
+int32_t RefRenderer::GetHeight() const noexcept {
   return 0;
 }
 
-void RefRenderer::Present() {
+void RefRenderer::EnabledClipping(const Rect& rect) noexcept {
 }
 
-void RefRenderer::EnabledClipping(const Rect& rect) {
+void RefRenderer::DisableClipping() noexcept {
 }
 
-void RefRenderer::DisableClipping() {
-}
-
-void RefRenderer::DrawFillRect(const Rect& rect, const Matrix& transform, color_t fillColor) {
-}
-
-void RefRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) {
-}
-
-void RefRenderer::DrawImage(const Texture& texture, const Rect& rect, const Matrix& transform, color_t tintColor) {
-}
-
-void RefRenderer::DrawImage(
-    const Texture& texture, const Rect& srcRect, const Rect& destRect, const Matrix& transform,
-    color_t tintColor) {
-}
-
-void RefRenderer::DrawImage(
-    const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
-    const Matrix& transform, color_t tintColor) {
-}
-
-void RefRenderer::FillRenderTarget(const color_t color) {
-}
-
-bool RefRenderer::SetRenderTarget(const Texture& renderTarget) {
+bool RefRenderer::SetRenderTarget(const Texture& renderTarget) noexcept {
   return true;
 }
 
-void RefRenderer::Reset() {
+void RefRenderer::Reset() noexcept {
 }
 
 Texture RefRenderer::CreateTexture(int32_t width, int32_t height, Texture::Type type) {

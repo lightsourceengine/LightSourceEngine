@@ -12,6 +12,7 @@
 #include <lse/PixelConversion.h>
 #include <lse/Log.h>
 #include <lse/string-ext.h>
+#include <lse/Math.h>
 
 namespace lse {
 
@@ -23,6 +24,8 @@ SDLRenderer::SDLRenderer() {
   if (SDL2::SDL_GetRenderDriverInfo(0, &info) == 0) {
     this->UpdateTextureFormats(info);
   }
+
+  this->floatMode = SDL2::SDL_RenderFillRectF != nullptr;
 }
 
 SDLRenderer::~SDLRenderer() {
@@ -51,51 +54,22 @@ void SDLRenderer::UpdateTextureFormats(const SDL_RendererInfo& info) noexcept {
   this->textureFormat = ToPixelFormat(format);
 }
 
-void SDLRenderer::Present() {
+void SDLRenderer::Present() noexcept {
   SDL2::SDL_RenderPresent(this->renderer);
 }
 
-void SDLRenderer::DrawFillRect(const Rect& rect, const Matrix& transform, const color_t fillColor) {
-  lse::DrawImage(this->renderer, this->fillRectTexture.Cast<SDL_Texture>(), rect, transform, fillColor);
-}
-
-void SDLRenderer::DrawImage(
-    const Texture& texture, const Rect& rect,
-    const Matrix& transform, color_t tintColor) {
-  lse::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), rect, transform, tintColor);
-}
-
-void SDLRenderer::DrawImage(
-    const Texture& texture, const Rect& srcRect, const Rect& destRect,
-    const Matrix& transform, color_t tintColor) {
-  lse::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), srcRect, destRect, transform, tintColor);
-}
-
-void SDLRenderer::DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) {
-  lse::DrawBorder(this->renderer, this->fillRectTexture.Cast<SDL_Texture>(), rect, border, transform, fillColor);
-}
-
-void SDLRenderer::DrawImage(
-    const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
-    const Matrix& transform, color_t tintColor) {
-  lse::DrawImage(this->renderer, texture.Cast<SDL_Texture>(), capInsets, rect, transform, tintColor);
-}
-
-void SDLRenderer::FillRenderTarget(const color_t color) {
-  SetRenderDrawColor(color);
+void SDLRenderer::Clear(color_t color) noexcept {
+  this->SetRenderDrawColor(color);
   SDL2::SDL_RenderClear(this->renderer);
 }
 
-bool SDLRenderer::SetRenderTarget(const Texture& newRenderTarget) {
-  // TODO: exceptions?
-
+bool SDLRenderer::SetRenderTarget(const Texture& newRenderTarget) noexcept {
   if (!newRenderTarget.IsRenderTarget()) {
     return false;
   }
 
   if (SDL2::SDL_SetRenderTarget(this->renderer, newRenderTarget.Cast<SDL_Texture>()) != 0) {
     LOG_ERROR(SDL2::SDL_GetError());
-
     return false;
   }
 
@@ -104,7 +78,7 @@ bool SDLRenderer::SetRenderTarget(const Texture& newRenderTarget) {
   return true;
 }
 
-void SDLRenderer::Reset() {
+void SDLRenderer::Reset() noexcept {
   if (this->renderer) {
     SDL2::SDL_SetRenderTarget(this->renderer, nullptr);
   }
@@ -124,13 +98,13 @@ void SDLRenderer::ResetInternal(const Texture& newRenderTarget) {
   SDL2::SDL_SetRenderDrawBlendMode(this->renderer, SDL_BLENDMODE_BLEND);
 }
 
-void SDLRenderer::EnabledClipping(const Rect& rect) {
-  const auto clipRect{ ToSDLRect(rect) };
+void SDLRenderer::EnabledClipping(const Rect& rect) noexcept {
+  const auto clipRect{ ToSDLRect<SDL_Rect>(rect) };
 
   SDL2::SDL_RenderSetClipRect(this->renderer, &clipRect);
 }
 
-void SDLRenderer::DisableClipping() {
+void SDLRenderer::DisableClipping() noexcept {
   SDL2::SDL_RenderSetClipRect(this->renderer, nullptr);
 }
 
@@ -203,6 +177,217 @@ void SDLRenderer::Detach() {
 
 void SDLRenderer::Destroy() {
   this->Detach();
+}
+
+void SDLRenderer::DrawImage(
+    const RenderTransform& transform,
+    const Point& origin,
+    const Rect& box,
+    const IntRect& src,
+    const Texture& texture,
+    const RenderFilter& filter) noexcept {
+  auto tex{texture.Cast<SDL_Texture>()};
+  const auto& srcRect{reinterpret_cast<const SDL_Rect&>(src)};
+  SDLSetTextureTint(tex, filter);
+
+  if (this->floatMode) {
+    auto destRect{SDLSnapToPixelGrid<SDL_FRect>(box)};
+//    SDL_FPoint center{ -(origin.x - destRect.x), -(origin.y - destRect.y)};
+    SDL_FPoint center{ origin.x, origin.y};
+
+    SDL2::SDL_RenderCopyExF(
+        this->renderer,
+        tex,
+        &srcRect,
+        &destRect,
+        transform.rotate,
+        nullptr,
+        SDLGetRenderFlip(filter));
+  } else {
+//    auto destRect{SDLSnapToPixelGrid<SDL_Rect>(box)};
+//    SDL_Point center{-destRect.x, -destRect.y};
+//
+//    SDL2::SDL_RenderCopyEx(
+//        this->renderer,
+//        tex,
+//        srcRect,
+//        SDLTransformRects(transform, 1, &destRect, &destRect),
+//        transform.rotate,
+//        &center,
+//        SDLGetRenderFlip(filter));
+  }
+}
+
+void SDLRenderer::DrawImage(
+    const Rect& box, const IntRect& src, const Texture& texture, const RenderFilter& filter) noexcept {
+  auto tex{texture.Cast<SDL_Texture>()};
+  const auto& srcRect{reinterpret_cast<const SDL_Rect&>(src)};
+  SDLSetTextureTint(tex, filter);
+
+  if (this->floatMode) {
+    auto destRect{SDLSnapToPixelGrid<SDL_FRect>(box)};
+
+    if (filter.HasFlip()) {
+      SDL2::SDL_RenderCopyExF(this->renderer, tex, &srcRect, &destRect, 0, {}, SDLGetRenderFlip(filter));
+    } else {
+      SDL2::SDL_RenderCopyF(this->renderer, tex, &srcRect, &destRect);
+    }
+  } else {
+    auto destRect{SDLSnapToPixelGrid<SDL_Rect>(box)};
+
+    if (filter.HasFlip()) {
+      SDL2::SDL_RenderCopyEx(this->renderer, tex, &srcRect, &destRect, 0, {}, SDLGetRenderFlip(filter));
+    } else {
+      SDL2::SDL_RenderCopy(this->renderer, tex, &srcRect, &destRect);
+    }
+  }
+}
+
+static void LayoutCapInsetsSourceRects(const EdgeRect& capInsets, const Texture& texture, SDL_Rect* src) noexcept {
+  const auto top{capInsets.top};
+  const auto right{capInsets.right};
+  const auto bottom{capInsets.bottom};
+  const auto left{capInsets.left};
+
+  const auto textureWidth{texture.Width()};
+  const auto textureHeight{texture.Height()};
+
+  // Top row
+  src[0] = { 0, 0, left, top };
+  src[1] = { left, 0, textureWidth - left - right, top };
+  src[2] = { textureWidth - right, 0, right, top };
+  // Middle row
+  src[3] = { 0, top, left, textureHeight - top - bottom };
+  src[4] = { left, top, textureWidth - left - right, textureHeight - top - bottom };
+  src[5] = { textureWidth - right, top, right, textureHeight - top - bottom };
+  // Bottom row
+  src[6] = { 0, textureHeight - bottom, left, bottom };
+  src[7] = { left, textureHeight - bottom, textureWidth - left - right, bottom };
+  src[8] = { textureWidth - right, textureHeight - bottom, right, bottom };
+}
+
+template<typename R, typename D>
+static void LayoutCapInsetsDestRects(const Rect& box, const EdgeRect& capInsets, R* rects) noexcept {
+  const auto x{ SnapToPixelGrid<D>(box.x) };
+  const auto y{ SnapToPixelGrid<D>(box.y) };
+  const auto w{ SnapToPixelGrid<D>(box.width) };
+  const auto h{ SnapToPixelGrid<D>(box.height) };
+
+  const auto t{static_cast<D>(capInsets.top)};
+  const auto r{static_cast<D>(capInsets.right)};
+  const auto b{static_cast<D>(capInsets.bottom)};
+  const auto l{static_cast<D>(capInsets.left)};
+
+  // Top row
+  rects[0] = { x, y, l, t };
+  rects[1] = { x + l, y, w - l - r, t };
+  rects[2] = { x + w - r, y, r, t };
+  // Middle row
+  rects[3] = { x, y + t, l, h - t - b };
+  rects[4] = { x + l, y + t, w - l - r, h - t - b };
+  rects[5] = { x + w - r, y + t, r, h - t - b };
+  // Bottom row
+  rects[6] = { x, y + h - b, l, b };
+  rects[7] = { x + l, y + h - b, w - l - r, b };
+  rects[8] = { x + w - r, y + h - b, r, b };
+}
+
+void SDLRenderer::DrawImageCapInsets(
+    const Rect& box, const EdgeRect& capInsets, const Texture& texture, const RenderFilter& filter) noexcept {
+  if (!texture) {
+    return;
+  }
+
+  static constexpr auto kSize = 9;
+  SDL_Rect src[kSize];
+  auto nativeTexture{texture.Cast<SDL_Texture>()};
+
+  SDLSetTextureTint(nativeTexture, filter);
+  LayoutCapInsetsSourceRects(capInsets, texture, src);
+
+  if (this->floatMode) {
+    SDL_FRect dest[kSize];
+
+    LayoutCapInsetsDestRects<SDL_FRect, float>(box, capInsets, dest);
+
+    for (auto i = 0; i < kSize; i++) {
+      SDL2::SDL_RenderCopyF(this->renderer, nativeTexture, &src[i], &dest[i]);
+    }
+  } else {
+    SDL_Rect dest[kSize];
+
+    LayoutCapInsetsDestRects<SDL_Rect, int32_t>(box, capInsets, dest);
+
+    for (auto i = 0; i < kSize; i++) {
+      SDL2::SDL_RenderCopy(this->renderer, nativeTexture, &src[i], &dest[i]);
+    }
+  }
+}
+
+void SDLRenderer::FillRect(
+    const Rect& box,
+    const RenderFilter& filter) noexcept {
+  SDLSetDrawColor(this->renderer, filter);
+
+  if (this->floatMode) {
+    auto dest{SDLSnapToPixelGrid<SDL_FRect>(box)};
+    SDL2::SDL_RenderFillRectF(this->renderer, &dest);
+  } else {
+    auto dest{SDLSnapToPixelGrid<SDL_Rect>(box)};
+    SDL2::SDL_RenderFillRect(this->renderer, &dest);
+  }
+}
+
+template<typename R, typename D>
+static int32_t LayoutBorder(const Rect& box, const EdgeRect& edges, R* dest) {
+  const auto x = SnapToPixelGrid<D>(box.x);
+  const auto y = SnapToPixelGrid<D>(box.y);
+  const auto w = SnapToPixelGrid<D>(box.width);
+  const auto h = SnapToPixelGrid<D>(box.height);
+
+  const auto top = static_cast<D>(edges.top);
+  const auto right = static_cast<D>(edges.right);
+  const auto bottom = static_cast<D>(edges.bottom);
+  const auto left = static_cast<D>(edges.left);
+
+  int32_t count = 0;
+
+  if (top > 0) {
+    dest[count++] = { x, y, w, top };
+  }
+
+  if (right > 0) {
+    dest[count++] = { x + w - right, y + top, right, h - top - bottom };
+  }
+
+  if (bottom > 0) {
+    dest[count++] = { x, y + h - bottom, w, bottom };
+  }
+
+  if (left > 0) {
+    dest[count++] = { x, y + top, left, h - top - bottom };
+  }
+
+  return count;
+}
+
+void SDLRenderer::StrokeRect(
+    const Rect& box,
+    const EdgeRect& edges,
+    const RenderFilter& filter) noexcept {
+  SDLSetDrawColor(this->renderer, filter);
+
+  if (this->floatMode) {
+    SDL_FRect dest[4];
+    int32_t count{LayoutBorder<SDL_FRect, float>(box, edges, dest)};
+
+    SDL2::SDL_RenderFillRectsF(this->renderer, dest, count);
+  } else {
+    SDL_Rect dest[4];
+    int32_t count{LayoutBorder<SDL_Rect, int32_t>(box, edges, dest)};
+
+    SDL2::SDL_RenderFillRects(this->renderer, dest, count);
+  }
 }
 
 } // namespace lse

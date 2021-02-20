@@ -14,29 +14,14 @@ class RefRenderer : public Renderer {
  public:
   ~RefRenderer() override = default;
 
-  int32_t GetWidth() const override;
-  int32_t GetHeight() const override;
-  PixelFormat GetTextureFormat() const override { return PixelFormatRGBA; }
+  int32_t GetWidth() const noexcept override;
+  int32_t GetHeight() const noexcept override;
+  PixelFormat GetTextureFormat() const noexcept override { return PixelFormatRGBA; }
 
-  bool SetRenderTarget(const Texture& newRenderTarget) override;
-  void Reset() override;
-  void Present() override;
-  void EnabledClipping(const Rect& rect) override;
-  void DisableClipping() override;
-
-  void DrawFillRect(const Rect& rect, const Matrix& transform, color_t fillColor) override;
-  void DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) override;
-  void DrawImage(
-      const Texture& texture, const Rect& rect, const Matrix& transform,
-      color_t tintColor) override;
-  void DrawImage(
-      const Texture& texture, const Rect& srcRect, const Rect& destRect,
-      const Matrix& transform, color_t tintColor) override;
-  void DrawImage(
-      const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
-      const Matrix& transform, color_t tintColor) override;
-
-  void FillRenderTarget(color_t color) override;
+  bool SetRenderTarget(const Texture& newRenderTarget) noexcept override;
+  void Reset() noexcept override;
+  void EnabledClipping(const Rect& rect) noexcept override;
+  void DisableClipping() noexcept override;
 
   Texture CreateTexture(int32_t width, int32_t height, Texture::Type type) override;
 };

@@ -60,6 +60,8 @@ class StyleContext {
   // Yoga property binding
   void SetYogaPropertyValue(Style* style, StyleProperty property, YGNodeRef target) const noexcept;
 
+  float ComputeTransformOrigin(Style* style, StyleProperty property, float dimension) const noexcept;
+
  private:
   float ComputeBackgroundSize(
       Style* style, StyleProperty property,
@@ -70,7 +72,6 @@ class StyleContext {
   float ComputeBorderRadiusProperty(
       Style* style, StyleProperty property,
       float dimension, float defaultValue) const noexcept;
-  float ComputeTransformOrigin(Style* style, StyleProperty property, float dimension) const noexcept;
 
  private:
   float viewportWidth;

@@ -61,6 +61,8 @@ constexpr const char* kSDLFrameworkLib = "SDL2";
     APPLY(SDL_GetRendererOutputSize)                        \
     APPLY(SDL_RenderCopy)                                   \
     APPLY(SDL_RenderCopyEx)                                 \
+    APPLY(SDL_RenderFillRect)                               \
+    APPLY(SDL_RenderFillRects)                              \
     APPLY(SDL_SetRenderDrawColor)                           \
     APPLY(SDL_SetRenderDrawBlendMode)                       \
     APPLY(SDL_SetRenderTarget)                              \
@@ -124,7 +126,11 @@ constexpr const char* kSDLFrameworkLib = "SDL2";
 
 /* Optional SDL functions. API later than 2.0.4 */
 #define DYNAMIC_FOR_EACH_OPTIONAL_SDL_FUNCTION(APPLY)       \
-    APPLY(SDL_JoystickGetDeviceInstanceID)
+    APPLY(SDL_JoystickGetDeviceInstanceID)                  \
+    APPLY(SDL_RenderCopyF)                                  \
+    APPLY(SDL_RenderCopyExF)                                \
+    APPLY(SDL_RenderFillRectsF)                             \
+    APPLY(SDL_RenderFillRectF)
 
 // Load SDL2 functions manually.
 //

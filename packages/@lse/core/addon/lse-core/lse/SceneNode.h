@@ -38,31 +38,35 @@ class SceneNode : public Reference {
   float GetY() const noexcept;
   float GetWidth() const noexcept;
   float GetHeight() const noexcept;
-  void BindStyle(Style* style) noexcept;
-  void SetHidden(bool value) noexcept;
+  SceneNode* GetParent() const noexcept;
+  bool HasChildren() const noexcept;
 
   void AppendChild(SceneNode* node);
   void InsertBefore(SceneNode* node, SceneNode* before);
   void RemoveChild(SceneNode* node) noexcept;
 
-  virtual void OnStylePropertyChanged(StyleProperty property);
-  virtual void OnStyleReset() {}
-  virtual void OnBoundingBoxChanged() {}
-  virtual void OnStyleLayout() {}
+  void BindStyle(Style* style) noexcept;
+  void SetHidden(bool value) noexcept;
+
+  void Paint(CompositeContext* ctx);
+  void Composite(CompositeContext* ctx);
+  void Destroy();
+
+  // events
+  virtual void OnAttach() {}
   virtual void OnDetach() = 0;
-
+  virtual void OnDestroy() {}
+  virtual void OnStylePropertyChanged(StyleProperty property);
+  virtual void OnFlexBoxLayoutChanged() {}
+  virtual void OnComputeStyle() {}
+  virtual void OnComposite(CompositeContext* ctx) {}
   virtual YGSize OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode);
-  virtual void Paint(RenderingContext2D* context) = 0;
-  virtual void Composite(CompositeContext* composite) = 0;
-  virtual void Destroy();
 
-  Resources* GetResources() const noexcept;
-  SceneNode* GetParent() const noexcept;
-  bool IsLeaf() const noexcept;
+  virtual bool IsLeaf() const noexcept { return false; }
   bool IsHidden() const noexcept;
   bool IsLayoutOnly() const noexcept;
-
-  bool HasChildren() const noexcept;
+  bool IsComputeStyleDirty() const noexcept;
+  bool IsCompositeDirty() const noexcept;
 
   template<typename Callable>
   static void Visit(SceneNode* node, const Callable& func);
@@ -79,26 +83,36 @@ class SceneNode : public Reference {
   enum Flag : uint32_t {
     FlagHidden,
     FlagLayoutOnly,
-    FlagLeaf
+    FlagComputeStyleDirty,
+    FlagCompositeDirty,
+    FlagPaintDirty,
   };
 
-  void RequestPaint();
-  void RequestStyleLayout();
-  void RequestComposite();
-  const std::vector<SceneNode*>& SortChildrenByStackingOrder();
+  Resources* GetResources() const noexcept;
+
+  void MarkComputeStyleDirty() noexcept;
+  void MarkCompositeDirty() noexcept;
+
+  const std::vector<SceneNode*>& GetChildrenOrderedByZIndex(std::vector<SceneNode*>& temp);
   void SetFlag(Flag flag, bool value) noexcept;
   StyleContext* GetStyleContext() const noexcept;
+  Rect GetBackgroundClipBox(StyleBackgroundClip value) const noexcept;
 
- private:
+  uint32_t GetChildCount() const noexcept;
+  SceneNode* GetChildAt(uint32_t index) const noexcept;
   int32_t GetChildIndex(SceneNode* node) const noexcept;
+  int32_t GetZIndex(SceneNode* node) const noexcept;
+
+  void DrawBackground(CompositeContext* ctx, StyleBackgroundClip backgroundClip) const noexcept;
+  void DrawBorder(CompositeContext* ctx) const noexcept;
 
  protected:
   static int32_t instanceCount;
   napi_env env{};
-  YGNodeRef ygNode{};
   ReferenceHolder<Scene> scene{};
   ReferenceHolder<Style> style{};
-  std::vector<SceneNode*> sortedChildren;
+  YGNodeRef ygNode{};
+  Texture target{};
   std::bitset<8> flags;
 
   friend Scene;

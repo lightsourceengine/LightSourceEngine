@@ -7,8 +7,8 @@
 #pragma once
 
 #include <lse/Renderer.h>
-#include <lse/SDL2.h>
 #include <vector>
+#include <lse/SDL2.h>
 
 namespace lse {
 
@@ -17,34 +17,51 @@ class SDLRenderer final : public Renderer {
   SDLRenderer();
   ~SDLRenderer() override;
 
-  int32_t GetWidth() const override { return this->width; }
-  int32_t GetHeight() const override { return this->height; }
-  PixelFormat GetTextureFormat() const override { return this->textureFormat; }
+  int32_t GetWidth() const noexcept override { return this->width; }
+  int32_t GetHeight() const noexcept override { return this->height; }
+  PixelFormat GetTextureFormat() const noexcept override { return this->textureFormat; }
 
-  bool SetRenderTarget(const Texture& newRenderTarget) override;
-  void Reset() override;
-  void FillRenderTarget(color_t color) override;
-  void Present() override;
-  void EnabledClipping(const Rect& rect) override;
-  void DisableClipping() override;
-
-  void DrawFillRect(const Rect& rect, const Matrix& transform, color_t fillColor) override;
-  void DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) override;
-  void DrawImage(
-      const Texture& texture, const Rect& rect, const Matrix& transform,
-      color_t tintColor) override;
-  void DrawImage(
-      const Texture& texture, const Rect& destRect, const Rect& srcRect,
-      const Matrix& transform, color_t tintColor) override;
-  void DrawImage(
-      const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
-      const Matrix& transform, color_t tintColor) override;
+  bool SetRenderTarget(const Texture& newRenderTarget) noexcept override;
+  void Reset() noexcept override;
+  void Clear(color_t color) noexcept override;
+  void Present() noexcept override;
+  void EnabledClipping(const Rect& rect) noexcept override;
+  void DisableClipping() noexcept override;
 
   Texture CreateTexture(int32_t width, int32_t height, Texture::Type type) override;
 
   void Attach(SDL_Window* window);
   void Detach();
   void Destroy();
+
+  void DrawImage(
+      const RenderTransform& transform,
+      const Point& origin,
+      const Rect& box,
+      const IntRect& src,
+      const Texture& texture,
+      const RenderFilter& filter) noexcept override;
+
+  void DrawImage(
+      const Rect& box,
+      const IntRect& src,
+      const Texture& texture,
+      const RenderFilter& filter) noexcept override;
+
+  void DrawImageCapInsets(
+      const Rect& box,
+      const EdgeRect& capInsets,
+      const Texture& texture,
+      const RenderFilter& filter) noexcept override;
+
+  void FillRect(
+      const Rect& box,
+      const RenderFilter& filter) noexcept override;
+
+  void StrokeRect(
+      const Rect& box,
+      const EdgeRect& edges,
+      const RenderFilter& filter) noexcept override;
 
  private:
   void ResetInternal(const Texture& newRenderTarget);
@@ -53,12 +70,13 @@ class SDLRenderer final : public Renderer {
 
  private:
   SDL_Renderer* renderer{};
+  bool floatMode{false};
   PixelFormat textureFormat{ PixelFormatUnknown };
   color_t drawColor{};
   Texture fillRectTexture{};
   Texture renderTarget{};
-  int32_t width{ 0 };
-  int32_t height{ 0 };
+  int32_t width{0};
+  int32_t height{0};
 };
 
 } // namespace lse

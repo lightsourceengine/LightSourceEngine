@@ -16,8 +16,7 @@ class RootSceneNode final : public SceneNode {
   ~RootSceneNode() override = default;
 
   void OnStylePropertyChanged(StyleProperty property) override;
-  void Paint(RenderingContext2D* context) override {}
-  void Composite(CompositeContext* composite) override;
+  void OnComposite(CompositeContext* composite) override;
   void OnDetach() override {}
 };
 

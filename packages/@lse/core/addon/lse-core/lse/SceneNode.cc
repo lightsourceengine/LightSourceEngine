@@ -30,14 +30,11 @@ using Napi::Value;
 
 namespace lse {
 
-int32_t SceneNode::instanceCount{ 0 };
+int32_t SceneNode::instanceCount{0};
 
-SceneNode::SceneNode(napi_env env, Scene* scene) {
+SceneNode::SceneNode(napi_env env, Scene* scene) : env(env), scene(scene) {
   assert(scene != nullptr);
 
-  this->env = env;
-  this->scene = scene;
-  this->flags.set(FlagLayoutOnly, true);
   this->ygNode = YGNodeNew();
   YGNodeSetContext(this->ygNode, this);
   instanceCount++;
@@ -110,7 +107,6 @@ void SceneNode::AppendChild(SceneNode* node) {
   }
 
   YGNodeInsertChild(this->ygNode, node->ygNode, YGNodeGetChildCount(this->ygNode));
-  this->sortedChildren.clear();
 
   // Add reference for the added child.
   node->Ref();
@@ -146,7 +142,6 @@ void SceneNode::InsertBefore(SceneNode* node, SceneNode* before) {
   }
 
   YGNodeInsertChild(this->ygNode, node->ygNode, beforeIndex);
-  this->sortedChildren.clear();
 
   // Add reference for the added child.
   node->Ref();
@@ -160,7 +155,6 @@ void SceneNode::RemoveChild(SceneNode* node) noexcept {
   }
 
   YGNodeRemoveChild(this->ygNode, node->ygNode);
-  this->sortedChildren.clear();
 
   // Remove reference for the child.
   node->Unref();
@@ -169,10 +163,53 @@ void SceneNode::RemoveChild(SceneNode* node) noexcept {
   this->Unref();
 }
 
+void SceneNode::Paint(CompositeContext* ctx) {
+  auto box{YGNodeGetBox(this->ygNode, 0, 0)};
+
+  if (this->target) {
+    if (this->target.Width() < box.width || this->target.Height() < box.height) {
+      this->target.Destroy();
+    }
+  }
+
+  if (!this->target) {
+    this->target = ctx->renderer->CreateTexture(box.width, box.height, Texture::RenderTarget);
+
+    if (!this->target) {
+      return;
+    }
+  }
+
+  ctx->renderer->SetRenderTarget(this->target);
+
+  this->OnComposite(ctx);
+}
+
+void SceneNode::Composite(CompositeContext* ctx) {
+  if (this->target) {
+    auto box{YGNodeGetBox(this->ygNode)};
+
+    box.width *= ctx->CurrentMatrix().GetScaleX();
+    box.height *= ctx->CurrentMatrix().GetScaleY();
+
+    ctx->renderer->DrawImage(
+        ctx->CurrentRenderTransform(),
+        { 0, 0 },
+        box,
+        { 0, 0, static_cast<int32_t>(box.width), static_cast<int32_t>(box.height)},
+        this->target,
+        {});
+  } else {
+    this->OnComposite(ctx);
+  }
+}
+
 void SceneNode::Destroy() {
   if (this->ygNode == nullptr) {
     return;
   }
+
+  this->OnDestroy();
 
   const auto& children{ YGNodeGetChildren(this->ygNode) };
 
@@ -194,10 +231,8 @@ void SceneNode::Destroy() {
     this->style = nullptr;
   }
 
-  this->scene->Remove(this);
   this->scene = nullptr;
 
-  this->sortedChildren.clear();
   YGNodeFree(this->ygNode);
   this->ygNode = nullptr;
 }
@@ -207,22 +242,20 @@ void SceneNode::OnStylePropertyChanged(StyleProperty property) {
     case StyleProperty::transformOriginX:
     case StyleProperty::transformOriginY:
     case StyleProperty::opacity:
-      this->RequestComposite();
-      break;
     case StyleProperty::transform:
+    case StyleProperty::overflow:
+      // TODO: if in software mode, compute
+      this->MarkCompositeDirty();
+      break;
     case StyleProperty::zIndex:
+      // TODO: addChild(), removeChild()
       if (this->GetParent()) {
-        this->GetParent()->sortedChildren.clear();
+        this->GetParent()->MarkCompositeDirty();
       }
-      this->RequestComposite();
       break;
     default:
       break;
   }
-}
-
-YGSize SceneNode::OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
-  return {};
 }
 
 int32_t SceneNode::GetChildIndex(SceneNode* node) const noexcept {
@@ -238,56 +271,48 @@ int32_t SceneNode::GetChildIndex(SceneNode* node) const noexcept {
   return -1;
 }
 
-void SceneNode::RequestPaint() {
-  this->scene->RequestPaint(this);
+int32_t SceneNode::GetZIndex(SceneNode* node) const noexcept {
+  return node->style && node->style->GetInteger(StyleProperty::zIndex).value_or(0);
 }
 
-void SceneNode::RequestStyleLayout() {
-  this->scene->RequestStyleLayout(this);
-}
+const std::vector<SceneNode*>& SceneNode::GetChildrenOrderedByZIndex(std::vector<SceneNode*>& temp) {
+  SceneNode* node;
+  int32_t lastZ = INT32_MIN;
+  int32_t currentZ;
+  bool outOfOrder{};
 
-void SceneNode::RequestComposite() {
-  this->scene->RequestComposite();
-}
-
-const std::vector<SceneNode*>& SceneNode::SortChildrenByStackingOrder() {
-  const auto compare = [](SceneNode* a, SceneNode* b) {
-    auto aStyle = Style::Or(a->style);
-    auto bStyle = Style::Or(b->style);
-    const auto aHasTransform{ aStyle->Exists(StyleProperty::transform) };
-
-    if (aHasTransform != bStyle->Exists(StyleProperty::transform)) {
-      // nodes with transform always drawn above nodes with no transform
-      //
-      // if a has transform and b has no transform, then a is less than b
-      // if b has transform and a has no transform, then a is less than b
-      return !aHasTransform;
-    }
-
-    // by default, nodes have a z-index of 0
-    return aStyle->GetInteger(StyleProperty::zIndex).value_or(0) <
-        bStyle->GetInteger(StyleProperty::zIndex).value_or(0);
-  };
-
-  if (!this->sortedChildren.empty()) {
-    // already sorted
-    return this->sortedChildren;
-  }
-
-  this->sortedChildren.reserve(YGNodeGetChildCount(this->ygNode));
+  temp.clear();
 
   for (const auto& child : YGNodeGetChildren(this->ygNode)) {
-    this->sortedChildren.push_back(YGNodeGetContextAs<SceneNode>(child));
+    node = YGNodeGetContextAs<SceneNode>(child);
+
+    if (!outOfOrder) {
+      currentZ = this->GetZIndex(node);
+
+      if (currentZ < lastZ) {
+        outOfOrder = true;
+      }
+
+      lastZ = currentZ;
+    }
+
+    temp.push_back(node);
   }
 
-  // use stable_sort to preserve the original order of nodes when z-indexes are the same
-  std::stable_sort(this->sortedChildren.begin(), this->sortedChildren.end(), compare);
+  if (outOfOrder) {
+    std::stable_sort(
+        temp.begin(),
+        temp.end(),
+        [](SceneNode* a, SceneNode* b) {
+          return a->GetZIndex(a) < b->GetZIndex(b);
+        });
+  }
 
-  return this->sortedChildren;
+  return temp;
 }
 
-bool SceneNode::IsLeaf() const noexcept {
-  return this->flags.test(FlagLeaf);
+YGSize SceneNode::OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
+  return { 0.f, 0.f };
 }
 
 bool SceneNode::IsHidden() const noexcept {
@@ -296,6 +321,24 @@ bool SceneNode::IsHidden() const noexcept {
 
 bool SceneNode::IsLayoutOnly() const noexcept {
   return this->flags.test(FlagLayoutOnly);
+}
+
+bool SceneNode::IsComputeStyleDirty() const noexcept {
+  return this->flags.test(FlagComputeStyleDirty);
+}
+
+bool SceneNode::IsCompositeDirty() const noexcept {
+  return this->flags.test(FlagCompositeDirty);
+}
+
+void SceneNode::MarkComputeStyleDirty() noexcept {
+  this->flags.set(FlagComputeStyleDirty);
+  this->scene->MarkComputeStyleDirty();
+}
+
+void SceneNode::MarkCompositeDirty() noexcept {
+  this->flags.set(FlagCompositeDirty);
+  this->scene->MarkCompositeDirty();
 }
 
 bool SceneNode::HasChildren() const noexcept {
@@ -311,22 +354,63 @@ StyleContext* SceneNode::GetStyleContext() const noexcept {
   return this->scene->GetStyleContext();
 }
 
-YGSize SceneNode::YogaMeasureCallback(
-    YGNodeRef nodeRef, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
-  auto sceneNode{ static_cast<SceneNode*>(nodeRef->getContext()) };
+uint32_t SceneNode::GetChildCount() const noexcept {
+  return YGNodeGetChildCount(this->ygNode);
+}
 
-  assert(sceneNode != nullptr);
+SceneNode* SceneNode::GetChildAt(uint32_t index) const noexcept {
+  auto child{YGNodeGetChild(this->ygNode, index)};
 
-  return sceneNode->OnMeasure(width, widthMode, height, heightMode);
+  if (child) {
+    return YGNodeGetContextAs<SceneNode>(child);
+  }
+
+  return {};
 }
 
 void SceneNode::YogaNodeLayoutEvent(
     const YGNode& node, facebook::yoga::Event::Type event, const facebook::yoga::Event::Data& data) {
   assert(event == Event::NodeLayout);
-  assert(node.getContext() != nullptr);
 
   if (node.getHasNewLayout()) {
-    static_cast<lse::SceneNode*>(node.getContext())->OnBoundingBoxChanged();
+    assert(node.getContext() != nullptr);
+    YGNodeGetContextAs<SceneNode>(&node)->OnFlexBoxLayoutChanged();
+  }
+}
+
+YGSize SceneNode::YogaMeasureCallback(
+    YGNodeRef nodeRef, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
+  assert(nodeRef->getContext() != nullptr);
+  return YGNodeGetContextAs<SceneNode>(nodeRef)->OnMeasure(width, widthMode, height, heightMode);
+}
+
+Rect SceneNode::GetBackgroundClipBox(StyleBackgroundClip value) const noexcept {
+  switch (value) {
+    case StyleBackgroundClipBorderBox:
+      return YGNodeGetBox(this->ygNode, 0, 0);
+    case StyleBackgroundClipPaddingBox:
+      return YGNodeGetBorderBox(this->ygNode);
+    case StyleBackgroundClipContentBox:
+      return YGNodeGetPaddingBox(this->ygNode);
+  }
+
+  return {};
+}
+
+void SceneNode::DrawBackground(CompositeContext* ctx, StyleBackgroundClip backgroundClip) const noexcept {
+  if (this->style && !this->style->IsEmpty(StyleProperty::backgroundColor)) {
+    ctx->renderer->FillRect(
+        GetBackgroundClipBox(backgroundClip),
+        RenderFilter::OfTint(*this->style->GetColor(StyleProperty::backgroundColor)));
+  }
+}
+
+void SceneNode::DrawBorder(CompositeContext* ctx) const noexcept {
+  if (this->style && !this->style->IsEmpty(StyleProperty::borderColor)) {
+    ctx->renderer->StrokeRect(
+        YGNodeGetBox(this->ygNode),
+        YGNodeGetBorderEdges(this->ygNode),
+        RenderFilter::OfTint(*this->style->GetColor(StyleProperty::borderColor)));
   }
 }
 

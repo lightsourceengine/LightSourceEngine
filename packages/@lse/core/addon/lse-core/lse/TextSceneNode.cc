@@ -17,7 +17,6 @@
 namespace lse {
 
 TextSceneNode::TextSceneNode(napi_env env, Scene* scene) : SceneNode(env, scene) {
-  this->SetFlag(FlagLeaf, true);
   YGNodeSetMeasureFunc(this->ygNode, SceneNode::YogaMeasureCallback);
   YGNodeSetNodeType(this->ygNode, YGNodeTypeText);
 }
@@ -33,11 +32,11 @@ void TextSceneNode::OnStylePropertyChanged(StyleProperty property) {
     case StyleProperty::textOverflow:
     case StyleProperty::textTransform:
     case StyleProperty::textAlign:
-      this->RequestStyleLayout();
+      this->MarkComputeStyleDirty();
       break;
     case StyleProperty::borderColor: // TODO: borderColor?
     case StyleProperty::color:
-      this->RequestComposite();
+      this->MarkCompositeDirty();
       break;
     default:
       SceneNode::OnStylePropertyChanged(property);
@@ -45,19 +44,17 @@ void TextSceneNode::OnStylePropertyChanged(StyleProperty property) {
   }
 }
 
-void TextSceneNode::OnBoundingBoxChanged() {
-  this->RequestStyleLayout();
+void TextSceneNode::OnFlexBoxLayoutChanged() {
+  this->MarkCompositeDirty();
 }
 
-void TextSceneNode::OnStyleLayout() {
+void TextSceneNode::OnComputeStyle() {
   // TODO: review logic..
   if (!this->SetFont(this->style)) {
-//        this->block.Invalidate();
+    // this->block.Invalidate();
     // YGNodeMarkDirty(this->ygNode);
     // TODO: shape?
   }
-
-  this->RequestPaint();
 }
 
 YGSize TextSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
@@ -74,59 +71,59 @@ YGSize TextSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float heig
   return { this->block.WidthF(), this->block.HeightF() };
 }
 
-void TextSceneNode::Paint(RenderingContext2D* context) {
-  this->block.Paint(context);
-  this->RequestComposite();
-}
-
-void TextSceneNode::Composite(CompositeContext* composite) {
-  const auto boxStyle{ Style::Or(this->style) };
-
-//    if (boxStyle == nullptr || boxStyle->IsLayoutOnly()) {
-//        return;
+//void TextSceneNode::Paint(RenderingContext2D* context) {
+//  this->block.Paint(context);
+//  this->RequestComposite();
+//}
+//
+//void TextSceneNode::Composite(CompositeContext* composite) {
+//  const auto boxStyle{ Style::Or(this->style) };
+//
+////    if (boxStyle == nullptr || boxStyle->IsLayoutOnly()) {
+////        return;
+////    }
+//
+//  const auto box{ YGNodeGetPaddingBox(this->ygNode) };
+//
+//  if (IsEmpty(box)) {
+//    return;
+//  }
+//
+//  const auto& transform{ composite->CurrentMatrix() };
+//
+//  if (!this->block.IsEmpty()) { // TODO: has texture?
+//    Rect pos{ box.x, box.y, this->block.WidthF(), this->block.HeightF() };
+//
+//    switch (boxStyle->GetEnum(StyleProperty::textAlign)) {
+//      case StyleTextAlignCenter:
+//        pos.x += ((box.width - pos.width) / 2.f);
+//        break;
+//      case StyleTextAlignRight:
+//        pos.x += (box.width - pos.width);
+//        break;
+//      case StyleTextAlignLeft:
+//      default:
+//        break;
 //    }
-
-  const auto box{ YGNodeGetPaddingBox(this->ygNode) };
-
-  if (IsEmpty(box)) {
-    return;
-  }
-
-  const auto& transform{ composite->CurrentMatrix() };
-
-  if (!this->block.IsEmpty()) { // TODO: has texture?
-    Rect pos{ box.x, box.y, this->block.WidthF(), this->block.HeightF() };
-
-    switch (boxStyle->GetEnum(StyleProperty::textAlign)) {
-      case StyleTextAlignCenter:
-        pos.x += ((box.width - pos.width) / 2.f);
-        break;
-      case StyleTextAlignRight:
-        pos.x += (box.width - pos.width);
-        break;
-      case StyleTextAlignLeft:
-      default:
-        break;
-    }
-
-    // TODO: clip
-
-    auto textColor{ boxStyle->GetColor(StyleProperty::color).value_or(ColorBlack) };
-
-    composite->renderer->DrawImage(this->block.GetTexture(), pos, transform,
-                                   textColor.MixAlpha(composite->CurrentOpacity()));
-  }
-
-  auto styleColor{ boxStyle->GetColor(StyleProperty::borderColor) };
-
-  if (styleColor.has_value()) {
-    composite->renderer->DrawBorder(
-        YGNodeGetBox(this->ygNode, 0, 0),
-        YGNodeGetBorderEdges(this->ygNode),
-        transform,
-        styleColor->MixAlpha(composite->CurrentOpacity()));
-  }
-}
+//
+//    // TODO: clip
+//
+//    auto textColor{ boxStyle->GetColor(StyleProperty::color).value_or(ColorBlack) };
+//
+//    composite->renderer->DrawImage(this->block.GetTexture(), pos, transform,
+//                                   textColor.MixAlpha(composite->CurrentOpacity()));
+//  }
+//
+//  auto styleColor{ boxStyle->GetColor(StyleProperty::borderColor) };
+//
+//  if (styleColor.has_value()) {
+//    composite->renderer->DrawBorder(
+//        YGNodeGetBox(this->ygNode, 0, 0),
+//        YGNodeGetBorderEdges(this->ygNode),
+//        transform,
+//        styleColor->MixAlpha(composite->CurrentOpacity()));
+//  }
+//}
 
 const std::string& TextSceneNode::GetText() const {
   return this->text;
@@ -203,11 +200,9 @@ void TextSceneNode::ClearFontFaceResource() {
   }
 }
 
-void TextSceneNode::Destroy() {
+void TextSceneNode::OnDestroy() {
   this->ClearFontFaceResource();
   this->block.Destroy();
-
-  SceneNode::Destroy();
 }
 
 // TODO: temporary hack due to scene and renderer shutdown conflicts

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <lse/Rect.h>
+#include <lse/Point.h>
 #include <lse/Texture.h>
 #include <lse/Matrix.h>
 #include <lse/Color.h>
@@ -14,6 +15,36 @@
 #include <cstdint>
 
 namespace lse {
+
+struct RenderTransform {
+  float tx{};
+  float ty{};
+  float sx{1};
+  float sy{1};
+  float rotate{};
+
+  bool HasRotate() const noexcept {
+    return this->rotate < -0.99f || this->rotate > 0.99f;
+  }
+};
+
+struct RenderFilter {
+  color_t tint{ColorWhite};
+  bool flipH{false};
+  bool flipV{false};
+
+  bool HasFlip() const noexcept {
+    return this->flipH || this->flipV;
+  }
+
+  static RenderFilter OfTint(color_t tint, float opacity = 1.f) noexcept {
+    return { tint.MixAlpha(opacity), {}, {} };
+  }
+
+  static RenderFilter OfFlip(bool flipH, bool flipV) noexcept {
+    return { {}, flipH, flipV };
+  }
+};
 
 /**
  * Interface for rendering to the screen and creating textures (images).
@@ -27,24 +58,24 @@ class Renderer {
    *
    * If vsync is enabled, this method will block waiting for the next vertical blank.
    */
-  virtual void Present() = 0;
+  virtual void Present() noexcept {};
 
   /**
    * Resets the state of the renderer.
    *
    * Clipping is disabled. The render target is reset to the screen.
    */
-  virtual void Reset() = 0;
+  virtual void Reset() noexcept = 0;
 
   /**
    * @return The width of the renderable area in pixels.
    */
-  virtual int32_t GetWidth() const = 0;
+  virtual int32_t GetWidth() const noexcept = 0;
 
   /**
    * @return The height of renderable area in pixels.
    */
-  virtual int32_t GetHeight() const = 0;
+  virtual int32_t GetHeight() const noexcept = 0;
 
   /**
    * Sets the target texture of the renderer.
@@ -54,54 +85,17 @@ class Renderer {
    * @param renderTarget A texture of Type::RenderTarget.
    * @return true if the render target was successfully set, false if renderTarget is incompatible as a render target
    */
-  virtual bool SetRenderTarget(const Texture& renderTarget) = 0;
+  virtual bool SetRenderTarget(const Texture& renderTarget) noexcept = 0;
 
   /**
    * Clip draw calls by a rectangular region.
    */
-  virtual void EnabledClipping(const Rect& rect) = 0;
+  virtual void EnabledClipping(const Rect& rect) noexcept = 0;
 
   /**
    * Turn off clipping.
    */
-  virtual void DisableClipping() = 0;
-
-  /**
-   * Draw a solid rectangle.
-   */
-  virtual void DrawFillRect(const Rect& rect, const Matrix& transform, color_t fillColor) = 0;
-
-  /**
-   * Draw a hollow rectangle.
-   */
-  virtual void DrawBorder(const Rect& rect, const EdgeRect& border, const Matrix& transform, color_t fillColor) = 0;
-
-  /**
-   * Draw a textured rectangle.
-   */
-  virtual void DrawImage(const Texture& texture, const Rect& rect, const Matrix& transform, color_t tintColor) = 0;
-
-  /**
-   * Draw a textured rectangle and specify texture coordinates.
-   */
-  virtual void DrawImage(
-      const Texture& texture, const Rect& srcRect, const Rect& destRect,
-      const Matrix& transform, color_t tintColor) = 0;
-
-  /**
-   * Draw a textured rectangle stretched with end cap insets.
-   *
-   * If the image is sliced into 9 equal parts, the four corners, or end caps, are drawn at a fixed size according
-   * to the capInsets arg. The remaining parts are rendered stretched to fill the remaining space. This is typically
-   * used for UI buttons or message box backgrounds.
-   */
-  virtual void DrawImage(
-      const Texture& texture, const EdgeRect& capInsets, const Rect& rect,
-      const Matrix& transform, color_t tintColor) = 0;
-  /**
-   * Clear the entire renderable area with the specified color.
-   */
-  virtual void FillRenderTarget(color_t color) = 0;
+  virtual void DisableClipping() noexcept = 0;
 
   /**
    * Create a new texture.
@@ -116,7 +110,41 @@ class Renderer {
   /**
    * Get the pixel format for all new textures.
    */
-  virtual PixelFormat GetTextureFormat() const = 0;
+  virtual PixelFormat GetTextureFormat() const noexcept = 0;
+
+  /**
+   * Fill the render target with the specified color.
+   */
+  virtual void Clear(color_t color) noexcept {};
+
+  virtual void DrawImage(
+      const RenderTransform& transform,
+      const Point& origin,
+      const Rect& box,
+      const IntRect& src,
+      const Texture& texture,
+      const RenderFilter& filter) noexcept {};
+
+  virtual void DrawImage(
+      const Rect& box,
+      const IntRect& src,
+      const Texture& texture,
+      const RenderFilter& filter) noexcept {};
+
+  virtual void DrawImageCapInsets(
+      const Rect& box,
+      const EdgeRect& capInsets,
+      const Texture& texture,
+      const RenderFilter& filter) noexcept {};
+
+  virtual void FillRect(
+      const Rect& box,
+      const RenderFilter& filter) noexcept {};
+
+  virtual void StrokeRect(
+      const Rect& box,
+      const EdgeRect& edges,
+      const RenderFilter& filter) noexcept {};
 };
 
 } // namespace lse

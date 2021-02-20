@@ -38,28 +38,29 @@ class Scene : public Reference {
   void Destroy() noexcept;
 
   void Frame();
-
   void SetRoot(RootSceneNode* root);
+
   Stage* GetStage() const noexcept { return this->stage.Get(); }
-  int32_t GetWidth() const noexcept { return this->width; }
-  int32_t GetHeight() const noexcept { return this->height; }
   StyleContext* GetStyleContext() const noexcept { return &this->styleContext; }
   Renderer* GetRenderer() const noexcept;
   FontManager* GetFontManager() const noexcept;
+  int32_t GetWidth() const noexcept { return this->width; }
+  int32_t GetHeight() const noexcept { return this->height; }
 
   void OnRootFontSizeChange() noexcept;
-  void RequestPaint(SceneNode* node);
-  void RequestStyleLayout(SceneNode* node);
   void RequestComposite();
-  void Remove(SceneNode* node);
+
+  void MarkComputeStyleDirty() noexcept { this->isComputeStyleDirty = true; }
+  void MarkCompositeDirty() noexcept { this->isCompositeDirty = true; }
 
  private:
-  void PropagateViewportAndRootFontSizeChanges();
-  void ComputeBoundingBoxLayout();
-  void ExecuteStyleLayoutRequests();
-  void ExecutePaintRequests();
+  void DispatchMediaChange();
+  void ComputeStyle();
+  void ComputeFlexBoxLayout();
+  void Paint();
   void Composite();
-  void CompositePreorder(SceneNode* node, CompositeContext* context);
+  void ComputeStylePostOrder(SceneNode* node);
+  void CompositePreOrder(SceneNode* node, CompositeContext* context);
   bool SyncStyleContext();
 
  private:
@@ -73,12 +74,13 @@ class Scene : public Reference {
   float lastRootFontSize{ DEFAULT_REM_FONT_SIZE };
   bool isViewportSizeDirty{ true };
   bool isRootFontSizeDirty{ false };
+  bool isComputeStyleDirty{ false };
+  bool isCompositeDirty{ false };
   bool isAttached{ false };
-  bool hasCompositeRequest{ false };
-  phmap::flat_hash_set<SceneNode*> paintRequests;
-  phmap::flat_hash_set<SceneNode*> styleLayoutRequests;
+  std::vector<SceneNode*> paintRequests;
   CompositeContext compositeContext;
   RenderingContext2D renderingContext2D{};
+  std::vector<SceneNode*> children;
 };
 
 } // namespace lse

@@ -6,6 +6,8 @@
  */
 
 #include <lse/SDLUtil.h>
+#include <lse/Renderer.h>
+#include <lse/Math.h>
 
 namespace lse {
 
@@ -56,213 +58,6 @@ SDL_Renderer* DestroyRenderer(SDL_Renderer* renderer) noexcept {
   }
 
   return nullptr;
-}
-
-void SetTextureTintColor(SDL_Texture* texture, color_t color) noexcept {
-  SDL2::SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
-  SDL2::SDL_SetTextureAlphaMod(texture, color.a);
-}
-
-void DrawImage(
-    SDL_Renderer* renderer, SDL_Texture* texture, const Rect& rect, const Matrix& transform,
-    color_t tintColor) noexcept {
-  if (!texture) {
-    return;
-  }
-
-  // TODO: snap to pixel grid?
-  const SDL_Rect destRect{
-      static_cast<int32_t>(rect.x + transform.GetTranslateX()),
-      static_cast<int32_t>(rect.y + transform.GetTranslateY()),
-      static_cast<int32_t>(rect.width * transform.GetScaleX()),
-      static_cast<int32_t>(rect.height * transform.GetScaleY())
-  };
-
-  SetTextureTintColor(texture, tintColor);
-
-  SDL2::SDL_RenderCopyEx(
-      renderer, texture, nullptr, &destRect, transform.GetAxisAngleDeg(), &kCenterPoint, SDL_FLIP_NONE);
-}
-
-void DrawImage(
-    SDL_Renderer* renderer, SDL_Texture* texture, const Rect& srcRect, const Rect& destRect,
-    const Matrix& transform, color_t tintColor) noexcept {
-  if (!texture) {
-    return;
-  }
-
-  // TODO: snap to pixel grid?
-  const SDL_Rect sdlDestRect{
-      static_cast<int32_t>(destRect.x + transform.GetTranslateX()),
-      static_cast<int32_t>(destRect.y + transform.GetTranslateY()),
-      static_cast<int32_t>(destRect.width * transform.GetScaleX()),
-      static_cast<int32_t>(destRect.height * transform.GetScaleY())
-  };
-
-  // TODO: snap to pixel grid?
-  const SDL_Rect sdlSrcRect{
-      static_cast<int32_t>(srcRect.x),
-      static_cast<int32_t>(srcRect.y),
-      static_cast<int32_t>(srcRect.width),
-      static_cast<int32_t>(srcRect.height)
-  };
-
-  SetTextureTintColor(texture, tintColor);
-
-  SDL2::SDL_RenderCopyEx(
-      renderer, texture, &sdlSrcRect, &sdlDestRect, transform.GetAxisAngleDeg(), &kCenterPoint, SDL_FLIP_NONE);
-}
-
-void DrawImage(
-    SDL_Renderer* renderer, SDL_Texture* texture, const EdgeRect& capInsets, const Rect& rect,
-    const Matrix& transform, color_t tintColor) noexcept {
-  if (!texture) {
-    return;
-  }
-
-  const auto x{ static_cast<int32_t>(rect.x) };
-  const auto y{ static_cast<int32_t>(rect.y) };
-  const auto w{ static_cast<int32_t>(rect.width) };
-  const auto h{ static_cast<int32_t>(rect.height) };
-
-  int32_t textureWidth;
-  int32_t textureHeight;
-  SDL_Rect srcRect;
-  SDL_Rect destRect;
-
-  SetTextureTintColor(texture, tintColor);
-  SDL2::SDL_QueryTexture(texture, nullptr, nullptr, &textureWidth, &textureHeight);
-
-  // Top row
-
-  srcRect = { 0, 0, capInsets.left, capInsets.top };
-  destRect = { x, y, capInsets.left, capInsets.top };
-
-  SDL2::SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
-
-  srcRect = { capInsets.left, 0, textureWidth - capInsets.left - capInsets.right, capInsets.top };
-  destRect = { x + capInsets.left, y, w - capInsets.left - capInsets.right, capInsets.top };
-
-  SDL2::SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
-
-  srcRect = { textureWidth - capInsets.right, 0, capInsets.right, capInsets.top };
-  destRect = { x + w - capInsets.right, y, capInsets.right, capInsets.top };
-
-  SDL2::SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
-
-  // Middle row
-
-  srcRect = { 0, capInsets.top, capInsets.left, textureHeight - capInsets.top - capInsets.bottom };
-  destRect = { x, y + capInsets.top, capInsets.left, h - capInsets.top - capInsets.bottom };
-
-  SDL2::SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
-
-  srcRect = {
-      capInsets.left,
-      capInsets.top,
-      textureWidth - capInsets.left - capInsets.right,
-      textureHeight - capInsets.top - capInsets.bottom
-  };
-  destRect = {
-      x + capInsets.left,
-      y + capInsets.top,
-      w - capInsets.left - capInsets.right,
-      h - capInsets.top - capInsets.bottom
-  };
-
-  SDL2::SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
-
-  srcRect = {
-      textureWidth - capInsets.right,
-      capInsets.top,
-      capInsets.right,
-      textureHeight - capInsets.top - capInsets.bottom
-  };
-  destRect = {
-      x + w - capInsets.right,
-      y + capInsets.top,
-      capInsets.right,
-      h - capInsets.top - capInsets.bottom
-  };
-
-  SDL2::SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
-
-  // Bottom row
-
-  srcRect = { 0, textureHeight - capInsets.bottom, capInsets.left, capInsets.bottom };
-  destRect = { x, y + h - capInsets.bottom, capInsets.left, capInsets.bottom };
-
-  SDL2::SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
-
-  srcRect = {
-      capInsets.left,
-      textureHeight - capInsets.bottom,
-      textureWidth - capInsets.left - capInsets.right,
-      capInsets.bottom
-  };
-  destRect = {
-      x + capInsets.left,
-      y + h - capInsets.bottom,
-      w - capInsets.left - capInsets.right,
-      capInsets.bottom
-  };
-
-  SDL2::SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
-
-  srcRect = { textureWidth - capInsets.right, textureHeight - capInsets.bottom, capInsets.right, capInsets.bottom };
-  destRect = { x + w - capInsets.right, y + h - capInsets.bottom, capInsets.right, capInsets.bottom };
-
-  SDL2::SDL_RenderCopy(renderer, texture, &srcRect, &destRect);
-}
-
-void DrawBorder(
-    SDL_Renderer* renderer, SDL_Texture* fillRectTexture, const Rect& rect, const EdgeRect& border,
-    const Matrix& transform, color_t fillColor) noexcept {
-  // TODO: snap to pixel grid
-  const auto x{ static_cast<int32_t>(rect.x + transform.GetTranslateX()) };
-  const auto y{ static_cast<int32_t>(rect.y + transform.GetTranslateY()) };
-  const auto w{ static_cast<int32_t>(rect.width * transform.GetScaleX()) };
-  const auto h{ static_cast<int32_t>(rect.height * transform.GetScaleY()) };
-
-  const double rotate{ transform.GetAxisAngleDeg() };
-
-  SetTextureTintColor(fillRectTexture, fillColor);
-
-  // Top edge
-  if (border.top > 0) {
-    SDL_Rect edge{ x, y, w, border.top };
-    SDL_Point center{ 0, 0 };
-
-    SDL2::SDL_RenderCopyEx(renderer, fillRectTexture, nullptr, &edge, rotate, &center, SDL_FLIP_NONE);
-  }
-
-  // Bottom edge
-  if (border.bottom > 0) {
-    int32_t yShift{ h - border.bottom };
-    SDL_Rect edge{ x, y + yShift, w, border.bottom };
-    SDL_Point center{ 0, -yShift };
-
-    SDL2::SDL_RenderCopyEx(renderer, fillRectTexture, nullptr, &edge, rotate, &center, SDL_FLIP_NONE);
-  }
-
-  // Left edge
-  if (border.left > 0) {
-    int32_t yShift{ border.top };
-    SDL_Rect edge{ x, y + yShift, border.left, h - border.top - border.bottom };
-    SDL_Point center{ 0, -yShift };
-
-    SDL2::SDL_RenderCopyEx(renderer, fillRectTexture, nullptr, &edge, rotate, &center, SDL_FLIP_NONE);
-  }
-
-  // Right edge
-  if (border.right > 0) {
-    int32_t xShift{ w - border.right };
-    int32_t yShift{ border.top };
-    SDL_Rect edge{ x + xShift, y + yShift, border.right, h - border.top - border.bottom };
-    SDL_Point center{ -xShift, -yShift };
-
-    SDL2::SDL_RenderCopyEx(renderer, fillRectTexture, nullptr, &edge, rotate, &center, SDL_FLIP_NONE);
-  }
 }
 
 int32_t SDLTextureBridge::GetWidth(void* platformTextureRef) const noexcept {
@@ -325,6 +120,29 @@ Texture::Type SDLTextureBridge::GetType(void* platformTextureRef) const noexcept
 
 void SDLTextureBridge::Destroy(void* platformTextureRef) noexcept {
   DestroyTexture(static_cast<SDL_Texture*>(platformTextureRef));
+}
+
+void SDLSetDrawColor(SDL_Renderer* renderer, const RenderFilter& filter) noexcept {
+  SDL2::SDL_SetRenderDrawColor(renderer, filter.tint.r, filter.tint.g, filter.tint.b, filter.tint.a);
+}
+
+void SDLSetTextureTint(SDL_Texture* texture, const RenderFilter& filter) noexcept {
+  SDL2::SDL_SetTextureColorMod(texture, filter.tint.r, filter.tint.g, filter.tint.b);
+  SDL2::SDL_SetTextureAlphaMod(texture, filter.tint.a);
+}
+
+SDL_RendererFlip SDLGetRenderFlip(const RenderFilter& filter) noexcept {
+  int32_t flip{SDL_FLIP_NONE};
+
+  if (filter.flipH) {
+    flip |= SDL_FLIP_HORIZONTAL;
+  }
+
+  if (filter.flipV) {
+    flip |= SDL_FLIP_VERTICAL;
+  }
+
+  return static_cast<SDL_RendererFlip>(flip);
 }
 
 } // namespace lse

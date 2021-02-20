@@ -8,6 +8,14 @@
 
 namespace lse {
 
+bool YGNodeHasDimensions(YGNodeConstRef node) noexcept {
+  assert(node != nullptr);
+  const auto& layout{ node->getLayout() };
+
+  return static_cast<int32_t>(layout.dimensions[YGDimensionWidth]) > 0
+    && static_cast<int32_t>(layout.dimensions[YGDimensionHeight]) > 0;
+}
+
 Rect YGNodeGetBox(YGNodeConstRef node) noexcept {
   assert(node != nullptr);
   const auto& layout{ node->getLayout() };

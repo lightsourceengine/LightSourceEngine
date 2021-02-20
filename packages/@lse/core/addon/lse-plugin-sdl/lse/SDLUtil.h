@@ -13,8 +13,15 @@
 #include <lse/Color.h>
 #include <lse/Texture.h>
 #include <lse/SDL2.h>
+#include <lse/Math.h>
 
 namespace lse {
+
+static_assert(sizeof(SDL_Rect) == sizeof(IntRect) && sizeof(SDL_Rect::x) == sizeof(IntRect::x),
+    "SDL_Rect/IntRect mismatch");
+
+struct RenderTransform;
+struct RenderFilter;
 
 // Texture operations
 
@@ -23,23 +30,6 @@ Texture CreateTexture(
     PixelFormat format) noexcept;
 SDL_Texture* DestroyTexture(SDL_Texture* texture) noexcept;
 SDL_Renderer* DestroyRenderer(SDL_Renderer* renderer) noexcept;
-/** Set the color mod and alpha mod of the texture used for render copy operations.  */
-void SetTextureTintColor(SDL_Texture* texture, color_t color) noexcept;
-
-// Render operations
-
-void DrawImage(
-    SDL_Renderer* renderer, SDL_Texture* texture, const Rect& rect, const Matrix& transform,
-    color_t tintColor) noexcept;
-void DrawImage(
-    SDL_Renderer* renderer, SDL_Texture* texture, const Rect& srcRect, const Rect& destRect,
-    const Matrix& transform, color_t tintColor) noexcept;
-void DrawImage(
-    SDL_Renderer* renderer, SDL_Texture* texture, const EdgeRect& capInsets, const Rect& rect,
-    const Matrix& transform, color_t tintColor) noexcept;
-void DrawBorder(
-    SDL_Renderer* renderer, SDL_Texture* fillRectTexture, const Rect& rect, const EdgeRect& border,
-    const Matrix& transform, color_t color) noexcept;
 
 // Type conversions
 
@@ -48,7 +38,11 @@ void DrawBorder(
  *
  * The lse::Rect is hard snapped to the pixel grid using floor().
  */
-constexpr SDL_Rect ToSDLRect(const Rect& rect) noexcept {
+template<typename T>
+T ToSDLRect(const Rect& rect) noexcept;
+
+template<>
+inline SDL_Rect ToSDLRect(const Rect& rect) noexcept {
   return {
       static_cast<int32_t>(rect.x),
       static_cast<int32_t>(rect.y),
@@ -56,6 +50,28 @@ constexpr SDL_Rect ToSDLRect(const Rect& rect) noexcept {
       static_cast<int32_t>(rect.height),
   };
 }
+
+template<>
+inline SDL_FRect ToSDLRect(const Rect& rect) noexcept {
+  return reinterpret_cast<const SDL_FRect&>(rect);
+}
+
+template<typename T>
+T ToSDLPoint(float x, float y) noexcept;
+
+template<>
+inline SDL_Point ToSDLPoint(float x, float y) noexcept {
+  return { static_cast<int32_t>(x), static_cast<int32_t>(y) };
+}
+
+template<>
+inline SDL_FPoint ToSDLPoint(float x, float y) noexcept {
+  return { x, y };
+}
+
+void SDLSetDrawColor(SDL_Renderer* renderer, const RenderFilter& filter) noexcept;
+void SDLSetTextureTint(SDL_Texture* texture, const RenderFilter& filter) noexcept;
+SDL_RendererFlip SDLGetRenderFlip(const RenderFilter& filter) noexcept;
 
 /** @return PixelFormat representation or PixelFormatUnknown if a PixelFormat cannot be found. */
 constexpr PixelFormat ToPixelFormat(uint32_t pixelFormat) noexcept {
@@ -143,6 +159,29 @@ constexpr Texture::Type ToTextureType(int32_t textureAccess) noexcept {
     default:
       return Texture::Type::Updatable;
   }
+}
+
+template<typename T>
+T SDLSnapToPixelGrid(const Rect& box) noexcept;
+
+template<>
+inline SDL_Rect SDLSnapToPixelGrid(const Rect& box) noexcept {
+  return {
+    SnapToPixelGrid<int32_t>(box.x),
+    SnapToPixelGrid<int32_t>(box.y),
+    SnapToPixelGrid<int32_t>(box.width),
+    SnapToPixelGrid<int32_t>(box.height)
+  };
+}
+
+template<>
+inline SDL_FRect SDLSnapToPixelGrid(const Rect& box) noexcept {
+  return {
+    SnapToPixelGrid<float>(box.x),
+    SnapToPixelGrid<float>(box.y),
+    SnapToPixelGrid<float>(box.width),
+    SnapToPixelGrid<float>(box.height)
+  };
 }
 
 } // namespace lse

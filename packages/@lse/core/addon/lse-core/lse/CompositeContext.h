@@ -9,16 +9,15 @@
 #include <vector>
 #include <lse/Matrix.h>
 #include <lse/Rect.h>
+#include <lse/Renderer.h>
 
 namespace lse {
-
-class Renderer;
 
 class CompositeContext {
  public:
   CompositeContext();
 
-  void Reset();
+  void Reset(Renderer* renderer);
 
   void PushMatrix(const Matrix& m);
   void PopMatrix();
@@ -32,6 +31,8 @@ class CompositeContext {
   void PopOpacity();
   float CurrentOpacity() const noexcept;
   uint8_t CurrentOpacityAlpha() const noexcept;
+
+  RenderTransform CurrentRenderTransform() const noexcept;
 
  public:
   Renderer* renderer{};

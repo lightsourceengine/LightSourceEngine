@@ -16,14 +16,18 @@ CompositeContext::CompositeContext() {
   this->clipRect.reserve(16);
   this->opacity.reserve(16);
 
-  this->matrix.emplace_back(Matrix::Identity());
-  this->opacity.push_back(1.0f);
+  this->Reset(nullptr);
 }
 
-void CompositeContext::Reset() {
-  this->matrix.resize(1);
-  this->opacity.resize(1);
+void CompositeContext::Reset(Renderer* renderer) {
+  this->renderer = renderer;
+
+  this->matrix.clear();
+  this->opacity.clear();
   this->clipRect.clear();
+
+  this->matrix.emplace_back(Matrix::Identity());
+  this->opacity.push_back(1.0f);
 }
 
 void CompositeContext::PushMatrix(const Matrix& m) {
@@ -78,6 +82,12 @@ uint8_t CompositeContext::CurrentOpacityAlpha() const noexcept {
 
 float CompositeContext::CurrentOpacity() const noexcept {
   return this->opacity.back();
+}
+
+RenderTransform CompositeContext::CurrentRenderTransform() const noexcept {
+  const auto& m{this->matrix.back()};
+
+  return { m.x, m.y, m.GetScaleX(), m.GetScaleY(), m.GetAxisAngleDeg() };
 }
 
 } // namespace lse

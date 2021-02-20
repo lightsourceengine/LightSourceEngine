@@ -15,20 +15,25 @@
 #include <lse/RootSceneNode.h>
 #include <lse/yoga-ext.h>
 #include <lse/StyleContext.h>
+#include <lse/Timer.h>
 
 namespace lse {
 
 Scene::Scene(Stage* stage, FontManager* fontManager, GraphicsContext* context)
 : stage(stage), fontManager(fontManager), graphicsContext(context) {
+  this->children.reserve(32);
+  this->paintRequests.reserve(32);
 }
 
 Scene::~Scene() {
-  if (isAttached) {
+  if (this->isAttached) {
     LOG_WARN("scene is still attached");
   }
 }
 
 void Scene::SetRoot(RootSceneNode* root) {
+  assert(this->root == nullptr);
+
   root->Ref();
   this->root = root;
 }
@@ -68,10 +73,19 @@ void Scene::Frame() {
     return;
   }
 
-  this->PropagateViewportAndRootFontSizeChanges();
-  this->ExecuteStyleLayoutRequests();
-  this->ComputeBoundingBoxLayout();
-  this->ExecutePaintRequests();
+  // media changes, root font size and/or viewport change
+  // DispatchMediaChangeEvent
+  this->DispatchMediaChange();
+
+  // flex box
+  this->ComputeFlexBoxLayout();
+
+  // compute
+  this->ComputeStyle();
+
+  this->Paint();
+
+  // composite
   this->Composite();
 }
 
@@ -95,14 +109,6 @@ void Scene::OnRootFontSizeChange() noexcept {
   }
 }
 
-void Scene::RequestPaint(SceneNode* node) {
-  this->paintRequests.insert(node);
-}
-
-void Scene::RequestStyleLayout(SceneNode* node) {
-  this->styleLayoutRequests.insert(node);
-}
-
 Renderer* Scene::GetRenderer() const noexcept {
   return this->graphicsContext->GetRenderer();
 }
@@ -112,15 +118,10 @@ FontManager* Scene::GetFontManager() const noexcept {
 }
 
 void Scene::RequestComposite() {
-  this->hasCompositeRequest = true;
+  this->isCompositeDirty = true;
 }
 
-void Scene::Remove(SceneNode* node) {
-  this->paintRequests.erase(node);
-  this->styleLayoutRequests.erase(node);
-}
-
-void Scene::PropagateViewportAndRootFontSizeChanges() {
+void Scene::DispatchMediaChange() {
   if (!this->isViewportSizeDirty && !this->isRootFontSizeDirty) {
     return;
   }
@@ -136,54 +137,57 @@ void Scene::PropagateViewportAndRootFontSizeChanges() {
   this->isViewportSizeDirty = this->isRootFontSizeDirty = false;
 }
 
-void Scene::ComputeBoundingBoxLayout() {
+void Scene::ComputeStyle() {
+  if (this->isComputeStyleDirty) {
+    ComputeStylePostOrder(this->root);
+  }
+}
+
+void Scene::ComputeStylePostOrder(SceneNode* node) {
+  if (!node->IsLeaf()) {
+    auto count{ node->GetChildCount() };
+
+    for (uint32_t i = 0; i < count; i++) {
+      ComputeStylePostOrder(node->GetChildAt(i));
+    }
+  }
+
+  if (node->IsComputeStyleDirty()) {
+    node->OnComputeStyle();
+    node->flags.set(SceneNode::FlagComputeStyleDirty, false);
+  }
+}
+
+void Scene::ComputeFlexBoxLayout() {
   if (YGNodeIsDirty(this->root->ygNode)) {
     YGNodeCalculateLayout(this->root->ygNode, this->width, this->height, YGDirectionLTR);
     YGTraversePreOrder(this->root->ygNode, [](YGNodeRef node) { node->setHasNewLayout(false); });
   }
 }
 
-void Scene::ExecuteStyleLayoutRequests() {
-  if (this->styleLayoutRequests.empty()) {
-    return;
+void Scene::Paint() {
+  for (auto node : this->paintRequests) {
+    this->compositeContext.Reset(this->GetRenderer());
+    node->Paint(&this->compositeContext);
   }
-
-  for (auto& node : this->styleLayoutRequests) {
-    node->OnStyleLayout();
-  }
-
-  this->styleLayoutRequests.clear();
-}
-
-void Scene::ExecutePaintRequests() {
-  if (this->paintRequests.empty()) {
-    return;
-  }
-
-  for (auto& node : this->paintRequests) {
-    node->Paint(&this->renderingContext2D);
-  }
-
-  this->paintRequests.clear();
 }
 
 void Scene::Composite() {
-  if (!this->hasCompositeRequest) {
+  if (!this->isCompositeDirty) {
     return;
   }
 
-  this->hasCompositeRequest = false;
+  this->isCompositeDirty = false;
 
   auto renderer{ this->GetRenderer() };
 
   renderer->Reset();
-  this->compositeContext.renderer = this->GetRenderer();
-  this->compositeContext.Reset();
-  this->CompositePreorder(this->root, &this->compositeContext);
+  this->compositeContext.Reset(renderer);
+  this->CompositePreOrder(this->root, &this->compositeContext);
   renderer->Present();
 }
 
-void Scene::CompositePreorder(SceneNode* node, CompositeContext* context) {
+void Scene::CompositePreOrder(SceneNode* node, CompositeContext* context) {
   if (node->IsHidden()) {
     return;
   }
@@ -207,11 +211,12 @@ void Scene::CompositePreorder(SceneNode* node, CompositeContext* context) {
 
   if (!IsEmpty(box)) {
     node->Composite(context);
+    node->flags.set(SceneNode::FlagCompositeDirty, false);
   }
 
   if (node->HasChildren()) {
-    for (auto child : node->SortChildrenByStackingOrder()) {
-      CompositePreorder(child, context);
+    for (auto child : node->GetChildrenOrderedByZIndex(this->children)) {
+      CompositePreOrder(child, context);
     }
   }
 

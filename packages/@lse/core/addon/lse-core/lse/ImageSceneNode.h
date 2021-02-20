@@ -18,6 +18,8 @@ class ImageSceneNode final : public SceneNode {
   explicit ImageSceneNode(napi_env env, Scene* scene);
   ~ImageSceneNode() override = default;
 
+  bool IsLeaf() const noexcept override { return true; }
+
   const std::string& GetSource() const noexcept;
   void SetSource(napi_env env, std::string&& value) noexcept;
 
@@ -27,24 +29,24 @@ class ImageSceneNode final : public SceneNode {
   napi_value GetOnErrorCallback(napi_env env) noexcept;
   void SetOnErrorCallback(napi_env env, napi_value value) noexcept;
 
-  void OnStylePropertyChanged(StyleProperty property) override;
-  void OnBoundingBoxChanged() override;
-  void OnStyleLayout() override;
   void OnDetach() override;
+  void OnComputeStyle() override;
+  void OnComposite(CompositeContext* composite) override;
+  void OnStylePropertyChanged(StyleProperty property) override;
+  void OnFlexBoxLayoutChanged() override;
+
   YGSize OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) override;
 
-  void Paint(RenderingContext2D* context) override;
-  void Composite(CompositeContext* composite) override;
-  void Destroy() override;
+  void OnDestroy() override;
 
  private:
   void ClearResource();
 
  private:
-  std::string src;
+  std::string src{};
   ImageRef image{};
   ImageRect imageRect{};
-  ResourceProgress resourceProgress;
+  ResourceProgress resourceProgress{};
 };
 
 } // namespace lse

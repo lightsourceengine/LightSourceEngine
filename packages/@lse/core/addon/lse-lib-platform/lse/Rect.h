@@ -30,12 +30,19 @@ struct Rect {
   float height;
 };
 
+struct IntRect {
+  int32_t x;
+  int32_t y;
+  int32_t width;
+  int32_t height;
+};
+
 /**
  * Rectangle with texture coordinates (src member).
  */
 struct ImageRect {
   Rect dest{};
-  Rect src{};
+  IntRect src{};
 };
 
 /**

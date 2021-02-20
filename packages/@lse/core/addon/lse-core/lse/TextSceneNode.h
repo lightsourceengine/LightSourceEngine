@@ -17,18 +17,19 @@ class TextSceneNode final : public SceneNode {
   explicit TextSceneNode(napi_env env, Scene* scene);
   ~TextSceneNode() override = default;
 
+  bool IsLeaf() const noexcept override { return true; }
+
   const std::string& GetText() const;
   void SetText(std::string&& text);
 
   void OnStylePropertyChanged(StyleProperty property) override;
-  void OnBoundingBoxChanged() override;
-  void OnStyleLayout() override;
+  void OnFlexBoxLayoutChanged() override;
+  void OnComputeStyle() override;
   void OnDetach() override;
+
   YGSize OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) override;
 
-  void Paint(RenderingContext2D* context) override;
-  void Composite(CompositeContext* composite) override;
-  void Destroy() override;
+  void OnDestroy() override;
 
  private:
   bool SetFont(Style* style);

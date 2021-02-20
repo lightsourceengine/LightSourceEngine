@@ -20,21 +20,22 @@
 namespace lse {
 
 ImageSceneNode::ImageSceneNode(napi_env env, Scene* scene) : SceneNode(env, scene) {
-  this->SetFlag(FlagLeaf, true);
+  // set up the yoga node to call SceneNode::OnMeasure() when a measure is requested.
   YGNodeSetMeasureFunc(this->ygNode, SceneNode::YogaMeasureCallback);
 }
 
 void ImageSceneNode::OnStylePropertyChanged(StyleProperty property) {
   switch (property) {
-    case StyleProperty::tintColor:
-    case StyleProperty::backgroundColor:
-    case StyleProperty::borderColor:
-      this->RequestComposite();
-      break;
     case StyleProperty::objectFit:
     case StyleProperty::objectPositionX:
     case StyleProperty::objectPositionY:
-      this->RequestStyleLayout();
+      this->MarkComputeStyleDirty();
+      break;
+    case StyleProperty::tintColor:
+    case StyleProperty::backgroundColor:
+    case StyleProperty::borderColor:
+      // TODO: maybe paint dirty?
+      this->MarkCompositeDirty();
       break;
     default:
       SceneNode::OnStylePropertyChanged(property);
@@ -42,65 +43,55 @@ void ImageSceneNode::OnStylePropertyChanged(StyleProperty property) {
   }
 }
 
-void ImageSceneNode::OnBoundingBoxChanged() {
-  this->RequestStyleLayout();
+void ImageSceneNode::OnFlexBoxLayoutChanged() {
+  this->MarkComputeStyleDirty();
 }
 
-void ImageSceneNode::OnStyleLayout() {
-  // TODO: maybe check image rect size change to reduce unnecessary composites
-  // TODO: probably need to clear imageRect on src change
-  if (this->image && this->image->HasDimensions()) {
-    const auto bounds{ YGNodeGetPaddingBox(this->ygNode) };
-
-    if (!IsEmpty(bounds)) {
-      this->imageRect = ClipImage(
-          bounds,
-          this->GetStyleContext()->ComputeObjectFit(Style::Or(this->style), bounds, this->image.get()),
-          this->image->WidthF(),
-          this->image->HeightF());
-    }
+void ImageSceneNode::OnComputeStyle() {
+  if (!this->image || !this->image->HasTexture()) {
+    return;
   }
 
-  this->RequestComposite();
+  // Image must consider padding of the scene node.
+  const auto bounds{ YGNodeGetPaddingBox(this->ygNode) };
+
+  // Determine where the image should be placed relative to this node's bounds. The placement
+  // can overflow the scene node's bounds.
+  auto imageDest{this->GetStyleContext()->ComputeObjectFit(
+      Style::Or(this->style), bounds, this->image.get())};
+
+  // Clip the image (destination and source texture coordinates) against the scene node's bounds,
+  // image placement and padding.
+  this->imageRect = ClipImage(
+      bounds, imageDest, this->image->WidthF(), this->image->HeightF());
+
+  this->MarkCompositeDirty();
 }
 
-void ImageSceneNode::Paint(RenderingContext2D* context) {
-}
+void ImageSceneNode::OnComposite(CompositeContext* ctx) {
+  this->DrawBackground(ctx, StyleBackgroundClipBorderBox);
 
-void ImageSceneNode::Composite(CompositeContext* composite) {
-  const auto& transform{ composite->CurrentMatrix() };
-  const auto opacity{ composite->CurrentOpacity() };
-  const auto imageStyle{ Style::Or(this->style) };
-  auto styleColor{ imageStyle->GetColor(StyleProperty::backgroundColor) };
+  if (this->image && this->image->HasTexture()) {
+//    auto box{YGNodeGetBox(this->ygNode)};
+    const auto& transform{ ctx->CurrentRenderTransform() };
 
-  if (styleColor.has_value()) {
-    composite->renderer->DrawFillRect(YGNodeGetBorderBox(this->ygNode), transform, styleColor->MixAlpha(opacity));
-  }
+//    box.width *= ctx->CurrentMatrix().GetScaleX();
+//    box.height *= ctx->CurrentMatrix().GetScaleY();
 
-  if (this->image && this->image->GetState() == Resource::Ready && !IsEmpty(this->imageRect.dest)) {
-    if (!this->image->HasTexture()) {
-      this->image->LoadTexture(composite->renderer);
-    }
+    const auto filter{RenderFilter::OfTint(
+        Style::Or(this->style)->GetColor(StyleProperty::tintColor).value_or(ColorWhite),
+        ctx->CurrentOpacity())};
 
-    styleColor = imageStyle->GetColor(StyleProperty::tintColor);
-
-    composite->renderer->DrawImage(
-        this->image->GetTexture(),
-        this->imageRect.src,
+    ctx->renderer->DrawImage(
+        transform,
+        { 0, 0 },
         this->imageRect.dest,
-        transform,
-        styleColor.value_or(ColorWhite).MixAlpha(opacity));
+        this->imageRect.src,
+        this->image->GetTexture(),
+        filter);
   }
 
-  styleColor = imageStyle->GetColor(StyleProperty::borderColor);
-
-  if (styleColor.has_value()) {
-    composite->renderer->DrawBorder(
-        YGNodeGetBox(this->ygNode, 0, 0),
-        YGNodeGetBorderEdges(this->ygNode),
-        transform,
-        styleColor->MixAlpha(opacity));
-  }
+  this->DrawBorder(ctx);
 }
 
 YGSize ImageSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
@@ -108,7 +99,7 @@ YGSize ImageSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float hei
     return { this->image->WidthF(), this->image->HeightF() };
   }
 
-  return { 0.f, 0.f };
+  return SceneNode::OnMeasure(width, widthMode, height, heightMode);
 }
 
 const std::string& ImageSceneNode::GetSource() const noexcept {
@@ -146,6 +137,11 @@ void ImageSceneNode::SetSource(napi_env env, std::string&& value) noexcept {
     }
 
     this->resourceProgress.Dispatch(this, this->image.get());
+
+    if (this->image->GetState() == Resource::Ready && !this->image->HasTexture()) {
+      // TODO: is the renderer attached?
+      this->image->LoadTexture(this->scene->GetRenderer());
+    }
 
     YGNodeMarkDirty(this->ygNode);
     res->RemoveListener(owner);
@@ -203,11 +199,9 @@ void ImageSceneNode::SetOnErrorCallback(napi_env env, napi_value value) noexcept
   }
 }
 
-void ImageSceneNode::Destroy() {
+void ImageSceneNode::OnDestroy() {
   this->ClearResource();
   this->resourceProgress.Reset();
-
-  SceneNode::Destroy();
 }
 
 // TODO: temporary hack due to scene and renderer shutdown conflicts
@@ -217,6 +211,7 @@ void ImageSceneNode::OnDetach() {
 }
 
 void ImageSceneNode::ClearResource() {
+  // TODO: releasing a resource should be less verbose
   if (this->image) {
     auto resource = this->image.get();
     this->image->RemoveListener(this);

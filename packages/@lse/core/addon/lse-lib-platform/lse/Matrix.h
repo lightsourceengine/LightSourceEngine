@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cmath>
+#include <lse/Point.h>
 #include <std20/numbers>
 
 namespace lse {
@@ -112,6 +113,13 @@ struct Matrix {
   Matrix& operator*=(const Matrix& other) noexcept {
     *this = *this * other;
     return *this;
+  }
+
+  Point operator*(const Point& p) const noexcept {
+    return {
+        p.x * a + p.y * c,
+        p.x * b + p.y * d
+    };
   }
 };
 
