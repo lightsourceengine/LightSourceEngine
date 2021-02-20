@@ -23,55 +23,14 @@ static_assert(sizeof(SDL_Rect) == sizeof(IntRect) && sizeof(SDL_Rect::x) == size
 struct RenderTransform;
 struct RenderFilter;
 
-// Texture operations
+// Renderer/Drawing utilities
 
-Texture CreateTexture(
-    SDL_Renderer* renderer, int32_t width, int32_t height, Texture::Type type,
-    PixelFormat format) noexcept;
-SDL_Texture* DestroyTexture(SDL_Texture* texture) noexcept;
 SDL_Renderer* DestroyRenderer(SDL_Renderer* renderer) noexcept;
-
-// Type conversions
-
-/**
- * Convert lse::Rect to SDL_Rect.
- *
- * The lse::Rect is hard snapped to the pixel grid using floor().
- */
-template<typename T>
-T ToSDLRect(const Rect& rect) noexcept;
-
-template<>
-inline SDL_Rect ToSDLRect(const Rect& rect) noexcept {
-  return {
-      static_cast<int32_t>(rect.x),
-      static_cast<int32_t>(rect.y),
-      static_cast<int32_t>(rect.width),
-      static_cast<int32_t>(rect.height),
-  };
-}
-
-template<>
-inline SDL_FRect ToSDLRect(const Rect& rect) noexcept {
-  return reinterpret_cast<const SDL_FRect&>(rect);
-}
-
-template<typename T>
-T ToSDLPoint(float x, float y) noexcept;
-
-template<>
-inline SDL_Point ToSDLPoint(float x, float y) noexcept {
-  return { static_cast<int32_t>(x), static_cast<int32_t>(y) };
-}
-
-template<>
-inline SDL_FPoint ToSDLPoint(float x, float y) noexcept {
-  return { x, y };
-}
-
 void SDLSetDrawColor(SDL_Renderer* renderer, const RenderFilter& filter) noexcept;
 void SDLSetTextureTint(SDL_Texture* texture, const RenderFilter& filter) noexcept;
 SDL_RendererFlip SDLGetRenderFlip(const RenderFilter& filter) noexcept;
+
+// Type conversions
 
 /** @return PixelFormat representation or PixelFormatUnknown if a PixelFormat cannot be found. */
 constexpr PixelFormat ToPixelFormat(uint32_t pixelFormat) noexcept {

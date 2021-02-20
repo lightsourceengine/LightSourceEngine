@@ -82,7 +82,7 @@ class Image final : public Resource {
 
   bool LoadTexture(Renderer* renderer);
   bool HasTexture() const noexcept;
-  Texture GetTexture() const noexcept;
+  Texture* GetTexture() const noexcept;
 
   bool HasDimensions() const noexcept;
   int32_t Width() const noexcept;
@@ -97,7 +97,7 @@ class Image final : public Resource {
  private:
   AsyncWork<ImageBytes> work;
   ImageBytes resource{};
-  Texture texture{};
+  Texture* texture{};
   int32_t width{};
   int32_t height{};
 };

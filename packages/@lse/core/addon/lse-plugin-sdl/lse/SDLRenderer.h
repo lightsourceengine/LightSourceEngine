@@ -9,26 +9,30 @@
 #include <lse/Renderer.h>
 #include <vector>
 #include <lse/SDL2.h>
+#include <phmap.h>
 
 namespace lse {
 
-class SDLRenderer final : public Renderer {
+class SDLRenderer final : public Renderer, public std::enable_shared_from_this<SDLRenderer> {
  public:
   SDLRenderer();
   ~SDLRenderer() override;
+
+  static std::shared_ptr<SDLRenderer> New();
 
   int32_t GetWidth() const noexcept override { return this->width; }
   int32_t GetHeight() const noexcept override { return this->height; }
   PixelFormat GetTextureFormat() const noexcept override { return this->textureFormat; }
 
-  bool SetRenderTarget(const Texture& newRenderTarget) noexcept override;
+  bool SetRenderTarget(Texture* texture) noexcept override;
   void Reset() noexcept override;
   void Clear(color_t color) noexcept override;
   void Present() noexcept override;
   void EnabledClipping(const Rect& rect) noexcept override;
   void DisableClipping() noexcept override;
 
-  Texture CreateTexture(int32_t width, int32_t height, Texture::Type type) override;
+  Texture* CreateTexture(int32_t width, int32_t height, Texture::Type type) override;
+  void DestroyTexture(Texture* texture) noexcept override;
 
   void Attach(SDL_Window* window);
   void Detach();
@@ -39,19 +43,19 @@ class SDLRenderer final : public Renderer {
       const Point& origin,
       const Rect& box,
       const IntRect& src,
-      const Texture& texture,
+      Texture* texture,
       const RenderFilter& filter) noexcept override;
 
   void DrawImage(
       const Rect& box,
       const IntRect& src,
-      const Texture& texture,
+      Texture* texture,
       const RenderFilter& filter) noexcept override;
 
   void DrawImageCapInsets(
       const Rect& box,
       const EdgeRect& capInsets,
-      const Texture& texture,
+      Texture* texture,
       const RenderFilter& filter) noexcept override;
 
   void FillRect(
@@ -64,17 +68,17 @@ class SDLRenderer final : public Renderer {
       const RenderFilter& filter) noexcept override;
 
  private:
-  void ResetInternal(const Texture& newRenderTarget);
+  void ResetInternal();
   void SetRenderDrawColor(color_t color) noexcept;
   void UpdateTextureFormats(const SDL_RendererInfo& info) noexcept;
 
  private:
   SDL_Renderer* renderer{};
+  phmap::flat_hash_set<Texture*> textures{};
   bool floatMode{false};
-  PixelFormat textureFormat{ PixelFormatUnknown };
+  PixelFormat textureFormat{PixelFormatUnknown};
   color_t drawColor{};
-  Texture fillRectTexture{};
-  Texture renderTarget{};
+  Texture* fillRectTexture{};
   int32_t width{0};
   int32_t height{0};
 };

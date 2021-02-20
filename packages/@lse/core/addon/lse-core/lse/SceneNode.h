@@ -112,7 +112,7 @@ class SceneNode : public Reference {
   ReferenceHolder<Scene> scene{};
   ReferenceHolder<Style> style{};
   YGNodeRef ygNode{};
-  Texture target{};
+  Texture* target{};
   std::bitset<8> flags;
 
   friend Scene;

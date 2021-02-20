@@ -15,12 +15,13 @@ namespace lse {
 static Uint32 GetFullscreenFlag(const GraphicsContextConfig& config) noexcept;
 
 SDLGraphicsContext::SDLGraphicsContext(const GraphicsContextConfig& config) : GraphicsContext() {
-  this->renderer = std::make_shared<SDLRenderer>();
+  this->sdlRenderer = SDLRenderer::New();
+  this->SetRenderer(this->sdlRenderer);
   this->SetConfig(config);
 }
 
 void SDLGraphicsContext::Attach() {
-  if (!this->renderer) {
+  if (!this->sdlRenderer) {
     return;
   }
 
@@ -62,20 +63,20 @@ void SDLGraphicsContext::Attach() {
               isWindowFullscreen);
   }
 
-  std::static_pointer_cast<SDLRenderer>(this->renderer)->Attach(this->window);
+  this->sdlRenderer->Attach(this->window);
 
-  this->width = this->renderer->GetWidth();
-  this->height = this->renderer->GetHeight();
+  this->width = this->sdlRenderer->GetWidth();
+  this->height = this->sdlRenderer->GetHeight();
   this->fullscreen = isWindowFullscreen;
   this->displayIndex = displayIndex;
 }
 
 void SDLGraphicsContext::Detach() {
-  if (!this->renderer) {
+  if (!this->sdlRenderer) {
     return;
   }
 
-  std::static_pointer_cast<SDLRenderer>(this->renderer)->Detach();
+  this->sdlRenderer->Detach();
 
   if (this->window) {
     SDL2::SDL_DestroyWindow(this->window);

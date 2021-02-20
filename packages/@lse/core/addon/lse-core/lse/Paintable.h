@@ -34,17 +34,17 @@ class Paintable {
   /**
    * Get the underlying texture object. If not initialized, the texture will be "null".
    */
-  Texture GetTexture() const noexcept;
+  Texture* GetTexture() const noexcept;
 
  protected:
   /**
    * Ensure the underlying texture is width x height. If no texture exists, one will be created. If the texture
    * exists, but the size does not exactly match width x height, a new texture will be created.
    */
-  Texture EnsureLockableTexture(Renderer* renderer, int32_t width, int32_t height) noexcept;
+  Texture* EnsureLockableTexture(Renderer* renderer, int32_t width, int32_t height) noexcept;
 
  private:
-  Texture target{};
+  Texture* target{};
 };
 
 } // namespace lse

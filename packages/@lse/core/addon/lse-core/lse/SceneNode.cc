@@ -167,8 +167,8 @@ void SceneNode::Paint(CompositeContext* ctx) {
   auto box{YGNodeGetBox(this->ygNode, 0, 0)};
 
   if (this->target) {
-    if (this->target.Width() < box.width || this->target.Height() < box.height) {
-      this->target.Destroy();
+    if (this->target->Width() < box.width || this->target->Height() < box.height) {
+      this->target = Texture::SafeDestroy(this->target);
     }
   }
 
@@ -210,6 +210,7 @@ void SceneNode::Destroy() {
   }
 
   this->OnDestroy();
+  this->target = Texture::SafeDestroy(this->target);
 
   const auto& children{ YGNodeGetChildren(this->ygNode) };
 

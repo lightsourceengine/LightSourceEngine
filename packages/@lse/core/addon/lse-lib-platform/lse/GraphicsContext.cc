@@ -44,4 +44,8 @@ int32_t GraphicsContext::GetDisplayIndex() const noexcept {
   return this->displayIndex;
 }
 
+void GraphicsContext::SetRenderer(std::shared_ptr<Renderer> value) noexcept {
+  this->renderer = std::move(value);
+}
+
 } // namespace lse

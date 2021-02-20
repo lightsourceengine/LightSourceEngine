@@ -7,11 +7,12 @@
 #pragma once
 
 #include <cstdint>
+#include <lse/PixelFormat.h>
 #include <memory>
 
-#include "PixelFormat.h"
-
 namespace lse {
+
+class Renderer;
 
 /**
  * GPU texture.
@@ -27,80 +28,54 @@ class Texture {
     RenderTarget,
   };
 
-  /**
-   * Returned by Lock() to allow pixel write access.
-   *
-   * When this object goes out of scope, the destructor will call Release().
-   */
-  class Pixels {
-   public:
-    Pixels() noexcept = default;
-    ~Pixels() noexcept;
-
-    uint8_t* Data() const noexcept;
-    int32_t Width() const noexcept;
-    int32_t Height() const noexcept;
-    int32_t Pitch() const noexcept;
-
-    /**
-     * Invalidate pixel access. After this call, Data() will return nullptr.
-     */
-    void Release() noexcept;
-
-   private:
-    Pixels(Texture* lockedTexture, uint8_t* data, int32_t width, int32_t height, int32_t pitch) noexcept;
-
-   private:
-    Texture* lockedTexture{};
-    uint8_t* data{};
-    int32_t width{};
-    int32_t height{};
-    int32_t pitch{};
-
-    friend class Texture;
-  };
-
-  /**
-   * Interface between Texture and the native rendering platform.
-   */
-  class Bridge {
-   public:
-    virtual ~Bridge() = default;
-
-    virtual int32_t GetWidth(void* platformTextureRef) const noexcept = 0;
-    virtual int32_t GetHeight(void* platformTextureRef) const noexcept = 0;
-    virtual bool Lock(void* platformTextureRef, void** buffer, int32_t* pitch) noexcept = 0;
-    virtual void Unlock(void* platformTextureRef) noexcept = 0;
-    virtual bool Update(void* platformTextureRef, const uint8_t* buffer, int32_t length) = 0;
-    virtual PixelFormat GetPixelFormat(void* platformTextureRef) const noexcept = 0;
-    virtual Type GetType(void* platformTextureRef) const noexcept = 0;
-    virtual void Destroy(void* platformTextureRef) noexcept = 0;
-  };
-
  public:
-  Texture() noexcept;
-  Texture(void* platformTextureRef, Bridge* bridge) noexcept;
+  Texture(std::shared_ptr<Renderer> owner,
+          void* texture,
+          int32_t width,
+          int32_t height,
+          PixelFormat format,
+          Type type) noexcept;
+  virtual ~Texture() = default;
+
+  void Destroy() noexcept;
 
   int32_t Width() const noexcept;
   int32_t Height() const noexcept;
+  int32_t Pitch() const noexcept;
   PixelFormat Format() const noexcept;
   bool IsRenderTarget() const noexcept;
   bool IsLockable() const noexcept;
   bool IsUpdatable() const noexcept;
 
-  bool Update(const uint8_t* pixels, int32_t pitch) const noexcept;
-  Pixels Lock() noexcept;
   template<typename T>
-  T* Cast() const noexcept { return static_cast<T*>(this->platformTextureRef); }
+  T* As() const noexcept { return static_cast<T*>(this->platformTexture); }
 
-  bool Empty() const noexcept;
-  operator bool() const noexcept;
+  virtual bool Update(const uint8_t* pixels) noexcept = 0;
+  virtual uint8_t* Lock() noexcept = 0;
+  virtual void Unlock() noexcept = 0;
 
-  void Destroy() noexcept;
+  static Texture* SafeDestroy(Texture* texture) noexcept;
+
+ protected:
+  std::shared_ptr<Renderer> owner{};
+  void* platformTexture{};
+  int32_t width{};
+  int32_t height{};
+  PixelFormat format{};
+  Type type{};
+};
+
+class TextureLock {
+ public:
+  TextureLock(Texture* texture);
+  ~TextureLock();
+
+  bool IsLocked() const noexcept;
+  uint8_t* GetPixels() const noexcept;
 
  private:
-  void* platformTextureRef{};
-  Bridge* bridge{};
+  Texture* texture{};
+  uint8_t* pixels{};
 };
 
 } // namespace lse

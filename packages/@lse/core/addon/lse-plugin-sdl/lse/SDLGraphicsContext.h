@@ -11,6 +11,8 @@
 
 namespace lse {
 
+class SDLRenderer;
+
 /**
  * SDL GraphicsContext implementation.
  */
@@ -26,6 +28,7 @@ class SDLGraphicsContext final : public GraphicsContext {
 
  private:
   SDL_Window* window{};
+  std::shared_ptr<SDLRenderer> sdlRenderer;
 };
 
 } // namespace lse

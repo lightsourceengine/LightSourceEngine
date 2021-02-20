@@ -47,13 +47,18 @@ class GraphicsContext : public Reference {
   int32_t GetDisplayIndex() const noexcept;
 
  protected:
-  std::shared_ptr<Renderer> renderer{};
+  void SetRenderer(std::shared_ptr<Renderer> value) noexcept;
+
+ protected:
   std::string title{};
   GraphicsContextConfig config{};
   int32_t width{};
   int32_t height{};
   bool fullscreen{};
   int32_t displayIndex{};
+
+ private:
+  std::shared_ptr<Renderer> renderer{};
 };
 
 using GraphicsContextRef = std::shared_ptr<GraphicsContext>;

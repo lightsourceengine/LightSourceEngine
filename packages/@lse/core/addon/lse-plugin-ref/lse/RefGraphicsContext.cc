@@ -12,15 +12,18 @@
 namespace lse {
 
 RefGraphicsContext::RefGraphicsContext(const GraphicsContextConfig& config) : GraphicsContext() {
-  this->renderer = std::make_shared<RefRenderer>();
+  this->refRenderer = RefRenderer::New();
+  this->SetRenderer(this->refRenderer);
   this->SetConfig(config);
 }
+
 void RefGraphicsContext::Attach() {
   this->width = this->config.width;
   this->height = this->config.height;
   this->displayIndex = this->config.displayIndex;
   this->fullscreen = this->config.fullscreen;
 }
+
 void RefGraphicsContext::Detach() {
   this->width = {};
   this->height = {};

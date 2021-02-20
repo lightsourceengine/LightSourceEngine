@@ -196,20 +196,16 @@ void TextBlock::Paint(RenderingContext2D* context) {
   }
 
   // Fill entire texture surface with transparent to start from a known state.
-  auto pixels{ target.Lock() };
+  TextureLock textureLock(target);
+  auto pixels{ textureLock.GetPixels() };
 
-  if (pixels.Pitch() == pixels.Width() * pixels.Height() * 4) {
-    memset(pixels.Data(), 0, pixels.Width() * pixels.Height() * 4);
-  } else {
-    auto ptr{pixels.Data()};
-
-    for (int32_t i = 0; i < pixels.Height(); i++) {
-      memset(ptr, 0, pixels.Width() * 4);
-      ptr += pixels.Pitch();
-    }
+  if (!pixels) {
+    return;
   }
 
-  context->Begin(pixels.Data(), pixels.Width(), pixels.Height(), pixels.Pitch());
+  memset(pixels, 0, target->Pitch() * target->Height());
+
+  context->Begin(pixels, target->Width(), target->Height(), target->Pitch());
 
   auto y{ this->font.ascent() };
 
@@ -224,10 +220,10 @@ void TextBlock::Paint(RenderingContext2D* context) {
     // box will need to also apply alignment on the surface during composite.
     switch (line.textAlign) {
       case StyleTextAlignCenter:
-        x = (target.Width() - line.width) / 2.f;
+        x = (target->Width() - line.width) / 2.f;
         break;
       case StyleTextAlignRight:
-        x = target.Width() - line.width;
+        x = target->Width() - line.width;
         break;
       case StyleTextAlignLeft:
       default:
@@ -249,9 +245,7 @@ void TextBlock::Paint(RenderingContext2D* context) {
 
   context->End();
 
-  ConvertToFormat(reinterpret_cast<color_t*>(pixels.Data()), pixels.Width() * pixels.Height(), target.Format());
-
-  pixels.Release();
+  ConvertToFormat(reinterpret_cast<color_t*>(pixels), target->Width() * target->Height(), target->Format());
 }
 
 int32_t TextBlock::Width() const noexcept {

@@ -12,17 +12,17 @@
 namespace lse {
 
 void Paintable::Destroy() noexcept {
-  this->target.Destroy();
+  this->target = Texture::SafeDestroy(this->target);
 }
 
-Texture Paintable::GetTexture() const noexcept {
+Texture* Paintable::GetTexture() const noexcept {
   return this->target;
 }
 
-Texture Paintable::EnsureLockableTexture(Renderer* renderer, int32_t width, int32_t height) noexcept {
-  if (!this->target || !this->target.IsLockable()
-      || this->target.Width() != width || this->target.Height() != height) {
-    this->target.Destroy();
+Texture* Paintable::EnsureLockableTexture(Renderer* renderer, int32_t width, int32_t height) noexcept {
+  if (!this->target || !this->target->IsLockable()
+      || this->target->Width() != width || this->target->Height() != height) {
+    this->target = Texture::SafeDestroy(this->target);
     // TODO: limit size
     this->target = renderer->CreateTexture(width, height, Texture::Lockable);
   }

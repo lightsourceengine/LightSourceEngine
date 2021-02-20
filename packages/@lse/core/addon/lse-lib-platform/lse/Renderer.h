@@ -85,7 +85,7 @@ class Renderer {
    * @param renderTarget A texture of Type::RenderTarget.
    * @return true if the render target was successfully set, false if renderTarget is incompatible as a render target
    */
-  virtual bool SetRenderTarget(const Texture& renderTarget) noexcept = 0;
+  virtual bool SetRenderTarget(Texture* texture) noexcept = 0;
 
   /**
    * Clip draw calls by a rectangular region.
@@ -103,9 +103,16 @@ class Renderer {
    * @param width Width, in pixels, of new texture.
    * @param height Height, in pixels, of new texture.
    * @param type The type of texture to create.
-   * @return on success, a valid texture; on failure, an empty texture
+   * @return on success, a valid texture; on failure, nullptr
    */
-  virtual Texture CreateTexture(int32_t width, int32_t height, Texture::Type type) = 0;
+  virtual Texture* CreateTexture(int32_t width, int32_t height, Texture::Type type) = 0;
+
+  /**
+   * Destroy a texture.
+   *
+   * @param texture Texture to destroy. no-op if null.
+   */
+  virtual void DestroyTexture(Texture* texture) = 0;
 
   /**
    * Get the pixel format for all new textures.
@@ -122,19 +129,19 @@ class Renderer {
       const Point& origin,
       const Rect& box,
       const IntRect& src,
-      const Texture& texture,
+      Texture* texture,
       const RenderFilter& filter) noexcept {};
 
   virtual void DrawImage(
       const Rect& box,
       const IntRect& src,
-      const Texture& texture,
+      Texture* texture,
       const RenderFilter& filter) noexcept {};
 
   virtual void DrawImageCapInsets(
       const Rect& box,
       const EdgeRect& capInsets,
-      const Texture& texture,
+      Texture* texture,
       const RenderFilter& filter) noexcept {};
 
   virtual void FillRect(

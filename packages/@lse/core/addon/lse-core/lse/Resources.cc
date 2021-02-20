@@ -148,30 +148,29 @@ bool Image::LoadTexture(Renderer* renderer) {
     return false;
   }
 
-  if (this->HasTexture()) {
-    this->texture.Destroy();
+  if (this->texture) {
+    this->texture = Texture::SafeDestroy(this->texture);
   }
 
-  this->texture = renderer->CreateTexture(this->resource.Width(), this->resource.Height(),
-                                          Texture::Type::Updatable);
+  this->texture = renderer->CreateTexture(
+      this->resource.Width(), this->resource.Height(), Texture::Type::Updatable);
 
   if (!this->texture) {
     return false;
   }
 
   // TODO: Move pixel conversion to a better place. image loading thread?
-  this->resource.SyncFormat(this->texture.Format());
+  this->resource.SyncFormat(this->texture->Format());
 
   // TODO: keep image pixels?
-
-  return this->texture.Update(this->resource.Bytes(), this->resource.Pitch());
+  return this->texture->Update(this->resource.Bytes());
 }
 
 bool Image::HasTexture() const noexcept {
   return static_cast<bool>(this->texture);
 }
 
-Texture Image::GetTexture() const noexcept {
+Texture* Image::GetTexture() const noexcept {
   return this->texture;
 }
 

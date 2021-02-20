@@ -18,6 +18,51 @@ namespace lse {
 
 static const std::array<uint8_t, 4> kSinglePixelWhite{ 255, 255, 255, 255 };
 
+class SDLTexture : public Texture {
+ public:
+  SDLTexture(std::shared_ptr<SDLRenderer> owner, SDL_Texture* texture,
+      int32_t width, int32_t height, PixelFormat format, Type type) noexcept
+  : Texture(std::move(owner), texture, width, height, format, type) {
+  }
+
+  bool Update(const uint8_t* pixels) noexcept override {
+    if (!this->platformTexture) {
+      return false;
+    }
+
+    auto pitch{this->width * 4};
+
+    if (SDL2::SDL_UpdateTexture(this->As<SDL_Texture>(), nullptr, pixels, pitch) != 0) {
+      LOG_ERROR(SDL2::SDL_GetError());
+      return false;
+    }
+
+    return true;
+  }
+
+  uint8_t* Lock() noexcept override {
+    if (!this->platformTexture) {
+      return {};
+    }
+
+    void* pixels{};
+    int32_t pitch{};
+
+    if (SDL2::SDL_LockTexture(this->As<SDL_Texture>(), nullptr, &pixels, &pitch) != 0) {
+      LOG_ERROR(SDL2::SDL_GetError());
+      return {};
+    }
+
+    return static_cast<uint8_t*>(pixels);
+  }
+
+  void Unlock() noexcept override {
+    if (this->platformTexture) {
+      SDL2::SDL_UnlockTexture(this->As<SDL_Texture>());
+    }
+  }
+};
+
 SDLRenderer::SDLRenderer() {
   SDL_RendererInfo info;
 
@@ -30,6 +75,10 @@ SDLRenderer::SDLRenderer() {
 
 SDLRenderer::~SDLRenderer() {
   this->Destroy();
+}
+
+std::shared_ptr<SDLRenderer> SDLRenderer::New() {
+  return std::make_shared<SDLRenderer>();
 }
 
 void SDLRenderer::UpdateTextureFormats(const SDL_RendererInfo& info) noexcept {
@@ -63,17 +112,18 @@ void SDLRenderer::Clear(color_t color) noexcept {
   SDL2::SDL_RenderClear(this->renderer);
 }
 
-bool SDLRenderer::SetRenderTarget(const Texture& newRenderTarget) noexcept {
-  if (!newRenderTarget.IsRenderTarget()) {
+bool SDLRenderer::SetRenderTarget(Texture* texture) noexcept {
+  if (!texture || !texture->IsRenderTarget()) {
+    LOG_ERROR("Invalid render target");
     return false;
   }
 
-  if (SDL2::SDL_SetRenderTarget(this->renderer, newRenderTarget.Cast<SDL_Texture>()) != 0) {
+  if (SDL2::SDL_SetRenderTarget(this->renderer, texture->As<SDL_Texture>()) != 0) {
     LOG_ERROR(SDL2::SDL_GetError());
     return false;
   }
 
-  this->ResetInternal(newRenderTarget);
+  this->ResetInternal();
 
   return true;
 }
@@ -81,25 +131,23 @@ bool SDLRenderer::SetRenderTarget(const Texture& newRenderTarget) noexcept {
 void SDLRenderer::Reset() noexcept {
   if (this->renderer) {
     SDL2::SDL_SetRenderTarget(this->renderer, nullptr);
+    this->ResetInternal();
   }
-
-  this->ResetInternal({});
 }
 
-void SDLRenderer::ResetInternal(const Texture& newRenderTarget) {
-  if (newRenderTarget.IsRenderTarget()) {
-    this->renderTarget = newRenderTarget;
-  } else {
-    this->renderTarget = {};
-  }
-
+void SDLRenderer::ResetInternal() {
   this->DisableClipping();
   this->SetRenderDrawColor(ColorWhite);
   SDL2::SDL_SetRenderDrawBlendMode(this->renderer, SDL_BLENDMODE_BLEND);
 }
 
 void SDLRenderer::EnabledClipping(const Rect& rect) noexcept {
-  const auto clipRect{ ToSDLRect<SDL_Rect>(rect) };
+  const SDL_Rect clipRect{
+    SnapToPixelGrid<int32_t>(rect.x),
+    SnapToPixelGrid<int32_t>(rect.y),
+    SnapToPixelGrid<int32_t>(rect.width),
+    SnapToPixelGrid<int32_t>(rect.height)
+  };
 
   SDL2::SDL_RenderSetClipRect(this->renderer, &clipRect);
 }
@@ -108,8 +156,47 @@ void SDLRenderer::DisableClipping() noexcept {
   SDL2::SDL_RenderSetClipRect(this->renderer, nullptr);
 }
 
-Texture SDLRenderer::CreateTexture(int32_t width, int32_t height, Texture::Type type) {
-  return lse::CreateTexture(this->renderer, width, height, type, this->textureFormat);
+Texture* SDLRenderer::CreateTexture(int32_t width, int32_t height, Texture::Type type) {
+  auto sdlTexture{SDL2::SDL_CreateTexture(
+      this->renderer,
+      ToSDLPixelFormat(this->GetTextureFormat()),
+      ToSDLTextureAccess(type),
+      width,
+      height)
+  };
+
+  if (!sdlTexture) {
+    LOG_ERROR(SDL2::SDL_GetError());
+    return {};
+  }
+
+  SDL2::SDL_SetTextureBlendMode(sdlTexture, SDL_BLENDMODE_BLEND);
+
+  auto texture{new (std::nothrow) SDLTexture(
+      this->shared_from_this(), sdlTexture, width, height, this->GetTextureFormat(), type)};
+
+  if (texture) {
+    this->textures.insert(texture);
+  }
+
+  return texture;
+}
+
+void SDLRenderer::DestroyTexture(Texture* texture) noexcept {
+  if (!texture) {
+    return;
+  }
+
+  if (!this->textures.contains(texture)) {
+    LOG_ERROR("unknown texture");
+    delete texture;
+    return;
+  }
+
+  SDL2::SDL_DestroyTexture(texture->As<SDL_Texture>());
+  this->textures.erase(texture);
+
+  delete texture;
 }
 
 void SDLRenderer::SetRenderDrawColor(color_t color) noexcept {
@@ -127,11 +214,6 @@ void SDLRenderer::Attach(SDL_Window* window) {
   if (!this->renderer) {
     throw std::runtime_error(Format("Failed to create an SDL renderer. SDL Error: %s", SDL2::SDL_GetError()));
   }
-
-  this->fillRectTexture = lse::CreateTexture(this->renderer, 1, 1, Texture::Updatable, this->textureFormat);
-  this->fillRectTexture.Update(kSinglePixelWhite.data(), kSinglePixelWhite.size() * sizeof(uint8_t));
-
-  // TODO: check texture
 
   SDL2::SDL_GetRendererOutputSize(this->renderer, &this->width, &this->height);
 
@@ -152,6 +234,14 @@ void SDLRenderer::Attach(SDL_Window* window) {
 
   LOGX_INFO("Texture Formats: %s", textureFormats);
 
+  this->fillRectTexture = this->CreateTexture(1, 1, Texture::Updatable);
+
+  if (!this->fillRectTexture) {
+    throw std::runtime_error("Failed to create fill rect texture.");
+  }
+
+  this->fillRectTexture->Update(kSinglePixelWhite.data());
+
   LOGX_INFO("SDL_Renderer: %ix%i driver=%s renderer=%s textureFormat=%s maxTextureSize=%i,%i "
             "software=%s accelerated=%s vsync=%s renderTarget=%s",
             this->GetWidth(),
@@ -168,8 +258,12 @@ void SDLRenderer::Attach(SDL_Window* window) {
 }
 
 void SDLRenderer::Detach() {
-  this->fillRectTexture.Destroy();
-  this->renderTarget = {};
+  this->fillRectTexture = Texture::SafeDestroy(this->fillRectTexture);
+
+  if (!this->textures.empty()) {
+    LOG_ERROR("leaked %i textures", this->textures.size());
+  }
+
   this->renderer = DestroyRenderer(this->renderer);
   this->width = 0;
   this->height = 0;
@@ -184,9 +278,13 @@ void SDLRenderer::DrawImage(
     const Point& origin,
     const Rect& box,
     const IntRect& src,
-    const Texture& texture,
+    Texture* texture,
     const RenderFilter& filter) noexcept {
-  auto tex{texture.Cast<SDL_Texture>()};
+  if (!texture) {
+    return;
+  }
+
+  auto tex{texture->As<SDL_Texture>()};
   const auto& srcRect{reinterpret_cast<const SDL_Rect&>(src)};
   SDLSetTextureTint(tex, filter);
 
@@ -219,8 +317,12 @@ void SDLRenderer::DrawImage(
 }
 
 void SDLRenderer::DrawImage(
-    const Rect& box, const IntRect& src, const Texture& texture, const RenderFilter& filter) noexcept {
-  auto tex{texture.Cast<SDL_Texture>()};
+    const Rect& box, const IntRect& src, Texture* texture, const RenderFilter& filter) noexcept {
+  if (!texture) {
+    return;
+  }
+
+  auto tex{texture->As<SDL_Texture>()};
   const auto& srcRect{reinterpret_cast<const SDL_Rect&>(src)};
   SDLSetTextureTint(tex, filter);
 
@@ -243,14 +345,14 @@ void SDLRenderer::DrawImage(
   }
 }
 
-static void LayoutCapInsetsSourceRects(const EdgeRect& capInsets, const Texture& texture, SDL_Rect* src) noexcept {
+static void LayoutCapInsetsSourceRects(const EdgeRect& capInsets, Texture* texture, SDL_Rect* src) noexcept {
   const auto top{capInsets.top};
   const auto right{capInsets.right};
   const auto bottom{capInsets.bottom};
   const auto left{capInsets.left};
 
-  const auto textureWidth{texture.Width()};
-  const auto textureHeight{texture.Height()};
+  const auto textureWidth{texture->Width()};
+  const auto textureHeight{texture->Height()};
 
   // Top row
   src[0] = { 0, 0, left, top };
@@ -293,14 +395,14 @@ static void LayoutCapInsetsDestRects(const Rect& box, const EdgeRect& capInsets,
 }
 
 void SDLRenderer::DrawImageCapInsets(
-    const Rect& box, const EdgeRect& capInsets, const Texture& texture, const RenderFilter& filter) noexcept {
+    const Rect& box, const EdgeRect& capInsets, Texture* texture, const RenderFilter& filter) noexcept {
   if (!texture) {
     return;
   }
 
   static constexpr auto kSize = 9;
   SDL_Rect src[kSize];
-  auto nativeTexture{texture.Cast<SDL_Texture>()};
+  auto nativeTexture{texture->As<SDL_Texture>()};
 
   SDLSetTextureTint(nativeTexture, filter);
   LayoutCapInsetsSourceRects(capInsets, texture, src);
