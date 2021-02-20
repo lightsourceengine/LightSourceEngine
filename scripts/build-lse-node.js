@@ -53,6 +53,10 @@
 //
 // If specified, the node executable will be stripped of debug symbols.
 //
+// --strip-lse-binary
+//
+// If specified, the LSE .node files will be stripped of debug symbols.
+//
 // --minimal-node-install
 // If specified, nearly everything except the node binary is stripped from the official node package. The resulting
 // package will not be functional for node development, but the package can run Light Source Engine apps. This is
@@ -184,6 +188,7 @@ const commandLineArgSpec = [
   { name: 'skip-compile', type: Boolean, defaultValue: false },
   { name: 'compress-node-binary', type: Boolean, defaultValue: false },
   { name: 'strip-node-binary', type: Boolean, defaultValue: false },
+  { name: 'strip-lse-binary', type: Boolean, defaultValue: false },
   { name: 'minimal-node-install', type: Boolean, defaultValue: false },
   { name: 'node-binary-cache', type: String, multiple: false, defaultValue: '' },
   { name: 'node-binary-source', type: String, multiple: false, defaultValue: NodeBinarySource.nodejs },
@@ -467,7 +472,7 @@ class LightSourceNodePackage {
     complete()
   }
 
-  async installModule(module) {
+  async installModule(module, options) {
     if (module.js) {
       const sourceDir = join(this.#nodeBuiltin, module.name)
 
@@ -481,9 +486,18 @@ class LightSourceNodePackage {
     if (module.native) {
       const name = basename(module.native)
       const nativeDir = join(this.#nodeBuiltin, module.name, 'Release')
+      const targetFilename = join(nativeDir, name)
 
       await ensureDir(nativeDir)
-      await copy(module.native, join(nativeDir, name))
+      await copy(module.native, targetFilename)
+
+      if (options.stripLseBinary) {
+        const complete = logMark(`${name}: strip...`)
+
+        await stripNativeBinary(targetFilename, options)
+
+        complete()
+      }
     }
 
     if (module.font) {
@@ -505,26 +519,7 @@ class LightSourceNodePackage {
     if (options.stripNodeBinary) {
       const complete = logMark('node: strip...')
 
-      if (options.isArmCrossCompile) {
-        let strip
-
-        switch (options.arch) {
-          case Architecture.armv6l:
-          case Architecture.armv7l:
-            strip = join(options.crosstoolsHome,
-              'x64-gcc-6.3.1/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip')
-            break
-          case Architecture.arm64:
-            strip = 'aarch64-linux-gnu-strip'
-            break
-          default:
-            throw Error(`Unknown arm architecture: ${options.arch}`)
-        }
-
-        await runCommand (strip, [executable])
-      } else {
-        await runCommand ('strip', [ executable ])
-      }
+      await stripNativeBinary(executable, options)
 
       complete()
     }
@@ -973,6 +968,29 @@ const runCommand = async (...args) => {
   })
 }
 
+const stripNativeBinary = async (filename, options) => {
+  if (options.isArmCrossCompile) {
+    let strip
+
+    switch (options.arch) {
+      case Architecture.armv6l:
+      case Architecture.armv7l:
+        strip = join(options.crosstoolsHome,
+          'x64-gcc-6.3.1/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip')
+        break
+      case Architecture.arm64:
+        strip = 'aarch64-linux-gnu-strip'
+        break
+      default:
+        throw Error(`Unknown arm architecture: ${options.arch}`)
+    }
+
+    await runCommand (strip, [filename])
+  } else {
+    await runCommand ('strip', [filename])
+  }
+}
+
 const createLseNodePackage = async () => {
   const options = getCommandLineOptions()
   const sourceRoot = new SourceRoot()
@@ -1024,10 +1042,10 @@ const createLseNodePackage = async () => {
     .then(() => {
       // These files are dependent on compile completing and staging creating directories.
       return Promise.all([
-        lightSourceNodePackage.installModule(sourceRoot.getLightSourceLoaderModule()),
-        lightSourceNodePackage.installModule(sourceRoot.getLightSourceModule()),
-        lightSourceNodePackage.installModule(sourceRoot.getLightSourceReactModule()),
-        lightSourceNodePackage.installModule(sourceRoot.getReactModule()),
+        lightSourceNodePackage.installModule(sourceRoot.getLightSourceLoaderModule(), options),
+        lightSourceNodePackage.installModule(sourceRoot.getLightSourceModule(), options),
+        lightSourceNodePackage.installModule(sourceRoot.getLightSourceReactModule(), options),
+        lightSourceNodePackage.installModule(sourceRoot.getReactModule(), options),
       ])
     })
 

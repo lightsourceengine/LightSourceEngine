@@ -163,13 +163,13 @@ jobs:
           - arch: armv7l
             build_lse_node_args: --sdl-profile system
           - arch: armv7l
-            build_lse_node_args: --node-binary-source custom --node-custom-tag pi_xnpm_xintl --sdl-profile native --profile pi --sdl-runtime-pkg ${GITHUB_WORKSPACE}/SDL2-2.0.14-armv7l-pi --compress-node-binary --strip-node-binary --minimal-node-install
+            build_lse_node_args: --node-binary-source custom --node-custom-tag pi_xnpm_xintl --sdl-profile native --profile pi --sdl-runtime-pkg ${GITHUB_WORKSPACE}/SDL2-2.0.14-armv7l-pi --compress-node-binary --strip-node-binary --strip-lse-binary --minimal-node-install
           - arch: armv7l
-            build_lse_node_args: --node-binary-source custom --node-custom-tag pi_xnpm_xintl_xhttp --sdl-profile system --profile nclassic --compress-node-binary --strip-node-binary --minimal-node-install
+            build_lse_node_args: --node-binary-source custom --node-custom-tag pi_xnpm_xintl_xhttp --sdl-profile system --profile nclassic --compress-node-binary --strip-node-binary --strip-lse-binary --minimal-node-install
           - arch: armv6l
             build_lse_node_args: --node-binary-source unofficial --sdl-profile system
           - arch: armv6l
-            build_lse_node_args: --node-binary-source custom --node-custom-tag pi_xnpm_xintl --sdl-profile native --profile pi --sdl-runtime-pkg ${GITHUB_WORKSPACE}/SDL2-2.0.14-armv6l-pi --compress-node-binary --strip-node-binary --minimal-node-install
+            build_lse_node_args: --node-binary-source custom --node-custom-tag pi_xnpm_xintl --sdl-profile native --profile pi --sdl-runtime-pkg ${GITHUB_WORKSPACE}/SDL2-2.0.14-armv6l-pi --compress-node-binary --strip-node-binary --strip-lse-binary --minimal-node-install
     steps:
       - name: Checkout
         uses: actions/checkout@v2
