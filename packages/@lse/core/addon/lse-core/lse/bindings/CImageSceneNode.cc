@@ -13,9 +13,56 @@
 
 using napix::js_class::define;
 using napix::descriptor::instance_accessor;
+using napix::descriptor::instance_value;
+using napix::descriptor::instance_method;
 
 namespace lse {
 namespace bindings {
+
+class NapiImageStatusCallback : public ImageStatusCallback {
+ public:
+  NapiImageStatusCallback(napi_env env, napi_ref callback) noexcept : env(env), callback(callback) {
+  }
+
+  ~NapiImageStatusCallback() override {
+    if (this->callback) {
+      napi_delete_reference(this->env, this->callback);
+    }
+  }
+
+  void Invoke(Resource* image, const std::string& errorMessage) override {
+    napi_value jsImage;
+    napi_value jsErrorMessage{};
+
+    try {
+      jsImage = image->Summarize(this->env);
+    } catch (const std::exception& e) {
+      LOG_ERROR(e.what());
+      return;
+    }
+
+    if (image->GetState() == Resource::Error) {
+      jsErrorMessage = napix::to_value_or_null(this->env, errorMessage.c_str());
+    } else {
+      napi_get_undefined(env, &jsErrorMessage);
+    }
+
+    if (!jsErrorMessage) {
+      LOG_ERROR("failed to create message");
+      return;
+    }
+
+    auto status = napix::call_function(this->env, this->callback, { jsImage, jsErrorMessage }, nullptr);
+
+    if (status != napi_ok) {
+      LOG_ERROR("image status callback failed");
+    }
+  }
+
+ private:
+  napi_env env{};
+  napi_ref callback{};
+};
 
 static napi_value GetSource(napi_env env, napi_callback_info info) noexcept {
   return napix::to_value(env, napix::unwrap_this_as<ImageSceneNode>(env, info)->GetSource());
@@ -35,28 +82,34 @@ static napi_value SetSource(napi_env env, napi_callback_info info) noexcept {
   return {};
 }
 
-static napi_value GetOnLoad(napi_env env, napi_callback_info info) noexcept {
-  return napix::unwrap_this_as<ImageSceneNode>(env, info)->GetOnLoadCallback(env);
-}
-
-static napi_value SetOnLoad(napi_env env, napi_callback_info info) noexcept {
+static napi_value SetImageStatusCallback(napi_env env, napi_callback_info info) noexcept {
   auto ci{napix::get_callback_info<1>(env, info)};
   auto node{ci.unwrap_this_as<ImageSceneNode>(env)};
+  std::unique_ptr<NapiImageStatusCallback> callback;
 
-  node->SetOnLoadCallback(env, ci[0]);
+  if (napix::is_function(env, ci[0])) {
+    if (node->HasImageStatusCallback()) {
+      napix::throw_error(env, "callback already set");
+      return {};
+    }
 
-  return {};
-}
+    napi_ref ref{};
+    napi_create_reference(env, ci[0], 1, &ref);
 
-static napi_value GetOnError(napi_env env, napi_callback_info info) noexcept {
-  return napix::unwrap_this_as<ImageSceneNode>(env, info)->GetOnErrorCallback(env);
-}
+    if (!ref) {
+      napix::throw_error(env, "failed to create ref");
+      return {};
+    }
 
-static napi_value SetOnError(napi_env env, napi_callback_info info) noexcept {
-  auto ci{napix::get_callback_info<1>(env, info)};
-  auto node{ci.unwrap_this_as<ImageSceneNode>(env)};
+    callback = std::make_unique<NapiImageStatusCallback>(env, ref);
+  } else if (!napix::is_nullish(env, ci[0])) {
+    napix::throw_error(env, "expected function or null");
+    return {};
+  }
 
-  node->SetOnErrorCallback(env, ci[0]);
+  if (napi_set_named_property(env, ci.thisContext, "cb", napix::to_value(env, callback != nullptr)) == napi_ok) {
+    node->SetImageStatusCallback(std::move(callback));
+  }
 
   return {};
 }
@@ -64,9 +117,10 @@ static napi_value SetOnError(napi_env env, napi_callback_info info) noexcept {
 napi_value CImageSceneNode::CreateClass(napi_env env) noexcept {
   auto props{ CSceneNode::GetClassProperties(env) };
 
+  // Flag that allows js to avoid calling into native code.
+  props.emplace_back(instance_value("cb", napix::to_value(env, false), napi_writable));
+  props.emplace_back(instance_method("setCallback", &SetImageStatusCallback));
   props.emplace_back(instance_accessor("src", &GetSource, &SetSource));
-  props.emplace_back(instance_accessor("onLoad", &GetOnLoad, &SetOnLoad));
-  props.emplace_back(instance_accessor("onError", &GetOnError, &SetOnError));
 
   return define(env, NAME, &CSceneNodeConstructor<ImageSceneNode>, props.size(), props.data());
 }

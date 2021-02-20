@@ -69,8 +69,8 @@ describe('ImageElement', () => {
 
       // 2. Replace <img> src with a different image.
       const setSrc = new Promise((resolve, reject) => {
-        img.onLoad = (...args) => resolve(args[1])
-        img.onError = (...args) => reject(Error(args[1]))
+        img.onLoad = (...args) => resolve(args[0])
+        img.onError = (...args) => reject(Error('unexpected call to onError'))
         img.src = kImage1080
       })
 
@@ -93,9 +93,9 @@ const renderImage = async (src) => {
     render(
       root,
       <img
+        onLoad={(...args) => resolve(args[0])}
+        onError={(...args) => reject(Error('unexpected call to onError'))}
         src={src}
-        onLoad={(...args) => resolve(args[1])}
-        onError={(...args) => reject(Error(args[1]))}
       />
     )
   })
@@ -106,8 +106,8 @@ const renderImageNoSrc = async () => {
     render(
       root,
       <img
-        onLoad={(...args) => reject(Error(args[1]))}
-        onError={(...args) => reject(Error(args[1]))}
+        onLoad={(...args) => reject(Error('unexpected call to onLoad'))}
+        onError={(...args) => reject(Error('unexpected call to onError'))}
       />,
       resolve)
   })

@@ -48,7 +48,7 @@ class Resource {
   State GetState() const noexcept { return this->state; }
   virtual void Load(Napi::Env env) = 0;
 
-  Napi::String GetErrorMessage(const Napi::Env& env) const;
+  const std::string& GetErrorMessage() const noexcept;
   virtual Napi::Value Summarize(const Napi::Env& env) const = 0;
 
  protected:

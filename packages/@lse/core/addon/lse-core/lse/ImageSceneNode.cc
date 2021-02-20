@@ -136,7 +136,16 @@ void ImageSceneNode::SetSource(napi_env env, std::string&& value) noexcept {
       return;
     }
 
-    this->resourceProgress.Dispatch(this, this->image.get());
+    if (this->imageStatusCallback) {
+      switch (res->GetState()) {
+        case Resource::Ready:
+        case Resource::Error:
+          this->imageStatusCallback->Invoke(res, res->GetErrorMessage());
+          break;
+        default:
+          break;
+      }
+    }
 
     if (this->image->GetState() == Resource::Ready && !this->image->HasTexture()) {
       // TODO: is the renderer attached?
@@ -163,51 +172,23 @@ void ImageSceneNode::SetSource(napi_env env, std::string&& value) noexcept {
   }
 }
 
-napi_value ImageSceneNode::GetOnLoadCallback(napi_env env) noexcept {
-  try {
-    return this->resourceProgress.GetOnLoad(env);
-  } catch (const Napi::Error& e) {
-    napix::throw_error(env, e.what());
-  }
-
-  return {};
+bool ImageSceneNode::HasImageStatusCallback() const noexcept {
+  return this->imageStatusCallback != nullptr;
 }
 
-void ImageSceneNode::SetOnLoadCallback(napi_env env, napi_value value) noexcept {
-  try {
-    this->resourceProgress.SetOnLoad(env, Napi::Value(env, value));
-  } catch (const Napi::Error& e) {
-    napix::throw_error(env, e.what());
-  }
-}
-
-napi_value ImageSceneNode::GetOnErrorCallback(napi_env env) noexcept {
-  try {
-    return this->resourceProgress.GetOnError(env);
-  } catch (const Napi::Error& e) {
-    napix::throw_error(env, e.what());
-  }
-
-  return {};
-}
-
-void ImageSceneNode::SetOnErrorCallback(napi_env env, napi_value value) noexcept {
-  try {
-    this->resourceProgress.SetOnError(env, Napi::Value(env, value));
-  } catch (const Napi::Error& e) {
-    napix::throw_error(env, e.what());
-  }
+void ImageSceneNode::SetImageStatusCallback(std::unique_ptr<ImageStatusCallback>&& callback) noexcept {
+  this->imageStatusCallback = std::move(callback);
 }
 
 void ImageSceneNode::OnDestroy() {
   this->ClearResource();
-  this->resourceProgress.Reset();
+  this->imageStatusCallback = nullptr;
 }
 
 // TODO: temporary hack due to scene and renderer shutdown conflicts
 void ImageSceneNode::OnDetach() {
   this->ClearResource();
-  this->resourceProgress.Reset();
+  this->imageStatusCallback = nullptr;
 }
 
 void ImageSceneNode::ClearResource() {

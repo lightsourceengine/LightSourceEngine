@@ -244,6 +244,9 @@ export class BoxSceneNode extends SceneNode {
   }
 }
 
+const $onLoad = Symbol('onLoad')
+const $onError = Symbol('onError')
+
 export class ImageSceneNode extends SceneNode {
   constructor (scene) {
     super(scene, new CImageSceneNode(scene.$native))
@@ -258,23 +261,31 @@ export class ImageSceneNode extends SceneNode {
   }
 
   get onLoad () {
-    return this._native.onLoad
+    return this[$onLoad]
   }
 
   set onLoad (value) {
-    this._native.onLoad = value
+    this._native.cb || setImageStatusCallback(this)
+    this[$onLoad] = typeof value === 'function' ? value : null
   }
 
   get onError () {
-    return this._native.onError
+    return this[$onError]
   }
 
   set onError (value) {
-    this._native.onError = value
+    this._native.cb || setImageStatusCallback(this)
+    this[$onError] = typeof value === 'function' ? value : null
   }
 
   isLeaf () {
     return true
+  }
+
+  _destroy () {
+    this._native.cb && clearImageStatusCallback(this)
+    this[$onLoad] = this[$onError] = null
+    super._destroy()
   }
 }
 
@@ -316,3 +327,18 @@ const nativeBindStyle = (native) => native.bindStyle(new Style())
 const nativeAppendChild = (native, child) => native.appendChild(child)
 const nativeRemoveChild = (native, child) => native.removeChild(child)
 const nativeDestroy = (native) => native.destroy()
+
+const setImageStatusCallback = (node) => {
+  const self = node
+  self._native.setCallback((img, errorCode) => {
+    if (errorCode) {
+      self[$onError]?.(img, errorCode)
+    } else {
+      self[$onLoad]?.(img)
+    }
+  })
+}
+
+const clearImageStatusCallback = (node) => {
+  node._native.setCallback(null)
+}

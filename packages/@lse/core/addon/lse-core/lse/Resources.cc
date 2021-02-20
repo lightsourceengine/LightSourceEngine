@@ -29,8 +29,8 @@ Resource::Resource(const std::string& tag) : id(nextResourceId++), tag(tag) {
   }
 }
 
-Napi::String Resource::GetErrorMessage(const Napi::Env& env) const {
-  return Napi::String::New(env, this->errorMessage);
+const std::string& Resource::GetErrorMessage() const noexcept {
+  return this->errorMessage;
 }
 
 void Resource::NotifyListeners() {

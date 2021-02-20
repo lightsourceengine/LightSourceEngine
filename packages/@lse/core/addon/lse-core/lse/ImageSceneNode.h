@@ -7,11 +7,13 @@
 #pragma once
 
 #include <lse/Rect.h>
-#include <lse/ResourceProgress.h>
 #include <lse/types.h>
 #include <lse/SceneNode.h>
 
 namespace lse {
+
+class Resource;
+class ImageStatusCallback;
 
 class ImageSceneNode final : public SceneNode {
  public:
@@ -23,11 +25,8 @@ class ImageSceneNode final : public SceneNode {
   const std::string& GetSource() const noexcept;
   void SetSource(napi_env env, std::string&& value) noexcept;
 
-  napi_value GetOnLoadCallback(napi_env env) noexcept;
-  void SetOnLoadCallback(napi_env env, napi_value value) noexcept;
-
-  napi_value GetOnErrorCallback(napi_env env) noexcept;
-  void SetOnErrorCallback(napi_env env, napi_value value) noexcept;
+  bool HasImageStatusCallback() const noexcept;
+  void SetImageStatusCallback(std::unique_ptr<ImageStatusCallback>&& callback) noexcept;
 
   void OnDetach() override;
   void OnComputeStyle() override;
@@ -46,7 +45,13 @@ class ImageSceneNode final : public SceneNode {
   std::string src{};
   ImageRef image{};
   ImageRect imageRect{};
-  ResourceProgress resourceProgress{};
+  std::unique_ptr<ImageStatusCallback> imageStatusCallback{};
+};
+
+class ImageStatusCallback {
+ public:
+  virtual ~ImageStatusCallback() = default;
+  virtual void Invoke(Resource* image, const std::string& errorMessage) = 0;
 };
 
 } // namespace lse

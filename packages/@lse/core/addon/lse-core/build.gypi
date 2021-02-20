@@ -61,7 +61,6 @@
         "lse/Paintable.cc",
         "lse/RenderingContext2D.cc",
         "lse/Resources.cc",
-        "lse/ResourceProgress.cc",
         "lse/Scene.cc",
         "lse/SceneNode.cc",
         "lse/Stage.cc",
