@@ -9,7 +9,7 @@
 
 #include <lse/Matrix.h>
 #include <lse/Rect.h>
-#include <lse/Style.h>
+#include <lse/StyleProperty.h>
 #include <Yoga.h>
 
 namespace lse {

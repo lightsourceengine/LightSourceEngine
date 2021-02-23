@@ -23,12 +23,12 @@ constexpr int32_t kNumChannels = 4;
 // TODO: this list should be user configurable.
 // List of image extensions to search when path contains the '.*' extension.
 constexpr std::array<const char*, 5> kImageExtensions{{
-                                                          ".png",
-                                                          ".jpg",
-                                                          ".jpeg",
-                                                          ".gif",
-                                                          ".svg"
-                                                      }};
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".svg"
+}};
 
 namespace lse {
 

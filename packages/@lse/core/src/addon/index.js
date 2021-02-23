@@ -34,6 +34,7 @@ export const {
   CScene,
   CStyle,
   CFontManager,
+  CImageManager,
   CBoxSceneNode,
   CImageSceneNode,
   CRootSceneNode,
@@ -65,5 +66,6 @@ export const {
   loadSDLAudioPlugin,
   loadSDLMixerPlugin,
   installStyleValue,
-  installStyleTransformSpec
+  installStyleTransformSpec,
+  installImage
 } = addon

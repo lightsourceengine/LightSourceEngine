@@ -8,7 +8,6 @@
 
 #include <lse/Reference.h>
 #include <lse/StyleEnums.h>
-#include <lse/types.h>
 #include <lse/Color.h>
 #include <lse/Math.h>
 #include <Yoga.h>
@@ -158,7 +157,6 @@ class Style : public Reference {
 
   static void Init();
   static Style* Or(Style* style) noexcept;
-  static Style* Or(const StyleRef& style) noexcept;
 
  private:
   using StylePropertySet = phmap::flat_hash_set<StyleProperty>;

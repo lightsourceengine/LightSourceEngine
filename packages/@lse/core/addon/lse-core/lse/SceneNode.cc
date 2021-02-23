@@ -18,21 +18,11 @@
 #include <lse/yoga-ext.h>
 #include <lse/Habitat.h>
 
-using Napi::Array;
-using Napi::Boolean;
-using Napi::CallbackInfo;
-using Napi::Error;
-using Napi::EscapableHandleScope;
-using Napi::HandleScope;
-using Napi::Number;
-using Napi::Object;
-using Napi::Value;
-
 namespace lse {
 
 int32_t SceneNode::instanceCount{0};
 
-SceneNode::SceneNode(napi_env env, Scene* scene) : env(env), scene(scene) {
+SceneNode::SceneNode(Scene* scene) : scene(scene) {
   assert(scene != nullptr);
 
   this->ygNode = YGNodeNew();
@@ -78,9 +68,9 @@ void SceneNode::SetHidden(bool value) noexcept {
   this->flags.set(FlagHidden, value);
 }
 
-Resources* SceneNode::GetResources() const noexcept {
+ImageManager* SceneNode::GetImageManager() const noexcept {
   assert(this->scene);
-  return this->scene->GetStage()->GetResources();
+  return this->scene->GetImageManager();
 }
 
 SceneNode* SceneNode::GetParent() const noexcept {

@@ -56,7 +56,7 @@ describe('ImageSceneNode', () => {
         const node = scene.createNode('img')
 
         node.src = input
-        assert.equal(node.src, input)
+        assert.equal(node.src.uri, input)
       }
     })
     it('should be assignable to a relative file path', async () => {
@@ -68,23 +68,7 @@ describe('ImageSceneNode', () => {
         const uri = join('test/resources', input)
 
         node.src = uri
-        assert.equal(node.src, uri)
-
-        promises.push(expectOnLoad(node))
-      }
-
-      await Promise.all(promises)
-    })
-    it('should be assignable to a resource uri', async () => {
-      scene.stage.start()
-      const promises = []
-
-      for (const input of images) {
-        const node = scene.createNode('img')
-        const uri = `file:test/resources/${input}`
-
-        node.src = uri
-        assert.equal(node.src, uri)
+        assert.equal(node.src.uri, uri)
 
         promises.push(expectOnLoad(node))
       }
@@ -99,7 +83,7 @@ describe('ImageSceneNode', () => {
         '<rect x="2" y="2" width="296" height="296" style="fill:#DEDEDE;stroke:#555555;stroke-width:2"/></svg>'
 
       node.src = uri
-      assert.equal(node.src, uri)
+      assert.equal(node.src.uri, uri)
 
       await expectOnLoad(node)
     })
@@ -110,7 +94,7 @@ describe('ImageSceneNode', () => {
       const uri = 'test/resources/640x480.*'
 
       node.src = uri
-      assert.equal(node.src, uri)
+      assert.equal(node.src.uri, uri)
 
       await expectOnLoad(node)
     })
@@ -121,7 +105,7 @@ describe('ImageSceneNode', () => {
       const uri = 'test/resources/invalid.jpg'
 
       node.src = uri
-      assert.equal(node.src, uri)
+      assert.equal(node.src.uri, uri)
 
       await expectOnError(node)
     })
@@ -130,7 +114,7 @@ describe('ImageSceneNode', () => {
 
       for (const input of ['', null, undefined, 3, {}, { id: 'image.jpg' }]) {
         node.src = input
-        assert.isEmpty(node.src)
+        assert.isEmpty(node.src.uri)
       }
     })
   })

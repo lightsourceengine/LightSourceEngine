@@ -9,6 +9,7 @@
 
 #include <napix.h>
 #include <lse/Habitat.h>
+#include <lse/SceneNode.h>
 
 using napix::js_class::define;
 using napix::descriptor::instance_method;

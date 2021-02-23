@@ -12,7 +12,7 @@ namespace lse {
 
 class RootSceneNode final : public SceneNode {
  public:
-  explicit RootSceneNode(napi_env env, Scene* scene);
+  explicit RootSceneNode(Scene* scene);
   ~RootSceneNode() override = default;
 
   void OnStylePropertyChanged(StyleProperty property) override;

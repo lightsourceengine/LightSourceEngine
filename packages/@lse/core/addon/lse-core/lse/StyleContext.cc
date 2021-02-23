@@ -13,7 +13,7 @@
 #include <Yoga.h>
 #include <YGStyle.h>
 #include <lse/Style.h>
-#include <lse/Resources.h>
+#include <lse/Image.h>
 
 namespace lse {
 
@@ -290,8 +290,16 @@ Rect StyleContext::ComputeBackgroundFit(Style* style, const Rect& box, const Ima
       }
       break;
     default:
-      width = this->ComputeBackgroundSize(style, StyleProperty::backgroundWidth, box.width, image->WidthF());
-      height = this->ComputeBackgroundSize(style, StyleProperty::backgroundHeight, box.height, image->HeightF());
+      width = this->ComputeBackgroundSize(
+          style,
+          StyleProperty::backgroundWidth,
+          box.width,
+          image->WidthF());
+      height = this->ComputeBackgroundSize(
+          style,
+          StyleProperty::backgroundHeight,
+          box.height,
+          image->HeightF());
       break;
   }
 

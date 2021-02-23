@@ -7,14 +7,13 @@
 
 #pragma once
 
+#include <vector>
 #include <lse/Habitat.h>
 
-#include <lse/BoxSceneNode.h>
-#include <lse/ImageSceneNode.h>
-#include <lse/RootSceneNode.h>
-#include <lse/TextSceneNode.h>
-
 namespace lse {
+
+struct ImageRequest;
+
 namespace bindings {
 
 class CStage {
@@ -86,6 +85,22 @@ class CTextSceneNode {
  public:
   static constexpr auto NAME = "CTextSceneNode";
   static constexpr auto CLASS_ID = Habitat::Class::CTextSceneNode;
+
+  static napi_value CreateClass(napi_env env) noexcept;
+};
+
+class CImage {
+ public:
+  static constexpr auto NAME = "CImage";
+  static constexpr auto CLASS_ID = Habitat::Class::CImage;
+
+  bool UnboxImageRequest(napi_env env, napi_value value, ImageRequest& imageRequest) noexcept;
+};
+
+class CImageManager {
+ public:
+  static constexpr auto NAME = "CImageManager";
+  static constexpr auto CLASS_ID = Habitat::Class::CImageManager;
 
   static napi_value CreateClass(napi_env env) noexcept;
 };

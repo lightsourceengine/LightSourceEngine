@@ -15,6 +15,7 @@
 #include <lse/bindings/SDLAudioExports.h>
 #include <lse/bindings/SDLMixerExports.h>
 #include <lse/bindings/CoreClasses.h>
+#include <lse/SceneNode.h>
 
 namespace lse {
 namespace bindings {
@@ -133,16 +134,22 @@ napi_value ResetStyle(napi_env env, napi_callback_info info) noexcept {
   return {};
 }
 
-napi_value InstallStyleValue(napi_env env, napi_callback_info info) noexcept {
+static napi_value SetClass(napi_env env, napi_callback_info info, Habitat::Class::Enum classId) noexcept {
   auto ci{napix::get_callback_info<1>(env, info)};
 
-  return Habitat::SetClass(env, Habitat::Class::StyleValue, ci[0]);
+  return Habitat::SetClass(env, classId, ci[0]);
+}
+
+napi_value InstallStyleValue(napi_env env, napi_callback_info info) noexcept {
+  return SetClass(env, info, Habitat::Class::StyleValue);
 }
 
 napi_value InstallStyleTransformSpec(napi_env env, napi_callback_info info) noexcept {
-  auto ci{napix::get_callback_info<1>(env, info)};
+  return SetClass(env, info, Habitat::Class::StyleTransformSpec);
+}
 
-  return Habitat::SetClass(env, Habitat::Class::StyleTransformSpec, ci[0]);
+napi_value InstallImage(napi_env env, napi_callback_info info) noexcept {
+  return SetClass(env, info, Habitat::Class::CImage);
 }
 
 napi_value GetSceneNodeInstanceCount(napi_env env, napi_callback_info info) noexcept {

@@ -31,7 +31,7 @@ napi_value CSceneNodeConstructor(napi_env env, napi_callback_info info) noexcept
           return {};
         }
 
-        return new (std::nothrow) T(env, scene);
+        return new (std::nothrow) T(scene);
       },
       [](napi_env env, void* data, void* hint) {
         static_cast<T*>(data)->Unref();

@@ -53,6 +53,7 @@ napi_value CoreExports(napi_env env, napi_value exports) noexcept {
   Export(env, exports, "setStyleParent", &SetStyleParent);
   Export(env, exports, "installStyleValue", &InstallStyleValue);
   Export(env, exports, "installStyleTransformSpec", &InstallStyleTransformSpec);
+  Export(env, exports, "installImage", &InstallImage);
 
   Export(env, exports, "parseValue", &ParseValue);
   Export(env, exports, "parseColor", &ParseColor);
@@ -69,6 +70,7 @@ napi_value CoreExports(napi_env env, napi_value exports) noexcept {
   Export(env, exports, CImageSceneNode::CLASS_ID);
   Export(env, exports, CRootSceneNode::CLASS_ID);
   Export(env, exports, CTextSceneNode::CLASS_ID);
+  Export(env, exports, CImageManager::CLASS_ID);
 
   return exports;
 }
@@ -124,6 +126,7 @@ static void LoadHabitatClasses(napi_env env) noexcept {
   Habitat::SetClass(env, CImageSceneNode::CLASS_ID, CImageSceneNode::CreateClass(env));
   Habitat::SetClass(env, CRootSceneNode::CLASS_ID, CRootSceneNode::CreateClass(env));
   Habitat::SetClass(env, CTextSceneNode::CLASS_ID, CTextSceneNode::CreateClass(env));
+  Habitat::SetClass(env, CImageManager::CLASS_ID, CImageManager::CreateClass(env));
 }
 
 } // namespace bindings

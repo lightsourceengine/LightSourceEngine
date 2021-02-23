@@ -14,6 +14,7 @@
 #include <lse/StyleContext.h>
 #include <lse/Timer.h>
 #include <lse/PixelConversion.h>
+#include <lse/Log.h>
 #include <cmath>
 #include <utf8.h>
 #include <cctype>

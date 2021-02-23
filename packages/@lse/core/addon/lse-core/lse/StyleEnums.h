@@ -117,7 +117,7 @@ constexpr const float DEFAULT_REM_FONT_SIZE = 16.f;
 
 // Add ToString, FromString and Count to Yoga enum types for a consistent enum interface across style properties.
 
-#define LSE_GEN_ENUM_FUNCTIONS(ENUM)                          \
+#define LSE_GEN_ENUM_FUNCTIONS(ENUM)                         \
     ENUM ENUM##FromString(const char* value);                \
     template<>                                               \
     inline ENUM FromString(const char* value) {              \

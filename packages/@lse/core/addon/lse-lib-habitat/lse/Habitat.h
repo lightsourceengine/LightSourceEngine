@@ -35,6 +35,8 @@ class Habitat {
       CImageSceneNode,
       CBoxSceneNode,
       CTextSceneNode,
+      CImage,
+      CImageManager,
       StyleValue,
       StyleTransformSpec,
       Count

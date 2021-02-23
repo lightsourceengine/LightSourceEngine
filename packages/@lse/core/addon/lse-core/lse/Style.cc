@@ -338,10 +338,6 @@ Style* Style::Or(Style* style) noexcept {
   }
 }
 
-Style* Style::Or(const StyleRef& style) noexcept {
-  return Or(style.get());
-}
-
 void Style::OnMediaChange(bool remChange, bool viewportChange) noexcept {
   if (!this->onChange) {
     return;

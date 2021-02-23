@@ -4,20 +4,61 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <lse/BoxSceneNode.h>
+#include "BoxSceneNode.h"
 
+#include <lse/Image.h>
 #include <lse/Scene.h>
-#include <lse/Stage.h>
 #include <lse/Style.h>
 #include <lse/CompositeContext.h>
 #include <lse/Renderer.h>
 
 namespace lse {
 
-BoxSceneNode::BoxSceneNode(napi_env env, Scene* scene) : SceneNode(env, scene) {
+BoxSceneNode::BoxSceneNode(Scene* scene) : SceneNode(scene) {
 }
 
 void BoxSceneNode::OnComputeStyle() {
+  auto boxStyle{Style::Or(this->style)};
+  bool release{};
+  bool acquire{};
+
+  if (boxStyle->IsEmpty(StyleProperty::backgroundImage)) {
+    release = true;
+  } else if (this->backgroundImage) {
+    if (this->backgroundImage->GetRequest().uri != boxStyle->GetString(StyleProperty::backgroundImage)) {
+      release = acquire = true;
+    }
+  } else {
+    acquire = true;
+  }
+
+  if (release) {
+    this->backgroundImage = ImageManager::SafeRelease(this->GetImageManager(), this->backgroundImage, this);
+  }
+
+  if (acquire) {
+    this->backgroundImage = ImageManager::SafeAcquire(
+        this->GetImageManager(),
+        {boxStyle->GetString(StyleProperty::backgroundImage)},
+        this,
+        &BoxSceneNode::ImageStatusListener);
+  }
+
+  if (Image::SafeIsReady(this->backgroundImage)) {
+    auto dest = this->GetStyleContext()->ComputeBackgroundFit(
+        boxStyle,
+        YGNodeGetBox(this->ygNode),
+        this->backgroundImage);
+
+    this->backgroundImageRect = ClipImage(
+        YGNodeGetBox(this->ygNode),
+        dest,
+        this->backgroundImage->WidthF(),
+        this->backgroundImage->HeightF());
+  } else {
+    this->backgroundImageRect = {};
+  }
+
   this->MarkCompositeDirty();
 }
 
@@ -26,14 +67,20 @@ void BoxSceneNode::OnComposite(CompositeContext* ctx) {
 
   this->DrawBackground(ctx, boxStyle->GetEnum<StyleBackgroundClip>(StyleProperty::backgroundClip));
 
+  if (Image::SafeIsReady(this->backgroundImage) && !IsEmpty(this->backgroundImageRect)) {
+    ctx->renderer->DrawImage(
+        this->backgroundImageRect.dest,
+        this->backgroundImageRect.src,
+        this->backgroundImage->GetTexture(),
+        {});
+  }
+
   this->DrawBorder(ctx);
 }
 
 void BoxSceneNode::OnStylePropertyChanged(StyleProperty property) {
   switch (property) {
     case StyleProperty::backgroundImage:
-      this->UpdateBackgroundImage(this->style->GetString(StyleProperty::backgroundImage));
-      break;
     case StyleProperty::backgroundRepeat:
     case StyleProperty::backgroundClip:
     case StyleProperty::backgroundSize:
@@ -50,7 +97,6 @@ void BoxSceneNode::OnStylePropertyChanged(StyleProperty property) {
       break;
     case StyleProperty::backgroundColor:
     case StyleProperty::borderColor:
-      // TODO: check layout only
       this->MarkCompositeDirty();
       break;
     default:
@@ -63,59 +109,22 @@ void BoxSceneNode::OnFlexBoxLayoutChanged() {
   this->MarkComputeStyleDirty();
 }
 
-void BoxSceneNode::UpdateBackgroundImage(const std::string& backgroundUri) {
-  if (backgroundUri.empty()) {
-    if (this->backgroundImage && this->backgroundImage->HasTexture()) {
-      this->ClearBackgroundImageResource();
-      this->MarkComputeStyleDirty();
-    }
-    return;
-  }
-
-  this->ClearBackgroundImageResource();
-  this->backgroundImage = this->GetResources()->AcquireImage(backgroundUri);
-
-  auto listener{ [this](Resource::Owner owner, Resource* res) {
-    if (this != owner || this->backgroundImage.get() != res) {
-      return;
-    }
-
-    res->RemoveListener(owner);
-    this->MarkComputeStyleDirty();
-  }};
-
-  switch (this->backgroundImage->GetState()) {
-    case Resource::State::Init:
-      this->backgroundImage->AddListener(this, listener);
-      this->backgroundImage->Load(this->env);
-      break;
-    case Resource::State::Loading:
-      this->backgroundImage->AddListener(this, listener);
-      break;
-    case Resource::State::Ready:
-    case Resource::State::Error:
-      listener(this, this->backgroundImage.get());
-      break;
-  }
-}
-
-void BoxSceneNode::ClearBackgroundImageResource() {
-  if (this->backgroundImage) {
-    auto resource = this->backgroundImage.get();
-    this->backgroundImage->RemoveListener(this);
-    this->backgroundImage = nullptr;
-
-    this->GetResources()->ReleaseResource(resource);
-  }
-}
-
 void BoxSceneNode::OnDestroy() {
-  this->ClearBackgroundImageResource();
+  this->backgroundImage = ImageManager::SafeRelease(this->GetImageManager(), this->backgroundImage, this);
 }
 
-// TODO: temporary hack due to scene and renderer shutdown conflicts
-void BoxSceneNode::OnDetach() {
-  this->ClearBackgroundImageResource();
+void BoxSceneNode::ImageStatusListener(void* owner, Image* image) noexcept {
+  auto node{static_cast<BoxSceneNode*>(owner)};
+
+  switch (image->GetState()) {
+    case ImageState::Ready:
+    case ImageState::Error:
+      image->RemoveListener(owner);
+      node->MarkComputeStyleDirty();
+      break;
+    default:
+      break;
+  }
 }
 
 } // namespace lse

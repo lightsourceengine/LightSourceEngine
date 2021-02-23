@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <lse/types.h>
 #include <lse/CompositeContext.h>
 #include <lse/StyleContext.h>
 #include <lse/RenderingContext2D.h>
@@ -14,6 +13,8 @@
 #include <lse/Reference.h>
 #include <lse/Stage.h>
 #include <lse/FontManager.h>
+#include <lse/ImageManager.h>
+#include <lse/StyleEnums.h>
 
 #include <algorithm>
 #include <memory>
@@ -30,7 +31,7 @@ class SceneNode;
  */
 class Scene : public Reference {
  public:
-  Scene(Stage* stage, FontManager* fontManager, GraphicsContext* context);
+  Scene(Stage* stage, FontManager* fontManager, ImageManager* imageManager, GraphicsContext* context);
   ~Scene() override;
 
   void Attach();
@@ -41,9 +42,11 @@ class Scene : public Reference {
   void SetRoot(RootSceneNode* root);
 
   Stage* GetStage() const noexcept { return this->stage.Get(); }
-  StyleContext* GetStyleContext() const noexcept { return &this->styleContext; }
-  Renderer* GetRenderer() const noexcept;
   FontManager* GetFontManager() const noexcept;
+  ImageManager* GetImageManager() const noexcept;
+  Renderer* GetRenderer() const noexcept;
+
+  StyleContext* GetStyleContext() const noexcept { return &this->styleContext; }
   int32_t GetWidth() const noexcept { return this->width; }
   int32_t GetHeight() const noexcept { return this->height; }
 
@@ -66,6 +69,7 @@ class Scene : public Reference {
  private:
   ReferenceHolder<Stage> stage{};
   ReferenceHolder<FontManager> fontManager{};
+  ReferenceHolder<ImageManager> imageManager{};
   ReferenceHolder<GraphicsContext> graphicsContext{};
   SceneNode* root{};
   mutable StyleContext styleContext{ 0, 0, 0 };

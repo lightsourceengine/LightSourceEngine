@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <lse/Resources.h>
 #include <lse/Reference.h>
 
 namespace lse {
@@ -23,12 +22,7 @@ namespace lse {
  */
 class Stage : public Reference {
  public:
-  void Update();
   void Destroy();
-  Resources* GetResources() const noexcept { return &this->resources; }
-
- private:
-  mutable Resources resources;
 };
 
 } // namespace lse

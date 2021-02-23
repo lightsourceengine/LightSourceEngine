@@ -43,7 +43,7 @@ class Reference {
 };
 
 /**
- * Manages ref'ing and unref'ing a Refence object.
+ * Manages ref'ing and unref'ing a Reference object.
  *
  * ReferenceHolders are not mean to be passed around the system. They are used
  * inside of a class to manage a Reference.

@@ -11,7 +11,6 @@
 #include <vector>
 #include <blend2d.h>
 #include <lse/Paintable.h>
-#include <lse/Resources.h>
 #include <lse/StyleEnums.h>
 #include <lse/Blend2DFontFace.h>
 

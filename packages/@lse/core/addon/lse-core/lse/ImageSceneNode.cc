@@ -4,14 +4,11 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <lse/ImageSceneNode.h>
+#include "ImageSceneNode.h"
 
-// TODO: remove after image loading depends are removed
-#include <napix.h>
-
+#include <lse/Image.h>
 #include <lse/Style.h>
 #include <lse/Scene.h>
-#include <lse/Stage.h>
 #include <lse/Renderer.h>
 #include <lse/Color.h>
 #include <lse/CompositeContext.h>
@@ -19,7 +16,7 @@
 
 namespace lse {
 
-ImageSceneNode::ImageSceneNode(napi_env env, Scene* scene) : SceneNode(env, scene) {
+ImageSceneNode::ImageSceneNode(Scene* scene) : SceneNode(scene) {
   // set up the yoga node to call SceneNode::OnMeasure() when a measure is requested.
   YGNodeSetMeasureFunc(this->ygNode, SceneNode::YogaMeasureCallback);
 }
@@ -48,7 +45,7 @@ void ImageSceneNode::OnFlexBoxLayoutChanged() {
 }
 
 void ImageSceneNode::OnComputeStyle() {
-  if (!this->image || !this->image->HasTexture()) {
+  if (!Image::SafeIsReady(this->image)) {
     return;
   }
 
@@ -58,7 +55,7 @@ void ImageSceneNode::OnComputeStyle() {
   // Determine where the image should be placed relative to this node's bounds. The placement
   // can overflow the scene node's bounds.
   auto imageDest{this->GetStyleContext()->ComputeObjectFit(
-      Style::Or(this->style), bounds, this->image.get())};
+      Style::Or(this->style), bounds, this->image)};
 
   // Clip the image (destination and source texture coordinates) against the scene node's bounds,
   // image placement and padding.
@@ -71,7 +68,7 @@ void ImageSceneNode::OnComputeStyle() {
 void ImageSceneNode::OnComposite(CompositeContext* ctx) {
   this->DrawBackground(ctx, StyleBackgroundClipBorderBox);
 
-  if (this->image && this->image->HasTexture()) {
+  if (Image::SafeIsReady(this->image)) {
 //    auto box{YGNodeGetBox(this->ygNode)};
     const auto& transform{ ctx->CurrentRenderTransform() };
 
@@ -102,74 +99,27 @@ YGSize ImageSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float hei
   return SceneNode::OnMeasure(width, widthMode, height, heightMode);
 }
 
-const std::string& ImageSceneNode::GetSource() const noexcept {
-  return this->src;
-}
-
-void ImageSceneNode::SetSource(napi_env env, std::string&& value) noexcept {
-  if (value == this->src) {
+void ImageSceneNode::SetSource(const ImageRequest& request) noexcept {
+  if (this->image && this->image->GetRequest() == request) {
     return;
   }
 
-  if (value.empty()) {
-    if (!this->src.empty()) {
-      this->src.clear();
-      this->ClearResource();
-      YGNodeMarkDirty(this->ygNode);
-    }
-    return;
-  }
+  auto imageManager{this->GetImageManager()};
 
   if (this->image) {
     YGNodeMarkDirty(this->ygNode);
   }
 
-  this->ClearResource();
-  this->src = std::move(value);
-  this->image = this->GetResources()->AcquireImage(this->src);
+  ImageManager::SafeRelease(imageManager, this->image, this);
+  this->image = ImageManager::SafeAcquire(imageManager, request, this, &ImageSceneNode::ImageStatusListener);
+}
 
-  auto listener{ [this](Resource::Owner owner, Resource* res) {
-    constexpr auto LAMBDA_FUNCTION = "ImageResourceListener";
-
-    if (this != owner || this->image.get() != res) {
-      LOG_WARN_LAMBDA("Invalid owner or resource: %s", this->src);
-      return;
-    }
-
-    if (this->imageStatusCallback) {
-      switch (res->GetState()) {
-        case Resource::Ready:
-        case Resource::Error:
-          this->imageStatusCallback->Invoke(res, res->GetErrorMessage());
-          break;
-        default:
-          break;
-      }
-    }
-
-    if (this->image->GetState() == Resource::Ready && !this->image->HasTexture()) {
-      // TODO: is the renderer attached?
-      this->image->LoadTexture(this->scene->GetRenderer());
-    }
-
+void ImageSceneNode::ResetSource() noexcept {
+  if (this->image) {
     YGNodeMarkDirty(this->ygNode);
-    res->RemoveListener(owner);
-  }};
-
-  switch (this->image->GetState()) {
-    case Resource::State::Init:
-      this->image->AddListener(this, listener);
-      this->image->Load(env);
-      break;
-    case Resource::State::Loading:
-      this->image->AddListener(this, listener);
-      break;
-    case Resource::State::Ready:
-    case Resource::State::Error:
-      // TODO: should Dispatch() run callbacks synchronously or through a microtask?
-      listener(this, this->image.get());
-      break;
   }
+
+  this->image = ImageManager::SafeRelease(this->GetImageManager(), this->image, this);
 }
 
 bool ImageSceneNode::HasImageStatusCallback() const noexcept {
@@ -181,24 +131,24 @@ void ImageSceneNode::SetImageStatusCallback(std::unique_ptr<ImageStatusCallback>
 }
 
 void ImageSceneNode::OnDestroy() {
-  this->ClearResource();
+  this->image = ImageManager::SafeRelease(this->GetImageManager(), this->image, this);
   this->imageStatusCallback = nullptr;
 }
 
-// TODO: temporary hack due to scene and renderer shutdown conflicts
-void ImageSceneNode::OnDetach() {
-  this->ClearResource();
-  this->imageStatusCallback = nullptr;
-}
+void ImageSceneNode::ImageStatusListener(void* owner, Image* image) noexcept {
+  auto node{static_cast<ImageSceneNode*>(owner)};
 
-void ImageSceneNode::ClearResource() {
-  // TODO: releasing a resource should be less verbose
-  if (this->image) {
-    auto resource = this->image.get();
-    this->image->RemoveListener(this);
-    this->image = nullptr;
-
-    this->GetResources()->ReleaseResource(resource);
+  switch (image->GetState()) {
+    case ImageState::Ready:
+    case ImageState::Error:
+      if (node->imageStatusCallback) {
+        node->imageStatusCallback->Invoke(image);
+      }
+      image->RemoveListener(owner);
+      YGNodeMarkDirty(node->ygNode);
+      break;
+    default:
+      break;
   }
 }
 

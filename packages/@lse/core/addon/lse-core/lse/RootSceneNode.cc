@@ -13,7 +13,7 @@
 
 namespace lse {
 
-RootSceneNode::RootSceneNode(napi_env env, Scene* scene) : SceneNode(env, scene) {
+RootSceneNode::RootSceneNode(Scene* scene) : SceneNode(scene) {
 }
 
 void RootSceneNode::OnStylePropertyChanged(StyleProperty property) {

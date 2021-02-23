@@ -66,10 +66,10 @@ class ImageBytes {
   }
 
  private:
-  std::shared_ptr<uint8_t> bytes;
-  int32_t width;
-  int32_t height;
-  int32_t pitch;
+  std::shared_ptr<uint8_t> bytes{};
+  int32_t width{};
+  int32_t height{};
+  int32_t pitch{};
   PixelFormat format{ PixelFormat::PixelFormatRGBA };
 };
 

@@ -29,11 +29,6 @@ static napi_value Constructor(napi_env env, napi_callback_info info) noexcept {
       });
 }
 
-static napi_value Update(napi_env env, napi_callback_info info) noexcept {
-  unwrap_this_as<Stage>(env, info)->Update();
-  return {};
-}
-
 static napi_value Destroy(napi_env env, napi_callback_info info) noexcept {
   unwrap_this_as<Stage>(env, info)->Destroy();
   return {};
@@ -41,7 +36,6 @@ static napi_value Destroy(napi_env env, napi_callback_info info) noexcept {
 
 napi_value CStage::CreateClass(napi_env env) {
   return define(env, NAME, Constructor, {
-      instance_method("update", &Update),
       instance_method("destroy", &Destroy),
   });
 }

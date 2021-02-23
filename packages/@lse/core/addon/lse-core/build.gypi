@@ -58,9 +58,10 @@
         "lse/CompositeContext.cc",
         "lse/DecodeFont.cc",
         "lse/DecodeImage.cc",
+        "lse/Image.cc",
+        "lse/ImageManager.cc",
         "lse/Paintable.cc",
         "lse/RenderingContext2D.cc",
-        "lse/Resources.cc",
         "lse/Scene.cc",
         "lse/SceneNode.cc",
         "lse/Stage.cc",
@@ -78,6 +79,8 @@
         "lse/bindings/CoreExports.cc",
         "lse/bindings/CoreFunctions.cc",
         "lse/bindings/CBoxSceneNode.cc",
+        "lse/bindings/CImage.cc",
+        "lse/bindings/CImageManager.cc",
         "lse/bindings/CImageSceneNode.cc",
         "lse/bindings/CRefGraphicsContext.cc",
         "lse/bindings/CRootSceneNode.cc",
@@ -95,12 +98,14 @@
             "include_dirs": [
               "<!@(node -p \"require('napi-unit').include\")"
             ],
+            "defines": [ "LSE_ENABLE_NATIVE_TESTS" ],
             "sources": [
+              "test/DecodeImageSpec.cc",
+              "test/ImageManagerSpec.cc",
               "test/ImageSpec.cc",
-              "test/ResourcesSpec.cc",
-              "test/ThreadPoolSpec.cc",
-              "test/StyleSpec.cc",
               "test/StyleContextSpec.cc",
+              "test/StyleSpec.cc",
+              "test/ThreadPoolSpec.cc",
             ]
           }
         ]

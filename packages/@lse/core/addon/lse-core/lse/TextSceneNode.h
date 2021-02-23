@@ -8,13 +8,12 @@
 
 #include <lse/SceneNode.h>
 #include <lse/TextBlock.h>
-#include <lse/types.h>
 
 namespace lse {
 
 class TextSceneNode final : public SceneNode {
  public:
-  explicit TextSceneNode(napi_env env, Scene* scene);
+  explicit TextSceneNode(Scene* scene);
   ~TextSceneNode() override = default;
 
   bool IsLeaf() const noexcept override { return true; }

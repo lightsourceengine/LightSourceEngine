@@ -8,10 +8,6 @@
 
 namespace lse {
 
-void Stage::Update() {
-  this->GetResources()->Compact();
-}
-
 void Stage::Destroy() {
   // TODO: cleanup resources
 }

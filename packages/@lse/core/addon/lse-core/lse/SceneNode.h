@@ -6,15 +6,12 @@
 
 #pragma once
 
-#include <lse/types.h>
 #include <lse/Reference.h>
 #include <lse/Scene.h>
 #include <lse/Style.h>
 #include <lse/yoga-ext.h>
 #include <event/event.h>
-#include <napi-ext.h>
 #include <lse/StyleEnums.h>
-#include <lse/Resources.h>
 #include <bitset>
 
 namespace lse {
@@ -30,8 +27,7 @@ class Texture;
 
 class SceneNode : public Reference {
  public:
-  // TODO: remove env when image loading no longer needs it
-  explicit SceneNode(napi_env env, Scene* scene);
+  explicit SceneNode(Scene* scene);
   ~SceneNode() override = default;
 
   float GetX() const noexcept;
@@ -54,7 +50,7 @@ class SceneNode : public Reference {
 
   // events
   virtual void OnAttach() {}
-  virtual void OnDetach() = 0;
+  virtual void OnDetach() {}
   virtual void OnDestroy() {}
   virtual void OnStylePropertyChanged(StyleProperty property);
   virtual void OnFlexBoxLayoutChanged() {}
@@ -88,7 +84,7 @@ class SceneNode : public Reference {
     FlagPaintDirty,
   };
 
-  Resources* GetResources() const noexcept;
+  ImageManager* GetImageManager() const noexcept;
 
   void MarkComputeStyleDirty() noexcept;
   void MarkCompositeDirty() noexcept;
@@ -108,7 +104,6 @@ class SceneNode : public Reference {
 
  protected:
   static int32_t instanceCount;
-  napi_env env{};
   ReferenceHolder<Scene> scene{};
   ReferenceHolder<Style> style{};
   YGNodeRef ygNode{};

@@ -9,6 +9,7 @@ import { BoxSceneNode, ImageSceneNode, TextSceneNode, RootSceneNode } from './Sc
 import { createAttachedEvent, createDestroyedEvent, createDestroyingEvent, createDetachedEvent } from '../event/index.js'
 import { EventName } from '../event/EventName.js'
 import { EventTarget } from '../event/EventTarget.js'
+import { ImageManager } from '../image/ImageManager.js'
 
 const kEmptyFrameListener = Object.freeze([0, null])
 let sFrameRequestId = 0
@@ -22,6 +23,7 @@ export class Scene extends EventTarget {
   _fgFrameListeners = []
   _bgFrameListeners = []
   _attached = false
+  _imageManager = new ImageManager()
 
   constructor (stage, config) {
     super([
@@ -33,7 +35,7 @@ export class Scene extends EventTarget {
 
     this._stage = stage
     this._context = stage.system.$createGraphicsContext(config)
-    this._native = new CScene(stage.$native, stage.font.$native, this._context)
+    this._native = new CScene(stage.$native, stage.font.$native, this._imageManager.$native, this._context)
     this._root = new RootSceneNode(this)
     const { style } = this._root
 
@@ -57,6 +59,10 @@ export class Scene extends EventTarget {
 
   get root () {
     return this._root
+  }
+
+  get image () {
+    return this._imageManager
   }
 
   isAttached () {

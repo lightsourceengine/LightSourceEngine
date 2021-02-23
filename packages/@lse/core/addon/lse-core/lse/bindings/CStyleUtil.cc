@@ -7,7 +7,6 @@
 
 #include <lse/bindings/CStyleUtil.h>
 
-#include <napi.h>
 #include <napix.h>
 #include <lse/StyleValidator.h>
 #include <lse/string-ext.h>

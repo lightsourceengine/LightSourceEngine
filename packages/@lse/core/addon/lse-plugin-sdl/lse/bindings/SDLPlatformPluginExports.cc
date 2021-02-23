@@ -15,9 +15,6 @@
 #include <lse/SDLPlatformPlugin.h>
 #include <lse/bindings/CSDLGraphicsContext.h>
 
-using Napi::Boolean;
-using Napi::Number;
-
 using napix::descriptor::instance_value;
 using napix::descriptor::instance_method;
 

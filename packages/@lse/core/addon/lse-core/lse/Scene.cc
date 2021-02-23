@@ -19,8 +19,8 @@
 
 namespace lse {
 
-Scene::Scene(Stage* stage, FontManager* fontManager, GraphicsContext* context)
-: stage(stage), fontManager(fontManager), graphicsContext(context) {
+Scene::Scene(Stage* stage, FontManager* fontManager, ImageManager* imageManager, GraphicsContext* context)
+: stage(stage), fontManager(fontManager), imageManager(imageManager), graphicsContext(context) {
   this->children.reserve(32);
   this->paintRequests.reserve(32);
 }
@@ -43,6 +43,7 @@ void Scene::Attach() {
 
   const auto w{ this->graphicsContext->GetWidth() };
   const auto h{ this->graphicsContext->GetHeight() };
+  auto renderer{this->GetRenderer()};
 
   if (w != this->width || h != this->height) {
     this->width = w;
@@ -51,14 +52,25 @@ void Scene::Attach() {
   }
 
   this->SyncStyleContext();
+  this->renderingContext2D.renderer = renderer;
 
-  this->renderingContext2D.renderer = this->graphicsContext->GetRenderer();
   this->isAttached = true;
+  this->MarkCompositeDirty();
 
-  this->RequestComposite();
+  this->imageManager->Attach(renderer);
+
+  if (!this->isAttached) {
+    return;
+  }
+
+  if (this->root) {
+    SceneNode::Visit(this->root, [](SceneNode* node){ node->OnAttach(); });
+  }
 }
 
 void Scene::Detach() {
+  this->imageManager->Detach(this->GetRenderer());
+
   if (this->root) {
     SceneNode::Visit(this->root, [](SceneNode* node){ node->OnDetach(); });
   }
@@ -72,6 +84,8 @@ void Scene::Frame() {
   if (!this->isAttached) {
     return;
   }
+
+  // TODO: load textures
 
   // media changes, root font size and/or viewport change
   // DispatchMediaChangeEvent
@@ -87,14 +101,24 @@ void Scene::Frame() {
 
   // composite
   this->Composite();
+
+  // TODO: image deletes
 }
 
 void Scene::Destroy() noexcept {
   this->isAttached = false;
+
+  if (this->imageManager) {
+    this->imageManager->Destroy();
+    this->imageManager = nullptr;
+  }
+
   if (this->root) {
     this->root->Unref();
     this->root = nullptr;
   }
+
+  this->fontManager = nullptr;
   this->graphicsContext = nullptr;
   this->stage = nullptr;
 }
@@ -115,6 +139,10 @@ Renderer* Scene::GetRenderer() const noexcept {
 
 FontManager* Scene::GetFontManager() const noexcept {
   return this->fontManager;
+}
+
+ImageManager* Scene::GetImageManager() const noexcept {
+  return this->imageManager;
 }
 
 void Scene::RequestComposite() {

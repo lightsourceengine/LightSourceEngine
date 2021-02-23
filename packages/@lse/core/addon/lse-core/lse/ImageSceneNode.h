@@ -7,28 +7,27 @@
 #pragma once
 
 #include <lse/Rect.h>
-#include <lse/types.h>
 #include <lse/SceneNode.h>
 
 namespace lse {
 
-class Resource;
+class Image;
 class ImageStatusCallback;
+struct ImageRequest;
 
 class ImageSceneNode final : public SceneNode {
  public:
-  explicit ImageSceneNode(napi_env env, Scene* scene);
+  explicit ImageSceneNode(Scene* scene);
   ~ImageSceneNode() override = default;
 
   bool IsLeaf() const noexcept override { return true; }
 
-  const std::string& GetSource() const noexcept;
-  void SetSource(napi_env env, std::string&& value) noexcept;
+  void SetSource(const ImageRequest& request) noexcept;
+  void ResetSource() noexcept;
 
   bool HasImageStatusCallback() const noexcept;
   void SetImageStatusCallback(std::unique_ptr<ImageStatusCallback>&& callback) noexcept;
 
-  void OnDetach() override;
   void OnComputeStyle() override;
   void OnComposite(CompositeContext* composite) override;
   void OnStylePropertyChanged(StyleProperty property) override;
@@ -39,11 +38,11 @@ class ImageSceneNode final : public SceneNode {
   void OnDestroy() override;
 
  private:
-  void ClearResource();
+  static void ImageStatusListener(void* owner, Image* image) noexcept;
 
  private:
   std::string src{};
-  ImageRef image{};
+  Image* image{};
   ImageRect imageRect{};
   std::unique_ptr<ImageStatusCallback> imageStatusCallback{};
 };
@@ -51,7 +50,7 @@ class ImageSceneNode final : public SceneNode {
 class ImageStatusCallback {
  public:
   virtual ~ImageStatusCallback() = default;
-  virtual void Invoke(Resource* image, const std::string& errorMessage) = 0;
+  virtual void Invoke(Image* image) = 0;
 };
 
 } // namespace lse

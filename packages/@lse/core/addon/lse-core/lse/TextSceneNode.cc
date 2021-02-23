@@ -16,7 +16,7 @@
 
 namespace lse {
 
-TextSceneNode::TextSceneNode(napi_env env, Scene* scene) : SceneNode(env, scene) {
+TextSceneNode::TextSceneNode(Scene* scene) : SceneNode(scene) {
   YGNodeSetMeasureFunc(this->ygNode, SceneNode::YogaMeasureCallback);
   YGNodeSetNodeType(this->ygNode, YGNodeTypeText);
 }

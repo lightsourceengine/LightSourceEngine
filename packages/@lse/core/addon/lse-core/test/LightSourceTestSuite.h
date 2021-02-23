@@ -14,7 +14,8 @@ void ThreadPoolSpec(Napi::TestSuite* parent);
 void StyleSpec(Napi::TestSuite* parent);
 void StyleContextSpec(Napi::TestSuite* parent);
 void ImageSpec(Napi::TestSuite* parent);
-void ResourcesSpec(Napi::TestSuite* parent);
+void DecodeImageSpec(Napi::TestSuite* parent);
+void ImageManagerSpec(Napi::TestSuite* parent);
 
 inline
 Napi::Value LightSourceTestSuite(Napi::Env env) {
@@ -23,7 +24,8 @@ Napi::Value LightSourceTestSuite(Napi::Env env) {
       &StyleSpec,
       &StyleContextSpec,
       &ImageSpec,
-      &ResourcesSpec,
+      &DecodeImageSpec,
+      &ImageManagerSpec,
   });
 }
 

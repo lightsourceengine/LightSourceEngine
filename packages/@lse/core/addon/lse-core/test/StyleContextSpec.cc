@@ -4,9 +4,9 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-#include <lse/Resources.h>
 #include <lse/StyleContext.h>
 #include <lse/Style.h>
+#include <lse/Image.h>
 #include <napi-unit.h>
 
 using Napi::Assert;
@@ -27,50 +27,50 @@ void StyleContextSpec(TestSuite* parent) {
   };
 
   spec->Describe("ComputeObjectFit()")->tests = {
-      {
-          "should position image with 'contain'",
-          [](const TestInfo&) {
-            sTestStyle.SetEnum(StyleProperty::objectFit, "contain");
-            ComputeObjectFitTest(
-                &sTestStyle,
-                Image::Mock("test", 200, 200),
-                { 0, 0, 40, 40 },
-                { 0, 0, 40, 40 });
-          }
-      },
-      {
-          "should position image with 'none'",
-          [](const TestInfo&) {
-            sTestStyle.SetEnum(StyleProperty::objectFit, "none");
-            ComputeObjectFitTest(
-                &sTestStyle,
-                Image::Mock("test", 200, 200),
-                { 0, 0, 100, 100 },
-                { -50, -50, 200, 200 });
-          }
-      },
-      {
-          "should position image with 'cover'",
-          [](const TestInfo&) {
-            sTestStyle.SetEnum(StyleProperty::objectFit, "cover");
-            ComputeObjectFitTest(
-                &sTestStyle,
-                Image::Mock("test", 100, 200),
-                { 0, 0, 100, 100 },
-                { 0, -50, 100, 200 });
-          }
-      },
-      {
-          "should position image with 'fill'",
-          [](const TestInfo&) {
-            sTestStyle.SetEnum(StyleProperty::objectFit, "fill");
-            ComputeObjectFitTest(
-                &sTestStyle,
-                Image::Mock("test", 10, 10),
-                { 0, 0, 100, 100 },
-                { 0, 0, 100, 100 });
-          }
+    {
+      "should position image with 'contain'",
+      [](const TestInfo&) {
+        sTestStyle.SetEnum(StyleProperty::objectFit, "contain");
+        ComputeObjectFitTest(
+            &sTestStyle,
+            Image(200, 200),
+            { 0, 0, 40, 40 },
+            { 0, 0, 40, 40 });
       }
+    },
+    {
+      "should position image with 'none'",
+      [](const TestInfo&) {
+        sTestStyle.SetEnum(StyleProperty::objectFit, "none");
+        ComputeObjectFitTest(
+            &sTestStyle,
+            Image(200, 200),
+            { 0, 0, 100, 100 },
+            { -50, -50, 200, 200 });
+      }
+    },
+    {
+      "should position image with 'cover'",
+      [](const TestInfo&) {
+        sTestStyle.SetEnum(StyleProperty::objectFit, "cover");
+        ComputeObjectFitTest(
+            &sTestStyle,
+            Image(100, 200),
+            { 0, 0, 100, 100 },
+            { 0, -50, 100, 200 });
+      }
+    },
+    {
+      "should position image with 'fill'",
+      [](const TestInfo&) {
+        sTestStyle.SetEnum(StyleProperty::objectFit, "fill");
+        ComputeObjectFitTest(
+            &sTestStyle,
+            Image(10, 10),
+            { 0, 0, 100, 100 },
+            { 0, 0, 100, 100 });
+      }
+    }
   };
 }
 

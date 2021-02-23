@@ -246,18 +246,35 @@ export class BoxSceneNode extends SceneNode {
 
 const $onLoad = Symbol('onLoad')
 const $onError = Symbol('onError')
+const $src = Symbol('src')
+const kEmptySource = Object.freeze({ uri: '' })
 
 export class ImageSceneNode extends SceneNode {
+  [$onLoad] = null;
+  [$onError] = null;
+  [$src] = null;
+
   constructor (scene) {
     super(scene, new CImageSceneNode(scene.$native))
   }
 
   get src () {
-    return this._native.src
+    return this[$src]
   }
 
   set src (value) {
-    this._native.src = value
+    let source
+
+    if (value) {
+      if (typeof value === 'string') {
+        source = { uri: value }
+      } else if (value.uri && typeof value.uri === 'string') {
+        source = value
+      }
+    }
+
+    this._native.setSource(source)
+    this[$src] = source ?? kEmptySource
   }
 
   get onLoad () {
@@ -284,7 +301,7 @@ export class ImageSceneNode extends SceneNode {
 
   _destroy () {
     this._native.cb && clearImageStatusCallback(this)
-    this[$onLoad] = this[$onError] = null
+    this[$onLoad] = this[$onError] = this[$src] = null
     super._destroy()
   }
 }

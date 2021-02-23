@@ -8,6 +8,8 @@
 #include "CoreClasses.h"
 
 #include <napix.h>
+#include <lse/Log.h>
+#include <lse/Image.h>
 #include <lse/ImageSceneNode.h>
 #include <lse/bindings/CSceneNodeConstructor.h>
 
@@ -30,25 +32,20 @@ class NapiImageStatusCallback : public ImageStatusCallback {
     }
   }
 
-  void Invoke(Resource* image, const std::string& errorMessage) override {
-    napi_value jsImage;
+  void Invoke(Image* image) override {
+    napi_value jsImage{napix::to_value_or_null(this->env, image->GetId())};
     napi_value jsErrorMessage{};
 
-    try {
-      jsImage = image->Summarize(this->env);
-    } catch (const std::exception& e) {
-      LOG_ERROR(e.what());
-      return;
-    }
+    // TODO: convert image to javascript
 
-    if (image->GetState() == Resource::Error) {
-      jsErrorMessage = napix::to_value_or_null(this->env, errorMessage.c_str());
+    if (image->IsError()) {
+      jsErrorMessage = napix::to_value_or_null(this->env, image->GetErrorMessage().c_str());
     } else {
-      napi_get_undefined(env, &jsErrorMessage);
+      napi_get_undefined(this->env, &jsErrorMessage);
     }
 
-    if (!jsErrorMessage) {
-      LOG_ERROR("failed to create message");
+    if (!jsImage || !jsErrorMessage) {
+      LOG_ERROR("failed to args");
       return;
     }
 
@@ -64,20 +61,21 @@ class NapiImageStatusCallback : public ImageStatusCallback {
   napi_ref callback{};
 };
 
-static napi_value GetSource(napi_env env, napi_callback_info info) noexcept {
-  return napix::to_value(env, napix::unwrap_this_as<ImageSceneNode>(env, info)->GetSource());
-}
-
 static napi_value SetSource(napi_env env, napi_callback_info info) noexcept {
   auto ci{napix::get_callback_info<1>(env, info)};
   auto node{ci.unwrap_this_as<ImageSceneNode>(env)};
-  std::string src;
 
-  if (napix::is_string(env, ci[0])) {
-    src = napix::as_string_utf8(env, ci[0]);
+  if (napix::is_nullish(env, ci[0])) {
+    node->ResetSource();
+  } else {
+    ImageRequest request{
+      napix::object_get(env, ci[0], "uri"),
+      napix::object_get_or(env, ci[0], "width", 0),
+      napix::object_get_or(env, ci[0], "height", 0),
+    };
+
+    node->SetSource(request);
   }
-
-  node->SetSource(env, std::move(src));
 
   return {};
 }
@@ -120,7 +118,7 @@ napi_value CImageSceneNode::CreateClass(napi_env env) noexcept {
   // Flag that allows js to avoid calling into native code.
   props.emplace_back(instance_value("cb", napix::to_value(env, false), napi_writable));
   props.emplace_back(instance_method("setCallback", &SetImageStatusCallback));
-  props.emplace_back(instance_accessor("src", &GetSource, &SetSource));
+  props.emplace_back(instance_method("setSource", &SetSource));
 
   return define(env, NAME, &CSceneNodeConstructor<ImageSceneNode>, props.size(), props.data());
 }

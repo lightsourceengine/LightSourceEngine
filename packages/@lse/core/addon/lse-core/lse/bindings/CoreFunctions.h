@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <napi-ext.h>
+#include <node_api.h>
 
 namespace lse {
 namespace bindings {
@@ -25,6 +25,7 @@ napi_value SetStyleParent(napi_env env, napi_callback_info info) noexcept;
 napi_value ResetStyle(napi_env env, napi_callback_info info) noexcept;
 napi_value InstallStyleValue(napi_env env, napi_callback_info info) noexcept;
 napi_value InstallStyleTransformSpec(napi_env env, napi_callback_info info) noexcept;
+napi_value InstallImage(napi_env env, napi_callback_info info) noexcept;
 
 napi_value GetSceneNodeInstanceCount(napi_env env, napi_callback_info info) noexcept;
 
