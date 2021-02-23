@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <memory>
 #include <lse/PixelConversion.h>
 
 namespace lse {
