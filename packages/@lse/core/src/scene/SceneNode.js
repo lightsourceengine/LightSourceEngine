@@ -252,7 +252,7 @@ const kEmptySource = Object.freeze({ uri: '' })
 export class ImageSceneNode extends SceneNode {
   [$onLoad] = null;
   [$onError] = null;
-  [$src] = null;
+  [$src] = kEmptySource;
 
   constructor (scene) {
     super(scene, new CImageSceneNode(scene.$native))
