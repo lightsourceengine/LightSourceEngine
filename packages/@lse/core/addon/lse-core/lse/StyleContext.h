@@ -18,16 +18,6 @@ class Style;
 class Image;
 
 /**
- * Border radius corners in screen pixel space.
- */
-struct BorderRadiusCorners {
-  float topLeft;
-  float bottomLeft;
-  float topRight;
-  float bottomRight;
-};
-
-/**
  * Style processing API for SceneNodes.
  */
 class StyleContext {
@@ -48,10 +38,6 @@ class StyleContext {
   Rect ComputeObjectFit(Style* style, const Rect& box, const Image* image) const noexcept;
   Rect ComputeBackgroundFit(Style* style, const Rect& box, const Image* image) const noexcept;
   float ComputeLineHeight(Style* style, float fontLineHeight) const noexcept;
-  BorderRadiusCorners ComputeBorderRadius(Style* style, const Rect& box) const noexcept;
-
-  // Query style state
-  bool HasBorderRadius(Style* style) const noexcept;
 
   // Set environment context variables: viewport width, viewport height, root font size
   void SetViewportSize(float width, float height) noexcept;
@@ -69,9 +55,6 @@ class StyleContext {
   float ComputeObjectFitCoordinate(
       Style* style, StyleProperty property,
       float dimension, float objectDimension, float defaultPercent) const noexcept;
-  float ComputeBorderRadiusProperty(
-      Style* style, StyleProperty property,
-      float dimension, float defaultValue) const noexcept;
 
  private:
   float viewportWidth;

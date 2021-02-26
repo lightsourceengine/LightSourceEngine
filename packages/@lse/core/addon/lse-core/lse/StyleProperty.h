@@ -61,11 +61,6 @@ namespace lse {
      APPLY(backgroundSize) \
      APPLY(backgroundWidth) \
      APPLY(borderColor) \
-     APPLY(borderRadius) \
-     APPLY(borderRadiusTopLeft) \
-     APPLY(borderRadiusTopRight) \
-     APPLY(borderRadiusBottomLeft) \
-     APPLY(borderRadiusBottomRight) \
      APPLY(color) \
      APPLY(fontFamily) \
      APPLY(fontSize) \
@@ -167,11 +162,6 @@ constexpr const uint32_t kStylePropertyMeta[] = {
     /*backgroundSize*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeEnum,
     /*backgroundWidth*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeNumber,
     /*borderColor*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeColor,
-    /*borderRadius*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeNumber,
-    /*borderRadiusTopLeft*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeNumber,
-    /*borderRadiusTopRight*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeNumber,
-    /*borderRadiusBottomLeft*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeNumber,
-    /*borderRadiusBottomRight*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeNumber,
     /*color*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeColor,
     /*fontFamily*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeString,
     /*fontSize*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeNumber,

@@ -130,15 +130,6 @@ float StyleContext::ComputeTransformOrigin(Style* style, StyleProperty property,
   }
 }
 
-bool StyleContext::HasBorderRadius(Style* style) const noexcept {
-  assert(style);
-  return style->Exists(StyleProperty::borderRadius)
-      || style->Exists(StyleProperty::borderRadiusBottomRight)
-      || style->Exists(StyleProperty::borderRadiusBottomLeft)
-      || style->Exists(StyleProperty::borderRadiusTopRight)
-      || style->Exists(StyleProperty::borderRadiusTopLeft);
-}
-
 Rect StyleContext::ComputeObjectFit(Style* style, const Rect& box, const Image* image) const noexcept {
   assert(style);
   auto objectFit{ style->GetEnum<StyleObjectFit>(StyleProperty::objectFit) };
@@ -333,55 +324,6 @@ float StyleContext::ComputeLineHeight(Style* style, float fontLineHeight) const 
     default:
       return fontLineHeight;
   }
-}
-
-BorderRadiusCorners StyleContext::ComputeBorderRadius(Style* style, const Rect& box) const noexcept {
-  assert(style);
-  const auto radiusLimit{ std::min(box.width, box.height) };
-  const auto borderRadius{ this->ComputeBorderRadiusProperty(style, StyleProperty::borderRadius, radiusLimit, 0) };
-
-  return {
-      this->ComputeBorderRadiusProperty(style, StyleProperty::borderRadiusTopLeft, radiusLimit, borderRadius),
-      this->ComputeBorderRadiusProperty(style, StyleProperty::borderRadiusBottomLeft, radiusLimit, borderRadius),
-      this->ComputeBorderRadiusProperty(style, StyleProperty::borderRadiusTopRight, radiusLimit, borderRadius),
-      this->ComputeBorderRadiusProperty(style, StyleProperty::borderRadiusBottomRight, radiusLimit, borderRadius)
-  };
-}
-
-float StyleContext::ComputeBorderRadiusProperty(
-    Style* style, StyleProperty property, float dimension,
-    float defaultValue) const noexcept {
-  float result;
-  const auto& styleValue = style->GetNumber(property);
-
-  switch (styleValue.unit) {
-    case StyleNumberUnitPoint:
-      result = styleValue.value;
-      break;
-    case StyleNumberUnitPercent:
-      result = (styleValue.value / 100.f) * dimension;
-      break;
-    case StyleNumberUnitViewportWidth:
-      result = this->ComputeViewportWidthUnit(styleValue.value);
-      break;
-    case StyleNumberUnitViewportHeight:
-      result = this->ComputeViewportHeightUnit(styleValue.value);
-      break;
-    case StyleNumberUnitViewportMin:
-      result = this->ComputeViewportMinUnit(styleValue.value);
-      break;
-    case StyleNumberUnitViewportMax:
-      result = this->ComputeViewportMaxUnit(styleValue.value);
-      break;
-    case StyleNumberUnitRootEm:
-      result = this->ComputeRemUnit(styleValue.value);
-      break;
-    default:
-      result = defaultValue;
-      break;
-  }
-
-  return std::min(result, dimension * .5f);
 }
 
 void StyleContext::SetViewportSize(float width, float height) noexcept {

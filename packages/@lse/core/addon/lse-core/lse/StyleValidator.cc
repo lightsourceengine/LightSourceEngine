@@ -92,12 +92,6 @@ void StyleValidator::Init() {
   numberValidators[StyleProperty::borderRight] = validate_gte0_point;
   numberValidators[StyleProperty::borderTop] = validate_gte0_point;
 
-  numberValidators[StyleProperty::borderRadius] = validate_gte0_point_percent;
-  numberValidators[StyleProperty::borderRadiusTopLeft] = validate_gte0_point_percent;
-  numberValidators[StyleProperty::borderRadiusTopRight] = validate_gte0_point_percent;
-  numberValidators[StyleProperty::borderRadiusBottomLeft] = validate_gte0_point_percent;
-  numberValidators[StyleProperty::borderRadiusBottomRight] = validate_gte0_point_percent;
-
   numberValidators[StyleProperty::flexBasis] = validate_gte0_point_percent_auto;
 
   numberValidators[StyleProperty::flex] = validate_gte0_point;

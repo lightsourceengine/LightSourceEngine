@@ -38,7 +38,6 @@ const testIntegerValue = (name, value, expectedValue) => {
 
 const invalidStringValues = ['', 3, null, undefined, {}]
 const borderProperties = ['border', 'borderTop', 'borderRight', 'borderBottom', 'borderLeft']
-const borderRadiusProperties = ['borderRadius', 'borderRadiusTopLeft', 'borderRadiusTopRight', 'borderRadiusBottomRight', 'borderRadiusBottomLeft']
 const colorProperties = ['color', 'tintColor', 'backgroundColor', 'borderColor']
 
 describe('Style', () => {
@@ -148,28 +147,6 @@ describe('Style', () => {
     })
     it('should reject invalid value', () => {
       testInvalidPositionProperty(property, yDirection)
-    })
-  })
-  describe('borderRadius properties', () => {
-    it('should set point and viewport values', () => {
-      for (const property of borderRadiusProperties) {
-        testStyleUnitValue(property, 5, StyleUnit.Point, 5)
-        testStyleUnitValue(property, '5px', StyleUnit.Point, 5)
-        testStyleUnitValue(property, 0, StyleUnit.Point, 0)
-        testStyleUnitValue(property, '0px', StyleUnit.Point, 0)
-        testStyleUnitValue(property, '5vw', StyleUnit.ViewportWidth, 5)
-        testStyleUnitValue(property, '5vh', StyleUnit.ViewportHeight, 5)
-        testStyleUnitValue(property, '5vmin', StyleUnit.ViewportMin, 5)
-        testStyleUnitValue(property, '5vmax', StyleUnit.ViewportMax, 5)
-        testStyleUnitValue(property, '5%', StyleUnit.Percent, 5)
-      }
-    })
-    it('should reject %, auto, anchors and negative values', () => {
-      for (const property of borderRadiusProperties) {
-        for (const input of ['auto', 'left', -1, '-1px']) {
-          testStyleValueEmpty(property, input)
-        }
-      }
     })
   })
   describe('fontSize property', () => {

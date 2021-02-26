@@ -92,11 +92,6 @@ void BoxSceneNode::OnStylePropertyChanged(StyleProperty property) {
     case StyleProperty::backgroundPositionY:
     case StyleProperty::backgroundWidth:
     case StyleProperty::backgroundHeight:
-    case StyleProperty::borderRadius:
-    case StyleProperty::borderRadiusBottomRight:
-    case StyleProperty::borderRadiusBottomLeft:
-    case StyleProperty::borderRadiusTopRight:
-    case StyleProperty::borderRadiusTopLeft:
       this->MarkComputeStyleDirty();
       break;
     case StyleProperty::backgroundColor:
