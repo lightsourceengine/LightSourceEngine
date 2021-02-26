@@ -52,11 +52,15 @@ class ImageBytes {
   }
 
   void SyncFormat(PixelFormat targetFormat) noexcept {
-    if (targetFormat == PixelFormat::PixelFormatRGBA || targetFormat == this->format || !this->bytes) {
+    if (targetFormat == PixelFormat::PixelFormatUnknown || targetFormat == PixelFormat::PixelFormatRGBA
+        || targetFormat == this->format || !this->bytes) {
       return;
     }
 
-    ConvertToFormat(reinterpret_cast<color_t*>(this->bytes.get()), this->width * this->height, targetFormat);
+    ConvertToFormat(
+        reinterpret_cast<color_t*>(this->bytes.get()),
+        this->width * this->height,
+        targetFormat);
 
     this->format = targetFormat;
   }

@@ -93,6 +93,7 @@ class Image : public Reference {
   Renderer* renderer{};
   bool isDestroyed{};
   std::string errorMessage{};
+  std::atomic<PixelFormat> rendererTextureFormat{PixelFormatUnknown};
 };
 
 bool operator==(const ImageRequest& lhs, const ImageRequest& rhs) noexcept;

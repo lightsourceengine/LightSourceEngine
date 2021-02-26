@@ -121,6 +121,7 @@ void Image::Attach(Renderer* renderer) {
   }
 
   this->renderer = renderer;
+  this->rendererTextureFormat = renderer->GetTextureFormat();
 }
 
 void Image::Detach(Renderer* renderer) {
@@ -148,6 +149,7 @@ void Image::Destroy() {
 void Image::OnLoadImageAsync() noexcept {
   try {
     this->bytes = DecodeImageFromFile(this->request.uri, this->request.width, this->request.height);
+    this->bytes.SyncFormat(this->rendererTextureFormat);
   } catch (const std::exception& e) {
     this->errorMessage = e.what();
   }
@@ -168,6 +170,7 @@ void Image::OnLoadImageAsyncComplete() noexcept {
     if (!this->bytes.Bytes()) {
       this->state = ImageState::Error;
     } else {
+      this->bytes.SyncFormat(this->rendererTextureFormat);
       this->texture = this->renderer->CreateTexture(
           this->bytes.Width(), this->bytes.Height(), Texture::Updatable);
 
