@@ -290,8 +290,6 @@ void SDLRenderer::DrawImage(
 
   if (this->floatMode) {
     auto destRect{SDLSnapToPixelGrid<SDL_FRect>(box)};
-//    SDL_FPoint center{ -(origin.x - destRect.x), -(origin.y - destRect.y)};
-    SDL_FPoint center{ origin.x, origin.y};
 
     SDL2::SDL_RenderCopyExF(
         this->renderer,
@@ -302,17 +300,16 @@ void SDLRenderer::DrawImage(
         nullptr,
         SDLGetRenderFlip(filter));
   } else {
-//    auto destRect{SDLSnapToPixelGrid<SDL_Rect>(box)};
-//    SDL_Point center{-destRect.x, -destRect.y};
-//
-//    SDL2::SDL_RenderCopyEx(
-//        this->renderer,
-//        tex,
-//        srcRect,
-//        SDLTransformRects(transform, 1, &destRect, &destRect),
-//        transform.rotate,
-//        &center,
-//        SDLGetRenderFlip(filter));
+    auto destRect{SDLSnapToPixelGrid<SDL_Rect>(box)};
+
+    SDL2::SDL_RenderCopyEx(
+        this->renderer,
+        tex,
+        &srcRect,
+        &destRect,
+        transform.rotate,
+        nullptr,
+        SDLGetRenderFlip(filter));
   }
 }
 
@@ -426,9 +423,7 @@ void SDLRenderer::DrawImageCapInsets(
   }
 }
 
-void SDLRenderer::FillRect(
-    const Rect& box,
-    const RenderFilter& filter) noexcept {
+void SDLRenderer::FillRect(const Rect& box, const RenderFilter& filter) noexcept {
   SDLSetDrawColor(this->renderer, filter);
 
   if (this->floatMode) {
@@ -473,10 +468,7 @@ static int32_t LayoutBorder(const Rect& box, const EdgeRect& edges, R* dest) {
   return count;
 }
 
-void SDLRenderer::StrokeRect(
-    const Rect& box,
-    const EdgeRect& edges,
-    const RenderFilter& filter) noexcept {
+void SDLRenderer::StrokeRect(const Rect& box, const EdgeRect& edges, const RenderFilter& filter) noexcept {
   SDLSetDrawColor(this->renderer, filter);
 
   if (this->floatMode) {

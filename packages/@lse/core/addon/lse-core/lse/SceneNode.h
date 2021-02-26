@@ -89,7 +89,7 @@ class SceneNode : public Reference {
   void MarkComputeStyleDirty() noexcept;
   void MarkCompositeDirty() noexcept;
 
-  const std::vector<SceneNode*>& GetChildrenOrderedByZIndex(std::vector<SceneNode*>& temp);
+  const std::vector<SceneNode*>& GetChildrenOrderedByZIndex();
   void SetFlag(Flag flag, bool value) noexcept;
   StyleContext* GetStyleContext() const noexcept;
   Rect GetBackgroundClipBox(StyleBackgroundClip value) const noexcept;
@@ -107,7 +107,8 @@ class SceneNode : public Reference {
   ReferenceHolder<Scene> scene{};
   ReferenceHolder<Style> style{};
   YGNodeRef ygNode{};
-  Texture* target{};
+  Texture* layer{};
+  std::vector<SceneNode*> sortedChildren{};
   std::bitset<8> flags;
 
   friend Scene;

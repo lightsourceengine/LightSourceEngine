@@ -23,7 +23,7 @@ class ImageManager : public Reference {
   ~ImageManager() override = default;
 
   void Attach(Renderer* renderer) noexcept;
-  void Detach(Renderer* renderer) noexcept;
+  void Detach() noexcept;
   void Destroy() noexcept;
 
   Image* Acquire(const ImageRequest& request);

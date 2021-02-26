@@ -45,13 +45,14 @@ void BoxSceneNode::OnComputeStyle() {
   }
 
   if (Image::SafeIsReady(this->backgroundImage)) {
+    auto bounds = YGNodeGetBox(this->ygNode, 0, 0);
     auto dest = this->GetStyleContext()->ComputeBackgroundFit(
         boxStyle,
-        YGNodeGetBox(this->ygNode),
+        bounds,
         this->backgroundImage);
 
     this->backgroundImageRect = ClipImage(
-        YGNodeGetBox(this->ygNode),
+        bounds,
         dest,
         this->backgroundImage->WidthF(),
         this->backgroundImage->HeightF());
@@ -69,7 +70,10 @@ void BoxSceneNode::OnComposite(CompositeContext* ctx) {
 
   if (Image::SafeIsReady(this->backgroundImage) && !IsEmpty(this->backgroundImageRect)) {
     ctx->renderer->DrawImage(
-        this->backgroundImageRect.dest,
+        Translate(
+            this->backgroundImageRect.dest,
+            ctx->CurrentMatrix().GetTranslateX(),
+            ctx->CurrentMatrix().GetTranslateY()),
         this->backgroundImageRect.src,
         this->backgroundImage->GetTexture(),
         {});

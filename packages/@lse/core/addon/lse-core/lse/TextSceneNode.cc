@@ -10,9 +10,11 @@
 #include <lse/yoga-ext.h>
 #include <lse/Style.h>
 #include <lse/CompositeContext.h>
+#include <lse/Log.h>
 #include <lse/Timer.h>
 #include <lse/Renderer.h>
 #include <lse/PixelConversion.h>
+#include <lse/RenderingContext2D.h>
 
 namespace lse {
 
@@ -49,11 +51,9 @@ void TextSceneNode::OnFlexBoxLayoutChanged() {
 }
 
 void TextSceneNode::OnComputeStyle() {
-  // TODO: review logic..
-  if (!this->SetFont(this->style)) {
-    // this->block.Invalidate();
-    // YGNodeMarkDirty(this->ygNode);
-    // TODO: shape?
+  if (this->SetFont(this->style)) {
+     this->block.Invalidate();
+     YGNodeMarkDirty(this->ygNode);
   }
 }
 
@@ -71,59 +71,11 @@ YGSize TextSceneNode::OnMeasure(float width, YGMeasureMode widthMode, float heig
   return { this->block.WidthF(), this->block.HeightF() };
 }
 
-//void TextSceneNode::Paint(RenderingContext2D* context) {
-//  this->block.Paint(context);
-//  this->RequestComposite();
-//}
-//
-//void TextSceneNode::Composite(CompositeContext* composite) {
-//  const auto boxStyle{ Style::Or(this->style) };
-//
-////    if (boxStyle == nullptr || boxStyle->IsLayoutOnly()) {
-////        return;
-////    }
-//
-//  const auto box{ YGNodeGetPaddingBox(this->ygNode) };
-//
-//  if (IsEmpty(box)) {
-//    return;
-//  }
-//
-//  const auto& transform{ composite->CurrentMatrix() };
-//
-//  if (!this->block.IsEmpty()) { // TODO: has texture?
-//    Rect pos{ box.x, box.y, this->block.WidthF(), this->block.HeightF() };
-//
-//    switch (boxStyle->GetEnum(StyleProperty::textAlign)) {
-//      case StyleTextAlignCenter:
-//        pos.x += ((box.width - pos.width) / 2.f);
-//        break;
-//      case StyleTextAlignRight:
-//        pos.x += (box.width - pos.width);
-//        break;
-//      case StyleTextAlignLeft:
-//      default:
-//        break;
-//    }
-//
-//    // TODO: clip
-//
-//    auto textColor{ boxStyle->GetColor(StyleProperty::color).value_or(ColorBlack) };
-//
-//    composite->renderer->DrawImage(this->block.GetTexture(), pos, transform,
-//                                   textColor.MixAlpha(composite->CurrentOpacity()));
-//  }
-//
-//  auto styleColor{ boxStyle->GetColor(StyleProperty::borderColor) };
-//
-//  if (styleColor.has_value()) {
-//    composite->renderer->DrawBorder(
-//        YGNodeGetBox(this->ygNode, 0, 0),
-//        YGNodeGetBorderEdges(this->ygNode),
-//        transform,
-//        styleColor->MixAlpha(composite->CurrentOpacity()));
-//  }
-//}
+void TextSceneNode::OnComposite(CompositeContext* ctx) {
+  this->DrawBackground(ctx, StyleBackgroundClipBorderBox);
+  this->DrawText(ctx);
+  this->DrawBorder(ctx);
+}
 
 const std::string& TextSceneNode::GetText() const {
   return this->text;
@@ -191,6 +143,45 @@ bool TextSceneNode::SetFont(Style* style) {
   }
 
   return dirty;
+}
+
+void TextSceneNode::DrawText(CompositeContext* ctx) {
+  this->block.Paint(this->scene->GetRenderingContext2D());
+
+  if (!this->block.IsReady()) {
+    return;
+  }
+
+  auto box{YGNodeGetPaddingBox(this->ygNode)};
+  auto boxStyle{Style::Or(this->style)};
+  Rect pos{
+    box.x + ctx->CurrentMatrix().GetTranslateX(),
+    box.y + ctx->CurrentMatrix().GetTranslateY(),
+    this->block.WidthF(),
+    this->block.HeightF()
+  };
+
+  switch (boxStyle->GetEnum(StyleProperty::textAlign)) {
+    case StyleTextAlignCenter:
+      pos.x += ((box.width - pos.width) / 2.f);
+      break;
+    case StyleTextAlignRight:
+      pos.x += (box.width - pos.width);
+      break;
+    case StyleTextAlignLeft:
+    default:
+      break;
+  }
+
+  // TODO: clip
+
+  auto textColor{ boxStyle->GetColor(StyleProperty::color).value_or(ColorBlack) };
+
+  ctx->renderer->DrawImage(
+      pos,
+      {0, 0, this->block.GetTexture()->Width(), this->block.GetTexture()->Height()},
+      this->block.GetTexture(),
+      RenderFilter::OfTint(textColor.MixAlpha(ctx->CurrentOpacity())));
 }
 
 void TextSceneNode::ClearFontFaceResource() {

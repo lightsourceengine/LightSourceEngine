@@ -11,6 +11,7 @@
 #include <lse/Scene.h>
 #include <lse/Renderer.h>
 #include <lse/Color.h>
+#include <lse/Log.h>
 #include <lse/CompositeContext.h>
 #include <lse/yoga-ext.h>
 
@@ -82,7 +83,7 @@ void ImageSceneNode::OnComposite(CompositeContext* ctx) {
     ctx->renderer->DrawImage(
         transform,
         { 0, 0 },
-        this->imageRect.dest,
+        Translate(this->imageRect.dest, ctx->CurrentMatrix().GetTranslateX(), ctx->CurrentMatrix().GetTranslateY()),
         this->imageRect.src,
         this->image->GetTexture(),
         filter);

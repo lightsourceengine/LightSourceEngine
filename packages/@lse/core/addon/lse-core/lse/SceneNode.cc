@@ -8,6 +8,7 @@
 
 #include <cassert>
 #include <algorithm>
+#include <lse/Log.h>
 #include <lse/Style.h>
 #include <lse/StyleContext.h>
 #include <lse/Scene.h>
@@ -156,27 +157,27 @@ void SceneNode::RemoveChild(SceneNode* node) noexcept {
 void SceneNode::Paint(CompositeContext* ctx) {
   auto box{YGNodeGetBox(this->ygNode, 0, 0)};
 
-  if (this->target) {
-    if (this->target->Width() < box.width || this->target->Height() < box.height) {
-      this->target = Texture::SafeDestroy(this->target);
+  if (this->layer) {
+    if (this->layer->Width() < box.width || this->layer->Height() < box.height) {
+      this->layer = Texture::SafeDestroy(this->layer);
     }
   }
 
-  if (!this->target) {
-    this->target = ctx->renderer->CreateTexture(box.width, box.height, Texture::RenderTarget);
+  if (!this->layer) {
+    this->layer = ctx->renderer->CreateTexture(box.width, box.height, Texture::RenderTarget);
 
-    if (!this->target) {
+    if (!this->layer) {
       return;
     }
   }
 
-  ctx->renderer->SetRenderTarget(this->target);
+  ctx->renderer->SetRenderTarget(this->layer);
 
   this->OnComposite(ctx);
 }
 
 void SceneNode::Composite(CompositeContext* ctx) {
-  if (this->target) {
+  if (this->layer) {
     auto box{YGNodeGetBox(this->ygNode)};
 
     box.width *= ctx->CurrentMatrix().GetScaleX();
@@ -187,7 +188,7 @@ void SceneNode::Composite(CompositeContext* ctx) {
         { 0, 0 },
         box,
         { 0, 0, static_cast<int32_t>(box.width), static_cast<int32_t>(box.height)},
-        this->target,
+        this->layer,
         {});
   } else {
     this->OnComposite(ctx);
@@ -200,7 +201,7 @@ void SceneNode::Destroy() {
   }
 
   this->OnDestroy();
-  this->target = Texture::SafeDestroy(this->target);
+  this->layer = Texture::SafeDestroy(this->layer);
 
   const auto& children{ YGNodeGetChildren(this->ygNode) };
 
@@ -211,6 +212,8 @@ void SceneNode::Destroy() {
   instanceCount--;
 
   auto parent{ this->GetParent() };
+
+  this->Ref();
 
   if (parent) {
     parent->RemoveChild(this);
@@ -226,6 +229,8 @@ void SceneNode::Destroy() {
 
   YGNodeFree(this->ygNode);
   this->ygNode = nullptr;
+
+  this->Unref();
 }
 
 void SceneNode::OnStylePropertyChanged(StyleProperty property) {
@@ -266,13 +271,14 @@ int32_t SceneNode::GetZIndex(SceneNode* node) const noexcept {
   return node->style && node->style->GetInteger(StyleProperty::zIndex).value_or(0);
 }
 
-const std::vector<SceneNode*>& SceneNode::GetChildrenOrderedByZIndex(std::vector<SceneNode*>& temp) {
+const std::vector<SceneNode*>& SceneNode::GetChildrenOrderedByZIndex() {
+  // TODO: sorting can be cached and invalidated on style change or add/remove.
   SceneNode* node;
   int32_t lastZ = INT32_MIN;
   int32_t currentZ;
   bool outOfOrder{};
 
-  temp.clear();
+  this->sortedChildren.clear();
 
   for (const auto& child : YGNodeGetChildren(this->ygNode)) {
     node = YGNodeGetContextAs<SceneNode>(child);
@@ -287,19 +293,19 @@ const std::vector<SceneNode*>& SceneNode::GetChildrenOrderedByZIndex(std::vector
       lastZ = currentZ;
     }
 
-    temp.push_back(node);
+    this->sortedChildren.push_back(node);
   }
 
   if (outOfOrder) {
     std::stable_sort(
-        temp.begin(),
-        temp.end(),
+        this->sortedChildren.begin(),
+        this->sortedChildren.end(),
         [](SceneNode* a, SceneNode* b) {
           return a->GetZIndex(a) < b->GetZIndex(b);
         });
   }
 
-  return temp;
+  return this->sortedChildren;
 }
 
 YGSize SceneNode::OnMeasure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
@@ -390,8 +396,13 @@ Rect SceneNode::GetBackgroundClipBox(StyleBackgroundClip value) const noexcept {
 
 void SceneNode::DrawBackground(CompositeContext* ctx, StyleBackgroundClip backgroundClip) const noexcept {
   if (this->style && !this->style->IsEmpty(StyleProperty::backgroundColor)) {
-    ctx->renderer->FillRect(
+    auto bounds = Translate(
         GetBackgroundClipBox(backgroundClip),
+        ctx->CurrentMatrix().GetTranslateX(),
+        ctx->CurrentMatrix().GetTranslateY());
+
+    ctx->renderer->FillRect(
+        bounds,
         RenderFilter::OfTint(*this->style->GetColor(StyleProperty::backgroundColor)));
   }
 }
@@ -399,7 +410,7 @@ void SceneNode::DrawBackground(CompositeContext* ctx, StyleBackgroundClip backgr
 void SceneNode::DrawBorder(CompositeContext* ctx) const noexcept {
   if (this->style && !this->style->IsEmpty(StyleProperty::borderColor)) {
     ctx->renderer->StrokeRect(
-        YGNodeGetBox(this->ygNode),
+        YGNodeGetBox(this->ygNode, ctx->CurrentMatrix().GetTranslateX(), ctx->CurrentMatrix().GetTranslateY()),
         YGNodeGetBorderEdges(this->ygNode),
         RenderFilter::OfTint(*this->style->GetColor(StyleProperty::borderColor)));
   }

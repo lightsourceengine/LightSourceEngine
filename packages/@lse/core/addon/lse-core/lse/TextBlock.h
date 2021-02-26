@@ -55,6 +55,8 @@ class TextBlock final : public Paintable {
    */
   bool IsEmpty() const noexcept;
 
+  bool IsReady() const noexcept;
+
  private:
   using string_iterator = decltype(std::declval<const std::string>().begin());
 
@@ -105,6 +107,7 @@ class TextBlock final : public Paintable {
   int32_t calculatedWidth{ 0 };
   int32_t calculatedHeight{ 0 };
   std::vector<TextLine> lines{};
+  bool isReady{false};
 };
 
 } // namespace lse

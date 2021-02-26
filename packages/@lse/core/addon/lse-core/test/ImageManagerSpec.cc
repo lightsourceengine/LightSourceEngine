@@ -47,7 +47,7 @@ void ImageManagerSpec(TestSuite* parent) {
         auto renderer{RefRenderer::New()};
 
         imageManager.Attach(renderer.get());
-        imageManager.Detach(renderer.get());
+        imageManager.Detach();
       }
     },
     {
@@ -57,8 +57,8 @@ void ImageManagerSpec(TestSuite* parent) {
         auto renderer{RefRenderer::New()};
 
         imageManager.Attach(renderer.get());
-        imageManager.Detach(renderer.get());
-        imageManager.Detach(renderer.get());
+        imageManager.Detach();
+        imageManager.Detach();
       }
     }
   };
@@ -80,7 +80,7 @@ void ImageManagerSpec(TestSuite* parent) {
         auto renderer{RefRenderer::New()};
 
         imageManager.Attach(renderer.get());
-        imageManager.Detach(renderer.get());
+        imageManager.Detach();
         imageManager.Destroy();
       }
     }

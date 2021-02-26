@@ -21,7 +21,6 @@ namespace lse {
 
 Scene::Scene(Stage* stage, FontManager* fontManager, ImageManager* imageManager, GraphicsContext* context)
 : stage(stage), fontManager(fontManager), imageManager(imageManager), graphicsContext(context) {
-  this->children.reserve(32);
   this->paintRequests.reserve(32);
 }
 
@@ -69,7 +68,7 @@ void Scene::Attach() {
 }
 
 void Scene::Detach() {
-  this->imageManager->Detach(this->GetRenderer());
+  this->imageManager->Detach();
 
   if (this->root) {
     SceneNode::Visit(this->root, [](SceneNode* node){ node->OnDetach(); });
@@ -137,16 +136,16 @@ Renderer* Scene::GetRenderer() const noexcept {
   return this->graphicsContext->GetRenderer();
 }
 
+RenderingContext2D* Scene::GetRenderingContext2D() const noexcept {
+  return &this->renderingContext2D;
+}
+
 FontManager* Scene::GetFontManager() const noexcept {
   return this->fontManager;
 }
 
 ImageManager* Scene::GetImageManager() const noexcept {
   return this->imageManager;
-}
-
-void Scene::RequestComposite() {
-  this->isCompositeDirty = true;
 }
 
 void Scene::DispatchMediaChange() {
@@ -243,7 +242,7 @@ void Scene::CompositePreOrder(SceneNode* node, CompositeContext* context) {
   }
 
   if (node->HasChildren()) {
-    for (auto child : node->GetChildrenOrderedByZIndex(this->children)) {
+    for (auto child : node->GetChildrenOrderedByZIndex()) {
       CompositePreOrder(child, context);
     }
   }

@@ -71,7 +71,7 @@ class ImageBytes {
   int32_t width{};
   int32_t height{};
   int32_t pitch{};
-  PixelFormat format{ PixelFormat::PixelFormatRGBA };
+  PixelFormat format{PixelFormat::PixelFormatRGBA};
 };
 
 } // namespace lse

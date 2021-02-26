@@ -247,6 +247,7 @@ void TextBlock::Paint(RenderingContext2D* context) {
   context->End();
 
   ConvertToFormat(reinterpret_cast<color_t*>(pixels), target->Width() * target->Height(), target->Format());
+  this->isReady = true;
 }
 
 int32_t TextBlock::Width() const noexcept {
@@ -269,6 +270,7 @@ void TextBlock::Invalidate() noexcept {
   this->calculatedWidth = this->calculatedHeight = 0;
   this->lines.clear();
   this->font.blFont.reset();
+  this->isReady = false;
 }
 
 bool TextBlock::IsEmpty() const noexcept {
@@ -457,6 +459,10 @@ TextBlock::TextIterator TextBlock::TextIterator::operator++(int32_t) noexcept {
   utf8::unchecked::next(this->utf8);
 
   return *this;
+}
+
+bool TextBlock::IsReady() const noexcept {
+  return this->isReady;
 }
 
 } // namespace lse

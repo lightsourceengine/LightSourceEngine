@@ -23,6 +23,9 @@ const sheet = createStyleSheet({
         justifyContent: 'space-between',
         padding: '10vh',
         backgroundImage: background,
+        backgroundSize: 'contain',
+        backgroundPositionX: '50%',
+        backgroundPositionY: '50%',
         '@extend': '%absoluteFill'
     },
     objectFitContain: {

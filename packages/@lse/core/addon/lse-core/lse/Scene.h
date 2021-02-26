@@ -45,13 +45,13 @@ class Scene : public Reference {
   FontManager* GetFontManager() const noexcept;
   ImageManager* GetImageManager() const noexcept;
   Renderer* GetRenderer() const noexcept;
+  RenderingContext2D* GetRenderingContext2D() const noexcept;
 
   StyleContext* GetStyleContext() const noexcept { return &this->styleContext; }
   int32_t GetWidth() const noexcept { return this->width; }
   int32_t GetHeight() const noexcept { return this->height; }
 
   void OnRootFontSizeChange() noexcept;
-  void RequestComposite();
 
   void MarkComputeStyleDirty() noexcept { this->isComputeStyleDirty = true; }
   void MarkCompositeDirty() noexcept { this->isCompositeDirty = true; }
@@ -83,8 +83,7 @@ class Scene : public Reference {
   bool isAttached{ false };
   std::vector<SceneNode*> paintRequests;
   CompositeContext compositeContext;
-  RenderingContext2D renderingContext2D{};
-  std::vector<SceneNode*> children;
+  mutable RenderingContext2D renderingContext2D{};
 };
 
 } // namespace lse

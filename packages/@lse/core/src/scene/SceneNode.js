@@ -273,8 +273,9 @@ export class ImageSceneNode extends SceneNode {
       }
     }
 
-    this._native.setSource(source)
     this[$src] = source ?? kEmptySource
+
+    this._native.setSource(source)
   }
 
   get onLoad () {

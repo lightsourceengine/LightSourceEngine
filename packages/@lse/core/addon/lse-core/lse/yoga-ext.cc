@@ -6,6 +6,8 @@
 
 #include <lse/yoga-ext.h>
 
+#include <lse/Math.h>
+
 namespace lse {
 
 bool YGNodeHasDimensions(YGNodeConstRef node) noexcept {
@@ -82,10 +84,10 @@ EdgeRect YGNodeGetBorderEdges(YGNodeConstRef node) noexcept {
   const auto& border{ layout.border };
 
   return {
-      static_cast<int32_t>(border[YGEdgeTop]),
-      static_cast<int32_t>(border[YGEdgeRight]),
-      static_cast<int32_t>(border[YGEdgeBottom]),
-      static_cast<int32_t>(border[YGEdgeLeft]),
+      SnapToPixelGrid<int32_t>(border[YGEdgeTop]),
+      SnapToPixelGrid<int32_t>(border[YGEdgeRight]),
+      SnapToPixelGrid<int32_t>(border[YGEdgeBottom]),
+      SnapToPixelGrid<int32_t>(border[YGEdgeLeft]),
   };
 }
 

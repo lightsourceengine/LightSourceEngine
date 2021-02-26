@@ -34,13 +34,13 @@ void ImageManager::Attach(Renderer* renderer) noexcept {
   this->isAttached = true;
 }
 
-void ImageManager::Detach(Renderer* renderer) noexcept {
+void ImageManager::Detach() noexcept {
   if (!this->isAttached) {
     return;
   }
 
   for (auto& entry : this->imagesById) {
-    entry.second->Detach(renderer);
+    entry.second->Detach(this->renderer);
   }
 
   this->renderer = nullptr;
@@ -60,15 +60,25 @@ void ImageManager::Destroy() noexcept {
   }
 
   this->imagesById.clear();
+  this->imagesByUri.clear();
   this->isDestroyed = true;
 }
 
 Image* ImageManager::Acquire(const ImageRequest& request) {
-  if (this->isDestroyed) {
+  if (this->isDestroyed || request.uri.empty()) {
     return {};
   }
 
-  // TODO: find by uri
+  auto p{this->imagesByUri.find(request.uri)};
+
+  if (p != this->imagesByUri.end()) {
+    p->second->Ref();
+    return p->second;
+  }
+
+  if (request.uri.front() == '@') {
+    return {};
+  }
 
   auto image{new Image(request)};
 
@@ -80,6 +90,7 @@ Image* ImageManager::Acquire(const ImageRequest& request) {
 
   this->loadImageAsync(image);
   this->imagesById[image->GetId()] = image;
+  this->imagesByUri[request.uri] = image;
 
   return image;
 }
@@ -93,7 +104,10 @@ void ImageManager::Release(Image* image) {
     image->Unref();
 
     if (image->RefCount() == 1) {
-      // TODO: remove here?
+      this->imagesById.erase(image->GetId());
+      // TODO: this may not work with alias feature
+      this->imagesByUri.erase(image->GetRequest().uri);
+      image->Unref();
     }
   }
 }

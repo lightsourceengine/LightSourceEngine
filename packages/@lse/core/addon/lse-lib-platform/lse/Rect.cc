@@ -8,6 +8,7 @@
 #include "Rect.h"
 
 #include <cmath>
+#include <lse/Math.h>
 
 namespace lse {
 
@@ -25,7 +26,7 @@ ImageRect ClipImage(const Rect& bounds, const Rect& imageDest, float imageWidth,
     result.src.x = 0;
   } else {
     result.dest.x = bounds.x;
-    result.src.x = std::fabs(bounds.x - imageDest.x) * scaleX;
+    result.src.x = SnapToPixelGrid<int32_t>(std::fabs(bounds.x - imageDest.x) * scaleX);
   }
 
   if (imageDest.y > bounds.y) {
@@ -33,14 +34,14 @@ ImageRect ClipImage(const Rect& bounds, const Rect& imageDest, float imageWidth,
     result.src.y = 0;
   } else {
     result.dest.y = bounds.y;
-    result.src.y = std::fabs(bounds.y - imageDest.y) * scaleY;
+    result.src.y = SnapToPixelGrid<int32_t>(std::fabs(bounds.y - imageDest.y) * scaleY);
   }
 
   result.dest.width = (bx2 < ax2) ? bx2 - result.dest.x : ax2 - result.dest.x;
   result.dest.height = (by2 < ay2) ? by2 - result.dest.y : ay2 - result.dest.y;
 
-  result.src.width = result.dest.width * scaleX;
-  result.src.height = result.dest.height * scaleY;
+  result.src.width = SnapToPixelGrid<int32_t>(result.dest.width * scaleX);
+  result.src.height = SnapToPixelGrid<int32_t>(result.dest.height * scaleY);
 
   // TODO: snap src rect to pixel grid?
 

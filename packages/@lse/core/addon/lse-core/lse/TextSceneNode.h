@@ -21,6 +21,7 @@ class TextSceneNode final : public SceneNode {
   const std::string& GetText() const;
   void SetText(std::string&& text);
 
+  void OnComposite(CompositeContext* ctx) override;
   void OnStylePropertyChanged(StyleProperty property) override;
   void OnFlexBoxLayoutChanged() override;
   void OnComputeStyle() override;
@@ -31,6 +32,7 @@ class TextSceneNode final : public SceneNode {
   void OnDestroy() override;
 
  private:
+  void DrawText(CompositeContext* ctx);
   bool SetFont(Style* style);
   void ClearFontFaceResource();
 

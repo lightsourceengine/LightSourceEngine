@@ -9,6 +9,9 @@
 
 namespace lse {
 
+RenderingContext2D::RenderingContext2D(Renderer* renderer) noexcept : renderer(renderer) {
+}
+
 void RenderingContext2D::End() noexcept {
   this->context.end();
 }
