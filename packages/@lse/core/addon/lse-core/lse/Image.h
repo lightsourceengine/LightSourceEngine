@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <atomic>
 #include <lse/Reference.h>
 #include <lse/ImageBytes.h>
 
