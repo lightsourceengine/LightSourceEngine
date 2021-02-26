@@ -9,6 +9,7 @@
 #include <lse/Rect.h>
 #include <lse/SceneNode.h>
 #include <lse/Texture.h>
+#include <lse/StyleEnums.h>
 
 namespace lse {
 
@@ -20,11 +21,12 @@ class BoxSceneNode final : public SceneNode {
   void OnStylePropertyChanged(StyleProperty property) override;
   void OnFlexBoxLayoutChanged() override;
   void OnComputeStyle() override;
-  void OnComposite(CompositeContext* composite) override;
+  void OnComposite(CompositeContext* ctx) override;
   void OnDestroy() override;
 
  private:
   static void ImageStatusListener(void* owner, Image* image) noexcept;
+  void DrawBackgroundImageRepeat(CompositeContext* ctx, StyleBackgroundRepeat repeat);
 
  private:
   Image* backgroundImage{};

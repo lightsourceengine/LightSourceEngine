@@ -69,14 +69,20 @@ void BoxSceneNode::OnComposite(CompositeContext* ctx) {
   this->DrawBackground(ctx, boxStyle->GetEnum<StyleBackgroundClip>(StyleProperty::backgroundClip));
 
   if (Image::SafeIsReady(this->backgroundImage) && !IsEmpty(this->backgroundImageRect)) {
-    ctx->renderer->DrawImage(
-        Translate(
-            this->backgroundImageRect.dest,
-            ctx->CurrentMatrix().GetTranslateX(),
-            ctx->CurrentMatrix().GetTranslateY()),
-        this->backgroundImageRect.src,
-        this->backgroundImage->GetTexture(),
-        {});
+    auto repeat{boxStyle->GetEnum<StyleBackgroundRepeat>(StyleProperty::backgroundRepeat)};
+
+    if (repeat != StyleBackgroundRepeatOff) {
+      this->DrawBackgroundImageRepeat(ctx, repeat);
+    } else {
+      ctx->renderer->DrawImage(
+          Translate(
+              this->backgroundImageRect.dest,
+              ctx->CurrentMatrix().GetTranslateX(),
+              ctx->CurrentMatrix().GetTranslateY()),
+          this->backgroundImageRect.src,
+          this->backgroundImage->GetTexture(),
+          {});
+    }
   }
 
   this->DrawBorder(ctx);
@@ -120,6 +126,55 @@ void BoxSceneNode::ImageStatusListener(void* owner, Image* image) noexcept {
     case ImageState::Error:
       image->RemoveListener(owner);
       node->MarkComputeStyleDirty();
+      break;
+    default:
+      break;
+  }
+}
+
+void BoxSceneNode::DrawBackgroundImageRepeat(CompositeContext* ctx, StyleBackgroundRepeat repeat) {
+  // TODO: x and y can be configured by the user. position needs to be updated so repeat covers renderable area
+  auto x{this->backgroundImageRect.dest.x + ctx->CurrentMatrix().GetTranslateX()};
+  auto y{this->backgroundImageRect.dest.y + ctx->CurrentMatrix().GetTranslateY()};
+  auto x2{x + YGNodeLayoutGetWidth(this->ygNode)};
+  auto y2{x + YGNodeLayoutGetHeight(this->ygNode)};
+
+  switch (repeat) {
+    case StyleBackgroundRepeatXY:
+      while (y < y2) {
+        x = 0;
+
+        while (x < x2) {
+          ctx->renderer->DrawImage(
+              {x, y, this->backgroundImageRect.dest.width, this->backgroundImageRect.dest.height},
+              this->backgroundImageRect.src,
+              this->backgroundImage->GetTexture(),
+              {});
+          x += this->backgroundImageRect.dest.width;
+        }
+
+        y += this->backgroundImageRect.dest.height;
+      }
+      break;
+    case StyleBackgroundRepeatX:
+      while (x < x2) {
+        ctx->renderer->DrawImage(
+            {x, y, this->backgroundImageRect.dest.width, this->backgroundImageRect.dest.height},
+            this->backgroundImageRect.src,
+            this->backgroundImage->GetTexture(),
+            {});
+        x += this->backgroundImageRect.dest.width;
+      }
+      break;
+    case StyleBackgroundRepeatY:
+      while (y < y2) {
+        ctx->renderer->DrawImage(
+            {x, y, this->backgroundImageRect.dest.width, this->backgroundImageRect.dest.height},
+            this->backgroundImageRect.src,
+            this->backgroundImage->GetTexture(),
+            {});
+        y += this->backgroundImageRect.dest.height;
+      }
       break;
     default:
       break;
