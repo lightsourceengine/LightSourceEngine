@@ -87,8 +87,8 @@ float CompositeContext::CurrentOpacity() const noexcept {
 RenderTransform CompositeContext::CurrentRenderTransform() const noexcept {
   const auto& m{this->matrix.back()};
 
-//  TODO: turn off scale and rotation until composite can render scale/rotate
-//  return { m.x, m.y, m.GetScaleX(), m.GetScaleY(), m.GetAxisAngleDeg() };
+// TODO: turn off scale and rotation until composite can render scale/rotate
+// return { m.x, m.y, m.GetScaleX(), m.GetScaleY(), m.GetAxisAngleDeg() };
   return { m.x, m.y, 1.f, 1.f, 0.f };
 }
 
