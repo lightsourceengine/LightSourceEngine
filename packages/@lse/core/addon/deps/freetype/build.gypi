@@ -7,10 +7,12 @@
         "../../common.gypi",
       ],
       "include_dirs": [
-        "repo/include"
+        "include",
+        "repo/include",
       ],
       "defines": [
         "FT2_BUILD_LIBRARY",
+        "FT_CONFIG_OPTION_USE_BROTLI",
         "FT_CONFIG_OPTION_ERROR_STRINGS",
       ],
       "sources": [

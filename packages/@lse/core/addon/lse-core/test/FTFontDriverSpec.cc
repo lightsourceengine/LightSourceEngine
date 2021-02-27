@@ -77,18 +77,18 @@ void FTFontDriverSpec(TestSuite* parent) {
         TestLoadFontSourceFromMemory(kTestWOFF, AssertType::IS_NOT_NULL);
       }
     },
-//    {
-//      "should open WOFF2 from file",
-//      [](const TestInfo&) {
-//        TestLoadFontSourceFromFile(kTestWOFF2, AssertType::IS_NOT_NULL);
-//      }
-//    },
-//    {
-//      "should open WOFF2 from memory",
-//      [](const TestInfo&) {
-//        TestLoadFontSourceFromMemory(kTestWOFF2, AssertType::IS_NOT_NULL);
-//      }
-//    },
+    {
+      "should open WOFF2 from file",
+      [](const TestInfo&) {
+        TestLoadFontSourceFromFile(kTestWOFF2, AssertType::IS_NOT_NULL);
+      }
+    },
+    {
+      "should open WOFF2 from memory",
+      [](const TestInfo&) {
+        TestLoadFontSourceFromMemory(kTestWOFF2, AssertType::IS_NOT_NULL);
+      }
+    },
     {
       "should open OTF from file",
       [](const TestInfo&) {
