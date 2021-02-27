@@ -34,7 +34,7 @@ FTFontDriver::~FTFontDriver() {
 }
 
 FontSource* FTFontDriver::LoadFontSource(void* data, size_t dataSize, int32_t index) {
-  if (!this->library) {
+  if (!this->library || !data || dataSize == 0) {
     return {};
   }
 
@@ -50,7 +50,7 @@ FontSource* FTFontDriver::LoadFontSource(void* data, size_t dataSize, int32_t in
 }
 
 FontSource* FTFontDriver::LoadFontSource(const char* file, int32_t index) {
-  if (!this->library) {
+  if (!this->library || !file) {
     return {};
   }
 

@@ -126,12 +126,6 @@ void FTFontDriverSpec(TestSuite* parent) {
       }
     },
     {
-      "should fail to open EOT font from memory",
-      [](const TestInfo&) {
-        TestLoadFontSourceFromMemory(kTestEOT, AssertType::IS_NULL);
-      }
-    },
-    {
       "should fail to open non-font from file",
       [](const TestInfo&) {
         TestLoadFontSourceFromFile(kTestNotAFont, AssertType::IS_NULL);
