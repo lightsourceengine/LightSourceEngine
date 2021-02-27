@@ -11,8 +11,6 @@
       ],
       "defines": [
         "FT2_BUILD_LIBRARY",
-        "FT_CONFIG_OPTION_USE_BROTLI",
-        "FT_CONFIG_OPTION_USE_ZLIB",
         "FT_CONFIG_OPTION_ERROR_STRINGS",
       ],
       "sources": [
