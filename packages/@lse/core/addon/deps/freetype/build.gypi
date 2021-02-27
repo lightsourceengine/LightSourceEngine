@@ -10,7 +10,10 @@
         "repo/include"
       ],
       "defines": [
-        "FT2_BUILD_LIBRARY"
+        "FT2_BUILD_LIBRARY",
+        "FT_CONFIG_OPTION_USE_BROTLI",
+        "FT_CONFIG_OPTION_USE_ZLIB",
+        "FT_CONFIG_OPTION_ERROR_STRINGS",
       ],
       "sources": [
         # base components (required)
@@ -58,6 +61,12 @@
         "repo/src/psaux/psaux.c",
         "repo/src/pshinter/pshinter.c",
         "repo/src/psnames/psnames.c",
+        "repo/src/gzip/ftgzip.c",
+        'repo/src/lzw/ftlzw.c',
+        'repo/src/bzip2/ftbzip2.c',
+        "repo/src/sdf/sdf.c",
+        # other
+        "src/z_error.c",
       ],
       "conditions": [
         ["OS==\"mac\"", {

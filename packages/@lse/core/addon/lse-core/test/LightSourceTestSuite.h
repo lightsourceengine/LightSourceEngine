@@ -14,6 +14,7 @@ void ThreadPoolSpec(Napi::TestSuite* parent);
 void StyleSpec(Napi::TestSuite* parent);
 void StyleContextSpec(Napi::TestSuite* parent);
 void ImageSpec(Napi::TestSuite* parent);
+void FTFontDriverSpec(Napi::TestSuite* parent);
 void DecodeImageSpec(Napi::TestSuite* parent);
 void ImageManagerSpec(Napi::TestSuite* parent);
 
@@ -24,6 +25,7 @@ Napi::Value LightSourceTestSuite(Napi::Env env) {
       &StyleSpec,
       &StyleContextSpec,
       &ImageSpec,
+      &FTFontDriverSpec,
       &DecodeImageSpec,
       &ImageManagerSpec,
   });
