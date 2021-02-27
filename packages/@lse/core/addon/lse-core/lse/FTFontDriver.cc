@@ -14,6 +14,7 @@ namespace lse {
 using FileContents = std::unique_ptr<uint8_t[], void(*)(const uint8_t*)>;
 
 static void FileContentsDeleter(const uint8_t* data) noexcept;
+static void FileClose(FILE* fp) noexcept;
 static FileContents ReadFileContents(const char* filename, size_t* size) noexcept;
 static FT_Face LoadFace(FT_Library lib, std::mutex& lock, FileContents contents, size_t size, int32_t index) noexcept;
 
@@ -75,9 +76,15 @@ static void FileContentsDeleter(const uint8_t* data) noexcept {
   delete [] data;
 }
 
+static void FileClose(FILE* fp) noexcept {
+  if (fp) {
+    fclose(fp);
+  }
+}
+
 static FileContents ReadFileContents(const char* filename, size_t* size) noexcept {
   FileContents contents(nullptr, &FileContentsDeleter);
-  std::shared_ptr<FILE> fp(fopen(filename, "rb"), &fclose);
+  std::shared_ptr<FILE> fp(fopen(filename, "rb"), &FileClose);
 
   if (!fp) {
     return contents;

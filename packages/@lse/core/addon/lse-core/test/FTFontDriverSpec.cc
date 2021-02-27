@@ -138,9 +138,14 @@ void FTFontDriverSpec(TestSuite* parent) {
       }
     },
     {
-      "should return null for empty filename",
+      "should return null for null filename",
       [](const TestInfo&) {
         Assert::IsNull(sTestFontDriver->LoadFontSource(nullptr, 0));
+      }
+    },
+    {
+      "should return null for empty filename",
+      [](const TestInfo&) {
         Assert::IsNull(sTestFontDriver->LoadFontSource("", 0));
       }
     },
