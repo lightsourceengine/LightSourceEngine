@@ -31,7 +31,6 @@
         "repo/src/base/ftfstype.c",
         "repo/src/base/ftgasp.c",
         "repo/src/base/ftgxval.c",
-        "repo/src/base/ftlcdfil.c",
         "repo/src/base/ftmm.c",
         "repo/src/base/ftotval.c",
         "repo/src/base/ftpatent.c",

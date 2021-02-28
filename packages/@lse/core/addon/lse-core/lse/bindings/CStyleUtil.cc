@@ -534,6 +534,7 @@ napi_value StyleGetter(napi_env env, Style* style, StyleProperty property) {
     default:
       assert(false);
       napix::throw_error(env, "style property has no type!");
+      return {};
   }
 }
 

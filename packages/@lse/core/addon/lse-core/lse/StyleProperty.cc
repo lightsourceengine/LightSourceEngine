@@ -89,7 +89,7 @@ int32_t StylePropertyValueFromString(StyleProperty property, const char* value) 
   assert(enumOps[property]);
   try {
     return enumOps[property].fromString(value);
-  } catch (std::invalid_argument& e) {
+  } catch (std::invalid_argument&) {
     return -1;
   }
 }

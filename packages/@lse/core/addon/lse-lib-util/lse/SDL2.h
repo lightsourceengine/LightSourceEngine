@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <SDL.h>
 
 #ifndef SDL_JOYSTICK_AXIS_MIN

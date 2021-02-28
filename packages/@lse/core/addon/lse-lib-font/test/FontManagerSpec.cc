@@ -61,7 +61,7 @@ void FontManagerSpec(TestSuite* parent) {
     {
       "should return font with exact match",
       [](const TestInfo&) {
-        auto id = sFontManager.CreateFont(kTestFamily, FontStyleNormal, FontWeightNormal);
+        auto id = sFontManager.AddFont(kTestFamily, FontStyleNormal, FontWeightNormal);
         auto found = sFontManager.FindFont(kTestFamily, FontStyleNormal, FontWeightNormal);
 
         Assert::Equal(sFontManager.GetFont(id), found);
@@ -70,7 +70,7 @@ void FontManagerSpec(TestSuite* parent) {
     {
       "should return null when font does not match and no default available",
       [](const TestInfo&) {
-        sFontManager.CreateFont(kTestFamily, FontStyleNormal, FontWeightNormal);
+        sFontManager.AddFont(kTestFamily, FontStyleNormal, FontWeightNormal);
 
         auto found = sFontManager.FindFont("does-not-exist", FontStyleNormal, FontWeightNormal);
 
@@ -80,10 +80,10 @@ void FontManagerSpec(TestSuite* parent) {
     {
       "should should return default when font requested font family does not exist",
       [](const TestInfo&) {
-        auto defaultId = sFontManager.CreateFont(kDefaultFamily, FontStyleNormal, FontWeightNormal);
+        auto defaultId = sFontManager.AddFont(kDefaultFamily, FontStyleNormal, FontWeightNormal);
 
         sFontManager.SetDefaultFontFamily(kDefaultFamily);
-        sFontManager.CreateFont(kTestFamily, FontStyleNormal, FontWeightNormal);
+        sFontManager.AddFont(kTestFamily, FontStyleNormal, FontWeightNormal);
 
         auto found = sFontManager.FindFont("does-not-exist", FontStyleNormal, FontWeightNormal);
 

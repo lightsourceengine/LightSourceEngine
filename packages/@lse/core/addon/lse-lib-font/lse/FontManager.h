@@ -53,7 +53,7 @@ class FontManager : public Reference {
 
   // Methods used mostly by javascript
 
-  int32_t CreateFont(std::string&& family, int32_t style, int32_t weight);
+  int32_t AddFont(std::string&& family, int32_t style, int32_t weight);
   FontSource* CreateFontSource(const char* file, int32_t index);
   void SetDefaultFontFamily(std::string&& family);
   Font* GetFont(int32_t id) const noexcept;

@@ -101,7 +101,7 @@ int32_t GetQueryParamInteger(const std::string& uri, const char* name, int32_t f
 
   try {
     return std::stoi(value);
-  } catch (std::exception& e) {
+  } catch (std::exception&) {
     return fallback;
   }
 }

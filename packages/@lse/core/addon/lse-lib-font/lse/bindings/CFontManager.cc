@@ -61,7 +61,7 @@ static napi_value CreateFont(napi_env env, napi_callback_info info) noexcept {
   auto style{ napix::as_int32(env, ci[1], 0) };
   auto weight{ napix::as_int32(env, ci[2], 0) };
 
-  auto id{ ci.unwrap_this_as<FontManager>(env)->CreateFont(std::move(family), style, weight) };
+  auto id{ ci.unwrap_this_as<FontManager>(env)->AddFont(std::move(family), style, weight) };
 
   return napix::to_value(env, id);
 }

@@ -29,7 +29,7 @@ void FontManager::SetDefaultFontFamily(std::string&& family) {
   this->defaultFontFamily = family;
 }
 
-int32_t FontManager::CreateFont(std::string&& family, int32_t style, int32_t weight) {
+int32_t FontManager::AddFont(std::string&& family, int32_t style, int32_t weight) {
   if (!this->fontDriver || this->destroyed) {
     return 0;
   }

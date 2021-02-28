@@ -126,7 +126,7 @@ ImageBytes DecodeImageFromFile(const std17::filesystem::path& path, int32_t resi
 
       try {
         return DecodeImageFromFile(pathCopy.replace_extension(ext), resizeWidth, resizeHeight);
-      } catch (std::exception& e) {
+      } catch (std::exception&) {
         // continue search
       }
     }
