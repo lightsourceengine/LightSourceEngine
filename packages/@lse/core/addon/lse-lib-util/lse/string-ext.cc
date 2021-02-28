@@ -32,24 +32,50 @@ char* ToLowercase(char* str) noexcept {
   return str;
 }
 
-bool EqualsIgnoreCase(const std::string& a, const char* b) noexcept {
-  const auto len = a.size();
-
-  if (!b || b[0] == '\0') {
-    return len == 0;
-  }
-
-  if (len == 0) {
+bool EndsWith(const char* str, const char* suffix) noexcept {
+  if (!str || !suffix) {
     return false;
   }
 
-  for (size_t i = 0; i < len; i++) {
-    if (b[i] == '\0' || tolower(a[i]) != tolower(b[i])) {
-      return false;
-    }
+  auto lenstr = strlen(str);
+  auto lensuffix = strlen(suffix);
+
+  if (lensuffix > lenstr) {
+    return false;
   }
 
-  return true;
+  return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
+}
+
+
+
+bool EqualsIgnoreCase(const std::string& a, const char* b) noexcept {
+  return EqualsIgnoreCase(a.c_str(), b);
+}
+
+bool EqualsIgnoreCase(const char* a, const char* b) noexcept {
+  if (!a) {
+    a = "";
+  }
+
+  if (!b) {
+    b = "";
+  }
+
+#ifdef _WIN32
+#ifdef __GNUC__
+  while (::tolower(static_cast<uint8_t>(*a)) == ::tolower(static_cast<uint8_t>(*b++))) {
+    if (*a++ == 0) {
+      return true;
+    }
+  }
+  return false;
+#else
+  return 0 == ::_stricmp(a, b);
+#endif
+#else
+  return 0 == ::strcasecmp(a, b);
+#endif
 }
 
 } // namespace lse

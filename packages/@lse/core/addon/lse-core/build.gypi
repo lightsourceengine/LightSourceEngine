@@ -58,7 +58,6 @@
         "lse/Blend2DFontFace.cc",
         "lse/BoxSceneNode.cc",
         "lse/CompositeContext.cc",
-        "lse/DecodeFont.cc",
         "lse/DecodeImage.cc",
         "lse/FTFontDriver.cc",
         "lse/Image.cc",

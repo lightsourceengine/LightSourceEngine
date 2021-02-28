@@ -14,14 +14,17 @@ using Napi::TestSuite;
 
 namespace lse {
 
+constexpr auto kTestWildcardExt = "test/resources/roboto.*";
+constexpr auto kTestTTF = "test/resources/roboto.ttf";
+
 class TestFontDriver : public FontDriver {
  public:
   void* LoadFontSource(void* data, size_t dataSize, int32_t index) override {
-    return {};
+    return this;
   }
 
   void* LoadFontSource(const char* file, int32_t index) override {
-    return {};
+    return this;
   }
 
   void DestroyFontSource(FontSource* fontSource) override {
@@ -87,6 +90,27 @@ void FontManagerSpec(TestSuite* parent) {
         Assert::Equal(found, sFontManager.GetFont(defaultId));
       }
     }
+  };
+
+  spec->Describe("CreateFontSource()")->tests = {
+    {
+      "should create a font source from a filename",
+      [](const TestInfo&) {
+        Assert::IsNotNull(sFontManager.CreateFontSource(kTestTTF, 0));
+      }
+    },
+    {
+      "should create a font source from a filename with wildcard extension",
+      [](const TestInfo&) {
+        Assert::IsNotNull(sFontManager.CreateFontSource(kTestWildcardExt, 0));
+      }
+    },
+    {
+      "should not create a font source when wildcard extension search cannot find a font",
+      [](const TestInfo&) {
+        Assert::IsNull(sFontManager.CreateFontSource("test/resources/unknown.*", 0));
+      }
+    },
   };
 }
 

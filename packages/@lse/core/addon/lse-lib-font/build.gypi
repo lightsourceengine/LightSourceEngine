@@ -13,6 +13,7 @@
         "../lse-lib-napi-ext",
         "../lse-lib-logger",
         "../deps/cpp17_headers/include",
+        "../deps/filesystem/include",
         "../deps/parallel-hashmap/repo/parallel_hashmap",
       ],
       "dependencies": [

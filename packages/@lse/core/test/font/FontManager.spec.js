@@ -13,6 +13,7 @@ import { EventName } from '../../src/event/EventName.js'
 const { assert } = chai
 const testFontFamily = 'arrow'
 const testFontFile = 'test/resources/arrow.ttf'
+const testFontFileWildcard = 'test/resources/arrow.*'
 const testImageFile = 'test/resources/300x300.svg'
 
 describe('FontManager', () => {
@@ -27,6 +28,9 @@ describe('FontManager', () => {
   describe('add()', () => {
     it('should return create and return new font from file', () => {
       testAddTestFont(testFontFile, 'loading')
+    })
+    it('should return create and return new font from file with wildcard', () => {
+      testAddTestFont(testFontFileWildcard, 'loading')
     })
     it('should return create and return new font from buffer', () => {
       testAddTestFont(readFileSync(testFontFile), 'ready')

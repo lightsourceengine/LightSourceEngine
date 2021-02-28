@@ -16,7 +16,6 @@
 using NSVGimagePtr = std::unique_ptr<NSVGimage, decltype(&nsvgDelete)>;
 using NSVGrasterizerPtr = std::unique_ptr<NSVGrasterizer, decltype(&nsvgDeleteRasterizer)>;
 using ByteBufferPtr = std::unique_ptr<uint8_t, std::function<void(uint8_t*)>>;
-using std17::filesystem::detail::equals_simple_insensitive;
 
 constexpr int32_t kNumChannels = 4;
 
@@ -113,7 +112,7 @@ ImageBytes DecodeImageFromFile(const std17::filesystem::path& path, int32_t resi
   int32_t width{};
   int32_t height{};
 
-  if (equals_simple_insensitive(path.extension().c_str(), ".*")) {
+  if (EndsWith(path.c_str(), ".*")) {
     // Handle the '.*' extension search recursively.
     auto pathCopy{ path };
     std::error_code errorCode;
@@ -133,7 +132,7 @@ ImageBytes DecodeImageFromFile(const std17::filesystem::path& path, int32_t resi
     }
 
     throw std::runtime_error(Format("No image file found for %s", path.c_str()));
-  } else if (equals_simple_insensitive(path.extension().c_str(), ".svg")) {
+  } else if (EndsWith(path.c_str(), ".svg")) {
     // Special handling for SVG images.
     bytes = LoadSvg(path.c_str(), resizeWidth, resizeHeight, &width, &height);
     deleter = [](uint8_t* p) noexcept { delete[] p; };

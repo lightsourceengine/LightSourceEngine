@@ -165,9 +165,8 @@ FontLoadContext::~FontLoadContext() {
 
 static void OnFontLoad(void* data) noexcept {
   auto context{static_cast<FontLoadContext*>(data)};
-  auto fontDriver{context->fontManager->GetFontDriver()};
 
-  context->fontSource = fontDriver->LoadFontSource(context->file.c_str(), context->index);
+  context->fontSource = context->fontManager->CreateFontSource(context->file.c_str(), context->index);
 }
 
 static void OnFontLoadComplete(napi_env env, bool cancelled, void* data) noexcept {

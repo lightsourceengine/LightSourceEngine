@@ -7,7 +7,20 @@
 
 #include "FontManager.h"
 
+#include <lse/string-ext.h>
+#include <std17/filesystem>
+
 namespace lse {
+
+// TODO: this list should be user configurable.
+// List of font extensions to search when path contains the '.*' extension.
+constexpr const std::array<const char*, 5> kFontExtensions{{
+    ".woff",
+    ".ttf",
+    ".otf",
+    ".ttc",
+    ".otc",
+}};
 
 FontManager::FontManager(FontDriver* fontDriver) noexcept : fontDriver(fontDriver) {
 }
@@ -56,6 +69,29 @@ int32_t FontManager::CreateFont(std::string&& family, int32_t style, int32_t wei
   this->fontTable[this->fonts[id]->GetFamily()][weightValue][styleValue] = this->fonts[id].get();
 
   return id;
+}
+
+FontSource* FontManager::CreateFontSource(const char* file, int32_t index) {
+  std::error_code errorCode;
+
+  // Handle the '.*' extension search recursively.
+  if (EndsWith(file, ".*")) {
+    std17::filesystem::path path = file;
+
+    for (auto& ext : kFontExtensions) {
+      path.replace_extension(ext);
+
+      if (!std17::filesystem::exists(path, errorCode)) {
+        continue;
+      }
+
+      return this->fontDriver->LoadFontSource(path.c_str(), index);
+    }
+
+    return nullptr;
+  }
+
+  return this->fontDriver->LoadFontSource(file, index);
 }
 
 Font* FontManager::GetFont(int32_t id) const noexcept {

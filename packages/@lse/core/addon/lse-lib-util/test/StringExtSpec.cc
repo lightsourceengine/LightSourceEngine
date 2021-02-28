@@ -17,60 +17,83 @@ void StringExtSpec(TestSuite* parent) {
   const auto spec{ parent->Describe("StringExt") };
 
   spec->Describe("ToLowercase()")->tests = {
-      {
-          "should convert std::string to lowercase",
-          [](const TestInfo&) {
-            std::string str = "TEST";
+    {
+      "should convert std::string to lowercase",
+      [](const TestInfo&) {
+        std::string str = "TEST";
 
-            Assert::Equal(ToLowercase(str), "test");
-          }
-      },
-      {
-          "should convert cstring to lowercase",
-          [](const TestInfo&) {
-            char str[] = "TEST";
-
-            Assert::IsTrue(strcmp(ToLowercase(str), "test") == 0);
-          }
-      },
-      {
-          "should return nullptr for nullptr argument",
-          [](const TestInfo&) {
-            Assert::IsNull(ToLowercase(nullptr));
-          }
+        Assert::Equal(ToLowercase(str), "test");
       }
+    },
+    {
+      "should convert cstring to lowercase",
+      [](const TestInfo&) {
+        char str[] = "TEST";
+
+        Assert::IsTrue(strcmp(ToLowercase(str), "test") == 0);
+      }
+    },
+    {
+      "should return nullptr for nullptr argument",
+      [](const TestInfo&) {
+        Assert::IsNull(ToLowercase(nullptr));
+      }
+    }
   };
 
   spec->Describe("EqualsIgnoreCase()")->tests = {
-      {
-          "should return true when strings match",
-          [](const TestInfo&) {
-            Assert::IsTrue(EqualsIgnoreCase("test", "test"));
-            Assert::IsTrue(EqualsIgnoreCase("test", "TEST"));
-            Assert::IsTrue(EqualsIgnoreCase("TEST", "TEST"));
-            Assert::IsTrue(EqualsIgnoreCase("TEST", "test"));
-          }
-      },
-      {
-          "should true for empty string comparison",
-          [](const TestInfo&) {
-            Assert::IsTrue(EqualsIgnoreCase("", ""));
-            Assert::IsTrue(EqualsIgnoreCase("", nullptr));
-            Assert::IsTrue(EqualsIgnoreCase(std::string(), ""));
-            Assert::IsTrue(EqualsIgnoreCase(std::string(), nullptr));
-          }
-      },
-      {
-          "should return false when strings don't match",
-          [](const TestInfo&) {
-            Assert::IsFalse(EqualsIgnoreCase("test", ""));
-            Assert::IsFalse(EqualsIgnoreCase("test", nullptr));
-            Assert::IsFalse(EqualsIgnoreCase("", "test"));
-            Assert::IsFalse(EqualsIgnoreCase(std::string(), "test"));
-            Assert::IsFalse(EqualsIgnoreCase("xxxxxxxxxxxx", "shorter"));
-            Assert::IsFalse(EqualsIgnoreCase("x", "longer"));
-          }
+    {
+      "should return true when strings match",
+      [](const TestInfo&) {
+        Assert::IsTrue(EqualsIgnoreCase("test", "test"));
+        Assert::IsTrue(EqualsIgnoreCase("test", "TEST"));
+        Assert::IsTrue(EqualsIgnoreCase("TEST", "TEST"));
+        Assert::IsTrue(EqualsIgnoreCase("TEST", "test"));
       }
+    },
+    {
+      "should true for empty string comparison",
+      [](const TestInfo&) {
+        Assert::IsTrue(EqualsIgnoreCase("", ""));
+        Assert::IsTrue(EqualsIgnoreCase("", nullptr));
+        Assert::IsTrue(EqualsIgnoreCase(std::string(), ""));
+        Assert::IsTrue(EqualsIgnoreCase(std::string(), nullptr));
+      }
+    },
+    {
+      "should return false when strings don't match",
+      [](const TestInfo&) {
+        Assert::IsFalse(EqualsIgnoreCase("test", ""));
+        Assert::IsFalse(EqualsIgnoreCase("test", nullptr));
+        Assert::IsFalse(EqualsIgnoreCase("", "test"));
+        Assert::IsFalse(EqualsIgnoreCase(std::string(), "test"));
+        Assert::IsFalse(EqualsIgnoreCase("xxxxxxxxxxxx", "shorter"));
+        Assert::IsFalse(EqualsIgnoreCase("x", "longer"));
+      }
+    }
+  };
+
+  spec->Describe("EndsWith()")->tests = {
+    {
+      "should return true if string ends with .ext",
+      [](const TestInfo&) {
+        Assert::IsTrue(EndsWith("test.ext", ".ext"));
+      }
+    },
+    {
+      "should return false if string ends with .ext",
+      [](const TestInfo&) {
+        Assert::IsFalse(EndsWith("", ".ext"));
+      }
+    },
+    {
+      "should return false if either arg is null",
+      [](const TestInfo&) {
+        Assert::IsFalse(EndsWith(nullptr, nullptr));
+        Assert::IsFalse(EndsWith("test", nullptr));
+        Assert::IsFalse(EndsWith(nullptr, "test"));
+      }
+    }
   };
 }
 
