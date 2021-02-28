@@ -122,22 +122,13 @@ class TestSuite {
  * Denotes a test failure. This exception type will be converted to Napi::Error and reported as a test failure to
  * the javascript test runner.
  */
-class AssertionError : public std::exception {
+class AssertionError : public std::runtime_error {
  public:
   AssertionError(const std::string& failure, const std::string& message) noexcept;
-  AssertionError(const AssertionError& e) noexcept = default;
   ~AssertionError() noexcept override = default;
 
-  const char* what() const noexcept override {
-    return this->error.c_str();
-  }
-
-  const std::string& GetError() const noexcept {
-    return this->error;
-  }
-
  private:
-  std::string error;
+  static std::string CreateErrorMessage(const std::string& failure, const std::string& message) noexcept;
 };
 
 /**
@@ -242,7 +233,12 @@ struct Assert {
 };
 
 inline
-AssertionError::AssertionError(const std::string& failure, const std::string& message) noexcept {
+AssertionError::AssertionError(const std::string& failure, const std::string& message) noexcept
+: std::runtime_error(AssertionError::CreateErrorMessage(failure, message)) {
+}
+
+inline
+std::string AssertionError::CreateErrorMessage(const std::string& failure, const std::string& message) noexcept {
   std::stringstream ss;
 
   ss << "AssertionError";
@@ -255,7 +251,7 @@ AssertionError::AssertionError(const std::string& failure, const std::string& me
     ss << ": " << message;
   }
 
-  this->error = ss.str();
+  return ss.str();
 }
 
 inline
