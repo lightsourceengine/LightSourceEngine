@@ -6,7 +6,7 @@
 
 import mocha from 'mocha'
 
-const { describe, it, before, after, beforeEach, afterEach } = mocha
+const { describe, it, xit, before, after, beforeEach, afterEach } = mocha
 
 const isTestSuite = (obj) => {
   return obj && obj.hasOwnProperty('tests') && obj.hasOwnProperty('description')
@@ -22,7 +22,7 @@ const bind = (testSuite) => {
     after(func(testSuite.after))
     beforeEach(func(testSuite.beforeEach))
     afterEach(func(testSuite.afterEach))
-    array(testSuite.tests).forEach(({description, func}) => it(description, func))
+    array(testSuite.tests).forEach(({description, func, skip}) => (skip ? xit : it)(description, func))
   })
 }
 

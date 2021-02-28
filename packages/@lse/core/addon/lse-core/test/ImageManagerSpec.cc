@@ -19,7 +19,7 @@ void ImageManagerSpec(TestSuite* parent) {
 
   spec->Describe("Attach()")->tests = {
     {
-      "should ...",
+      "should attach image manager",
       [](const TestInfo&) {
         ImageManager imageManager([](Image*){});
         auto renderer{RefRenderer::New()};
@@ -28,7 +28,7 @@ void ImageManagerSpec(TestSuite* parent) {
       }
     },
     {
-      "should ...",
+      "should be idempotent",
       [](const TestInfo&) {
         ImageManager imageManager([](Image*){});
         auto renderer{RefRenderer::New()};
@@ -41,7 +41,7 @@ void ImageManagerSpec(TestSuite* parent) {
 
   spec->Describe("Detach()")->tests = {
     {
-      "should ...",
+      "should detach image manager",
       [](const TestInfo&) {
         ImageManager imageManager([](Image*){});
         auto renderer{RefRenderer::New()};
@@ -51,7 +51,7 @@ void ImageManagerSpec(TestSuite* parent) {
       }
     },
     {
-      "should ...",
+      "should be idempotent",
       [](const TestInfo&) {
         ImageManager imageManager([](Image*){});
         auto renderer{RefRenderer::New()};
@@ -65,7 +65,7 @@ void ImageManagerSpec(TestSuite* parent) {
 
   spec->Describe("Destroy()")->tests = {
     {
-      "should ...",
+      "should destroy the image manager",
       [](const TestInfo&) {
         ImageManager imageManager([](Image*){});
         auto renderer{RefRenderer::New()};
@@ -74,13 +74,23 @@ void ImageManagerSpec(TestSuite* parent) {
       }
     },
     {
-      "should ...",
+      "should a detached image manager",
       [](const TestInfo&) {
         ImageManager imageManager([](Image*){});
         auto renderer{RefRenderer::New()};
 
         imageManager.Attach(renderer.get());
         imageManager.Detach();
+        imageManager.Destroy();
+      }
+    },
+    {
+      "should an attached image manager",
+      [](const TestInfo&) {
+        ImageManager imageManager([](Image*){});
+        auto renderer{RefRenderer::New()};
+
+        imageManager.Attach(renderer.get());
         imageManager.Destroy();
       }
     }

@@ -24,6 +24,8 @@ using TestFunction = std::function<void(const TestInfo&)>;
 using TestSuiteFunction = std::function<void(Env)>;
 using TestBuilderFunction = std::function<void(TestSuite*)>;
 
+constexpr auto SkipTest{true};
+
 /**
  * Test case function and description.
  *
@@ -32,6 +34,7 @@ using TestBuilderFunction = std::function<void(TestSuite*)>;
 struct Test {
   std::string description;
   TestFunction func;
+  bool skip{};
 };
 
 /**
@@ -62,13 +65,13 @@ class TestContext {
  */
 class TestSuite {
  public:
-  explicit TestSuite(const std::string& description);
+  explicit TestSuite(std::string description);
 
   /**
    * Create a new TestSuite and populate it with tests using a list TestBuilderFunctions.
    */
   static Napi::Object Build(Napi::Env env, const std::string& description,
-                            const std::initializer_list<TestBuilderFunction> testBuilders);
+                            const std::initializer_list<TestBuilderFunction>& testBuilders);
 
   /**
    * Create a new child TestSuite.
@@ -108,7 +111,7 @@ class TestSuite {
   Napi::Value GetAfter(const Napi::Env& env);
   Napi::Value GetBeforeEach(const Napi::Env& env);
   Napi::Value GetAfterEach(const Napi::Env& env);
-  Napi::Value TestSuiteFunctionOrUndefined(const Napi::Env& env, TestSuiteFunction func);
+  Napi::Value TestSuiteFunctionOrUndefined(const Napi::Env& env, const TestSuiteFunction& func);
 
  private:
   std::string description;
@@ -122,7 +125,8 @@ class TestSuite {
 class AssertionError : public std::exception {
  public:
   AssertionError(const std::string& failure, const std::string& message) noexcept;
-  virtual ~AssertionError() noexcept = default;
+  AssertionError(const AssertionError& e) noexcept = default;
+  ~AssertionError() noexcept override = default;
 
   const char* what() const noexcept override {
     return this->error.c_str();
@@ -219,7 +223,7 @@ struct Assert {
   /**
    * Checks that calling the passed in lambda function will throw an std::exception.
    */
-  static void Throws(std::function<void()> func, const std::string& message = "") {
+  static void Throws(const std::function<void()>& func, const std::string& message = "") {
     try {
       func();
     } catch (const std::exception&) {
@@ -255,12 +259,12 @@ AssertionError::AssertionError(const std::string& failure, const std::string& me
 }
 
 inline
-TestSuite::TestSuite(const std::string& description) : description(description) {
+TestSuite::TestSuite(std::string description) : description(std::move(description)) {
 }
 
 inline
 Object TestSuite::Build(Napi::Env env, const std::string& description,
-                        const std::initializer_list<TestBuilderFunction> testBuilders) {
+                        const std::initializer_list<TestBuilderFunction>& testBuilders) {
   TestSuite parent(description);
 
   for (auto& testBuilder : testBuilders) {
@@ -318,6 +322,7 @@ Napi::Value TestSuite::GetTests(const Napi::Env& env) {
 
     object["description"] = String::New(env, test.description);
     object["func"] = Function::New(env, jsSafeTestFunc);
+    object["skip"] = Boolean::New(env, test.skip);
 
     result[i++] = object;
   }
@@ -365,7 +370,7 @@ TestSuite* TestSuite::Describe(const std::string& description) {
 }
 
 inline
-Napi::Value TestSuite::TestSuiteFunctionOrUndefined(const Napi::Env& env, TestSuiteFunction func) {
+Napi::Value TestSuite::TestSuiteFunctionOrUndefined(const Napi::Env& env, const TestSuiteFunction& func) {
   if (func) {
     return Function::New(env, [func](const Napi::CallbackInfo& info) { func(info.Env()); });
   }

@@ -39,7 +39,7 @@ void ImageSpec(TestSuite* parent) {
 
   spec->Describe("Attach()")->tests = {
     {
-      "should ...",
+      "should attach image to a renderer",
       [](const TestInfo&) {
         Image image({ kTestPngImage, 10, 10});
         auto renderer = RefRenderer::New();
@@ -53,7 +53,7 @@ void ImageSpec(TestSuite* parent) {
 
   spec->Describe("Detach()")->tests = {
     {
-      "should ...",
+      "should detach an image from the renderer",
       [](const TestInfo&) {
         Image image({ kTestPngImage, 10, 10});
         auto renderer = RefRenderer::New();

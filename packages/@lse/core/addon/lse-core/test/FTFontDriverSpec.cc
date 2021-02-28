@@ -17,7 +17,7 @@ namespace lse {
 // loadable font files
 constexpr auto kTestTTF = "test/resources/roboto.ttf";
 constexpr auto kTestWOFF = "test/resources/roboto.woff";
-// constexpr auto kTestWOFF2 = "test/resources/roboto.woff2";
+constexpr auto kTestWOFF2 = "test/resources/roboto.woff2";
 constexpr auto kTestOTF = "test/resources/roboto.otf";
 // invalid font files
 constexpr auto kTestEOT = "test/resources/roboto.eot";
@@ -77,19 +77,22 @@ void FTFontDriverSpec(TestSuite* parent) {
         TestLoadFontSourceFromMemory(kTestWOFF, AssertType::IS_NOT_NULL);
       }
     },
-// TODO: re-add when compiling against brotli works on all platforms
-//    {
-//      "should open WOFF2 from file",
-//      [](const TestInfo&) {
-//        TestLoadFontSourceFromFile(kTestWOFF2, AssertType::IS_NOT_NULL);
-//      }
-//    },
-//    {
-//      "should open WOFF2 from memory",
-//      [](const TestInfo&) {
-//        TestLoadFontSourceFromMemory(kTestWOFF2, AssertType::IS_NOT_NULL);
-//      }
-//    },
+    {
+      "should open WOFF2 from file",
+      [](const TestInfo&) {
+        TestLoadFontSourceFromFile(kTestWOFF2, AssertType::IS_NOT_NULL);
+      },
+      // TODO: re-enable when compilation issues are fixed on windows
+      Napi::SkipTest
+    },
+    {
+      "should open WOFF2 from memory",
+      [](const TestInfo&) {
+        TestLoadFontSourceFromMemory(kTestWOFF2, AssertType::IS_NOT_NULL);
+      },
+      // TODO: re-enable when compilation issues are fixed on windows
+      Napi::SkipTest
+    },
     {
       "should open OTF from file",
       [](const TestInfo&) {
