@@ -146,6 +146,59 @@ void napixSpec(TestSuite* parent) {
       }
     }
   };
+
+  spec->Describe("copy_utf8()")->tests = {
+    {
+      "should copy js string into buffer",
+      [](const TestInfo& info) {
+        auto env{ info.Env() };
+        char buffer[5];
+        auto value = napix::copy_utf8(env, napix::to_value(env, "test"), buffer, 5, "");
+
+        Assert::CStringEqual(value, "test");
+      }
+    },
+    {
+      "should return fallback when passed a js number",
+      [](const TestInfo& info) {
+        auto env{ info.Env() };
+        char buffer[5];
+        auto value = napix::copy_utf8(env, napix::to_value(env, 3), buffer, 5, "");
+
+        Assert::CStringEqual(value, "");
+      }
+    },
+    {
+      "should return fallback if js value is nullptr",
+      [](const TestInfo& info) {
+        auto env{ info.Env() };
+        char buffer[5];
+        auto value = napix::copy_utf8(env, nullptr, buffer, 5, "");
+
+        Assert::CStringEqual(value, "");
+      }
+    },
+    {
+      "should return fallback if js string value does not fit in buffer (exact)",
+      [](const TestInfo& info) {
+        auto env{ info.Env() };
+        char buffer[5];
+        auto value = napix::copy_utf8(env, napix::to_value(env, "12345"), buffer, 5, "");
+
+        Assert::CStringEqual(value, "");
+      }
+    },
+    {
+      "should return fallback if js string value does not fit in buffer",
+      [](const TestInfo& info) {
+        auto env{ info.Env() };
+        char buffer[5];
+        auto value = napix::copy_utf8(env, napix::to_value(env, "123456"), buffer, 5, "");
+
+        Assert::CStringEqual(value, "");
+      }
+    }
+  };
 }
 
 static std::string GetAndClearLastExceptionMessage(napi_env env) {

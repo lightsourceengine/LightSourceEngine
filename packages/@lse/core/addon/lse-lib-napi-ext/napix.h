@@ -177,6 +177,7 @@ bool as_bool(napi_env env, napi_value value, bool defaultValue) noexcept;
 float as_float(napi_env env, napi_value value, float defaultValue) noexcept;
 std::string as_string_utf8(napi_env env, napi_value str) noexcept;
 napix::buffer_info as_buffer(napi_env env, napi_value value) noexcept;
+const char* copy_utf8(napi_env env, napi_value value, char* buffer, size_t bufferSize, const char* fallback) noexcept;
 
 std::string object_get(napi_env env, napi_value value, const char* prop) noexcept;
 

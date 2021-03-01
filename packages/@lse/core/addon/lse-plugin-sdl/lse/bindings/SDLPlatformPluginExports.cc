@@ -8,7 +8,7 @@
 
 #include <algorithm>
 #include <napix.h>
-#include <napi-ext.h>
+#include <napi.h>
 #include <lse/Habitat.h>
 #include <lse/Log.h>
 #include <lse/SDLGraphicsContext.h>
@@ -49,6 +49,28 @@ enum PluginCallback {
 
 static SDLPlatformPlugin* sPlugin{};
 static Napi::FunctionReference sPluginCallbacks[PluginCallbackCount]{};
+
+/**
+ * Implementation of Napi::HandleScope that does not throw in destructor.
+ */
+class SafeHandleScope {
+ public:
+  explicit SafeHandleScope(napi_env env) noexcept {
+    napi_open_handle_scope(this->env, &this->scope);
+  }
+
+  ~SafeHandleScope() noexcept {
+    if (this->scope) {
+      napi_close_handle_scope(this->env, this->scope);
+    }
+  }
+
+  NAPI_DISALLOW_ASSIGN_COPY(SafeHandleScope)
+
+ private:
+  napi_env env;
+  napi_handle_scope scope;
+};
 
 static void ResetCallbacks() noexcept;
 
@@ -241,7 +263,7 @@ static void InvokeCallback(const char* name, T callbackType, Args ... args) noex
 
   if (!callback.IsEmpty()) {
     try {
-      Napi::SafeHandleScope scope(callback.Env());
+      SafeHandleScope scope(callback.Env());
       callback({ napix::to_value_or_null(callback.Env(), args)... });
     } catch (const std::exception& e) {
       auto LAMBDA_FUNCTION = name;
@@ -260,30 +282,30 @@ static void BindOnGamepadStatus(int32_t instanceId, bool connected) noexcept {
 
 static void BindOnGamepadAxis(int32_t instanceId, int32_t axis, float value) noexcept {
   InvokeCallback("onGamepadAxis", OnGamepadAxis, instanceId, axis, value);
-};
+}
 
 static void BindOnGamepadAxisMapped(int32_t instanceId, int32_t axis, float value) noexcept {
   InvokeCallback("onGamepadAxisMapped", OnGamepadAxisMapped, instanceId, axis, value);
-};
+}
 
 static void BindOnGamepadHat(int32_t instanceId, int32_t hat, int32_t value) noexcept {
   InvokeCallback("onGamepadHat", OnGamepadHat, instanceId, hat, value);
-};
+}
 
 static void BindOnGamepadButton(int32_t instanceId, int32_t button, bool pressed) noexcept {
   InvokeCallback("onGamepadButton", OnGamepadButton, instanceId, button, pressed);
-};
+}
 
 static void BindOnGamepadButtonMapped(int32_t instanceId, int32_t button, bool pressed) noexcept {
   InvokeCallback("onGamepadButtonMapped", OnGamepadButtonMapped, instanceId, button, pressed);
-};
+}
 
 static bool BindOnQuit() noexcept {
   auto& callback{ sPluginCallbacks[OnQuit] };
 
   if (!callback.IsEmpty()) {
     try {
-      Napi::SafeHandleScope scope(callback.Env());
+      SafeHandleScope scope(callback.Env());
       auto result{ callback({}) };
 
       return result.ToBoolean();
@@ -294,7 +316,24 @@ static bool BindOnQuit() noexcept {
   }
 
   return true;
-};
+}
+
+static bool AssignFunctionReference(Napi::FunctionReference& ref, const Napi::Value& value) {
+  auto env{ value.Env() };
+  Napi::HandleScope scope(env);
+
+  if (value.IsNull() || value.IsUndefined()) {
+    ref.Reset();
+  } else if (value.IsFunction()) {
+    if (ref.IsEmpty() || !value.StrictEquals(ref.Value())) {
+      ref.Reset(value.As<Napi::Function>(), 1);
+    }
+  } else {
+    return false;
+  }
+
+  return true;
+}
 
 static napi_value CreatePluginInstance(napi_env env) {
 #define InstanceAccessor(PROP, EVENT)                                       \
@@ -305,7 +344,7 @@ static napi_value CreatePluginInstance(napi_env env) {
     },                                                                      \
     [](napi_env env, napi_callback_info info) -> napi_value {               \
       Napi::CallbackInfo ci{ env, info };                                   \
-      Napi::AssignFunctionReference(sPluginCallbacks[EVENT], ci[0]);        \
+      AssignFunctionReference(sPluginCallbacks[EVENT], ci[0]);        \
       return nullptr;                                                       \
     })
 

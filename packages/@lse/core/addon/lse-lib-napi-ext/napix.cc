@@ -233,6 +233,23 @@ std::string as_string_utf8(napi_env env, napi_value str) noexcept {
   return value;
 }
 
+const char* copy_utf8(napi_env env, napi_value value, char* buffer, size_t bufferSize, const char* fallback) noexcept {
+  if (!value) {
+    return fallback;
+  }
+
+  size_t length{};
+  auto status = napi_get_value_string_utf8(env, value, nullptr, 0, &length);
+
+  if (status != napi_ok || length >= bufferSize) {
+    return fallback;
+  }
+
+  status = napi_get_value_string_utf8(env, value, buffer, bufferSize, nullptr);
+
+  return status == napi_ok ? buffer : fallback;
+}
+
 void throw_error(napi_env env, const char* message) noexcept {
   if (!has_pending_exception(env)) {
     napi_throw_error(env, "", message);

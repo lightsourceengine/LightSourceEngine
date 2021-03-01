@@ -10,7 +10,6 @@
         ".",
       ],
       "sources": [
-        "napi-ext.cc",
         "napix.cc",
       ],
       "direct_dependent_settings": {
@@ -32,7 +31,6 @@
             "<!@(node -p \"require('napi-unit').include\")"
           ],
           "sources": [
-            "test/NapiExtSpec.cc",
             "test/napixSpec.cc",
             "test/NapiExtTestSuite.cc",
           ],

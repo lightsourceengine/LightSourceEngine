@@ -7,18 +7,8 @@
 #include "LoggerExports.h"
 
 #include <napix.h>
-#include <napi-ext.h>
 #include <lse/Log.h>
 
-using Napi::CallbackInfo;
-using Napi::Error;
-using Napi::Function;
-using Napi::FunctionReference;
-using Napi::HandleScope;
-using Napi::Number;
-using Napi::Object;
-using Napi::String;
-using Napi::Value;
 using lse::internal::LogCustomSite;
 
 using napix::object_new;
@@ -59,37 +49,28 @@ static napi_value LogWarn(napi_env env, napi_callback_info info) noexcept {
 }
 
 static void Log(LogLevel logLevel, napi_env env, napi_callback_info info) noexcept {
-  constexpr auto siteBufferSize = 32;
-  constexpr auto messageBufferSize = 1024;
+  static constexpr auto kSiteBufferSize = 128;
+  static constexpr auto kMessageBufferSize = 1024;
+  static char siteBuffer[kSiteBufferSize];
+  static char messageBuffer[kMessageBufferSize];
 
-  static char siteBuffer[siteBufferSize];
-  static char messageBuffer[messageBufferSize];
+  auto ci = napix::get_callback_info<2>(env, info);
 
-  Napi::CallbackInfo ci(env, info);
-
-  switch (ci.Length()) {
-    case 2: {
-      auto site = Napi::StringByteLength(ci[1]) < siteBufferSize ?
-          Napi::CopyUtf8(ci[1], siteBuffer, siteBufferSize) : "js";
-
-      if (Napi::StringByteLength(ci[0]) < messageBufferSize) {
-        LogCustomSite(logLevel, site, Napi::CopyUtf8(ci[0], messageBuffer, messageBufferSize));
-      } else {
-        auto message{ napix::as_string_utf8(env, ci[0]) };
-        LogCustomSite(logLevel, site, !message.empty() ? message.c_str() : nullptr);
-      }
-    }
+  switch (ci.length()) {
+    case 2:
+      LogCustomSite(
+          logLevel,
+          napix::copy_utf8(env, ci[1], siteBuffer, kSiteBufferSize, "js"),
+          napix::copy_utf8(env, ci[0], messageBuffer, kMessageBufferSize, nullptr));
       break;
     case 1:
-      if (Napi::StringByteLength(ci[0]) < messageBufferSize) {
-        LogCustomSite(logLevel, "js", Napi::CopyUtf8(ci[0], messageBuffer, messageBufferSize));
-      } else {
-        auto message{ napix::as_string_utf8(env, ci[0]) };
-        LogCustomSite(logLevel, "js", !message.empty() ? message.c_str() : nullptr);
-      }
+      LogCustomSite(
+          logLevel,
+          "js",
+          napix::copy_utf8(env, ci[0], messageBuffer, kMessageBufferSize, nullptr));
       break;
     case 0:
-      internal::LogCustomSite(logLevel, "js", nullptr);
+      LogCustomSite(logLevel, "js", nullptr);
       break;
     default:
       break;
@@ -100,37 +81,38 @@ static napi_value GetLogLevel(napi_env env, napi_callback_info info) noexcept {
   return napix::to_value_or_null(env, lse::GetLogLevel());
 }
 
-static void SetLogLevelThrows(napi_env env, napi_callback_info callback_info) {
-  Napi::CallbackInfo info(env, callback_info);
+static napi_value SetLogLevel(napi_env env, napi_callback_info info) noexcept {
+  auto ci = napix::get_callback_info<1>(env, info);
+  napi_valuetype typeOf{};
 
-  switch (info[0].Type()) {
+  napi_typeof(env, ci[0], &typeOf);
+
+  switch (typeOf) {
     case napi_number: {
-      int32_t logLevel{ info[0].As<Number>() };
+      int32_t logLevel{ napix::as_int32(env, ci[0], -1) };
 
       if (IsLogLevel(logLevel)) {
         lse::SetLogLevel(static_cast<LogLevel>(logLevel));
       } else {
-        throw Error::New(env, "LogLevel value out of range.");
+        napix::throw_error(env, "LogLevel value out of range.");
       }
 
       break;
     }
     case napi_string: {
-      auto value = Napi::CopyUtf8(info[0]);
+      auto value = napix::as_string_utf8(env, ci[0]);
 
-      if (!lse::SetLogLevel(value)) {
-        throw Error::New(env, "Invalid LogLevel value.");
+      if (!lse::SetLogLevel(value.c_str())) {
+        napix::throw_error(env, "Invalid LogLevel value.");
       }
 
       break;
     }
     default:
-      throw Error::New(env, "LogLevel must be a string or integer.");
+      napix::throw_error(env, "LogLevel must be a string or integer.");
+      break;
   }
-}
 
-static napi_value SetLogLevel(napi_env env, napi_callback_info callback_info) noexcept {
-  NAPI_TRY_C(SetLogLevelThrows(env, callback_info))
   return {};
 }
 
