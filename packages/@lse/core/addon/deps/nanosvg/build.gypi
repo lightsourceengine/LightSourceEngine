@@ -11,7 +11,12 @@
       ],
       "sources": [
         "src/nanosvg.cc",
-      ]
+      ],
+      "direct_dependent_settings": {
+        "include_dirs": [
+          "include",
+        ],
+      },
     }
   ]
 }

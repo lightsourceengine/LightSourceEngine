@@ -7,14 +7,7 @@
         "../common.gypi"
       ],
       "include_dirs": [
-        ".",
-        "../lse-lib-napi-ext",
-        "../lse-lib-logger",
-        "../lse-lib-audio",
-        "../lse-lib-util",
-        "../lse-lib-habitat",
-        "../deps/cpp17_headers/include",
-        "<(lse_sdl_include)"
+        "."
       ],
       "dependencies": [
         "lse-lib-napi-ext",
@@ -28,7 +21,12 @@
         "lse/SDLAudioSource.cc",
         "lse/SDLAudioDestination.cc",
         "lse/bindings/SDLAudioExports.cc",
-      ]
+      ],
+      "direct_dependent_settings": {
+        "include_dirs": [
+          ".",
+        ]
+      }
     }
   ]
 }

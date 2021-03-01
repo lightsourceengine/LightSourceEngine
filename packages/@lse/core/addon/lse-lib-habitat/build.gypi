@@ -7,16 +7,19 @@
         "../common.gypi",
       ],
       "include_dirs": [
-        ".",
-        "../lse-lib-logger",
-        "../deps/parallel-hashmap/repo/parallel_hashmap",
+        "."
       ],
       "dependencies": [
         "lse-lib-logger",
       ],
       "sources": [
         "lse/Habitat.cc",
-      ]
+      ],
+      "direct_dependent_settings": {
+        "include_dirs": [
+          ".",
+        ],
+      }
     }
   ]
 }

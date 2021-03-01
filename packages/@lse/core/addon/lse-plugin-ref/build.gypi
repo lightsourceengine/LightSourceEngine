@@ -7,11 +7,7 @@
         "../common.gypi",
       ],
       "include_dirs": [
-        ".",
-        "../lse-lib-logger",
-        "../lse-lib-platform",
-        "../lse-lib-util",
-        "../deps/cpp17_headers/include",
+        "."
       ],
       "dependencies": [
         "lse-lib-logger",
@@ -21,7 +17,12 @@
       "sources": [
         "lse/RefRenderer.cc",
         "lse/RefGraphicsContext.cc"
-      ]
+      ],
+      "direct_dependent_settings": {
+        "include_dirs": [
+          ".",
+        ]
+      }
     }
   ]
 }

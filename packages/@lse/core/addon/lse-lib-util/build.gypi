@@ -10,10 +10,13 @@
         ".",
         "../lse-lib-napi-ext",
         "../lse-lib-logger",
-        "../deps/filesystem/include",
-        "../deps/cpp17_headers/include",
         "<(lse_sdl_include)",
         "<(lse_sdl_mixer_include)",
+        "../deps/cpp17_headers/include",
+        "../deps/utfcpp/repo/source",
+        "../deps/concurrentqueue/repo",
+        "../deps/filesystem/include",
+        "../deps/parallel-hashmap/repo/parallel_hashmap",
       ],
       "dependencies": [
           "lse-lib-napi-ext",
@@ -27,7 +30,19 @@
         "lse/SDL2.cc",
         "lse/SDL2_mixer.cc",
         "lse/internal/SharedLibrary.cc"
-      ]
+      ],
+      "direct_dependent_settings": {
+        "include_dirs": [
+          ".",
+          "<(lse_sdl_include)",
+          "<(lse_sdl_mixer_include)",
+          "../deps/cpp17_headers/include",
+          "../deps/utfcpp/repo/source",
+          "../deps/concurrentqueue/repo",
+          "../deps/filesystem/include",
+          "../deps/parallel-hashmap/repo/parallel_hashmap",
+        ]
+      }
     }
   ],
   "conditions": [
@@ -39,13 +54,6 @@
             "../common.gypi",
           ],
           "include_dirs": [
-            ".",
-            "../lse-lib-napi-ext",
-            "../lse-lib-logger",
-            "../deps/filesystem/include",
-            "../deps/cpp17_headers/include",
-            "<(lse_sdl_include)",
-            "<(lse_sdl_mixer_include)",
             "<!@(node -p \"require('napi-unit').include\")"
           ],
           "dependencies": [

@@ -8,11 +8,6 @@
       ],
       "include_dirs": [
         ".",
-        "../lse-lib-napi-ext",
-        "../lse-lib-logger",
-        "../lse-lib-util",
-        "../lse-lib-habitat",
-        "../deps/cpp17_headers/include",
       ],
       "dependencies": [
         "lse-lib-napi-ext",
@@ -28,7 +23,12 @@
         "lse/bindings/CAudioPlugin.cc",
         "lse/bindings/CAudioSource.cc",
         "lse/bindings/CAudioDestination.cc",
-      ]
+      ],
+      "direct_dependent_settings": {
+        "include_dirs": [
+          ".",
+        ]
+      }
     },
   ]
 }

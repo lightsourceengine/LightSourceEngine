@@ -11,7 +11,12 @@
       ],
       "sources": [
         "lse/Log.cc",
-      ]
+      ],
+      "direct_dependent_settings": {
+        "include_dirs": [
+          ".",
+        ],
+      }
     },
     {
       "target_name": "lse-lib-logger-bindings",
@@ -21,14 +26,19 @@
       ],
       "include_dirs": [
         ".",
-        "../lse-lib-napi-ext",
       ],
       "dependencies": [
-          "lse-lib-napi-ext",
+        # TODO: remove dependency
+        "lse-lib-napi-ext",
       ],
       "sources": [
         "lse/bindings/LoggerExports.cc",
-      ]
+      ],
+      "direct_dependent_settings": {
+        "include_dirs": [
+          ".",
+        ],
+      }
     }
   ]
 }

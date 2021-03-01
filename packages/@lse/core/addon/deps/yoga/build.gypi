@@ -7,7 +7,6 @@
         "../../common.gypi",
       ],
       "include_dirs": [
-        "include",
         "lib"
       ],
       "sources": [
@@ -23,7 +22,12 @@
         "lib/YGStyle.cpp",
         "lib/YGValue.cpp",
         "lib/Yoga.cpp",
-      ]
+      ],
+      "direct_dependent_settings": {
+        "include_dirs": [
+          "lib"
+        ],
+      },
     }
   ]
 }

@@ -7,10 +7,7 @@
         "../common.gypi",
       ],
       "include_dirs": [
-        ".",
-        "../lse-lib-util",
-        "../lse-lib-logger",
-        "../deps/cpp17_headers/include"
+        "."
       ],
       "dependencies": [
         "lse-lib-logger",
@@ -21,7 +18,12 @@
         "lse/PixelConversion.cc",
         "lse/Texture.cc",
         "lse/Rect.cc"
-      ]
+      ],
+      "direct_dependent_settings": {
+        "include_dirs": [
+          ".",
+        ]
+      }
     }
   ],
   "conditions": [
@@ -33,11 +35,6 @@
             "../common.gypi",
           ],
           "include_dirs": [
-            ".",
-            "../lse-lib-napi-ext",
-            "../lse-lib-util",
-            "../lse-lib-logger",
-            "../deps/cpp17_headers/include",
             "<!@(node -p \"require('napi-unit').include\")"
           ],
           "dependencies": [

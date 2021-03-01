@@ -75,7 +75,7 @@
             "repo/src/base/ftmac.c"
           ],
         }],
-    ],
+      ],
       "cflags_cc+": [
         "-w",
       ],
@@ -88,7 +88,13 @@
         "VCCLCompilerTool": {
             "WarningLevel": "0",
         },
-      }
+      },
+      "direct_dependent_settings": {
+        "include_dirs": [
+          "include",
+          "repo/include",
+        ],
+      },
     }
   ]
 }

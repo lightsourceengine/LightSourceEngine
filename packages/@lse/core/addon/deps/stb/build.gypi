@@ -24,7 +24,12 @@
         "VCCLCompilerTool": {
             "WarningLevel": "0",
         },
-      }
+      },
+      "direct_dependent_settings": {
+        "include_dirs": [
+          "repo",
+        ],
+      },
     }
   ]
 }

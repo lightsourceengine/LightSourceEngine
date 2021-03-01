@@ -8,13 +8,6 @@
       ],
       "include_dirs": [
         ".",
-        "../lse-lib-util",
-        "../lse-lib-habitat",
-        "../lse-lib-napi-ext",
-        "../lse-lib-logger",
-        "../deps/cpp17_headers/include",
-        "../deps/filesystem/include",
-        "../deps/parallel-hashmap/repo/parallel_hashmap",
       ],
       "dependencies": [
         "lse-lib-napi-ext",
@@ -27,7 +20,12 @@
         "lse/FontManager.cc",
         "lse/bindings/FontEnums.cc",
         "lse/bindings/CFontManager.cc",
-      ]
+      ],
+      "direct_dependent_settings": {
+        "include_dirs": [
+          ".",
+        ]
+      }
     }
   ],
   "conditions": [

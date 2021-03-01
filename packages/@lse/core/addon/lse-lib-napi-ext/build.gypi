@@ -6,10 +6,18 @@
       "includes": [
         "../common.gypi",
       ],
+      "include_dirs": [
+        ".",
+      ],
       "sources": [
         "napi-ext.cc",
         "napix.cc",
-      ]
+      ],
+      "direct_dependent_settings": {
+        "include_dirs": [
+          ".",
+        ],
+      }
     }
   ],
   "conditions": [
@@ -21,7 +29,6 @@
             "../common.gypi",
           ],
           "include_dirs": [
-            ".",
             "<!@(node -p \"require('napi-unit').include\")"
           ],
           "sources": [
