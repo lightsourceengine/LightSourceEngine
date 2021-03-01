@@ -15,7 +15,7 @@ GET_VERSION_SCRIPT="JSON.parse(require('fs').readFileSync('../../../publishing/v
 mkdir -p "${TEST_DIR}"
 cd "${TEST_DIR}"
 
-if [[ "$OSTYPE" == "msys" ]]; then
+if [ "$OSTYPE" = "msys" ]; then
   # use node.exe in sub-shell on git bash for windows; otherwise, stdout does not work
   PUBLISHING_VERSION=$(node.exe -p -e "${GET_VERSION_SCRIPT}")
 else
@@ -34,14 +34,16 @@ echo 'import { version } from "@lse/core"; console.log(version);' > test-lse-cor
 # XXX: react is not being shutting down properly, force exit
 echo 'import { version } from "@lse/react"; console.log(version); process.exit(0);' > test-lse-react-version.mjs
 
+export LSE_LOG_LEVEL="OFF"
+
 CORE_VERSION=$(node test-lse-core-version.mjs)
-if [ ${CORE_VERSION} != ${PUBLISHING_VERSION} ]; then
+if [ "${CORE_VERSION}" != "${PUBLISHING_VERSION}" ]; then
   echo "@lse/core version '$CORE_VERSION' does not match publishing version '$PUBLISHING_VERSION"
   exit 1
 fi
 
 REACT_VERSION=$(node test-lse-react-version.mjs)
-if [ ${REACT_VERSION} != ${PUBLISHING_VERSION} ]; then
+if [ "${REACT_VERSION}" != "${PUBLISHING_VERSION}" ]; then
   echo "@lse/react version '$REACT_VERSION' does not match publishing version '$PUBLISHING_VERSION"
   exit 1
 fi
