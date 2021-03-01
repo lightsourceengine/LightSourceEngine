@@ -378,7 +378,7 @@ static std::size_t StringLength(const std::string& utf8) noexcept {
 
 void TextBlock::LoadGlyphs(const std::string& utf8, FT_Face face, Style* style) {
   auto i{ utf8.begin() };
-  decltype(&std::tolower) op;
+  int (*op)(int);
 
   this->glyphs.reserve(StringLength(utf8));
 
@@ -398,7 +398,7 @@ void TextBlock::LoadGlyphs(const std::string& utf8, FT_Face face, Style* style) 
     auto cp{utf8::unchecked::next(i)};
 
     if (op && cp < 255) {
-      cp = op(cp);
+      cp = op(static_cast<int32_t>(cp));
     }
 
     this->glyphs.push_back(FT_Get_Char_Index(face, cp));
