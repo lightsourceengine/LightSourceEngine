@@ -1,6 +1,6 @@
 [
   {
-    "src": "./Roboto-Regular.ttf",
+    "src": "./Roboto-Regular-Latin.woff",
     "family": "roboto-builtin",
     "style": "normal",
     "weight": "normal"

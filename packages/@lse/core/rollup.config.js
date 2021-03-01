@@ -35,7 +35,7 @@ const lightSourceNpm = (input) => (
       resolve(),
       lseVersion(),
       beautify(),
-      copy({ targets: [{ src: 'src/font/*.ttf', dest: 'dist' }] })
+      copy({ targets: [{ src: 'src/font/*.woff', dest: 'dist' }] })
     ]
   }
 )

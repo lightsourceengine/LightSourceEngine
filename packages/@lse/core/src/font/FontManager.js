@@ -246,7 +246,7 @@ const bootstrapFonts = (self) => {
     // project that installs @lse/core from npm.
     fontManifest = [
       {
-        src: join(dirname(fileURLToPath(import.meta.url)), 'Roboto-Regular.ttf'),
+        src: join(dirname(fileURLToPath(import.meta.url)), 'Roboto-Regular-Latin.woff'),
         family: 'roboto-builtin'
       }
     ]

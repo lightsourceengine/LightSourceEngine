@@ -676,7 +676,7 @@ class SourceRoot {
       js: [ { source: join(this.#root, 'packages/@lse/core/dist/lse-core.standalone.mjs'), rename: 'index.mjs' } ],
       native: join(this.#root, 'packages/@lse/core/build/Release/lse-core.node'),
       font: [
-        join(this.#root, 'packages/@lse/core/src/font/Roboto-Regular.ttf'),
+        join(this.#root, 'packages/@lse/core/src/font/Roboto-Regular-Latin.woff'),
         join(this.#root, 'packages/@lse/core/src/font/font.manifest')
       ]
     }
