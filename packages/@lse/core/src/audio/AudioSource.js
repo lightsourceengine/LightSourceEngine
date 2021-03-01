@@ -27,18 +27,18 @@ const { readFile } = promises
  */
 export class AudioSource extends EventTarget {
   _type = AudioType.NULL
-  _src = ''
+  _uri = ''
   _state = AudioSourceStateInit
   _native = null
   _buffer = null
 
-  constructor (native, type, src) {
+  constructor (native, type, uri) {
     super([EventName.onStatus])
 
     this._native = native
     this._type = type
-    this._src = src
-    this._buffer = Buffer.isBuffer(src) ? src : null
+    this._uri = uri
+    this._buffer = Buffer.isBuffer(uri) ? uri : null
   }
 
   /**
@@ -55,8 +55,8 @@ export class AudioSource extends EventTarget {
    *
    * @type {string|buffer}
    */
-  get src () {
-    return this._src
+  get uri () {
+    return this._uri
   }
 
   /**
@@ -172,13 +172,13 @@ export class AudioSource extends EventTarget {
       // A backing buffer exists, use that, regardless of sync
       this._loadAndDispatch(this._buffer, defer)
     } else if (sync) {
-      // synchronously load the src. this is a filename
-      this._loadAndDispatch(this._src, defer)
+      // synchronously load the uri. this is a filename
+      this._loadAndDispatch(this._uri, defer)
     } else {
-      // asynchronously load the src. set the state to loading in the meantime.
+      // asynchronously load the uri. set the state to loading in the meantime.
       this._state = AudioSourceStateLoading
 
-      readFile(this._src)
+      readFile(this._uri)
         .then(buffer => {
           if (this._state !== AudioSourceStateLoading) {
             // if no longer in loading state, $unload was called, cancelling this read request
@@ -214,7 +214,7 @@ export class AudioSource extends EventTarget {
   $destroy () {
     this._native.destroy()
     this._state = -1
-    this._src = this._buffer = this._native = null
+    this._uri = this._buffer = this._native = null
   }
 
   /**
@@ -227,9 +227,9 @@ export class AudioSource extends EventTarget {
   /**
    * @ignore
    */
-  _loadAndDispatch (src, defer) {
+  _loadAndDispatch (uri, defer) {
     try {
-      this._native.load(src)
+      this._native.load(uri)
     } catch (e) {
       this._state = AudioSourceStateError
       this.dispatchEvent(createErrorStatusEvent(this, e), defer)

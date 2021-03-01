@@ -55,10 +55,10 @@ export class FontManager {
    */
   add (spec) {
     const { _native, _fonts } = this
-    const { src, family, style = 'normal', weight = 'normal', index = 0 } = spec
+    const { uri, family, style = 'normal', weight = 'normal', index = 0 } = spec
 
-    if (!Buffer.isBuffer(src) && !(typeof src === 'string')) {
-      throw Error(`src - expected: buffer or string, got: ${src}`)
+    if (!Buffer.isBuffer(uri) && !(typeof uri === 'string')) {
+      throw Error(`uri - expected: buffer or string, got: ${uri}`)
     }
 
     if (typeof family !== 'string' || !family) {
@@ -107,14 +107,14 @@ export class FontManager {
 
     let status
 
-    if (typeof src === 'string') {
+    if (typeof uri === 'string') {
       const callback = (id, fontStatus) => {
         processStatusChange(this, id, fontStatus, false)
       }
 
-      status = _native.loadFontFromFile(id, src, index, callback)
+      status = _native.loadFontFromFile(id, uri, index, callback)
     } else {
-      status = _native.loadFontFromBuffer(id, src, index)
+      status = _native.loadFontFromBuffer(id, uri, index)
     }
 
     processStatusChange(this, id, status, true)
@@ -236,8 +236,8 @@ const bootstrapFonts = (self) => {
     }
 
     for (const entry of fontManifest) {
-      if (typeof entry.src === 'string' && !isAbsolute(entry.src)) {
-        entry.src = normalize(join(LSE_FONT_PATH, entry.src))
+      if (typeof entry.uri === 'string' && !isAbsolute(entry.uri)) {
+        entry.uri = normalize(join(LSE_FONT_PATH, entry.uri))
       }
     }
   } else if (LSE_ENV !== 'lse-node') {
@@ -246,7 +246,7 @@ const bootstrapFonts = (self) => {
     // project that installs @lse/core from npm.
     fontManifest = [
       {
-        src: join(dirname(fileURLToPath(import.meta.url)), 'Roboto-Regular-Latin.woff'),
+        uri: join(dirname(fileURLToPath(import.meta.url)), 'Roboto-Regular-Latin.woff'),
         family: 'roboto-builtin'
       }
     ]
@@ -256,7 +256,7 @@ const bootstrapFonts = (self) => {
     try {
       self.add(spec)
     } catch (e) {
-      logger.warn(`font.manifest contains invalid spec: ${spec.src}`)
+      logger.warn(`font.manifest contains invalid spec: ${spec.uri}`)
     }
   }
 }

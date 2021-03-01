@@ -155,18 +155,18 @@ describe('AudioDestination', () => {
     it('should throw Error for buffer argument', () => {
       assert.throws(() => dest.add(Buffer.from('')))
     })
-    it('should add source from src filename', () => {
-      dest.add({ src: 'file.wav' })
+    it('should add source from uri filename', () => {
+      dest.add({ uri: 'file.wav' })
       assert.lengthOf(dest.all(), 1)
     })
-    it('should add source from src buffer', () => {
+    it('should add source from uri buffer', () => {
       const buffer = Buffer.from('')
-      dest.add({ src: buffer, key: 'asset' })
+      dest.add({ uri: buffer, key: 'asset' })
       assert.lengthOf(dest.all(), 1)
-      assert.equal(buffer, dest.get('asset').src)
+      assert.equal(buffer, dest.get('asset').uri)
     })
     it('should use cache key', () => {
-      const source = dest.add({ src: 'file.wav', key: 'asset' })
+      const source = dest.add({ uri: 'file.wav', key: 'asset' })
       assert.lengthOf(dest.all(), 1)
       assert.strictEqual(dest.get('asset'), source)
       assert.isUndefined(dest.get('file.wav'))

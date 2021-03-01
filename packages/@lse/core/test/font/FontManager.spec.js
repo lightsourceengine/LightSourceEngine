@@ -51,8 +51,8 @@ describe('FontManager', () => {
       await testStatusErrorEvent(readFileSync(testImageFile))
     })
 
-    const testAddTestFont = (src, expectedStatus) => {
-      const font = manager.add({ src, family: testFontFamily })
+    const testAddTestFont = (uri, expectedStatus) => {
+      const font = manager.add({ uri, family: testFontFamily })
 
       assert.instanceOf(font, Font)
       assert.equal(font.family, testFontFamily)
@@ -62,8 +62,8 @@ describe('FontManager', () => {
       assert.isAbove(font.id, 0)
     }
 
-    const testStatusReadyEvent = async (src) => {
-      const font = manager.add({ src, family: 'arrow' })
+    const testStatusReadyEvent = async (uri) => {
+      const font = manager.add({ uri, family: 'arrow' })
       const event = await new Promise((resolve) => {
         font.on(EventName.onStatus, resolve)
       })
@@ -74,8 +74,8 @@ describe('FontManager', () => {
       assert.isUndefined(event.error)
     }
 
-    const testStatusErrorEvent = async (src) => {
-      const font = manager.add({ src, family: testFontFamily })
+    const testStatusErrorEvent = async (uri) => {
+      const font = manager.add({ uri, family: testFontFamily })
       const event = await new Promise((resolve) => {
         font.on(EventName.onStatus, resolve)
       })
@@ -90,16 +90,16 @@ describe('FontManager', () => {
       assert.isEmpty(manager.fonts)
     })
     it('should return added font', () => {
-      const font = manager.add({ src: testFontFile, family: testFontFamily })
+      const font = manager.add({ uri: testFontFile, family: testFontFamily })
 
       assert.lengthOf(manager.fonts, 1)
       assert.strictEqual(manager.fonts[0], font)
     })
     it('should return all added fonts', () => {
-      manager.add({ src: testFontFile, family: testFontFamily })
-      manager.add({ src: testFontFile, family: testFontFamily, style: 'italic' })
-      manager.add({ src: testFontFile, family: testFontFamily, weight: 'bold' })
-      manager.add({ src: testFontFile, family: testFontFamily, style: 'oblique', weight: 'bold' })
+      manager.add({ uri: testFontFile, family: testFontFamily })
+      manager.add({ uri: testFontFile, family: testFontFamily, style: 'italic' })
+      manager.add({ uri: testFontFile, family: testFontFamily, weight: 'bold' })
+      manager.add({ uri: testFontFile, family: testFontFamily, style: 'oblique', weight: 'bold' })
       assert.lengthOf(manager.fonts, 4)
     })
   })
@@ -112,7 +112,7 @@ describe('FontManager', () => {
       assert.equal(manager.defaultFontFamily, 'test')
     })
     it('should use first added font as defaultFontFamily', () => {
-      manager.add({ src: testFontFile, family: testFontFamily })
+      manager.add({ uri: testFontFile, family: testFontFamily })
       assert.equal(manager.defaultFontFamily, testFontFamily)
     })
   })

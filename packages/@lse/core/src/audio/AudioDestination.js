@@ -195,8 +195,8 @@ export class AudioDestination {
    *
    * @param {string} options Filename
    * @param {Object} options
-   * @param {string|Buffer} [options.src] The audio file to load
-   * @param {string} [options.key] Cache key. If not set, the src parameter will be used. If src is a buffer, this
+   * @param {string|Buffer} [options.uri] The audio file to load
+   * @param {string} [options.key] Cache key. If not set, the uri parameter will be used. If uri is a buffer, this
    * parameter must be provided
    * @param {bool} [options.sync] Flag to load audio source synchronously
    *
@@ -205,28 +205,28 @@ export class AudioDestination {
    */
   add (options) {
     if (typeof options === 'string') {
-      options = { src: options }
+      options = { uri: options }
     }
 
-    let { key, src, sync } = options
+    let { key, uri, sync } = options
 
-    if (Buffer.isBuffer(src)) {
+    if (Buffer.isBuffer(uri)) {
       if (!key || typeof key !== 'string') {
         throw Error('key is required')
       }
-    } else if (typeof src === 'string') {
+    } else if (typeof uri === 'string') {
       if (!key || typeof key !== 'string') {
-        key = src
+        key = uri
       }
     } else {
-      throw Error('src must be a filename or Buffer')
+      throw Error('uri must be a filename or Buffer')
     }
 
     if (this.has(key)) {
       throw Error(`source key '${key}' already exists`)
     }
 
-    const source = this._createAudioSource(src)
+    const source = this._createAudioSource(uri)
 
     this._sources.set(key, source)
 
@@ -275,7 +275,7 @@ export class AudioDestination {
    *
    * @param {string} options filename of cache key
    * @param {object} options
-   * @param {string|Buffer} [options.src]
+   * @param {string|Buffer} [options.uri]
    * @param {string} [options.key] cache key
    * @param {Number} [options.loops] The number of times to repeat playback. If 0, playback will loop forever.
    * @param {Number} [options.fadeInMs] The time in milliseconds to fade in (volume) playback.
@@ -288,12 +288,12 @@ export class AudioDestination {
       source = this.get(options)
 
       if (!source) {
-        source = this.add({ src: options, sync: true })
+        source = this.add({ uri: options, sync: true })
       }
 
       source.play()
     } else {
-      source = this.get(options.key ?? options.src)
+      source = this.get(options.key ?? options.uri)
 
       if (!source) {
         source = this.add({ ...options, sync: true })
@@ -386,7 +386,7 @@ export class AudioDestination {
   /**
    * @ignore
    */
-  _createAudioSource (src) {
-    return new AudioSource(this._native.createAudioSource(), this._type, src)
+  _createAudioSource (uri) {
+    return new AudioSource(this._native.createAudioSource(), this._type, uri)
   }
 }

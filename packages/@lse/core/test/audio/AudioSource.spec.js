@@ -36,7 +36,7 @@ describe('AudioSource', () => {
       assert.isFalse(source.isLoading())
       assert.isFalse(source.isReady())
       assert.isFalse(source.isError())
-      assert.equal(source.src, testWavFile)
+      assert.equal(source.uri, testWavFile)
       assert.equal(source.type, testAudioType)
     })
   })
