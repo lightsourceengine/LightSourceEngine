@@ -14,7 +14,6 @@
 #include <lse/Timer.h>
 #include <lse/Renderer.h>
 #include <lse/PixelConversion.h>
-#include <lse/RenderingContext2D.h>
 
 namespace lse {
 
@@ -146,7 +145,7 @@ bool TextSceneNode::SetFont(Style* style) {
 }
 
 void TextSceneNode::DrawText(CompositeContext* ctx) {
-  this->block.Paint(this->scene->GetRenderingContext2D());
+  this->block.Paint(ctx->renderer);
 
   if (!this->block.IsReady()) {
     return;

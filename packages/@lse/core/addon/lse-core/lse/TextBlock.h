@@ -9,15 +9,13 @@
 
 #include <string>
 #include <vector>
-#include <blend2d.h>
 #include <lse/Paintable.h>
 #include <lse/StyleEnums.h>
-#include <lse/Blend2DFontFace.h>
+#include <freetype/freetype.h>
 
 namespace lse {
 
 class Renderer;
-class RenderingContext2D;
 class Style;
 class StyleContext;
 class Font;
@@ -29,7 +27,7 @@ class TextBlock final : public Paintable {
  public:
   ~TextBlock() override = default;
 
-  void Paint(RenderingContext2D* context) override;
+  void Paint(Renderer* renderer) override;
 
   /**
    * Layout the text according to the style policy and dimensions.
@@ -81,7 +79,7 @@ class TextBlock final : public Paintable {
   // Layout of a line of text. Used by paint to draw the text of the line.
   struct TextLine {
     // Text line as font glyph ids (not utf8 characters!)
-    BLGlyphRun glyphRun;
+// TODO:   BLGlyphRun glyphRun;
     // Width of the line (screen pixels), scaled to the size of the font.
     float width;
     // If true, ellipsis "..." will be draw immediately after this line.
@@ -91,21 +89,23 @@ class TextBlock final : public Paintable {
   };
 
  private:
-  float GetRunWidth(const BLGlyphRun& run) const noexcept;
-  double GetGlyphAdvance(std::size_t glyphBufferIndex) const noexcept;
-  BLGlyphRun GetGlyphRun(std::size_t start, std::size_t end) const noexcept;
-  void LayoutText(const std::string& utf8, Style* style, float maxWidth, float maxHeight);
-  TextIterator TrimLeft(const TextIterator& begin, const TextIterator& end) const noexcept;
-  void PushLine(const TextIterator& begin, const TextIterator& end);
-  bool AtVerticalLimit(float maxHeight, std::size_t maxLines) const noexcept;
-  bool AtVerticalLimit(float maxHeight, std::size_t maxLines, std::size_t lineNo) const noexcept;
-  void EllipsizeIfNecessary(Style* style, float maxWidth) noexcept;
+  void LoadGlyphs(const std::string& utf8, FT_Face face, Style* style);
+//  float GetRunWidth(const BLGlyphRun& run) const noexcept;
+//  double GetGlyphAdvance(std::size_t glyphBufferIndex) const noexcept;
+//  BLGlyphRun GetGlyphRun(std::size_t start, std::size_t end) const noexcept;
+//  void LayoutText(const std::string& utf8, Style* style, float maxWidth, float maxHeight);
+//  TextIterator TrimLeft(const TextIterator& begin, const TextIterator& end) const noexcept;
+//  void PushLine(const TextIterator& begin, const TextIterator& end);
+//  bool AtVerticalLimit(float maxHeight, std::size_t maxLines) const noexcept;
+//  bool AtVerticalLimit(float maxHeight, std::size_t maxLines, std::size_t lineNo) const noexcept;
+//  void EllipsizeIfNecessary(Style* style, float maxWidth) noexcept;
 
  private:
-  Blend2DFont font;
-  BLGlyphBuffer glyphBuffer{};
-  int32_t calculatedWidth{ 0 };
-  int32_t calculatedHeight{ 0 };
+  FT_Face font{};
+  int32_t fontSize{};
+  std::vector<uint32_t> glyphs{};
+  int32_t calculatedWidth{};
+  int32_t calculatedHeight{};
   std::vector<TextLine> lines{};
   bool isReady{false};
 };

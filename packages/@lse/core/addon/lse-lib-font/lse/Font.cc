@@ -18,7 +18,6 @@ Font::Font(std::string&& family, FontStyle style, FontWeight weight) noexcept
 
 void Font::AddListener(void* listener, Font::ListenerCallback callback) noexcept {
   if (!listener || !callback) {
-    LOG_ERROR("listener is null")
     return;
   }
 
@@ -27,7 +26,6 @@ void Font::AddListener(void* listener, Font::ListenerCallback callback) noexcept
 
 void Font::RemoveListener(void* listener) noexcept {
   if (!listener) {
-    LOG_ERROR("listener is null")
     return;
   }
 

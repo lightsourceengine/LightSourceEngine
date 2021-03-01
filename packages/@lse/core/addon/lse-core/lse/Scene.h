@@ -8,7 +8,6 @@
 
 #include <lse/CompositeContext.h>
 #include <lse/StyleContext.h>
-#include <lse/RenderingContext2D.h>
 #include <lse/GraphicsContext.h>
 #include <lse/Reference.h>
 #include <lse/Stage.h>
@@ -45,7 +44,6 @@ class Scene : public Reference {
   FontManager* GetFontManager() const noexcept;
   ImageManager* GetImageManager() const noexcept;
   Renderer* GetRenderer() const noexcept;
-  RenderingContext2D* GetRenderingContext2D() const noexcept;
 
   StyleContext* GetStyleContext() const noexcept { return &this->styleContext; }
   int32_t GetWidth() const noexcept { return this->width; }
@@ -83,7 +81,6 @@ class Scene : public Reference {
   bool isAttached{ false };
   std::vector<SceneNode*> paintRequests;
   CompositeContext compositeContext;
-  mutable RenderingContext2D renderingContext2D{};
 };
 
 } // namespace lse

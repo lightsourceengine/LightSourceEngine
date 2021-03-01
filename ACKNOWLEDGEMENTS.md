@@ -12,18 +12,6 @@ Copyright (c) Facebook, Inc. and its affiliates. React is released under the [MI
 
 ## Native (C/C++)
 
-### AsmJit
-
-https://github.com/asmjit/asmjit
-
-Copyright (c) 2008-2020 The AsmJit Authors. AsmJit is released under the [zlib License](https://github.com/asmjit/asmjit/blob/master/LICENSE.md). 
-
-### Blend2D
-
-https://github.com/blend2d/blend2d
-
-Copyright (c) 2017-2020 The Blend2D Authors. Blend2D is released under the [zlib License](https://github.com/blend2d/blend2d/blob/master/LICENSE.md).
-
 ### moodycamel::ConcurrentQueue
 
 https://github.com/cameron314/concurrentqueue

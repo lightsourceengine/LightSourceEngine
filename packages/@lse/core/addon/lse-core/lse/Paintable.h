@@ -12,7 +12,6 @@
 namespace lse {
 
 class Renderer;
-class RenderingContext2D;
 
 /**
  * Abstract class for drawing vector graphic element backgrounds (text, border radius, etc) to a texture.
@@ -24,7 +23,7 @@ class Paintable {
   /**
    * Write paintable contents to the underlying texture.
    */
-  virtual void Paint(RenderingContext2D* context) = 0;
+  virtual void Paint(Renderer* renderer) = 0;
 
   /**
    * Clean up texture resources used by this object.

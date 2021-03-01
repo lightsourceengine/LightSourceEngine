@@ -10,7 +10,7 @@
 #include <lse/System.h>
 #include <lse/SceneNode.h>
 #include <lse/Log.h>
-#include <lse/Blend2DFontDriver.h>
+#include <lse/FTFontDriver.h>
 #include <lse/Habitat.h>
 #include <lse/bindings/CoreExports.h>
 
@@ -37,9 +37,9 @@ Object Init(Env env, Object exports) {
   lse::Habitat::SetAppData(
       env,
       lse::FontDriver::APP_DATA_KEY,
-      new lse::Blend2DFontDriver(),
+      new lse::FTFontDriver(),
       [](void* data) {
-        delete static_cast<lse::Blend2DFontDriver*>(data);
+        delete static_cast<lse::FTFontDriver*>(data);
       });
 
   lse::Style::Init();

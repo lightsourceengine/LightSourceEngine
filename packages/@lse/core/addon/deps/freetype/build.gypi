@@ -13,6 +13,7 @@
       "defines": [
         "FT2_BUILD_LIBRARY",
         "FT_CONFIG_OPTION_ERROR_STRINGS",
+        "FT_USE_SMOOTH",
         # TODO: building with brotli is broken on windows
         # "FT_CONFIG_OPTION_USE_BROTLI",
       ],

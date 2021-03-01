@@ -73,7 +73,7 @@ class Font {
   FontWeight GetWeight() const noexcept { return this->weight; }
   FontSource* GetFontSource() const noexcept { return this->fontSource; }
   template<typename T>
-  T* GetFontSourceAs() const noexcept { return static_cast<T*>(this->fontSource); }
+  T GetFontSourceAs() const noexcept { return static_cast<T>(this->fontSource); }
   FontStatus GetFontStatus() const noexcept { return this->status; }
 
   void AddListener(void* listener, ListenerCallback callback) noexcept;

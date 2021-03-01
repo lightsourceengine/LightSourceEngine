@@ -51,7 +51,6 @@ void Scene::Attach() {
   }
 
   this->SyncStyleContext();
-  this->renderingContext2D.renderer = renderer;
 
   this->isAttached = true;
   this->MarkCompositeDirty();
@@ -75,7 +74,6 @@ void Scene::Detach() {
   }
 
   this->graphicsContext->Detach();
-  this->renderingContext2D.renderer = nullptr;
   this->isAttached = false;
 }
 
@@ -134,10 +132,6 @@ void Scene::OnRootFontSizeChange() noexcept {
 
 Renderer* Scene::GetRenderer() const noexcept {
   return this->graphicsContext->GetRenderer();
-}
-
-RenderingContext2D* Scene::GetRenderingContext2D() const noexcept {
-  return &this->renderingContext2D;
 }
 
 FontManager* Scene::GetFontManager() const noexcept {
