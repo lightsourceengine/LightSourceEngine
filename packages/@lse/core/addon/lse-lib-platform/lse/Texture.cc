@@ -7,6 +7,7 @@
 
 #include "Texture.h"
 
+#include <cstring>
 #include <lse/Renderer.h>
 
 namespace lse {
