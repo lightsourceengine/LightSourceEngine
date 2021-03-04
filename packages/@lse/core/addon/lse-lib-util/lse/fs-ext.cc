@@ -14,7 +14,7 @@ namespace lse {
 
 static void FileClose(FILE* fp) noexcept;
 
-ByteArray NewByteArray(size_t size) noexcept {
+ByteArray NewByteArray(std::size_t size) noexcept {
   ByteArray contents;
 
   try {
@@ -28,7 +28,7 @@ ByteArray NewByteArray(size_t size) noexcept {
   return contents;
 }
 
-ByteArray NewByteArray(uint8_t* data, size_t size) noexcept {
+ByteArray NewByteArray(uint8_t* data, std::size_t size) noexcept {
   auto result{NewByteArray(size)};
 
   if (!result.empty()) {
@@ -57,7 +57,7 @@ ByteArray ReadFileContents(const char* filename) noexcept {
     return {};
   }
 
-  auto size{static_cast<size_t>(length)};
+  auto size{static_cast<std::size_t>(length)};
   ByteArray contents{NewByteArray(size)};
 
   if (contents.empty() || fread(contents.data(), 1, length, fp.get()) != size) {
