@@ -9,8 +9,11 @@
 
 #include <string>
 #include <vector>
-#include <lse/Paintable.h>
 #include <lse/StyleEnums.h>
+#include <lse/FTFontDriver.h>
+#include <lse/Color.h>
+#include <lse/Rect.h>
+#include <lse/Texture.h>
 #include <freetype/freetype.h>
 
 namespace lse {
@@ -23,11 +26,9 @@ class Font;
 /**
  * Drawing and layout of text strings for the content area of text elements.
  */
-class TextBlock final : public Paintable {
+class TextBlock {
  public:
-  ~TextBlock() override = default;
-
-  void Paint(Renderer* renderer) override;
+  void Paint(Renderer* renderer);
 
   /**
    * Layout the text according to the style policy and dimensions.
@@ -48,6 +49,8 @@ class TextBlock final : public Paintable {
    */
   void Invalidate() noexcept;
 
+  void Destroy() noexcept;
+
   /**
    * If empty, no bounds are set and the text block cannot be pained.
    */
@@ -55,57 +58,50 @@ class TextBlock final : public Paintable {
 
   bool IsReady() const noexcept;
 
+  Texture* GetTexture() const noexcept;
+  IntRect GetTextureSourceRect() const noexcept;
+
  private:
-  using string_iterator = decltype(std::declval<const std::string>().begin());
-
-  // Iterator that combines BLGlyphBuffer iterator and utf8 string iterator, keeping them in sync.
-  class TextIterator {
-   public:
-    TextIterator(std::size_t glyphBufferIndex, const string_iterator& utf8) noexcept;
-
-    uint32_t Codepoint() const noexcept;
-    char CodepointAsChar() const noexcept;
-    std::size_t GlyphBufferIndex() const noexcept;
-
-    bool operator!=(const TextIterator& other) const noexcept;
-    bool operator==(const TextIterator& other) const noexcept;
-    TextBlock::TextIterator operator++(int32_t) noexcept;
-
-   private:
-    std::size_t glyphBufferIndex{};
-    string_iterator utf8{};
-  };
-
-  // Layout of a line of text. Used by paint to draw the text of the line.
   struct TextLine {
-    // Text line as font glyph ids (not utf8 characters!)
-// TODO:   BLGlyphRun glyphRun;
-    // Width of the line (screen pixels), scaled to the size of the font.
-    float width;
-    // If true, ellipsis "..." will be draw immediately after this line.
-    bool ellipsis;
-    // The alignment of the line on the Paintable taret texture.
-    StyleTextAlign textAlign;
+    TextLine() noexcept = default;
+    TextLine(std::size_t start, std::size_t end) noexcept : start(start), end(end) {}
+
+    std::size_t start{};
+    std::size_t end{};
+    Float266 width266{};
+    bool ellipsis{};
+  };
+
+  struct Codepoint {
+    Codepoint() noexcept = default;
+    Codepoint(uint32_t value, Float266 advance) noexcept : value(value), advance266(advance) {}
+
+    uint32_t value{};
+    Float266 advance266{};
   };
 
  private:
-  void LoadGlyphs(const std::string& utf8, FT_Face face, Style* style);
-//  float GetRunWidth(const BLGlyphRun& run) const noexcept;
-//  double GetGlyphAdvance(std::size_t glyphBufferIndex) const noexcept;
-//  BLGlyphRun GetGlyphRun(std::size_t start, std::size_t end) const noexcept;
-//  void LayoutText(const std::string& utf8, Style* style, float maxWidth, float maxHeight);
-//  TextIterator TrimLeft(const TextIterator& begin, const TextIterator& end) const noexcept;
-//  void PushLine(const TextIterator& begin, const TextIterator& end);
-//  bool AtVerticalLimit(float maxHeight, std::size_t maxLines) const noexcept;
-//  bool AtVerticalLimit(float maxHeight, std::size_t maxLines, std::size_t lineNo) const noexcept;
-//  void EllipsizeIfNecessary(Style* style, float maxWidth) noexcept;
+  void LoadCodepoints(const std::string& utf8, Style* style);
+  void Layout(Style* style, float maxWidth, float maxHeight);
+  size_t TrimLeft(std::size_t begin, std::size_t end) const noexcept;
+  void PushLine(std::size_t begin, std::size_t end);
+  int32_t MeasureLine(const TextLine& line) const noexcept;
+  float MeasureLineF(const TextLine& line) const noexcept;
+  bool AtVerticalLimit(int32_t maxHeight266, std::size_t maxLines) const noexcept;
+  bool AtVerticalLimit(int32_t maxHeight266, std::size_t maxLines, std::size_t lineNo) const noexcept;
+  void EllipsizeIfNecessary(Style* style, int32_t maxWidth266) noexcept;
+  void PaintLine(const TextLine& line, int32_t x, color_t* surface, int32_t pitch) noexcept;
+  int32_t ComputeLineHeight() const noexcept;
+  TextureLock LockTexture(Renderer* renderer) noexcept;
 
  private:
-  FT_Face font{};
+  FTFontSource* font{};
   int32_t fontSize{};
-  std::vector<uint32_t> glyphs{};
+  Texture* texture{};
   int32_t calculatedWidth{};
   int32_t calculatedHeight{};
+  StyleTextAlign align{};
+  std::vector<Codepoint> codepoints{};
   std::vector<TextLine> lines{};
   bool isReady{false};
 };

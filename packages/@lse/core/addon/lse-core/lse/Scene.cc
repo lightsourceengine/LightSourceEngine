@@ -10,7 +10,7 @@
 #include <lse/Renderer.h>
 #include <lse/GraphicsContext.h>
 #include <lse/Log.h>
-#include <lse/Math.h>
+#include <lse/math-ext.h>
 #include <lse/Style.h>
 #include <lse/RootSceneNode.h>
 #include <lse/yoga-ext.h>

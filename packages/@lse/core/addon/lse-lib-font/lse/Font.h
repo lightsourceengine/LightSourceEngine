@@ -28,16 +28,16 @@ LSE_ENUM_SEQ_DECL(
 // XXX: Redefinition of StyleFontStyle and StyleFontWeight, but those enums are not available to lse-lib-font
 
 LSE_ENUM_SEQ_DECL(
-    FontWeight,
-    FontWeightNormal,
-    FontWeightBold
+  FontWeight,
+  FontWeightNormal,
+  FontWeightBold
 )
 
 LSE_ENUM_SEQ_DECL(
-    FontStyle,
-    FontStyleNormal,
-    FontStyleItalic,
-    FontStyleOblique
+  FontStyle,
+  FontStyleNormal,
+  FontStyleItalic,
+  FontStyleOblique
 )
 
 /**
@@ -73,7 +73,7 @@ class Font {
   FontWeight GetWeight() const noexcept { return this->weight; }
   FontSource* GetFontSource() const noexcept { return this->fontSource; }
   template<typename T>
-  T GetFontSourceAs() const noexcept { return static_cast<T>(this->fontSource); }
+  T* GetFontSourceAs() const noexcept { return static_cast<T*>(this->fontSource); }
   FontStatus GetFontStatus() const noexcept { return this->status; }
 
   void AddListener(void* listener, ListenerCallback callback) noexcept;

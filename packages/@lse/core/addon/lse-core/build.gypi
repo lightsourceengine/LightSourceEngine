@@ -34,7 +34,6 @@
         "lse/FTFontDriver.cc",
         "lse/Image.cc",
         "lse/ImageManager.cc",
-        "lse/Paintable.cc",
         "lse/Scene.cc",
         "lse/SceneNode.cc",
         "lse/Stage.cc",

@@ -6,7 +6,7 @@
 
 #include <lse/yoga-ext.h>
 
-#include <lse/Math.h>
+#include <lse/math-ext.h>
 
 namespace lse {
 

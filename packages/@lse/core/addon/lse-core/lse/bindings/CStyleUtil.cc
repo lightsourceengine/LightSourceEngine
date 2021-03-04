@@ -11,7 +11,6 @@
 #include <lse/StyleValidator.h>
 #include <lse/string-ext.h>
 #include <lse/Habitat.h>
-#include <lse/CStringHashMap.h>
 
 namespace lse {
 namespace bindings {

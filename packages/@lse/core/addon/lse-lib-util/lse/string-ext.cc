@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <iterator>
 #include <cctype>
+#include <utf8.h>
 
 namespace lse {
 
@@ -47,8 +48,6 @@ bool EndsWith(const char* str, const char* suffix) noexcept {
   return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
 }
 
-
-
 bool EqualsIgnoreCase(const std::string& a, const char* b) noexcept {
   return EqualsIgnoreCase(a.c_str(), b);
 }
@@ -76,6 +75,18 @@ bool EqualsIgnoreCase(const char* a, const char* b) noexcept {
 #else
   return 0 == ::strcasecmp(a, b);
 #endif
+}
+
+size_t LengthUtf8(const std::string& utf8) noexcept {
+  auto i{ utf8.begin() };
+  std::size_t length{};
+
+  while (i != utf8.end()) {
+    utf8::unchecked::next(i);
+    length++;
+  }
+
+  return length;
 }
 
 } // namespace lse

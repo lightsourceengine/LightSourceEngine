@@ -6,7 +6,6 @@
 
 #include <lse/Style.h>
 
-#include <lse/Math.h>
 #include <algorithm>
 #include <std17/algorithm>
 #include <cassert>

@@ -14,14 +14,14 @@
 #include <lse/Timer.h>
 #include <lse/PixelConversion.h>
 #include <lse/Log.h>
+#include <lse/string-ext.h>
+#include <lse/math-ext.h>
 #include <cmath>
 #include <utf8.h>
 #include <cctype>
 #include <utility>
 
 namespace lse {
-
-static std::size_t StringLength(const std::string& utf8) noexcept;
 
 void TextBlock::Shape(
     const std::string& utf8, Font* font, Style* style, StyleContext* context,
@@ -53,261 +53,227 @@ void TextBlock::Shape(
     return;
   }
 
+  this->font = font->GetFontSourceAs<FTFontSource>();
   this->fontSize = SnapToPixelGrid<int32_t>(context->ComputeFontSize(style));
 
-  if (this->fontSize <= 0) {
+  if (this->fontSize <= 0 || !this->font->SetFontSizePt(this->fontSize)) {
     return;
   }
 
-  this->font = font->GetFontSourceAs<FT_Face>();
+  this->LoadCodepoints(utf8, style);
 
-  auto error = FT_Set_Char_Size(this->font, 0, this->fontSize*64, 0, 0);
-
-  if (error) {
-    return;
-  }
-
-  this->LoadGlyphs(utf8, this->font, style);
-
-  float width{};
-
-  auto toFloat = [](FT_Pos value) {
-    // 26.6 format to float
-    return static_cast<float>(value) / static_cast<float>(0b111111);
-  };
-
-  for (const auto& glyph : this->glyphs) {
-    if (FT_Load_Glyph(this->font, glyph, FT_LOAD_BITMAP_METRICS_ONLY)) {
-      continue;
-    }
-
-    // TODO: kerning
-
-    auto advance = toFloat(this->font->glyph->advance.x);
-
-    if (width + advance > maxWidth) {
-      break;
-    }
-
-    width += advance;
-  }
-
-  // Round up so sub-pixels can be rendered to the int texture dimensions.
-  this->calculatedWidth = ::ceilf(width);
-  this->calculatedHeight = ::ceilf(toFloat(this->font->size->metrics.height));
-
-  // this->LayoutText(utf8, style, maxWidth, maxHeight);
+  this->Layout(style, maxWidth, maxHeight);
 }
 
-//void TextBlock::LayoutText(const std::string& utf8, Style* style, float maxWidth, float maxHeight) {
-//  /*
-//   * Layout a string of characters given the maxWidth and maxHeight bounds.
-//   *
-//   * The string of characters are split into two buffers (1:1 mapping): a string of utf8 encoded codepoints and
-//   * a glyph buffer with glyph id (font specific character ids). The TextIterator hides most of the details of
-//   * syncing the two buffers.
-//   *
-//   * The glyph buffer is effectively immutable. Each line will be a view of a section or run of the buffer.
-//   *
-//   * The layout has to do the following:
-//   * - Do not exceed maxWidth
-//   * - Do not exceed maxHeight
-//   * - Trim leading spaces
-//   * - Trim trailing spaces
-//   * - If layout needs to move to the next line, perform the line break at the last space.
-//   * - If no more characters fit in the layout, apply text overflow policy: Ellipsis or a hard clip/break.
-//   * - Ensure each line "view" correctly refers to the immutable glyph buffer.
-//   */
-//
-//  const TextIterator textIteratorEnd(this->glyphBuffer.size(), utf8.end());
-//  TextIterator walker = this->TrimLeft({ 0, utf8.begin() }, textIteratorEnd);
-//  TextIterator lineStart = walker;
-//  TextIterator lastSpace = textIteratorEnd;
-//  const std::size_t maxLines = style->GetInteger(StyleProperty::maxLines).value_or(0);
-//  double lineWidth{};
-//
-//  while (walker != textIteratorEnd) {
-//    const auto c{ walker.CodepointAsChar() };
-//    const auto glyphAdvance{ this->GetGlyphAdvance(walker.GlyphBufferIndex()) };
-//
-//    if (c == ' ') {
-//      // Record the last seen space. Back to back spaces are ok because lastSpace is only used to
-//      // break a line. After a break, the line is trimmed left and right.
-//      lastSpace = walker;
-//      lineWidth += glyphAdvance;
-//      walker++;
-//    } else if (c == '\n') {
-//      // Newline character. Break now.
-//      this->PushLine(lineStart, walker);
-//
-//      // More characters exist, but no vertical space is left. Ellipsize and bail.
-//      if (this->AtVerticalLimit(maxHeight, maxLines)) {
-//        EllipsizeIfNecessary(style, maxWidth);
-//        lineStart = textIteratorEnd;
-//        break;
-//      }
-//
-//      // Proceed. Increment walker so the newline is not processed again.
-//      lineWidth = 0;
-//      lastSpace = textIteratorEnd;
-//      lineStart = walker++;
-//    } else if (lineWidth + glyphAdvance >= maxWidth) {
-//      // Character does not fit on this line. Break at lastSpace, if a space was encountered, otherwise, break
-//      // at this character.
-//      if (lastSpace != textIteratorEnd) {
-//        this->PushLine(lineStart, lastSpace);
-//        // This rewinds walker and some characters will be processed again, but I am OK with the extra
-//        // processing to keep this layout code manageable.
-//        walker = lastSpace;
-//        lastSpace = textIteratorEnd;
-//      } else {
-//        this->PushLine(lineStart, walker);
-//      }
-//
-//      // More characters exist, but no vertical space is left. Ellipsize and bail.
-//      if (this->AtVerticalLimit(maxHeight, maxLines)) {
-//        EllipsizeIfNecessary(style, maxWidth);
-//        lineStart = textIteratorEnd;
-//        break;
-//      }
-//
-//      // Process to a new line. Ensure the new line processing starts without any leading spaces.
-//      lineWidth = 0;
-//      lastSpace = textIteratorEnd;
-//      walker = this->TrimLeft(walker, textIteratorEnd);
-//      lineStart = walker;
-//    } else {
-//      // Move the lineWidth and walker.
-//      lineWidth += glyphAdvance;
-//      walker++;
-//    }
-//  }
-//
-//  // Last line did not exceed maxWidth, so add it to lines.
-//  if (lineStart != textIteratorEnd) {
-//    this->PushLine(lineStart, textIteratorEnd);
-//  }
-//
-//  float width{ 0 };
-//
-//  for (auto& line : this->lines) {
-//    width = std::max(width, line.width);
-//    line.textAlign = style->GetEnum<StyleTextAlign>(StyleProperty::textAlign);
-//  }
-//
-//  // Round up so sub-pixels can be rendered to the int texture dimensions.
-//  this->calculatedWidth = ::ceilf(width);
-//  this->calculatedHeight = ::ceilf(static_cast<float>(this->lines.size()) * this->font.lineHeight());
-//}
+void TextBlock::Layout(Style* style, float maxWidth, float maxHeight) {
+  /*
+   * Layout a string of characters given the maxWidth and maxHeight bounds.
+   *
+   * The string of characters are split into two buffers (1:1 mapping): a string of utf8 encoded codepoints and
+   * a glyph buffer with glyph id (font specific character ids). The TextIterator hides most of the details of
+   * syncing the two buffers.
+   *
+   * The glyph buffer is effectively immutable. Each line will be a view of a section or run of the buffer.
+   *
+   * The layout has to do the following:
+   * - Do not exceed maxWidth
+   * - Do not exceed maxHeight
+   * - Trim leading spaces
+   * - Trim trailing spaces
+   * - If layout needs to move to the next line, perform the line break at the last space.
+   * - If no more characters fit in the layout, apply text overflow policy: Ellipsis or a hard clip/break.
+   * - Ensure each line "view" correctly refers to the immutable glyph buffer.
+   */
+
+  const auto textIteratorEnd = this->codepoints.size();
+  auto walker = this->TrimLeft(0, textIteratorEnd);
+  auto lineStart = walker;
+  auto lastSpace = textIteratorEnd;
+  const std::size_t maxLines = style->GetInteger(StyleProperty::maxLines).value_or(0);
+  Float266 lineWidth266{};
+  Float266 advance266;
+  Float266 maxWidth266{ToFloat266(maxWidth)};
+  Float266 maxHeight266{ToFloat266(maxHeight)};
+  uint32_t c;
+
+  while (walker != textIteratorEnd) {
+    c = this->codepoints[walker].value;
+    advance266 = this->font->GetAdvance(c);
+
+    if (c == ' ') {
+      // Record the last seen space. Back to back spaces are ok because lastSpace is only used to
+      // break a line. After a break, the line is trimmed left and right.
+      lastSpace = walker;
+      lineWidth266 += advance266;
+      walker++;
+    } else if (c == '\n') {
+      // Newline character. Break now.
+      this->PushLine(lineStart, walker);
+
+      // More characters exist, but no vertical space is left. Ellipsize and bail.
+      if (this->AtVerticalLimit(maxHeight266, maxLines)) {
+        this->EllipsizeIfNecessary(style, maxWidth);
+        lineStart = textIteratorEnd;
+        break;
+      }
+
+      // Proceed. Increment walker so the newline is not processed again.
+      lineWidth266 = 0;
+      lastSpace = textIteratorEnd;
+      lineStart = ++walker;
+    } else if (lineWidth266 + advance266 >= maxWidth266) {
+      // Character does not fit on this line. Break at lastSpace, if a space was encountered, otherwise, break
+      // at this character.
+      if (lastSpace != textIteratorEnd) {
+        this->PushLine(lineStart, lastSpace);
+        // This rewinds walker and some characters will be processed again, but I am OK with the extra
+        // processing to keep this layout code manageable.
+        walker = lastSpace;
+        lastSpace = textIteratorEnd;
+      } else {
+        this->PushLine(lineStart, walker);
+      }
+
+      // More characters exist, but no vertical space is left. Ellipsize and bail.
+      if (this->AtVerticalLimit(maxHeight266, maxLines)) {
+        this->EllipsizeIfNecessary(style, maxWidth266);
+        lineStart = textIteratorEnd;
+        break;
+      }
+
+      // Process to a new line. Ensure the new line processing starts without any leading spaces.
+      lineWidth266 = 0;
+      lastSpace = textIteratorEnd;
+      walker = this->TrimLeft(walker, textIteratorEnd);
+      lineStart = walker;
+    } else {
+      // Move the lineWidth and walker.
+      lineWidth266 += advance266;
+      walker++;
+    }
+  }
+
+  // Last line did not exceed maxWidth, so add it to lines.
+  if (lineStart != textIteratorEnd) {
+    this->PushLine(lineStart, textIteratorEnd);
+  }
+
+  maxWidth266 = 0;
+
+  for (auto& line : this->lines) {
+    maxWidth266 = std::max(maxWidth266, line.width266 = this->MeasureLine(line));
+  }
+
+  const auto lineHeight = ::ceilf(FromFloat266(this->font->GetLineHeight()));
+
+  // Round up so sub-pixels can be rendered to the int texture dimensions.
+  this->calculatedWidth = ::ceilf(FromFloat266(maxWidth266));
+  this->calculatedHeight = lineHeight * static_cast<float>(this->lines.size());
+  this->align = style->GetEnum<StyleTextAlign>(StyleProperty::textAlign);
+}
 
 void TextBlock::Paint(Renderer* renderer) {
-  if (this->IsEmpty()) {
+  if (this->IsEmpty() || !this->font->SetFontSizePt(this->fontSize)) {
     return;
   }
 
-  auto error = FT_Set_Char_Size(this->font, 0, this->fontSize*64, 0, 0);
-
-  if (error) {
-    return;
-  }
-
-  auto target{ this->EnsureLockableTexture(renderer, this->calculatedWidth, this->calculatedHeight) };
-
-  if (!target) {
-    LOG_ERROR("Failed to create paint texture.");
-    return;
-  }
-
-  // Fill entire texture surface with transparent to start from a known state.
-  TextureLock textureLock(target);
+  auto textureLock{this->LockTexture(renderer)};
 
   if (!textureLock.IsLocked()) {
     return;
   }
 
-  auto pixels{ textureLock.GetPixels() };
+  int32_t x;
+  int32_t y{};
+  const auto surface{reinterpret_cast<color_t*>(textureLock.GetPixels())};
+  const auto lineHeight{this->ComputeLineHeight()};
 
-  memset(pixels, 0, target->Pitch() * target->Height());
+  for (const auto& line : this->lines) {
+    switch (this->align) {
+      case StyleTextAlignCenter:
+        x = SnapToPixelGrid<int32_t>((this->WidthF() - this->MeasureLineF(line)) / 2.f);
+        break;
+      case StyleTextAlignRight:
+        x = SnapToPixelGrid<int32_t>(this->WidthF() - this->MeasureLineF(line));
+        break;
+      default:
+        x = 0;
+        break;
+    }
 
-  float width{};
+    this->PaintLine(line, x, surface + (y * textureLock.GetWidth()), textureLock.GetWidth());
 
-  auto toFloat = [](FT_Pos value) {
-    // 26.6 format to float
-    return static_cast<float>(value) / static_cast<float>(0b111111);
-  };
+    y += lineHeight;
+  }
 
-  for (const auto& glyph : this->glyphs) {
-    if (FT_Load_Glyph(this->font, glyph, FT_LOAD_RENDER)) {
+  ConvertToFormat(surface, this->texture->Width() * this->texture->Height(), this->texture->Format());
+
+  this->isReady = true;
+}
+
+void TextBlock::PaintLine(const TextLine& line, int32_t x, color_t* surface, int32_t pitch) noexcept {
+  FT_BitmapGlyph glyph;
+  color_t* s;
+  int32_t yOffset;
+  float advance;
+  auto pos{static_cast<float>(x)};
+  const auto ascent{::ceilf(FromFloat266(this->font->GetAscent()))};
+
+  for (size_t i = line.start; i < line.end; i++) {
+    advance = FromFloat266(this->codepoints[i].advance266);
+    glyph = this->font->GetGlyphBitmap(this->codepoints[i].value);
+
+    if (!glyph) {
+      pos += advance;
       continue;
     }
 
-    auto p{reinterpret_cast<color_t*>(pixels)};
+    yOffset = static_cast<int32_t>(ascent - glyph->top);
 
-    auto a = (this->font->size->metrics.ascender >> 6) - this->font->glyph->bitmap_top;
+    if (yOffset < 0) {
+      continue;
+    }
 
-    p += (a * target->Width()) + static_cast<int32_t>(width) + this->font->glyph->bitmap_left;
+    s = surface + ((yOffset * pitch) + SnapToPixelGrid<int32_t>(pos) + glyph->left);
 
-    for (uint32_t by = 0; by < this->font->glyph->bitmap.rows; by++) {
-      for (uint32_t bx = 0; bx < this->font->glyph->bitmap.width; bx++) {
-        *p++ = 0xFFFFFF | (this->font->glyph->bitmap.buffer[by*this->font->glyph->bitmap.pitch + bx] << 24);
+    for (uint32_t by = 0; by < glyph->bitmap.rows; by++) {
+      for (uint32_t bx = 0; bx < glyph->bitmap.width; bx++) {
+        *s++ = 0xFFFFFF | (glyph->bitmap.buffer[by*glyph->bitmap.pitch + bx] << 24);
       }
-      p += (target->Width() - this->font->glyph->bitmap.width);
-    }
-    //    this->font->glyph->bitmap.pixel_mode;
-
-    // TODO: kerning
-
-    auto advance = toFloat(this->font->glyph->advance.x);
-
-    if (width + advance > this->calculatedWidth) {
-      break;
+      s += (pitch - glyph->bitmap.width);
     }
 
-    width += advance;
+    pos += advance;
+  }
+}
+
+int32_t TextBlock::ComputeLineHeight() const noexcept {
+  Float266 lineHeight{this->font->GetLineHeight()};
+
+  if ((lineHeight & 0b111111) > 0) {
+    return (lineHeight >> 6) + 1;
   }
 
-//  context->Begin(pixels, target->Width(), target->Height(), target->Pitch());
-//
-//  auto y{ this->font.ascent() };
-//
-//  context->SetColor(ColorWhite);
-//  context->SetFont(this->font.blFont);
-//
-//  for (std::size_t i = 0; i < this->lines.size(); i++) {
-//    const auto& line = lines[i];
-//    float x;
-//
-//    // The lines need to be aligned on the surface, but the surface may be smaller than the box bounds. So, the
-//    // box will need to also apply alignment on the surface during composite.
-//    switch (line.textAlign) {
-//      case StyleTextAlignCenter:
-//        x = (target->Width() - line.width) / 2.f;
-//        break;
-//      case StyleTextAlignRight:
-//        x = target->Width() - line.width;
-//        break;
-//      case StyleTextAlignLeft:
-//      default:
-//        x = 0;
-//        break;
-//    }
-//
-//    if (line.glyphRun.size) {
-//      context->FillText(x, y, line.glyphRun);
-//    }
-//
-//    if (line.ellipsis) {
-//      // BLGlyphBuffer is immutable (to appends), so just draw the ellipsis after the rendered line.
-//      context->FillText(x + line.width - this->font.ellipsisWidth(), y, "...");
-//    }
-//
-//    y += this->font.lineHeight();
-//  }
-//
-//  context->End();
+  return (lineHeight >> 6);
+}
 
-  ConvertToFormat(reinterpret_cast<color_t*>(pixels), target->Width() * target->Height(), target->Format());
-  this->isReady = true;
+TextureLock TextBlock::LockTexture(Renderer* renderer) noexcept {
+  if (this->texture && this->Width() <= this->texture->Width() && this->Height() >= this->texture->Height()) {
+    return {this->texture, true};
+  }
+
+  Texture::SafeDestroy(this->texture);
+
+  const auto extraW{static_cast<int32_t>(this->Width() * 0.1f)};
+  const auto extraH{static_cast<int32_t>(this->Width() * 0.05f)};
+
+  this->texture = renderer->CreateTexture(this->Width() + extraW, this->Height() + extraH, Texture::Lockable);
+
+  if (this->texture) {
+    return {this->texture, true};
+  }
+
+  return {nullptr, false};
 }
 
 int32_t TextBlock::Width() const noexcept {
@@ -326,11 +292,16 @@ float TextBlock::HeightF() const noexcept {
   return this->calculatedHeight;
 }
 
+void TextBlock::Destroy() noexcept {
+  this->texture = Texture::SafeDestroy(this->texture);
+}
+
 void TextBlock::Invalidate() noexcept {
   this->calculatedWidth = this->calculatedHeight = 0;
   this->lines.clear();
   this->font = nullptr;
-  this->glyphs.clear();
+  this->codepoints.clear();
+  this->align = {};
   this->isReady = false;
 }
 
@@ -338,49 +309,14 @@ bool TextBlock::IsEmpty() const noexcept {
   return this->calculatedWidth <= 0 || this->calculatedHeight <= 0;
 }
 
-//float TextBlock::GetRunWidth(const BLGlyphRun& run) const noexcept {
-//  const auto scaleFactor{ this->font.scaleX() };
-//  const auto placementData{ run.placementDataAs<BLGlyphPlacement>() };
-//  double len{ 0 };
-//
-//  for (std::size_t i = 0; i < run.size; i++) {
-//    len += (placementData[i].advance.x * scaleFactor);
-//  }
-//
-//  return static_cast<float>(len);
-//}
-//
-//double TextBlock::GetGlyphAdvance(std::size_t glyphBufferIndex) const noexcept {
-//  return this->glyphBuffer.placementData()[glyphBufferIndex].advance.x * this->font.scaleX();
-//}
-//
-//BLGlyphRun TextBlock::GetGlyphRun(std::size_t start, std::size_t end) const noexcept {
-//  auto run{ this->glyphBuffer.glyphRun() };
-//
-//  run.glyphData = &run.glyphDataAs<uint32_t>()[start];
-//  run.placementData = &run.placementDataAs<BLGlyphPlacement>()[start];
-//  run.size = end - start;
-//
-//  return run;
-//}
+void TextBlock::LoadCodepoints(const std::string& utf8, Style* style) {
+  assert(!utf8.empty());
 
-static std::size_t StringLength(const std::string& utf8) noexcept {
-  auto i{ utf8.begin() };
-  std::size_t length{};
-
-  while (i != utf8.end()) {
-    utf8::unchecked::next(i);
-    length++;
-  }
-
-  return length;
-}
-
-void TextBlock::LoadGlyphs(const std::string& utf8, FT_Face face, Style* style) {
-  auto i{ utf8.begin() };
+  auto i{utf8.begin()};
+  uint32_t codepoint;
   int (*op)(int);
 
-  this->glyphs.reserve(StringLength(utf8));
+  this->codepoints.reserve(LengthUtf8(utf8));
 
   switch (style->GetEnum<StyleTextTransform>(StyleProperty::textTransform)) {
     case StyleTextTransformLowercase:
@@ -395,143 +331,140 @@ void TextBlock::LoadGlyphs(const std::string& utf8, FT_Face face, Style* style) 
   }
 
   while (i != utf8.end()) {
-    auto cp{utf8::unchecked::next(i)};
+    codepoint = utf8::unchecked::next(i);
 
-    if (op && cp < 255) {
-      cp = op(static_cast<int32_t>(cp));
+    if (op && codepoint < 255) {
+      codepoint = op(static_cast<int32_t>(codepoint));
     }
 
-    this->glyphs.push_back(FT_Get_Char_Index(face, cp));
+    this->codepoints.emplace_back(codepoint, this->font->GetAdvance(codepoint));
+  }
+
+  if (this->font->HasKerning() && !this->codepoints.empty()) {
+    auto size{this->codepoints.size() - 1};
+
+    for (std::size_t c = 0; c < size; c++) {
+      this->codepoints[c].advance266 += this->font->GetKerningX(
+          this->codepoints[c].value, this->codepoints[c + 1].value);
+    }
   }
 }
 
-//TextBlock::TextIterator TextBlock::TrimLeft(const TextIterator& begin, const TextIterator& end) const noexcept {
-//  auto i = begin;
-//
-//  while (i != end && i.CodepointAsChar() == ' ') {
-//    i++;
-//  }
-//
-//  return i;
-//}
-//
-//void TextBlock::PushLine(const TextIterator& begin, const TextIterator& end) {
-//  auto i = begin;
-//  auto lastNonSpace = end;
-//
-//  while (i != end) {
-//    if (i.CodepointAsChar() != ' ') {
-//      lastNonSpace = i;
-//    }
-//    i++;
-//  }
-//
-//  if (lastNonSpace != end) {
-//    lastNonSpace++;
-//  }
-//
-//  auto run{ this->GetGlyphRun(begin.GlyphBufferIndex(), lastNonSpace.GlyphBufferIndex()) };
-//
-//  this->lines.push_back({ run, this->GetRunWidth(run), false, StyleTextAlignLeft });
-//}
-//
-//bool TextBlock::AtVerticalLimit(float maxHeight, std::size_t maxLines) const noexcept {
-//  return this->AtVerticalLimit(maxHeight, maxLines, this->lines.size());
-//}
-//
-//bool TextBlock::AtVerticalLimit(float maxHeight, std::size_t maxLines, std::size_t lineNo) const noexcept {
-//  return (maxLines > 0 && lineNo == maxLines) || (maxHeight > 0 && (lineNo * this->font.lineHeight()) > maxHeight);
-//}
+size_t TextBlock::TrimLeft(std::size_t begin, std::size_t end) const noexcept {
+  for (auto i = begin; i < end; i++) {
+    if (this->codepoints[i].value != ' ') {
+      return i;
+    }
+  }
 
-//void TextBlock::EllipsizeIfNecessary(Style* style, float maxWidth) noexcept {
-//  /*
-//   * Assumes that layout processing has completed and the text could not fit in the
-//   * layout area. If text overflow is not ellipsis, the last line is sufficiently
-//   * cropped. If text overflow is ellipsis, a "..." should be placed at the end
-//   * of the line. If there is not enough room for "...", characters need to be popped
-//   * off the back of the glyph buffer until space is available.
-//   *
-//   * Since the glyph buffer is not dynamic, the "..." cannot be appended. So, the
-//   * size is adjusted and line width are adjusted to fit the ellipsis. The Paint()
-//   * method will just draw the text immediately following the line.
-//   *
-//   * The algorithm has two minot rendering issues (my opinion). 1) A line can
-//   * contain only "...". This is fine for single line text, but it looks weird  in
-//   * some multiline scenarios. 2) Spaces can precede the ellipsis (ex: My Text ...).
-//   * If a run of multiple spaces are in the line, the ellipsis appears dangling.
-//   *
-//   * The font caches the ellipsis width. An ellipsis is considered to be three
-//   * consecutive '.' characters, not the unicode ellipsis character.
-//   */
-//
-//  if (style->GetEnum(StyleProperty::textOverflow) != StyleTextOverflowEllipsis) {
-//    return;
-//  }
-//
-//  // Bail if no ellipsis width or no room in maxWidth.
-//  const auto ellipsisWidth{ this->font.ellipsisWidth() };
-//
-//  if (ellipsisWidth <= 0 || maxWidth < ellipsisWidth) {
-//    return;
-//  }
-//
-//  auto& lastLine{ this->lines.back() };
-//  auto newWidth{ lastLine.width };
-//
-//  lastLine.ellipsis = true;
-//
-//  // Pop characters until there is enough space.
-//  for (int32_t i = static_cast<int32_t>(lastLine.glyphRun.size) - 1; i >= 0; i--) {
-//    if (newWidth + ellipsisWidth <= maxWidth) {
-//      lastLine.width = (newWidth + ellipsisWidth);
-//      lastLine.glyphRun.size = i + 1;
-//      return;
-//    }
-//
-//    newWidth -= (lastLine.glyphRun.placementDataAs<BLGlyphPlacement>()[i].advance.x * this->font.scaleX());
-//  }
-//
-//  // Not enough space, so just display the ellipsis for this line.
-//  lastLine.width = ellipsisWidth;
-//  lastLine.glyphRun.size = 0;
-//}
-
-TextBlock::TextIterator::TextIterator(std::size_t glyphBufferIndex, const string_iterator& utf8) noexcept
-    : glyphBufferIndex(glyphBufferIndex), utf8(utf8) {
+  return end;
 }
 
-uint32_t TextBlock::TextIterator::Codepoint() const noexcept {
-  auto copy = this->utf8;
-  return utf8::unchecked::next(copy);
+void TextBlock::PushLine(std::size_t begin, std::size_t end) {
+  auto i = begin;
+  auto lastNonSpace = end;
+
+  while (i < end) {
+    if (this->codepoints[i].value != ' ') {
+      lastNonSpace = i;
+    }
+    i++;
+  }
+
+  if (lastNonSpace != end) {
+    lastNonSpace++;
+  }
+
+  this->lines.emplace_back(begin, lastNonSpace);
 }
 
-char TextBlock::TextIterator::CodepointAsChar() const noexcept {
-  const auto codepoint{ this->Codepoint() };
+int32_t TextBlock::MeasureLine(const TextLine& line) const noexcept {
+  Float266 width266{};
 
-  return codepoint < 255 ? static_cast<char>(codepoint) : '\0';
+  for (auto i = line.start; i < line.end; i++) {
+    width266 += this->codepoints[i].advance266;
+  }
+
+  return width266;
 }
 
-std::size_t TextBlock::TextIterator::GlyphBufferIndex() const noexcept {
-  return this->glyphBufferIndex;
+float TextBlock::MeasureLineF(const TextLine& line) const noexcept {
+  return FromFloat266(this->MeasureLine(line));
 }
 
-bool TextBlock::TextIterator::operator!=(const TextIterator& other) const noexcept {
-  return this->glyphBufferIndex != other.glyphBufferIndex;
+bool TextBlock::AtVerticalLimit(int32_t maxHeight266, std::size_t maxLines) const noexcept {
+  return this->AtVerticalLimit(maxHeight266, maxLines, this->lines.size());
 }
 
-bool TextBlock::TextIterator::operator==(const TextIterator& other) const noexcept {
-  return this->glyphBufferIndex == other.glyphBufferIndex;
+bool TextBlock::AtVerticalLimit(int32_t maxHeight266, std::size_t maxLines, std::size_t lineNo) const noexcept {
+  return (maxLines > 0 && lineNo == maxLines) || (maxHeight266 > 0 && ToFloat266(lineNo) > maxHeight266);
 }
 
-TextBlock::TextIterator TextBlock::TextIterator::operator++(int32_t) noexcept {
-  this->glyphBufferIndex++;
-  utf8::unchecked::next(this->utf8);
+void TextBlock::EllipsizeIfNecessary(Style* style, int32_t maxWidth266) noexcept {
+  /*
+   * Assumes that layout processing has completed and the text could not fit in the
+   * layout area. If text overflow is not ellipsis, the last line is sufficiently
+   * cropped. If text overflow is ellipsis, a "..." should be placed at the end
+   * of the line. If there is not enough room for "...", characters need to be popped
+   * off the back of the glyph buffer until space is available.
+   *
+   * Since the glyph buffer is not dynamic, the "..." cannot be appended. So, the
+   * size is adjusted and line width are adjusted to fit the ellipsis. The Paint()
+   * method will just draw the text immediately following the line.
+   *
+   * The algorithm has two minot rendering issues (my opinion). 1) A line can
+   * contain only "...". This is fine for single line text, but it looks weird  in
+   * some multiline scenarios. 2) Spaces can precede the ellipsis (ex: My Text ...).
+   * If a run of multiple spaces are in the line, the ellipsis appears dangling.
+   *
+   * The font caches the ellipsis width. An ellipsis is considered to be three
+   * consecutive '.' characters, not the unicode ellipsis character.
+   */
 
-  return *this;
+  if (style->GetEnum(StyleProperty::textOverflow) != StyleTextOverflowEllipsis) {
+    return;
+  }
+
+  // Bail if no ellipsis width or no room in maxWidth.
+  const auto ellipsisWidth266{ this->font->GetAdvance('.') * (3 << 6) };
+
+  if (ellipsisWidth266 <= 0 || maxWidth266 < ellipsisWidth266) {
+    return;
+  }
+
+  auto& lastLine{ this->lines.back() };
+
+  if (lastLine.end == 0) {
+    return;
+  }
+
+  Float266 space266{};
+
+  lastLine.ellipsis = true;
+
+  // Pop characters until there is enough space.
+  for (auto i = lastLine.end - 1; i >= 0; i--) {
+    space266 += this->codepoints[i].advance266;
+
+    if (space266 >= ellipsisWidth266) {
+      lastLine.end = i;
+      return;
+    }
+  }
+
+  lastLine.end = lastLine.start;
 }
 
 bool TextBlock::IsReady() const noexcept {
   return this->isReady;
+}
+
+Texture* TextBlock::GetTexture() const noexcept {
+  return this->texture;
+}
+
+IntRect TextBlock::GetTextureSourceRect() const noexcept {
+  return {0, 0, this->calculatedWidth, this->calculatedHeight};
 }
 
 } // namespace lse

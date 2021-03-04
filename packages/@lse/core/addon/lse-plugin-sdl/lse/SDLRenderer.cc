@@ -12,7 +12,7 @@
 #include <lse/PixelConversion.h>
 #include <lse/Log.h>
 #include <lse/string-ext.h>
-#include <lse/Math.h>
+#include <lse/math-ext.h>
 
 namespace lse {
 

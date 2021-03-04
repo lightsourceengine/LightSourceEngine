@@ -13,7 +13,7 @@
 #include <lse/Color.h>
 #include <lse/Texture.h>
 #include <lse/SDL2.h>
-#include <lse/Math.h>
+#include <lse/math-ext.h>
 
 namespace lse {
 

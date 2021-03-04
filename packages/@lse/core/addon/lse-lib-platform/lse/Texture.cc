@@ -62,10 +62,14 @@ Texture* Texture::SafeDestroy(Texture* texture) noexcept {
   return nullptr;
 }
 
-TextureLock::TextureLock(Texture* texture) {
+TextureLock::TextureLock(Texture* texture, bool clear) {
   if (texture) {
     this->pixels = texture->Lock();
     this->texture = texture;
+
+    if (clear) {
+      memset(pixels, 0, texture->Pitch() * texture->Height());
+    }
   }
 }
 
@@ -81,6 +85,14 @@ bool TextureLock::IsLocked() const noexcept {
 
 uint8_t* TextureLock::GetPixels() const noexcept {
   return this->pixels;
+}
+
+int32_t TextureLock::GetWidth() const noexcept {
+  return this->texture ? this->texture->Width() : 0;
+}
+
+int32_t TextureLock::GetHeight() const noexcept {
+  return this->texture ? this->texture->Height() : 0;
 }
 
 } // namespace lse

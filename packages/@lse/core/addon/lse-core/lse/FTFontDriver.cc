@@ -8,15 +8,10 @@
 
 #include <memory>
 #include <lse/Log.h>
+#include <lse/fs-ext.h>
+#include <freetype/ftadvanc.h>
 
 namespace lse {
-
-using FileContents = std::unique_ptr<uint8_t[], void(*)(const uint8_t*)>;
-
-static void FileContentsDeleter(const uint8_t* data) noexcept;
-static void FileClose(FILE* fp) noexcept;
-static FileContents ReadFileContents(const char* filename, size_t* size) noexcept;
-static FT_Face LoadFace(FT_Library lib, std::mutex& lock, FileContents contents, size_t size, int32_t index) noexcept;
 
 FTFontDriver::FTFontDriver() {
   auto error = FT_Init_FreeType(&this->library);
@@ -39,15 +34,7 @@ FontSource* FTFontDriver::LoadFontSource(void* data, size_t dataSize, int32_t in
     return {};
   }
 
-  FileContents contents(new (std::nothrow) uint8_t[dataSize], &FileContentsDeleter);
-
-  if (contents) {
-    memcpy(contents.get(), data, dataSize);
-  } else {
-    return {};
-  }
-
-  return LoadFace(this->library, this->lock, std::move(contents), dataSize, index);
+  return this->NewFTFontSource(NewByteArray(static_cast<uint8_t*>(data), dataSize), index);
 }
 
 FontSource* FTFontDriver::LoadFontSource(const char* file, int32_t index) {
@@ -55,80 +42,177 @@ FontSource* FTFontDriver::LoadFontSource(const char* file, int32_t index) {
     return {};
   }
 
-  size_t size{};
-  auto contents{ReadFileContents(file, &size)};
-
-  if (!contents) {
-    return {};
-  }
-
-  return LoadFace(this->library, this->lock, std::move(contents), size, index);
+  return this->NewFTFontSource(ReadFileContents(file), index);
 }
 
 void FTFontDriver::DestroyFontSource(FontSource* fontSource) {
   if (fontSource) {
-    std::lock_guard<std::mutex> guard(this->lock);
-    FT_Done_Face(static_cast<FT_Face>(fontSource));
+    auto ftFontSource{static_cast<FTFontSource*>(fontSource)};
+    auto face{ftFontSource->GetFace()};
+
+    {
+      // create is done in another thread, docs say to have a mutex around face new/done
+      std::lock_guard<std::mutex> guard(this->createFaceLock);
+      FT_Done_Face(face);
+    }
+
+    delete ftFontSource;
   }
 }
 
-static void FileContentsDeleter(const uint8_t* data) noexcept {
-  delete [] data;
-}
-
-static void FileClose(FILE* fp) noexcept {
-  if (fp) {
-    fclose(fp);
-  }
-}
-
-static FileContents ReadFileContents(const char* filename, size_t* size) noexcept {
-  FileContents contents(nullptr, &FileContentsDeleter);
-  std::shared_ptr<FILE> fp(fopen(filename, "rb"), &FileClose);
-
-  if (!fp) {
-    return contents;
+FTFontSource* FTFontDriver::NewFTFontSource(ByteArray&& font, int32_t index) noexcept {
+  if (font.empty()) {
+    return {};
   }
 
-  fseek(fp.get(), 0, SEEK_END);
-  auto length = ftell(fp.get());
-  fseek(fp.get(), 0, SEEK_SET);
-
-  if (length > 0) {
-    contents.reset(new(std::nothrow) uint8_t[length]);
-  }
-
-  if (!contents) {
-    return contents;
-  }
-
-  if (fread(contents.get(), 1, length, fp.get()) != static_cast<size_t>(length)) {
-    contents.reset();
-  }
-
-  *size = static_cast<size_t>(length);
-  return contents;
-}
-
-static FT_Face LoadFace(FT_Library lib, std::mutex& lock, FileContents contents, size_t size, int32_t index) noexcept {
   FT_Face face{};
   FT_Error result;
 
   {
-    std::lock_guard<std::mutex> guard(lock);
-    result = FT_New_Memory_Face(lib, contents.get(), size, index, &face);
+    // this may be called in a background thread, docs say to have a mutex around face new/done
+    std::lock_guard<std::mutex> guard(this->createFaceLock);
+    result = FT_New_Memory_Face(this->library, font.data(), font.size(), index, &face);
   }
 
   if (result == FT_Err_Ok) {
-    face->stream->close = [](FT_Stream stream) noexcept {
-      FileContentsDeleter(stream->base);
-    };
-    contents.release();
-  } else {
-    face = nullptr;
+    if (FT_IS_SCALABLE(face)) {
+      return new FTFontSource(face, std::move(font));
+    } else {
+      std::lock_guard<std::mutex> guard(this->createFaceLock);
+      FT_Done_Face(face);
+    }
   }
 
-  return face;
+  return {};
+}
+
+FTFontSource::FTFontSource(FT_Face face, ByteArray&& memory) noexcept : face(face), memory(std::move(memory)) {
+  // TODO: use lru cache for this cache?
+  this->glyphIdCache.reserve(1024);
+  // TODO: use lru cache for this cache
+  this->advanceCache.reserve(1024);
+  // TODO: use lru cache for this cache
+  // TODO: it would be more memory efficient to use a texture atlas (this solution is expedient)
+  this->bitmapCache.reserve(512);
+}
+
+FTFontSource::~FTFontSource() noexcept {
+  for (auto& entry : this->bitmapCache) {
+    if (entry.second) {
+      FT_Done_Glyph(entry.second);
+    }
+  }
+  this->bitmapCache.clear();
+}
+
+FT_Face FTFontSource::GetFace() const noexcept {
+  return this->face;
+}
+
+uint32_t FTFontSource::ToGlyphId(uint32_t codepoint) const noexcept {
+  auto p{this->glyphIdCache.find(codepoint)};
+
+  if (p == this->glyphIdCache.end()) {
+    return (this->glyphIdCache[codepoint] = FT_Get_Char_Index(this->face, codepoint));
+  }
+
+  return p->second;
+}
+
+Float266 FTFontSource::GetAdvance(uint32_t codepoint) const noexcept {
+  Key key{codepoint, this->currentPointSize};
+  auto p{this->advanceCache.find(key.value)};
+
+  if (p == this->advanceCache.end()) {
+    FT_Fixed advance1616;
+
+    if (FT_Get_Advance(this->face, this->ToGlyphId(codepoint), FT_LOAD_DEFAULT, &advance1616)) {
+      advance1616 = 0;
+    }
+
+    return (this->advanceCache[key.value] = advance1616 >> 10);
+  }
+
+  return p->second;
+}
+
+bool FTFontSource::HasKerning() const noexcept {
+  return FT_HAS_KERNING(this->face);
+}
+
+Float266 FTFontSource::GetKerningX(uint32_t cp1, uint32_t cp2) const noexcept {
+  FT_Vector kerning;
+
+  if (FT_Get_Kerning(this->face, this->ToGlyphId(cp1), this->ToGlyphId(cp2), FT_KERNING_DEFAULT, &kerning)) {
+    return 0;
+  } else {
+    return kerning.x;
+  }
+}
+
+Float266 FTFontSource::GetAscent() const noexcept {
+  return this->ascent;
+}
+
+Float266 FTFontSource::GetLineHeight() const noexcept {
+  return this->lineHeight;
+}
+
+FT_BitmapGlyph FTFontSource::GetGlyphBitmap(uint32_t codepoint) const noexcept {
+  Key key{codepoint, this->currentPointSize};
+  FT_Glyph glyph;
+  auto p{this->bitmapCache.find(key.value)};
+
+  if (p == this->bitmapCache.end()) {
+    glyph = this->bitmapCache[key.value] = this->LoadGlyphBitmap(codepoint);
+  } else {
+    glyph = p->second;
+  }
+
+  return reinterpret_cast<FT_BitmapGlyph>(glyph);
+}
+
+FT_Glyph FTFontSource::LoadGlyphBitmap(uint32_t codepoint) const noexcept {
+  FT_Glyph glyph{};
+
+  if (std::isspace(static_cast<int32_t>(codepoint))) {
+    return {};
+  }
+
+  if (FT_Load_Glyph(this->face, this->ToGlyphId(codepoint), FT_LOAD_RENDER)) {
+    return {};
+  }
+
+  if (FT_Get_Glyph(this->face->glyph, &glyph)) {
+    return {};
+  }
+
+  if (glyph->format != FT_GLYPH_FORMAT_BITMAP) {
+    FT_Done_Glyph(glyph);
+    glyph = {};
+  }
+
+  return glyph;
+}
+
+bool FTFontSource::SetFontSizePt(int32_t pointSize) noexcept {
+  if (this->currentPointSize == pointSize) {
+    return true;
+  }
+
+  if (this->face && FT_Set_Char_Size(this->face, 0, pointSize*64, 0, 0) == 0) {
+    this->ascent = static_cast<Float266>(this->face->size->metrics.ascender);
+    this->lineHeight = static_cast<Float266>(this->face->size->metrics.height);
+    this->currentPointSize = pointSize;
+
+    return true;
+  } else {
+    this->ascent = 0;
+    this->lineHeight = 0;
+    this->currentPointSize = 0;
+
+    return false;
+  }
 }
 
 } // namespace lse

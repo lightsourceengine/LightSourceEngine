@@ -8,7 +8,7 @@
 #include "Rect.h"
 
 #include <cmath>
-#include <lse/Math.h>
+#include <lse/math-ext.h>
 
 namespace lse {
 

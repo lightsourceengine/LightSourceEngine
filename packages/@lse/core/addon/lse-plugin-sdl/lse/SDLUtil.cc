@@ -7,7 +7,6 @@
 
 #include <lse/SDLUtil.h>
 #include <lse/Renderer.h>
-#include <lse/Math.h>
 
 namespace lse {
 

@@ -178,7 +178,7 @@ void TextSceneNode::DrawText(CompositeContext* ctx) {
 
   ctx->renderer->DrawImage(
       pos,
-      {0, 0, this->block.GetTexture()->Width(), this->block.GetTexture()->Height()},
+      this->block.GetTextureSourceRect(),
       this->block.GetTexture(),
       RenderFilter::OfTint(textColor.MixAlpha(ctx->CurrentOpacity())));
 }

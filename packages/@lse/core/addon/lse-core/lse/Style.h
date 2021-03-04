@@ -9,7 +9,7 @@
 #include <lse/Reference.h>
 #include <lse/StyleEnums.h>
 #include <lse/Color.h>
-#include <lse/Math.h>
+#include <lse/math-ext.h>
 #include <Yoga.h>
 #include <phmap.h>
 #include <phmap_utils.h>

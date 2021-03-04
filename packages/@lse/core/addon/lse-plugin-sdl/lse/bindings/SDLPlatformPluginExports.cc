@@ -55,8 +55,10 @@ static Napi::FunctionReference sPluginCallbacks[PluginCallbackCount]{};
  */
 class SafeHandleScope {
  public:
-  explicit SafeHandleScope(napi_env env) noexcept {
-    napi_open_handle_scope(this->env, &this->scope);
+  explicit SafeHandleScope(napi_env env) noexcept : env(env), scope(nullptr) {
+    if (napi_open_handle_scope(this->env, &this->scope) != napi_ok) {
+      this->scope = nullptr;
+    }
   }
 
   ~SafeHandleScope() noexcept {

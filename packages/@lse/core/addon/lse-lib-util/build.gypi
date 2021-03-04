@@ -23,9 +23,9 @@
           "lse-lib-logger",
       ],
       "sources": [
-        "lse/Uri.cc",
         "lse/Timer.cc",
         "lse/System.cc",
+        "lse/fs-ext.cc",
         "lse/string-ext.cc",
         "lse/SDL2.cc",
         "lse/SDL2_mixer.cc",
@@ -63,8 +63,8 @@
           ],
           "sources": [
             "test/FormatSpec.cc",
+            "test/FsExtSpec.cc",
             "test/StringExtSpec.cc",
-            "test/UriSpec.cc",
             "test/LightSourceUtilTestSuite.cc",
           ]
         }]

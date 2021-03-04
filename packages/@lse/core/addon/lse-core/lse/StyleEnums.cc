@@ -6,7 +6,7 @@
 
 #include <lse/StyleEnums.h>
 
-#include <lse/CStringHashMap.h>
+#include <lse/string-ext.h>
 #include <stdexcept>
 
 namespace lse {

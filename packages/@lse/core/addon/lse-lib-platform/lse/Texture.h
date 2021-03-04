@@ -67,11 +67,13 @@ class Texture {
 
 class TextureLock {
  public:
-  TextureLock(Texture* texture);
+  TextureLock(Texture* texture, bool clear = false);
   ~TextureLock();
 
   bool IsLocked() const noexcept;
   uint8_t* GetPixels() const noexcept;
+  int32_t GetWidth() const noexcept;
+  int32_t GetHeight() const noexcept;
 
  private:
   Texture* texture{};

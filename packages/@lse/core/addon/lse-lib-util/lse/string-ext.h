@@ -9,6 +9,7 @@
 
 #include <string>
 #include <std17/string_view>
+#include <phmap.h>
 
 namespace lse {
 
@@ -24,6 +25,9 @@ bool EqualsIgnoreCase(const char* a, const char* b) noexcept;
 
 // Checks if str ends with a suffix.
 bool EndsWith(const char* str, const char* suffix) noexcept;
+
+// Get the length of a utf8 encoded string.
+size_t LengthUtf8(const std::string& utf8) noexcept;
 
 namespace internal {
 
@@ -60,5 +64,29 @@ std::string Format(const char* format, const Args& ... args) {
 
   return formattedString;
 }
+
+namespace detail {
+
+struct CStringMapEqualTo : public std::binary_function<const char*, const char*, bool> {
+  bool operator()(const char* lhs, const char* rhs) const noexcept {
+    return strcmp(lhs, rhs) == 0;
+  }
+};
+
+struct CStringMapHash {
+  int32_t operator()(const char* str) const {
+    int32_t h = 0;
+    while (*str) {
+      h = h * 31 + static_cast<int32_t>(*str++);
+    }
+    return h;
+  }
+};
+
+} // namespace detail
+
+// unordered_map with const char* as the key type.
+template<typename T>
+using CStringHashMap = phmap::flat_hash_map<const char*, T, detail::CStringMapHash, detail::CStringMapEqualTo>;
 
 } // namespace lse
