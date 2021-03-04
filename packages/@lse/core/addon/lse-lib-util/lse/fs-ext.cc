@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <cstdio>
+#include <cstring>
 
 namespace lse {
 
