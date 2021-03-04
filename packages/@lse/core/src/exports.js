@@ -35,26 +35,8 @@ export { createStyle } from './style/createStyle.js'
 export { createStyleSheet } from './style/createStyleSheet.js'
 export { MixinRegistry } from './style/MixinRegistry.js'
 export { ShorthandRegistry } from './style/ShorthandRegistry.js'
-export { rgba } from './style/rgba.js'
-export { rgb } from './style/rgb.js'
 export { StyleAnchor, StyleUnit, StyleTransform } from './addon/index.js'
-export {
-  translate,
-  scale,
-  rotate,
-  scaleX,
-  scaleY,
-  translateX,
-  translateY,
-  isRotate,
-  isScale,
-  isTranslate,
-  getRotateAngle,
-  getTranslateX,
-  getTranslateY,
-  getScaleX,
-  getScaleY
-} from './style/transform.js'
+export * as $ from './style/style-functions.js'
 
 /// ////////////////////////////////////////////////////////////////////////////
 /// Audio Exports
