@@ -7,6 +7,7 @@
 #include "FTFontDriver.h"
 
 #include <memory>
+#include <cctype>
 #include <lse/Log.h>
 #include <lse/fs-ext.h>
 #include <freetype/ftadvanc.h>
