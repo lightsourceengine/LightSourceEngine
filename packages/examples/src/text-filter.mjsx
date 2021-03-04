@@ -1,0 +1,93 @@
+/*
+ * Copyright (C) 2020 Daniel Anderson
+ *
+ * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
+ */
+
+import { createStyleSheet, $ } from '@lse/core'
+import { letThereBeLight } from '@lse/react'
+
+// Demonstrates filter on text elements.
+
+const sheet = createStyleSheet({
+  body: {
+    flexWrap: 'wrap',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingLeft: '10vh',
+    paddingRight: '10vh',
+    backgroundColor: 'gray',
+    '@extend': '%absoluteFill'
+  },
+  filterNone: {
+    '@extend': '%cell'
+  },
+  filterFlipH: {
+    filter: $.flipH(),
+    '@extend': '%cell'
+  },
+  filterFlipV: {
+    filter: $.flipV(),
+    '@extend': '%cell'
+  },
+  filterTint: {
+    filter: $.tint('dodgerblue'),
+    '@extend': '%cell'
+  },
+  text: {
+    marginTop: '1vh',
+    color: 'white',
+    fontSize: '2.5vh',
+    textAlign: 'center'
+  },
+  '%cell': {
+    marginTop: '10vh',
+    color: 'black',
+    fontSize: '3vh',
+    textAlign: 'center',
+    backgroundColor: 'white',
+    width: '30vh'
+  }
+})
+
+const message = 'Light Source Engine'
+const messageMultiline = 'Build React apps on the Raspberry Pi!'
+
+const TextFilterApp = () => (
+  <box class={sheet.body}>
+    <box>
+      <text class={sheet.filterNone}>{message}</text>
+      <text class={sheet.text}>filter: none</text>
+    </box>
+    <box>
+      <text class={sheet.filterFlipH}>{message}</text>
+      <text class={sheet.text}>filter: flipH()</text>
+    </box>
+    <box>
+      <text class={sheet.filterFlipV}>{message}</text>
+      <text class={sheet.text}>filter: flipV()</text>
+    </box>
+    <box>
+      <text class={sheet.filterTint}>{message}</text>
+      <text class={sheet.text}>filter: tint('dodgerblue')</text>
+    </box>
+    <box>
+      <text class={sheet.filterNone}>{messageMultiline}</text>
+      <text class={sheet.text}>filter: none</text>
+    </box>
+    <box>
+      <text class={sheet.filterFlipH}>{messageMultiline}</text>
+      <text class={sheet.text}>filter: flipH()</text>
+    </box>
+    <box>
+      <text class={sheet.filterFlipV}>{messageMultiline}</text>
+      <text class={sheet.text}>filter: flipV()</text>
+    </box>
+    <box>
+      <text class={sheet.filterTint}>{messageMultiline}</text>
+      <text class={sheet.text}>filter: tint('dodgerblue')</text>
+    </box>
+  </box>
+)
+
+letThereBeLight(<TextFilterApp />, { scene: { fullscreen: false } })

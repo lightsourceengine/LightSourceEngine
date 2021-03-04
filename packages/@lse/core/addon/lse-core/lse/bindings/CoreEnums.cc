@@ -54,5 +54,13 @@ napi_value NewStyleAnchorEnum(napi_env env) noexcept {
   });
 }
 
+napi_value NewStyleFilterEnum(napi_env env) noexcept {
+  return object_new(env, {
+      instance_value(env, "TINT", StyleFilterTint, napi_enumerable),
+      instance_value(env, "FLIP_H", StyleFilterFlipH, napi_enumerable),
+      instance_value(env, "FLIP_V", StyleFilterFlipV, napi_enumerable),
+  });
+}
+
 } // namespace bindings
 } // namespace lse

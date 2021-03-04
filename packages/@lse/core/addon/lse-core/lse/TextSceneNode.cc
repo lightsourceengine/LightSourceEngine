@@ -32,11 +32,12 @@ void TextSceneNode::OnStylePropertyChanged(StyleProperty property) {
     case StyleProperty::maxLines:
     case StyleProperty::textOverflow:
     case StyleProperty::textTransform:
-    case StyleProperty::textAlign:
       this->MarkComputeStyleDirty();
       break;
+    case StyleProperty::textAlign:
     case StyleProperty::borderColor: // TODO: borderColor?
     case StyleProperty::color:
+    case StyleProperty::filter:
       this->MarkCompositeDirty();
       break;
     default:
@@ -145,14 +146,20 @@ bool TextSceneNode::SetFont(Style* style) {
 }
 
 void TextSceneNode::DrawText(CompositeContext* ctx) {
+  auto box{YGNodeGetPaddingBox(this->ygNode)};
+  auto textStyle{Style::Or(this->style)};
+
+  if (this->block.IsEmpty()) {
+    // if style width and height are set, measure is not used. if this is the situation, shape the text before paint.
+    this->block.Shape(this->text, this->fontFace, textStyle, this->GetStyleContext(), box.width, box.height);
+  }
+
   this->block.Paint(ctx->renderer);
 
   if (!this->block.IsReady()) {
     return;
   }
 
-  auto box{YGNodeGetPaddingBox(this->ygNode)};
-  auto boxStyle{Style::Or(this->style)};
   Rect pos{
     box.x + ctx->CurrentMatrix().GetTranslateX(),
     box.y + ctx->CurrentMatrix().GetTranslateY(),
@@ -160,27 +167,26 @@ void TextSceneNode::DrawText(CompositeContext* ctx) {
     this->block.HeightF()
   };
 
-  switch (boxStyle->GetEnum(StyleProperty::textAlign)) {
+  switch (textStyle->GetEnum(StyleProperty::textAlign)) {
     case StyleTextAlignCenter:
       pos.x += ((box.width - pos.width) / 2.f);
       break;
     case StyleTextAlignRight:
       pos.x += (box.width - pos.width);
       break;
-    case StyleTextAlignLeft:
     default:
       break;
   }
 
   // TODO: clip
 
-  auto textColor{ boxStyle->GetColor(StyleProperty::color).value_or(ColorBlack) };
+  auto textColor{ textStyle->GetColor(StyleProperty::color).value_or(ColorBlack) };
 
   ctx->renderer->DrawImage(
       pos,
       this->block.GetTextureSourceRect(),
       this->block.GetTexture(),
-      RenderFilter::OfTint(textColor.MixAlpha(ctx->CurrentOpacity())));
+      this->GetStyleContext()->ComputeFilter(textStyle, textColor, ctx->CurrentOpacity()));
 }
 
 void TextSceneNode::ClearFontFaceResource() {

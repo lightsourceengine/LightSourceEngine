@@ -293,6 +293,7 @@ float TextBlock::HeightF() const noexcept {
 }
 
 void TextBlock::Destroy() noexcept {
+  this->Invalidate();
   this->texture = Texture::SafeDestroy(this->texture);
 }
 

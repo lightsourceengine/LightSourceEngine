@@ -306,6 +306,10 @@ int32_t object_at_or(napi_env env, napi_value value, uint32_t index, int32_t def
   return as_int32(env, object_at(env, value, index), defaultValue);
 }
 
+uint32_t object_at_or(napi_env env, napi_value value, uint32_t index, uint32_t defaultValue) noexcept {
+  return as_uint32(env, object_at(env, value, index), defaultValue);
+}
+
 float object_at_or(napi_env env, napi_value value, uint32_t index, float defaultValue) noexcept {
   return as_float(env, object_at(env, value, index), defaultValue);
 }
@@ -344,6 +348,23 @@ napi_value array_new(napi_env env, size_t length) noexcept {
   return status == napi_ok ? array : nullptr;
 }
 
+napi_value array_new(napi_env env, const std::initializer_list<napi_value>& values) noexcept {
+  auto array{array_new(env, values.size())};
+  uint32_t index{0};
+
+  if (!array) {
+    return {};
+  }
+
+  for (auto& value : values) {
+    if (napi_set_element(env, array, index++, value) != napi_ok) {
+      return {};
+    }
+  }
+
+  return array;
+}
+
 bool is_nullish(napi_env env, napi_value value) noexcept {
   napi_valuetype type{napi_undefined};
 
@@ -372,6 +393,11 @@ bool is_number(napi_env env, napi_value value) noexcept {
 bool is_buffer(napi_env env, napi_value value) noexcept {
   bool result{};
   return (napi_is_buffer(env, value, &result) == napi_ok && result);
+}
+
+bool is_array(napi_env env, napi_value value) noexcept {
+  bool result{};
+  return (napi_is_array(env, value, &result) == napi_ok && result);
 }
 
 napi_status call_function(

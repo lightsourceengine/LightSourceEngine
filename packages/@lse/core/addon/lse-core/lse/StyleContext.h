@@ -10,6 +10,7 @@
 #include <lse/Matrix.h>
 #include <lse/Rect.h>
 #include <lse/StyleProperty.h>
+#include <lse/Renderer.h>
 #include <Yoga.h>
 
 namespace lse {
@@ -38,6 +39,7 @@ class StyleContext {
   Rect ComputeObjectFit(Style* style, const Rect& box, const Image* image) const noexcept;
   Rect ComputeBackgroundFit(Style* style, const Rect& box, const Image* image) const noexcept;
   float ComputeLineHeight(Style* style, float fontLineHeight) const noexcept;
+  RenderFilter ComputeFilter(Style* style, color_t fallbackTint, float opacity) const noexcept;
 
   // Set environment context variables: viewport width, viewport height, root font size
   void SetViewportSize(float width, float height) noexcept;

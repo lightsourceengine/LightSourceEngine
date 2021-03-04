@@ -442,6 +442,100 @@ std::vector<StyleTransformSpec> UnboxStyleTransformSpec(napi_env env, napi_value
   return {};
 }
 
+napi_value BoxStyleFilterFunctionList(napi_env env, const std::vector<StyleFilterFunction>& list) noexcept {
+  auto array{napix::array_new(env, list.size())};
+  uint32_t index{0};
+
+  if (!array) {
+    return {};
+  }
+
+  for (const auto& func : list) {
+    switch (func.filter) {
+      case StyleFilterFlipH:
+      case StyleFilterFlipV:
+        napi_set_element(env, array, index++, napix::array_new(env, {
+            napix::to_value(env, func.filter)
+        }));
+        break;
+      case StyleFilterTint:
+        napi_set_element(env, array, index++, napix::array_new(env, {
+            napix::to_value(env, func.filter),
+            napix::to_value(env, func.color.value)
+        }));
+        break;
+      default:
+        return {};
+    }
+  }
+
+  return array;
+}
+
+static bool UnboxStyleFilterFunction(napi_env env, napi_value value, StyleFilterFunction& out) noexcept {
+  if (!napix::is_array(env, value)) {
+    return false;
+  }
+
+  uint32_t length{};
+  napi_get_array_length(env, value, &length);
+
+  if (length == 0) {
+    return false;
+  }
+
+  auto type{napix::object_at_or(env, value, 0, -1)};
+
+  if (!IsEnum<StyleFilter>(type)) {
+    return false;
+  }
+
+  if (type == StyleFilterTint) {
+    out.color = napix::object_at_or(env, value, 1, ColorWhite.value);
+  }
+
+  out.filter = static_cast<StyleFilter>(type);
+
+  return true;
+}
+
+std::vector<StyleFilterFunction> UnboxStyleFilterFunctionList(napi_env env, napi_value value) noexcept {
+  StyleFilterFunction func;
+
+  if (!napix::is_array(env, value)) {
+    return {};
+  }
+
+  if (napix::is_number(env, napix::object_at(env, value, 0))) {
+    if (UnboxStyleFilterFunction(env, value, func)) {
+      return { std::move(func) };
+    } else {
+      return {};
+    }
+  }
+
+  uint32_t length{};
+  napi_get_array_length(env, value, &length);
+
+  if (length == 0) {
+    return {};
+  }
+
+  std::vector<StyleFilterFunction> result;
+
+  result.reserve(length);
+
+  for (uint32_t i = 0; i < length; i++) {
+    if (!UnboxStyleFilterFunction(env, napix::object_at(env, value, i), func)) {
+      return {};
+    }
+
+    result.emplace_back(std::move(func));
+  }
+
+  return result;
+}
+
 static std17::optional<StyleValue> ParseStyleNumberString(const char* value) noexcept {
   if (strcmp(value, "auto") == 0) {
     return StyleValue::OfAuto();
@@ -520,7 +614,7 @@ napi_value StyleGetter(napi_env env, Style* style, StyleProperty property) {
       }
     case StylePropertyMetaTypeTransform:
       if (style->IsEmpty(property)) {
-        return BoxStyleTransformSpec(env, {});
+        return napix::array_new(env);
       } else {
         return BoxStyleTransformSpec(env, style->GetTransform());
       }
@@ -529,6 +623,12 @@ napi_value StyleGetter(napi_env env, Style* style, StyleProperty property) {
         return {};
       } else {
         return napix::to_value(env, style->GetInteger(property).value());
+      }
+    case StylePropertyMetaTypeFilter:
+      if (style->IsEmpty(property)) {
+        return napix::array_new(env);
+      } else {
+        return BoxStyleFilterFunctionList(env, style->GetFilter());
       }
     default:
       assert(false);
@@ -614,6 +714,9 @@ void StyleSetter(napi_env env, Style* style, StyleProperty property, napi_value 
       break;
     case StylePropertyMetaTypeTransform:
       style->SetTransform(UnboxStyleTransformSpec(env, value));
+      break;
+    case StylePropertyMetaTypeFilter:
+      style->SetFilter(UnboxStyleFilterFunctionList(env, value));
       break;
     default:
       assert(false);

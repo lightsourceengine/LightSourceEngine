@@ -326,6 +326,28 @@ float StyleContext::ComputeLineHeight(Style* style, float fontLineHeight) const 
   }
 }
 
+RenderFilter StyleContext::ComputeFilter(Style* style, color_t fallbackTint, float opacity) const noexcept {
+  auto filter{RenderFilter::OfTint(fallbackTint, opacity)};
+
+  for (const auto& filterFunc : style->GetFilter()) {
+    switch (filterFunc.filter) {
+      case StyleFilterTint:
+        filter.tint = filterFunc.color.MixAlpha(opacity);
+        break;
+      case StyleFilterFlipH:
+        filter.flipH = true;
+        break;
+      case StyleFilterFlipV:
+        filter.flipV = true;
+        break;
+      default:
+        break;
+    }
+  }
+
+  return filter;
+}
+
 void StyleContext::SetViewportSize(float width, float height) noexcept {
   this->viewportWidth = width;
   this->viewportHeight = height;

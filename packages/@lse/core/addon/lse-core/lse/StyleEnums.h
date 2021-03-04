@@ -112,6 +112,13 @@ LSE_ENUM_SEQ_DECL(
     StyleTransformScale
 )
 
+LSE_ENUM_SEQ_DECL(
+    StyleFilter,
+    StyleFilterTint,
+    StyleFilterFlipV,
+    StyleFilterFlipH
+)
+
 // If root does not have a font size set, this value is used for rem calculation.
 constexpr const float DEFAULT_REM_FONT_SIZE = 16.f;
 

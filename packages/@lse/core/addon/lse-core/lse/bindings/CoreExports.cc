@@ -32,6 +32,7 @@ napi_value CoreExports(napi_env env, napi_value exports) noexcept {
   Export(env, exports, "StyleTransform", NewStyleTransformEnum(env));
   Export(env, exports, "StyleUnit", NewStyleUnitEnum(env));
   Export(env, exports, "StyleAnchor", NewStyleAnchorEnum(env));
+  Export(env, exports, "StyleFilter", NewStyleFilterEnum(env));
   Export(env, exports, "FontStatus", NewFontStatusEnum(env));
   Export(env, exports, "FontStyle", NewFontStyleEnum(env));
   Export(env, exports, "FontWeight", NewFontWeightEnum(env));

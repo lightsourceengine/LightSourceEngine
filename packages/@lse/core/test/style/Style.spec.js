@@ -11,6 +11,7 @@ import { fileuri } from '../../src/util/index.js'
 import { Style } from '../../src/style/Style.js'
 import { StyleClass } from '../../src/style/StyleClass.js'
 import { StyleValue } from '../../src/style/StyleValue.js'
+import { flipH, flipV, tint } from '../../src/style/filter.js'
 
 const { assert } = chai
 
@@ -38,7 +39,7 @@ const testIntegerValue = (name, value, expectedValue) => {
 
 const invalidStringValues = ['', 3, null, undefined, {}]
 const borderProperties = ['border', 'borderTop', 'borderRight', 'borderBottom', 'borderLeft']
-const colorProperties = ['color', 'tintColor', 'backgroundColor', 'borderColor']
+const colorProperties = ['color', 'backgroundColor', 'borderColor']
 
 describe('Style', () => {
   describe('border properties', () => {
@@ -358,6 +359,46 @@ describe('Style', () => {
     })
     it('should reject invalid value', () => {
       testInvalidPositionProperty(property, yDirection)
+    })
+  })
+  describe('filter property', () => {
+    it('should be initialized to zero length array', () => {
+      const styleClass = new StyleClass()
+      assert.lengthOf(styleClass.filter, 0)
+    })
+    it('should set filter from flipH()', () => {
+      const styleClass = style({ filter: flipH() })
+      assert.lengthOf(styleClass.filter, 1)
+      assert.deepEqual(styleClass.filter[0], flipH())
+    })
+    it('should set filter from flipV()', () => {
+      const styleClass = style({ filter: flipV() })
+      assert.lengthOf(styleClass.filter, 1)
+      assert.deepEqual(styleClass.filter[0], flipV())
+    })
+    it('should set filter from tint()', () => {
+      const styleClass = style({ filter: tint('red') })
+      assert.lengthOf(styleClass.filter, 1)
+      assert.deepEqual(styleClass.filter[0], tint('red'))
+    })
+    it('should set filter from list', () => {
+      const styleClass = style({ filter: [flipH(), flipV(), tint('red')] })
+      assert.lengthOf(styleClass.filter, 3)
+      assert.deepEqual(styleClass.filter[0], flipH())
+      assert.deepEqual(styleClass.filter[1], flipV())
+      assert.deepEqual(styleClass.filter[2], tint('red'))
+    })
+    it('should reject invalid filter value', () => {
+      const styleClass = style({ filter: 'invalid' })
+      assert.lengthOf(styleClass.filter, 0)
+    })
+    it('should reject array of invalid filters', () => {
+      const styleClass = style({ filter: ['invalid'] })
+      assert.lengthOf(styleClass.filter, 0)
+    })
+    it('should reject array of valid and invalid filters', () => {
+      const styleClass = style({ filter: [flipH(), 'invalid'] })
+      assert.lengthOf(styleClass.filter, 0)
     })
   })
   describe('backgroundImage property', () => {

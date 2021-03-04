@@ -52,6 +52,23 @@ bool operator!=(const std::vector<StyleTransformSpec>& a, const std::vector<Styl
   return !(a == b);
 }
 
+bool operator==(const StyleFilterFunction& a, const StyleFilterFunction& b) noexcept {
+  if (a.filter == b.filter) {
+    switch (a.filter) {
+      case StyleFilterTint:
+        return a.color == b.color;
+      default:
+        return true;
+    }
+  }
+
+  return false;
+}
+
+bool operator!=(const StyleFilterFunction& a, const StyleFilterFunction& b) noexcept {
+  return !(a == b);
+}
+
 Style::~Style() {
   if (this->parent) {
     this->parent->Unref();
@@ -223,6 +240,26 @@ const std::vector<StyleTransformSpec>& Style::GetTransform() {
   }
 }
 
+void Style::SetFilter(std::vector<StyleFilterFunction>&& value) {
+  if (this->filter.empty() || this->filter != value) {
+    this->filter = std::move(value);
+
+    if (this->onChange) {
+      this->onChange(StyleProperty::filter);
+    }
+  }
+}
+
+const std::vector<StyleFilterFunction>& Style::GetFilter() {
+  if (!this->filter.empty()) {
+    return this->filter;
+  } else if (this->parent) {
+    return this->parent->filter;
+  } else {
+    return this->filter;
+  }
+}
+
 void Style::SetUndefined(StyleProperty property) {
   size_t count;
 
@@ -243,6 +280,10 @@ void Style::SetUndefined(StyleProperty property) {
     case StylePropertyMetaTypeTransform:
       count = this->transform.size();
       this->transform.clear();
+      break;
+    case StylePropertyMetaTypeFilter:
+      count = this->filter.size();
+      this->filter.clear();
       break;
     default:
       assert(false);
@@ -277,6 +318,9 @@ bool Style::IsEmpty(StyleProperty property, bool includeParent) const noexcept {
       break;
     case StylePropertyMetaTypeTransform:
       childEmpty = this->transform.empty();
+      break;
+    case StylePropertyMetaTypeFilter:
+      childEmpty = this->filter.empty();
       break;
     default:
       assert(false);

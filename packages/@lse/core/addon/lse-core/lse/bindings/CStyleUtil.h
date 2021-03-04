@@ -22,6 +22,9 @@ std17::optional<StyleValue> UnboxStyleValue(napi_env env, napi_value value) noex
 napi_value BoxStyleTransformSpec(napi_env env, const std::vector<StyleTransformSpec>& transform) noexcept;
 std::vector<StyleTransformSpec> UnboxStyleTransformSpec(napi_env env, napi_value value) noexcept;
 
+napi_value BoxStyleFilterFunctionList(napi_env env, const std::vector<StyleFilterFunction>& list) noexcept;
+std::vector<StyleFilterFunction> UnboxStyleFilterFunctionList(napi_env env, napi_value value) noexcept;
+
 napi_value StyleGetter(napi_env env, Style* style, StyleProperty property);
 void StyleSetter(napi_env env, Style* style, StyleProperty property, napi_value value);
 

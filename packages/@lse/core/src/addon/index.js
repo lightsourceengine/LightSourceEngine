@@ -46,6 +46,7 @@ export const {
   StyleUnit,
   StyleTransform,
   StyleAnchor,
+  StyleFilter,
   LogLevel,
   FontStatus,
   FontStyle,

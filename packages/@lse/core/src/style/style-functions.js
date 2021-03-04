@@ -7,3 +7,4 @@
 export * from './rgb.js'
 export * from './rgba.js'
 export * from './transform.js'
+export * from './filter.js'

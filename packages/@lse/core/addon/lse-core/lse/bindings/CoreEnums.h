@@ -15,6 +15,7 @@ namespace bindings {
 napi_value NewStyleUnitEnum(napi_env env) noexcept;
 napi_value NewStyleTransformEnum(napi_env env) noexcept;
 napi_value NewStyleAnchorEnum(napi_env env) noexcept;
+napi_value NewStyleFilterEnum(napi_env env) noexcept;
 
 } // namespace bindings
 } // namespace lse

@@ -1,0 +1,75 @@
+/*
+ * Copyright (C) 2020 Daniel Anderson
+ *
+ * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
+ */
+
+import { createStyleSheet, $ } from '@lse/core'
+import { letThereBeLight } from '@lse/react'
+
+// Demonstrates filter on img elements.
+
+const background = 'resource/pexels-emiliano-arano-1295138.jpg'
+
+const sheet = createStyleSheet({
+  body: {
+    flexWrap: 'wrap',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: '10vh',
+    backgroundColor: 'gray',
+    '@extend': '%absoluteFill'
+  },
+  filterNone: {
+    objectFit: 'contain',
+    '@extend': '%cell'
+  },
+  filterFlipH: {
+    objectFit: 'contain',
+    filter: $.flipH(),
+    '@extend': '%cell'
+  },
+  filterFlipV: {
+    objectFit: 'contain',
+    filter: $.flipV(),
+    '@extend': '%cell'
+  },
+  filterTint: {
+    objectFit: 'contain',
+    filter: $.tint('red'),
+    '@extend': '%cell'
+  },
+  text: {
+    marginTop: '1vh',
+    color: 'white',
+    fontSize: '2.5vh',
+    textAlign: 'center'
+  },
+  '%cell': {
+    backgroundColor: 'lightgray',
+    '@size': '30vh'
+  }
+})
+
+const ImageFilterApp = () => (
+  <box class={sheet.body}>
+    <box>
+      <img src={background} class={sheet.filterNone} />
+      <text class={sheet.text}>filter: none</text>
+    </box>
+    <box>
+      <img src={background} class={sheet.filterFlipH} />
+      <text class={sheet.text}>filter: flipH()</text>
+    </box>
+    <box>
+      <img src={background} class={sheet.filterFlipV} />
+      <text class={sheet.text}>filter: flipV()</text>
+    </box>
+    <box>
+      <img src={background} class={sheet.filterTint} />
+      <text class={sheet.text}>filter: tint('red')</text>
+    </box>
+  </box>
+)
+
+letThereBeLight(<ImageFilterApp />, { scene: { fullscreen: false } })

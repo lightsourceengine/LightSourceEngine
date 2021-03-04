@@ -29,7 +29,7 @@ void ImageSceneNode::OnStylePropertyChanged(StyleProperty property) {
     case StyleProperty::objectPositionY:
       this->MarkComputeStyleDirty();
       break;
-    case StyleProperty::tintColor:
+    case StyleProperty::filter:
     case StyleProperty::backgroundColor:
     case StyleProperty::borderColor:
       // TODO: maybe paint dirty?
@@ -71,14 +71,11 @@ void ImageSceneNode::OnComposite(CompositeContext* ctx) {
 
   if (Image::SafeIsReady(this->image)) {
 //    auto box{YGNodeGetBox(this->ygNode)};
-    const auto& transform{ ctx->CurrentRenderTransform() };
+    const auto& transform{ctx->CurrentRenderTransform()};
+    auto imageStyle{Style::Or(this->style)};
 
 //    box.width *= ctx->CurrentMatrix().GetScaleX();
 //    box.height *= ctx->CurrentMatrix().GetScaleY();
-
-    const auto filter{RenderFilter::OfTint(
-        Style::Or(this->style)->GetColor(StyleProperty::tintColor).value_or(ColorWhite),
-        ctx->CurrentOpacity())};
 
     ctx->renderer->DrawImage(
         transform,
@@ -86,7 +83,7 @@ void ImageSceneNode::OnComposite(CompositeContext* ctx) {
         Translate(this->imageRect.dest, ctx->CurrentMatrix().GetTranslateX(), ctx->CurrentMatrix().GetTranslateY()),
         this->imageRect.src,
         this->image->GetTexture(),
-        filter);
+        this->GetStyleContext()->ComputeFilter(imageStyle, ColorWhite, ctx->CurrentOpacity()));
   }
 
   this->DrawBorder(ctx);

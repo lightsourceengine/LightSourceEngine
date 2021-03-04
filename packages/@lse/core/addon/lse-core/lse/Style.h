@@ -99,6 +99,14 @@ struct StyleTransformSpec {
 bool operator==(const StyleTransformSpec& a, const StyleTransformSpec& b) noexcept;
 bool operator!=(const StyleTransformSpec& a, const StyleTransformSpec& b) noexcept;
 
+struct StyleFilterFunction {
+  StyleFilter filter{};
+  color_t color{};
+};
+
+bool operator==(const StyleFilterFunction& a, const StyleFilterFunction& b) noexcept;
+bool operator!=(const StyleFilterFunction& a, const StyleFilterFunction& b) noexcept;
+
 class Style : public Reference {
  public:
   ~Style() override;
@@ -131,6 +139,10 @@ class Style : public Reference {
   // transform property
   void SetTransform(std::vector<StyleTransformSpec>&& transform);
   const std::vector<StyleTransformSpec>& GetTransform();
+
+  // filter property
+  void SetFilter(std::vector<StyleFilterFunction>&& filter);
+  const std::vector<StyleFilterFunction>& GetFilter();
 
   // property existence: these function will check the parent!
   bool IsEmpty(StyleProperty property) const noexcept;
@@ -178,6 +190,7 @@ class Style : public Reference {
   phmap::flat_hash_map<StyleProperty, StyleValue> numberMap;
   phmap::flat_hash_map<StyleProperty, int32_t> enumMap;
   std::vector<StyleTransformSpec> transform;
+  std::vector<StyleFilterFunction> filter;
 
   // Static helpers
 

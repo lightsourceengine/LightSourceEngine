@@ -187,9 +187,11 @@ bool object_get_or(napi_env env, napi_value value, const char* prop, bool defaul
 
 napi_value object_at(napi_env env, napi_value value, uint32_t index) noexcept;
 int32_t object_at_or(napi_env env, napi_value value, uint32_t index, int32_t defaultValue) noexcept;
+uint32_t object_at_or(napi_env env, napi_value value, uint32_t index, uint32_t defaultValue) noexcept;
 float object_at_or(napi_env env, napi_value value, uint32_t index, float defaultValue) noexcept;
 
 napi_value object_new(napi_env env, const std::initializer_list<napi_property_descriptor>& props) noexcept;
+napi_value array_new(napi_env env, const std::initializer_list<napi_value>& values) noexcept;
 napi_value array_new(napi_env env, size_t length = 0) noexcept;
 template<class T, class Iterable>
 napi_value array_from(napi_env env, Iterable iterable, napi_value(*toValue)(napi_env, T));
@@ -199,6 +201,7 @@ bool is_function(napi_env env, napi_value value) noexcept;
 bool is_string(napi_env env, napi_value value) noexcept;
 bool is_number(napi_env env, napi_value value) noexcept;
 bool is_buffer(napi_env env, napi_value value) noexcept;
+bool is_array(napi_env env, napi_value value) noexcept;
 
 /**
  * Call a function contained by a reference.

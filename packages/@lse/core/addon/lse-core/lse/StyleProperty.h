@@ -62,6 +62,7 @@ namespace lse {
      APPLY(backgroundWidth) \
      APPLY(borderColor) \
      APPLY(color) \
+     APPLY(filter) \
      APPLY(fontFamily) \
      APPLY(fontSize) \
      APPLY(fontStyle) \
@@ -75,7 +76,6 @@ namespace lse {
      APPLY(textAlign) \
      APPLY(textOverflow) \
      APPLY(textTransform) \
-     APPLY(tintColor) \
      APPLY(transform) \
      APPLY(transformOriginX) \
      APPLY(transformOriginY) \
@@ -100,14 +100,16 @@ constexpr int32_t Count<StyleProperty>() noexcept {
 
 constexpr const uint32_t StylePropertyMetaGroupExtended = 0;
 constexpr const uint32_t StylePropertyMetaGroupYoga = 1u << 0u;
+
 constexpr const uint32_t StylePropertyMetaTypeEnum = 1u << 1u;
 constexpr const uint32_t StylePropertyMetaTypeNumber = 1u << 2u;
 constexpr const uint32_t StylePropertyMetaTypeString = 1u << 3u;
 constexpr const uint32_t StylePropertyMetaTypeTransform = 1u << 4u;
 constexpr const uint32_t StylePropertyMetaTypeColor = 1u << 5u;
 constexpr const uint32_t StylePropertyMetaTypeInteger = 1u << 6u;
+constexpr const uint32_t StylePropertyMetaTypeFilter = 1u << 7u;
 
-constexpr const uint32_t kStylePropertyMetaTypeMask = 0b0111'1110;
+constexpr const uint32_t kStylePropertyMetaTypeMask = 0b1111'1110;
 
 // StyleProperty enum has enough room to attached meta data in the id, but StyleProperty must be 0 based and
 // contiguous. So, the meta data is associated with properties through this array. Each index maps to a StyleProperty
@@ -163,6 +165,7 @@ constexpr const uint32_t kStylePropertyMeta[] = {
     /*backgroundWidth*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeNumber,
     /*borderColor*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeColor,
     /*color*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeColor,
+    /*filter*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeFilter,
     /*fontFamily*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeString,
     /*fontSize*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeNumber,
     /*fontStyle*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeEnum,
@@ -176,7 +179,6 @@ constexpr const uint32_t kStylePropertyMeta[] = {
     /*textAlign*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeEnum,
     /*textOverflow*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeEnum,
     /*textTransform*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeEnum,
-    /*tintColor*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeColor,
     /*transform*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeTransform,
     /*transformOriginX*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeNumber,
     /*transformOriginY*/ StylePropertyMetaGroupExtended | StylePropertyMetaTypeNumber,
