@@ -10,28 +10,17 @@
 
 import { jsx, jsxs } from '@lse/react/jsx-runtime';
 
-import { createStyleSheet, $ } from '@lse/core';
+import { createStyleSheet } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
 
 const sheet = createStyleSheet({
-    filterNone: {
+    textOverflowEllipsis: {
+        textOverflow: 'ellipsis',
         '@extend': '%cell'
     },
-    filterFlipH: {
-        filter: $.flipH(),
-        '@extend': '%cell'
-    },
-    filterFlipV: {
-        filter: $.flipV(),
-        '@extend': '%cell'
-    },
-    filterFlipHV: {
-        filter: [ $.flipH(), $.flipV() ],
-        '@extend': '%cell'
-    },
-    filterTint: {
-        filter: $.tint('dodgerblue'),
+    textOverflowClip: {
+        textOverflow: 'clip',
         '@extend': '%cell'
     },
     body: {
@@ -64,45 +53,38 @@ const sheet = createStyleSheet({
     }
 });
 
-const message = 'Light Source Engine';
+const messageMultiline = 'Cras mauris nisl, pharetra a dapibus et, gravida vitae velit. Vestibulum posuere faucibus odio et ultrices. Ut egestas hendrerit magna a commodo. Mauris commodo nisl sit amet euismod tristique. Etiam varius libero a pharetra eleifend. Duis commodo euismod erat, sed vestibulum sapien commodo ac.';
 
-const messageMultiline = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam dignissim at metus in finibus.';
-
-const Column = ({exampleClass, children}) => jsxs('box', {
+const Column = ({exampleClass, style, children}) => jsxs('box', {
     class: sheet.container,
     children: [ jsx('text', {
         class: sheet.header,
         children
     }), jsx('text', {
         class: exampleClass,
-        children: message
-    }), jsx('text', {
-        class: exampleClass,
+        style,
         children: messageMultiline
     }) ]
 });
 
-const TextFilterApp = () => jsxs('box', {
+const TextTruncateApp = () => jsxs('box', {
     class: sheet.body,
     children: [ jsx(Column, {
-        exampleClass: sheet.filterNone,
-        children: 'filter: none'
+        exampleClass: sheet.textOverflowEllipsis,
+        style: {
+            maxLines: 2
+        },
+        children: 'maxLines: 2, textOverflow: \'ellipsis\''
     }), jsx(Column, {
-        exampleClass: sheet.filterFlipH,
-        children: 'filter: flipH()'
-    }), jsx(Column, {
-        exampleClass: sheet.filterFlipV,
-        children: 'filter: flipV()'
-    }), jsx(Column, {
-        exampleClass: sheet.filterFlipHV,
-        children: 'filter: [ flipH(), flipV() ]'
-    }), jsx(Column, {
-        exampleClass: sheet.filterTint,
-        children: 'filter: tint(\'dodgerblue\')'
+        exampleClass: sheet.textOverflowClip,
+        style: {
+            maxLines: 2
+        },
+        children: 'maxLines: 2, textOverflow: \'clip\''
     }) ]
 });
 
-letThereBeLight(jsx(TextFilterApp, {}), {
+letThereBeLight(jsx(TextTruncateApp, {}), {
     scene: {
         fullscreen: false
     }

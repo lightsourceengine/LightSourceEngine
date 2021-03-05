@@ -7,7 +7,7 @@
 import { createStyle } from '@lse/core'
 import { letThereBeLight } from '@lse/react'
 
-// Demonstrates backgroundRepeat style property on div/box elements.
+// Demonstrates backgroundRepeat style property on box elements.
 
 const body = createStyle({
   backgroundImage: 'resource/pattern-1004855.jpg',

@@ -42,7 +42,7 @@ const ListItem = forwardRef((props, ref) => {
     return jsx('box', {
         focusable: true,
         ref,
-        style: listItemStyle,
+        class: listItemStyle,
         onFocus: () => setListItemStyle(sheet.listItemFocused),
         onBlur: () => setListItemStyle(sheet.listItem)
     });

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Daniel Anderson
+ * Copyright (C) 2021 Daniel Anderson
  *
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
@@ -10,15 +10,6 @@ import { letThereBeLight } from '@lse/react'
 // Demonstrates filter on text elements.
 
 const sheet = createStyleSheet({
-  body: {
-    flexWrap: 'wrap',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingLeft: '10vh',
-    paddingRight: '10vh',
-    backgroundColor: 'gray',
-    '@extend': '%absoluteFill'
-  },
   filterNone: {
     '@extend': '%cell'
   },
@@ -30,63 +21,62 @@ const sheet = createStyleSheet({
     filter: $.flipV(),
     '@extend': '%cell'
   },
+  filterFlipHV: {
+    filter: [ $.flipH(), $.flipV() ],
+    '@extend': '%cell'
+  },
   filterTint: {
     filter: $.tint('dodgerblue'),
     '@extend': '%cell'
   },
-  text: {
-    marginTop: '1vh',
-    color: 'white',
-    fontSize: '2.5vh',
-    textAlign: 'center'
+  body: {
+    padding: '4vh',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    backgroundColor: '#264653',
+    '@extend': '%absoluteFill'
+  },
+  header: {
+    padding: '2vh',
+    color: '#264653',
+    backgroundColor: 'white',
+    fontSize: '2.5vh'
+  },
+  container: {
+    width: '49%',
+    marginBottom: '4vh',
+    border: 2,
+    borderColor: 'white',
   },
   '%cell': {
-    marginTop: '10vh',
-    color: 'black',
-    fontSize: '3vh',
     textAlign: 'center',
-    backgroundColor: 'white',
-    width: '30vh'
+    fontSize: '2.5vh',
+    color: 'lightgray',
+    padding: '2vh',
+    borderTop: 2,
+    borderColor: 'white',
   }
 })
 
 const message = 'Light Source Engine'
-const messageMultiline = 'Build React apps on the Raspberry Pi!'
+const messageMultiline = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam dignissim at metus in finibus.'
+
+const Column = ({exampleClass, children}) => (
+  <box class={sheet.container}>
+    <text class={sheet.header}>{children}</text>
+    <text class={exampleClass}>{message}</text>
+    <text class={exampleClass}>{messageMultiline}</text>
+  </box>
+)
 
 const TextFilterApp = () => (
   <box class={sheet.body}>
-    <box>
-      <text class={sheet.filterNone}>{message}</text>
-      <text class={sheet.text}>filter: none</text>
-    </box>
-    <box>
-      <text class={sheet.filterFlipH}>{message}</text>
-      <text class={sheet.text}>filter: flipH()</text>
-    </box>
-    <box>
-      <text class={sheet.filterFlipV}>{message}</text>
-      <text class={sheet.text}>filter: flipV()</text>
-    </box>
-    <box>
-      <text class={sheet.filterTint}>{message}</text>
-      <text class={sheet.text}>filter: tint('dodgerblue')</text>
-    </box>
-    <box>
-      <text class={sheet.filterNone}>{messageMultiline}</text>
-      <text class={sheet.text}>filter: none</text>
-    </box>
-    <box>
-      <text class={sheet.filterFlipH}>{messageMultiline}</text>
-      <text class={sheet.text}>filter: flipH()</text>
-    </box>
-    <box>
-      <text class={sheet.filterFlipV}>{messageMultiline}</text>
-      <text class={sheet.text}>filter: flipV()</text>
-    </box>
-    <box>
-      <text class={sheet.filterTint}>{messageMultiline}</text>
-      <text class={sheet.text}>filter: tint('dodgerblue')</text>
-    </box>
+    <Column exampleClass={sheet.filterNone}>filter: none</Column>
+    <Column exampleClass={sheet.filterFlipH}>filter: flipH()</Column>
+    <Column exampleClass={sheet.filterFlipV}>filter: flipV()</Column>
+    <Column exampleClass={sheet.filterFlipHV}>filter: [ flipH(), flipV() ]</Column>
+    <Column exampleClass={sheet.filterTint}>filter: tint('dodgerblue')</Column>
   </box>
 )
 

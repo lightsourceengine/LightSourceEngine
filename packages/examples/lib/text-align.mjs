@@ -15,14 +15,6 @@ import { createStyleSheet } from '@lse/core';
 import { letThereBeLight } from '@lse/react';
 
 const sheet = createStyleSheet({
-    body: {
-        padding: '10vh',
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'flex-start',
-        backgroundColor: '#264653',
-        '@extend': '%absoluteFill'
-    },
     textAlignLeft: {
         textAlign: 'left',
         '@extend': '%label'
@@ -35,41 +27,32 @@ const sheet = createStyleSheet({
         textAlign: 'right',
         '@extend': '%label'
     },
-    ellipsisTextAlignLeft: {
-        '@extend': [ 'textAlignLeft', '%ellipsis' ]
+    body: {
+        padding: '4vh',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        backgroundColor: '#264653',
+        '@extend': '%absoluteFill'
     },
-    ellipsisTextAlignCenter: {
-        '@extend': [ 'textAlignCenter', '%ellipsis' ]
+    header: {
+        padding: '2vh',
+        color: '#264653',
+        backgroundColor: 'white',
+        fontSize: '2.5vh'
     },
-    ellipsisTextAlignRight: {
-        '@extend': [ 'textAlignRight', '%ellipsis' ]
-    },
-    maxLinesTextAlignLeft: {
-        maxLines: 1,
-        '@extend': 'textAlignLeft'
-    },
-    maxLinesTextAlignCenter: {
-        maxLines: 1,
-        '@extend': 'textAlignCenter'
-    },
-    maxLinesTextAlignRight: {
-        maxLines: 1,
-        '@extend': 'textAlignRight'
-    },
-    '%ellipsis': {
-        maxLines: 1,
-        textOverflow: 'ellipsis'
+    container: {
+        width: '33%',
+        marginBottom: '4vh',
+        border: 2,
+        borderColor: 'white'
     },
     '%label': {
-        fontSize: 24,
-        fontWeight: 'bold',
+        fontSize: '2.5vh',
         color: 'lightgray',
-        width: '50vh',
-        border: 2,
+        borderTop: 2,
         borderColor: 'white',
-        padding: 20,
-        marginRight: 10,
-        marginBottom: 10
+        padding: '2vh'
     }
 });
 
@@ -77,46 +60,36 @@ const sampleText = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam
 
 const sampleTextSmall = '   Hello, world!   ';
 
-const sampleTextNewline = '1) Eat\n2) Sleep\n3) Conquer\n4) Repeat';
+const sampleTextNewline = 'Line One\nLine Two\nLine Three';
+
+const Column = ({exampleClass, children}) => jsxs('box', {
+    class: sheet.container,
+    children: [ jsx('text', {
+        class: sheet.header,
+        children
+    }), jsx('text', {
+        class: exampleClass,
+        children: sampleTextSmall
+    }), jsx('text', {
+        class: exampleClass,
+        children: sampleText
+    }), jsx('text', {
+        class: exampleClass,
+        children: sampleTextNewline
+    }) ]
+});
 
 const TextAlignApp = () => jsxs('box', {
     class: sheet.body,
-    children: [ jsx('text', {
-        class: sheet.maxLinesTextAlignLeft,
-        children: sampleTextSmall
-    }), jsx('text', {
-        class: sheet.maxLinesTextAlignCenter,
-        children: sampleTextSmall
-    }), jsx('text', {
-        class: sheet.maxLinesTextAlignRight,
-        children: sampleTextSmall
-    }), jsx('text', {
-        class: sheet.textAlignLeft,
-        children: sampleText
-    }), jsx('text', {
-        class: sheet.textAlignCenter,
-        children: sampleText
-    }), jsx('text', {
-        class: sheet.textAlignRight,
-        children: sampleText
-    }), jsx('text', {
-        class: sheet.ellipsisTextAlignLeft,
-        children: sampleText
-    }), jsx('text', {
-        class: sheet.ellipsisTextAlignCenter,
-        children: sampleText
-    }), jsx('text', {
-        class: sheet.ellipsisTextAlignRight,
-        children: sampleText
-    }), jsx('text', {
-        class: sheet.textAlignLeft,
-        children: sampleTextNewline
-    }), jsx('text', {
-        class: sheet.textAlignCenter,
-        children: sampleTextNewline
-    }), jsx('text', {
-        class: sheet.textAlignRight,
-        children: sampleTextNewline
+    children: [ jsx(Column, {
+        exampleClass: sheet.textAlignLeft,
+        children: 'textAlign: \'left\''
+    }), jsx(Column, {
+        exampleClass: sheet.textAlignCenter,
+        children: 'textAlign: \'center\''
+    }), jsx(Column, {
+        exampleClass: sheet.textAlignRight,
+        children: 'textAlign: \'right\''
     }) ]
 });
 

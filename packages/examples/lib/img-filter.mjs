@@ -17,79 +17,73 @@ import { letThereBeLight } from '@lse/react';
 const background = 'resource/pexels-emiliano-arano-1295138.jpg';
 
 const sheet = createStyleSheet({
-    body: {
-        flexWrap: 'wrap',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: '10vh',
-        backgroundColor: 'gray',
-        '@extend': '%absoluteFill'
-    },
     filterNone: {
-        objectFit: 'contain',
         '@extend': '%cell'
     },
     filterFlipH: {
-        objectFit: 'contain',
         filter: $.flipH(),
         '@extend': '%cell'
     },
     filterFlipV: {
-        objectFit: 'contain',
         filter: $.flipV(),
         '@extend': '%cell'
     },
     filterTint: {
-        objectFit: 'contain',
         filter: $.tint('red'),
         '@extend': '%cell'
     },
-    text: {
-        marginTop: '1vh',
-        color: 'white',
-        fontSize: '2.5vh',
-        textAlign: 'center'
+    body: {
+        padding: '4vh',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        backgroundColor: '#264653',
+        '@extend': '%absoluteFill'
+    },
+    header: {
+        padding: '2vh',
+        color: '#264653',
+        backgroundColor: 'white',
+        fontSize: '2.5vh'
+    },
+    container: {
+        width: '49%',
+        marginBottom: '4vh',
+        border: 2,
+        borderColor: 'white'
     },
     '%cell': {
-        backgroundColor: 'lightgray',
-        '@size': '30vh'
+        objectFit: 'contain',
+        width: '100%',
+        height: '20vh'
     }
+});
+
+const Column = ({exampleClass, children}) => jsxs('box', {
+    class: sheet.container,
+    children: [ jsx('text', {
+        class: sheet.header,
+        children
+    }), jsx('img', {
+        src: background,
+        class: exampleClass
+    }) ]
 });
 
 const ImageFilterApp = () => jsxs('box', {
     class: sheet.body,
-    children: [ jsxs('box', {
-        children: [ jsx('img', {
-            src: background,
-            class: sheet.filterNone
-        }), jsx('text', {
-            class: sheet.text,
-            children: 'filter: none'
-        }) ]
-    }), jsxs('box', {
-        children: [ jsx('img', {
-            src: background,
-            class: sheet.filterFlipH
-        }), jsx('text', {
-            class: sheet.text,
-            children: 'filter: flipH()'
-        }) ]
-    }), jsxs('box', {
-        children: [ jsx('img', {
-            src: background,
-            class: sheet.filterFlipV
-        }), jsx('text', {
-            class: sheet.text,
-            children: 'filter: flipV()'
-        }) ]
-    }), jsxs('box', {
-        children: [ jsx('img', {
-            src: background,
-            class: sheet.filterTint
-        }), jsx('text', {
-            class: sheet.text,
-            children: 'filter: tint(\'red\')'
-        }) ]
+    children: [ jsx(Column, {
+        exampleClass: sheet.filterNone,
+        children: 'filter: none'
+    }), jsx(Column, {
+        exampleClass: sheet.filterFlipH,
+        children: 'filter: flipH()'
+    }), jsx(Column, {
+        exampleClass: sheet.filterFlipV,
+        children: 'filter: flipV()'
+    }), jsx(Column, {
+        exampleClass: sheet.filterTint,
+        children: 'filter: tint(\'red\')'
     }) ]
 });
 

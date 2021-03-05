@@ -12,63 +12,61 @@ import { letThereBeLight } from '@lse/react'
 const background = 'resource/pexels-emiliano-arano-1295138.jpg'
 
 const sheet = createStyleSheet({
-  body: {
-    flexWrap: 'wrap',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: '10vh',
-    backgroundColor: 'gray',
-    '@extend': '%absoluteFill'
-  },
   filterNone: {
-    objectFit: 'contain',
     '@extend': '%cell'
   },
   filterFlipH: {
-    objectFit: 'contain',
     filter: $.flipH(),
     '@extend': '%cell'
   },
   filterFlipV: {
-    objectFit: 'contain',
     filter: $.flipV(),
     '@extend': '%cell'
   },
   filterTint: {
-    objectFit: 'contain',
     filter: $.tint('red'),
     '@extend': '%cell'
   },
-  text: {
-    marginTop: '1vh',
-    color: 'white',
-    fontSize: '2.5vh',
-    textAlign: 'center'
+  body: {
+    padding: '4vh',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    backgroundColor: '#264653',
+    '@extend': '%absoluteFill'
+  },
+  header: {
+    padding: '2vh',
+    color: '#264653',
+    backgroundColor: 'white',
+    fontSize: '2.5vh'
+  },
+  container: {
+    width: '49%',
+    marginBottom: '4vh',
+    border: 2,
+    borderColor: 'white',
   },
   '%cell': {
-    backgroundColor: 'lightgray',
-    '@size': '30vh'
+    objectFit: 'contain',
+    width: '100%',
+    height: '20vh'
   }
 })
 
+const Column = ({exampleClass, children}) => (
+  <box class={sheet.container}>
+    <text class={sheet.header}>{children}</text>
+    <img src={background} class={exampleClass}/>
+  </box>
+)
+
 const ImageFilterApp = () => (
   <box class={sheet.body}>
-    <box>
-      <img src={background} class={sheet.filterNone} />
-      <text class={sheet.text}>filter: none</text>
-    </box>
-    <box>
-      <img src={background} class={sheet.filterFlipH} />
-      <text class={sheet.text}>filter: flipH()</text>
-    </box>
-    <box>
-      <img src={background} class={sheet.filterFlipV} />
-      <text class={sheet.text}>filter: flipV()</text>
-    </box>
-    <box>
-      <img src={background} class={sheet.filterTint} />
-      <text class={sheet.text}>filter: tint('red')</text>
-    </box>
+    <Column exampleClass={sheet.filterNone}>filter: none</Column>
+    <Column exampleClass={sheet.filterFlipH}>filter: flipH()</Column>
+    <Column exampleClass={sheet.filterFlipV}>filter: flipV()</Column>
+    <Column exampleClass={sheet.filterTint}>filter: tint('red')</Column>
   </box>
 )
 

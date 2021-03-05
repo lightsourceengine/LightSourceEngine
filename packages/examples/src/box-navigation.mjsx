@@ -39,7 +39,7 @@ const ListItem = forwardRef((props, ref) => {
     <box
       focusable
       ref={ref}
-      style={listItemStyle}
+      class={listItemStyle}
       onFocus={() => setListItemStyle(sheet.listItemFocused)}
       onBlur={() => setListItemStyle(sheet.listItem)}
     />)

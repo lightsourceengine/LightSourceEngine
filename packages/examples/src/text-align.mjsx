@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Daniel Anderson
+ * Copyright (C) 2021 Daniel Anderson
  *
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
@@ -10,14 +10,6 @@ import { letThereBeLight } from '@lse/react'
 // Demonstrates textAlign style property on text elements.
 
 const sheet = createStyleSheet({
-  body: {
-    padding: '10vh',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    backgroundColor: '#264653',
-    '@extend': '%absoluteFill'
-  },
   textAlignLeft: {
     textAlign: 'left',
     '@extend': '%label'
@@ -30,62 +22,53 @@ const sheet = createStyleSheet({
     textAlign: 'right',
     '@extend': '%label'
   },
-  ellipsisTextAlignLeft: {
-    '@extend': ['textAlignLeft', '%ellipsis']
+  body: {
+    padding: '4vh',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    backgroundColor: '#264653',
+    '@extend': '%absoluteFill'
   },
-  ellipsisTextAlignCenter: {
-    '@extend': ['textAlignCenter', '%ellipsis']
+  header: {
+    padding: '2vh',
+    color: '#264653',
+    backgroundColor: 'white',
+    fontSize: '2.5vh'
   },
-  ellipsisTextAlignRight: {
-    '@extend': ['textAlignRight', '%ellipsis']
-  },
-  maxLinesTextAlignLeft: {
-    maxLines: 1,
-    '@extend': 'textAlignLeft'
-  },
-  maxLinesTextAlignCenter: {
-    maxLines: 1,
-    '@extend': 'textAlignCenter'
-  },
-  maxLinesTextAlignRight: {
-    maxLines: 1,
-    '@extend': 'textAlignRight'
-  },
-  '%ellipsis': {
-    maxLines: 1,
-    textOverflow: 'ellipsis'
-  },
-  '%label': {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'lightgray',
-    width: '50vh',
+  container: {
+    width: '33%',
+    marginBottom: '4vh',
     border: 2,
     borderColor: 'white',
-    padding: 20,
-    marginRight: 10,
-    marginBottom: 10
+  },
+  '%label': {
+    fontSize: '2.5vh',
+    color: 'lightgray',
+    borderTop: 2,
+    borderColor: 'white',
+    padding: '2vh'
   }
 })
 
 const sampleText = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam dignissim at metus in finibus. Duis pharetra lobortis ultrices. Donec ullamcorper elementum ultricies.'
 const sampleTextSmall = '   Hello, world!   '
-const sampleTextNewline = '1) Eat\n2) Sleep\n3) Conquer\n4) Repeat'
+const sampleTextNewline = 'Line One\nLine Two\nLine Three'
+
+const Column = ({exampleClass, children}) => (
+  <box class={sheet.container}>
+    <text class={sheet.header}>{children}</text>
+    <text class={exampleClass}>{sampleTextSmall}</text>
+    <text class={exampleClass}>{sampleText}</text>
+    <text class={exampleClass}>{sampleTextNewline}</text>
+  </box>
+)
 
 const TextAlignApp = () => (
   <box class={sheet.body}>
-    <text class={sheet.maxLinesTextAlignLeft}>{sampleTextSmall}</text>
-    <text class={sheet.maxLinesTextAlignCenter}>{sampleTextSmall}</text>
-    <text class={sheet.maxLinesTextAlignRight}>{sampleTextSmall}</text>
-    <text class={sheet.textAlignLeft}>{sampleText}</text>
-    <text class={sheet.textAlignCenter}>{sampleText}</text>
-    <text class={sheet.textAlignRight}>{sampleText}</text>
-    <text class={sheet.ellipsisTextAlignLeft}>{sampleText}</text>
-    <text class={sheet.ellipsisTextAlignCenter}>{sampleText}</text>
-    <text class={sheet.ellipsisTextAlignRight}>{sampleText}</text>
-    <text class={sheet.textAlignLeft}>{sampleTextNewline}</text>
-    <text class={sheet.textAlignCenter}>{sampleTextNewline}</text>
-    <text class={sheet.textAlignRight}>{sampleTextNewline}</text>
+    <Column exampleClass={sheet.textAlignLeft}>textAlign: 'left'</Column>
+    <Column exampleClass={sheet.textAlignCenter}>textAlign: 'center'</Column>
+    <Column exampleClass={sheet.textAlignRight}>textAlign: 'right'</Column>
   </box>
 )
 
