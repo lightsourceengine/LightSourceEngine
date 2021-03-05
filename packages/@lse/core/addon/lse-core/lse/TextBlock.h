@@ -28,38 +28,27 @@ class Font;
  */
 class TextBlock {
  public:
+  // Render the text block. Shape must be called for this function to render.
   void Paint(Renderer* renderer);
-
-  /**
-   * Layout the text according to the style policy and dimensions.
-   */
-  void Shape(
-      const std::string& utf8, Font* font, Style* style, StyleContext* context,
-      float maxWidth, float maxHeight);
-
+  // Layout text according to style settings and dimensions of the bounding box.
+  void Shape(const std::string& utf8, Font* font, Style* style, StyleContext* context, float maxWidth, float maxHeight);
+  // Reset text layout, usually due to a text change or style change.
+  void Invalidate() noexcept;
+  // Invalidate and destroy the texture that backs this block. Object can be reused after Destroy().
+  void Destroy() noexcept;
+  // Is the layout empty? It will be empty if Shape() has not been called or Invalidate() was called.
+  bool IsEmpty() const noexcept;
+  // Is the text block's backing texture ready to be rendered?
+  bool IsReady() const noexcept;
+  // Get the texture backing this text block. Must ensure IsReady() is true before accessing the texture.
+  Texture* GetTexture() const noexcept;
+  // Get the source rect of the texture.
+  IntRect GetTextureSourceRect() const noexcept;
   // Calculated bounds of the text. Set after call to Shape().
-
   int32_t Width() const noexcept;
   int32_t Height() const noexcept;
   float WidthF() const noexcept;
   float HeightF() const noexcept;
-
-  /**
-   * Reset the bounds.
-   */
-  void Invalidate() noexcept;
-
-  void Destroy() noexcept;
-
-  /**
-   * If empty, no bounds are set and the text block cannot be pained.
-   */
-  bool IsEmpty() const noexcept;
-
-  bool IsReady() const noexcept;
-
-  Texture* GetTexture() const noexcept;
-  IntRect GetTextureSourceRect() const noexcept;
 
  private:
   struct TextLine {
@@ -76,7 +65,9 @@ class TextBlock {
     Codepoint() noexcept = default;
     Codepoint(uint32_t value, Float266 advance) noexcept : value(value), advance266(advance) {}
 
+    // codepoint value (not the glyph id!)
     uint32_t value{};
+    // scaled advance value, including kerning
     Float266 advance266{};
   };
 
@@ -90,9 +81,10 @@ class TextBlock {
   bool AtVerticalLimit(int32_t maxHeight266, std::size_t maxLines) const noexcept;
   bool AtVerticalLimit(int32_t maxHeight266, std::size_t maxLines, std::size_t lineNo) const noexcept;
   void EllipsizeIfNecessary(Style* style, int32_t maxWidth266) noexcept;
-  void PaintLine(const TextLine& line, int32_t x, color_t* surface, int32_t pitch) noexcept;
+  void PaintLine(const TextLine& line, float x, color_t* surface, int32_t pitch) noexcept;
   int32_t ComputeLineHeight() const noexcept;
   TextureLock LockTexture(Renderer* renderer) noexcept;
+  void AppendEllipsis(TextLine& line) noexcept;
 
  private:
   FTFontSource* font{};

@@ -24,29 +24,7 @@
 namespace lse {
 
 void TextBlock::Shape(
-    const std::string& utf8, Font* font, Style* style, StyleContext* context,
-    float maxWidth, float maxHeight) {
-  /*
-   * Blend2D does not directly expose font metrics per character nor detailed glyph information. The context fill
-   * methods for text are limited to text strings and BLGlyphRun (a view on a BLGlyphBuffer). BLGlyphBuffer is
-   * effectively immutable, as no characters can be added or removed. BLGlyphBuffer contains either characters OR
-   * glyph ids and computed glyph metrics. Once converted to glyph ids, character information is lost. There are
-   * no apis for working with glyph ids directly. The limitations make formatting multi-line text blocks a little
-   * challenging.
-   *
-   * I need to map glyph (ids and metrics) back to the original characters in order to measure lines. With that
-   * information, I can create BLGlyphRun views for each line referencing the original buffer. The BLGlyphRun
-   * views can be rendered to the BLContext.
-   *
-   * One option is to create two BLGlyphBuffer objects, one containing characters and the other contains glyph
-   * information. However, I don't like that this solution uses a lot of memory, but it would be slightly
-   * easier to code.
-   *
-   * The option I chose was to create a BLGlyphBuffer for the glyphs and use the original string for character
-   * information. As long as I decode UTF8 characters from the string, the mapping between the string characters
-   * and BLGlyphBuffer are 1:1. TextIterator wraps synchronous traversal of glyphs and characters. With that,
-   * I am able to measure lines and take BLGlyphRun views of the BLGlyphBuffer for rendering.
-   */
+    const std::string& utf8, Font* font, Style* style, StyleContext* context, float maxWidth, float maxHeight) {
   this->Invalidate();
 
   if (utf8.empty() || !style || !font || font->GetFontStatus() != FontStatusReady) {
@@ -61,7 +39,6 @@ void TextBlock::Shape(
   }
 
   this->LoadCodepoints(utf8, style);
-
   this->Layout(style, maxWidth, maxHeight);
 }
 
@@ -69,11 +46,8 @@ void TextBlock::Layout(Style* style, float maxWidth, float maxHeight) {
   /*
    * Layout a string of characters given the maxWidth and maxHeight bounds.
    *
-   * The string of characters are split into two buffers (1:1 mapping): a string of utf8 encoded codepoints and
-   * a glyph buffer with glyph id (font specific character ids). The TextIterator hides most of the details of
-   * syncing the two buffers.
-   *
-   * The glyph buffer is effectively immutable. Each line will be a view of a section or run of the buffer.
+   * The text string has been converted to codepoints. Codepoint advance + kerning have already been
+   * calculated.
    *
    * The layout has to do the following:
    * - Do not exceed maxWidth
@@ -129,7 +103,6 @@ void TextBlock::Layout(Style* style, float maxWidth, float maxHeight) {
         // This rewinds walker and some characters will be processed again, but I am OK with the extra
         // processing to keep this layout code manageable.
         walker = lastSpace;
-        lastSpace = textIteratorEnd;
       } else {
         this->PushLine(lineStart, walker);
       }
@@ -183,7 +156,7 @@ void TextBlock::Paint(Renderer* renderer) {
     return;
   }
 
-  int32_t x;
+  float x;
   int32_t y{};
   const auto surface{reinterpret_cast<color_t*>(textureLock.GetPixels())};
   const auto lineHeight{this->ComputeLineHeight()};
@@ -191,10 +164,10 @@ void TextBlock::Paint(Renderer* renderer) {
   for (const auto& line : this->lines) {
     switch (this->align) {
       case StyleTextAlignCenter:
-        x = SnapToPixelGrid<int32_t>((this->WidthF() - this->MeasureLineF(line)) / 2.f);
+        x = (this->WidthF() - this->MeasureLineF(line)) / 2.f;
         break;
       case StyleTextAlignRight:
-        x = SnapToPixelGrid<int32_t>(this->WidthF() - this->MeasureLineF(line));
+        x = this->WidthF() - this->MeasureLineF(line);
         break;
       default:
         x = 0;
@@ -211,7 +184,7 @@ void TextBlock::Paint(Renderer* renderer) {
   this->isReady = true;
 }
 
-void TextBlock::PaintLine(const TextLine& line, int32_t x, color_t* surface, int32_t pitch) noexcept {
+void TextBlock::PaintLine(const TextLine& line, float x, color_t* surface, int32_t pitch) noexcept {
   FT_BitmapGlyph glyph;
   color_t* s;
   int32_t yOffset;
@@ -250,6 +223,7 @@ void TextBlock::PaintLine(const TextLine& line, int32_t x, color_t* surface, int
 int32_t TextBlock::ComputeLineHeight() const noexcept {
   Float266 lineHeight{this->font->GetLineHeight()};
 
+  // apply ceil()
   if ((lineHeight & 0b111111) > 0) {
     return (lineHeight >> 6) + 1;
   }
@@ -264,16 +238,13 @@ TextureLock TextBlock::LockTexture(Renderer* renderer) noexcept {
 
   Texture::SafeDestroy(this->texture);
 
+  // Add a little bit of extra size, to reduce the chance a size change causes texture churn.
   const auto extraW{static_cast<int32_t>(this->Width() * 0.1f)};
   const auto extraH{static_cast<int32_t>(this->Width() * 0.05f)};
 
   this->texture = renderer->CreateTexture(this->Width() + extraW, this->Height() + extraH, Texture::Lockable);
 
-  if (this->texture) {
-    return {this->texture, true};
-  }
-
-  return {nullptr, false};
+  return {this->texture, this->texture != nullptr};
 }
 
 int32_t TextBlock::Width() const noexcept {
@@ -407,53 +378,62 @@ void TextBlock::EllipsizeIfNecessary(Style* style, int32_t maxWidth266) noexcept
    * layout area. If text overflow is not ellipsis, the last line is sufficiently
    * cropped. If text overflow is ellipsis, a "..." should be placed at the end
    * of the line. If there is not enough room for "...", characters need to be popped
-   * off the back of the glyph buffer until space is available.
+   * off the back of the codepoint buffer until space is available.
    *
-   * Since the glyph buffer is not dynamic, the "..." cannot be appended. So, the
-   * size is adjusted and line width are adjusted to fit the ellipsis. The Paint()
-   * method will just draw the text immediately following the line.
-   *
-   * The algorithm has two minot rendering issues (my opinion). 1) A line can
+   * The algorithm has two minor rendering issues (my opinion). 1) A line can
    * contain only "...". This is fine for single line text, but it looks weird  in
    * some multiline scenarios. 2) Spaces can precede the ellipsis (ex: My Text ...).
    * If a run of multiple spaces are in the line, the ellipsis appears dangling.
-   *
-   * The font caches the ellipsis width. An ellipsis is considered to be three
-   * consecutive '.' characters, not the unicode ellipsis character.
    */
 
   if (style->GetEnum(StyleProperty::textOverflow) != StyleTextOverflowEllipsis) {
     return;
   }
 
-  // Bail if no ellipsis width or no room in maxWidth.
-  const auto ellipsisWidth266{ this->font->GetAdvance('.') * (3 << 6) };
+  const auto dotAdvance266{this->font->GetAdvance('.')};
+  const auto ellipsisWidth266{ ((dotAdvance266 >> 6) * 3) << 6 | (dotAdvance266 & 0b111111) };
 
+  // if font has not dot or ellipsis does not fit in available space, bail.
   if (ellipsisWidth266 <= 0 || maxWidth266 < ellipsisWidth266) {
     return;
   }
 
   auto& lastLine{ this->lines.back() };
 
+  // Sanity check end value. Is this a possible state?
   if (lastLine.end == 0) {
+    return;
+  }
+
+  // Check if there is already space for the ellipsis.
+  if (this->MeasureLine(lastLine) + ellipsisWidth266 < maxWidth266) {
+    AppendEllipsis(lastLine);
     return;
   }
 
   Float266 space266{};
 
-  lastLine.ellipsis = true;
-
   // Pop characters until there is enough space.
-  for (auto i = lastLine.end - 1; i >= 0; i--) {
+  for (auto i = lastLine.end - 1; i >= lastLine.start; i--) {
     space266 += this->codepoints[i].advance266;
 
     if (space266 >= ellipsisWidth266) {
       lastLine.end = i;
+      AppendEllipsis(lastLine);
       return;
     }
   }
+}
 
-  lastLine.end = lastLine.start;
+void TextBlock::AppendEllipsis(TextLine& line) noexcept {
+  auto dotAdvance{this->font->GetAdvance('.')};
+
+  this->codepoints.erase(this->codepoints.begin() + line.end, this->codepoints.end());
+  this->codepoints.emplace_back('.', dotAdvance);
+  this->codepoints.emplace_back('.', dotAdvance);
+  this->codepoints.emplace_back('.', dotAdvance);
+
+  line.end += 3;
 }
 
 bool TextBlock::IsReady() const noexcept {

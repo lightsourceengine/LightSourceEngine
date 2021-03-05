@@ -88,9 +88,7 @@ FTFontSource* FTFontDriver::NewFTFontSource(ByteArray&& font, int32_t index) noe
 }
 
 FTFontSource::FTFontSource(FT_Face face, ByteArray&& memory) noexcept : face(face), memory(std::move(memory)) {
-  // TODO: use lru cache for this cache?
   this->glyphIdCache.reserve(1024);
-  // TODO: use lru cache for this cache
   this->advanceCache.reserve(1024);
   // TODO: use lru cache for this cache
   // TODO: it would be more memory efficient to use a texture atlas (this solution is expedient)
@@ -123,18 +121,21 @@ uint32_t FTFontSource::ToGlyphId(uint32_t codepoint) const noexcept {
 Float266 FTFontSource::GetAdvance(uint32_t codepoint) const noexcept {
   Key key{codepoint, this->currentPointSize};
   auto p{this->advanceCache.find(key.value)};
+  FT_Fixed advance1616;
 
   if (p == this->advanceCache.end()) {
-    FT_Fixed advance1616;
-
-    if (FT_Get_Advance(this->face, this->ToGlyphId(codepoint), FT_LOAD_DEFAULT, &advance1616)) {
+    // The fast path for get advance will be triggered under a handful of circumstances, FT_LOAD_NO_SCALE on
+    // a scalable font is one of them. Otherwise, LoadGlyph() will be used, triggering a load of the outline, etc.
+    if (FT_Get_Advance(this->face, this->ToGlyphId(codepoint), FT_LOAD_NO_SCALE, &advance1616)) {
       advance1616 = 0;
     }
 
-    return (this->advanceCache[key.value] = advance1616 >> 10);
+    this->advanceCache[key.value] = advance1616;
+  } else {
+    advance1616 = p->second;
   }
 
-  return p->second;
+  return FT_MulDiv(advance1616, this->face->size->metrics.x_scale, 64) >> 10;
 }
 
 bool FTFontSource::HasKerning() const noexcept {
