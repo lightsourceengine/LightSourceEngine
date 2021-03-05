@@ -61,6 +61,8 @@ void SDLGraphicsContext::Attach() {
               displayMode.refresh_rate,
               SDL2::SDL_GetPixelFormatName(displayMode.format),
               isWindowFullscreen);
+
+    this->refreshRate = displayMode.refresh_rate;
   }
 
   this->sdlRenderer->Attach(this->window);
@@ -81,6 +83,7 @@ void SDLGraphicsContext::Detach() {
   if (this->window) {
     SDL2::SDL_DestroyWindow(this->window);
     this->window = nullptr;
+    this->refreshRate = 0;
   }
 }
 

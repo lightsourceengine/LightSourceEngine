@@ -64,7 +64,7 @@ const createMockStage = () => {
       $emit: sinon.stub()
     },
     $emit: sinon.stub(),
-    getScene (displayId) {
+    get $scene () {
       return this.scene
     }
   }

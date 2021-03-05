@@ -190,6 +190,11 @@ export class Scene extends EventTarget {
 
     this.dispatchEvent(createDestroyingEvent(this))
 
+    this._stage._scenes.delete(this.displayIndex)
+    if (this._stage.$scene === this) {
+      this._stage.$scene = null
+    }
+
     this._fgFrameListeners = []
     this._fgFrameListeners = []
     this._activeNode = null

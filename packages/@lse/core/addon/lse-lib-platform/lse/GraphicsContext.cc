@@ -44,6 +44,10 @@ int32_t GraphicsContext::GetDisplayIndex() const noexcept {
   return this->displayIndex;
 }
 
+int32_t GraphicsContext::GetRefreshRate() const noexcept {
+  return this->refreshRate;
+}
+
 void GraphicsContext::SetRenderer(std::shared_ptr<Renderer> value) noexcept {
   this->renderer = std::move(value);
 }

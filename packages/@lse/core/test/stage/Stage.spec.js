@@ -16,27 +16,7 @@ describe('Stage', () => {
     stage = test.stage
   })
   afterEach(() => {
-    stage.resetFrameRate()
     stage = null
-  })
-  describe('setFrameRate()', () => {
-    it('should set to 30', () => {
-      stage.setFrameRate(30)
-      assert.equal(stage.getFrameRate(), 30)
-    })
-    it('should throw error for invalid fps value', () => {
-      for (const input of [-1, 0, NaN, '', {}, []]) {
-        assert.throws(() => { stage.setFrameRate(input) })
-      }
-    })
-  })
-  describe('resetFrameRate()', () => {
-    it('should reset fps to 60', () => {
-      stage.setFrameRate(30)
-      assert.equal(stage.getFrameRate(), 30)
-      stage.resetFrameRate()
-      assert.equal(stage.getFrameRate(), 60)
-    })
   })
   describe('isRunning()', () => {
     it('should return true for test stage instance', () => {

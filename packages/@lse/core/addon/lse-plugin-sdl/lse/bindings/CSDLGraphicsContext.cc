@@ -55,6 +55,10 @@ static napi_value GetDisplayIndex(napi_env env, napi_callback_info info) noexcep
   return napix::to_value_or_null(env, unwrap_this_as<SDLGraphicsContext>(env, info)->GetDisplayIndex());
 }
 
+static napi_value GetRefreshRate(napi_env env, napi_callback_info info) noexcept {
+  return napix::to_value_or_null(env, unwrap_this_as<SDLGraphicsContext>(env, info)->GetRefreshRate());
+}
+
 static napi_value IsFullscreen(napi_env env, napi_callback_info info) noexcept {
   return napix::to_value_or_null(env, unwrap_this_as<SDLGraphicsContext>(env, info)->IsFullscreen());
 }
@@ -73,6 +77,7 @@ napi_value CSDLGraphicsContext::CreateClass(napi_env env) {
       instance_method("getHeight", &GetHeight),
       instance_method("getTitle", &GetTitle),
       instance_method("getDisplayIndex", &GetDisplayIndex),
+      instance_method("getRefreshRate", &GetRefreshRate),
       instance_method("isFullscreen", &IsFullscreen),
       instance_method("setTitle", &SetTitle),
   });

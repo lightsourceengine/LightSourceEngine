@@ -88,4 +88,4 @@ export const afterEachTestCase = async () => {
   }
 }
 
-export const container = () => stage.getScene(0).root
+export const container = () => stage.$scene.root

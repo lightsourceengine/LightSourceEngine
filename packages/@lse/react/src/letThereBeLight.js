@@ -26,7 +26,7 @@ export const letThereBeLight = (element, options = {}) => {
     stage.configure(options)
   }
 
-  const scene = stage.getScene(-1) || stage.createScene()
+  const scene = stage.$scene || stage.createScene()
 
   // XXX: temporary fix so react nodes are cleaned up on exit; need to have render better handle the lifecycle of a container
   scene.once(EventName.onDestroying, () => render(scene, null))

@@ -232,7 +232,7 @@ int32_t TextBlock::ComputeLineHeight() const noexcept {
 }
 
 TextureLock TextBlock::LockTexture(Renderer* renderer) noexcept {
-  if (this->texture && this->Width() <= this->texture->Width() && this->Height() >= this->texture->Height()) {
+  if (this->texture && this->Width() <= this->texture->Width() && this->Height() <= this->texture->Height()) {
     return {this->texture, true};
   }
 
@@ -240,7 +240,7 @@ TextureLock TextBlock::LockTexture(Renderer* renderer) noexcept {
 
   // Add a little bit of extra size, to reduce the chance a size change causes texture churn.
   const auto extraW{static_cast<int32_t>(this->Width() * 0.1f)};
-  const auto extraH{static_cast<int32_t>(this->Width() * 0.05f)};
+  const auto extraH{static_cast<int32_t>(this->Height() * 0.1f)};
 
   this->texture = renderer->CreateTexture(this->Width() + extraW, this->Height() + extraH, Texture::Lockable);
 

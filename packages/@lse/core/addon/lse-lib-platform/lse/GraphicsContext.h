@@ -45,6 +45,7 @@ class GraphicsContext : public Reference {
   Renderer* GetRenderer() const noexcept;
   bool IsFullscreen() const noexcept;
   int32_t GetDisplayIndex() const noexcept;
+  int32_t GetRefreshRate() const noexcept;
 
  protected:
   void SetRenderer(std::shared_ptr<Renderer> value) noexcept;
@@ -56,6 +57,7 @@ class GraphicsContext : public Reference {
   int32_t height{};
   bool fullscreen{};
   int32_t displayIndex{};
+  int32_t refreshRate{};
 
  private:
   std::shared_ptr<Renderer> renderer{};

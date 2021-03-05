@@ -31,7 +31,7 @@ before(() => {
   })
 
   test.stage = stage
-  test.scene = stage.getScene(0)
+  test.scene = stage.$scene
   test.root = test.scene.root
 
   // override createNode so scene tests can clean up nodes after each test

@@ -39,6 +39,7 @@ export class Stage extends EventTarget {
   _mainLoopHandle = null
   _frameRate = 0
   _loadPlugin = null
+  $scene = null
 
   constructor (loadPluginFunc = loadPlugin) {
     super([
@@ -105,6 +106,12 @@ export class Stage extends EventTarget {
 
     if (!this.isAttached()) {
       this.$attach()
+
+      this._frameRate = this.$scene._context.getRefreshRate()
+
+      if (!this._frameRate) {
+        this._frameRate = 60
+      }
     }
 
     let lastTick = now()
@@ -162,6 +169,10 @@ export class Stage extends EventTarget {
 
     this._scenes.set(scene.displayIndex, scene)
 
+    if (!this.$scene) {
+      this.$scene = scene
+    }
+
     if (this.isAttached()) {
       try {
         scene.$attach()
@@ -203,11 +214,7 @@ export class Stage extends EventTarget {
   }
 
   getScene (displayId) {
-    if (displayId === -1) {
-      displayId = this.system.displays.findIndex(display => this._scenes.has(display.id))
-    }
-
-    return this._scenes.get(displayId)
+    return (displayId === -1) ? this.$scene : this._scenes.get(displayId)
   }
 
   isRunning () {

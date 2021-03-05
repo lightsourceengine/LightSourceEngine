@@ -428,7 +428,7 @@ export class InputManager extends EventTarget {
 
     // Phase: Bubble
 
-    const { activeNode } = this._stage.getScene(-1)
+    const { activeNode } = this._stage.$scene
 
     activeNode?.$bubble(keyUp, kOnKeyUp)
   }
@@ -447,7 +447,7 @@ export class InputManager extends EventTarget {
       return
     }
 
-    const { activeNode } = this._stage.getScene(-1)
+    const { activeNode } = this._stage.$scene
 
     // Phase: Navigate
 
