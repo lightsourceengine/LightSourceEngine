@@ -58,6 +58,14 @@ https://github.com/gulrak/filesystem
 
 Copyright (c) 2018, Steffen Schümann <s.schuemann@pobox.com>. filesystem is released under the [MIT License](https://github.com/gulrak/filesystem/blob/master/LICENSE).
 
+### FreeType
+
+https://gitlab.freedesktop.org/freetype/freetype
+
+Portions of this software are copyright © 2021 The FreeType Project (www.freetype.org). All rights reserved.
+
+Licensed under the [FreeType Project License](https://gitlab.freedesktop.org/freetype/freetype/-/blob/master/docs/FTL.TXT).
+
 ### Nano SVG
 
 https://github.com/memononen/nanosvg

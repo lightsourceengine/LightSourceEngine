@@ -7,7 +7,6 @@
         "../../common.gypi",
       ],
       "include_dirs": [
-        "include",
         "repo/include",
       ],
       "defines": [
