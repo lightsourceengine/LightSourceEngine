@@ -34,7 +34,7 @@
     "addon/deps/freetype/build.gypi",
     "addon/deps/freetype/src",
     "addon/deps/freetype/repo/include",
-    "addon/deps/freetype/repo/src"
+    "addon/deps/freetype/repo/src",
 
     "addon/deps/concurrentqueue/LICENSE",
     "addon/deps/concurrentqueue/repo/blockingconcurrentqueue.h",
