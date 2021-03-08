@@ -36,7 +36,10 @@
     "addon/deps/freetype/repo/src",
     "addon/deps/freetype/repo/docs/FTL.TXT",
 
-    "addon/deps/concurrentqueue/repo/*.h",
+    "addon/deps/concurrentqueue/LICENSE",
+    "addon/deps/concurrentqueue/repo/blockingconcurrentqueue.h",
+    "addon/deps/concurrentqueue/repo/concurrentqueue.h",
+    "addon/deps/concurrentqueue/repo/lightweightsemaphore.h",
 
     "addon/deps/cpp17_headers/LICENSE",
     "addon/deps/cpp17_headers/include",
