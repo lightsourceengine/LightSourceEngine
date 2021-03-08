@@ -60,7 +60,8 @@
           "_WIN32",
           "_HAS_EXCEPTIONS=1",
           "NOMINMAX",
-          "_USE_MATH_DEFINES"
+          "_USE_MATH_DEFINES",
+          "GHC_WIN_DISABLE_WSTRING_STORAGE_TYPE"
         ]
       }
     ],
