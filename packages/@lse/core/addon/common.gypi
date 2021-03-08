@@ -1,7 +1,4 @@
 {
-  "variables": {
-    "lse_asmjit_build%": "host"
-  },
   "cflags_cc!": [
     "-fno-exceptions",
     "-std=gnu++1y",
@@ -27,8 +24,6 @@
   ],
   "defines": [
     "STX_NAMESPACE_NAME=std17",
-    "ASMJIT_STATIC=1",
-	"BL_STATIC=1",
     "YG_ENABLE_NODE_LAYOUT_EVENT=1",
   ],
   "xcode_settings": {
@@ -62,25 +57,6 @@
           "NOMINMAX",
           "_USE_MATH_DEFINES",
           "GHC_WIN_DISABLE_WSTRING_STORAGE_TYPE"
-        ]
-      }
-    ],
-    [
-      "lse_asmjit_build==\"arm\"", {
-        "defines": [
-          "ASMJIT_BUILD_ARM=1"
-        ]
-      }
-    ],
-    [
-      "lse_asmjit_build==\"x86\"", {
-        "defines": [
-          "ASMJIT_BUILD_X86=1"
-        ]
-      },
-      {
-        "defines": [
-          "ASMJIT_BUILD_HOST=1"
         ]
       }
     ]

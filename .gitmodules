@@ -16,12 +16,6 @@
 [submodule "packages/@lse/core/addon/deps/parallel-hashmap/repo"]
 	path = packages/@lse/core/addon/deps/parallel-hashmap/repo
 	url = https://github.com/greg7mdp/parallel-hashmap.git
-[submodule "packages/@lse/core/addon/deps/SDL/repo"]
-	path = packages/@lse/core/addon/deps/SDL/repo
-	url = https://github.com/SDL-mirror/SDL.git
-[submodule "packages/@lse/core/addon/deps/SDL_mixer/repo"]
-	path = packages/@lse/core/addon/deps/SDL_mixer/repo
-	url = https://github.com/SDL-mirror/SDL_mixer.git
 [submodule "packages/@lse/core/addon/deps/freetype/repo"]
 	path = packages/@lse/core/addon/deps/freetype/repo
 	url = https://gitlab.freedesktop.org/freetype/freetype.git

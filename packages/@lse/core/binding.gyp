@@ -3,8 +3,8 @@
     "lse_enable_plugin_platform_sdl%": "1",
     "lse_enable_plugin_audio_sdl_audio%": "1",
     "lse_enable_plugin_audio_sdl_mixer%": "1",
-    "lse_sdl_include%": "addon/deps/SDL/repo/include",
-    "lse_sdl_mixer_include%": "addon/deps/SDL_mixer/repo",
+    "lse_sdl_include%": "addon/deps/SDL/include",
+    "lse_sdl_mixer_include%": "addon/deps/SDL_mixer/include",
     # note: enable_native_tests variable is set in set-enable-native-tests.gypi
     "lse_enable_native_tests%": "0",
   },
