@@ -16,7 +16,7 @@ Copyright (c) Facebook, Inc. and its affiliates. React is released under the [MI
 
 https://github.com/cameron314/concurrentqueue
 
-Copyright (c) 2013-2016, Cameron Desrochers. All rights reserved. moodycamel::ConcurrentQueue is licensed under the [Simplified BSD License](https://opensource.org/licenses/BSD-2-Clause).
+Copyright (c) 2013-2016, Cameron Desrochers. All rights reserved. moodycamel::ConcurrentQueue is licensed under the [BSL-1.0 License](http://www.boost.org/LICENSE_1_0.txt).
 
 ### cpp17_headers
 
@@ -33,23 +33,6 @@ https://github.com/lightsourceengine/cpp17_headers
 //
 // The idea and interface is based on Boost.Optional library
 // authored by Fernando Luis Cacciola Carballal
-```
-
-#### string_view.hpp
-
-```
-/*
-   Copyright (c) Marshall Clow 2012-2015.
-   Copyright Beman Dawes 2015
-   Distributed under the Boost Software License, Version 1.0. (See accompanying
-   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-    For more information, see http://www.boost.org
-    Based on the StringRef implementation in LLVM (http://llvm.org) and
-    N3422 by Jeffrey Yasskin
-        http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3442.html
-    Updated July 2015 to reflect the Library Fundamentals TS
-        http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4480.html
-*/
 ```
 
 ### filesystem
