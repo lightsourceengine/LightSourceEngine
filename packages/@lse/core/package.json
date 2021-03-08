@@ -41,6 +41,7 @@
     "addon/deps/cpp17_headers/include",
     "addon/deps/cpp17_headers/repo/include",
 
+    "addon/deps/filesystem/LICENSE",
     "addon/deps/filesystem/include",
     "addon/deps/filesystem/repo/include",
 
