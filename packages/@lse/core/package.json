@@ -38,8 +38,10 @@
 
     "addon/deps/concurrentqueue/repo/*.h",
 
+    "addon/deps/cpp17_headers/LICENSE",
     "addon/deps/cpp17_headers/include",
-    "addon/deps/cpp17_headers/repo/include",
+    "addon/deps/cpp17_headers/repo/include/stx/optional.hpp",
+    "addon/deps/cpp17_headers/repo/include/stx/utility.hpp",
 
     "addon/deps/filesystem/LICENSE",
     "addon/deps/filesystem/include",
