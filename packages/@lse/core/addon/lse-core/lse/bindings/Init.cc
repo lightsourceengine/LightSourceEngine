@@ -13,6 +13,7 @@
 #include <lse/FTFontDriver.h>
 #include <lse/Habitat.h>
 #include <lse/bindings/CoreExports.h>
+#include <node_api.h>
 
 using facebook::yoga::Event;
 
@@ -58,9 +59,7 @@ static napi_module _module = {
     { nullptr }
 };
 
-static void _register_Init() __attribute__((constructor));
-
-static void _register_Init() {
+NAPI_C_CTOR (_register_Init) {
   napi_module_register(&_module);
 }
 }
