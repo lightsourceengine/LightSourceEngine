@@ -13,7 +13,14 @@
       [ "lse_enable_plugin_platform_sdl==1", { "defines": [ "LSE_ENABLE_PLUGIN_PLATFORM_SDL" ] } ],
       [ "lse_enable_plugin_audio_sdl_audio==1", { "defines": [ "LSE_ENABLE_PLUGIN_AUDIO_SDL_AUDIO" ] } ],
       [ "lse_enable_plugin_audio_sdl_mixer==1", { "defines": [ "LSE_ENABLE_PLUGIN_AUDIO_SDL_MIXER" ] } ],
-    ]
+    ],
+    "configurations": {
+      "Release": {
+        "defines": [
+          "NDEBUG"
+        ]
+      }
+    }
   },
   "includes": [
     # move setting enable_native_tests variable to another file so tests can be disabled in npm package builds

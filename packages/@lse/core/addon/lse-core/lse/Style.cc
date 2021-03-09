@@ -287,6 +287,7 @@ void Style::SetUndefined(StyleProperty property) {
       break;
     default:
       assert(false);
+      count = 0;
       break;
   }
 
