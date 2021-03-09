@@ -59,7 +59,7 @@ static napi_module _module = {
     { nullptr }
 };
 
-NAPI_C_CTOR (_register_Init) {
+NAPI_C_CTOR(_register_Init) {
   napi_module_register(&_module);
 }
 }
