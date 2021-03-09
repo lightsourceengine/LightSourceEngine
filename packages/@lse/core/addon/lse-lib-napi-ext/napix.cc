@@ -262,6 +262,20 @@ bool has_pending_exception(napi_env env) noexcept {
   return (napi_is_exception_pending(env, &result) != napi_ok) || result;
 }
 
+std::string pop_pending_exception(napi_env env) noexcept {
+  napi_value error{};
+  if (napi_get_and_clear_last_exception(env, &error) != napi_ok) {
+    return {};
+  }
+
+  napi_value errorString{};
+  if (napi_coerce_to_string(env, error, &errorString) != napi_ok) {
+    return {};
+  }
+
+  return as_string_utf8(env, errorString);
+}
+
 napi_value object_new(napi_env env, const std::initializer_list<napi_property_descriptor>& props) noexcept {
   napi_value obj{};
 

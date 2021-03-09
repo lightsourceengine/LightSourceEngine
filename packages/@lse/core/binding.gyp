@@ -9,9 +9,6 @@
     "lse_enable_native_tests%": "0",
   },
   "target_defaults": {
-    "include_dirs": [
-      "<!@(node -p \"require('node-addon-api').include\")",
-    ],
     "conditions": [
       [ "lse_enable_plugin_platform_sdl==1", { "defines": [ "LSE_ENABLE_PLUGIN_PLATFORM_SDL" ] } ],
       [ "lse_enable_plugin_audio_sdl_audio==1", { "defines": [ "LSE_ENABLE_PLUGIN_AUDIO_SDL_AUDIO" ] } ],

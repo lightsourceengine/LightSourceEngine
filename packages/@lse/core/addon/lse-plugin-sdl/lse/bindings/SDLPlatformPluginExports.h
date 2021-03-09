@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <napi.h>
+#include <node_api.h>
 
 namespace lse {
 namespace bindings {

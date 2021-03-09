@@ -28,7 +28,8 @@
             "../common.gypi",
           ],
           "include_dirs": [
-            "<!@(node -p \"require('napi-unit').include\")"
+            "<!@(node -p \"require('napi-unit').include\")",
+            "<!@(node -p \"require('node-addon-api').include\")",
           ],
           "sources": [
             "test/napixSpec.cc",

@@ -8,7 +8,6 @@
 
 #include <algorithm>
 #include <napix.h>
-#include <napi.h>
 #include <lse/Habitat.h>
 #include <lse/Log.h>
 #include <lse/SDLGraphicsContext.h>
@@ -47,32 +46,13 @@ enum PluginCallback {
   PluginCallbackCount
 };
 
-static SDLPlatformPlugin* sPlugin{};
-static Napi::FunctionReference sPluginCallbacks[PluginCallbackCount]{};
-
-/**
- * Implementation of Napi::HandleScope that does not throw in destructor.
- */
-class SafeHandleScope {
- public:
-  explicit SafeHandleScope(napi_env env) noexcept : env(env), scope(nullptr) {
-    if (napi_open_handle_scope(this->env, &this->scope) != napi_ok) {
-      this->scope = nullptr;
-    }
-  }
-
-  ~SafeHandleScope() noexcept {
-    if (this->scope) {
-      napi_close_handle_scope(this->env, this->scope);
-    }
-  }
-
-  NAPI_DISALLOW_ASSIGN_COPY(SafeHandleScope)
-
- private:
-  napi_env env;
-  napi_handle_scope scope;
+struct Callback {
+  napi_env env{};
+  napi_ref function{};
 };
+
+static SDLPlatformPlugin* sPlugin{};
+static Callback sPluginCallbacks[PluginCallbackCount]{};
 
 static void ResetCallbacks() noexcept;
 
@@ -133,7 +113,10 @@ static napi_value GetVideoDriverNames(napi_env env, napi_callback_info info) noe
 
 static void ResetCallbacks() noexcept {
   for (auto& sPluginEventCallback : sPluginCallbacks) {
-    sPluginEventCallback = Napi::FunctionReference();
+    if (sPluginEventCallback.function) {
+      napi_delete_reference(sPluginEventCallback.env, sPluginEventCallback.function);
+    }
+    sPluginEventCallback = {};
   }
 }
 
@@ -260,18 +243,24 @@ static napi_value GetGamepadInfo(napi_env env, napi_callback_info info) noexcept
 }
 
 template<typename T, typename ... Args>
-static void InvokeCallback(const char* name, T callbackType, Args ... args) noexcept {
+static napi_value InvokeCallback(const char* name, T callbackType, Args ... args) noexcept {
   auto& callback{ sPluginCallbacks[callbackType] };
 
-  if (!callback.IsEmpty()) {
-    try {
-      SafeHandleScope scope(callback.Env());
-      callback({ napix::to_value_or_null(callback.Env(), args)... });
-    } catch (const std::exception& e) {
-      auto LAMBDA_FUNCTION = name;
-      LOG_ERROR_LAMBDA("Unhanded JS exception: %s", e.what());
-    }
+  if (!callback.function) {
+    return {};
   }
+
+  auto env{callback.env};
+  napi_value returnValue{};
+  napix::call_function(callback.env, callback.function, { napix::to_value_or_null(env, args)... }, &returnValue);
+
+  if (napix::has_pending_exception(env)) {
+    auto LAMBDA_FUNCTION = name;
+    LOG_ERROR_LAMBDA("Unhanded JS exception: %s", napix::pop_pending_exception(env));
+    returnValue = {};
+  }
+
+  return returnValue;
 }
 
 static void BindOnKeyboardScanCode(int32_t scanCode, bool pressed , bool repeat) noexcept {
@@ -303,50 +292,59 @@ static void BindOnGamepadButtonMapped(int32_t instanceId, int32_t button, bool p
 }
 
 static bool BindOnQuit() noexcept {
-  auto& callback{ sPluginCallbacks[OnQuit] };
+  auto returnValue{InvokeCallback("OnQuit", OnQuit)};
 
-  if (!callback.IsEmpty()) {
-    try {
-      SafeHandleScope scope(callback.Env());
-      auto result{ callback({}) };
+  if (returnValue) {
+    auto env{sPluginCallbacks[OnQuit].env};
+    napi_value returnValueAsBool{};
 
-      return result.ToBoolean();
-    } catch (const std::exception& e) {
-      auto LAMBDA_FUNCTION = "onQuit";
-      LOG_ERROR_LAMBDA("Unhanded JS exception: %s", e.what());
-    }
+    napi_coerce_to_bool(env, returnValue, &returnValueAsBool);
+
+    return napix::as_bool(env, returnValueAsBool, true);
   }
 
   return true;
 }
 
-static bool AssignFunctionReference(Napi::FunctionReference& ref, const Napi::Value& value) {
-  auto env{ value.Env() };
-  Napi::HandleScope scope(env);
+static napi_value GetFunctionReferenceValue(napi_env env, const Callback& callback) noexcept {
+  napi_value value{};
 
-  if (value.IsNull() || value.IsUndefined()) {
-    ref.Reset();
-  } else if (value.IsFunction()) {
-    if (ref.IsEmpty() || !value.StrictEquals(ref.Value())) {
-      ref.Reset(value.As<Napi::Function>(), 1);
-    }
-  } else {
-    return false;
+  if (callback.function) {
+    assert(env == callback.env);
+    napi_get_reference_value(env, callback.function, &value);
   }
 
-  return true;
+  return value;
+}
+
+static void SetFunctionReference(napi_env env, Callback& callback, napi_value function) {
+  if (!function || napix::is_nullish(env, function)) {
+    callback = {};
+  } else if (napix::is_function(env, function)) {
+    napi_ref ref{};
+    napi_create_reference(env, function, 1, &ref);
+
+    if (!ref) {
+      napix::throw_error(env, "Failed to create ref for function");
+      return;
+    }
+
+    callback = { env, ref };
+  } else {
+    napix::throw_error(env, "Expected function, null or undefined");
+  }
 }
 
 static napi_value CreatePluginInstance(napi_env env) {
 #define InstanceAccessor(PROP, EVENT)                                       \
   napix::descriptor::instance_accessor(                                     \
     PROP,                                                                   \
-    [](napi_env, napi_callback_info) -> napi_value {                        \
-      return sPluginCallbacks[EVENT].Value();                               \
+    [](napi_env env, napi_callback_info) -> napi_value {                    \
+      return GetFunctionReferenceValue(env, sPluginCallbacks[EVENT]);       \
     },                                                                      \
     [](napi_env env, napi_callback_info info) -> napi_value {               \
-      Napi::CallbackInfo ci{ env, info };                                   \
-      AssignFunctionReference(sPluginCallbacks[EVENT], ci[0]);        \
+      auto ci{napix::get_callback_info<1> (env, info)};                     \
+      SetFunctionReference(env, sPluginCallbacks[EVENT], ci[0]);            \
       return nullptr;                                                       \
     })
 
@@ -432,7 +430,7 @@ napi_value LoadSDLPlatformPlugin(napi_env env, napi_value options) noexcept {
   sPlugin->onGamepadButtonMapped = &BindOnGamepadButtonMapped;
   sPlugin->onQuit = &BindOnQuit;
 
-  napi_add_env_cleanup_hook(env, [](void*) { ResetCallbacks(); }, nullptr);
+  napi_add_env_cleanup_hook(env, [](void* e) { ResetCallbacks(); }, nullptr);
 
   return jsPluginInstance;
 }

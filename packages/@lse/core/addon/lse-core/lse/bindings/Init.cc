@@ -14,14 +14,9 @@
 #include <lse/Habitat.h>
 #include <lse/bindings/CoreExports.h>
 
-#include <napi.h>
-
-using Napi::Env;
-using Napi::Function;
-using Napi::Object;
 using facebook::yoga::Event;
 
-Object Init(Env env, Object exports) {
+static napi_value Init(napi_env env, napi_value exports) {
   auto logLevel = lse::GetEnvOrDefault("LSE_LOG_LEVEL", "INFO");
 
   if (!lse::SetLogLevel(logLevel)) {
@@ -52,4 +47,20 @@ Object Init(Env env, Object exports) {
   return exports;
 }
 
-NODE_API_MODULE(LightSourceEngineCore, Init);
+extern "C" {
+static napi_module _module = {
+    1,
+    0,
+    "lse-core.node",
+    &Init,
+    "LightSourceEngineCore",
+    nullptr,
+    { nullptr }
+};
+
+static void _register_Init() __attribute__((constructor));
+
+static void _register_Init() {
+  napi_module_register(&_module);
+}
+}

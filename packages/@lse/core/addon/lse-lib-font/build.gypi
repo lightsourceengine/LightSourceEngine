@@ -44,7 +44,8 @@
             "../lse-lib-logger",
             "../deps/cpp17_headers/include",
             "../deps/parallel-hashmap/repo/parallel_hashmap",
-            "<!@(node -p \"require('napi-unit').include\")"
+            "<!@(node -p \"require('napi-unit').include\")",
+            "<!@(node -p \"require('node-addon-api').include\")",
           ],
           "dependencies": [
             "lse-lib-napi-ext",

@@ -148,6 +148,7 @@ T* unwrap_as(napi_env env, napi_value wrapped) noexcept;
 
 void throw_error(napi_env env, const char* message) noexcept;
 bool has_pending_exception(napi_env env) noexcept;
+std::string pop_pending_exception(napi_env env) noexcept;
 
 /**
  * Creates a js value from a primitive. If the creation fails, nullptr is returned.

@@ -70,8 +70,7 @@
   ],
   "dependencies": {
     "bindings": "^1.5.0",
-    "cross-env": "^7.0.3",
-    "node-addon-api": "^3.1.0"
+    "cross-env": "^7.0.3"
   },
   "scripts": {
     "install": "cross-env-shell node-gyp rebuild $npm_config_lse_install_opts",

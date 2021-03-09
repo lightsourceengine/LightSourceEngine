@@ -192,14 +192,10 @@ static void OnFontLoadComplete(napi_env env, bool cancelled, void* data) noexcep
     { napix::to_value(env, context->id), napix::to_value(env, font->GetFontStatus()) },
     nullptr);
 
-  if (callStatus != napi_ok) {
+  if (napix::has_pending_exception(env)) {
+    LOG_ERROR("Uncaught JS exception: %s", napix::pop_pending_exception(env));
+  } else if (callStatus != napi_ok) {
     LOG_ERROR("callback invoke: %i", callStatus);
-    if (napix::has_pending_exception(env)) {
-      napi_value result{};
-      napi_get_and_clear_last_exception(env, &result);
-      LOG_ERROR("Uncaught JS exception: %s", napix::as_string_utf8(env, result));
-    }
-    return;
   }
 }
 

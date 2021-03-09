@@ -49,10 +49,12 @@ class NapiImageStatusCallback : public ImageStatusCallback {
       return;
     }
 
-    auto status = napix::call_function(this->env, this->callback, { jsImage, jsErrorMessage }, nullptr);
+    auto callStatus = napix::call_function(this->env, this->callback, { jsImage, jsErrorMessage }, nullptr);
 
-    if (status != napi_ok) {
-      LOG_ERROR("image status callback failed");
+    if (napix::has_pending_exception(env)) {
+      LOG_ERROR("Uncaught JS exception: %s", napix::pop_pending_exception(env));
+    } else if (callStatus != napi_ok) {
+      LOG_ERROR("callback invoke: %i", callStatus);
     }
   }
 

@@ -68,7 +68,8 @@
         [
           "enable_native_tests==1", {
             "include_dirs": [
-              "<!@(node -p \"require('napi-unit').include\")"
+              "<!@(node -p \"require('napi-unit').include\")",
+              "<!@(node -p \"require('node-addon-api').include\")",
             ],
             "defines": [ "LSE_ENABLE_NATIVE_TESTS" ],
             "sources": [
