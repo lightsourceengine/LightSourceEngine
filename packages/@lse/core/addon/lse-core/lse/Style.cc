@@ -454,6 +454,10 @@ void Style::GatherDefinedProperties(StylePropertySet& properties) {
   if (!this->transform.empty()) {
     properties.insert(StyleProperty::transform);
   }
+
+  if (!this->filter.empty()) {
+    properties.insert(StyleProperty::filter);
+  }
 }
 
 void Style::Init() {
