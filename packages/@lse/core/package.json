@@ -25,11 +25,11 @@
     "addon/common.gypi",
 
     "addon/lse-*",
-
     "addon/deps/yoga",
-
     "addon/deps/nanosvg",
-
+    "addon/deps/SDL",
+    "addon/deps/SDL_mixer",
+    
     "addon/deps/freetype/LICENSE",
     "addon/deps/freetype/build.gypi",
     "addon/deps/freetype/src",
@@ -52,10 +52,6 @@
 
     "addon/deps/parallel-hashmap/LICENSE",
     "addon/deps/parallel-hashmap/repo/parallel_hashmap",
-
-    "addon/deps/SDL/repo/include",
-
-    "addon/deps/SDL_mixer/repo/SDL_mixer.h",
 
     "addon/deps/utfcpp/LICENSE",
     "addon/deps/utfcpp/repo/source",
