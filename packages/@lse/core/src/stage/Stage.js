@@ -8,7 +8,7 @@ import { Scene } from '../scene/Scene.js'
 import { CStage, logger } from '../addon/index.js'
 import { InputManager } from '../input/InputManager.js'
 import { AudioManager } from '../audio/AudioManager.js'
-import { isNumber, logexcept, now, isPlainObject } from '../util/index.js'
+import { logexcept, now, isPlainObject } from '../util/index.js'
 import { PluginType } from '../addon/PluginType.js'
 import { PluginId } from '../addon/PluginId.js'
 import {
@@ -60,8 +60,6 @@ export class Stage extends EventTarget {
       audio: { value: new AudioManager() },
       system: { value: new SystemManager() }
     })
-
-    this.resetFrameRate()
   }
 
   configure (appConfig = undefined) {
@@ -106,12 +104,6 @@ export class Stage extends EventTarget {
 
     if (!this.isAttached()) {
       this.$attach()
-
-      this._frameRate = this.$scene._context.getRefreshRate()
-
-      if (!this._frameRate) {
-        this._frameRate = 60
-      }
     }
 
     let lastTick = now()
@@ -165,7 +157,12 @@ export class Stage extends EventTarget {
 
     const scene = new Scene(this, sceneConfig)
 
-    scene.once(EventName.onDestroying, ({ target }) => this._scenes.delete(target.displayIndex))
+    scene.once(EventName.onDestroying, ({ target }) => {
+      this._scenes.delete(target.displayIndex)
+      if (target === this.$scene) {
+        this.$scene = null
+      }
+    })
 
     this._scenes.set(scene.displayIndex, scene)
 
@@ -180,6 +177,8 @@ export class Stage extends EventTarget {
         logexcept(() => scene.destroy(), 'createScene()')
         throw e
       }
+
+      this.$updateFrameRate()
     }
 
     return scene
@@ -195,22 +194,6 @@ export class Stage extends EventTarget {
     if (!this.isRunning()) {
       queueMicrotask(() => this.$destroy())
     }
-  }
-
-  getFrameRate () {
-    return this._frameRate
-  }
-
-  setFrameRate (value) {
-    if (!isNumber(value) || value <= 0) {
-      throw Error('frameRate must be a number greater than 0')
-    }
-
-    this._frameRate = value
-  }
-
-  resetFrameRate () {
-    this._frameRate = 60
   }
 
   getScene (displayId) {
@@ -282,6 +265,7 @@ export class Stage extends EventTarget {
 
     listManagers(this).forEach(manager => manager.$attach())
     this._scenes.forEach(scene => scene.$attach())
+    this.$updateFrameRate()
 
     this._flags |= kFlagIsAttached
     this.dispatchEvent(createAttachedEvent(this))
@@ -309,6 +293,10 @@ export class Stage extends EventTarget {
   $stopMainLoop () {
     clearTimeout(this._mainLoopHandle)
     this._mainLoopHandle = null
+  }
+
+  $updateFrameRate () {
+    this._frameRate = this.$scene?._context.getRefreshRate() || 60
   }
 
   /**
