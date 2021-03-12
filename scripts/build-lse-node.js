@@ -541,7 +541,7 @@ class LightSourceNodePackage {
     await copy(source, dest)
 
     if (scriptName.endsWith('.sh')) {
-      await move(dest, join(this.#nodeBin, scriptName.slice(0, -3)))
+      await move(dest, join(this.#nodeBin, 'lse-node'))
     }
 
     log(`staging: wrapper script ${scriptName} installed`)
@@ -627,10 +627,6 @@ class LightSourceNodePackage {
 
     await ensureDir(usrBin)
     await symlink('../share/lse/bin/lse-node', join(usrBin, 'lse-node'))
-
-    console.log(sourceRoot.getHmodUninstallScript())
-    console.log(join(this.#home, 'uninstall'))
-
     await copy(sourceRoot.getHmodUninstallScript(), join(this.#home, 'uninstall'))
   }
 
