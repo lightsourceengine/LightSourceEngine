@@ -590,6 +590,10 @@ class LightSourceNodePackage {
   }
 
   async installGameControllerDb (options) {
+    if (options.profile === Profile.nclassic) {
+      return
+    }
+
     const complete = logMark('staging: installing gamecontrollerdb.txt...')
 
     // TODO: consider adding SDL_GameControllerDB as a submodule in the project
@@ -714,9 +718,11 @@ class SourceRoot {
     return join(this.#root, 'LICENSE')
   }
 
-  getNodeWrapperScript ({ platform }) {
+  getNodeWrapperScript ({ platform, profile }) {
     if (isWindows(platform)) {
       return join(this.#root, 'scripts/static/lse-node.cmd')
+    } else if (profile === Profile.nclassic) {
+      return join(this.#root, 'scripts/static/lse-node-nclassic.sh')
     } else {
       return join(this.#root, 'scripts/static/lse-node.sh')
     }
