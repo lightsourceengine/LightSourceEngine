@@ -7,7 +7,6 @@
 #include <lse/Style.h>
 
 #include <algorithm>
-#include <std17/algorithm>
 #include <cassert>
 
 namespace lse {
@@ -420,6 +419,7 @@ void Style::Reset() {
   this->colorMap.clear();
   this->stringMap.clear();
   this->transform.clear();
+  this->filter.clear();
 
   for (auto property : tempDefinedProperties) {
     if (this->parent && !this->parent->IsEmpty(property, false)) {
