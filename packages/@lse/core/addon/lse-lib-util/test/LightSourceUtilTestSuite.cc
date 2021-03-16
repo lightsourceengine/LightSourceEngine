@@ -13,6 +13,7 @@ using Napi::Object;
 namespace lse {
 void FormatSpec(Napi::TestSuite* parent);
 void FsExtSpec(Napi::TestSuite* parent);
+void LRUCacheSpec(Napi::TestSuite* parent);
 void StringExtSpec(Napi::TestSuite* parent);
 }
 
@@ -22,7 +23,8 @@ Object Init(Env env, Object exports) {
   exports["test"] = Napi::TestSuite::Build(env, "lse-lib-util native tests", {
       &lse::FormatSpec,
       &lse::FsExtSpec,
-      &lse::StringExtSpec,
+      &lse::LRUCacheSpec,
+      &lse::StringExtSpec
   });
 
   return exports;

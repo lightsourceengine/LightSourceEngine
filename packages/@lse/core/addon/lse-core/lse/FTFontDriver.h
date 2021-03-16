@@ -12,6 +12,7 @@
 #include <phmap.h>
 #include <lse/fs-ext.h>
 #include <lse/math-ext.h>
+#include <lse/LRUCache.h>
 
 namespace lse {
 
@@ -96,7 +97,7 @@ class FTFontSource {
   // codepoint -> unscaled advance value
   mutable phmap::flat_hash_map<uint32_t, Float266> advanceCache;
   // codepoint + font size -> bitmap
-  mutable phmap::flat_hash_map<uint64_t, FT_Glyph> bitmapCache;
+  mutable LRUCache<uint64_t, FT_Glyph> bitmapCache{512};
 };
 
 } // namespace lse

@@ -65,6 +65,7 @@
           "sources": [
             "test/FormatSpec.cc",
             "test/FsExtSpec.cc",
+            "test/LRUCacheSpec.cc",
             "test/StringExtSpec.cc",
             "test/LightSourceUtilTestSuite.cc",
           ]

@@ -90,18 +90,14 @@ FTFontSource* FTFontDriver::NewFTFontSource(ByteArray&& font, int32_t index) noe
 FTFontSource::FTFontSource(FT_Face face, ByteArray&& memory) noexcept : face(face), memory(std::move(memory)) {
   this->glyphIdCache.reserve(1024);
   this->advanceCache.reserve(1024);
-  // TODO: use lru cache for this cache
-  // TODO: it would be more memory efficient to use a texture atlas (this solution is expedient)
-  this->bitmapCache.reserve(512);
 }
 
 FTFontSource::~FTFontSource() noexcept {
-  for (auto& entry : this->bitmapCache) {
-    if (entry.second) {
-      FT_Done_Glyph(entry.second);
+  this->bitmapCache.ForEach([](const uint64_t& key, const FT_Glyph& glyph) {
+    if (glyph) {
+      FT_Done_Glyph(glyph);
     }
-  }
-  this->bitmapCache.clear();
+  });
 }
 
 FT_Face FTFontSource::GetFace() const noexcept {
@@ -163,12 +159,14 @@ Float266 FTFontSource::GetLineHeight() const noexcept {
 FT_BitmapGlyph FTFontSource::GetGlyphBitmap(uint32_t codepoint) const noexcept {
   Key key{codepoint, this->currentPointSize};
   FT_Glyph glyph;
-  auto p{this->bitmapCache.find(key.value)};
 
-  if (p == this->bitmapCache.end()) {
-    glyph = this->bitmapCache[key.value] = this->LoadGlyphBitmap(codepoint);
+  auto ref{this->bitmapCache.Find(key.value)};
+
+  if (ref.Empty()) {
+    glyph = this->LoadGlyphBitmap(codepoint);
+    this->bitmapCache.Insert(key.value, glyph);
   } else {
-    glyph = p->second;
+    glyph = ref.Get();
   }
 
   return reinterpret_cast<FT_BitmapGlyph>(glyph);
