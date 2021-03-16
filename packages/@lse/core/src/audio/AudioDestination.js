@@ -56,8 +56,6 @@ export class AudioDestination {
 
   /**
    * List of audio decoders this destination supports.
-   *
-   * @type{string[]}
    */
   get decoders () {
     return this._decoders

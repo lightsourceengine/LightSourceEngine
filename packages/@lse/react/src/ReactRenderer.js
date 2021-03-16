@@ -15,8 +15,8 @@ const throwDisconnected = () => {
 const reconcilers = new Map()
 
 /**
- * @class
  * @ignore
+ * @class
  *
  * Bridge between React and the Light Source Engine scene graph.
  *

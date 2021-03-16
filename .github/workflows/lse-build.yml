@@ -54,3 +54,6 @@ jobs:
 
       - name: JS Test (+ JS Lint)
         run: yarn run test
+
+      - name: Documentation
+        run: yarn run jsdoc

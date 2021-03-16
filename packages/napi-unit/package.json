@@ -10,6 +10,7 @@
   "scripts": {
     "test": "echo 'No tests.'",
     "lint": "echo 'Nothing to lint.'",
-    "bundle": "echo 'Nothing to bundle.'"
+    "bundle": "echo 'Nothing to bundle.'",
+    "jsdoc": "echo 'No docs.'"
   }
 }
