@@ -20,7 +20,7 @@
     "clean": "rimraf build packages/*/build packages/@lse/*/build packages/*/dist packages/@lse/*/dist",
     "test": "yarn workspaces run test",
     "lint": "yarn workspaces run lint",
-    "jsdoc": "yarn workspaces run jsdoc",
+    "jsdoc": "rimraf build/docs && jsdoc -c docs/site/jsdoc.json",
     "bundle": "yarn workspaces run bundle",
     "postinstall": "yarn workspaces run bundle"
   },

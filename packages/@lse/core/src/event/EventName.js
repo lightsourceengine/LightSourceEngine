@@ -6,6 +6,10 @@
 
 /**
  * Event names used by EventTargets in @lse/core.
+ *
+ * @enum {string}
+ * @readonly
+ * @name module:@lse/core.core-enum.EventName
  */
 export const EventName = Object.freeze({
   /// //////////////////////////////////////////////////////////////////////////

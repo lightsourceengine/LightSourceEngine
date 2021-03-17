@@ -6,7 +6,11 @@
 
 import { emptyArray } from '../util/index.js'
 
-export class SystemManager {
+/**
+ * @memberof module:@lse/core
+ * @hideconstructor
+ */
+class SystemManager {
   _plugin = null
   _displays = emptyArray
   _videoDrivers = emptyArray
@@ -145,3 +149,5 @@ const findClosestFullscreenSize = (display, width, height) => {
 
   return [closest.width || 640, closest.height || 480]
 }
+
+export { SystemManager }

@@ -8,8 +8,12 @@ import { InputDevice } from './InputDevice.js'
 
 /**
  * Gamepad input device.
+ *
+ * @memberof module:@lse/core
+ * @extends module:@lse/core.InputDevice
+ * @hideconstructor
  */
-export class Gamepad extends InputDevice {
+class Gamepad extends InputDevice {
   constructor (id, api) {
     const info = api.getGamepadInfo(id)
 
@@ -94,3 +98,5 @@ export class Gamepad extends InputDevice {
     return this._api.getHatState(this.id, hat)
   }
 }
+
+export { Gamepad }

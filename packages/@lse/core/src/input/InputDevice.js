@@ -6,8 +6,11 @@
 
 /**
  * Base class for input devices, such as keyboard and gamepad.
+ *
+ * @memberof module:@lse/core
+ * @hideconstructor
  */
-export class InputDevice {
+class InputDevice {
   constructor ({ id, type, name, uuid }) {
     this._id = id
     this._type = type
@@ -98,3 +101,5 @@ export class InputDevice {
     return 0
   }
 }
+
+export { InputDevice }

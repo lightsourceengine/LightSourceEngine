@@ -10,9 +10,33 @@ import { render, findSceneNode, findElement } from './renderer.js'
 import { letThereBeLight } from './letThereBeLight.js'
 import { version as reactVersion } from 'react'
 
+/**
+ * @module @lse/react
+ */
+
+/**
+ * React Version
+ *
+ * @type {string}
+ * @const
+ * @name module:@lse/react.reactVersion
+ */
+
 stage.once(EventName.onDestroying, (event) => {
   shutdown()
 })
+
+/**
+ * Version
+ *
+ * @type {string}
+ * @const
+ * @name module:@lse/react.version
+ */
+export const version = '$LSE_REACT_VERSION'
+
+// export to support jsx transpilation using jsx-runtime
+export { createElement } from 'react'
 
 export {
   render,
@@ -21,8 +45,3 @@ export {
   letThereBeLight,
   reactVersion
 }
-
-export const version = '$LSE_REACT_VERSION'
-
-// export to support jsx transpilation using jsx-runtime
-export { createElement } from 'react'

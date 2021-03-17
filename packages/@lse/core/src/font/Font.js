@@ -12,8 +12,12 @@ import { EventName } from '../event/EventName.js'
  *
  * Contains information about a font face added to the FontManager. If the font is in the loading state, this
  * object will broadcast an 'on-status' event when the font is ready.
+ *
+ * @memberof module:@lse/core
+ * @extends module:@lse/core.EventTarget
+ * @hideconstructor
  */
-export class Font extends EventTarget {
+class Font extends EventTarget {
   _id = -1
   _family = ''
   _style = ''
@@ -73,3 +77,5 @@ export class Font extends EventTarget {
     return this.$status
   }
 }
+
+export { Font }

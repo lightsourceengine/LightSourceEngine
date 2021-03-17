@@ -6,16 +6,14 @@
 
 import { Element } from './Element.js'
 
-export class TextElement extends Element {
-  /**
-   * @class TextElement
-   * @extends Element
-   *
-   * @classdesc
-   *
-   * Maps &lt;text&gt; element to an TextSceneNode.
-   */
-
+/**
+ * Maps &lt;text&gt; element to an TextSceneNode.
+ *
+ * @memberof module:@lse/react
+ * @extends module:@lse/react.Element
+ * @hideconstructor
+ */
+class TextElement extends Element {
   /**
    * @override
    */
@@ -27,3 +25,5 @@ export class TextElement extends Element {
     }
   }
 }
+
+export { TextElement }

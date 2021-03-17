@@ -6,6 +6,18 @@
 
 import { Stage } from './stage/Stage.js'
 
+/**
+ * @module @lse/core
+ */
+
+/**
+ * @namespace module:@lse/core.$
+ */
+
+/**
+ * @namespace module:@lse/core.core-enum
+ */
+
 for (const eventName of ['uncaughtException', 'unhandledRejection']) {
   process.on(eventName, ({ message, stack }) => {
     message && console.log(message)
@@ -21,6 +33,12 @@ process.on('SIGINT', () => process.exit(0))
 /// Stage / Scene Exports
 /// ////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Stage instance.
+ *
+ * @type {module:@lse/core.Stage}
+ * @name module:@lse/core.stage
+ */
 export const stage = new Stage()
 export { PluginType } from './addon/PluginType.js'
 export { PluginId } from './addon/PluginId.js'
@@ -35,7 +53,7 @@ export { createStyle } from './style/createStyle.js'
 export { createStyleSheet } from './style/createStyleSheet.js'
 export { MixinRegistry } from './style/MixinRegistry.js'
 export { ShorthandRegistry } from './style/ShorthandRegistry.js'
-export { StyleAnchor, StyleUnit, StyleTransform } from './addon/index.js'
+export { StyleAnchor, StyleFilter, StyleUnit, StyleTransform } from './addon/index.js'
 export * as $ from './style/style-functions.js'
 
 /// ////////////////////////////////////////////////////////////////////////////
@@ -65,5 +83,12 @@ export { EventName } from './event/EventName.js'
 /// Misc Exports
 /// ////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Version
+ *
+ * @type {string}
+ * @const
+ * @name module:@lse/core.version
+ */
 export const version = '$LSE_VERSION'
 export { LogLevel, logger } from './addon/index.js'

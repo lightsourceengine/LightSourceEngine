@@ -29,8 +29,11 @@ const nullAudioDestination = {
 
 /**
  * An audio output buffer.
+ *
+ * @memberof module:@lse/core
+ * @hideconstructor
  */
-export class AudioDestination {
+class AudioDestination {
   _type = AudioType.NULL
   _native = nullAudioDestination
   _decoders = emptyArray
@@ -388,3 +391,5 @@ export class AudioDestination {
     return new AudioSource(this._native.createAudioSource(), this._type, uri)
   }
 }
+
+export { AudioDestination }

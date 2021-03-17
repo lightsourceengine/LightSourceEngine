@@ -13,8 +13,12 @@ import { AudioType } from './AudioType.js'
 
 /**
  * Audio API.
+ *
+ * @memberof module:@lse/core
+ * @extends module:@lse/core.EventTarget
+ * @hideconstructor
  */
-export class AudioManager extends EventTarget {
+class AudioManager extends EventTarget {
   _plugin = null
   _sample = new AudioDestination(AudioType.SAMPLE)
   _stream = new AudioDestination(AudioType.STREAM)
@@ -53,7 +57,7 @@ export class AudioManager extends EventTarget {
    *
    * If the audio plugin is configured or not available on the system, this will return an empty array.
    *
-   * @returns {string[]}
+   * @type {string[]}
    */
   get devices () {
     // Note: names are purely informational right now
@@ -69,7 +73,7 @@ export class AudioManager extends EventTarget {
    * If the audio plugin is configured or not available on the system, the sample destination buffer will not
    * be available, but this variable and APIs are safe to call.
    *
-   * @returns {AudioDestination}
+   * @type {module:@lse/core.AudioDestination}
    */
   get sample () {
     return this._sample
@@ -84,7 +88,7 @@ export class AudioManager extends EventTarget {
    * If the audio plugin is configured or not available on the system, the stream destination buffer will not
    * be available, but this variable and APIs are safe to call.
    *
-   * @returns {AudioDestination}
+   * @type {module:@lse/core.AudioDestination}
    */
   get stream () {
     return this._stream
@@ -150,3 +154,5 @@ export class AudioManager extends EventTarget {
     this._sample = this._stream = this._plugin = null
   }
 }
+
+export { AudioManager }

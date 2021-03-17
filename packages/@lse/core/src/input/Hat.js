@@ -7,7 +7,9 @@
 /**
  * Flags for to help interpret the state of a gamepad hat (directional pad) value.
  *
- * @type {Readonly<{DOWN: number, CENTERED: number, LEFT: number, RIGHT: number, UP: number}>}
+ * @enum {number}
+ * @readonly
+ * @name module:@lse/core.core-enum.Hat
  */
 export const Hat = Object.freeze({
   CENTERED: 0,

@@ -13,8 +13,11 @@ import { readFileSync } from 'fs'
 
 /**
  * Font Manager.
+ *
+ * @memberof module:@lse/core
+ * @hideconstructor
  */
-export class FontManager {
+class FontManager {
   _fonts = new Map()
   _native = new CFontManager()
   _defaultFontFamily = ''
@@ -260,3 +263,5 @@ const bootstrapFonts = (self) => {
     }
   }
 }
+
+export { FontManager }

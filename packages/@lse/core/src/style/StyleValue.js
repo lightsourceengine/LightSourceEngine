@@ -6,7 +6,13 @@
 
 import { installStyleValue, parseValue, StyleUnit } from '../addon/index.js'
 
-export class StyleValue {
+/**
+ * A style value object.
+ *
+ * @memberof module:@lse/core
+ * @hideconstructor
+ */
+class StyleValue {
   // Note: Use index so the native code can do faster lookups.
 
   // Used by the native code when a style value should be undefined.
@@ -95,3 +101,5 @@ export class StyleValue {
 
 // Install this class in the environment so the native Style parsing can use it.
 installStyleValue(StyleValue)
+
+export { StyleValue }

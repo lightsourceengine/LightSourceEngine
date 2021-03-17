@@ -17,6 +17,9 @@ import { rgb } from './rgb.js'
  * opaque black is returned
  * @returns {number} Style color value in 33-bit 1AARRGGBB format. The 33 bit is set as a hint to the renderer to
  * honor the alpha component of the color.
+ *
+ * @function rgba
+ * @memberof module:@lse/core.$
  */
 export const rgba = (...args) => {
   let a

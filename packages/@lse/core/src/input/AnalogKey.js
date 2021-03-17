@@ -7,8 +7,10 @@
 /**
  * Enums for identifying the analog inputs (axis, trigger) of a gamepad.
  *
- * @type {{LEFT_STICK_Y: number, LEFT_TRIGGER: number, LEFT_STICK_X: number, RIGHT_STICK_X: number, RIGHT_STICK_Y: number, RIGHT_TRIGGER: number}}
  * @see Key
+ * @enum {number}
+ * @readonly
+ * @name module:@lse/core.core-enum.AnalogKey
  */
 export const AnalogKey = {
   // analog sticks

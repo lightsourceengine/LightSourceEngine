@@ -10,8 +10,9 @@
  * The values are pulled from SDL Mixer (and SDL Audio). Refer to SDL 2 documentation for information about which
  * file types each decoder can load.
  *
- * @type {Readonly<{MODPLUG: string, MOD: string, MIDI: string, FLAC: string, TIMIDITY: string, VOC: string,
- * OGG: string, MP3: string, WAVE: string, AIFF: string, OPUS: string, CMD: string, MIKMOD: string}>}
+ * @enum {string}
+ * @readonly
+ * @name module:@lse/core.core-enum.AudioDecoderType
  */
 export const AudioDecoderType = Object.freeze({
   AIFF: 'AIFF',

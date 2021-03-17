@@ -6,7 +6,11 @@
 
 const kReservedIds = new Set(['@expand'])
 
-export class ShorthandRegistry {
+/**
+ * @memberof module:@lse/core
+ * @hideconstructor
+ */
+class ShorthandRegistry {
   static add (id, expand) {
     if (typeof id !== 'string' || !id.startsWith('@')) {
       throw Error(`id must be a string that starts with '@' (${id})`)
@@ -93,3 +97,5 @@ export const resetShorthandRegistry = () => {
 }
 
 resetShorthandRegistry()
+
+export { ShorthandRegistry }

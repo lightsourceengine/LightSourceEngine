@@ -27,6 +27,7 @@ import { StyleClass } from './StyleClass.js'
  *
  * @param properties {Object} Plain Object containing style properties and values
  * @returns {StyleClass} Immutable Style class object
+ * @method module:@lse/core.createStyle
  */
 export const createStyle = (properties) => {
   if (properties instanceof StyleClass) {
@@ -36,7 +37,7 @@ export const createStyle = (properties) => {
 }
 
 /**
- * @ignore
+ * @private
  */
 export const createStyleInStyleSheet = (style, key, styleSheet) => {
   if (style instanceof StyleClass) {

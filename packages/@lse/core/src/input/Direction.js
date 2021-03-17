@@ -7,7 +7,9 @@
 /**
  * Spacial navigation enums.
  *
- * @type {{DOWN: number, LEFT: number, RIGHT: number, UP: number, NONE: number}}
+ * @enum {number}
+ * @readonly
+ * @name module:@lse/core.core-enum.Direction
  */
 export const Direction = {
   NONE: -1,

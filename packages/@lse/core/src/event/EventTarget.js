@@ -10,8 +10,11 @@ const emitter = Symbol('emitter')
 
 /**
  * Used internally for @lse/core objects that broadcast events.
+ *
+ * @memberof module:@lse/core
+ * @hideconstructor
  */
-export class EventTarget {
+class EventTarget {
   constructor (events) {
     this[emitter] = new EventEmitter(events)
   }
@@ -57,3 +60,5 @@ export class EventTarget {
     this[emitter].emitEvent(event, defer)
   }
 }
+
+export { EventTarget }

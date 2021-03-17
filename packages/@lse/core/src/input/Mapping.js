@@ -92,19 +92,16 @@ class MappingValue {
 /**
  * Handles the use case of the user setting custom controls for an input device, such as a keyboard or
  * gamepad.
+ *
+ * @memberof module:@lse/core
+ * @hideconstructor
  */
-export class Mapping {
+class Mapping {
   static Value = MappingValue
 
   _keys = new Map()
   _buttonToKey = new Map()
 
-  /**
-   *
-   * @param uuid {string}
-   * @param name {string}
-   * @param entries {array}
-   */
   constructor (uuid, name, entries) {
     if (typeof uuid !== 'string' || uuid.length !== 32) {
       throw Error(`invalid uuid: ${uuid}`)
@@ -336,3 +333,5 @@ const parseHardwareIdString = (hardwareId) => {
 
   return MappingValue.forAxis(parseInt(result[2]), result[3] ?? result[1])
 }
+
+export { Mapping }

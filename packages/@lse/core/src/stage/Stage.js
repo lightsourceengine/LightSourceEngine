@@ -31,7 +31,14 @@ const kFlagIsAttached = 2
 const kFlagIsConfigured = 4
 const kFlagIsRunning = 8
 
-export class Stage extends EventTarget {
+/**
+ * A stage object.
+ *
+ * @memberof module:@lse/core
+ * @extends module:@lse/core.EventTarget
+ * @hideconstructor
+ */
+class Stage extends EventTarget {
   _native = new CStage()
   _plugins = new Map()
   _scenes = new Map()
@@ -447,3 +454,5 @@ const loadAppConfigFromFile = (filename) => {
 const listPlugins = ({ _plugins }) => [_plugins.get(PluginType.PLATFORM), _plugins.get(PluginType.AUDIO)]
 
 const listManagers = (stage) => [stage.font, stage.system, stage.input, stage.audio]
+
+export { Stage }

@@ -35,7 +35,14 @@ import { EventTarget } from '../event/EventTarget.js'
 const kOnKeyUp = 'onKeyUp'
 const kOnKeyDown = 'onKeyDown'
 
-export class InputManager extends EventTarget {
+/**
+ * Input manager object.
+ *
+ * @memberof module:@lse/core
+ * @extends module:@lse/core.EventTarget
+ * @hideconstructor
+ */
+class InputManager extends EventTarget {
   _stage = null
   _isEnabled = true
   _isAttached = false
@@ -462,3 +469,5 @@ export class InputManager extends EventTarget {
     activeNode?.$bubble(keyDown, kOnKeyDown)
   }
 }
+
+export { InputManager }

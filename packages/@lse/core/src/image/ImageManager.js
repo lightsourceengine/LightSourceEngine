@@ -6,6 +6,9 @@
 
 import { CImageManager } from '../addon/index.js'
 
+/**
+ * @class module:@lse/core.ImageManager
+ */
 export class ImageManager {
   _native = new CImageManager()
 

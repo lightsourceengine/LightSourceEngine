@@ -17,6 +17,7 @@ import { createStyleInStyleSheet } from './createStyle.js'
  *
  * @param {Object} spec Object containing style names as keys and style property specs as values. specs are just
  * plain Objects with style properties
+ * @method module:@lse/core.createStyleSheet
  */
 export const createStyleSheet = (spec) => {
   if (!spec || typeof spec !== 'object') {

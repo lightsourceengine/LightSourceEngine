@@ -7,15 +7,14 @@
 import { Element } from './Element.js'
 import { waypoint } from '@lse/core'
 
-export class BoxElement extends Element {
-  /**
-   * @class BoxElement
-   * @extends Element
-   * @classdesc
-   *
-   * Maps &lt;box&gt; or &lt;div&gt; element to a BoxSceneNode.
-   */
-
+/**
+ * Maps &lt;box&gt; or &lt;div&gt; element to a BoxSceneNode.
+ *
+ * @memberof module:@lse/react
+ * @extends module:@lse/react.Element
+ * @hideconstructor
+ */
+class BoxElement extends Element {
   /**
    * @override
    */
@@ -31,3 +30,5 @@ export class BoxElement extends Element {
     }
   }
 }
+
+export { BoxElement }

@@ -6,4 +6,12 @@
 
 import { CStyle } from '../addon/index.js'
 
-export class StyleClass extends CStyle {}
+/**
+ * A style object.
+ *
+ * @memberof module:@lse/core
+ * @hideconstructor
+ */
+class StyleClass extends CStyle {}
+
+export { StyleClass }

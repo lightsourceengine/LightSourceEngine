@@ -14,7 +14,14 @@ import { ImageManager } from '../image/ImageManager.js'
 const kEmptyFrameListener = Object.freeze([0, null])
 let sFrameRequestId = 0
 
-export class Scene extends EventTarget {
+/**
+ * Scene object.
+ *
+ * @memberof module:@lse/core
+ * @extends module:@lse/core.EventTarget
+ * @hideconstructor
+ */
+class Scene extends EventTarget {
   _native = null
   _context = null
   _root = null
@@ -237,3 +244,5 @@ const removeAnimationFrameListener = (requestId, listeners) => {
     listeners[index] = kEmptyFrameListener
   }
 }
+
+export { Scene }

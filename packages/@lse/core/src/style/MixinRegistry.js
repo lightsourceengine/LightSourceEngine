@@ -6,7 +6,11 @@
 
 const kMixinMap = new Map()
 
-export class MixinRegistry {
+/**
+ * @memberof module:@lse/core
+ * @hideconstructor
+ */
+class MixinRegistry {
   static add (id, spec) {
     if (!id || typeof id !== 'string' || !id.startsWith('%')) {
       throw Error(`id must be a string that starts with '%' (${id})`)
@@ -48,3 +52,5 @@ export const resetMixinRegistry = () => {
 }
 
 resetMixinRegistry()
+
+export { MixinRegistry }

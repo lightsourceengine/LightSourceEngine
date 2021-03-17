@@ -15,6 +15,10 @@ import {
 import { Style } from '../style/Style.js'
 import { emptyArray } from '../util/index.js'
 
+/**
+ * @memberof module:@lse/core
+ * @hideconstructor
+ */
 class SceneNode {
   focusable = false
   onKeyUp = null
@@ -60,7 +64,7 @@ class SceneNode {
    * style object of this node. When properties are manually set on the style object, those properties take
    * precedence over the style class properties.
    *
-   * @property class {StyleClass}
+   * @type {module:@lse/core.StyleClass}
    */
   get class () {
     return this._class
@@ -72,7 +76,7 @@ class SceneNode {
   }
 
   /**
-   * @returns {Scene} The Scene owner of this node.
+   * @returns {module:@lse/core.Scene} The Scene owner of this node.
    */
   get scene () {
     return this._scene
@@ -236,7 +240,12 @@ class SceneNode {
   }
 }
 
-export class BoxSceneNode extends SceneNode {
+/**
+ * @memberof module:@lse/core
+ * @extends module:@lse/core.SceneNode
+ * @hideconstructor
+ */
+class BoxSceneNode extends SceneNode {
   waypoint = null
 
   constructor (scene) {
@@ -249,7 +258,12 @@ const $onError = Symbol('onError')
 const $src = Symbol('src')
 const kEmptySource = Object.freeze({ uri: '' })
 
-export class ImageSceneNode extends SceneNode {
+/**
+ * @memberof module:@lse/core
+ * @extends module:@lse/core.SceneNode
+ * @hideconstructor
+ */
+class ImageSceneNode extends SceneNode {
   [$onLoad] = null;
   [$onError] = null;
   [$src] = kEmptySource;
@@ -307,13 +321,23 @@ export class ImageSceneNode extends SceneNode {
   }
 }
 
-export class RootSceneNode extends SceneNode {
+/**
+ * @memberof module:@lse/core
+ * @extends module:@lse/core.SceneNode
+ * @hideconstructor
+ */
+class RootSceneNode extends SceneNode {
   constructor (scene) {
     super(scene, new CRootSceneNode(scene.$native))
   }
 }
 
-export class TextSceneNode extends SceneNode {
+/**
+ * @memberof module:@lse/core
+ * @extends module:@lse/core.SceneNode
+ * @hideconstructor
+ */
+class TextSceneNode extends SceneNode {
   constructor (scene) {
     super(scene, new CTextSceneNode(scene.$native))
   }
@@ -360,3 +384,5 @@ const setImageStatusCallback = (node) => {
 const clearImageStatusCallback = (node) => {
   node._native.setCallback(null)
 }
+
+export { BoxSceneNode, ImageSceneNode, RootSceneNode, TextSceneNode }

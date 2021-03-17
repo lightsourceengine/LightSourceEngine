@@ -6,6 +6,9 @@
 
 import { FixedListWaypoint } from './FixedListWaypoint.js'
 
+/**
+ * @method module:@lse/core.waypoint
+ */
 export const waypoint = (tag) => {
   return new FixedListWaypoint(tag)
 }

@@ -43,10 +43,35 @@ export const {
 
 // Enum Exports
 export const {
+  /**
+   * @enum {number}
+   * @readonly
+   * @name module:@lse/core.core-enum.StyleUnit
+   */
   StyleUnit,
+  /**
+   * @enum {number}
+   * @readonly
+   * @name module:@lse/core.core-enum.StyleTransform
+   */
   StyleTransform,
+  /**
+   * @enum {number}
+   * @readonly
+   * @name module:@lse/core.core-enum.StyleAnchor
+   */
   StyleAnchor,
+  /**
+   * @enum {number}
+   * @readonly
+   * @name module:@lse/core.core-enum.StyleFilter
+   */
   StyleFilter,
+  /**
+   * @enum {number}
+   * @readonly
+   * @name module:@lse/core.core-enum.LogLevel
+   */
   LogLevel,
   FontStatus,
   FontStyle,
@@ -55,6 +80,12 @@ export const {
 
 // Function / Object Exports
 export const {
+  /**
+   * Logger.
+   *
+   * @type {object}
+   * @name module:@lse/core.logger
+   */
   logger,
   getSceneNodeInstanceCount,
   parseColor,

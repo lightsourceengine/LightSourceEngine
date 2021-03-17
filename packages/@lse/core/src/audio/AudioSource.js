@@ -24,8 +24,12 @@ const { readFile } = promises
 
 /**
  * An audio resource that can be rendered to a destination output buffer.
+ *
+ * @memberof module:@lse/core
+ * @extends module:@lse/core.EventTarget
+ * @hideconstructor
  */
-export class AudioSource extends EventTarget {
+class AudioSource extends EventTarget {
   _type = AudioType.NULL
   _uri = ''
   _state = AudioSourceStateInit
@@ -240,3 +244,5 @@ export class AudioSource extends EventTarget {
     this.dispatchEvent(createReadyStatusEvent(this), defer)
   }
 }
+
+export { AudioSource }

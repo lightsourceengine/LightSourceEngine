@@ -12,16 +12,14 @@ const kImageProps = [
   'src'
 ]
 
-export class ImageElement extends Element {
-  /**
-   * @class ImageElement
-   * @extends Element
-   *
-   * @classdesc
-   *
-   * Maps &lt;img&gt; element to an ImageSceneNode.
-   */
-
+/**
+ * Maps &lt;img&gt; element to an ImageSceneNode.
+ *
+ * @memberof module:@lse/react
+ * @extends module:@lse/react.Element
+ * @hideconstructor
+ */
+class ImageElement extends Element {
   /**
    * @override
    */
@@ -37,3 +35,5 @@ export class ImageElement extends Element {
     }
   }
 }
+
+export { ImageElement }

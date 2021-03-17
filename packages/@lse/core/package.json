@@ -73,7 +73,6 @@
     "bundle": "rimraf dist && rollup -c",
     "coverage": "nyc --reporter=text run-s testOnly",
     "cpplint": "tools/cpplint.py --quiet --recursive addon",
-    "jsdoc": "rimraf build/docs && jsdoc -c jsdoc.json",
     "lint": "standard",
     "prepublishOnly": "run-s bundle test",
     "test": "run-s lint testOnly",

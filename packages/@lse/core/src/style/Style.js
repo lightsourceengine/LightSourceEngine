@@ -6,8 +6,16 @@
 
 import { CStyle, resetStyle } from '../addon/index.js'
 
-export class Style extends CStyle {
+/**
+ * A style object.
+ *
+ * @memberof module:@lse/core
+ * @hideconstructor
+ */
+class Style extends CStyle {
   reset () {
     resetStyle(this)
   }
 }
+
+export { Style }

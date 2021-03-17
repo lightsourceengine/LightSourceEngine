@@ -16,7 +16,6 @@
     "bundle": "echo 'Skipping bundle.'",
     "gen": "rimraf lib && rollup -c",
     "coverage": "echo 'No coverage.'",
-    "jsdoc": "echo 'No docs.'",
     "lint": "standard",
     "test": "run-p lint testOnly",
     "testOnly": "echo 'No tests.'"

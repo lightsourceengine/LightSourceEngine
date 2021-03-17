@@ -6,6 +6,9 @@
 
 import { installImage } from '../addon/index.js'
 
+/**
+ * @class module:@lse/core.Image
+ */
 export class Image {
 
 }

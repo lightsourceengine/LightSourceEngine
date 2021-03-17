@@ -19,7 +19,8 @@ import { render } from './renderer.js'
  *
  * @param element {Object} React element to render into the new scene
  * @param options ...
- * @returns {Scene} The application scene
+ * @returns {module:@lse/core.Scene} The application scene
+ * @method module:@lse/react.letThereBeLight
  */
 export const letThereBeLight = (element, options = {}) => {
   if (!stage.isConfigured()) {

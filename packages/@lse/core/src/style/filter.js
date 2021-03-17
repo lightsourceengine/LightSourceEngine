@@ -11,10 +11,19 @@ import { rgb } from './rgb.js'
 const kFlipH = Object.freeze([StyleFilter.FLIP_H])
 const kFlipV = Object.freeze([StyleFilter.FLIP_V])
 
+/**
+ * @method module:@lse/core.$.flipH
+ */
 export const flipH = () => kFlipH
 
+/**
+ * @method module:@lse/core.$.flipV
+ */
 export const flipV = () => kFlipV
 
+/**
+ * @method module:@lse/core.$.tint
+ */
 export const tint = (...args) => {
   let color
 

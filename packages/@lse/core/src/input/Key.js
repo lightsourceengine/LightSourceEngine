@@ -7,8 +7,10 @@
 /**
  * Enums for identifying the digital inputs (buttons) of a gamepad.
  *
- * @type {{A: number, B: number, LEFT_SHOULDER: number, LEFT_STICK: number, GUIDE: number, RIGHT_STICK: number, DPAD_UP: number, DPAD_DOWN: number, DPAD_RIGHT: number, X: number, Y: number, BACK: number, START: number, RIGHT_SHOULDER: number, DPAD_LEFT: number}}
  * @see AnalogKey
+ * @enum {number}
+ * @readonly
+ * @name module:@lse/core.core-enum.Key
  */
 export const Key = {
   A: 0,

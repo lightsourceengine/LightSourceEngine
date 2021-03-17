@@ -37,8 +37,12 @@ const kAnalogMaxValue = new Map([
 
 /**
  * Keyboard input device.
+ *
+ * @memberof module:@lse/core
+ * @extends module:@lse/core.InputDevice
+ * @hideconstructor
  */
-export class Keyboard extends InputDevice {
+class Keyboard extends InputDevice {
   _api
   _mapping
 
@@ -102,3 +106,5 @@ const checkKeyboardUUID = (uuid) => {
     throw Error('Expected mapping to have the system Keyboard UUID: ' + kKeyboardUUID)
   }
 }
+
+export { Keyboard }

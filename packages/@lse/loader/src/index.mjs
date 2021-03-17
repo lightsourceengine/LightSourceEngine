@@ -6,6 +6,10 @@
 import { resolve } from './common.mjs'
 
 /**
+ * @module @lse/loader
+ */
+
+/**
  * Default Light Source Engine module loader.
  *
  * - Loads pseudo-builtin (global) modules from LSE_PATH.

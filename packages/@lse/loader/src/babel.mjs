@@ -9,6 +9,10 @@ import { transformAsync } from '@babel/core'
 import { fileURLToPath } from 'url'
 
 /**
+ * @module @lse/loader/babel
+ */
+
+/**
  * Light Source Engine module loader with Babel transpilation.
  *
  * - Includes all features from the default Light Source Engine module loader.
