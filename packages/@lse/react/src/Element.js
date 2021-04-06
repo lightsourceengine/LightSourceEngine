@@ -23,7 +23,7 @@ const kCommentElementProps = [
  * Base class for React elements.
  *
  * <p>React elements are specialized components that provide the React reconciler with a way to communicate
- * with a rendering system. React elements appear in jsx with first letter lowercase names, such as &lt;div/&gt;.</p>
+ * with a rendering system. React elements appear in jsx with first letter lowercase names, such as &lt;box/&gt;.</p>
  *
  * @memberof module:@lse/react
  * @hideconstructor

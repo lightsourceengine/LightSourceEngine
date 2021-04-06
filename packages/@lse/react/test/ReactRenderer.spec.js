@@ -26,7 +26,7 @@ describe('ReactRenderer', () => {
     reactRenderer = null
   })
   describe('render()', () => {
-    it('should render a single div element', async () => {
+    it('should render a single box element', async () => {
       assert.lengthOf(root.children, 0)
 
       await reactRendererRender(<box />)
@@ -40,7 +40,7 @@ describe('ReactRenderer', () => {
 
       assert.lengthOf(root.children, 1)
     })
-    it('should a Component with a single div element', async () => {
+    it('should a Component with a single box element', async () => {
       assert.lengthOf(root.children, 0)
 
       const TestComponent = () => <box />

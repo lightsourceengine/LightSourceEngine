@@ -227,7 +227,6 @@ class Scene extends EventTarget {
 
 const nodeClass = new Map([
   ['box', BoxSceneNode],
-  ['div', BoxSceneNode],
   ['img', ImageSceneNode],
   ['text', TextSceneNode]
 ])

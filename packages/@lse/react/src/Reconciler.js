@@ -14,7 +14,6 @@ const kText = 'text'
 
 const kElementNameToElementClass = {
   box: BoxElement,
-  div: BoxElement,
   img: ImageElement,
   [kText]: TextElement
 }

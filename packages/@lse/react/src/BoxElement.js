@@ -8,7 +8,7 @@ import { Element } from './Element.js'
 import { waypoint } from '@lse/core'
 
 /**
- * Maps &lt;box&gt; or &lt;div&gt; element to a BoxSceneNode.
+ * Maps &lt;box&gt; element to a BoxSceneNode.
  *
  * @memberof module:@lse/react
  * @extends module:@lse/react.Element

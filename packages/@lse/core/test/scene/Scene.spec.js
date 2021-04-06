@@ -24,7 +24,6 @@ describe('Scene', () => {
   describe('createNode()', () => {
     it('should create a new SceneNode by tag name', () => {
       const inputs = [
-        ['div', BoxSceneNode],
         ['box', BoxSceneNode],
         ['text', TextSceneNode],
         ['img', ImageSceneNode]
