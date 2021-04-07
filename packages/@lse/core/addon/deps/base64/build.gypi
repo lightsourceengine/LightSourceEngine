@@ -10,7 +10,7 @@
         "include"
       ],
       "sources": [
-        "src/base64.c",
+        "src/base64.cc",
       ],
       "direct_dependent_settings": {
         "include_dirs": [

@@ -9,7 +9,7 @@ Files
 -------
 
 include/base64.h
-src/base64.c
+src/base64.cc (original name: base64.c)
 
 Notice
 -------

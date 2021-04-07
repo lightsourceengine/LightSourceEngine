@@ -6,7 +6,7 @@
  * See README for more details.
  */
 
-#include <base64.h>
+#include "../include/base64.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -39,7 +39,7 @@ unsigned char * base64_encode(const unsigned char *src, size_t len,
   olen++; /* nul termination */
   if (olen < len)
     return NULL; /* integer overflow */
-  out = malloc(olen);
+  out = (unsigned char *) malloc(olen);
   if (out == NULL)
     return NULL;
 
@@ -104,7 +104,7 @@ unsigned char * base64_decode(const unsigned char *src, size_t len,
   memset(dtable, 0x80, 256);
   for (i = 0; i < sizeof(base64_table) - 1; i++)
     dtable[base64_table[i]] = (unsigned char) i;
-  dtable['='] = 0;
+  dtable[(unsigned char) '='] = 0;
 
   count = 0;
   for (i = 0; i < len; i++) {
@@ -116,7 +116,7 @@ unsigned char * base64_decode(const unsigned char *src, size_t len,
     return NULL;
 
   olen = count / 4 * 3;
-  pos = out = malloc(olen);
+  pos = out = (unsigned char *) malloc(olen);
   if (out == NULL)
     return NULL;
 
