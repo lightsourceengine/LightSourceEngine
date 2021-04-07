@@ -81,9 +81,10 @@ void StringExtSpec(TestSuite* parent) {
       }
     },
     {
-      "should return false if string ends with .ext",
+      "should return false if string does not end with .ext",
       [](const TestInfo&) {
         Assert::IsFalse(EndsWith("", ".ext"));
+        Assert::IsFalse(EndsWith("test", ".ext"));
       }
     },
     {
@@ -92,6 +93,30 @@ void StringExtSpec(TestSuite* parent) {
         Assert::IsFalse(EndsWith(nullptr, nullptr));
         Assert::IsFalse(EndsWith("test", nullptr));
         Assert::IsFalse(EndsWith(nullptr, "test"));
+      }
+    }
+  };
+
+  spec->Describe("StartsWith()")->tests = {
+    {
+      "should return true if string starts with pro",
+      [](const TestInfo&) {
+        Assert::IsTrue(StartsWith("profile", "pro"));
+      }
+    },
+    {
+      "should return false if string does not start with pro",
+      [](const TestInfo&) {
+        Assert::IsFalse(StartsWith("", "pro"));
+        Assert::IsFalse(StartsWith("test", "pro"));
+      }
+    },
+    {
+      "should return false if either arg is null",
+      [](const TestInfo&) {
+        Assert::IsFalse(StartsWith(nullptr, nullptr));
+        Assert::IsFalse(StartsWith("test", nullptr));
+        Assert::IsFalse(StartsWith(nullptr, "test"));
       }
     }
   };

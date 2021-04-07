@@ -19,6 +19,7 @@ import { readFileSync } from 'fs'
 const { assert } = chai
 const testWavFile = 'test/resources/test.wav'
 const testAudioType = AudioType.STREAM
+const toFontUri = (buffer, mediaType) => `data:audio/${mediaType};base64,${buffer.toString('base64')}`
 
 describe('AudioSource', () => {
   let source
@@ -41,48 +42,25 @@ describe('AudioSource', () => {
     })
   })
   describe('$load', () => {
-    it('should ...', async () => {
-      source.$load(true, true)
-
-      assert.isTrue(source.isReady())
-
-      const event = await getEvent(source)
-
-      assert.equal(event.type, EventName.status)
+    it('should load audio source from file synchronously', async () => {
+      return testLoad(testWavFile, true, true, 'isReady', 'isReady')
     })
-    it('should ...', async () => {
-      source.$load(false, true)
-
-      assert.isTrue(source.isLoading())
-
-      const event = await getEvent(source)
-
-      assert.isTrue(source.isReady())
-      assert.equal(event.type, EventName.status)
+    it('should load audio source from file asynchronously', async () => {
+      return testLoad(testWavFile, false, true, 'isLoading', 'isReady')
     })
-    it('should ...', async () => {
-      source = new AudioSource(mockNativeAudioSource, testAudioType, readFileSync(testWavFile))
-
-      source.$load(true, true)
-
-      assert.isTrue(source.isReady())
-
-      const event = await getEvent(source)
-
-      assert.equal(event.type, EventName.status)
+    it('should load audio source from buffer synchronously', async () => {
+      return testLoad(readFileSync(testWavFile), true, true, 'isReady', 'isReady')
     })
-    it('should ...', async () => {
-      source = new AudioSource(mockNativeAudioSource, testAudioType, readFileSync(testWavFile))
-
-      source.$load(false, true)
-
-      assert.isTrue(source.isReady())
-
-      const event = await getEvent(source)
-
-      assert.equal(event.type, EventName.status)
+    it('should load audio source from buffer asynchronously', async () => {
+      return testLoad(readFileSync(testWavFile), false, true, 'isReady', 'isReady')
     })
-    it('should ...', async () => {
+    it('should load audio source from buffer synchronously', async () => {
+      return testLoad(toFontUri(readFileSync(testWavFile), 'audio'), true, true, 'isReady', 'isReady')
+    })
+    it('should load audio source from buffer asynchronously', async () => {
+      return testLoad(toFontUri(readFileSync(testWavFile), 'audio'), false, true, 'isReady', 'isReady')
+    })
+    it('should enter error state when file not found', async () => {
       source = new AudioSource(mockNativeAudioSource, testAudioType, 'file-not-found')
 
       source.$load(false, true)
@@ -140,6 +118,18 @@ describe('AudioSource', () => {
       assert.isTrue(mockNativeAudioSource.play.called)
     })
   })
+  const testLoad = async (uri, sync, defer, stateSync, stateDone) => {
+    const source = new AudioSource(mockNativeAudioSource, testAudioType, uri)
+
+    source.$load(sync, defer)
+
+    assert.isTrue(source[stateSync]())
+
+    const event = await getEvent(source)
+
+    assert.isTrue(source[stateDone]())
+    assert.equal(event.type, EventName.status)
+  }
 })
 
 const getEvent = async (source) => {

@@ -165,6 +165,10 @@ describe('AudioDestination', () => {
       assert.lengthOf(dest.all(), 1)
       assert.equal(buffer, dest.get('asset').uri)
     })
+    it('should add source from data uri', () => {
+      dest.add({ uri: `data:audio/audio;base64,${Buffer.from('mock').toString('base64')}` })
+      assert.lengthOf(dest.all(), 1)
+    })
     it('should use cache key', () => {
       const source = dest.add({ uri: 'file.wav', key: 'asset' })
       assert.lengthOf(dest.all(), 1)

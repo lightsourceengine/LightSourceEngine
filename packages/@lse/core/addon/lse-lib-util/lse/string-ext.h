@@ -22,6 +22,10 @@ char* ToLowercase(char* str) noexcept;
 bool EqualsIgnoreCase(const std::string& a, const char* b) noexcept;
 bool EqualsIgnoreCase(const char* a, const char* b) noexcept;
 
+// Checks if str starts with a prefix.
+bool StartsWith(const char* str, const char* prefix) noexcept;
+bool StartsWith(const std::string& str, const char* prefix) noexcept;
+
 // Checks if str ends with a suffix.
 bool EndsWith(const char* str, const char* suffix) noexcept;
 

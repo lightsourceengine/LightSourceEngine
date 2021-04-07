@@ -33,6 +33,18 @@ char* ToLowercase(char* str) noexcept {
   return str;
 }
 
+bool StartsWith(const char* str, const char* prefix) noexcept {
+  if (!str || !prefix) {
+    return false;
+  }
+
+  return strncmp(str, prefix, strlen(prefix)) == 0;
+}
+
+bool StartsWith(const std::string& str, const char* prefix) noexcept {
+  return StartsWith(str.c_str(), prefix);
+}
+
 bool EndsWith(const char* str, const char* suffix) noexcept {
   if (!str || !suffix) {
     return false;

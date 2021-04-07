@@ -10,6 +10,9 @@ import { createErrorStatusEvent, createReadyStatusEvent } from '../event/index.j
 import { join, dirname, isAbsolute, normalize } from 'path'
 import { fileURLToPath } from 'url'
 import { readFileSync } from 'fs'
+import { isDataUri } from '../util/index.js'
+
+const kDataUriFontRegEx = /data:font\/[+\-\w\d]+;base64,(.*)/
 
 /**
  * Font Manager.
@@ -111,11 +114,22 @@ class FontManager {
     let status
 
     if (typeof uri === 'string') {
-      const callback = (id, fontStatus) => {
-        processStatusChange(this, id, fontStatus, false)
-      }
+      if (isDataUri(uri)) {
+        const result = uri.match(kDataUriFontRegEx)
 
-      status = _native.loadFontFromFile(id, uri, index, callback)
+        // TODO: decoding could be put on a native background thread
+        if (result) {
+          status = _native.loadFontFromBuffer(id, Buffer.from(result[1], 'base64'), index)
+        } else {
+          status = _native.loadFontFromBuffer(id, null, index)
+        }
+      } else {
+        const callback = (id, fontStatus) => {
+          processStatusChange(this, id, fontStatus, false)
+        }
+
+        status = _native.loadFontFromFile(id, uri, index, callback)
+      }
     } else {
       status = _native.loadFontFromBuffer(id, uri, index)
     }

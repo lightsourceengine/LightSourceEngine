@@ -10,6 +10,7 @@
 #include <lse/Log.h>
 #include <lse/DecodeImage.h>
 #include <lse/Renderer.h>
+#include <lse/string-ext.h>
 
 namespace lse {
 
@@ -148,10 +149,16 @@ void Image::Destroy() {
 
 void Image::OnLoadImageAsync() noexcept {
   try {
-    this->bytes = DecodeImageFromFile(this->request.uri, this->request.width, this->request.height);
+    if (StartsWith(this->request.uri, "data:")) {
+      this->bytes = DecodeImageFromDataUri(this->request.uri, this->request.width, this->request.height);
+    } else {
+      this->bytes = DecodeImageFromFile(this->request.uri, this->request.width, this->request.height);
+    }
+
     this->bytes.SyncFormat(this->rendererTextureFormat);
   } catch (const std::exception& e) {
     this->errorMessage = e.what();
+    this->bytes = {};
   }
 }
 

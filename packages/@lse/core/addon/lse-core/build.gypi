@@ -25,6 +25,7 @@
         "yoga",
         "stb_image",
         "nanosvg",
+        "base64",
       ],
       "sources": [
         "lse/yoga-ext.cc",

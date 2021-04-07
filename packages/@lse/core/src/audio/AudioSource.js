@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { clamp, isNumber } from '../util/index.js'
+import { clamp, isDataUri, isNumber } from '../util/index.js'
 import {
   AudioSourceCapabilityFadeIn,
   AudioSourceCapabilityLoop,
@@ -21,6 +21,7 @@ import { promises } from 'fs'
 import { AudioType } from './AudioType.js'
 
 const { readFile } = promises
+const kDataUriAudioRegEx = /data:audio\/[+\-\w\d]+;base64,(.*)/
 
 /**
  * An audio resource that can be rendered to a destination output buffer.
@@ -178,6 +179,15 @@ class AudioSource extends EventTarget {
     } else if (sync) {
       // synchronously load the uri. this is a filename
       this._loadAndDispatch(this._uri, defer)
+    } else if (isDataUri(this._uri)) {
+      const result = this._uri.match(kDataUriAudioRegEx)
+
+      if (result) {
+        this._loadAndDispatch(this._buffer = Buffer.from(result[1], 'base64'), defer)
+      } else {
+        this._state = AudioSourceStateError
+        this.dispatchEvent(createErrorStatusEvent(this, { message: 'invalid data uri' }), defer)
+      }
     } else {
       // asynchronously load the uri. set the state to loading in the meantime.
       this._state = AudioSourceStateLoading

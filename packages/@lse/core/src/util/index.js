@@ -8,6 +8,8 @@ import { logger } from '../addon/index.js'
 import { EventEmitter } from './EventEmitter.js'
 import { performance } from 'perf_hooks'
 
+const kDataUriPrefix = 'data:'
+
 export const { now } = performance
 
 export const logexcept = (func, site) => {
@@ -52,5 +54,9 @@ export const emptyArray = Object.freeze([])
 export const emptyObject = Object.freeze({})
 
 export const invertMap = (map) => new Map(Array.from(map, entry => entry.reverse()))
+
+export const atob = (str) => Buffer.from(str, 'utf-8').toString('base64')
+
+export const isDataUri = (uri) => typeof uri === 'string' && uri.startsWith(kDataUriPrefix)
 
 export { EventEmitter }

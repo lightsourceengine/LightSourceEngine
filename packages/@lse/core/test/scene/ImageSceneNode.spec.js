@@ -6,11 +6,19 @@
 
 import chai from 'chai'
 import { join } from 'path'
+import { readFileSync } from 'fs'
 import { afterSceneTest, beforeSceneTest } from '../test-env.js'
 import { ImageSceneNode } from '../../src/scene/SceneNode.js'
+import { atob } from '../../src/util/index.js'
 
 const { assert } = chai
+const imagePath = 'test/resources'
 const images = ['640x480.png', '300x300.svg', '600x400.jpg', '600x400.gif']
+const rasterImages = ['640x480.png', '600x400.jpg', '600x400.gif']
+const svgXmlWithNewLines = `<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect x="2" y="2" width="296" height="296" style="fill:#DEDEDE;stroke:#555555;stroke-width:2"/>
+</svg>`
+const svgXml = svgXmlWithNewLines.replace(/(\r\n|\n|\r)/gm, '')
 
 const expectOnLoad = (node) => new Promise((resolve, reject) => {
   node.onLoad = () => resolve()
@@ -60,43 +68,27 @@ describe('ImageSceneNode', () => {
       }
     })
     it('should be assignable to a relative file path', async () => {
-      scene.stage.start()
-      const promises = []
-
-      for (const input of images) {
-        const node = scene.createNode('img')
-        const uri = join('test/resources', input)
-
-        node.src = uri
-        assert.equal(node.src.uri, uri)
-
-        promises.push(expectOnLoad(node))
-      }
-
-      await Promise.all(promises)
+      return testImageUri(images.map(value => join(imagePath, value)))
     })
-    xit('should be assignable to an svg uri', async () => {
-      scene.stage.start()
-
-      const node = scene.createNode('img')
-      const uri = 'data:image/svg+xml,<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg">' +
-        '<rect x="2" y="2" width="296" height="296" style="fill:#DEDEDE;stroke:#555555;stroke-width:2"/></svg>'
-
-      node.src = uri
-      assert.equal(node.src.uri, uri)
-
-      await expectOnLoad(node)
+    it('should be assignable to a raster image data uri', async () => {
+      return testImageUri(rasterImages.map(value => {
+        return `data:image/image;base64,${readFileSync(join(imagePath, value)).toString('base64')}`
+      }))
+    })
+    it('should be assignable to a data uri with svg xml', async () => {
+      return testImageUri(`data:image/svg+xml;utf8,${svgXml}`)
+    })
+    it('should be assignable to a data uri with svg xml (with new lines)', async () => {
+      return testImageUri(`data:image/svg+xml;utf8,${svgXmlWithNewLines}`)
+    })
+    it('should be assignable to a data uri with base64 encoded svg xml', async () => {
+      return testImageUri(`data:image/svg+xml;base64,${atob(svgXml)}`)
+    })
+    it('should be assignable to a data uri with base64 encoded svg xml (with new lines)', async () => {
+      return testImageUri(`data:image/svg+xml;base64,${atob(svgXmlWithNewLines)}`)
     })
     it('should be assignable to an image path without extension', async () => {
-      scene.stage.start()
-
-      const node = scene.createNode('img')
-      const uri = 'test/resources/640x480.*'
-
-      node.src = uri
-      assert.equal(node.src.uri, uri)
-
-      await expectOnLoad(node)
+      return testImageUri('test/resources/640x480.*')
     })
     it('should be assignable to an invalid image path, but return error', async () => {
       scene.stage.start()
@@ -118,4 +110,20 @@ describe('ImageSceneNode', () => {
       }
     })
   })
+  const testImageUri = async (uris) => {
+    uris = Array.isArray(uris) ? uris : [uris]
+    scene.stage.start()
+    const promises = []
+
+    for (const uri of uris) {
+      const node = scene.createNode('img')
+
+      node.src = uri
+      assert.equal(node.src.uri, uri)
+
+      promises.push(expectOnLoad(node))
+    }
+
+    await Promise.all(promises)
+  }
 })

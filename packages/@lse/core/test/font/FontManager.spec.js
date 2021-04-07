@@ -15,6 +15,7 @@ const testFontFamily = 'arrow'
 const testFontFile = 'test/resources/arrow.ttf'
 const testFontFileWildcard = 'test/resources/arrow.*'
 const testImageFile = 'test/resources/300x300.svg'
+const toFontUri = (buffer, mediaType) => `data:font/${mediaType};base64,${buffer.toString('base64')}`
 
 describe('FontManager', () => {
   let manager
@@ -34,6 +35,18 @@ describe('FontManager', () => {
     })
     it('should return create and return new font from buffer', () => {
       testAddTestFont(readFileSync(testFontFile), 'ready')
+    })
+    it('should return create and return new font from data uri', () => {
+      testAddTestFont(toFontUri(readFileSync(testFontFile), 'font'), 'ready')
+    })
+    it('should return font in error state for invalid data uri', () => {
+      testAddTestFont('data:invalid', 'error')
+    })
+    it('should return font in error state for data uri with invalid media type', () => {
+      testAddTestFont('data:font/&&&;base64,', 'error')
+    })
+    it('should return font in error state for data uri with missing base64 data', () => {
+      testAddTestFont('data:font/font;base64,', 'error')
     })
     it('should dispatch ready event after add from file', async () => {
       await testStatusReadyEvent(testFontFile)
