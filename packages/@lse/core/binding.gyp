@@ -30,6 +30,7 @@
     "addon/deps/nanosvg/build.gypi",
     "addon/deps/stb/build.gypi",
     "addon/deps/freetype/build.gypi",
+    "addon/deps/base64/build.gypi",
     "addon/deps/yoga/build.gypi",
 
     # static libraries

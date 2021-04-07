@@ -29,7 +29,8 @@
     "addon/deps/nanosvg",
     "addon/deps/SDL",
     "addon/deps/SDL_mixer",
-    
+    "addon/deps/base64",
+
     "addon/deps/freetype/LICENSE",
     "addon/deps/freetype/build.gypi",
     "addon/deps/freetype/src",
