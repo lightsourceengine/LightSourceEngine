@@ -26,7 +26,7 @@ class AudioManager extends EventTarget {
   _deviceNames = emptyArray
 
   constructor () {
-    super([EventName.onAttached, EventName.onDetached])
+    super([EventName.attached, EventName.detached])
   }
 
   /**

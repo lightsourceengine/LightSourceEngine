@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { stage, EventName } from '@lse/core'
+import { stage } from '@lse/core'
 import { shutdown } from '@lse/react/reconciler'
 import { render, findSceneNode, findElement } from './renderer.js'
 import { letThereBeLight } from './letThereBeLight.js'
@@ -22,7 +22,7 @@ import { version as reactVersion } from 'react'
  * @name module:@lse/react.reactVersion
  */
 
-stage.once(EventName.onDestroying, (event) => {
+stage.once('destroying', (event) => {
   shutdown()
 })
 

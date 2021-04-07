@@ -73,12 +73,12 @@ describe('AudioManager', () => {
 
 const attachedEventPromise = (audio) => {
   return new Promise((resolve, reject) => {
-    audio.on(EventName.onAttached, () => resolve())
+    audio.on(EventName.attached, () => resolve())
   })
 }
 
 const detachedEventPromise = (audio) => {
   return new Promise((resolve, reject) => {
-    audio.on(EventName.onDetached, () => resolve())
+    audio.on(EventName.detached, () => resolve())
   })
 }

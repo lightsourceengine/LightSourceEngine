@@ -9,8 +9,8 @@ import { EventTarget } from '../../src/event/EventTarget.js'
 import sinon from 'sinon'
 
 const { assert } = chai
-const testEventName = 'on-test'
-const testEventSymbol = Symbol.for('on-test')
+const testEventName = 'test'
+const testEventSymbol = Symbol.for('test')
 
 const invalidEventNames = [0, [], {}, null, undefined, NaN, '', 'blah', Symbol('blah')]
 

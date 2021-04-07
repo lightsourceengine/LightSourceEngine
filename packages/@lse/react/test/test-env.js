@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { stage, logger, LogLevel, PluginId, EventName } from '@lse/core'
+import { stage, logger, LogLevel, PluginId } from '@lse/core'
 import { shutdown } from '@lse/react/reconciler'
 import React from 'react'
 import chai from 'chai'
@@ -15,7 +15,7 @@ const { assert } = chai
 before(() => {
   logger.setLogLevel(LogLevel.OFF)
 
-  stage.on(EventName.onDestroying, (event) => {
+  stage.on('destroying', (event) => {
     shutdown()
   })
 

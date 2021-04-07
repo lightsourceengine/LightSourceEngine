@@ -53,7 +53,7 @@ class Event {
 
 class StatusEvent extends Event {
   constructor (target, error = undefined) {
-    super(EventSymbols.onStatus, target)
+    super(EventSymbols.status, target)
     this.error = error
   }
 }
@@ -140,40 +140,40 @@ class HatMotionEvent extends Event {
   }
 }
 
-export const createAttachedEvent = (target) => new Event(EventSymbols.onAttached, target)
-export const createDetachedEvent = (target) => new Event(EventSymbols.onDetached, target)
-export const createStartedEvent = (target) => new Event(EventSymbols.onStarted, target)
-export const createStoppedEvent = (target) => new Event(EventSymbols.onStopped, target)
-export const createDestroyedEvent = (target) => new Event(EventSymbols.onDestroyed, target)
-export const createDestroyingEvent = (target) => new Event(EventSymbols.onDestroying, target)
+export const createAttachedEvent = (target) => new Event(EventSymbols.attached, target)
+export const createDetachedEvent = (target) => new Event(EventSymbols.detached, target)
+export const createStartedEvent = (target) => new Event(EventSymbols.started, target)
+export const createStoppedEvent = (target) => new Event(EventSymbols.stopped, target)
+export const createDestroyedEvent = (target) => new Event(EventSymbols.destroyed, target)
+export const createDestroyingEvent = (target) => new Event(EventSymbols.destroying, target)
 export const createReadyStatusEvent = (target) => new StatusEvent(target)
 export const createErrorStatusEvent = (target, error) => new StatusEvent(target, error)
 
-export const createFocusEvent = (node) => new FocusChangeEvent(EventSymbols.onFocus, node)
-export const createBlurEvent = (node) => new FocusChangeEvent(EventSymbols.onBlur, node)
-export const createFocusInEvent = (node) => new FocusChangeEvent(EventSymbols.onFocusIn, node)
-export const createFocusOutEvent = (node) => new FocusChangeEvent(EventSymbols.onFocusOut, node)
+export const createFocusEvent = (node) => new FocusChangeEvent(EventSymbols.focus, node)
+export const createBlurEvent = (node) => new FocusChangeEvent(EventSymbols.blur, node)
+export const createFocusInEvent = (node) => new FocusChangeEvent(EventSymbols.focusIn, node)
+export const createFocusOutEvent = (node) => new FocusChangeEvent(EventSymbols.focusOut, node)
 
 export const createGamepadConnectedEvent =
-  (target, gamepad) => new GamepadEvent(EventSymbols.onConnected, target, gamepad)
+  (target, gamepad) => new GamepadEvent(EventSymbols.connected, target, gamepad)
 export const createGamepadDisconnectedEvent =
-  (target, gamepad) => new GamepadEvent(EventSymbols.onDisconnected, target, gamepad)
+  (target, gamepad) => new GamepadEvent(EventSymbols.disconnected, target, gamepad)
 
 export const createScanCodeUpEvent =
-  (target, device, scanCode) => new ScanCodeEvent(EventSymbols.onScanCodeUp, target, device, scanCode, false, false)
+  (target, device, scanCode) => new ScanCodeEvent(EventSymbols.scanCodeUp, target, device, scanCode, false, false)
 export const createScanCodeDownEvent =
-  (target, device, scanCode, repeat) => new ScanCodeEvent(EventSymbols.onScanCodeDown, target, device, scanCode, true, repeat)
+  (target, device, scanCode, repeat) => new ScanCodeEvent(EventSymbols.scanCodeDown, target, device, scanCode, true, repeat)
 export const createButtonUpEvent =
-  (target, device, button) => new ButtonEvent(EventSymbols.onButtonUp, target, device, button, false, false)
+  (target, device, button) => new ButtonEvent(EventSymbols.buttonUp, target, device, button, false, false)
 export const createButtonDownEvent =
-  (target, device, button, repeat) => new ButtonEvent(EventSymbols.onButtonDown, target, device, button, true, repeat)
+  (target, device, button, repeat) => new ButtonEvent(EventSymbols.buttonDown, target, device, button, true, repeat)
 export const createAxisMotionEvent =
-  (target, device, axis, value) => new AxisMotionEvent(EventSymbols.onAxisMotion, target, device, axis, value)
+  (target, device, axis, value) => new AxisMotionEvent(EventSymbols.axisMotion, target, device, axis, value)
 export const createHatMotionEvent =
-  (target, device, hat, value) => new HatMotionEvent(EventSymbols.onHatMotion, target, device, hat, value)
+  (target, device, hat, value) => new HatMotionEvent(EventSymbols.hatMotion, target, device, hat, value)
 export const createKeyUpEvent =
-  (target, key) => new KeyEvent(EventSymbols.onKeyUp, target, key, false, false)
+  (target, key) => new KeyEvent(EventSymbols.keyUp, target, key, false, false)
 export const createKeyDownEvent =
-  (target, key, repeat) => new KeyEvent(EventSymbols.onKeyDown, target, key, true, repeat)
+  (target, key, repeat) => new KeyEvent(EventSymbols.keyDown, target, key, true, repeat)
 export const createAnalogMotionEvent =
-  (target, device, axis, value) => new AnalogMotionEvent(EventSymbols.onAnalogMotion, target, device, axis, value)
+  (target, device, axis, value) => new AnalogMotionEvent(EventSymbols.analogMotion, target, device, axis, value)

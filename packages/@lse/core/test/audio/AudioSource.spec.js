@@ -48,7 +48,7 @@ describe('AudioSource', () => {
 
       const event = await getEvent(source)
 
-      assert.equal(event.type, EventName.onStatus)
+      assert.equal(event.type, EventName.status)
     })
     it('should ...', async () => {
       source.$load(false, true)
@@ -58,7 +58,7 @@ describe('AudioSource', () => {
       const event = await getEvent(source)
 
       assert.isTrue(source.isReady())
-      assert.equal(event.type, EventName.onStatus)
+      assert.equal(event.type, EventName.status)
     })
     it('should ...', async () => {
       source = new AudioSource(mockNativeAudioSource, testAudioType, readFileSync(testWavFile))
@@ -69,7 +69,7 @@ describe('AudioSource', () => {
 
       const event = await getEvent(source)
 
-      assert.equal(event.type, EventName.onStatus)
+      assert.equal(event.type, EventName.status)
     })
     it('should ...', async () => {
       source = new AudioSource(mockNativeAudioSource, testAudioType, readFileSync(testWavFile))
@@ -80,7 +80,7 @@ describe('AudioSource', () => {
 
       const event = await getEvent(source)
 
-      assert.equal(event.type, EventName.onStatus)
+      assert.equal(event.type, EventName.status)
     })
     it('should ...', async () => {
       source = new AudioSource(mockNativeAudioSource, testAudioType, 'file-not-found')
@@ -92,7 +92,7 @@ describe('AudioSource', () => {
       const event = await getEvent(source)
 
       assert.isTrue(source.isError())
-      assert.equal(event.type, EventName.onStatus)
+      assert.equal(event.type, EventName.status)
       assert.isDefined(event.error)
     })
   })
@@ -144,7 +144,7 @@ describe('AudioSource', () => {
 
 const getEvent = async (source) => {
   return new Promise((resolve, reject) => {
-    source.once(EventName.onStatus, resolve)
+    source.once(EventName.status, resolve)
   })
 }
 

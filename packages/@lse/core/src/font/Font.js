@@ -25,7 +25,7 @@ class Font extends EventTarget {
   $status = ''
 
   constructor (id, family, style, weight, status) {
-    super([EventName.onStatus])
+    super([EventName.status])
 
     this._id = id
     this._family = family

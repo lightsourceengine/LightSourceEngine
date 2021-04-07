@@ -50,12 +50,12 @@ class Stage extends EventTarget {
 
   constructor (loadPluginFunc = loadPlugin) {
     super([
-      EventName.onAttached,
-      EventName.onDetached,
-      EventName.onStarted,
-      EventName.onStopped,
-      EventName.onDestroying,
-      EventName.onDestroyed
+      EventName.attached,
+      EventName.detached,
+      EventName.started,
+      EventName.stopped,
+      EventName.destroying,
+      EventName.destroyed
     ])
 
     // loadPlugin injectable for testability
@@ -164,7 +164,7 @@ class Stage extends EventTarget {
 
     const scene = new Scene(this, sceneConfig)
 
-    scene.once(EventName.onDestroying, ({ target }) => {
+    scene.once(EventName.destroying, ({ target }) => {
       this._scenes.delete(target.displayIndex)
       if (target === this.$scene) {
         this.$scene = null

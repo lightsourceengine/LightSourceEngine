@@ -10,7 +10,7 @@
 
 import { jsx } from '@lse/react/jsx-runtime';
 
-import { createStyleSheet, stage, AudioDecoderType, EventName } from '@lse/core';
+import { createStyleSheet, stage, AudioDecoderType } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
 
@@ -39,7 +39,7 @@ const StreamingAudioApp = () => {
             music = stage.audio.stream.add('resource/bensound-ukulele.mp3');
         }
         if (music) {
-            music.on(EventName.onStatus, event => {
+            music.on('status', event => {
                 if (event.error) {
                     setMessage('Error loading background music.');
                 } else {

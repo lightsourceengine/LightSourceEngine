@@ -65,10 +65,10 @@ describe('FontManager', () => {
     const testStatusReadyEvent = async (uri) => {
       const font = manager.add({ uri, family: 'arrow' })
       const event = await new Promise((resolve) => {
-        font.on(EventName.onStatus, resolve)
+        font.on(EventName.status, resolve)
       })
 
-      assert.equal(event.type, EventName.onStatus)
+      assert.equal(event.type, EventName.status)
       assert.equal(event.target, font)
       assert.equal(event.target.status, 'ready')
       assert.isUndefined(event.error)
@@ -77,10 +77,10 @@ describe('FontManager', () => {
     const testStatusErrorEvent = async (uri) => {
       const font = manager.add({ uri, family: testFontFamily })
       const event = await new Promise((resolve) => {
-        font.on(EventName.onStatus, resolve)
+        font.on(EventName.status, resolve)
       })
 
-      assert.equal(event.type, EventName.onStatus)
+      assert.equal(event.type, EventName.status)
       assert.equal(event.target.status, 'error')
       assert.isString(event.error)
     }

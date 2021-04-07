@@ -10,7 +10,7 @@
 
 import { jsx, jsxs, Fragment } from '@lse/react/jsx-runtime';
 
-import { createStyleSheet, stage, EventName, ScanCode, Key } from '@lse/core';
+import { createStyleSheet, stage, ScanCode, Key } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
 
@@ -206,9 +206,9 @@ const SystemStatisticsView = () => {
         }, 1e3);
         const stopInterval = () => {
             clearInterval(handle);
-            stage.off(EventName.onDestroying, stopInterval);
+            stage.off('destroying', stopInterval);
         };
-        stage.on(EventName.onDestroying, stopInterval);
+        stage.on('destroying', stopInterval);
         return stopInterval;
     }, []);
     return [ createListItem('cpuLoad', 'Total CPU Utilization', '%'), createListItem('heapUsed', 'Heap Used', ' MB'), createListItem('heapTotal', 'Heap Total', ' MB'), createListItem('rss', 'Resident Set Size', ' MB', true) ];
@@ -407,6 +407,6 @@ const SwitchyApp = () => jsx(ErrorBoundary, {
     })
 });
 
-stage.input.on(EventName.onScanCodeUp, e => e.scanCode === ScanCode.ESCAPE && stage.quit());
+stage.input.on('scan-code-up', e => e.scanCode === ScanCode.ESCAPE && stage.quit());
 
 const scene = letThereBeLight(jsx(SwitchyApp, {}));

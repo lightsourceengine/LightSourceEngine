@@ -58,19 +58,19 @@ class InputManager extends EventTarget {
 
   constructor (stage) {
     super([
-      EventName.onAttached,
-      EventName.onDetached,
-      EventName.onConnected,
-      EventName.onDisconnected,
-      EventName.onScanCodeUp,
-      EventName.onScanCodeDown,
-      EventName.onButtonUp,
-      EventName.onButtonDown,
-      EventName.onAxisMotion,
-      EventName.onHatMotion,
-      EventName.onKeyUp,
-      EventName.onKeyDown,
-      EventName.onAnalogMotion
+      EventName.attached,
+      EventName.detached,
+      EventName.connected,
+      EventName.disconnected,
+      EventName.scanCodeUp,
+      EventName.scanCodeDown,
+      EventName.buttonUp,
+      EventName.buttonDown,
+      EventName.axisMotion,
+      EventName.hatMotion,
+      EventName.keyUp,
+      EventName.keyDown,
+      EventName.analogMotion
     ])
 
     this._stage = stage

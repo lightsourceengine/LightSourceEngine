@@ -34,10 +34,10 @@ class Scene extends EventTarget {
 
   constructor (stage, config) {
     super([
-      EventName.onAttached,
-      EventName.onDetached,
-      EventName.onDestroying,
-      EventName.onDestroyed
+      EventName.attached,
+      EventName.detached,
+      EventName.destroying,
+      EventName.destroyed
     ])
 
     this._stage = stage

@@ -37,7 +37,7 @@ class AudioSource extends EventTarget {
   _buffer = null
 
   constructor (native, type, uri) {
-    super([EventName.onStatus])
+    super([EventName.status])
 
     this._native = native
     this._type = type

@@ -202,66 +202,66 @@ describe('InputManager', () => {
       inputManager.resetNavigationMapping()
     })
   })
-  describe('on-axis-motion event', () => {
-    it('should emit on-axis-motion event for onGamepadAxis plugin callback', () => {
-      testEventTriggeredByPluginCallback(EventName.onAxisMotion, 'onGamepadAxis', [0, 0, 1])
+  describe('axis-motion event', () => {
+    it('should emit axis-motion event for onGamepadAxis plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventName.axisMotion, 'onGamepadAxis', [0, 0, 1])
     })
   })
-  describe('on-button-down event', () => {
-    it('should emit on-button-down event for onGamepadButton plugin callback', () => {
-      testEventTriggeredByPluginCallback(EventName.onButtonDown, 'onGamepadButton', [0, 0, 1])
+  describe('button-down event', () => {
+    it('should emit button-down event for onGamepadButton plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventName.buttonDown, 'onGamepadButton', [0, 0, 1])
     })
   })
-  describe('on-button-up event', () => {
-    it('should emit on-button-up event for onGamepadButton plugin callback', () => {
-      testEventTriggeredByPluginCallback(EventName.onButtonUp, 'onGamepadButton', [0, 0, 0])
+  describe('button-up event', () => {
+    it('should emit button-up event for onGamepadButton plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventName.buttonUp, 'onGamepadButton', [0, 0, 0])
     })
   })
-  describe('on-hat-motion event', () => {
-    it('should emit on-hat-motion event for onGamepadHat plugin callback', () => {
-      testEventTriggeredByPluginCallback(EventName.onHatMotion, 'onGamepadHat', [0, 0, 1])
+  describe('hat-motion event', () => {
+    it('should emit hat-motion event for onGamepadHat plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventName.hatMotion, 'onGamepadHat', [0, 0, 1])
     })
   })
-  describe('on-scan-code-up event', () => {
-    it('should emit on-scan-code-up event for onKeyboardScanCode plugin callback', () => {
-      testEventTriggeredByPluginCallback(EventName.onScanCodeUp, 'onKeyboardScanCode', [0, 0, 0])
+  describe('scan-code-up event', () => {
+    it('should emit scan-code-up event for onKeyboardScanCode plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventName.scanCodeUp, 'onKeyboardScanCode', [0, 0, 0])
     })
   })
-  describe('on-scan-code-down callback', () => {
-    it('should emit on-scan-code-up event for onKeyboardScanCode plugin callback', () => {
-      testEventTriggeredByPluginCallback(EventName.onScanCodeDown, 'onKeyboardScanCode', [0, 1, 0])
+  describe('scan-code-down callback', () => {
+    it('should emit scan-code-up event for onKeyboardScanCode plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventName.scanCodeDown, 'onKeyboardScanCode', [0, 1, 0])
     })
   })
-  describe('on-connected event', () => {
-    it('should emit on-connected event for onGamepadStatus plugin callback', () => {
-      testEventTriggeredByPluginCallback(EventName.onConnected, 'onGamepadStatus', [0, true])
+  describe('connected event', () => {
+    it('should emit connected event for onGamepadStatus plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventName.connected, 'onGamepadStatus', [0, true])
     })
   })
-  describe('on-disconnected event', () => {
-    it('should emit on-disconnected event for onGamepadStatus plugin callback', () => {
+  describe('disconnected event', () => {
+    it('should emit disconnected event for onGamepadStatus plugin callback', () => {
       stage.plugin.testAddGamepad(1)
-      testEventTriggeredByPluginCallback(EventName.onDisconnected, 'onGamepadStatus', [1, false])
+      testEventTriggeredByPluginCallback(EventName.disconnected, 'onGamepadStatus', [1, false])
     })
   })
-  describe('on-key-up event', () => {
-    it('should emit on-key-up event for onGamepadButtonMapped plugin callback', () => {
-      testEventTriggeredByPluginCallback(EventName.onKeyUp, 'onGamepadButtonMapped', [0, 0, 0])
+  describe('key-up event', () => {
+    it('should emit key-up event for onGamepadButtonMapped plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventName.keyUp, 'onGamepadButtonMapped', [0, 0, 0])
     })
-    it('should emit on-key-up event for onKeyboardScanCode plugin callback', () => {
-      testEventTriggeredByPluginCallback(EventName.onKeyUp, 'onKeyboardScanCode', [ScanCode.Z, 0, 0])
-    })
-  })
-  describe('on-key-down event', () => {
-    it('should emit on-key-down event for onGamepadButtonMapped plugin callback', () => {
-      testEventTriggeredByPluginCallback(EventName.onKeyDown, 'onGamepadButtonMapped', [0, 0, 1, 0])
-    })
-    it('should emit on-key-down event for onKeyboardScanCode plugin callback', () => {
-      testEventTriggeredByPluginCallback(EventName.onKeyDown, 'onKeyboardScanCode', [ScanCode.Z, 1, 0])
+    it('should emit key-up event for onKeyboardScanCode plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventName.keyUp, 'onKeyboardScanCode', [ScanCode.Z, 0, 0])
     })
   })
-  describe('on-analog-motion event', () => {
-    it('should emit on-analog-motion event for onGamepadAxisMapped plugin callback', () => {
-      testEventTriggeredByPluginCallback(EventName.onAnalogMotion, 'onGamepadAxisMapped', [0, 0, 1])
+  describe('key-down event', () => {
+    it('should emit key-down event for onGamepadButtonMapped plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventName.keyDown, 'onGamepadButtonMapped', [0, 0, 1, 0])
+    })
+    it('should emit key-down event for onKeyboardScanCode plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventName.keyDown, 'onKeyboardScanCode', [ScanCode.Z, 1, 0])
+    })
+  })
+  describe('analog-motion event', () => {
+    it('should emit analog-motion event for onGamepadAxisMapped plugin callback', () => {
+      testEventTriggeredByPluginCallback(EventName.analogMotion, 'onGamepadAxisMapped', [0, 0, 1])
     })
   })
 
