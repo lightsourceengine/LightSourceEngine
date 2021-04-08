@@ -86,17 +86,13 @@
       "addon/",
       "node_modules/",
       "build/",
-      "docs/",
+      "third-party/",
       "tools/"
     ],
     "parser": "@babel/eslint-parser",
     "env": {
       "mocha": true,
       "node": true
-    },
-    "globals": [
-      "LIGHT_SOURCE_VERSION",
-      "INTRINSIC_FONT_DIR"
-    ]
+    }
   }
 }
