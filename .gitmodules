@@ -1,21 +1,21 @@
 [submodule "packages/@lse/core/addon/deps/filesystem/repo"]
-	path = packages/@lse/core/addon/deps/filesystem/repo
+	path = packages/@lse/core/third-party/filesystem/repo
 	url = https://github.com/gulrak/filesystem.git
 [submodule "packages/@lse/core/addon/deps/concurrentqueue/repo"]
-	path = packages/@lse/core/addon/deps/concurrentqueue/repo
+	path = packages/@lse/core/third-party/concurrentqueue/repo
 	url = https://github.com/cameron314/concurrentqueue.git
 [submodule "packages/@lse/core/addon/deps/utfcpp/repo"]
-	path = packages/@lse/core/addon/deps/utfcpp/repo
+	path = packages/@lse/core/third-party/utfcpp/repo
 	url = https://github.com/nemtrif/utfcpp.git
 [submodule "packages/@lse/core/addon/deps/stb/repo"]
-	path = packages/@lse/core/addon/deps/stb/repo
+	path = packages/@lse/core/third-party/stb/repo
 	url = https://github.com/nothings/stb.git
 [submodule "packages/@lse/core/addon/deps/cpp17_headers/repo"]
-	path = packages/@lse/core/addon/deps/cpp17_headers/repo
+	path = packages/@lse/core/third-party/cpp17_headers/repo
 	url = https://github.com/lightsourceengine/cpp17_headers.git
 [submodule "packages/@lse/core/addon/deps/parallel-hashmap/repo"]
-	path = packages/@lse/core/addon/deps/parallel-hashmap/repo
+	path = packages/@lse/core/third-party/parallel-hashmap/repo
 	url = https://github.com/greg7mdp/parallel-hashmap.git
 [submodule "packages/@lse/core/addon/deps/freetype/repo"]
-	path = packages/@lse/core/addon/deps/freetype/repo
+	path = packages/@lse/core/third-party/freetype/repo
 	url = https://gitlab.freedesktop.org/freetype/freetype.git

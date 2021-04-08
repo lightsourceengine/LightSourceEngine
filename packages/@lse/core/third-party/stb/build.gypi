@@ -4,7 +4,7 @@
       "target_name": "stb_image",
       "type": "static_library",
       "includes": [
-        "../../common.gypi",
+        "../../addon/common.gypi",
       ],
       "include_dirs": [
         "repo"

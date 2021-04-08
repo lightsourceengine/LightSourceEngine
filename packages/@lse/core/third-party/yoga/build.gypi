@@ -4,7 +4,7 @@
       "target_name": "yoga",
       "type": "static_library",
       "includes": [
-        "../../common.gypi",
+        "../../addon/common.gypi",
       ],
       "include_dirs": [
         "lib"

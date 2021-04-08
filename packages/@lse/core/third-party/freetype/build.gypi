@@ -4,7 +4,7 @@
       "target_name": "freetype",
       "type": "static_library",
       "includes": [
-        "../../common.gypi",
+        "../../addon/common.gypi",
       ],
       "include_dirs": [
         "repo/include",

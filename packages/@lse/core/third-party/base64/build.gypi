@@ -4,7 +4,7 @@
       "target_name": "base64",
       "type": "static_library",
       "includes": [
-        "../../common.gypi",
+        "../../addon/common.gypi",
       ],
       "include_dirs": [
         "include"

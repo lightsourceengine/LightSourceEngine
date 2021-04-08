@@ -3,8 +3,8 @@
     "lse_enable_plugin_platform_sdl%": "1",
     "lse_enable_plugin_audio_sdl_audio%": "1",
     "lse_enable_plugin_audio_sdl_mixer%": "1",
-    "lse_sdl_include%": "addon/deps/SDL/include",
-    "lse_sdl_mixer_include%": "addon/deps/SDL_mixer/include",
+    "lse_sdl_include%": "third-party/SDL/include",
+    "lse_sdl_mixer_include%": "third-party/SDL_mixer/include",
     # note: enable_native_tests variable is set in set-enable-native-tests.gypi
     "lse_enable_native_tests%": "0",
   },
@@ -27,11 +27,11 @@
     "addon/set-enable-native-tests.gypi",
 
     # third party static libraries
-    "addon/deps/nanosvg/build.gypi",
-    "addon/deps/stb/build.gypi",
-    "addon/deps/freetype/build.gypi",
-    "addon/deps/base64/build.gypi",
-    "addon/deps/yoga/build.gypi",
+    "third-party/nanosvg/build.gypi",
+    "third-party/stb/build.gypi",
+    "third-party/freetype/build.gypi",
+    "third-party/base64/build.gypi",
+    "third-party/yoga/build.gypi",
 
     # static libraries
     "addon/lse-lib-napi-ext/build.gypi",

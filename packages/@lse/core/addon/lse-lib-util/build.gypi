@@ -12,11 +12,11 @@
         "../lse-lib-logger",
         "<(lse_sdl_include)",
         "<(lse_sdl_mixer_include)",
-        "../deps/cpp17_headers/include",
-        "../deps/utfcpp/repo/source",
-        "../deps/concurrentqueue/repo",
-        "../deps/filesystem/include",
-        "../deps/parallel-hashmap/repo/parallel_hashmap",
+        "../../third-party/cpp17_headers/include",
+        "../../third-party/utfcpp/repo/source",
+        "../../third-party/concurrentqueue/repo",
+        "../../third-party/filesystem/include",
+        "../../third-party/parallel-hashmap/repo/parallel_hashmap",
       ],
       "dependencies": [
           "lse-lib-napi-ext",
@@ -36,11 +36,11 @@
           ".",
           "<(lse_sdl_include)",
           "<(lse_sdl_mixer_include)",
-          "../deps/cpp17_headers/include",
-          "../deps/utfcpp/repo/source",
-          "../deps/concurrentqueue/repo",
-          "../deps/filesystem/include",
-          "../deps/parallel-hashmap/repo/parallel_hashmap",
+          "../../third-party/cpp17_headers/include",
+          "../../third-party/utfcpp/repo/source",
+          "../../third-party/concurrentqueue/repo",
+          "../../third-party/filesystem/include",
+          "../../third-party/parallel-hashmap/repo/parallel_hashmap",
         ]
       }
     }
