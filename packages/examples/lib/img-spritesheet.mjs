@@ -10,13 +10,13 @@
 
 import { jsx } from '@lse/react/jsx-runtime';
 
-import { createStyleSheet } from '@lse/core';
+import { Style } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
 
 import { useRef, useEffect } from 'react';
 
-const sheet = createStyleSheet({
+const sheet = Style.createStyleSheet({
     body: {
         padding: '10vh',
         flexWrap: 'wrap',

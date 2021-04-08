@@ -5,16 +5,16 @@
  */
 
 import chai from 'chai'
-import { createStyle } from '../../src/style/createStyle.js'
+import { createStyleClass } from '../../src/style/createStyleClass.js'
 import { StyleUnit } from '../../src/addon/index.js'
 import { StyleValue } from '../../src/style/StyleValue.js'
 import { StyleClass } from '../../src/style/StyleClass.js'
 
 const { assert } = chai
 
-describe('createStyle()', () => {
+describe('createStyleClass()', () => {
   it('should create a new style sheet', () => {
-    const style = createStyle({
+    const style = createStyleClass({
       border: 10,
       margin: 15
     })
@@ -24,7 +24,7 @@ describe('createStyle()', () => {
     assert.deepEqual(style.margin, new StyleValue(15, StyleUnit.Point))
   })
   it('should process shorthand properties', () => {
-    const style = createStyle({
+    const style = createStyleClass({
       '@size': 50
     })
 
@@ -36,15 +36,15 @@ describe('createStyle()', () => {
     // TODO: remove
     const style = new StyleClass()
 
-    assert.strictEqual(createStyle(style), style)
+    assert.strictEqual(createStyleClass(style), style)
   })
   it('should return null for invalid spec', () => {
     for (const input of [null, undefined, '', 3, NaN]) {
-      assert.isNull(createStyle(input))
+      assert.isNull(createStyleClass(input))
     }
   })
   it('should throw Error when setting created class', () => {
-    const styleClass = createStyle({ backgroundColor: 'red' })
+    const styleClass = createStyleClass({ backgroundColor: 'red' })
 
     assert.throws(() => { styleClass.backgroundColor = 'blue' })
   })

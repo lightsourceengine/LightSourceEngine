@@ -10,13 +10,13 @@
 
 import { jsx, jsxs } from '@lse/react/jsx-runtime';
 
-import { createStyleSheet } from '@lse/core';
+import { Style } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
 
 const background = 'resource/pexels-emiliano-arano-1295138.jpg';
 
-const sheet = createStyleSheet({
+const sheet = Style.createStyleSheet({
     body: {
         flexWrap: 'wrap',
         flexDirection: 'row',

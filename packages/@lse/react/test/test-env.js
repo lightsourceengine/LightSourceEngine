@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { stage, logger, LogLevel, PluginId } from '@lse/core'
+import { stage, logger, Constants } from '@lse/core'
 import { shutdown } from '@lse/react/reconciler'
 import React from 'react'
 import chai from 'chai'
@@ -13,7 +13,7 @@ import { getActiveContainers, render } from '../src/renderer.js'
 const { assert } = chai
 
 before(() => {
-  logger.setLogLevel(LogLevel.OFF)
+  logger.setLogLevel(Constants.LogLevel.OFF)
 
   stage.on('destroying', (event) => {
     shutdown()
@@ -21,8 +21,8 @@ before(() => {
 
   stage.configure({
     plugin: [
-      PluginId.REF,
-      PluginId.REF_AUDIO
+      Constants.PluginId.REF,
+      Constants.PluginId.REF_AUDIO
     ],
     scene: {
       title: 'Test Scene'

@@ -10,13 +10,13 @@
 
 import { jsx } from '@lse/react/jsx-runtime';
 
-import { createStyleSheet, stage, AudioDecoderType } from '@lse/core';
+import { Style, stage, Constants } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
 
 import { useState, useEffect } from 'react';
 
-const sheet = createStyleSheet({
+const sheet = Style.createStyleSheet({
     body: {
         backgroundColor: '#8d99ae',
         padding: 20,
@@ -33,9 +33,9 @@ const StreamingAudioApp = () => {
     const [message, setMessage] = useState('Loading background music...');
     useEffect(() => {
         let music;
-        if (stage.audio.stream.hasDecoder(AudioDecoderType.OGG)) {
+        if (stage.audio.stream.hasDecoder(Constants.AudioDecoderType.OGG)) {
             music = stage.audio.stream.add('resource/bensound-ukulele.ogg');
-        } else if (stage.audio.stream.hasDecoder(AudioDecoderType.MP3)) {
+        } else if (stage.audio.stream.hasDecoder(Constants.AudioDecoderType.MP3)) {
             music = stage.audio.stream.add('resource/bensound-ukulele.mp3');
         }
         if (music) {

@@ -10,26 +10,26 @@
 
 import { jsx, jsxs } from '@lse/react/jsx-runtime';
 
-import { createStyleSheet, $ } from '@lse/core';
+import { Style } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
 
 const background = 'resource/pexels-emiliano-arano-1295138.jpg';
 
-const sheet = createStyleSheet({
+const sheet = Style.createStyleSheet({
     filterNone: {
         '@extend': '%cell'
     },
     filterFlipH: {
-        filter: $.flipH(),
+        filter: Style.flipH(),
         '@extend': '%cell'
     },
     filterFlipV: {
-        filter: $.flipV(),
+        filter: Style.flipV(),
         '@extend': '%cell'
     },
     filterTint: {
-        filter: $.tint('red'),
+        filter: Style.tint('red'),
         '@extend': '%cell'
     },
     body: {

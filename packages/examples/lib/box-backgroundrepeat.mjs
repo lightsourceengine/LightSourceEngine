@@ -10,11 +10,11 @@
 
 import { jsx } from '@lse/react/jsx-runtime';
 
-import { createStyle } from '@lse/core';
+import { Style } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
 
-const body = createStyle({
+const body = Style.createStyleClass({
     backgroundImage: 'resource/pattern-1004855.jpg',
     backgroundRepeat: 'repeat',
     '@extend': '%absoluteFill'

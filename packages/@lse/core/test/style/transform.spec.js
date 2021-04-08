@@ -13,15 +13,7 @@ import {
   scaleX,
   scaleY,
   translateX,
-  translateY,
-  isRotate,
-  isScale,
-  isTranslate,
-  getRotateAngle,
-  getTranslateX,
-  getTranslateY,
-  getScaleX,
-  getScaleY
+  translateY
 } from '../../src/style/transform.js'
 import { StyleTransformSpec } from '../../src/style/StyleTransformSpec.js'
 
@@ -108,94 +100,6 @@ describe('transform', () => {
       assert.isUndefined(rotate(false))
       assert.isUndefined(rotate('100vw'))
       assert.isUndefined(rotate({}))
-    })
-  })
-  describe('isRotate()', () => {
-    it('should return true for rotate transform', () => {
-      assert.isTrue(isRotate(rotate(10)))
-    })
-    it('should return false for non-rotate transform', () => {
-      assert.isFalse(isRotate(translate(10, 10)))
-      assert.isFalse(isRotate(100))
-    })
-  })
-  describe('isScale()', () => {
-    it('should return true for scale transform', () => {
-      assert.isTrue(isScale(scale(10, 10)))
-      assert.isTrue(isScale(scaleX(10)))
-      assert.isTrue(isScale(scaleY(10)))
-    })
-    it('should return false for non-scale transform', () => {
-      assert.isFalse(isScale(translate(10, 10)))
-      assert.isFalse(isScale(100))
-    })
-  })
-  describe('isTranslate()', () => {
-    it('should return true for translate transform', () => {
-      assert.isTrue(isTranslate(translate(10, 10)))
-      assert.isTrue(isTranslate(translateX(10)))
-      assert.isTrue(isTranslate(translateY(10)))
-    })
-    it('should return false for non-translate transform', () => {
-      assert.isFalse(isTranslate(scale(10, 10)))
-      assert.isFalse(isTranslate(100))
-    })
-  })
-  describe('getRotateAngle()', () => {
-    it('should return a StyleValue containing the rotation angle value and unit', () => {
-      testStyleValue(getRotateAngle(rotate('90deg')), 90, StyleUnit.Degree)
-      testStyleValue(getRotateAngle(rotate('2rad')), 2, StyleUnit.Radian)
-      testStyleValue(getRotateAngle(rotate('2grad')), 2, StyleUnit.Gradian)
-      testStyleValue(getRotateAngle(rotate('1turn')), 1, StyleUnit.Turn)
-      testStyleValue(getRotateAngle(rotate(3)), 3, StyleUnit.Point)
-    })
-    it('should return an empty StyleValue when passed an invalid argument', () => {
-      assert.isTrue(getRotateAngle(translateX(3)).isUndefined())
-      assert.isTrue(getRotateAngle(100).isUndefined())
-    })
-  })
-  describe('getTranslateX()', () => {
-    it('should return the translate x StyleValue', () => {
-      testStyleValue(getTranslateX(translate(10, 10)), 10, StyleUnit.Point)
-      testStyleValue(getTranslateX(translateX(10)), 10, StyleUnit.Point)
-      testStyleValue(getTranslateX(translateY(10)), 0, StyleUnit.Point)
-    })
-    it('should return an empty StyleValue when passed an invalid argument', () => {
-      assert.isTrue(getTranslateX(scaleX(3)).isUndefined())
-      assert.isTrue(getTranslateX(100).isUndefined())
-    })
-  })
-  describe('getTranslateY()', () => {
-    it('should return the translate y StyleValue', () => {
-      testStyleValue(getTranslateY(translate(10, 10)), 10, StyleUnit.Point)
-      testStyleValue(getTranslateY(translateY(10)), 10, StyleUnit.Point)
-      testStyleValue(getTranslateY(translateX(10)), 0, StyleUnit.Point)
-    })
-    it('should return an undefined StyleValue when passed an invalid argument', () => {
-      assert.isTrue(getTranslateY(scaleX(3)).isUndefined())
-      assert.isTrue(getTranslateY(100).isUndefined())
-    })
-  })
-  describe('getScaleX()', () => {
-    it('should return the scale x StyleValue', () => {
-      testStyleValue(getScaleX(scale(10, 10)), 10, StyleUnit.Point)
-      testStyleValue(getScaleX(scaleX(10)), 10, StyleUnit.Point)
-      testStyleValue(getScaleX(scaleY(10)), 1, StyleUnit.Point)
-    })
-    it('should return an undefined StyleValue when passed an invalid argument', () => {
-      assert.isTrue(getScaleX(translateX(3)).isUndefined())
-      assert.isTrue(getScaleX(100).isUndefined())
-    })
-  })
-  describe('getScaleY()', () => {
-    it('should return the scale y StyleValue', () => {
-      testStyleValue(getScaleY(scale(10, 10)), 10, StyleUnit.Point)
-      testStyleValue(getScaleY(scaleY(10)), 10, StyleUnit.Point)
-      testStyleValue(getScaleY(scaleX(10)), 1, StyleUnit.Point)
-    })
-    it('should return an undefined StyleValue when passed an invalid argument', () => {
-      assert.isTrue(getScaleY(translateX(3)).isUndefined())
-      assert.isTrue(getScaleY(100).isUndefined())
     })
   })
 })

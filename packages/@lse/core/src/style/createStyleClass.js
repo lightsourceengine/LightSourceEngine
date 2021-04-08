@@ -29,7 +29,7 @@ import { StyleClass } from './StyleClass.js'
  * @returns {StyleClass} Immutable Style class object
  * @method module:@lse/core.createStyle
  */
-export const createStyle = (properties) => {
+export const createStyleClass = (properties) => {
   if (properties instanceof StyleClass) {
     return properties
   }

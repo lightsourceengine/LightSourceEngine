@@ -7,7 +7,7 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import { afterSceneTest, beforeSceneTest } from '../test-env.js'
-import { createStyle } from '../../src/style/createStyle.js'
+import { createStyleClass } from '../../src/style/createStyleClass.js'
 import { Style } from '../../src/style/Style.js'
 import { StyleClass } from '../../src/style/StyleClass.js'
 
@@ -112,7 +112,7 @@ describe('SceneNode', () => {
     it('should override maxLines property', () => {
       const node = scene.createNode('box')
 
-      node.class = createStyle({ maxLines: 20 })
+      node.class = createStyleClass({ maxLines: 20 })
 
       node.style.maxLines = 10
 
@@ -128,7 +128,7 @@ describe('SceneNode', () => {
     it('should set new class', () => {
       const node = scene.createNode('box')
 
-      node.class = createStyle({ maxLines: 20 })
+      node.class = createStyleClass({ maxLines: 20 })
 
       assert.instanceOf(node.class, StyleClass)
       assert.equal(node.style.maxLines, 20)
@@ -136,12 +136,12 @@ describe('SceneNode', () => {
     it('should replace class', () => {
       const node = scene.createNode('box')
 
-      node.class = createStyle({ maxLines: 20 })
+      node.class = createStyleClass({ maxLines: 20 })
 
       assert.instanceOf(node.class, StyleClass)
       assert.equal(node.style.maxLines, 20)
 
-      node.class = createStyle({ maxLines: 30 })
+      node.class = createStyleClass({ maxLines: 30 })
 
       assert.instanceOf(node.class, StyleClass)
       assert.equal(node.style.maxLines, 30)
@@ -149,7 +149,7 @@ describe('SceneNode', () => {
     it('should set clear class with null', () => {
       const node = scene.createNode('box')
 
-      node.class = createStyle({ maxLines: 20 })
+      node.class = createStyleClass({ maxLines: 20 })
 
       assert.instanceOf(node.class, StyleClass)
 
@@ -160,7 +160,7 @@ describe('SceneNode', () => {
     it('should set clear class with undefined', () => {
       const node = scene.createNode('box')
 
-      node.class = createStyle({ maxLines: 20 })
+      node.class = createStyleClass({ maxLines: 20 })
 
       assert.instanceOf(node.class, StyleClass)
 

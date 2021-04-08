@@ -30,7 +30,7 @@ for (const eventName of ['uncaughtException', 'unhandledRejection']) {
 process.on('SIGINT', () => process.exit(0))
 
 /// ////////////////////////////////////////////////////////////////////////////
-/// Stage / Scene Exports
+/// Top-Level Function and Object exports
 /// ////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -40,42 +40,6 @@ process.on('SIGINT', () => process.exit(0))
  * @name module:@lse/core.stage
  */
 export const stage = new Stage()
-export { PluginType } from './addon/PluginType.js'
-export { PluginId } from './addon/PluginId.js'
-export { Direction } from './input/Direction.js'
-export { waypoint } from './scene/waypoint.js'
-
-/// ////////////////////////////////////////////////////////////////////////////
-/// Style Exports
-/// ////////////////////////////////////////////////////////////////////////////
-
-export { createStyle } from './style/createStyle.js'
-export { createStyleSheet } from './style/createStyleSheet.js'
-export { MixinRegistry } from './style/MixinRegistry.js'
-export { ShorthandRegistry } from './style/ShorthandRegistry.js'
-export { StyleAnchor, StyleFilter, StyleUnit, StyleTransform } from './addon/index.js'
-export * as $ from './style/style-functions.js'
-
-/// ////////////////////////////////////////////////////////////////////////////
-/// Audio Exports
-/// ////////////////////////////////////////////////////////////////////////////
-
-export { AudioDecoderType } from './audio/AudioDecoderType.js'
-export { AudioType } from './audio/AudioType.js'
-
-/// ////////////////////////////////////////////////////////////////////////////
-/// Input Exports
-/// ////////////////////////////////////////////////////////////////////////////
-
-export { Mapping } from './input/Mapping.js'
-export { ScanCode } from './input/ScanCode.js'
-export { Key } from './input/Key.js'
-export { AnalogKey } from './input/AnalogKey.js'
-export { Hat } from './input/Hat.js'
-
-/// ////////////////////////////////////////////////////////////////////////////
-/// Misc Exports
-/// ////////////////////////////////////////////////////////////////////////////
 
 /**
  * Version
@@ -85,4 +49,13 @@ export { Hat } from './input/Hat.js'
  * @name module:@lse/core.version
  */
 export const version = '$LSE_VERSION'
-export { LogLevel, logger } from './addon/index.js'
+
+export { logger } from './addon/index.js'
+
+/// ////////////////////////////////////////////////////////////////////////////
+/// Namespace exports
+/// ////////////////////////////////////////////////////////////////////////////
+
+export * as Input from './namespace-input.js'
+export * as Style from './namespace-style.js'
+export * as Constants from './namespace-constants.js'

@@ -10,7 +10,7 @@
 
 import { jsx, jsxs, Fragment } from '@lse/react/jsx-runtime';
 
-import { createStyleSheet, stage, ScanCode, Key } from '@lse/core';
+import { Style, stage, Constants } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
 
@@ -22,7 +22,7 @@ import React from 'react';
 
 const settingsContext = React.createContext(new EventEmitter);
 
-const styles = createStyleSheet({
+const styles = Style.createStyleSheet({
     body: {
         backgroundColor: 'lightgray',
         flexDirection: 'column',
@@ -272,7 +272,7 @@ const views = {
 };
 
 const Button = ({children, onSelect, end = false, value = ''}) => {
-    const onKeyDown = React.useCallback(e => e.key === Key.A && onSelect?.(), [ onSelect ]);
+    const onKeyDown = React.useCallback(e => e.key === Constants.Key.A && onSelect?.(), [ onSelect ]);
     const onFocus = React.useCallback(e => e.target.class = styles.buttonContainerFocused, []);
     const onBlur = React.useCallback(e => e.target.class = styles.buttonContainer, []);
     return jsx('box', {
@@ -373,7 +373,7 @@ class ErrorBoundary extends React.Component {
 const SwitchyApp = () => jsx(ErrorBoundary, {
     children: jsxs('box', {
         class: styles.body,
-        onKeyUp: ({key}) => key === Key.B && stage.quit(),
+        onKeyUp: ({key}) => key === Constants.Key.B && stage.quit(),
         children: [ jsx('box', {
             class: styles.headline,
             children: jsx('text', {
@@ -407,6 +407,6 @@ const SwitchyApp = () => jsx(ErrorBoundary, {
     })
 });
 
-stage.input.on('scan-code-up', e => e.scanCode === ScanCode.ESCAPE && stage.quit());
+stage.input.on('scan-code-up', e => e.scanCode === Constants.ScanCode.ESCAPE && stage.quit());
 
 const scene = letThereBeLight(jsx(SwitchyApp, {}));

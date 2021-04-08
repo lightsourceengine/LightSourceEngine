@@ -4,12 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { createStyleSheet } from '@lse/core'
+import { Style as $ } from '@lse/core'
 import { letThereBeLight } from '@lse/react'
 
 // Demonstrates text element truncation with textOverflow and maxLines style properties.
 
-const sheet = createStyleSheet({
+const sheet = $.createStyleSheet({
   textOverflowEllipsis: {
     textOverflow: 'ellipsis',
     '@extend': '%cell'

@@ -5,7 +5,7 @@
  */
 
 import chai from 'chai'
-import { createStyle } from '@lse/core'
+import { Style } from '@lse/core'
 import React from 'react'
 import { renderAsync, beforeEachTestCase, afterEachTestCase } from './test-env.js'
 
@@ -27,7 +27,7 @@ describe('Element', () => {
       assert.equal(ref.current.node.style.backgroundColor, 0xFFFF0000)
     })
     it('should override class backgroundColor', async () => {
-      const styleClass = createStyle({ backgroundColor: 'blue', zIndex: 5 })
+      const styleClass = Style.createStyleClass({ backgroundColor: 'blue', zIndex: 5 })
       const ref = React.createRef()
 
       await renderAsync(<box ref={ref} style={{ backgroundColor: 'red' }} class={styleClass} />)
@@ -38,7 +38,7 @@ describe('Element', () => {
   })
   describe('prop: class', () => {
     it('should set class with StyleClass object', async () => {
-      const backgroundRed = createStyle({ backgroundColor: 'red' })
+      const backgroundRed = Style.createStyleClass({ backgroundColor: 'red' })
       const ref = React.createRef()
 
       await renderAsync(<box ref={ref} class={backgroundRed} />)
@@ -46,7 +46,7 @@ describe('Element', () => {
       assert.equal(ref.current.node.style.backgroundColor, 0xFFFF0000)
     })
     it('should clear class', async () => {
-      const backgroundRed = createStyle({ backgroundColor: 'red' })
+      const backgroundRed = Style.createStyleClass({ backgroundColor: 'red' })
       const ref = React.createRef()
 
       await renderAsync(<box ref={ref} class={backgroundRed} />)

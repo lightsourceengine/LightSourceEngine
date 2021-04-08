@@ -4,12 +4,12 @@
  * This source code is licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  */
 
-import { createStyle } from '@lse/core'
+import { Style as $ } from '@lse/core'
 import { letThereBeLight } from '@lse/react'
 
 // Demonstrates backgroundRepeat style property on box elements.
 
-const body = createStyle({
+const body = $.createStyleClass({
   backgroundImage: 'resource/pattern-1004855.jpg',
   backgroundRepeat: 'repeat',
   '@extend': '%absoluteFill'

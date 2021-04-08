@@ -10,28 +10,28 @@
 
 import { jsx, jsxs } from '@lse/react/jsx-runtime';
 
-import { createStyleSheet, $ } from '@lse/core';
+import { Style } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
 
-const sheet = createStyleSheet({
+const sheet = Style.createStyleSheet({
     filterNone: {
         '@extend': '%cell'
     },
     filterFlipH: {
-        filter: $.flipH(),
+        filter: Style.flipH(),
         '@extend': '%cell'
     },
     filterFlipV: {
-        filter: $.flipV(),
+        filter: Style.flipV(),
         '@extend': '%cell'
     },
     filterFlipHV: {
-        filter: [ $.flipH(), $.flipV() ],
+        filter: [ Style.flipH(), Style.flipV() ],
         '@extend': '%cell'
     },
     filterTint: {
-        filter: $.tint('dodgerblue'),
+        filter: Style.tint('dodgerblue'),
         '@extend': '%cell'
     },
     body: {

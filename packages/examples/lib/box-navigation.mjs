@@ -10,13 +10,13 @@
 
 import { jsx, jsxs } from '@lse/react/jsx-runtime';
 
-import { createStyleSheet } from '@lse/core';
+import { Style } from '@lse/core';
 
 import { letThereBeLight } from '@lse/react';
 
 import { useEffect, forwardRef, useState, createRef } from 'react';
 
-const sheet = createStyleSheet({
+const sheet = Style.createStyleSheet({
     body: {
         backgroundColor: '#457b9d',
         flexWrap: 'wrap',

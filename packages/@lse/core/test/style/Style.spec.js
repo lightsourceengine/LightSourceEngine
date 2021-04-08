@@ -6,7 +6,7 @@
 
 import chai from 'chai'
 import { StyleAnchor, StyleUnit } from '../../src/addon/index.js'
-import { getRotateAngle, isRotate, rotate } from '../../src/style/transform.js'
+import { rotate } from '../../src/style/transform.js'
 import { fileuri } from '../../src/util/index.js'
 import { Style } from '../../src/style/Style.js'
 import { StyleClass } from '../../src/style/StyleClass.js'
@@ -316,7 +316,7 @@ describe('Style', () => {
       s2.tranform = s1.transform
 
       assert.lengthOf(s2.tranform, 1)
-      assert.isTrue(isRotate(s2.tranform[0]))
+      assert.isTrue(s2.tranform[0].isRotate())
     })
     it('should assignable to transform array', () => {
       const s = style({ transform: [rotate('90deg')] })
@@ -325,8 +325,8 @@ describe('Style', () => {
 
       const transformValue = s.transform[0]
 
-      assert.isTrue(isRotate(transformValue))
-      assert.deepEqual(getRotateAngle(transformValue), new StyleValue(90, StyleUnit.Degree))
+      assert.isTrue(transformValue.isRotate())
+      assert.deepEqual(transformValue.angle, new StyleValue(90, StyleUnit.Degree))
     })
     it('should assignable to transform value', () => {
       const s = style({ transform: rotate('90deg') })
@@ -335,8 +335,8 @@ describe('Style', () => {
 
       const transformValue = s.transform[0]
 
-      assert.isTrue(isRotate(transformValue))
-      assert.deepEqual(getRotateAngle(transformValue), new StyleValue(90, StyleUnit.Degree))
+      assert.isTrue(transformValue.isRotate())
+      assert.deepEqual(transformValue.angle, new StyleValue(90, StyleUnit.Degree))
     })
     it('should reject invalid values', () => {
       const s = style({ transform: 'invalid' })

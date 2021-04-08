@@ -5,7 +5,7 @@
  */
 
 import { Element } from './Element.js'
-import { waypoint } from '@lse/core'
+import { Input } from '@lse/core'
 
 /**
  * Maps &lt;box&gt; element to a BoxSceneNode.
@@ -23,7 +23,7 @@ class BoxElement extends Element {
 
     if (oldProps.waypoint !== newProps.waypoint) {
       if (typeof newProps.waypoint === 'string') {
-        this.node.waypoint = waypoint(newProps.waypoint)
+        this.node.waypoint = Input.waypoint(newProps.waypoint)
       } else {
         this.node.waypoint = newProps.waypoint
       }
