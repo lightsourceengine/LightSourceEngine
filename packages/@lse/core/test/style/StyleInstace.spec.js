@@ -8,14 +8,14 @@ import chai from 'chai'
 import { StyleAnchor, StyleUnit } from '../../src/addon/index.js'
 import { rotate } from '../../src/style/transform.js'
 import { fileuri } from '../../src/util/index.js'
-import { Style } from '../../src/style/Style.js'
+import { StyleInstance } from '../../src/style/StyleInstance.js'
 import { StyleClass } from '../../src/style/StyleClass.js'
 import { StyleValue } from '../../src/style/StyleValue.js'
 import { flipH, flipV, tint } from '../../src/style/filter.js'
 
 const { assert } = chai
 
-const style = (obj) => Object.assign(new Style(), obj)
+const style = (obj) => Object.assign(new StyleInstance(), obj)
 
 const testStyleValue = (name, value, expectedValue) => {
   assert.deepEqual(style({ [name]: value })[name], expectedValue)
@@ -461,7 +461,7 @@ describe('Style', () => {
   describe('assignment', () => {
     let style
     beforeEach(() => {
-      style = new Style()
+      style = new StyleInstance()
     })
     afterEach(() => {
       style = null

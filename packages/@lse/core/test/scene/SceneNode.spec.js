@@ -8,7 +8,7 @@ import chai from 'chai'
 import sinon from 'sinon'
 import { afterSceneTest, beforeSceneTest } from '../test-env.js'
 import { createStyleClass } from '../../src/style/createStyleClass.js'
-import { Style } from '../../src/style/Style.js'
+import { StyleInstance } from '../../src/style/StyleInstance.js'
 import { StyleClass } from '../../src/style/StyleClass.js'
 
 const { assert } = chai
@@ -100,7 +100,7 @@ describe('SceneNode', () => {
     it('should be an instance of Style', () => {
       const node = scene.createNode('box')
 
-      assert.instanceOf(node.style, Style)
+      assert.instanceOf(node.style, StyleInstance)
     })
     it('should update maxLines property', () => {
       const node = scene.createNode('box')

@@ -12,7 +12,7 @@ import {
   CTextSceneNode,
   setStyleParent
 } from '../addon/index.js'
-import { Style } from '../style/Style.js'
+import { StyleInstance } from '../style/StyleInstance.js'
 import { emptyArray } from '../util/index.js'
 
 /**
@@ -51,7 +51,7 @@ class SceneNode {
    * of the style that will be used for rendering. The set is used to manually set individual properties, overriding
    * any properties set by the style class.
    *
-   * @returns {Style} Instance to the style object of this node.
+   * @returns {StyleInstance} Instance to the style object of this node.
    */
   get style () {
     return this._style || (this._style = nativeBindStyle(this._native))
@@ -365,7 +365,7 @@ const throwBeforeArgError = () => {
 
 // if native calls are present in a function, the function will not be eligible for v8 jit. isolate the calls into
 // separate function so the callers can be eligible for optimization. (Just doing this for frequently called functions)
-const nativeBindStyle = (native) => native.bindStyle(new Style())
+const nativeBindStyle = (native) => native.bindStyle(new StyleInstance())
 const nativeAppendChild = (native, child) => native.appendChild(child)
 const nativeRemoveChild = (native, child) => native.removeChild(child)
 const nativeDestroy = (native) => native.destroy()

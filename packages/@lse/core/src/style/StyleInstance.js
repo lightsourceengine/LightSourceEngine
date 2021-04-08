@@ -12,10 +12,10 @@ import { CStyle, resetStyle } from '../addon/index.js'
  * @memberof module:@lse/core
  * @hideconstructor
  */
-class Style extends CStyle {
+class StyleInstance extends CStyle {
   reset () {
     resetStyle(this)
   }
 }
 
-export { Style }
+export { StyleInstance }
