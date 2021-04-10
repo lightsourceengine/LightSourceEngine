@@ -57,6 +57,7 @@ create_npm_package() {
   fi
 
   cp "${SOURCE_ROOT}/LICENSE" "${TARGET_DIR}/package"
+  cp "${SOURCE_ROOT}/NOTICE" "${TARGET_DIR}/package"
 
   _pushd "${TARGET_DIR}/package"
   tar -czf "${PUBLISHABLE_DIR}/lse-${1}-${PUBLISHING_VERSION}.tgz" .

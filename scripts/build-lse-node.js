@@ -455,16 +455,16 @@ class LightSourceNodePackage {
       const copyComplete = logMark('staging: minimal node copy...')
 
       await copy(nodePackage.getNodeExecutable(), join(this.#nodeBin, nodePackage.getNodeExecutableBasename()))
-      await copy(nodePackage.getNodeLicense(), join(this.#nodeHome, 'LICENSE-node'))
+      await copy(nodePackage.getNodeLicense(), join(this.#nodeHome, 'LICENSE-nodejs'))
 
       copyComplete()
     } else {
       const copyComplete = logMark('staging: full node copy...')
 
       await copy(nodePackage.getHome(), this.#nodeHome)
-      await move(join(this.#nodeHome, 'LICENSE'), join(this.#nodeHome, 'LICENSE-node'))
-      await move(join(this.#nodeHome, 'README.md'), join(this.#nodeHome, 'README-node.md'))
-      await move(join(this.#nodeHome, 'CHANGELOG.md'), join(this.#nodeHome, 'CHANGELOG-node.md'))
+      await move(join(this.#nodeHome, 'LICENSE'), join(this.#nodeHome, 'LICENSE-nodejs'))
+      await move(join(this.#nodeHome, 'README.md'), join(this.#nodeHome, 'README-nodejs.md'))
+      await move(join(this.#nodeHome, 'CHANGELOG.md'), join(this.#nodeHome, 'CHANGELOG-nodejs.md'))
 
       copyComplete()
     }
@@ -548,8 +548,8 @@ class LightSourceNodePackage {
   }
 
   async installLicense (sourceRoot) {
-    const license = sourceRoot.getLicense()
-    await copy(license, join(this.#nodeHome, 'LICENSE-lse-node'))
+    await copy(sourceRoot.getLicense(), join(this.#nodeHome, 'LICENSE-lse'))
+    await copy(sourceRoot.getNotice(), join(this.#nodeHome, 'NOTICE-lse'))
 
     log(`staging: license installed`)
   }
@@ -712,6 +712,10 @@ class SourceRoot {
 
   getLicense () {
     return join(this.#root, 'LICENSE')
+  }
+
+  getNotice () {
+    return join(this.#root, 'NOTICE')
   }
 
   getNodeWrapperScript ({ platform, profile }) {

@@ -2,12 +2,12 @@
   "name": "@lse/react",
   "description": "Light Source Engine React bindings.",
   "version": "1.0.0-private.0",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/LightSourceEngine/LightSourceEngine.git"
   },
-  "author": "Daniel Anderson <dan.anderson.oss@gmail.com>",
+  "homepage": "https://www.lightsourceengine.com",
   "publishConfig": {
     "access": "public"
   },
