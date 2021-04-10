@@ -21,4 +21,4 @@ A framework for building javascript React apps for single-board computers.
 
 # License
 
-Light Source Engine is licensed under the [MIT License](LICENSE).
+Light Source Engine is licensed under the [Apache License, Version 2.0](LICENSE).
