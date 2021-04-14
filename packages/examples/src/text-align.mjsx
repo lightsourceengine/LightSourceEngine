@@ -47,7 +47,7 @@ const sheet = $.createStyleSheet({
     width: '33%',
     marginBottom: '4vh',
     border: 2,
-    borderColor: 'white',
+    borderColor: 'white'
   },
   '%label': {
     fontSize: '2.5vh',
@@ -62,7 +62,7 @@ const sampleText = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam
 const sampleTextSmall = '   Hello, world!   '
 const sampleTextNewline = 'Line One\nLine Two\nLine Three'
 
-const Column = ({exampleClass, children}) => (
+const Column = ({ exampleClass, children }) => (
   <box class={sheet.container}>
     <text class={sheet.header}>{children}</text>
     <text class={exampleClass}>{sampleTextSmall}</text>

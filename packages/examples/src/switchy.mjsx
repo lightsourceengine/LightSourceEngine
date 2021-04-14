@@ -61,7 +61,7 @@ const styles = $.createStyleSheet({
   },
   tabButtonTextFocused: {
     borderColor: 'dodgerblue',
-    '@extend': [ 'tabButtonText', '%highlightFont' ]
+    '@extend': ['tabButtonText', '%highlightFont']
   },
   buttonText: {
     fontSize: '2.5vh',
@@ -93,7 +93,7 @@ const styles = $.createStyleSheet({
   },
   listItem: {
     borderTop: 1,
-    borderColor: '#AAA',
+    borderColor: '#AAA'
   },
   listItemEnd: {
     borderBottom: 1,
@@ -145,14 +145,14 @@ const ConnectedGamepadsView = () => {
   const { gamepads } = stage.input
 
   if (gamepads.length === 0) {
-    return (<Button end={true}>No gamepads connected.</Button>)
+    return (<Button end>No gamepads connected.</Button>)
   } else {
     const createListItem = (gamepad) => {
       const mapState = stage.input.hasMapping(gamepad.uuid) ? 'MAPPED' : 'UNMAPPED'
 
       return (
         <>
-          <Button value={mapState} end={true}>{gamepad.name}</Button>
+          <Button value={mapState} end>{gamepad.name}</Button>
           <text class={styles.hintText}>{`UUID: ${gamepad.uuid}\nButton Count: ${gamepad.buttonCount}, Hat Count: ${gamepad.hatCount}, Axis Count: ${gamepad.axisCount}`}</text>
         </>
       )
@@ -164,21 +164,21 @@ const ConnectedGamepadsView = () => {
 
 const SystemStatisticsView = () => {
   const createSystemStats = (cpuIdle, cpuTotal) => Object.entries(process.memoryUsage()).reduce(
-      (acc, [key, value]) => { acc[key] = value / 1024 / 1024; return acc },
-      { cpuLoad: (cpuTotal !== 0) ? 100 - ~~(100 * cpuIdle / cpuTotal) : 0})
+    (acc, [key, value]) => { acc[key] = value / 1024 / 1024; return acc },
+    { cpuLoad: (cpuTotal !== 0) ? 100 - ~~(100 * cpuIdle / cpuTotal) : 0 })
 
   const createListItem = (key, name, suffix, end = false) =>
     (<Button key={key} value={`${systemStats[key].toFixed(2)}${suffix}`} end={end}>{`${name ?? key}`}</Button>)
 
   const getCpuLoadSnapshot = () => {
-    const cpuList = cpus();
+    const cpuList = cpus()
     const result = cpuList.reduce((accumulator, cpu) => {
       accumulator.tick += Object.values(cpu.times).reduce((accumulator, time) => accumulator + time, 0)
       accumulator.idle += cpu.times.idle
       return accumulator
     }, { idle: 0, tick: 0 })
 
-    return { idle: result.idle / cpuList.length,  total: result.tick / cpuList.length }
+    return { idle: result.idle / cpuList.length, total: result.tick / cpuList.length }
   }
 
   const [systemStats, setSystemStats] = React.useState(() => createSystemStats(0, 0))
@@ -208,12 +208,12 @@ const SystemStatisticsView = () => {
     createListItem('cpuLoad', 'Total CPU Utilization', '%'),
     createListItem('heapUsed', 'Heap Used', ' MB'),
     createListItem('heapTotal', 'Heap Total', ' MB'),
-    createListItem('rss', 'Resident Set Size', ' MB', true),
+    createListItem('rss', 'Resident Set Size', ' MB', true)
   ]
 }
 
 const VideoView = () => {
-  return (<Button value={`${scene.width}x${scene.height}`} end={true}>Screen Resolution</Button>)
+  return (<Button value={`${scene.width}x${scene.height}`} end>Screen Resolution</Button>)
 }
 
 const AudioView = () => {
@@ -223,9 +223,9 @@ const AudioView = () => {
 
   return (
     <>
-      <Button value={enabled(sample)} end={true}>Sample</Button>
+      <Button value={enabled(sample)} end>Sample</Button>
       <text class={styles.hintText}>{`Audio destination for sound effects.\nDecoders: ${decoders(sample)}`}</text>
-      <Button value={enabled(stream)} end={true}>Stream</Button>
+      <Button value={enabled(stream)} end>Stream</Button>
       <text class={styles.hintText}>{`Audio destination for streaming.\nDecoders: ${decoders(stream)}`}</text>
     </>
   )
@@ -247,7 +247,7 @@ const InfoView = () => {
         By default, the system keyboard has the arrow keys mapped to the d-pad, the Z key mapped to the B button and
         the X key mapping to the A button.
       </text>
-      <Button onSelect={() => stage.quit()} end={true}>Exit</Button>
+      <Button onSelect={() => stage.quit()} end>Exit</Button>
     </>
   )
 }
@@ -260,13 +260,13 @@ const views = {
   SystemStatisticsView
 }
 
-const Button = ({children, onSelect, end = false, value = ''}) => {
+const Button = ({ children, onSelect, end = false, value = '' }) => {
   const onKeyDown = React.useCallback((e) => e.key === C.Key.A && onSelect?.(), [onSelect])
-  const onFocus = React.useCallback((e) => e.target.class = styles.buttonContainerFocused, [])
-  const onBlur = React.useCallback((e) => e.target.class = styles.buttonContainer, [])
+  const onFocus = React.useCallback((e) => { e.target.class = styles.buttonContainerFocused }, [])
+  const onBlur = React.useCallback((e) => { e.target.class = styles.buttonContainer }, [])
 
   return (
-    <box class={ end ? styles.listItemEnd : styles.listItem}>
+    <box class={end ? styles.listItemEnd : styles.listItem}>
       <box focusable class={styles.buttonContainer} onKeyDown={onKeyDown} onFocus={onFocus} onBlur={onBlur}>
         <text class={styles.buttonText}>{children}</text>
         <text class={styles.buttonValueText}>{value}</text>
@@ -275,7 +275,7 @@ const Button = ({children, onSelect, end = false, value = ''}) => {
   )
 }
 
-const TabButton = React.forwardRef(({viewId, children}, ref) => {
+const TabButton = React.forwardRef(({ viewId, children }, ref) => {
   const ctx = React.useContext(settingsContext)
 
   const onFocus = React.useCallback((e) => {
@@ -302,12 +302,12 @@ const LeftColumn = () => {
   React.useEffect(() => ref.current.node.focus(), [])
 
   return (
-    <box class={styles.leftColumn} waypoint="vertical">
-      <TabButton viewId="InfoView" ref={ref}>Info</TabButton>
-      <TabButton viewId="ConnectedGamepadsView">Connected Gamepads</TabButton>
-      <TabButton viewId="VideoView">Video</TabButton>
-      <TabButton viewId="AudioView">Audio</TabButton>
-      <TabButton viewId="SystemStatisticsView">System Statistics</TabButton>
+    <box class={styles.leftColumn} waypoint='vertical'>
+      <TabButton viewId='InfoView' ref={ref}>Info</TabButton>
+      <TabButton viewId='ConnectedGamepadsView'>Connected Gamepads</TabButton>
+      <TabButton viewId='VideoView'>Video</TabButton>
+      <TabButton viewId='AudioView'>Audio</TabButton>
+      <TabButton viewId='SystemStatisticsView'>System Statistics</TabButton>
     </box>
   )
 }
@@ -325,7 +325,7 @@ const RightColumn = () => {
     return () => ctx.removeListener('changed', listener)
   }, [])
 
-  return (<box waypoint="vertical" class={styles.rightColumn}><View /></box>)
+  return (<box waypoint='vertical' class={styles.rightColumn}><View /></box>)
 }
 
 class ErrorBoundary extends React.Component {
@@ -335,24 +335,24 @@ class ErrorBoundary extends React.Component {
   }
 
   render () {
-    return this.props.children;
+    return this.props.children
   }
 }
 
 const SwitchyApp = () => {
   return (
     <ErrorBoundary>
-      <box class={styles.body} onKeyUp={({key}) => key === C.Key.B && stage.quit()}>
+      <box class={styles.body} onKeyUp={({ key }) => key === C.Key.B && stage.quit()}>
         <box class={styles.headline}>
           <text class={styles.h1}>• Switchy Settings</text>
         </box>
-        <box class={styles.content} waypoint="horizontal">
+        <box class={styles.content} waypoint='horizontal'>
           <LeftColumn />
           <RightColumn />
         </box>
         <box class={styles.footer}>
-          <box style={{height: '100%', backgroundColor: 'black', width: '4vw', marginRight: 'auto'}}/>
-          <text class={styles.h2} style={{marginRight: '2vw'}}>B - Back</text>
+          <box style={{ height: '100%', backgroundColor: 'black', width: '4vw', marginRight: 'auto' }} />
+          <text class={styles.h2} style={{ marginRight: '2vw' }}>B - Back</text>
           <text class={styles.h2}>A - OK</text>
         </box>
       </box>

@@ -16,17 +16,11 @@
     "bundle": "echo 'Skipping bundle.'",
     "gen": "rimraf lib && rollup -c",
     "coverage": "echo 'No coverage.'",
-    "lint": "standard",
+    "lint": "standard \"src/*.mjsx\"",
     "test": "run-p lint testOnly",
     "testOnly": "echo 'No tests.'"
   },
   "standard": {
-    "ignore": [
-      "lib/",
-      "node_modules/",
-      "resource",
-      "rollup.config.js"
-    ],
     "parser": "@babel/eslint-parser",
     "env": {
       "mocha": true,

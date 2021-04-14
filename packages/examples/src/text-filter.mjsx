@@ -29,7 +29,7 @@ const sheet = $.createStyleSheet({
     '@extend': '%cell'
   },
   filterFlipHV: {
-    filter: [ $.flipH(), $.flipV() ],
+    filter: [$.flipH(), $.flipV()],
     '@extend': '%cell'
   },
   filterTint: {
@@ -54,7 +54,7 @@ const sheet = $.createStyleSheet({
     width: '49%',
     marginBottom: '4vh',
     border: 2,
-    borderColor: 'white',
+    borderColor: 'white'
   },
   '%cell': {
     textAlign: 'center',
@@ -62,14 +62,14 @@ const sheet = $.createStyleSheet({
     color: 'lightgray',
     padding: '2vh',
     borderTop: 2,
-    borderColor: 'white',
+    borderColor: 'white'
   }
 })
 
 const message = 'Light Source Engine'
 const messageMultiline = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam dignissim at metus in finibus.'
 
-const Column = ({exampleClass, children}) => (
+const Column = ({ exampleClass, children }) => (
   <box class={sheet.container}>
     <text class={sheet.header}>{children}</text>
     <text class={exampleClass}>{message}</text>

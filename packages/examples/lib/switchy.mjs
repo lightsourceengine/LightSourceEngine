@@ -1,17 +1,14 @@
-/*
- * Copyright (c) 2021 Light Source Software, LLC. All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
-
-import { jsx, jsxs, Fragment } from '@lse/react/jsx-runtime';
+// Light Source Engine Version 1.5.0
+// Copyright (c) 2021 Light Source Software, LLC. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+// the License. You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+// an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations under the License.
 
 import { Style, stage, Constants } from '@lse/core';
 
@@ -22,6 +19,8 @@ import { EventEmitter } from 'events';
 import { cpus } from 'os';
 
 import React from 'react';
+
+import { jsx, jsxs, Fragment } from '@lse/react/jsx-runtime';
 
 const settingsContext = React.createContext(new EventEmitter);
 
@@ -276,8 +275,12 @@ const views = {
 
 const Button = ({children, onSelect, end = false, value = ''}) => {
     const onKeyDown = React.useCallback(e => e.key === Constants.Key.A && onSelect?.(), [ onSelect ]);
-    const onFocus = React.useCallback(e => e.target.class = styles.buttonContainerFocused, []);
-    const onBlur = React.useCallback(e => e.target.class = styles.buttonContainer, []);
+    const onFocus = React.useCallback(e => {
+        e.target.class = styles.buttonContainerFocused;
+    }, []);
+    const onBlur = React.useCallback(e => {
+        e.target.class = styles.buttonContainer;
+    }, []);
     return jsx('box', {
         class: end ? styles.listItemEnd : styles.listItem,
         children: jsxs('box', {

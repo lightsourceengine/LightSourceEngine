@@ -43,7 +43,7 @@ const sheet = $.createStyleSheet({
     width: '49%',
     marginBottom: '4vh',
     border: 2,
-    borderColor: 'white',
+    borderColor: 'white'
   },
   '%cell': {
     textAlign: 'center',
@@ -51,13 +51,13 @@ const sheet = $.createStyleSheet({
     color: 'lightgray',
     padding: '2vh',
     borderTop: 2,
-    borderColor: 'white',
+    borderColor: 'white'
   }
 })
 
 const messageMultiline = 'Cras mauris nisl, pharetra a dapibus et, gravida vitae velit. Vestibulum posuere faucibus odio et ultrices. Ut egestas hendrerit magna a commodo. Mauris commodo nisl sit amet euismod tristique. Etiam varius libero a pharetra eleifend. Duis commodo euismod erat, sed vestibulum sapien commodo ac.'
 
-const Column = ({exampleClass, style, children}) => (
+const Column = ({ exampleClass, style, children }) => (
   <box class={sheet.container}>
     <text class={sheet.header}>{children}</text>
     <text class={exampleClass} style={style}>{messageMultiline}</text>
@@ -66,8 +66,8 @@ const Column = ({exampleClass, style, children}) => (
 
 const TextTruncateApp = () => (
   <box class={sheet.body}>
-    <Column exampleClass={sheet.textOverflowEllipsis} style={{maxLines: 2}}>maxLines: 2, textOverflow: 'ellipsis'</Column>
-    <Column exampleClass={sheet.textOverflowClip} style={{maxLines: 2}}>maxLines: 2, textOverflow: 'clip'</Column>
+    <Column exampleClass={sheet.textOverflowEllipsis} style={{ maxLines: 2 }}>maxLines: 2, textOverflow: 'ellipsis'</Column>
+    <Column exampleClass={sheet.textOverflowClip} style={{ maxLines: 2 }}>maxLines: 2, textOverflow: 'clip'</Column>
   </box>
 )
 

@@ -16,13 +16,15 @@ import { dirname, join, resolve as resolvePath } from 'path'
 
 const { LSE_ENV, LSE_PATH } = process.env
 
-const builtins = (LSE_ENV === 'lse-node') ? {
-  react: { url: pathToFileURL(resolvePath(LSE_PATH, 'react', 'index.cjs')).toString() },
-  '@lse/core': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'core', 'index.mjs')).toString() },
-  '@lse/react': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'react', 'index.mjs')).toString() },
-  '@lse/react/jsx-runtime': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'react', 'jsx-runtime.mjs')).toString() },
-  '@lse/react/reconciler': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'react', 'reconciler.mjs')).toString() }
-} : {}
+const builtins = (LSE_ENV === 'lse-node')
+  ? {
+      react: { url: pathToFileURL(resolvePath(LSE_PATH, 'react', 'index.cjs')).toString() },
+      '@lse/core': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'core', 'index.mjs')).toString() },
+      '@lse/react': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'react', 'index.mjs')).toString() },
+      '@lse/react/jsx-runtime': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'react', 'jsx-runtime.mjs')).toString() },
+      '@lse/react/reconciler': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'react', 'reconciler.mjs')).toString() }
+    }
+  : {}
 
 export const resolve = async (specifier, context, defaultResolve) => {
   if (specifier.endsWith('_mocha')) {
