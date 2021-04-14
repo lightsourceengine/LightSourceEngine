@@ -77,7 +77,7 @@ export npm_config_lse_install_opts="--jobs max"
 if [ "$1" = "--skip-yarn-install" ]; then
   yarn run bundle
 else
-  yarn --force
+  yarn --force --ignore-engines
 fi
 
 _popd
