@@ -687,7 +687,7 @@ class SourceRoot {
       name: '@lse/react',
       js: [
         { source: join(this.#root, 'packages/@lse/react/dist/lse-react.standalone.mjs'), rename: 'index.mjs' },
-        { source: join(this.#root, 'packages/@lse/react/dist/jsx-runtime.mjs'), rename: 'jsx-runtime.mjs' },
+        { source: join(this.#root, 'packages/@lse/react/dist/jsx-runtime.cjs'), rename: 'jsx-runtime.cjs' },
         { source: join(this.#root, 'packages/@lse/react/dist/reconciler.mjs'), rename: 'reconciler.mjs' },
       ],
       native: null

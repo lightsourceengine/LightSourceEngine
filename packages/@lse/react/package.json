@@ -17,7 +17,7 @@
   "type": "module",
   "exports": {
     ".": "./dist/lse-react.mjs",
-    "./jsx-runtime": "./dist/jsx-runtime.mjs",
+    "./jsx-runtime": "./dist/jsx-runtime.cjs",
     "./reconciler": "./dist/reconciler.mjs"
   },
   "module": "./dist/lse-react.mjs",
