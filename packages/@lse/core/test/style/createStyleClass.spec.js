@@ -27,8 +27,8 @@ describe('createStyleClass()', () => {
     })
 
     assert.instanceOf(style, StyleClass)
-    assert.deepEqual(style.border, new StyleValue(10, StyleUnit.Point))
-    assert.deepEqual(style.margin, new StyleValue(15, StyleUnit.Point))
+    assert.deepEqual(style.border, new StyleValue(10, StyleUnit.POINT))
+    assert.deepEqual(style.margin, new StyleValue(15, StyleUnit.POINT))
   })
   it('should process shorthand properties', () => {
     const style = createStyleClass({
@@ -36,8 +36,8 @@ describe('createStyleClass()', () => {
     })
 
     assert.instanceOf(style, StyleClass)
-    assert.deepEqual(style.width, new StyleValue(50, StyleUnit.Point))
-    assert.deepEqual(style.height, new StyleValue(50, StyleUnit.Point))
+    assert.deepEqual(style.width, new StyleValue(50, StyleUnit.POINT))
+    assert.deepEqual(style.height, new StyleValue(50, StyleUnit.POINT))
   })
   it('should return spec if instanceof Style', () => {
     // TODO: remove

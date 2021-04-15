@@ -30,17 +30,17 @@ describe('transform', () => {
   describe('translate()', () => {
     it('should return a StyleTransformSpec of transform type Translate', () => {
       testTransform(translate(5, 10),
-        StyleTransform.Translate, 5, StyleUnit.Point, 10, StyleUnit.Point)
+        StyleTransform.TRANSLATE, 5, StyleUnit.POINT, 10, StyleUnit.POINT)
       testTransform(translate(-5, -10),
-        StyleTransform.Translate, -5, StyleUnit.Point, -10, StyleUnit.Point)
+        StyleTransform.TRANSLATE, -5, StyleUnit.POINT, -10, StyleUnit.POINT)
       testTransform(translate('5px', '10px'),
-        StyleTransform.Translate, 5, StyleUnit.Point, 10, StyleUnit.Point)
+        StyleTransform.TRANSLATE, 5, StyleUnit.POINT, 10, StyleUnit.POINT)
       testTransform(translate('-5px', '-10px'),
-        StyleTransform.Translate, -5, StyleUnit.Point, -10, StyleUnit.Point)
+        StyleTransform.TRANSLATE, -5, StyleUnit.POINT, -10, StyleUnit.POINT)
       testTransform(translate('50%', '100%'),
-        StyleTransform.Translate, 50, StyleUnit.Percent, 100, StyleUnit.Percent)
+        StyleTransform.TRANSLATE, 50, StyleUnit.PERCENT, 100, StyleUnit.PERCENT)
       testTransform(translate('-50%', '-100%'),
-        StyleTransform.Translate, -50, StyleUnit.Percent, -100, StyleUnit.Percent)
+        StyleTransform.TRANSLATE, -50, StyleUnit.PERCENT, -100, StyleUnit.PERCENT)
     })
     it('should return undefined for invalid x and y values', () => {
       assert.isUndefined(translate(false, false))
@@ -51,7 +51,7 @@ describe('transform', () => {
   describe('translateX()', () => {
     it('should return a StyleTransformSpec of transform type Translate', () => {
       testTransform(translateX(5),
-        StyleTransform.Translate, 5, StyleUnit.Point, 0, StyleUnit.Point)
+        StyleTransform.TRANSLATE, 5, StyleUnit.POINT, 0, StyleUnit.POINT)
     })
     it('should return undefined for invalid x value', () => {
       assert.isUndefined(translateX(false))
@@ -60,7 +60,7 @@ describe('transform', () => {
   describe('translateY()', () => {
     it('should return a StyleTransformSpec of transform type Translate', () => {
       testTransform(translateY(5),
-        StyleTransform.Translate, 0, StyleUnit.Point, 5, StyleUnit.Point)
+        StyleTransform.TRANSLATE, 0, StyleUnit.POINT, 5, StyleUnit.POINT)
     })
     it('should return undefined for invalid y value', () => {
       assert.isUndefined(translateY(false))
@@ -69,7 +69,7 @@ describe('transform', () => {
   describe('scale()', () => {
     it('should return a StyleTransformSpec of transform type Scale', () => {
       testTransform(scale(5, 10),
-        StyleTransform.Scale, 5, StyleUnit.Point, 10, StyleUnit.Point)
+        StyleTransform.SCALE, 5, StyleUnit.POINT, 10, StyleUnit.POINT)
     })
     it('should return undefined for invalid scale values', () => {
       assert.isUndefined(scale(false, false))
@@ -80,7 +80,7 @@ describe('transform', () => {
   describe('scaleX()', () => {
     it('should return a StyleTransformSpec of transform type Scale', () => {
       testTransform(scaleX(5),
-        StyleTransform.Scale, 5, StyleUnit.Point, 1, StyleUnit.Point)
+        StyleTransform.SCALE, 5, StyleUnit.POINT, 1, StyleUnit.POINT)
     })
     it('should return undefined for invalid x scale value', () => {
       assert.isUndefined(scaleX(false))
@@ -89,7 +89,7 @@ describe('transform', () => {
   describe('scaleX()', () => {
     it('should return a StyleTransformSpec of transform type Scale', () => {
       testTransform(scaleY(5),
-        StyleTransform.Scale, 1, StyleUnit.Point, 5, StyleUnit.Point)
+        StyleTransform.SCALE, 1, StyleUnit.POINT, 5, StyleUnit.POINT)
     })
     it('should return undefined for invalid y scale value', () => {
       assert.isUndefined(scaleY(false))
@@ -97,13 +97,13 @@ describe('transform', () => {
   })
   describe('rotate()', () => {
     it('should return a StyleTransformSpec of transform type Rotate', () => {
-      testTransform(rotate(1), StyleTransform.Rotate, 1, StyleUnit.Point)
-      testTransform(rotate('1rad'), StyleTransform.Rotate, 1, StyleUnit.Radian)
-      testTransform(rotate('2grad'), StyleTransform.Rotate, 2, StyleUnit.Gradian)
-      testTransform(rotate('90deg'), StyleTransform.Rotate, 90, StyleUnit.Degree)
-      testTransform(rotate('2turn'), StyleTransform.Rotate, 2, StyleUnit.Turn)
+      testTransform(rotate(1), StyleTransform.ROTATE, 1, StyleUnit.POINT)
+      testTransform(rotate('1rad'), StyleTransform.ROTATE, 1, StyleUnit.RADIAN)
+      testTransform(rotate('2grad'), StyleTransform.ROTATE, 2, StyleUnit.GRADIAN)
+      testTransform(rotate('90deg'), StyleTransform.ROTATE, 90, StyleUnit.DEGREE)
+      testTransform(rotate('2turn'), StyleTransform.ROTATE, 2, StyleUnit.TURN)
     })
-    it('should reutrn undefined for invalid angle value', () => {
+    it('should return undefined for invalid angle value', () => {
       assert.isUndefined(rotate(false))
       assert.isUndefined(rotate('100vw'))
       assert.isUndefined(rotate({}))

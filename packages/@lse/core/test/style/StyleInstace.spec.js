@@ -52,14 +52,14 @@ describe('Style', () => {
   describe('border properties', () => {
     it('should set point and viewport values', () => {
       for (const property of borderProperties) {
-        testStyleUnitValue(property, 5, StyleUnit.Point, 5)
-        testStyleUnitValue(property, '5px', StyleUnit.Point, 5)
-        testStyleUnitValue(property, 0, StyleUnit.Point, 0)
-        testStyleUnitValue(property, '0px', StyleUnit.Point, 0)
-        testStyleUnitValue(property, '5vw', StyleUnit.ViewportWidth, 5)
-        testStyleUnitValue(property, '5vh', StyleUnit.ViewportHeight, 5)
-        testStyleUnitValue(property, '5vmin', StyleUnit.ViewportMin, 5)
-        testStyleUnitValue(property, '5vmax', StyleUnit.ViewportMax, 5)
+        testStyleUnitValue(property, 5, StyleUnit.POINT, 5)
+        testStyleUnitValue(property, '5px', StyleUnit.POINT, 5)
+        testStyleUnitValue(property, 0, StyleUnit.POINT, 0)
+        testStyleUnitValue(property, '0px', StyleUnit.POINT, 0)
+        testStyleUnitValue(property, '5vw', StyleUnit.VIEWPORT_WIDTH, 5)
+        testStyleUnitValue(property, '5vh', StyleUnit.VIEWPORT_HEIGHT, 5)
+        testStyleUnitValue(property, '5vmin', StyleUnit.VIEWPORT_MIN, 5)
+        testStyleUnitValue(property, '5vmax', StyleUnit.VIEWPORT_MAX, 5)
       }
     })
     it('should undefined StyleValue for invalid %, auto, anchors and negative values', () => {
@@ -160,13 +160,13 @@ describe('Style', () => {
   describe('fontSize property', () => {
     const property = 'fontSize'
     it('should set values', () => {
-      testStyleUnitValue(property, 1, StyleUnit.Point, 1)
-      testStyleUnitValue(property, '50px', StyleUnit.Point, 50)
-      testStyleUnitValue(property, '5vw', StyleUnit.ViewportWidth, 5)
-      testStyleUnitValue(property, '5vh', StyleUnit.ViewportHeight, 5)
-      testStyleUnitValue(property, '5vmin', StyleUnit.ViewportMin, 5)
-      testStyleUnitValue(property, '5vmax', StyleUnit.ViewportMax, 5)
-      testStyleUnitValue(property, '5rem', StyleUnit.RootEm, 5)
+      testStyleUnitValue(property, 1, StyleUnit.POINT, 1)
+      testStyleUnitValue(property, '50px', StyleUnit.POINT, 50)
+      testStyleUnitValue(property, '5vw', StyleUnit.VIEWPORT_WIDTH, 5)
+      testStyleUnitValue(property, '5vh', StyleUnit.VIEWPORT_HEIGHT, 5)
+      testStyleUnitValue(property, '5vmin', StyleUnit.VIEWPORT_MIN, 5)
+      testStyleUnitValue(property, '5vmax', StyleUnit.VIEWPORT_MAX, 5)
+      testStyleUnitValue(property, '5rem', StyleUnit.REM, 5)
     })
     it('should reject invalid values', () => {
       for (const input of [-1, '10', null, {}, [], undefined, NaN]) {
@@ -197,15 +197,15 @@ describe('Style', () => {
   describe('lineHeight property', () => {
     const property = 'lineHeight'
     it('should set values', () => {
-      testStyleUnitValue(property, 100, StyleUnit.Point, 100)
-      testStyleUnitValue(property, '100%', StyleUnit.Percent, 100)
-      testStyleUnitValue(property, '50px', StyleUnit.Point, 50)
-      testStyleUnitValue(property, '0px', StyleUnit.Point, 0)
-      testStyleUnitValue(property, '5vw', StyleUnit.ViewportWidth, 5)
-      testStyleUnitValue(property, '5vh', StyleUnit.ViewportHeight, 5)
-      testStyleUnitValue(property, '5vmin', StyleUnit.ViewportMin, 5)
-      testStyleUnitValue(property, '5vmax', StyleUnit.ViewportMax, 5)
-      testStyleUnitValue(property, '5rem', StyleUnit.RootEm, 5)
+      testStyleUnitValue(property, 100, StyleUnit.POINT, 100)
+      testStyleUnitValue(property, '100%', StyleUnit.PERCENT, 100)
+      testStyleUnitValue(property, '50px', StyleUnit.POINT, 50)
+      testStyleUnitValue(property, '0px', StyleUnit.POINT, 0)
+      testStyleUnitValue(property, '5vw', StyleUnit.VIEWPORT_WIDTH, 5)
+      testStyleUnitValue(property, '5vh', StyleUnit.VIEWPORT_HEIGHT, 5)
+      testStyleUnitValue(property, '5vmin', StyleUnit.VIEWPORT_MIN, 5)
+      testStyleUnitValue(property, '5vmax', StyleUnit.VIEWPORT_MAX, 5)
+      testStyleUnitValue(property, '5rem', StyleUnit.REM, 5)
     })
     it('should reject invalid values', () => {
       for (const input of [-1, null, {}, [], undefined, NaN]) {
@@ -259,13 +259,13 @@ describe('Style', () => {
     const property = 'opacity'
     it('should set value in range [0,1]', () => {
       for (const input of [0, 0.5, 1]) {
-        testStyleUnitValue(property, input, StyleUnit.Point, input)
+        testStyleUnitValue(property, input, StyleUnit.POINT, input)
       }
     })
     it('should set percent value in range [0,100]', () => {
-      testStyleUnitValue(property, '0%', StyleUnit.Percent, 0)
-      testStyleUnitValue(property, '50%', StyleUnit.Percent, 50)
-      testStyleUnitValue(property, '100%', StyleUnit.Percent, 100)
+      testStyleUnitValue(property, '0%', StyleUnit.PERCENT, 0)
+      testStyleUnitValue(property, '50%', StyleUnit.PERCENT, 50)
+      testStyleUnitValue(property, '100%', StyleUnit.PERCENT, 100)
     })
     it('should reject value outside of range [0,1]', () => {
       testStyleValueEmpty(property, -1)
@@ -333,7 +333,7 @@ describe('Style', () => {
       const transformValue = s.transform[0]
 
       assert.isTrue(transformValue.isRotate())
-      assert.deepEqual(transformValue.angle, new StyleValue(90, StyleUnit.Degree))
+      assert.deepEqual(transformValue.angle, new StyleValue(90, StyleUnit.DEGREE))
     })
     it('should assignable to transform value', () => {
       const s = style({ transform: rotate('90deg') })
@@ -343,7 +343,7 @@ describe('Style', () => {
       const transformValue = s.transform[0]
 
       assert.isTrue(transformValue.isRotate())
-      assert.deepEqual(transformValue.angle, new StyleValue(90, StyleUnit.Degree))
+      assert.deepEqual(transformValue.angle, new StyleValue(90, StyleUnit.DEGREE))
     })
     it('should reject invalid values', () => {
       const s = style({ transform: 'invalid' })
@@ -474,7 +474,7 @@ describe('Style', () => {
       style = null
     })
     it('should be assignable by plain object with value and unit', () => {
-      style.width = { value: 100, unit: StyleUnit.Point }
+      style.width = { value: 100, unit: StyleUnit.POINT }
       assert.deepEqual(style.width, StyleValue.of(100))
     })
     it('should be undefined if plain object has invalid unit', () => {
@@ -482,11 +482,11 @@ describe('Style', () => {
       assert.isTrue(style.width.isUndefined())
     })
     it('should be undefined if plain object has invalid value', () => {
-      style.width = { unit: StyleUnit.Point }
+      style.width = { unit: StyleUnit.POINT }
       assert.isTrue(style.width.isUndefined())
     })
     it('should be assignable by array of value and unit', () => {
-      style.width = [100, StyleUnit.Point]
+      style.width = [100, StyleUnit.POINT]
       assert.deepEqual(style.width, StyleValue.of(100))
     })
     it('should be undefined if array has invalid unit', () => {
@@ -494,7 +494,7 @@ describe('Style', () => {
       assert.isTrue(style.width.isUndefined())
     })
     it('should be undefined if array has invalid value', () => {
-      style.width = [{}, StyleUnit.Point]
+      style.width = [{}, StyleUnit.POINT]
       assert.isTrue(style.width.isUndefined())
     })
     it('should be assignable by StyleValue', () => {
@@ -519,25 +519,25 @@ const xDirection = 1
 const yDirection = 2
 
 const testPositionProperty = (property, direction) => {
-  testStyleUnitValue(property, 50, StyleUnit.Point, 50)
-  testStyleUnitValue(property, -50, StyleUnit.Point, -50)
-  testStyleUnitValue(property, '100%', StyleUnit.Percent, 100)
-  testStyleUnitValue(property, '50px', StyleUnit.Point, 50)
-  testStyleUnitValue(property, '0px', StyleUnit.Point, 0)
-  testStyleUnitValue(property, '5vw', StyleUnit.ViewportWidth, 5)
-  testStyleUnitValue(property, '5vh', StyleUnit.ViewportHeight, 5)
-  testStyleUnitValue(property, '5vmin', StyleUnit.ViewportMin, 5)
-  testStyleUnitValue(property, '5vmax', StyleUnit.ViewportMax, 5)
-  testStyleUnitValue(property, '5rem', StyleUnit.RootEm, 5)
+  testStyleUnitValue(property, 50, StyleUnit.POINT, 50)
+  testStyleUnitValue(property, -50, StyleUnit.POINT, -50)
+  testStyleUnitValue(property, '100%', StyleUnit.PERCENT, 100)
+  testStyleUnitValue(property, '50px', StyleUnit.POINT, 50)
+  testStyleUnitValue(property, '0px', StyleUnit.POINT, 0)
+  testStyleUnitValue(property, '5vw', StyleUnit.VIEWPORT_WIDTH, 5)
+  testStyleUnitValue(property, '5vh', StyleUnit.VIEWPORT_HEIGHT, 5)
+  testStyleUnitValue(property, '5vmin', StyleUnit.VIEWPORT_MIN, 5)
+  testStyleUnitValue(property, '5vmax', StyleUnit.VIEWPORT_MAX, 5)
+  testStyleUnitValue(property, '5rem', StyleUnit.REM, 5)
 
-  testStyleUnitValue(property, 'center', StyleUnit.Anchor, StyleAnchor.Center)
+  testStyleUnitValue(property, 'center', StyleUnit.ANCHOR, StyleAnchor.CENTER)
 
   if (direction === xDirection) {
-    testStyleUnitValue(property, 'left', StyleUnit.Anchor, StyleAnchor.Left)
-    testStyleUnitValue(property, 'right', StyleUnit.Anchor, StyleAnchor.Right)
+    testStyleUnitValue(property, 'left', StyleUnit.ANCHOR, StyleAnchor.LEFT)
+    testStyleUnitValue(property, 'right', StyleUnit.ANCHOR, StyleAnchor.RIGHT)
   } else if (direction === yDirection) {
-    testStyleUnitValue(property, 'top', StyleUnit.Anchor, StyleAnchor.Top)
-    testStyleUnitValue(property, 'bottom', StyleUnit.Anchor, StyleAnchor.Bottom)
+    testStyleUnitValue(property, 'top', StyleUnit.ANCHOR, StyleAnchor.TOP)
+    testStyleUnitValue(property, 'bottom', StyleUnit.ANCHOR, StyleAnchor.BOTTOM)
   } else {
     assert.fail()
   }
@@ -560,15 +560,15 @@ const testInvalidPositionProperty = (property, direction) => {
 }
 
 const testDimensionProperty = (property) => {
-  testStyleUnitValue(property, 50, StyleUnit.Point, 50)
-  testStyleUnitValue(property, '100%', StyleUnit.Percent, 100)
-  testStyleUnitValue(property, '50px', StyleUnit.Point, 50)
-  testStyleUnitValue(property, '0px', StyleUnit.Point, 0)
-  testStyleUnitValue(property, '5vw', StyleUnit.ViewportWidth, 5)
-  testStyleUnitValue(property, '5vh', StyleUnit.ViewportHeight, 5)
-  testStyleUnitValue(property, '5vmin', StyleUnit.ViewportMin, 5)
-  testStyleUnitValue(property, '5vmax', StyleUnit.ViewportMax, 5)
-  testStyleUnitValue(property, '5rem', StyleUnit.RootEm, 5)
+  testStyleUnitValue(property, 50, StyleUnit.POINT, 50)
+  testStyleUnitValue(property, '100%', StyleUnit.PERCENT, 100)
+  testStyleUnitValue(property, '50px', StyleUnit.POINT, 50)
+  testStyleUnitValue(property, '0px', StyleUnit.POINT, 0)
+  testStyleUnitValue(property, '5vw', StyleUnit.VIEWPORT_WIDTH, 5)
+  testStyleUnitValue(property, '5vh', StyleUnit.VIEWPORT_HEIGHT, 5)
+  testStyleUnitValue(property, '5vmin', StyleUnit.VIEWPORT_MIN, 5)
+  testStyleUnitValue(property, '5vmax', StyleUnit.VIEWPORT_MAX, 5)
+  testStyleUnitValue(property, '5rem', StyleUnit.REM, 5)
 }
 
 const testInvalidDimensionProperty = (property) => {

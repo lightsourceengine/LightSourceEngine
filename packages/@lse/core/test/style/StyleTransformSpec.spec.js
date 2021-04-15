@@ -24,9 +24,9 @@ const invalidStyleValues = ['test', '', {}, [], null, undefined]
 describe('StyleTransformSpec', () => {
   describe('constructor', () => {
     it('should construct an identity StyleTransformSpec', () => {
-      const xform = new StyleTransformSpec(StyleTransform.Identity)
+      const xform = new StyleTransformSpec(StyleTransform.IDENTITY)
 
-      assert.equal(xform.transform, StyleTransform.Identity)
+      assert.equal(xform.transform, StyleTransform.IDENTITY)
       assert.isTrue(xform.isIdentity())
       assert.isNaN(xform.x)
       assert.isNaN(xform.y)
@@ -34,9 +34,9 @@ describe('StyleTransformSpec', () => {
       assert.isFrozen(xform)
     })
     it('should construct a rotate StyleTransformSpec', () => {
-      const xform = new StyleTransformSpec(StyleTransform.Rotate, StyleValue.of('90deg'))
+      const xform = new StyleTransformSpec(StyleTransform.ROTATE, StyleValue.of('90deg'))
 
-      assert.equal(xform.transform, StyleTransform.Rotate)
+      assert.equal(xform.transform, StyleTransform.ROTATE)
       assert.isTrue(xform.isRotate())
       assert.isNaN(xform.x)
       assert.isNaN(xform.y)
@@ -44,9 +44,9 @@ describe('StyleTransformSpec', () => {
       assert.isFrozen(xform)
     })
     it('should construct a translate StyleTransformSpec', () => {
-      const xform = new StyleTransformSpec(StyleTransform.Translate, StyleValue.of(10), StyleValue.of(15))
+      const xform = new StyleTransformSpec(StyleTransform.TRANSLATE, StyleValue.of(10), StyleValue.of(15))
 
-      assert.equal(xform.transform, StyleTransform.Translate)
+      assert.equal(xform.transform, StyleTransform.TRANSLATE)
       assert.isTrue(xform.isTranslate())
       assert.deepEqual(xform.x, StyleValue.of(10))
       assert.deepEqual(xform.y, StyleValue.of(15))
@@ -54,9 +54,9 @@ describe('StyleTransformSpec', () => {
       assert.isFrozen(xform)
     })
     it('should construct a scale StyleTransformSpec', () => {
-      const xform = new StyleTransformSpec(StyleTransform.Scale, StyleValue.of(10), StyleValue.of(15))
+      const xform = new StyleTransformSpec(StyleTransform.SCALE, StyleValue.of(10), StyleValue.of(15))
 
-      assert.equal(xform.transform, StyleTransform.Scale)
+      assert.equal(xform.transform, StyleTransform.SCALE)
       assert.isTrue(xform.isScale())
       assert.deepEqual(xform.x, StyleValue.of(10))
       assert.deepEqual(xform.y, StyleValue.of(15))

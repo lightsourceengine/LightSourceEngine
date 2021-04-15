@@ -24,39 +24,39 @@ namespace bindings {
 
 napi_value NewStyleUnitEnum(napi_env env) noexcept {
   return object_new(env, {
-      instance_value(env, "Undefined", StyleNumberUnitUndefined, napi_enumerable),
-      instance_value(env, "Point", StyleNumberUnitPoint, napi_enumerable),
-      instance_value(env, "Percent", StyleNumberUnitPercent, napi_enumerable),
-      instance_value(env, "ViewportWidth", StyleNumberUnitViewportWidth, napi_enumerable),
-      instance_value(env, "ViewportHeight", StyleNumberUnitViewportHeight, napi_enumerable),
-      instance_value(env, "ViewportMin", StyleNumberUnitViewportMin, napi_enumerable),
-      instance_value(env, "ViewportMax", StyleNumberUnitViewportMax, napi_enumerable),
-      instance_value(env, "Auto", StyleNumberUnitAuto, napi_enumerable),
-      instance_value(env, "Anchor", StyleNumberUnitAnchor, napi_enumerable),
-      instance_value(env, "RootEm", StyleNumberUnitRootEm, napi_enumerable),
-      instance_value(env, "Radian", StyleNumberUnitRadian, napi_enumerable),
-      instance_value(env, "Degree", StyleNumberUnitDegree, napi_enumerable),
-      instance_value(env, "Gradian", StyleNumberUnitGradian, napi_enumerable),
-      instance_value(env, "Turn", StyleNumberUnitTurn, napi_enumerable),
+      instance_value(env, "UNDEFINED", StyleNumberUnitUndefined, napi_enumerable),
+      instance_value(env, "POINT", StyleNumberUnitPoint, napi_enumerable),
+      instance_value(env, "PERCENT", StyleNumberUnitPercent, napi_enumerable),
+      instance_value(env, "VIEWPORT_WIDTH", StyleNumberUnitViewportWidth, napi_enumerable),
+      instance_value(env, "VIEWPORT_HEIGHT", StyleNumberUnitViewportHeight, napi_enumerable),
+      instance_value(env, "VIEWPORT_MIN", StyleNumberUnitViewportMin, napi_enumerable),
+      instance_value(env, "VIEWPORT_MAX", StyleNumberUnitViewportMax, napi_enumerable),
+      instance_value(env, "AUTO", StyleNumberUnitAuto, napi_enumerable),
+      instance_value(env, "ANCHOR", StyleNumberUnitAnchor, napi_enumerable),
+      instance_value(env, "REM", StyleNumberUnitRootEm, napi_enumerable),
+      instance_value(env, "RADIAN", StyleNumberUnitRadian, napi_enumerable),
+      instance_value(env, "DEGREE", StyleNumberUnitDegree, napi_enumerable),
+      instance_value(env, "GRADIAN", StyleNumberUnitGradian, napi_enumerable),
+      instance_value(env, "TURN", StyleNumberUnitTurn, napi_enumerable),
   });
 }
 
 napi_value NewStyleTransformEnum(napi_env env) noexcept {
   return object_new(env, {
-      instance_value(env, "Identity", StyleTransformIdentity, napi_enumerable),
-      instance_value(env, "Translate", StyleTransformTranslate, napi_enumerable),
-      instance_value(env, "Rotate", StyleTransformRotate, napi_enumerable),
-      instance_value(env, "Scale", StyleTransformScale, napi_enumerable),
+      instance_value(env, "IDENTITY", StyleTransformIdentity, napi_enumerable),
+      instance_value(env, "TRANSLATE", StyleTransformTranslate, napi_enumerable),
+      instance_value(env, "ROTATE", StyleTransformRotate, napi_enumerable),
+      instance_value(env, "SCALE", StyleTransformScale, napi_enumerable),
   });
 }
 
 napi_value NewStyleAnchorEnum(napi_env env) noexcept {
   return object_new(env, {
-      instance_value(env, "Left", StyleAnchorLeft, napi_enumerable),
-      instance_value(env, "Right", StyleAnchorRight, napi_enumerable),
-      instance_value(env, "Center", StyleAnchorCenter, napi_enumerable),
-      instance_value(env, "Top", StyleAnchorTop, napi_enumerable),
-      instance_value(env, "Bottom", StyleAnchorBottom, napi_enumerable),
+      instance_value(env, "LEFT", StyleAnchorLeft, napi_enumerable),
+      instance_value(env, "RIGHT", StyleAnchorRight, napi_enumerable),
+      instance_value(env, "CENTER", StyleAnchorCenter, napi_enumerable),
+      instance_value(env, "TOP", StyleAnchorTop, napi_enumerable),
+      instance_value(env, "BOTTOM", StyleAnchorBottom, napi_enumerable),
   });
 }
 

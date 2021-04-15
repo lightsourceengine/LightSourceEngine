@@ -32,13 +32,13 @@ export class StyleTransformSpec {
 
   constructor (transform, ...args) {
     switch (transform) {
-      case Identity:
+      case IDENTITY:
         break
-      case Rotate:
+      case ROTATE:
         this[3/* angle */] = ensureStyleValue(args[0])
         break
-      case Translate:
-      case Scale:
+      case TRANSLATE:
+      case SCALE:
         this[1/* x */] = ensureStyleValue(args[0])
         this[2/* x */] = ensureStyleValue(args[1])
         break
@@ -67,31 +67,31 @@ export class StyleTransformSpec {
   }
 
   isIdentity () {
-    return this.transform === Identity
+    return this.transform === IDENTITY
   }
 
   isRotate () {
-    return this.transform === Rotate
+    return this.transform === ROTATE
   }
 
   isScale () {
-    return this.transform === Scale
+    return this.transform === SCALE
   }
 
   isTranslate () {
-    return this.transform === Translate
+    return this.transform === TRANSLATE
   }
 
   static rotate (angle) {
     const value = angle instanceof StyleValue ? angle : StyleValue.of(angle)
 
     switch (value?.unit) {
-      case StyleUnit.Point:
-      case StyleUnit.Radian:
-      case StyleUnit.Gradian:
-      case StyleUnit.Degree:
-      case StyleUnit.Turn:
-        return new StyleTransformSpec(Rotate, value)
+      case StyleUnit.POINT:
+      case StyleUnit.RADIAN:
+      case StyleUnit.GRADIAN:
+      case StyleUnit.DEGREE:
+      case StyleUnit.TURN:
+        return new StyleTransformSpec(ROTATE, value)
     }
   }
 
@@ -104,7 +104,7 @@ export class StyleTransformSpec {
     const yValue = y instanceof StyleValue ? y : StyleValue.of(y)
 
     if (isValidTranslateArg(xValue) && isValidTranslateArg(yValue)) {
-      return new StyleTransformSpec(Translate, xValue, yValue)
+      return new StyleTransformSpec(TRANSLATE, xValue, yValue)
     }
   }
 
@@ -113,23 +113,23 @@ export class StyleTransformSpec {
     const yValue = y instanceof StyleValue ? y : StyleValue.of(y)
 
     if (isValidScaleArg(xValue) && isValidTranslateArg(yValue)) {
-      return new StyleTransformSpec(Scale, xValue, yValue)
+      return new StyleTransformSpec(SCALE, xValue, yValue)
     }
   }
 }
 
-const { Identity, Rotate, Scale, Translate } = StyleTransform
-const kIdentity = new StyleTransformSpec(Identity)
+const { IDENTITY, ROTATE, SCALE, TRANSLATE } = StyleTransform
+const kIdentity = new StyleTransformSpec(IDENTITY)
 
 const isValidTranslateArg = ({ unit } = {}) => {
   switch (unit) {
-    case StyleUnit.Point:
-    case StyleUnit.Percent:
-    case StyleUnit.ViewportWidth:
-    case StyleUnit.ViewportHeight:
-    case StyleUnit.ViewportMin:
-    case StyleUnit.ViewportMax:
-    case StyleUnit.RootEm:
+    case StyleUnit.POINT:
+    case StyleUnit.PERCENT:
+    case StyleUnit.VIEWPORT_WIDTH:
+    case StyleUnit.VIEWPORT_HEIGHT:
+    case StyleUnit.VIEWPORT_MIN:
+    case StyleUnit.VIEWPORT_MAX:
+    case StyleUnit.REM:
       return true
     default:
       return false
@@ -137,7 +137,7 @@ const isValidTranslateArg = ({ unit } = {}) => {
 }
 
 const isValidScaleArg = (arg) => {
-  return arg?.unit === StyleUnit.Point
+  return arg?.unit === StyleUnit.POINT
 }
 
 const throwInvalidTransform = (transform) => {

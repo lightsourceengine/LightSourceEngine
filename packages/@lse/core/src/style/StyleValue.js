@@ -23,7 +23,7 @@ class StyleValue {
   // Note: Use index so the native code can do faster lookups.
 
   // Used by the native code when a style value should be undefined.
-  static [0] = new StyleValue(0, StyleUnit.Undefined);
+  static [0] = new StyleValue(0, StyleUnit.UNDEFINED);
 
   // value
   [0] = 0.0;
@@ -33,7 +33,7 @@ class StyleValue {
 
   constructor (value, unit) {
     this[0] = value || 0
-    this[1] = unit || StyleUnit.Undefined
+    this[1] = unit || StyleUnit.UNDEFINED
     Object.freeze(this)
   }
 
@@ -46,59 +46,59 @@ class StyleValue {
   }
 
   isUndefined () {
-    return this.unit === StyleUnit.Undefined
+    return this.unit === StyleUnit.UNDEFINED
   }
 
   isPoint () {
-    return this.unit === StyleUnit.Point
+    return this.unit === StyleUnit.POINT
   }
 
   isPercent () {
-    return this.unit === StyleUnit.Percent
+    return this.unit === StyleUnit.PERCENT
   }
 
   isViewportWidth () {
-    return this.unit === StyleUnit.ViewportWidth
+    return this.unit === StyleUnit.VIEWPORT_WIDTH
   }
 
   isViewportHeight () {
-    return this.unit === StyleUnit.ViewportHeight
+    return this.unit === StyleUnit.VIEWPORT_HEIGHT
   }
 
   isViewportMin () {
-    return this.unit === StyleUnit.ViewportMin
+    return this.unit === StyleUnit.VIEWPORT_MIN
   }
 
   isViewportMax () {
-    return this.unit === StyleUnit.ViewportMax
+    return this.unit === StyleUnit.VIEWPORT_MAX
   }
 
   isAuto () {
-    return this.unit === StyleUnit.Auto
+    return this.unit === StyleUnit.AUTO
   }
 
   isAnchor () {
-    return this.unit === StyleUnit.Anchor
+    return this.unit === StyleUnit.ANCHOR
   }
 
   isRootEm () {
-    return this.unit === StyleUnit.RootEm
+    return this.unit === StyleUnit.REM
   }
 
   isRadian () {
-    return this.unit === StyleUnit.Radian
+    return this.unit === StyleUnit.RADIAN
   }
 
   isDegree () {
-    return this.unit === StyleUnit.Degree
+    return this.unit === StyleUnit.DEGREE
   }
 
   isGradian () {
-    return this.unit === StyleUnit.Gradian
+    return this.unit === StyleUnit.GRADIAN
   }
 
   isTurn () {
-    return this.unit === StyleUnit.Turn
+    return this.unit === StyleUnit.TURN
   }
 
   static of (value) {
