@@ -37,15 +37,14 @@
     "lint": "standard",
     "prepublishOnly": "run-s bundle test",
     "test": "run-s lint testOnly",
-    "testOnly": "node --loader @lse/loader/babel _mocha --reporter spec \"test/**/*.spec.js\""
+    "testOnly": "node --loader @lse/loader/babel _mocha --reporter spec \"test/**/*.spec.mjs\""
   },
   "standard": {
     "ignore": [
       "build/",
       "dist/",
       "docs/",
-      "node_modules/",
-      "src/Scheduler.js"
+      "node_modules/"
     ],
     "parser": "@babel/eslint-parser",
     "env": {

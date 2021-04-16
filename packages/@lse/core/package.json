@@ -77,7 +77,7 @@
     "lint": "standard",
     "prepublishOnly": "run-s bundle test",
     "test": "run-s lint testOnly",
-    "testOnly": "mocha --reporter spec \"test/**/*.spec.js\""
+    "testOnly": "mocha --reporter spec \"test/**/*.spec.mjs\""
   },
   "standard": {
     "ignore": [

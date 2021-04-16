@@ -100,11 +100,11 @@ const lightSourceReconciler = (input) => ({
       ignoreGlobal: true
     }),
     inject({
-      MessageChannel: resolve('src/reconciler/SchedulerMessageChannel.js'),
-      window: resolve('src/reconciler/window-polyfill.js'),
+      MessageChannel: resolve('src/reconciler/SchedulerMessageChannel.mjs'),
+      window: resolve('src/reconciler/window-polyfill.mjs'),
       performance: ['perf_hooks', 'performance'],
-      setTimeout: [resolve('src/reconciler/timeout-scope.js'), 'setTimeout'],
-      clearTimeout: [resolve('src/reconciler/timeout-scope.js'), 'clearTimeout']
+      setTimeout: [resolve('src/reconciler/timeout-scope.mjs'), 'setTimeout'],
+      clearTimeout: [resolve('src/reconciler/timeout-scope.mjs'), 'clearTimeout']
     }),
     nodeResolve(),
     minify()
@@ -112,9 +112,9 @@ const lightSourceReconciler = (input) => ({
 })
 
 export default [
-  lightSourceReconciler('src/reconciler/light-source-reconciler.js'),
-  lightSourceReact({ input: 'src/exports.js' }),
-  lightSourceReact({ input: 'src/exports.js', standalone: true }),
+  lightSourceReconciler('src/reconciler/light-source-reconciler.mjs'),
+  lightSourceReact({ input: 'src/exports.mjs' }),
+  lightSourceReact({ input: 'src/exports.mjs', standalone: true }),
   reactJsxRuntime('react/cjs/react-jsx-runtime.production.min.js'),
   reactStandalone('react/cjs/react.production.min.js')
 ]

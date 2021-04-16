@@ -76,6 +76,6 @@ const lightSourceStandalone = (input) => ({
 })
 
 export default [
-  lightSourceNpm('src/exports.js'),
-  lightSourceStandalone('src/exports.js')
+  lightSourceNpm('src/exports.mjs'),
+  lightSourceStandalone('src/exports.mjs')
 ]
