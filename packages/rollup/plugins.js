@@ -40,6 +40,7 @@ export const beautify = () => terser({
     quote_style: 1,
     semicolons: false,
     beautify: true,
+    indent_level: 2,
     preamble: preamble.replace("${version}", getPublishingVersion())
   }
 })
@@ -104,7 +105,7 @@ export const minify = (options = {}) => terser({
     properties: false
   },
   // Disable compress, as the defaults (inlining in particular) cause performance problems in v8.
-  compress: false,
+  compress: true,
   output: {
     quote_style: 1,
     semicolons: false,
