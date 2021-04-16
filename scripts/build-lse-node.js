@@ -685,7 +685,7 @@ class SourceRoot {
         join(this.#root, 'packages/@lse/core/src/font/font.manifest')
       ],
       package: {
-        module: "commonjs",
+        type: "commonjs",
         exports: "./index.cjs"
       }
     }
@@ -696,16 +696,14 @@ class SourceRoot {
       name: '@lse/react',
       js: [
         { source: join(this.#root, 'packages/@lse/react/dist/lse-react.standalone.cjs'), rename: 'index.cjs' },
-        { source: join(this.#root, 'packages/@lse/react/dist/jsx-runtime.cjs'), rename: 'jsx-runtime.cjs' },
-        { source: join(this.#root, 'packages/@lse/react/dist/reconciler.cjs'), rename: 'reconciler.cjs' },
+        { source: join(this.#root, 'packages/@lse/react/dist/jsx-runtime.cjs'), rename: 'jsx-runtime.cjs' }
       ],
       native: null,
       package: {
-        module: "commonjs",
+        type: "commonjs",
         exports: {
           ".": "./index.cjs",
-          "./jsx-runtime": "./jsx-runtime.cjs",
-          "./reconciler": "./reconciler.cjs",
+          "./jsx-runtime": "./jsx-runtime.cjs"
         }
       }
     }
@@ -722,10 +720,10 @@ class SourceRoot {
   getReactModule () {
     return {
       name: 'react',
-      js: [ { source: join(this.#root, 'packages/@lse/react/dist/react.standalone.cjs'), rename: 'index.cjs' } ],
+      js: [ { source: join(this.#root, 'packages/react-standalone/dist/index.cjs'), rename: 'index.cjs' } ],
       native: null,
       package: {
-        module: "commonjs",
+        type: "commonjs",
         exports: "./index.cjs"
       }
     }

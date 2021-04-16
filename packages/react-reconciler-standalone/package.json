@@ -1,0 +1,24 @@
+{
+  "name": "react-reconciler-standalone",
+  "private": true,
+  "version": "1.0.0-private.0",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.mjs"
+  },
+  "scripts": {
+    "test": "echo 'No tests.'",
+    "lint": "standard",
+    "bundle": "rimraf dist && rollup -c"
+  },
+  "standard": {
+    "ignore": [
+      "dist/",
+      "node_modules/"
+    ],
+    "parser": "@babel/eslint-parser",
+    "env": {
+      "node": true
+    }
+  }
+}

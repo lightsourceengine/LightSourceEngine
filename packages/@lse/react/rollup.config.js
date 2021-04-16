@@ -13,23 +13,19 @@
 
 import autoExternal from 'rollup-plugin-auto-external'
 import nodeResolve from '@rollup/plugin-node-resolve'
-import { resolve } from 'path'
 import {
   beautify,
   onwarn,
   minify,
   replaceObjectAssign,
-  getPublishingVersion,
-  nodeEnv
+  getPublishingVersion
 } from '../../rollup/plugins'
-import commonjs from '@rollup/plugin-commonjs'
-import inject from '@rollup/plugin-inject'
 import replace from 'rollup-plugin-re'
 
 const lightSourceReact = ({ input, standalone }) => ({
   input,
   onwarn,
-  external: ['@lse/core', '@lse/react/reconciler'],
+  external: ['@lse/core'],
   output: {
     format: 'cjs',
     file: standalone ? 'dist/lse-react.standalone.cjs' : 'dist/lse-react.cjs',
@@ -44,19 +40,6 @@ const lightSourceReact = ({ input, standalone }) => ({
         $LSE_REACT_VERSION: getPublishingVersion()
       }
     })
-  ]
-})
-
-const reactStandalone = (reactSource) => ({
-  input: require.resolve(reactSource),
-  onwarn,
-  output: {
-    format: 'cjs',
-    file: 'dist/react.standalone.cjs',
-    preferConst: true
-  },
-  plugins: [
-    replaceObjectAssign()
   ]
 })
 
@@ -76,45 +59,8 @@ const reactJsxRuntime = (jsxRuntimeSource) => ({
   ]
 })
 
-// The react reconciler does not have a defined lifecycle nor does the reconciler provide an API for
-// shutdown. The reconciler may hold timers through setTimeout and SchedulerMessageChannel, preventing node
-// from shutting down. I was able to hijack global functions, giving me access to the components holding
-// timers. From there, I expose a reconciler shutdown. This is a horrible hack, but the solution avoids forking
-// the reconciler.
-const lightSourceReconciler = (input) => ({
-  input,
-  onwarn,
-  output: {
-    format: 'cjs',
-    file: 'dist/reconciler.cjs',
-    preferConst: true
-  },
-  external: ['worker_threads', 'react', 'object-assign'],
-  plugins: [
-    autoExternal({
-      dependencies: false
-    }),
-    replaceObjectAssign(),
-    nodeEnv(),
-    commonjs({
-      ignoreGlobal: true
-    }),
-    inject({
-      MessageChannel: resolve('src/reconciler/SchedulerMessageChannel.mjs'),
-      window: resolve('src/reconciler/window-polyfill.mjs'),
-      performance: ['perf_hooks', 'performance'],
-      setTimeout: [resolve('src/reconciler/timeout-scope.mjs'), 'setTimeout'],
-      clearTimeout: [resolve('src/reconciler/timeout-scope.mjs'), 'clearTimeout']
-    }),
-    nodeResolve(),
-    minify()
-  ]
-})
-
 export default [
-  lightSourceReconciler('src/reconciler/light-source-reconciler.mjs'),
   lightSourceReact({ input: 'src/exports.mjs' }),
   lightSourceReact({ input: 'src/exports.mjs', standalone: true }),
-  reactJsxRuntime('react/cjs/react-jsx-runtime.production.min.js'),
-  reactStandalone('react/cjs/react.production.min.js')
+  reactJsxRuntime('react/cjs/react-jsx-runtime.production.min.js')
 ]

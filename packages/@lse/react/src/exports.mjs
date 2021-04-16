@@ -12,7 +12,7 @@
  */
 
 import { stage } from '@lse/core'
-import { shutdown } from '@lse/react/reconciler'
+import { shutdown } from 'react-reconciler-standalone'
 import { render, findSceneNode, findElement } from './renderer.mjs'
 import { letThereBeLight } from './letThereBeLight.mjs'
 import { version as reactVersion } from 'react'

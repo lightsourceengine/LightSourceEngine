@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import { ReactReconciler } from '@lse/react/reconciler'
+import { ReactReconciler } from 'react-reconciler-standalone'
 import { TextElement } from './TextElement.mjs'
 import { BoxElement } from './BoxElement.mjs'
 import { ImageElement } from './ImageElement.mjs'

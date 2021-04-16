@@ -17,13 +17,11 @@
   "type": "commonjs",
   "exports": {
     ".": "./dist/lse-react.cjs",
-    "./jsx-runtime": "./dist/jsx-runtime.cjs",
-    "./reconciler": "./dist/reconciler.cjs"
+    "./jsx-runtime": "./dist/jsx-runtime.cjs"
   },
   "files": [
     "dist/lse-react.cjs",
-    "dist/jsx-runtime.cjs",
-    "dist/reconciler.cjs"
+    "dist/jsx-runtime.cjs"
   ],
   "dependencies": {
     "@lse/core": "1.0.0-private.0"

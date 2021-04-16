@@ -1,0 +1,14 @@
+{
+  "name": "react-standalone",
+  "private": true,
+  "version": "1.0.0-private.0",
+  "type": "commonjs",
+  "exports": {
+    ".": "./index.cjs"
+  },
+  "scripts": {
+    "test": "echo 'No tests.'",
+    "lint": "echo 'Nothing to lint.'",
+    "bundle": "rimraf dist && rollup -c"
+  }
+}
