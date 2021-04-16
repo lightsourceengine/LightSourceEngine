@@ -14,11 +14,10 @@
   "engines": {
     "node": ">=15"
   },
-  "type": "module",
-  "module": "./dist/lse-core.mjs",
-  "exports": "./dist/lse-core.mjs",
+  "type": "commonjs",
+  "exports": "./dist/lse-core.cjs",
   "files": [
-    "dist/lse-core.mjs",
+    "dist/lse-core.cjs",
     "dist/Roboto-Regular-Latin.woff",
 
     "binding.gyp",

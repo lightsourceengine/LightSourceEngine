@@ -33,8 +33,8 @@ const lightSourceNpm = (input) => (
     input,
     onwarn,
     output: {
-      format: 'esm',
-      file: 'dist/lse-core.mjs',
+      format: 'cjs',
+      file: 'dist/lse-core.cjs',
       preferConst: true
     },
     plugins: [
@@ -51,8 +51,8 @@ const lightSourceStandalone = (input) => ({
   input,
   onwarn,
   output: {
-    format: 'esm',
-    file: 'dist/lse-core.standalone.mjs',
+    format: 'cjs',
+    file: 'dist/lse-core.standalone.cjs',
     preferConst: true
   },
   plugins: [

@@ -11,29 +11,29 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import { createRequire } from 'module'
 import { resolve } from 'path'
 import bindings from 'bindings'
 
-// Load the native portions of Light Source Engine from @lse/core.
+const loadNativeAddon = () => {
+  const { LSE_ENV, LSE_PATH } = process.env
+  const NATIVE_MODULE_NAME = 'lse-core.node'
 
-const { LSE_ENV, LSE_PATH } = process.env
-const NATIVE_MODULE_NAME = 'lse-core.node'
-const require = createRequire(import.meta.url)
-let addon = null
-
-try {
-  if (LSE_ENV === 'lse-node') {
-    // In "lse-node" mode, load the native module from the pseudo-builtin module path.
-    addon = require(resolve(LSE_PATH, '@lse', 'core', 'Release', NATIVE_MODULE_NAME))
-  } else {
-    // In "node" mode, load the native module from the package manager installed node_modules.
-    addon = bindings(NATIVE_MODULE_NAME)
+  try {
+    if (LSE_ENV === 'lse-node') {
+      // In "lse-node" mode, load the native module from the pseudo-builtin module path.
+      return require(resolve(LSE_PATH, '@lse', 'core', 'Release', NATIVE_MODULE_NAME))
+    } else {
+      // In "node" mode, load the native module from the package manager installed node_modules.
+      return bindings(NATIVE_MODULE_NAME)
+    }
+  } catch (e) {
+    console.error(`ERROR: Cannot load native code from ${NATIVE_MODULE_NAME}: ${e.message}`)
+    process.exit(1)
   }
-} catch (e) {
-  console.error(`ERROR: Cannot load native code from ${NATIVE_MODULE_NAME}: ${e.message}`)
-  process.exit(1)
 }
+
+// Load the native portions of Light Source Engine from @lse/core.
+const addon = loadNativeAddon()
 
 // Class Exports
 export const {

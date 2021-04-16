@@ -31,8 +31,8 @@ const lightSourceReact = ({ input, standalone }) => ({
   onwarn,
   external: ['@lse/core', '@lse/react/reconciler'],
   output: {
-    format: 'esm',
-    file: standalone ? 'dist/lse-react.standalone.mjs' : 'dist/lse-react.mjs',
+    format: 'cjs',
+    file: standalone ? 'dist/lse-react.standalone.cjs' : 'dist/lse-react.cjs',
     preferConst: true
   },
   plugins: [
@@ -68,7 +68,7 @@ const reactJsxRuntime = (jsxRuntimeSource) => ({
   onwarn,
   external: 'react',
   output: {
-    format: 'esm',
+    format: 'cjs',
     file: 'dist/jsx-runtime.cjs'
   },
   plugins: [
@@ -85,8 +85,8 @@ const lightSourceReconciler = (input) => ({
   input,
   onwarn,
   output: {
-    format: 'esm',
-    file: 'dist/reconciler.mjs',
+    format: 'cjs',
+    file: 'dist/reconciler.cjs',
     preferConst: true
   },
   external: ['worker_threads', 'react', 'object-assign'],

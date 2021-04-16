@@ -99,7 +99,7 @@
 //
 // root
 //   lib/
-//     builtin/
+//     node/
 //       @lse/
 //         core/
 //           index.mjs
@@ -435,12 +435,13 @@ class LightSourceNodePackage {
     if (isWindows(options.platform)) {
       this.#nodeBin = this.#nodeHome
       this.#nodeLib = this.#nodeHome
+      this.#nodeBuiltin = join(this.#nodeHome, 'lib', 'node')
     } else {
       this.#nodeBin = join(this.#nodeHome, 'bin')
       this.#nodeLib = join(this.#nodeHome, 'lib')
+      this.#nodeBuiltin = join(this.#nodeHome, 'lib', 'node')
     }
 
-    this.#nodeBuiltin = join(this.#nodeLib, 'builtin')
     this.#nodeAssets = join(this.#nodeHome, 'assets')
   }
 
@@ -480,6 +481,10 @@ class LightSourceNodePackage {
 
       for (const entry of module.js) {
         await copy(entry.source, join(sourceDir, entry.rename))
+      }
+
+      if (module.package) {
+        await writeFile(join(sourceDir, 'package.json'), JSON.stringify(module.package, null, 2))
       }
     }
 
@@ -673,12 +678,16 @@ class SourceRoot {
   getLightSourceModule () {
     return {
       name: '@lse/core',
-      js: [ { source: join(this.#root, 'packages/@lse/core/dist/lse-core.standalone.mjs'), rename: 'index.mjs' } ],
+      js: [ { source: join(this.#root, 'packages/@lse/core/dist/lse-core.standalone.cjs'), rename: 'index.cjs' } ],
       native: join(this.#root, 'packages/@lse/core/build/Release/lse-core.node'),
       font: [
         join(this.#root, 'packages/@lse/core/src/font/Roboto-Regular-Latin.woff'),
         join(this.#root, 'packages/@lse/core/src/font/font.manifest')
-      ]
+      ],
+      package: {
+        module: "commonjs",
+        exports: "./index.cjs"
+      }
     }
   }
 
@@ -686,11 +695,19 @@ class SourceRoot {
     return {
       name: '@lse/react',
       js: [
-        { source: join(this.#root, 'packages/@lse/react/dist/lse-react.standalone.mjs'), rename: 'index.mjs' },
+        { source: join(this.#root, 'packages/@lse/react/dist/lse-react.standalone.cjs'), rename: 'index.cjs' },
         { source: join(this.#root, 'packages/@lse/react/dist/jsx-runtime.cjs'), rename: 'jsx-runtime.cjs' },
-        { source: join(this.#root, 'packages/@lse/react/dist/reconciler.mjs'), rename: 'reconciler.mjs' },
+        { source: join(this.#root, 'packages/@lse/react/dist/reconciler.cjs'), rename: 'reconciler.cjs' },
       ],
-      native: null
+      native: null,
+      package: {
+        module: "commonjs",
+        exports: {
+          ".": "./index.cjs",
+          "./jsx-runtime": "./jsx-runtime.cjs",
+          "./reconciler": "./reconciler.cjs",
+        }
+      }
     }
   }
 
@@ -706,7 +723,11 @@ class SourceRoot {
     return {
       name: 'react',
       js: [ { source: join(this.#root, 'packages/@lse/react/dist/react.standalone.cjs'), rename: 'index.cjs' } ],
-      native: null
+      native: null,
+      package: {
+        module: "commonjs",
+        exports: "./index.cjs"
+      }
     }
   }
 

@@ -19,10 +19,10 @@ const { LSE_ENV, LSE_PATH } = process.env
 const builtins = (LSE_ENV === 'lse-node')
   ? {
       react: { url: pathToFileURL(resolvePath(LSE_PATH, 'react', 'index.cjs')).toString() },
-      '@lse/core': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'core', 'index.mjs')).toString() },
-      '@lse/react': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'react', 'index.mjs')).toString() },
+      '@lse/core': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'core', 'index.cjs')).toString() },
+      '@lse/react': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'react', 'index.cjs')).toString() },
       '@lse/react/jsx-runtime': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'react', 'jsx-runtime.cjs')).toString() },
-      '@lse/react/reconciler': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'react', 'reconciler.mjs')).toString() }
+      '@lse/react/reconciler': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'react', 'reconciler.cjs')).toString() }
     }
   : {}
 
@@ -38,5 +38,14 @@ export const resolve = async (specifier, context, defaultResolve) => {
     }
   }
 
-  return builtins[specifier] ?? defaultResolve(specifier, context)
+  // mimic the behavior of require. search locally, then load from builtin folder
+  try {
+    return defaultResolve(specifier, context)
+  } catch (e) {
+    if (builtins[specifier]) {
+      return builtins[specifier]
+    } else {
+      throw e
+    }
+  }
 }
