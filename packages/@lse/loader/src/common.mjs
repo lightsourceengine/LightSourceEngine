@@ -14,17 +14,24 @@
 import { fileURLToPath, pathToFileURL } from 'url'
 import { dirname, join, resolve as resolvePath } from 'path'
 
-const { LSE_ENV, LSE_PATH } = process.env
+const builtins = (() => {
+  const { LSE_ENV, LSE_PATH } = process.env
 
-const builtins = (LSE_ENV === 'lse-node')
-  ? {
-      react: { url: pathToFileURL(resolvePath(LSE_PATH, 'react', 'index.cjs')).toString() },
-      '@lse/core': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'core', 'index.cjs')).toString() },
-      '@lse/react': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'react', 'index.cjs')).toString() },
-      '@lse/react/jsx-runtime': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'react', 'jsx-runtime.cjs')).toString() },
-      '@lse/react/reconciler': { url: pathToFileURL(resolvePath(LSE_PATH, '@lse', 'react', 'reconciler.cjs')).toString() }
+  if (LSE_ENV === 'lse-node') {
+    const toUrl = (...parts) => pathToFileURL(resolvePath(LSE_PATH, ...parts)).href
+
+    return {
+      react: { url: toUrl('react', 'index.js') },
+      'react/jsx-runtime': { url: toUrl('react', 'jsx-runtime.js') },
+      'react/jsx-dev-runtime': { url: toUrl('react', 'jsx-dev-runtime.js') },
+      '@lse/core': { url: toUrl('@lse', 'core', 'index.cjs') },
+      '@lse/react': { url: toUrl('@lse', 'react', 'index.cjs') },
+      '@lse/react/jsx-runtime': { url: toUrl('@lse', 'react', 'jsx-runtime.cjs') }
     }
-  : {}
+  }
+
+  return {}
+})()
 
 export const resolve = async (specifier, context, defaultResolve) => {
   if (specifier.endsWith('_mocha')) {
@@ -34,7 +41,7 @@ export const resolve = async (specifier, context, defaultResolve) => {
     // Find the _mocha bin file relative to index.js. In order to load the file later, getFormat will
     // mark _mocha as a commonjs file.
     return {
-      url: pathToFileURL(join(dirname(fileURLToPath(result.url)), 'bin', '_mocha')).toString()
+      url: pathToFileURL(join(dirname(fileURLToPath(result.url)), 'bin', '_mocha')).href
     }
   }
 

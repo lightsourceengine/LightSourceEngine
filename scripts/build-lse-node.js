@@ -678,7 +678,7 @@ class SourceRoot {
   getLightSourceModule () {
     return {
       name: '@lse/core',
-      js: [ { source: join(this.#root, 'packages/@lse/core/dist/lse-core.standalone.cjs'), rename: 'index.js' } ],
+      js: [ { source: join(this.#root, 'packages/@lse/core/dist/lse-core.standalone.cjs'), rename: 'index.cjs' } ],
       native: join(this.#root, 'packages/@lse/core/build/Release/lse-core.node'),
       font: [
         join(this.#root, 'packages/@lse/core/src/font/Roboto-Regular-Latin.woff'),
@@ -686,7 +686,7 @@ class SourceRoot {
       ],
       package: {
         type: "commonjs",
-        exports: "./index.js"
+        exports: "./index.cjs"
       }
     }
   }
@@ -695,15 +695,15 @@ class SourceRoot {
     return {
       name: '@lse/react',
       js: [
-        { source: join(this.#root, 'packages/@lse/react/dist/lse-react.standalone.cjs'), rename: 'index.js' },
-        { source: join(this.#root, 'packages/@lse/react/dist/jsx-runtime.cjs'), rename: 'jsx-runtime.js' }
+        { source: join(this.#root, 'packages/@lse/react/dist/lse-react.standalone.cjs'), rename: 'index.cjs' },
+        { source: join(this.#root, 'packages/@lse/react/dist/jsx-runtime.cjs'), rename: 'jsx-runtime.cjs' }
       ],
       native: null,
       package: {
         type: "commonjs",
         exports: {
-          ".": "./index.js",
-          "./jsx-runtime": "./jsx-runtime.js"
+          ".": "./index.cjs",
+          "./jsx-runtime": "./jsx-runtime.cjs"
         }
       }
     }
