@@ -678,7 +678,7 @@ class SourceRoot {
   getLightSourceModule () {
     return {
       name: '@lse/core',
-      js: [ { source: join(this.#root, 'packages/@lse/core/dist/lse-core.standalone.cjs'), rename: 'index.cjs' } ],
+      js: [ { source: join(this.#root, 'packages/@lse/core/dist/lse-core.standalone.cjs'), rename: 'index.js' } ],
       native: join(this.#root, 'packages/@lse/core/build/Release/lse-core.node'),
       font: [
         join(this.#root, 'packages/@lse/core/src/font/Roboto-Regular-Latin.woff'),
@@ -686,7 +686,7 @@ class SourceRoot {
       ],
       package: {
         type: "commonjs",
-        exports: "./index.cjs"
+        exports: "./index.js"
       }
     }
   }
@@ -695,15 +695,15 @@ class SourceRoot {
     return {
       name: '@lse/react',
       js: [
-        { source: join(this.#root, 'packages/@lse/react/dist/lse-react.standalone.cjs'), rename: 'index.cjs' },
-        { source: join(this.#root, 'packages/@lse/react/dist/jsx-runtime.cjs'), rename: 'jsx-runtime.cjs' }
+        { source: join(this.#root, 'packages/@lse/react/dist/lse-react.standalone.cjs'), rename: 'index.js' },
+        { source: join(this.#root, 'packages/@lse/react/dist/jsx-runtime.cjs'), rename: 'jsx-runtime.js' }
       ],
       native: null,
       package: {
         type: "commonjs",
         exports: {
-          ".": "./index.cjs",
-          "./jsx-runtime": "./jsx-runtime.cjs"
+          ".": "./index.js",
+          "./jsx-runtime": "./jsx-runtime.js"
         }
       }
     }
@@ -720,11 +720,19 @@ class SourceRoot {
   getReactModule () {
     return {
       name: 'react',
-      js: [ { source: join(this.#root, 'packages/react-standalone/dist/index.cjs'), rename: 'index.cjs' } ],
+      js: [
+        { source: join(this.#root, 'packages/react-standalone/dist/index.cjs'), rename: 'index.js' },
+        { source: join(this.#root, 'packages/react-standalone/dist/jsx-runtime.cjs'), rename: 'jsx-runtime.js' },
+        { source: join(this.#root, 'packages/react-standalone/dist/jsx-dev-runtime.cjs'), rename: 'jsx-dev-runtime.js' }
+      ],
       native: null,
       package: {
         type: "commonjs",
-        exports: "./index.cjs"
+        exports: {
+          ".": "./index.js",
+          "./jsx-runtime": "./jsx-runtime.js",
+          "./jsx-dev-runtime": "./jsx-dev-runtime.js"
+        }
       }
     }
   }

@@ -13,12 +13,12 @@
 
 import { onwarn, replaceObjectAssign } from '../rollup/plugins'
 
-const reactStandalone = (reactSource) => ({
+const reactStandalone = (reactSource, file) => ({
   input: require.resolve(reactSource),
   onwarn,
   output: {
     format: 'cjs',
-    file: 'dist/index.cjs',
+    file: `dist/${file}.cjs`,
     preferConst: true
   },
   plugins: [
@@ -27,5 +27,7 @@ const reactStandalone = (reactSource) => ({
 })
 
 export default [
-  reactStandalone('react/cjs/react.production.min.js')
+  reactStandalone('react/cjs/react.production.min.js', 'index'),
+  reactStandalone('react/cjs/react-jsx-runtime.production.min.js', 'jsx-runtime'),
+  reactStandalone('react/cjs/react-jsx-dev-runtime.production.min.js', 'jsx-dev-runtime')
 ]
