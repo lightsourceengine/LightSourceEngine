@@ -11,9 +11,9 @@
  * specific language governing permissions and limitations under the License.
  */
 
-export * from './rgb.mjs'
-export * from './rgba.mjs'
-export * from './hsl.mjs'
-export * from './hsla.mjs'
-export * from './transform.mjs'
-export * from './filter.mjs'
+import { hsl } from './hsl.mjs'
+import { clamp } from '../util/index.mjs'
+
+export const hsla = (h, s, l, a) => {
+  return ((hsl(h, s, l) & 0xFFFFFF) | (Math.round(clamp(a, 0, 1) * 255) << 24)) >>> 0
+}

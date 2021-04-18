@@ -11,9 +11,16 @@
  * specific language governing permissions and limitations under the License.
  */
 
-export * from './rgb.mjs'
-export * from './rgba.mjs'
-export * from './hsl.mjs'
-export * from './hsla.mjs'
-export * from './transform.mjs'
-export * from './filter.mjs'
+import chai from 'chai'
+import { hsl } from '../../src/style/hsl.mjs'
+
+const { assert } = chai
+
+describe('hsl()', () => {
+  it('should convert HSL values to RGB pixel value', () => {
+    assert.equal(hsl(50, 0.25, 0.75), 0xFFCFCAAF)
+  })
+  it('should convert HSL values to RGB pixel value, when saturation is 0', () => {
+    assert.equal(hsl(50, 0, 0.75), 0xFFBFBFBF)
+  })
+})
