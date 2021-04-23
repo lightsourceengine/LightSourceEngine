@@ -14,10 +14,10 @@
 import { CFontManager, FontStatus, FontStyle, FontWeight, logger } from '../addon/index.mjs'
 import { Font } from './Font.mjs'
 import { createErrorStatusEvent, createReadyStatusEvent } from '../event/index.mjs'
-import { join, dirname, isAbsolute, normalize } from 'path'
-import { fileURLToPath } from 'url'
+import { join, isAbsolute, normalize } from 'path'
 import { readFileSync } from 'fs'
 import { isDataUri } from '../util/index.mjs'
+import { getBuiltinFont } from './getBuiltinFont.cjs'
 
 const kDataUriFontRegEx = /data:font\/[+\-\w\d]+;base64,(.*)/
 
@@ -270,7 +270,7 @@ const bootstrapFonts = (self) => {
     // project that installs @lse/core from npm.
     fontManifest = [
       {
-        uri: join(dirname(fileURLToPath(import.meta.url)), 'Roboto-Regular-Latin.woff'),
+        uri: getBuiltinFont(),
         family: 'roboto-builtin'
       }
     ]
