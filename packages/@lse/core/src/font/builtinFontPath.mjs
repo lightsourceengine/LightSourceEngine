@@ -11,6 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-const path = require('path')
+import { dirname } from 'path'
+import { fileURLToPath } from 'url'
 
-export const getBuiltinFont = () => path.join(__dirname, 'Roboto-Regular-Latin.woff')
+export const builtinFontPath = dirname(fileURLToPath(import.meta.url))

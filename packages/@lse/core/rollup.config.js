@@ -39,6 +39,9 @@ const lightSourceNpm = (input) => (
     },
     plugins: [
       autoExternal(),
+      inlineModule({
+        './builtinFontPath.mjs': 'export const builtinFontPath = __dirname'
+      }),
       resolve(),
       lseVersion(),
       beautify(),

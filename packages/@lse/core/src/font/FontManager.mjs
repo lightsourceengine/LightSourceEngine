@@ -17,7 +17,7 @@ import { createErrorStatusEvent, createReadyStatusEvent } from '../event/index.m
 import { join, isAbsolute, normalize } from 'path'
 import { readFileSync } from 'fs'
 import { isDataUri } from '../util/index.mjs'
-import { getBuiltinFont } from './getBuiltinFont.cjs'
+import { builtinFontPath } from './builtinFontPath.mjs'
 
 const kDataUriFontRegEx = /data:font\/[+\-\w\d]+;base64,(.*)/
 
@@ -270,7 +270,7 @@ const bootstrapFonts = (self) => {
     // project that installs @lse/core from npm.
     fontManifest = [
       {
-        uri: getBuiltinFont(),
+        uri: join(builtinFontPath, 'Roboto-Regular-Latin.woff'),
         family: 'roboto-builtin'
       }
     ]
