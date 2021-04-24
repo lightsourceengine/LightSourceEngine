@@ -3,7 +3,6 @@ name: lse-runtime-packages
 on: workflow_dispatch
 
 env:
-  CROSSTOOLS_HOME: ${{ github.workspace }}/crosstools
   npm_config_lse_install_opts: --jobs max
   npm_config_lse_enable_native_tests: 0
 
@@ -50,7 +49,6 @@ jobs:
     env:
       CROSS_TOOLCHAIN_VERSION: 8
       CROSS_TOOLCHAIN_PREFIX: aarch64-linux-gnu
-      CROSSTOOLS_HOME: ${{ github.workspace }}/ci
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -161,6 +159,8 @@ jobs:
 
   build-lse-node-linux-arm-job:
     runs-on: ubuntu-18.04
+    env:
+      CROSS_TOOLCHAIN_PREFIX: arm-rpi-linux-gnueabihf
     strategy:
       matrix:
         include:
@@ -181,16 +181,11 @@ jobs:
           path: srcroot
           submodules: recursive
 
-      - name: Checkout crosstools
-        uses: actions/checkout@v2
-        with:
-          repository: lightsourceengine/crosstools
-          path: crosstools
-
-      - name: Configure crosstools
+      - name: Get ARM Toolchain
         run: |
-          source crosstools/bin/x64-gcc-6.3.1.env
-          echo "CROSS_LIBCPP=${CROSS_LIBCPP}" >> $GITHUB_ENV
+          wget https://github.com/lightsourceengine/ci/releases/download/v1.0.0/x64-gcc-8.3.0.tar.xz
+          tar -xJf x64-gcc-8.3.0.tar.xz
+          echo "${{github.workspace}}/x64-gcc-8.3.0/arm-rpi-linux-gnueabihf/bin" >> $GITHUB_PATH
         shell: bash
 
       - name: Checkout ci-packages

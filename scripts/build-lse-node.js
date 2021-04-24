@@ -34,9 +34,6 @@
 // If --node-binary-source custom is specified, this is the tag that should be used to select the desired node
 // binary package.
 //
-// --crosstools-home path [Default: CROSSTOOLS_HOME env value]
-// If cross compiling to arm, this path points to the source root of the crosstools project.
-//
 // --sdl-runtime-pkg path
 // SDL2 runtime binaries to be included in the final package.
 //
@@ -70,8 +67,8 @@
 // - node
 // - upx
 // - tar
-// - python 2.7 (for node-gyp)
-// - crosstools (https://github.com/lightsourceengine/crosstools)
+// - python 3 (for node-gyp)
+// - cross compiling tools (https://github.com/lightsourceengine/ci)
 // - C++ 14 toolchain (gcc or clang)
 // - SDL 2.0.4+ development libraries
 // - SDL Mixer 2.0.0+ development libraries
@@ -182,7 +179,6 @@ const commandLineArgSpec = [
   { name: 'arch', type: String, multiple: false, defaultValue: process.arch },
   { name: 'profile', type: String, multiple: false, defaultValue: Profile.desktop },
   { name: 'sdl-profile', type: String, multiple: false, defaultValue: SDLProfile.system },
-  { name: 'crosstools-home', type: String, multiple: false, defaultValue: process.env.CROSSTOOLS_HOME || '' },
   { name: 'sdl-runtime-pkg', type: String, multiple: false, defaultValue: '' },
   { name: 'sdl-mixer-runtime-pkg', type: String, multiple: false, defaultValue: '' },
   { name: 'skip-compile', type: Boolean, defaultValue: false },
@@ -213,10 +209,6 @@ const getCommandLineOptions = () => {
 
   if (!options.isArmCrossCompile && (options.platform !== process.platform || options.arch !== process.arch)) {
     throw Error(`Host ${process.platform}-${process.arch} cannot compile to target ${options.platform}-${options.arch}`)
-  }
-
-  if (options.isArmCrossCompile && !pathExistsSync(options.crosstoolsHome)) {
-    throw Error('--crosstool-home does not specify a directory')
   }
 
   if (!options.nodeBinaryCache) {
@@ -794,7 +786,7 @@ class SourceRoot {
         crossTarget = options.arch
       }
 
-      program = join(options.crosstoolsHome, 'bin', 'cross')
+      program = join('cross')
       programArgs = [crossTarget, 'yarn']
     } else {
       program = 'yarn'
@@ -1008,14 +1000,15 @@ const stripNativeBinary = async (filename, options) => {
     switch (options.arch) {
       case Architecture.armv6l:
       case Architecture.armv7l:
-        strip = join(options.crosstoolsHome,
-          'x64-gcc-6.3.1/arm-rpi-linux-gnueabihf/bin/arm-rpi-linux-gnueabihf-strip')
+        // TODO: make strip program configurable
+        strip = 'arm-rpi-linux-gnueabihf-strip'
         break
       case Architecture.arm64:
+        // TODO: make strip program configurable
         strip = 'aarch64-linux-gnu-strip'
         break
       default:
-        throw Error(`Unknown arm architecture: ${options.arch}`)
+        throw Error(`strip not supported for ${options.arch}`)
     }
 
     await runCommand (strip, [filename])
@@ -1061,7 +1054,8 @@ const createLseNodePackage = async () => {
 
       return Promise.all([
         lightSourceNodePackage.installSDLPackage(sdlPackage, options),
-        lightSourceNodePackage.installCppLib(options),
+        // TODO: reimplement once the gcc 8 build is working
+        // lightSourceNodePackage.installCppLib(options),
         lightSourceNodePackage.configureNodeExecutable(nodePackage, options),
         lightSourceNodePackage.installNodeWrapperScript(nodePackage, sourceRoot, options),
         lightSourceNodePackage.installLicense(sourceRoot),
