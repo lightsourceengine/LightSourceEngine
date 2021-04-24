@@ -30,6 +30,17 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
+      - name: Linux Packages
+        if: contains(matrix.os, 'ubuntu')
+        uses: ./.github/actions/apt-get
+        with:
+          ppa: 'ubuntu-toolchain-r-test'
+          packages: g++-8 gcc-8
+
+      - name: Use GCC 8
+        if: contains(matrix.os, 'ubuntu')
+        uses: ./.github/actions/use-gcc-8
+
       - name: Install Scripts
         run: yarn
 

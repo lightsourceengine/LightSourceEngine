@@ -25,10 +25,10 @@ jobs:
         uses: ./.github/actions/apt-get
         with:
           ppa: 'ubuntu-toolchain-r-test'
-          packages: g++-6 gcc-6
+          packages: g++-8 gcc-8
 
-      - name: Use GCC 6
-        uses: ./.github/actions/use-gcc-6
+      - name: Use GCC 8
+        uses: ./.github/actions/use-gcc-8
 
       - name: Create lse-node Package
         run: |
