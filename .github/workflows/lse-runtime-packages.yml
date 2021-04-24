@@ -74,6 +74,7 @@ jobs:
 
       - name: Create lse-node Package
         run: |
+          echo "${{github.workspace}}/ci/bin" >> $GITHUB_PATH
           yarn
           ./build-lse-node.js --platform linux --arch arm64 --sdl-profile system
         shell: bash
