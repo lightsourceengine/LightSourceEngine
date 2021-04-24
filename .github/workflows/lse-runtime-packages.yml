@@ -47,6 +47,10 @@ jobs:
 
   build-lse-node-linux-arm64-job:
     runs-on: ubuntu-18.04
+    env:
+      CROSS_TOOLCHAIN_VERSION: 8
+      CROSS_TOOLCHAIN_PREFIX: aarch64-linux-gnu
+      CROSSTOOLS_HOME: ${{ github.workspace }}/ci
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -54,11 +58,11 @@ jobs:
           path: srcroot
           submodules: recursive
 
-      - name: Checkout crosstools
+      - name: Checkout ci
         uses: actions/checkout@v2
         with:
-          repository: lightsourceengine/crosstools
-          path: crosstools
+          repository: lightsourceengine/ci
+          path: ci
 
       - name: Install Node
         uses: actions/setup-node@v1
@@ -68,7 +72,7 @@ jobs:
       - name: Linux Packages
         uses: ./srcroot/.github/actions/apt-get
         with:
-          packages: g++-6-aarch64-linux-gnu
+          packages: g++-8-aarch64-linux-gnu
 
       - name: Create lse-node Package
         run: |
