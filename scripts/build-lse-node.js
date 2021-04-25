@@ -574,15 +574,12 @@ class LightSourceNodePackage {
 
   async installCppLib (options) {
     if (options.arch === Architecture.armv6l || options.arch === Architecture.armv7l) {
-      const libcpp = process.env.CROSS_LIBCPP
-      const libcppBasename = basename(libcpp)
       const ldPath = join(this.#nodeLib, 'native')
 
       await ensureDir(ldPath)
-      await copy(libcpp, join(ldPath, libcppBasename))
-      await createSymlink(libcppBasename, join(ldPath, 'libstdc++.so.6'))
+      await runCommand('copy-stdcpp', [ldPath], {shell: true})
 
-      log(`staging: ${libcppBasename} installed`)
+      log(`staging: libcpp installed`)
     }
   }
 
@@ -1054,8 +1051,8 @@ const createLseNodePackage = async () => {
 
       return Promise.all([
         lightSourceNodePackage.installSDLPackage(sdlPackage, options),
-        // TODO: reimplement once the gcc 8 build is working
-        // lightSourceNodePackage.installCppLib(options),
+        lightSourceNodePackage.installCppLib(options),
+        lightSourceNodePackage.configureNodeExecutable(nodePackage, options),
         lightSourceNodePackage.configureNodeExecutable(nodePackage, options),
         lightSourceNodePackage.installNodeWrapperScript(nodePackage, sourceRoot, options),
         lightSourceNodePackage.installLicense(sourceRoot),
