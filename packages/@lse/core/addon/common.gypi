@@ -4,7 +4,7 @@
     "-std=gnu++1y",
   ],
   "cflags_cc+": [
-    "-std=gnu++14",
+    "-std=c++17",
     "-fvisibility=hidden",
     "-fvisibility-inlines-hidden",
     "-ffunction-sections",
@@ -30,7 +30,7 @@
     "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
     "CLANG_CXX_LIBRARY": "libc++",
     "MACOSX_DEPLOYMENT_TARGET": "10.10",
-    "CLANG_CXX_LANGUAGE_STANDARD": "gnu++14",
+    "CLANG_CXX_LANGUAGE_STANDARD": "c++17",
     "DEAD_CODE_STRIPPING": "YES",
     "GCC_THREADSAFE_STATICS": "NO",
     "OTHER_CFLAGS": [
@@ -44,7 +44,7 @@
     "VCCLCompilerTool": {
       "ExceptionHandling": "1",
       "AdditionalOptions": [
-        "/std:c++14"
+        "/std:c++17"
       ]
     }
   },
