@@ -41,10 +41,7 @@
     "third-party/concurrentqueue/repo/concurrentqueue.h",
     "third-party/concurrentqueue/repo/lightweightsemaphore.h",
 
-    "third-party/cpp17_headers/LICENSE",
-    "third-party/cpp17_headers/include",
-    "third-party/cpp17_headers/repo/include/stx/optional.hpp",
-    "third-party/cpp17_headers/repo/include/stx/utility.hpp",
+    "third-party/cpp-next",
 
     "third-party/filesystem/LICENSE",
     "third-party/filesystem/include",
