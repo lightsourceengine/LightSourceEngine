@@ -135,10 +135,9 @@ jobs:
 
       - name: Download SDL Runtime
         run: |
-          choco install wget
-          wget ${CI_URL}/SDL2-2.0.14-win32-x64.zip
-          wget ${CI_URL}/SDL2_mixer-2.0.4-win32-x64.zip
-        shell: bash
+          Invoke-WebRequest -Uri ${env:CI_URL}/SDL2-2.0.14-win32-x64.zip -OutFile SDL2-2.0.14-win32-x64.zip
+          Invoke-WebRequest -Uri ${env:CI_URL}/SDL2_mixer-2.0.4-win32-x64.zip -OutFile SDL2_mixer-2.0.4-win32-x64.zip
+        shell: powershell
 
       - name: Install Node
         uses: actions/setup-node@v1

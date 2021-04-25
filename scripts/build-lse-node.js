@@ -827,7 +827,7 @@ class SDLFrameworkPackage {
 
       await ensureDir(frameworkPath)
       await copy(pkg, frameworkPath)
-    } else if (pkg.endsWith('.tar.gz')) {
+    } else if (pkg.endsWith('.tar.gz') || pkg.endsWith('.tgz')) {
         await tar.x({
           file: pkg,
           C: libPath
