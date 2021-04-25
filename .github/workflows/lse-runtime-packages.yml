@@ -112,7 +112,7 @@ jobs:
       - name: Create lse-node Package
         run: |
           yarn
-          ./build-lse-node.js --sdl-profile framework --sdl-runtime-pkg "${GITHUB_WORKSPACE}/SDL2-2.0.14.framework.tar.gz" --sdl-mixer-runtime-pkg "${GITHUB_WORKSPACE}/SDL2_mixer-2.0.4.framework.tar.gz"
+          ./build-lse-node.js --sdl-profile framework --sdl-runtime-pkg "${GITHUB_WORKSPACE}/SDL2-2.0.14.framework.tgz" --sdl-mixer-runtime-pkg "${GITHUB_WORKSPACE}/SDL2_mixer-2.0.4.framework.tgz"
         shell: bash
         working-directory: srcroot/scripts
 
@@ -135,6 +135,7 @@ jobs:
 
       - name: Download SDL Runtime
         run: |
+          choco install wget
           wget ${CI_URL}/SDL2-2.0.14-win32-x64.zip
           wget ${CI_URL}/SDL2_mixer-2.0.4-win32-x64.zip
         shell: bash
