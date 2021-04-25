@@ -12,12 +12,13 @@
  */
 
 #include "AudioUtil.h"
-#include <std17/algorithm>
+
+#include <algorithm>
 
 namespace lse {
 
 float ConstrainVolume(const float volume) noexcept {
-  return std17::clamp(volume, 0.f, 1.f);
+  return std::clamp(volume, 0.f, 1.f);
 }
 
 std::vector<std::string> ListDecoders(int32_t count, const char*(*toString)(int32_t index)) {

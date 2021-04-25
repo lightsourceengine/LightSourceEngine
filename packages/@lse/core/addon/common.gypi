@@ -23,13 +23,12 @@
     "-flto"
   ],
   "defines": [
-    "STX_NAMESPACE_NAME=std17",
     "YG_ENABLE_NODE_LAYOUT_EVENT=1",
   ],
   "xcode_settings": {
     "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
     "CLANG_CXX_LIBRARY": "libc++",
-    "MACOSX_DEPLOYMENT_TARGET": "10.10",
+    "MACOSX_DEPLOYMENT_TARGET": "10.14",
     "CLANG_CXX_LANGUAGE_STANDARD": "c++17",
     "DEAD_CODE_STRIPPING": "YES",
     "GCC_THREADSAFE_STATICS": "NO",

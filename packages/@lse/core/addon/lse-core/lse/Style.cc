@@ -135,7 +135,7 @@ void Style::SetColor(StyleProperty property, color_t value) {
   }
 }
 
-std17::optional<color_t> Style::GetColor(StyleProperty property) {
+std::optional<color_t> Style::GetColor(StyleProperty property) {
   assert(StylePropertyMetaGetType(property) == StylePropertyMetaTypeColor);
 
   if (this->colorMap.contains(property)) {
@@ -202,7 +202,7 @@ const StyleValue& Style::GetNumber(StyleProperty property) {
   }
 }
 
-std17::optional<int32_t> Style::GetInteger(StyleProperty property) {
+std::optional<int32_t> Style::GetInteger(StyleProperty property) {
   assert(StylePropertyMetaGetType(property) == StylePropertyMetaTypeInteger);
 
   if (this->enumMap.contains(property)) {
