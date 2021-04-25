@@ -28,7 +28,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v1
         with:
-          node-version: 15.14.0
+          node-version: 16.0.0
 
       - name: Linux Packages
         if: contains(matrix.os, 'ubuntu')

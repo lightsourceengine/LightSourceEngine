@@ -18,7 +18,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v1
         with:
-          node-version: 15.14.0
+          node-version: 16.0.0
 
       - name: Linux Packages
         uses: ./.github/actions/apt-get
@@ -65,7 +65,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v1
         with:
-          node-version: 15.14.0
+          node-version: 16.0.0
 
       - name: Linux Packages
         uses: ./srcroot/.github/actions/apt-get
@@ -106,7 +106,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v1
         with:
-          node-version: 15.14.0
+          node-version: 16.0.0
 
       - name: Create lse-node Package
         run: |
@@ -141,7 +141,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v1
         with:
-          node-version: 15.14.0
+          node-version: 16.0.0
 
       - name: Create lse-node Package
         run: |
@@ -211,7 +211,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v1
         with:
-          node-version: 15.14.0
+          node-version: 16.0.0
 
       - name: Create lse-node Package
         run: |
