@@ -76,7 +76,7 @@ std::string Format(const char* format, const Args& ... args) {
 
 namespace detail {
 
-struct CStringMapEqualTo : public std::binary_function<const char*, const char*, bool> {
+struct CStringMapEqualTo {
   bool operator()(const char* lhs, const char* rhs) const noexcept {
     return strcmp(lhs, rhs) == 0;
   }
