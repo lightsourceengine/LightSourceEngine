@@ -5,6 +5,7 @@ on: workflow_dispatch
 env:
   npm_config_lse_install_opts: --jobs max
   npm_config_lse_enable_native_tests: 0
+  CI_URL: https://github.com/lightsourceengine/ci/releases/download/v1.0.0
 
 jobs:
   build-lse-node-linux-x64-job:
@@ -97,11 +98,11 @@ jobs:
           path: srcroot
           submodules: recursive
 
-      - name: Checkout ci-packages
-        uses: actions/checkout@v2
-        with:
-          repository: lightsourceengine/ci-packages
-          path: ci-packages
+      - name: Download SDL Frameworks
+        run: |
+          wget ${CI_URL}/SDL2-2.0.14.framework.tgz
+          wget ${CI_URL}/SDL2_mixer-2.0.4.framework.tgz
+        shell: bash
 
       - name: Install Node
         uses: actions/setup-node@v1
@@ -111,7 +112,7 @@ jobs:
       - name: Create lse-node Package
         run: |
           yarn
-          ./build-lse-node.js --sdl-profile framework --sdl-runtime-pkg "${GITHUB_WORKSPACE}/ci-packages/SDL2-2.0.14.framework.tar.gz" --sdl-mixer-runtime-pkg "${GITHUB_WORKSPACE}/ci-packages/SDL2_mixer-2.0.4.framework.tar.gz"
+          ./build-lse-node.js --sdl-profile framework --sdl-runtime-pkg "${GITHUB_WORKSPACE}/SDL2-2.0.14.framework.tar.gz" --sdl-mixer-runtime-pkg "${GITHUB_WORKSPACE}/SDL2_mixer-2.0.4.framework.tar.gz"
         shell: bash
         working-directory: srcroot/scripts
 
@@ -132,11 +133,11 @@ jobs:
           path: srcroot
           submodules: recursive
 
-      - name: Checkout ci-packages
-        uses: actions/checkout@v2
-        with:
-          repository: lightsourceengine/ci-packages
-          path: ci-packages
+      - name: Download SDL Runtime
+        run: |
+          wget ${CI_URL}/SDL2-2.0.14-win32-x64.zip
+          wget ${CI_URL}/SDL2_mixer-2.0.4-win32-x64.zip
+        shell: bash
 
       - name: Install Node
         uses: actions/setup-node@v1
@@ -146,7 +147,7 @@ jobs:
       - name: Create lse-node Package
         run: |
           yarn
-          ./build-lse-node.js --sdl-profile dll --sdl-runtime-pkg "${GITHUB_WORKSPACE}/ci-packages/SDL2-2.0.14-win32-x64.zip" --sdl-mixer-runtime-pkg "${GITHUB_WORKSPACE}/ci-packages/SDL2_mixer-2.0.4-win32-x64.zip"
+          ./build-lse-node.js --sdl-profile dll --sdl-runtime-pkg "${GITHUB_WORKSPACE}/SDL2-2.0.14-win32-x64.zip" --sdl-mixer-runtime-pkg "${GITHUB_WORKSPACE}/SDL2_mixer-2.0.4-win32-x64.zip"
         shell: bash
         working-directory: srcroot/scripts
 
@@ -166,13 +167,13 @@ jobs:
       matrix:
         include:
           - arch: armv7l
-            build_lse_node_args: --sdl-profile system
+            build_lse_node_args: --node-binary-source custom --node-custom-tag full --sdl-profile system
           - arch: armv7l
             build_lse_node_args: --node-binary-source custom --node-custom-tag pi_xnpm_xintl --sdl-profile native --profile pi --sdl-runtime-pkg ${GITHUB_WORKSPACE}/SDL2-2.0.14-armv7l-pi --compress-node-binary --strip-node-binary --strip-lse-binary --minimal-node-install
           - arch: armv7l
             build_lse_node_args: --node-binary-source custom --node-custom-tag pi_xnpm_xintl_xhttp --sdl-profile system --profile nclassic --compress-node-binary --strip-node-binary --strip-lse-binary --minimal-node-install
           - arch: armv6l
-            build_lse_node_args: --node-binary-source unofficial --sdl-profile system
+            build_lse_node_args: --node-binary-source custom --node-custom-tag full --sdl-profile system
           - arch: armv6l
             build_lse_node_args: --node-binary-source custom --node-custom-tag pi_xnpm_xintl --sdl-profile native --profile pi --sdl-runtime-pkg ${GITHUB_WORKSPACE}/SDL2-2.0.14-armv6l-pi --compress-node-binary --strip-node-binary --strip-lse-binary --minimal-node-install
     steps:
@@ -184,21 +185,16 @@ jobs:
 
       - name: Get ARM Toolchain
         run: |
-          wget https://github.com/lightsourceengine/ci/releases/download/v1.0.0/x64-gcc-8.3.0.tar.xz
+          wget ${CI_URL}/x64-gcc-8.3.0.tar.xz
           tar -xJf x64-gcc-8.3.0.tar.xz
           echo "${{github.workspace}}/x64-gcc-8.3.0/arm-rpi-linux-gnueabihf/bin" >> $GITHUB_PATH
         shell: bash
 
-      - name: Checkout ci-packages
+      - name: Download SDL Runtime
         if: contains(matrix.build_lse_node_args, '--sdl-runtime-pkg')
-        uses: actions/checkout@v2
-        with:
-          repository: lightsourceengine/ci-packages
-          path: ci-packages
-
-      - name: Extract SDL Package
-        if: contains(matrix.build_lse_node_args, '--sdl-runtime-pkg')
-        run: tar -xzf ci-packages/SDL2-2.0.14-${{ matrix.arch }}-pi.tar.gz
+        run: |
+          wget ${CI_URL}/SDL2-2.0.14-${{ matrix.arch }}-pi.tar.gz
+          tar -xzf SDL2-2.0.14-${{ matrix.arch }}-pi.tar.gz
         shell: bash
 
       - name: Install UPX
