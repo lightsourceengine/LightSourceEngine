@@ -81,7 +81,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Linux Packages
-        if: contains(matrix.os, 'ubuntu')
         uses: ./.github/actions/apt-get
         with:
           ppa: 'ubuntu-toolchain-r-test'
