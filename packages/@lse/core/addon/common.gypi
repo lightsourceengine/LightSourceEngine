@@ -24,6 +24,7 @@
   ],
   "defines": [
     "STX_NAMESPACE_NAME=std17",
+    "STX_NO_STD_OPTIONAL=1",
     "YG_ENABLE_NODE_LAYOUT_EVENT=1",
   ],
   "xcode_settings": {
