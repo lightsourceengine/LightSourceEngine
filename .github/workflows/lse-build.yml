@@ -18,9 +18,6 @@ jobs:
     strategy:
       matrix:
         os: [ windows-2019, ubuntu-18.04, macos-10.15 ]
-    env:
-      CC: gcc-8
-      CXX: g++-8
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -39,6 +36,10 @@ jobs:
         with:
           ppa: 'ubuntu-toolchain-r-test'
           packages: g++-8 gcc-8
+
+      - name: Use GCC 8
+        if: contains(matrix.os, 'ubuntu')
+        uses: ./.github/actions/use-gcc-8
 
       - name: Yarn Cache
         uses: egordm/gha-yarn-node-cache@v1
