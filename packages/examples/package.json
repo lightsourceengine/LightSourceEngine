@@ -10,7 +10,7 @@
   },
   "homepage": "https://www.lightsourceengine.com",
   "engines": {
-    "node": ">=16"
+    "node": ">=14"
   },
   "scripts": {
     "bundle": "echo 'Skipping bundle.'",
