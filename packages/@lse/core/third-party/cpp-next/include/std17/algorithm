@@ -11,27 +11,25 @@
  * specific language governing permissions and limitations under the License.
  */
 
-#include "AudioUtil.h"
+#pragma once
 
-#include <std17/algorithm>
+#include <algorithm>
+#include <cassert>
 
-namespace lse {
+namespace std17 {
 
-float ConstrainVolume(const float volume) noexcept {
-  return std17::clamp(volume, 0.f, 1.f);
+// from: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0025r1.html
+template<class T>
+constexpr const T &clamp(const T &v, const T &lo, const T &hi) noexcept {
+    assert(!(hi < lo));
+    return (v < lo) ? lo : (hi < v) ? hi : v;
 }
 
-std::vector<std::string> ListDecoders(int32_t count, const char*(*toString)(int32_t index)) {
-  std::vector<std::string> decoders;
-
-  decoders.reserve(count);
-
-  for (int32_t i = 0; i < count; i++) {
-    auto name{toString(i)};
-    decoders.emplace_back(name ? name : "unknown");
-  }
-
-  return decoders;
+// from: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0025r1.html
+template<class T, class Compare>
+constexpr const T &clamp(const T &v, const T &lo, const T &hi, Compare comp) noexcept {
+    assert(!comp(hi, lo));
+    return comp(v, lo) ? lo : comp(hi, v) ? hi : v;
 }
 
-} // namespace lse
+} // namespace std17

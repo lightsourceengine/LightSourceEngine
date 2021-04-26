@@ -13,7 +13,7 @@
 
 #include <lse/CompositeContext.h>
 
-#include <algorithm>
+#include <std17/algorithm>
 #include <lse/Renderer.h>
 
 namespace lse {
@@ -76,7 +76,7 @@ const Rect& CompositeContext::CurrentClipRect() const noexcept {
 }
 
 void CompositeContext::PushOpacity(float value) {
-  this->opacity.push_back(this->opacity.back() * std::clamp(value, 0.f, 1.f));
+  this->opacity.push_back(this->opacity.back() * std17::clamp(value, 0.f, 1.f));
 }
 
 void CompositeContext::PopOpacity() {

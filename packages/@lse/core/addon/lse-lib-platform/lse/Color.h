@@ -14,7 +14,7 @@
 #pragma once
 
 #include <cstdint>
-#include <algorithm>
+#include <std17/algorithm>
 #include <lse/System.h>
 
 namespace lse {
@@ -63,7 +63,7 @@ union color_t {
    */
   constexpr color_t MixAlpha(float opacity) const noexcept {
     return {
-        static_cast<uint32_t>(static_cast<float>(this->a) * std::clamp(opacity, 0.f, 1.f)),
+        static_cast<uint32_t>(static_cast<float>(this->a) * std17::clamp(opacity, 0.f, 1.f)),
         this->r,
         this->g,
         this->b

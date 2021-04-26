@@ -14,6 +14,7 @@
 #include <lse/StyleContext.h>
 
 #include <algorithm>
+#include <std17/algorithm>
 #include <std20/numbers>
 #include <Yoga.h>
 #include <YGStyle.h>
@@ -78,9 +79,9 @@ float StyleContext::ComputeOpacity(Style* style) const noexcept {
 
   switch (styleValue.unit) {
     case StyleNumberUnitPoint:
-      return std::clamp(styleValue.value, 0.f, 1.f);
+      return std17::clamp(styleValue.value, 0.f, 1.f);
     case StyleNumberUnitPercent:
-      return std::clamp(styleValue.value / 100.f, 0.f, 1.f);
+      return std17::clamp(styleValue.value / 100.f, 0.f, 1.f);
     default:
       return 1.f;
   }

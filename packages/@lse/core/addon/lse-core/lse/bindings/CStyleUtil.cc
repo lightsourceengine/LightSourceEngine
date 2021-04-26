@@ -31,8 +31,8 @@ constexpr auto kStyleTransformSpecXIndex = 1;
 constexpr auto kStyleTransformSpecYIndex = 2;
 constexpr auto kStyleTransformSpecAngleIndex = 3;
 
-static std::optional<color_t> ParseHexHashColorString(const char* str) noexcept;
-static std::optional<StyleValue> ParseStyleNumberString(const char* value) noexcept;
+static std17::optional<color_t> ParseHexHashColorString(const char* str) noexcept;
+static std17::optional<StyleValue> ParseStyleNumberString(const char* value) noexcept;
 
 static CStringHashMap<StyleNumberUnit> sUnitMap{
   { "px", StyleNumberUnitPoint },
@@ -201,7 +201,7 @@ static CStringHashMap<uint32_t> sColorMap{
   { "transparent", 0 },
 };
 
-napi_value BoxColor(napi_env env, const std::optional<color_t>& color) noexcept {
+napi_value BoxColor(napi_env env, const std17::optional<color_t>& color) noexcept {
   if (color.has_value()) {
     return napix::to_value(env, color->value);
   } else {
@@ -209,7 +209,7 @@ napi_value BoxColor(napi_env env, const std::optional<color_t>& color) noexcept 
   }
 }
 
-std::optional<color_t> UnboxColor(napi_env env, napi_value value) noexcept {
+std17::optional<color_t> UnboxColor(napi_env env, napi_value value) noexcept {
   napi_valuetype type{};
   napi_typeof(env, value, &type);
 
@@ -271,7 +271,7 @@ napi_value BoxStyleValue(napi_env env, const StyleValue& value) noexcept {
   return instance;
 }
 
-std::optional<StyleValue> UnboxStyleValue(napi_env env, napi_value value) noexcept {
+std17::optional<StyleValue> UnboxStyleValue(napi_env env, napi_value value) noexcept {
   bool isArray{};
 
   // use case: style.prop = otherStyle.prop
@@ -370,7 +370,7 @@ napi_value BoxStyleTransformSpec(napi_env env, const std::vector<StyleTransformS
   return result;
 }
 
-std::optional<StyleTransformSpec> UnboxStyleTransformSpec(
+std17::optional<StyleTransformSpec> UnboxStyleTransformSpec(
     napi_env env, napi_value value, napi_value constructor) noexcept {
   bool instanceOf{};
   napi_instanceof(env, value, constructor, &instanceOf);
@@ -542,7 +542,7 @@ std::vector<StyleFilterFunction> UnboxStyleFilterFunctionList(napi_env env, napi
   return result;
 }
 
-static std::optional<StyleValue> ParseStyleNumberString(const char* value) noexcept {
+static std17::optional<StyleValue> ParseStyleNumberString(const char* value) noexcept {
   if (strcmp(value, "auto") == 0) {
     return StyleValue::OfAuto();
   }
@@ -567,7 +567,7 @@ static std::optional<StyleValue> ParseStyleNumberString(const char* value) noexc
   return {};
 }
 
-static std::optional<color_t> ParseHexHashColorString(const char* str) noexcept {
+static std17::optional<color_t> ParseHexHashColorString(const char* str) noexcept {
   static constexpr std::size_t kBufferSize{ 11 };
   char buffer[kBufferSize];
 

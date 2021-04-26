@@ -20,7 +20,7 @@
 #include <Yoga.h>
 #include <phmap.h>
 #include <phmap_utils.h>
-#include <optional>
+#include <std17/optional>
 
 namespace lse {
 
@@ -129,7 +129,7 @@ class Style : public Reference {
 
   // color based properties
   void SetColor(StyleProperty property, color_t color);
-  std::optional<color_t> GetColor(StyleProperty property);
+  std17::optional<color_t> GetColor(StyleProperty property);
 
   // string based properties
   void SetString(StyleProperty property, std::string&& value);
@@ -140,7 +140,7 @@ class Style : public Reference {
   const StyleValue& GetNumber(StyleProperty property);
 
   // integer based properties
-  std::optional<int32_t> GetInteger(StyleProperty property);
+  std17::optional<int32_t> GetInteger(StyleProperty property);
   void SetInteger(StyleProperty property, int32_t value);
 
   // transform property
