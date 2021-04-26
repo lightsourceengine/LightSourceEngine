@@ -18,6 +18,9 @@ jobs:
     strategy:
       matrix:
         os: [ windows-2019, ubuntu-18.04, macos-10.15 ]
+    env:
+      CC: gcc-8
+      CXX: g++-8
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -37,10 +40,6 @@ jobs:
           ppa: 'ubuntu-toolchain-r-test'
           packages: g++-8 gcc-8
 
-      - name: Use GCC 8
-        if: contains(matrix.os, 'ubuntu')
-        uses: ./.github/actions/use-gcc-8
-
       - name: Yarn Cache
         uses: egordm/gha-yarn-node-cache@v1
 
@@ -57,3 +56,42 @@ jobs:
 
       - name: Documentation
         run: yarn run jsdoc
+  compatibility-job:
+    if: github.event_name == 'push' && contains(toJson(github.event.commits), '[ci skip]') == false
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      matrix:
+        node-version: [14, 15, 16]
+        gcc-version: [5, 6]
+    env:
+      CC: gcc-${{ matrix.gcc-version }}
+      CXX: g++-${{ matrix.gcc-version }}
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Linux Packages
+        if: contains(matrix.os, 'ubuntu')
+        uses: ./.github/actions/apt-get
+        with:
+          ppa: 'ubuntu-toolchain-r-test'
+          packages: g++-${{ matrix.gcc-version }} gcc-${{ matrix.gcc-version }}
+
+      - name: Yarn Cache
+        uses: egordm/gha-yarn-node-cache@v1
+
+      - name: Build
+        run: yarn --force
+
+      - name: JS Test (+ JS Lint)
+        run: yarn run test
