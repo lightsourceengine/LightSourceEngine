@@ -15,6 +15,7 @@
 
 #include <string>
 #include <phmap.h>
+#include <functional>
 
 namespace lse {
 
