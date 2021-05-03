@@ -177,8 +177,8 @@ jobs:
           - recipe: linux-armv6l
           - recipe: linux-armv7l
           - recipe: nclassic
-#          - recipe: pi-armv6l
-#          - recipe: pi-armv7l
+          - recipe: pi-armv6l
+          - recipe: pi-armv7l
     steps:
       - name: Checkout
         uses: actions/checkout@v2

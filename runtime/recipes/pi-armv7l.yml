@@ -1,6 +1,6 @@
 platform: linux
 platformType: pi
-target-arch: x64
+target-arch: armv7l
 install-game-controller-db: true
 format: tgz
 node-minimal: true

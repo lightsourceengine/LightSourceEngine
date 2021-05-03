@@ -501,7 +501,7 @@ const installNode = async (options) => {
     ]
   }
 
-  const url = `${nodeSrc}/${version}/${tag}${ext}`
+  const url = `${nodeSrc}${version}/${tag}${ext}`
 
   status.node.update('installing')
 
