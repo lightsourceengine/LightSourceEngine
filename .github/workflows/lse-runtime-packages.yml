@@ -30,10 +30,18 @@ jobs:
       - name: Use GCC 8
         uses: ./.github/actions/use-gcc-8
 
+      - name: Install appimagetool
+        run: |
+          echo "${GITHUB_WORKSPACE}" >> $GITHUB_PATH
+          wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
+          chmod a+x appimagetool
+
       - name: Create Runtime Package
         run: |
           yarn
           ./lse-runtime-build.js --recipe recipe://linux-x64
+          ./lse-runtime-build.js --recipe recipe://linux-x64 --skip-compile --format appimage
+          appimagetool ../build/LightSourceEngine-x64.ai ../build/LightSourceEngine-x64.AppImage
         shell: bash
         working-directory: scripts
 
@@ -69,12 +77,6 @@ jobs:
           curl -L https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz | tar -xJ
         shell: bash
 
-      - name: Install appimagetool
-        run: |
-          echo "${GITHUB_WORKSPACE}" >> $GITHUB_PATH
-          wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
-          chmod a+x appimagetool
-
       - name: Install Node
         uses: actions/setup-node@v1
         with:
@@ -90,8 +92,6 @@ jobs:
           export PATH="${{github.workspace}}/ci/bin:${PATH}"
           yarn
           ./lse-runtime-build.js --recipe recipe://linux-arm64
-          ./lse-runtime-build.js --recipe recipe://linux-arm64 --skip-compile --format appimage
-          appimagetool ../build/LightSourceEngine-x64.ai ../build/LightSourceEngine-x64.AppImage
         shell: bash
         working-directory: srcroot/scripts
 
