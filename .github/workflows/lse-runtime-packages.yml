@@ -7,6 +7,10 @@ env:
   npm_config_lse_enable_native_tests: 0
   CI_URL: https://github.com/lightsourceengine/ci/releases/download/v1.0.0
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build-lse-runtime-linux-x64-job:
     runs-on: ubuntu-18.04
@@ -30,20 +34,19 @@ jobs:
       - name: Use GCC 8
         uses: ./.github/actions/use-gcc-8
 
-      - name: Install appimagetool
-        run: |
-          echo "${GITHUB_WORKSPACE}" >> $GITHUB_PATH
-          wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
-          chmod a+x appimagetool
+      - uses: ./srcroot/.github/actions/install-upx
+
+      - uses: ./srcroot/.github/actions/install-appimage-tools
 
       - name: Create Runtime Package
         run: |
           yarn
           ./lse-runtime-build.js --recipe recipe://linux-x64
           ./lse-runtime-build.js --recipe recipe://linux-x64 --skip-compile --format appimage
-          appimagetool ../build/LightSourceEngine-x64.ai ../build/LightSourceEngine-x64.AppImage
-        shell: bash
         working-directory: scripts
+
+      - name: Create AppImage
+        run: appimagetool build/LightSourceEngine-x64.ai build/LightSourceEngine-x64.AppImage
 
       - name: Upload Runtime Package
         uses: actions/upload-artifact@v2
@@ -73,11 +76,7 @@ jobs:
           repository: lightsourceengine/ci
           path: ci
 
-      - name: Install UPX
-        run: |
-          echo "${GITHUB_WORKSPACE}/upx-3.96-amd64_linux" >> $GITHUB_PATH
-          curl -L https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz | tar -xJ
-        shell: bash
+      - uses: ./srcroot/.github/actions/install-upx
 
       - name: Install Node
         uses: actions/setup-node@v1
@@ -94,7 +93,6 @@ jobs:
           export PATH="${{github.workspace}}/ci/bin:${PATH}"
           yarn
           ./lse-runtime-build.js --recipe recipe://linux-arm64
-        shell: bash
         working-directory: srcroot/scripts
 
       - name: Upload Runtime Package
@@ -119,15 +117,12 @@ jobs:
         with:
           node-version: 16.0.0
 
-      - name: Install UPX
-        run: brew install upx
-        shell: bash
+      - uses: ./srcroot/.github/actions/install-upx
 
       - name: Create Runtime Package
         run: |
           yarn
           ./lse-runtime-build.js --recipe recipe://macos-x64
-        shell: bash
         working-directory: srcroot/scripts
 
       - name: Upload Runtime Package
@@ -156,7 +151,6 @@ jobs:
         run: |
           yarn
           ./lse-runtime-build.js --recipe recipe://windows-x64
-        shell: bash
         working-directory: srcroot/scripts
 
       - name: Upload Runtime Package
@@ -191,13 +185,8 @@ jobs:
           wget ${CI_URL}/x64-gcc-8.3.0.tar.xz
           tar -xJf x64-gcc-8.3.0.tar.xz
           echo "${{github.workspace}}/x64-gcc-8.3.0/arm-rpi-linux-gnueabihf/bin" >> $GITHUB_PATH
-        shell: bash
 
-      - name: Install UPX
-        run: |
-          echo "${GITHUB_WORKSPACE}/upx-3.96-amd64_linux" >> $GITHUB_PATH
-          curl -L https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz | tar -xJ
-        shell: bash
+      - uses: ./srcroot/.github/actions/install-upx
 
       - name: Install Node
         uses: actions/setup-node@v1
@@ -208,7 +197,6 @@ jobs:
         run: |
           yarn
           ./lse-runtime-build.js --recipe recipe://${{ matrix.recipe }}
-        shell: bash
         working-directory: srcroot/scripts
 
       - name: Upload Runtime Package

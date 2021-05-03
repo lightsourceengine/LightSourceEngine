@@ -4,4 +4,5 @@ install-game-controller-db: true
 format: tgz
 node-minimal: true
 node-bin-compress: true
+node-bin-strip: true
 sdl-install: false

@@ -1,0 +1,11 @@
+name: 'Install AppImage Tools'
+description: 'AppImage tools for x64.'
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        echo "${GITHUB_WORKSPACE}/_appimage_tools" >> $GITHUB_PATH
+        cd "${GITHUB_WORKSPACE}/_appimage_tools"
+        wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
+        chmod a+x appimagetool
+      shell: bash

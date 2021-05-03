@@ -1,0 +1,13 @@
+name: 'Install UPX'
+description: 'Download upx and add to $PATH.'
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+          brew install upx
+        else
+          echo "${GITHUB_WORKSPACE}/upx-3.96-amd64_linux" >> $GITHUB_PATH
+          curl -L https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz | tar -xJ
+        fi
+      shell: bash
