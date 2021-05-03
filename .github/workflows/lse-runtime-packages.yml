@@ -91,7 +91,7 @@ jobs:
           yarn
           ./lse-runtime-build.js --recipe recipe://linux-arm64
           ./lse-runtime-build.js --recipe recipe://linux-arm64 --skip-compile --format appimage
-          appimagetool ../buildLightSourceEngine-x64.ai ../buildLightSourceEngine-x64.AppImage
+          appimagetool ../build/LightSourceEngine-x64.ai ../build/LightSourceEngine-x64.AppImage
         shell: bash
         working-directory: srcroot/scripts
 
@@ -174,11 +174,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - recipe: linux-armv7l
-          - recipe: pi-armv7l
-          - recipe: nclassic
           - recipe: linux-armv6l
-          - recipe: pi-armv6l
+          - recipe: linux-armv7l
+          - recipe: nclassic
+#          - recipe: pi-armv6l
+#          - recipe: pi-armv7l
     steps:
       - name: Checkout
         uses: actions/checkout@v2
