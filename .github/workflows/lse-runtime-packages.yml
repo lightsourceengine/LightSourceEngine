@@ -46,7 +46,7 @@ jobs:
         working-directory: scripts
 
       - name: Create AppImage
-        run: ./create-appimage.sh x86_64 build/LightSourceEngine-x64.ai build/LightSourceEngine-x64.AppImage
+        run: ./create-appimage.sh x86_64 ../build/LightSourceEngine-x64.ai ../build/LightSourceEngine-x64.AppImage
         working-directory: scripts
 
       - name: Upload Runtime Package
