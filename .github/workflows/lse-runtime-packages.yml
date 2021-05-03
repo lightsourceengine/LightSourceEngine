@@ -51,7 +51,9 @@ jobs:
           name: lse-runtime-packages-artifact
           if-no-files-found: error
           retention-days: 3
-          path: build/LightSourceEngine-*.tgz
+          path: |
+            build/LightSourceEngine-*.tgz
+            build/LightSourceEngine-*.AppImage
 
   build-lse-runtime-linux-arm64-job:
     runs-on: ubuntu-18.04
@@ -101,9 +103,7 @@ jobs:
           name: lse-runtime-packages-artifact
           if-no-files-found: error
           retention-days: 3
-          path: |
-            srcroot/build/LightSourceEngine-*.tgz
-            srcroot/build/LightSourceEngine-*.AppImage
+          path: srcroot/build/LightSourceEngine-*.tgz
 
   build-lse-runtime-mac-x64-job:
     runs-on: macos-10.15
