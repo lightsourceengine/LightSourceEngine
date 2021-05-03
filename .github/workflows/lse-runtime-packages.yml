@@ -34,9 +34,11 @@ jobs:
       - name: Use GCC 8
         uses: ./.github/actions/use-gcc-8
 
-      - uses: ./srcroot/.github/actions/install-upx
+      - name: Install UPX
+        uses: ./.github/actions/install-upx
 
-      - uses: ./srcroot/.github/actions/install-appimage-tools
+      - name: Install AppImage Tools
+        uses: ./.github/actions/install-appimage-tools
 
       - name: Create Runtime Package
         run: |
@@ -76,7 +78,8 @@ jobs:
           repository: lightsourceengine/ci
           path: ci
 
-      - uses: ./srcroot/.github/actions/install-upx
+      - name: Install UPX
+        uses: ./srcroot/.github/actions/install-upx
 
       - name: Install Node
         uses: actions/setup-node@v1
@@ -117,7 +120,8 @@ jobs:
         with:
           node-version: 16.0.0
 
-      - uses: ./srcroot/.github/actions/install-upx
+      - name: Install UPX
+        uses: ./srcroot/.github/actions/install-upx
 
       - name: Create Runtime Package
         run: |
@@ -186,7 +190,8 @@ jobs:
           tar -xJf x64-gcc-8.3.0.tar.xz
           echo "${{github.workspace}}/x64-gcc-8.3.0/arm-rpi-linux-gnueabihf/bin" >> $GITHUB_PATH
 
-      - uses: ./srcroot/.github/actions/install-upx
+      - name: Install UPX
+        uses: ./srcroot/.github/actions/install-upx
 
       - name: Install Node
         uses: actions/setup-node@v1
