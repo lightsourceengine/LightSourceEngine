@@ -1,5 +1,5 @@
 platform: linux
-target-arch: x64
+target-arch: appimage
 install-game-controller-db: true
 format: tgz
 node-minimal: true

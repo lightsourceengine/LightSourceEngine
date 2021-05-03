@@ -37,18 +37,17 @@ jobs:
       - name: Install UPX
         uses: ./.github/actions/install-upx
 
-      - name: Install AppImage Tools
-        uses: ./.github/actions/install-appimage-tools
+      - name: Prepare scripts
+        run: yarn
+        working-directory: scripts
 
       - name: Create Runtime Package
-        run: |
-          yarn
-          ./lse-runtime-build.js --recipe recipe://linux-x64
-          ./lse-runtime-build.js --recipe recipe://linux-x64 --skip-compile --format appimage
+        run: ./lse-runtime-build.js --recipe recipe://linux-x64
         working-directory: scripts
 
       - name: Create AppImage
-        run: appimagetool build/LightSourceEngine-x64.ai build/LightSourceEngine-x64.AppImage
+        run: ./create-appimage.sh x86_64 build/LightSourceEngine-x64.ai build/LightSourceEngine-x64.AppImage
+        working-directory: scripts
 
       - name: Upload Runtime Package
         uses: actions/upload-artifact@v2
@@ -56,9 +55,7 @@ jobs:
           name: lse-runtime-packages-artifact
           if-no-files-found: error
           retention-days: 3
-          path: |
-            build/LightSourceEngine-*.tgz
-            build/LightSourceEngine-*.AppImage
+          path: build/LightSourceEngine-*.AppImage
 
   build-lse-runtime-linux-arm64-job:
     runs-on: ubuntu-18.04
