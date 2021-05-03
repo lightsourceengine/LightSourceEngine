@@ -18,7 +18,9 @@
   "exports": "./dist/lse-core.cjs",
   "files": [
     "dist/lse-core.cjs",
-    "dist/Roboto-Regular-Latin.woff",
+    "dist/Roboto*",
+    "dist/LICENSE*",
+    "dist/font.manifest",
 
     "binding.gyp",
     "addon/common.gypi",

@@ -1,0 +1,8 @@
+platform: linux
+target-arch: armv7l
+install-game-controller-db: true
+format: tgz
+node-minimal: true
+node-bin-compress: true
+sdl-install: false
+node-src: ci

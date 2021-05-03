@@ -1,0 +1,6 @@
+{
+  "type": "commonjs",
+  "exports": {
+    ".": "./index.js"
+  }
+}

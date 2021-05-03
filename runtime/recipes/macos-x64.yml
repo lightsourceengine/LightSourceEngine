@@ -1,0 +1,9 @@
+platform: macos
+target-arch: x64
+install-game-controller-db: true
+format: tgz
+node-minimal: true
+node-bin-compress: true
+sdl-install: true
+sdl-runtime: ci://SDL2-2.0.14.framework.tgz
+sdl-mixer-runtime: ci://SDL2_mixer-2.0.4.framework.tgz

@@ -1,0 +1,9 @@
+platform: windows
+target-arch: x64
+install-game-controller-db: true
+format: zip
+node-minimal: true
+node-bin-compress: false
+sdl-install: true
+sdl-runtime: ci://SDL2-2.0.14-win32-x64.zip
+sdl-mixer-runtime: ci://SDL2_mixer-2.0.4-win32-x64.zip

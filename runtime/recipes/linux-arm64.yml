@@ -1,0 +1,7 @@
+platform: linux
+target-arch: arm64
+install-game-controller-db: true
+format: tgz
+node-minimal: true
+node-bin-compress: true
+sdl-install: false

@@ -264,7 +264,7 @@ const bootstrapFonts = (self) => {
         entry.uri = normalize(join(LSE_FONT_PATH, entry.uri))
       }
     }
-  } else if (LSE_ENV !== 'lse-node') {
+  } else if (LSE_ENV !== 'runtime') {
     // If LSE_FONT_PATH is NOT set and the environment is NOT lse-node, load the specific
     // "builtin" ttf. This is to cover the use case of running from the mono repo or an
     // project that installs @lse/core from npm.
@@ -276,7 +276,7 @@ const bootstrapFonts = (self) => {
     ]
   }
 
-  for (const spec of fontManifest) {
+  for (const spec of fontManifest || []) {
     try {
       self.add(spec)
     } catch (e) {

@@ -21,6 +21,7 @@ import {
   getPublishingVersion
 } from '../../rollup/plugins'
 import replace from 'rollup-plugin-re'
+import copy from 'rollup-plugin-copy'
 
 const lightSourceReact = ({ input, standalone }) => ({
   input,
@@ -28,7 +29,7 @@ const lightSourceReact = ({ input, standalone }) => ({
   external: ['@lse/core'],
   output: {
     format: 'cjs',
-    file: standalone ? 'dist/lse-react.standalone.cjs' : 'dist/lse-react.cjs',
+    file: standalone ? 'dist/lse-react-standalone.cjs' : 'dist/lse-react.cjs',
     preferConst: true
   },
   plugins: [
@@ -39,6 +40,12 @@ const lightSourceReact = ({ input, standalone }) => ({
       replaces: {
         $LSE_REACT_VERSION: getPublishingVersion()
       }
+    }),
+    copy({
+      targets: [
+        { src: 'standalone-package.json', dest: 'dist' }
+      ],
+      copyOnce: true
     })
   ]
 })

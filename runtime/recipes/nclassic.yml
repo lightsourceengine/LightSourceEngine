@@ -1,0 +1,10 @@
+platform: linux
+platformType: nclassic
+target-arch: armv7l
+install-game-controller-db: false
+format: hmod
+node-minimal: true
+node-bin-compress: true
+sdl-install: false
+node-custom-tag: pi_xnpm_xintl_xhttp
+node-src: ci

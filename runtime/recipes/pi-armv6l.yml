@@ -1,0 +1,10 @@
+platform: linux
+platformType: pi
+install-game-controller-db: true
+format: tgz
+node-minimal: true
+node-bin-compress: true
+sdl-install: true
+sdl-runtime: ci://SDL2-2.0.14-armv6l-pi.tar.gz
+node-custom-tag: pi_xnpm_xintl
+node-src: ci

@@ -8,7 +8,7 @@ env:
   CI_URL: https://github.com/lightsourceengine/ci/releases/download/v1.0.0
 
 jobs:
-  build-lse-node-linux-x64-job:
+  build-lse-runtime-linux-x64-job:
     runs-on: ubuntu-18.04
     steps:
       - name: Checkout
@@ -30,22 +30,22 @@ jobs:
       - name: Use GCC 8
         uses: ./.github/actions/use-gcc-8
 
-      - name: Create lse-node Package
+      - name: Create Runtime Package
         run: |
           yarn
-          ./build-lse-node.js --platform linux --arch x64 --sdl-profile system
+          ./lse-runtime-build.js --recipe recipe://linux-x64
         shell: bash
         working-directory: scripts
 
-      - name: Upload lse-node Package
+      - name: Upload Runtime Package
         uses: actions/upload-artifact@v2
         with:
           name: lse-runtime-packages-artifact
           if-no-files-found: error
           retention-days: 3
-          path: build/lse-node-*.tgz
+          path: build/LightSourceEngine-*.tgz
 
-  build-lse-node-linux-arm64-job:
+  build-lse-runtime-linux-arm64-job:
     runs-on: ubuntu-18.04
     env:
       CROSS_TOOLCHAIN_VERSION: 8
@@ -63,6 +63,18 @@ jobs:
           repository: lightsourceengine/ci
           path: ci
 
+      - name: Install UPX
+        run: |
+          echo "${GITHUB_WORKSPACE}/upx-3.96-amd64_linux" >> $GITHUB_PATH
+          curl -L https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz | tar -xJ
+        shell: bash
+
+      - name: Install appimagetool
+        run: |
+          echo "${GITHUB_WORKSPACE}" >> $GITHUB_PATH
+          wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
+          chmod a+x appimagetool
+
       - name: Install Node
         uses: actions/setup-node@v1
         with:
@@ -73,23 +85,27 @@ jobs:
         with:
           packages: g++-8-aarch64-linux-gnu
 
-      - name: Create lse-node Package
+      - name: Create Runtime Package
         run: |
           export PATH="${{github.workspace}}/ci/bin:${PATH}"
           yarn
-          ./build-lse-node.js --platform linux --arch arm64 --sdl-profile system
+          ./lse-runtime-build.js --recipe recipe://linux-arm64
+          ./lse-runtime-build.js --recipe recipe://linux-arm64 --skip-compile --format appimage
+          appimagetool ../buildLightSourceEngine-x64.ai ../buildLightSourceEngine-x64.AppImage
         shell: bash
         working-directory: srcroot/scripts
 
-      - name: Upload lse-node Package
+      - name: Upload Runtime Package
         uses: actions/upload-artifact@v2
         with:
           name: lse-runtime-packages-artifact
           if-no-files-found: error
           retention-days: 3
-          path: srcroot/build/lse-node-*.tgz
+          path: |
+            srcroot/build/LightSourceEngine-*.tgz
+            srcroot/build/LightSourceEngine-*.AppImage
 
-  build-lse-node-mac-x64-job:
+  build-lse-runtime-mac-x64-job:
     runs-on: macos-10.15
     steps:
       - name: Checkout
@@ -98,33 +114,31 @@ jobs:
           path: srcroot
           submodules: recursive
 
-      - name: Download SDL Frameworks
-        run: |
-          wget ${CI_URL}/SDL2-2.0.14.framework.tgz
-          wget ${CI_URL}/SDL2_mixer-2.0.4.framework.tgz
-        shell: bash
-
       - name: Install Node
         uses: actions/setup-node@v1
         with:
           node-version: 16.0.0
 
-      - name: Create lse-node Package
+      - name: Install UPX
+        run: brew install upx
+        shell: bash
+
+      - name: Create Runtime Package
         run: |
           yarn
-          ./build-lse-node.js --sdl-profile framework --sdl-runtime-pkg "${GITHUB_WORKSPACE}/SDL2-2.0.14.framework.tgz" --sdl-mixer-runtime-pkg "${GITHUB_WORKSPACE}/SDL2_mixer-2.0.4.framework.tgz"
+          ./lse-runtime-build.js --recipe recipe://macos-x64
         shell: bash
         working-directory: srcroot/scripts
 
-      - name: Upload lse-node Package
+      - name: Upload Runtime Package
         uses: actions/upload-artifact@v2
         with:
           name: lse-runtime-packages-artifact
           if-no-files-found: error
           retention-days: 3
-          path: srcroot/build/lse-node-*.tgz
+          path: srcroot/build/LightSourceEngine-*.tgz
 
-  build-lse-node-win-x64-job:
+  build-lse-runtime-win-x64-job:
     runs-on: windows-2019
     steps:
       - name: Checkout
@@ -133,49 +147,38 @@ jobs:
           path: srcroot
           submodules: recursive
 
-      - name: Download SDL Runtime
-        run: |
-          Invoke-WebRequest -Uri ${env:CI_URL}/SDL2-2.0.14-win32-x64.zip -OutFile SDL2-2.0.14-win32-x64.zip
-          Invoke-WebRequest -Uri ${env:CI_URL}/SDL2_mixer-2.0.4-win32-x64.zip -OutFile SDL2_mixer-2.0.4-win32-x64.zip
-        shell: powershell
-
       - name: Install Node
         uses: actions/setup-node@v1
         with:
           node-version: 16.0.0
 
-      - name: Create lse-node Package
+      - name: Create Runtime Package
         run: |
           yarn
-          ./build-lse-node.js --sdl-profile dll --sdl-runtime-pkg "${GITHUB_WORKSPACE}/SDL2-2.0.14-win32-x64.zip" --sdl-mixer-runtime-pkg "${GITHUB_WORKSPACE}/SDL2_mixer-2.0.4-win32-x64.zip"
+          ./lse-runtime-build.js --recipe recipe://windows-x64
         shell: bash
         working-directory: srcroot/scripts
 
-      - name: Upload lse-node Package
+      - name: Upload Runtime Package
         uses: actions/upload-artifact@v2
         with:
           name: lse-runtime-packages-artifact
           if-no-files-found: error
           retention-days: 3
-          path: srcroot/build/lse-node-*.zip
+          path: srcroot/build/LightSourceEngine-*.zip
 
-  build-lse-node-linux-arm-job:
+  build-lse-runtime-linux-arm-job:
     runs-on: ubuntu-18.04
     env:
       CROSS_TOOLCHAIN_PREFIX: arm-rpi-linux-gnueabihf
     strategy:
       matrix:
         include:
-          - arch: armv7l
-            build_lse_node_args: --node-binary-source custom --node-custom-tag full --sdl-profile system
-          - arch: armv7l
-            build_lse_node_args: --node-binary-source custom --node-custom-tag pi_xnpm_xintl --sdl-profile native --profile pi --sdl-runtime-pkg ${GITHUB_WORKSPACE}/SDL2-2.0.14-armv7l-pi --compress-node-binary --strip-node-binary --strip-lse-binary --minimal-node-install
-          - arch: armv7l
-            build_lse_node_args: --node-binary-source custom --node-custom-tag pi_xnpm_xintl_xhttp --sdl-profile system --profile nclassic --compress-node-binary --strip-node-binary --strip-lse-binary --minimal-node-install
-          - arch: armv6l
-            build_lse_node_args: --node-binary-source custom --node-custom-tag full --sdl-profile system
-          - arch: armv6l
-            build_lse_node_args: --node-binary-source custom --node-custom-tag pi_xnpm_xintl --sdl-profile native --profile pi --sdl-runtime-pkg ${GITHUB_WORKSPACE}/SDL2-2.0.14-armv6l-pi --compress-node-binary --strip-node-binary --strip-lse-binary --minimal-node-install
+          - recipe: linux-armv7l
+          - recipe: pi-armv7l
+          - recipe: nclassic
+          - recipe: linux-armv6l
+          - recipe: pi-armv6l
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -190,15 +193,7 @@ jobs:
           echo "${{github.workspace}}/x64-gcc-8.3.0/arm-rpi-linux-gnueabihf/bin" >> $GITHUB_PATH
         shell: bash
 
-      - name: Download SDL Runtime
-        if: contains(matrix.build_lse_node_args, '--sdl-runtime-pkg')
-        run: |
-          wget ${CI_URL}/SDL2-2.0.14-${{ matrix.arch }}-pi.tar.gz
-          tar -xzf SDL2-2.0.14-${{ matrix.arch }}-pi.tar.gz
-        shell: bash
-
       - name: Install UPX
-        if: contains(matrix.build_lse_node_args, '--compress-node-binary')
         run: |
           echo "${GITHUB_WORKSPACE}/upx-3.96-amd64_linux" >> $GITHUB_PATH
           curl -L https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz | tar -xJ
@@ -209,19 +204,19 @@ jobs:
         with:
           node-version: 16.0.0
 
-      - name: Create lse-node Package
+      - name: Create Runtime Package
         run: |
           yarn
-          ./build-lse-node.js --platform linux --arch ${{ matrix.arch }} ${{ matrix.build_lse_node_args }}
+          ./lse-runtime-build.js --recipe recipe://${{ matrix.recipe }}
         shell: bash
         working-directory: srcroot/scripts
 
-      - name: Upload lse-node Package
+      - name: Upload Runtime Package
         uses: actions/upload-artifact@v2
         with:
           name: lse-runtime-packages-artifact
           if-no-files-found: error
           retention-days: 3
           path: |
-            srcroot/build/lse-node-*.tgz
-            srcroot/build/lse-node-*.hmod
+            srcroot/build/LightSourceEngine-*.tgz
+            srcroot/build/LightSourceEngine-*.hmod

@@ -19,7 +19,7 @@ const loadNativeAddon = () => {
   const NATIVE_MODULE_NAME = 'lse-core.node'
 
   try {
-    if (LSE_ENV === 'lse-node') {
+    if (LSE_ENV === 'runtime') {
       // In "lse-node" mode, load the native module from the pseudo-builtin module path.
       return require(resolve(LSE_PATH, '@lse', 'core', 'Release', NATIVE_MODULE_NAME))
     } else {

@@ -20,7 +20,7 @@ const standaloneLoader = (stem) => ({
   external: ['@babel/core'],
   output: {
     format: 'esm',
-    file: `dist/${stem}.standalone.mjs`
+    file: `dist/${stem}-standalone.mjs`
   },
   plugins: [
     autoExternal(),

@@ -45,7 +45,13 @@ const lightSourceNpm = (input) => (
       resolve(),
       lseVersion(),
       beautify(),
-      copy({ targets: [{ src: 'src/font/*.woff', dest: 'dist' }] })
+      copy({
+        targets: [
+          { src: 'src/font/*.woff', dest: 'dist' },
+          { src: 'src/font/LICENSE*', dest: 'dist' },
+          { src: 'src/font/font.manifest', dest: 'dist' }
+        ]
+      })
     ]
   }
 )
@@ -55,7 +61,7 @@ const lightSourceStandalone = (input) => ({
   onwarn,
   output: {
     format: 'cjs',
-    file: 'dist/lse-core.standalone.cjs',
+    file: 'dist/lse-core-standalone.cjs',
     preferConst: true
   },
   plugins: [
@@ -73,6 +79,11 @@ const lightSourceStandalone = (input) => ({
         'ImageSceneNode',
         'RootSceneNode',
         'TextSceneNode'
+      ]
+    }),
+    copy({
+      targets: [
+        { src: 'standalone-package.json', dest: 'dist' }
       ]
     })
   ]

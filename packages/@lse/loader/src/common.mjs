@@ -17,7 +17,7 @@ import { dirname, join, resolve as resolvePath } from 'path'
 const builtins = (() => {
   const { LSE_ENV, LSE_PATH } = process.env
 
-  if (LSE_ENV === 'lse-node') {
+  if (LSE_ENV === 'runtime') {
     const toUrl = (...parts) => pathToFileURL(resolvePath(LSE_PATH, ...parts)).href
 
     return {

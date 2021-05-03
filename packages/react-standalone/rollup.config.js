@@ -12,17 +12,22 @@
  */
 
 import { onwarn, replaceObjectAssign } from '../rollup/plugins'
+import copy from 'rollup-plugin-copy'
 
 const reactStandalone = (reactSource, file) => ({
   input: require.resolve(reactSource),
   onwarn,
   output: {
     format: 'cjs',
-    file: `dist/${file}.cjs`,
+    file: `dist/${file}.js`,
     preferConst: true
   },
   plugins: [
-    replaceObjectAssign()
+    replaceObjectAssign(),
+    copy({
+      targets: [{src: 'standalone-package.json' , dest: 'dist' }],
+      copyOnce: true
+    })
   ]
 })
 
