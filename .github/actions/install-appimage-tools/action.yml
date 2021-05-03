@@ -4,8 +4,10 @@ runs:
   using: "composite"
   steps:
     - run: |
-        echo "${GITHUB_WORKSPACE}/_appimage_tools" >> $GITHUB_PATH
-        cd "${GITHUB_WORKSPACE}/_appimage_tools"
+        export APPIMAGE_TOOLS_HOME="${GITHUB_WORKSPACE}/.appimage_tools"
+        echo "${APPIMAGE_TOOLS_HOME}" >> $GITHUB_PATH
+        mkdir -p "${APPIMAGE_TOOLS_HOME}"
+        cd "${APPIMAGE_TOOLS_HOME}"
         wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
         chmod a+x appimagetool
       shell: bash
