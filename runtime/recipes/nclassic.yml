@@ -1,6 +1,7 @@
 platform: linux
 platformType: nclassic
 target-arch: armv7l
+install-cpp: true
 install-game-controller-db: false
 format: hmod
 node-minimal: true
