@@ -7,6 +7,7 @@ format: hmod
 node-minimal: true
 node-bin-compress: true
 node-bin-strip: true
+lse-bin-strip: true
 sdl-install: false
 node-custom-tag: pi_xnpm_xintl_xhttp
 node-src: ci

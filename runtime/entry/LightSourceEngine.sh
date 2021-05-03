@@ -10,7 +10,7 @@ export LSE_ENV="runtime"
 export LSE_PATH="${V_SHARE_HOME}/builtin"
 export LSE_FONT_PATH="${V_SHARE_HOME}/assets"
 
-{{#if with_game_controller_db}}
+{{#if install_game_controller_db}}
 export LSE_GAME_CONTROLLER_DB="${LSE_GAME_CONTROLLER_DB:-"${V_SHARE_HOME}/assets/gamecontrollerdb.txt"}"
 {{/if}}
 

@@ -100,6 +100,7 @@ const kArgSpec = [
   arg('node-minimal', Boolean),
   arg('node-src', String),
   arg('node-custom-tag', String),
+  arg('lse-bin-strip', Boolean),
   arg('format', String),
 ]
 
@@ -122,6 +123,7 @@ const kArgDefaults = {
   nodeMinimal: true,
   nodeSrc: NodeSourceAlias.nodejs,
   nodeCustomTag: '',
+  lseBinStrip: false,
   format: Format.tgz
 }
 
@@ -254,6 +256,15 @@ const stripNode = async (options) => {
   if (options.nodeBinStrip) {
     status.node.update('stripping executable symbols')
     await exec(withToolchainPrefix('strip', options), [join(options.roots.node_home, 'bin', 'node')])
+  }
+}
+
+const stripBin = async (options) => {
+  if (options.lseBinStrip) {
+    status.compile.update('stripping executable symbols')
+    await exec(
+      withToolchainPrefix('strip', options),
+      [join(options.roots.builtin, '@lse', 'core', 'Release', 'lse-core.node')])
   }
 }
 
@@ -444,8 +455,8 @@ const installEntryPoint = async (options) => {
   const input = {
     node_version: process.version,
     platform,
-    platformType,
-    gameControllerDb: installGameControllerDb
+    platform_type: platformType,
+    install_game_controller_db: installGameControllerDb
   }
 
   status.bin.update('installing')
@@ -718,6 +729,7 @@ const main = async () => {
     // share/lse/builtin
     compile(options)
       .then(() => installNodePackages(options))
+      .then(() => stripBin(options))
       .then(() => status.compile.succeed()),
     // share/lse/meta
     installMeta(options)
