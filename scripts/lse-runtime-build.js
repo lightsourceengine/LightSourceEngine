@@ -201,13 +201,13 @@ const compile = async (options) => {
   let programArgs
 
   // Setup compile command. Either "cross [profile] yarn --force" or "yarn --force"
-  if (options.platform !== process.platform) {
+  if (options.platform === Platform.linux && options.targetArch !== process.arch) {
     let crossTarget
 
     if (options.platformType === PlatformType.nclassic) {
-      crossTarget = options.profile
+      crossTarget = options.platformType
     } else {
-      crossTarget = options.arch
+      crossTarget = options.targetArch
     }
 
     program = join('cross')
