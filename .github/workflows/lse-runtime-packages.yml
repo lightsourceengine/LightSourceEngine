@@ -52,7 +52,7 @@ jobs:
       - name: Upload Runtime Package
         uses: actions/upload-artifact@v2
         with:
-          name: lse-runtime-packages-artifact
+          name: lse-runtime-desktop-artifact
           if-no-files-found: error
           retention-days: 3
           path: build/LightSourceEngine-*.AppImage
@@ -102,7 +102,7 @@ jobs:
       - name: Upload Runtime Package
         uses: actions/upload-artifact@v2
         with:
-          name: lse-runtime-packages-artifact
+          name: lse-runtime-desktop-artifact
           if-no-files-found: error
           retention-days: 3
           path: srcroot/build/LightSourceEngine-*.AppImage
@@ -133,7 +133,7 @@ jobs:
       - name: Upload Runtime Package
         uses: actions/upload-artifact@v2
         with:
-          name: lse-runtime-packages-artifact
+          name: lse-runtime-desktop-artifact
           if-no-files-found: error
           retention-days: 3
           path: srcroot/build/LightSourceEngine-*.tgz
@@ -161,7 +161,7 @@ jobs:
       - name: Upload Runtime Package
         uses: actions/upload-artifact@v2
         with:
-          name: lse-runtime-packages-artifact
+          name: lse-runtime-desktop-artifact
           if-no-files-found: error
           retention-days: 3
           path: srcroot/build/LightSourceEngine-*.zip
@@ -174,12 +174,17 @@ jobs:
       matrix:
         include:
           - recipe: linux-armv6l
+            artifact: lse-runtime-desktop-artifact
             arch: armv6l
           - recipe: linux-armv7l
+            artifact: lse-runtime-desktop-artifact
             arch: armv7l
           - recipe: nclassic
+            artifact: lse-runtime-board-artifact
           - recipe: pi-armv6l
+            artifact: lse-runtime-board-artifact
           - recipe: pi-armv7l
+            artifact: lse-runtime-board-artifact
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -211,7 +216,7 @@ jobs:
       - name: Upload Runtime Package
         uses: actions/upload-artifact@v2
         with:
-          name: lse-runtime-packages-artifact
+          name: ${{ matrix.artifact }}
           if-no-files-found: error
           retention-days: 3
           path: |

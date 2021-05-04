@@ -16,10 +16,10 @@ esac
 
 APPIMAGE_HOME="${GITHUB_WORKSPACE:-${HOME}}/.appimage"
 APPIMAGE_URL=https://github.com/AppImage/AppImageKit/releases/download/continuous
-APPIMAGE_TOOL=appimagetool-x86_64.AppImage
+APPIMAGE_TOOL="appimagetool-x86_64.AppImage"
 APPIMAGE_RUNTIME="runtime-${APPIMAGE_ARCH}"
 
-if [ ! -d "${APPIMAGE_HOME}"]; then
+if [ ! -d "${APPIMAGE_HOME}" ]; then
   mkdir -p "${APPIMAGE_HOME}"
 fi
 
