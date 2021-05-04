@@ -92,8 +92,14 @@ jobs:
         run: |
           export PATH="${{github.workspace}}/ci/bin:${PATH}"
           yarn
-          ./lse-runtime-build.js --recipe recipe://linux-arm64
+          ./lse-runtime-build.js --recipe recipe://linux-arm64 --format appimage
         working-directory: srcroot/scripts
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Create AppImage
+        run: docker run --platform linux/arm64 --rm -v "${{github.workspace}}/srcroot:/ws" arm64v8/ubuntu:bionic bash -c "apt-get update && /ws/scripts/create-appimage.sh aarch64 /ws/build/LightSourceEngine-x64.ai /ws/build/LightSourceEngine.AppImage"
 
       - name: Upload Runtime Package
         uses: actions/upload-artifact@v2
@@ -101,7 +107,7 @@ jobs:
           name: lse-runtime-packages-artifact
           if-no-files-found: error
           retention-days: 3
-          path: srcroot/build/LightSourceEngine-*.tgz
+          path: srcroot/build/LightSourceEngine-*.AppImage
 
   build-lse-runtime-mac-x64-job:
     runs-on: macos-10.15
