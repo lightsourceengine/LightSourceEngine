@@ -4,37 +4,36 @@ set -e
 set -x
 
 export APPIMAGE_HOME="${GITHUB_WORKSPACE:-${HOME}}/.appimage"
-export APPIMAGETOOL="${APPIMAGE_HOME}/appimagetool"
 export APPIMAGE_URL=https://github.com/AppImage/AppImageKit/releases/download/continuous
 
-if [ ! -e "${APPIMAGETOOL}" ] ; then
-  mkdir -p ${APPIMAGE_HOME}
-  wget "${APPIMAGE_URL}/appimagetool-x86_64.AppImage" -O "${APPIMAGETOOL}"
-  chmod a+x "${APPIMAGETOOL}"
-fi
+download_appimagetool() {
+  local RUNTIME_NAME="appimagetool-${1}.AppImage"
+  local RUNTIME_FILE="${APPIMAGE_HOME}/${RUNTIME_NAME}"
 
-V_RUNTIME_FILE_ARG=
+  if [ ! -e "${RUNTIME_FILE}" ] ; then
+    mkdir -p ${APPIMAGE_HOME}
+    wget "${APPIMAGE_URL}/${RUNTIME_NAME}" -O "${RUNTIME_FILE}"
+    chmod a+x "${RUNTIME_FILE}"
+  fi
+}
+
+download_appimagetool x86_64
 
 case "$1" in
-  arm64)
-    V_RUNTIME="${APPIMAGE_HOME}/appimagetool-aarch64.AppImage"
-    if [ ! -e "${V_RUNTIME}" ] ; then
-      wget "${APPIMAGE_URL}/${V_RUNTIME}" -O "${V_RUNTIME}"
-    fi
-    V_RUNTIME_FILE_ARG="--runtime-file=${V_RUNTIME}"
-    ARCH=aarch64
+  aarch64 | arm64)
+    V_ARCH=aarch64
+    download_appimagetool ${V_ARCH}
     ;;
-  armv6l | armv7l)
-    V_RUNTIME="${APPIMAGE_HOME}/appimagetool-armhf.AppImage"
-    if [ ! -e "${V_RUNTIME}" ] ; then
-      wget "${APPIMAGE_URL}/${V_RUNTIME}" -O "${V_RUNTIME}"
-    fi
-    V_RUNTIME_FILE_ARG="--runtime-file=${V_RUNTIME}"
-    ARCH=armhf
+  armhf | armv6l | armv7l)
+    V_ARCH=armhf
+    download_appimagetool ${V_ARCH}
     ;;
   *)
-    ARCH=x86_64
+    V_ARCH=x86_64
     ;;
 esac
 
-${APPIMAGETOOL} ${V_RUNTIME_FILE_ARG} "$2" "$3"
+ARCH=${V_ARCH} "${APPIMAGE_HOME}/appimagetool-x86_64.AppImage" \
+  --runtime-file "${APPIMAGE_HOME}/appimagetool-${V_ARCH}.AppImage" \
+  "$2" \
+  "$3"
