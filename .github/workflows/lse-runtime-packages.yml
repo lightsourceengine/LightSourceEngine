@@ -205,7 +205,7 @@ jobs:
         run: |
           yarn
           ./lse-runtime-build.js --recipe recipe://${{ matrix.recipe }}
-          [ -d "../build/LightSourceEngine-${{ matrix.arch }}.ai" ] && ./create-appimage.sh ${{ matrix.arch }} ../build/LightSourceEngine-${{ matrix.arch }}.ai ../build/LightSourceEngine-${{ matrix.arch }}.AppImage
+          if [ -d "../build/LightSourceEngine-${{ matrix.arch }}.ai" ]; then ./create-appimage.sh ${{ matrix.arch }} ../build/LightSourceEngine-${{ matrix.arch }}.ai ../build/LightSourceEngine-${{ matrix.arch }}.AppImage; fi
         working-directory: srcroot/scripts
 
       - name: Upload Runtime Package
