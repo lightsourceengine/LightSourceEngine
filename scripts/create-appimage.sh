@@ -18,17 +18,22 @@ V_RUNTIME_FILE_ARG=
 case "$1" in
   arm64)
     V_RUNTIME="${APPIMAGE_HOME}/appimagetool-aarch64.AppImage"
-    if [ ! -e "${APPIMAGETOOL}" ] ; then
+    if [ ! -e "${V_RUNTIME}" ] ; then
       wget "${APPIMAGE_URL}/${V_RUNTIME}" -O "${V_RUNTIME}"
-      V_RUNTIME_FILE_ARG="--runtime-file=${V_RUNTIME}"
     fi
+    V_RUNTIME_FILE_ARG="--runtime-file=${V_RUNTIME}"
+    ARCH=aarch64
     ;;
   armv6l | armv7l)
     V_RUNTIME="${APPIMAGE_HOME}/appimagetool-armhf.AppImage"
-    if [ ! -e "${APPIMAGETOOL}" ] ; then
+    if [ ! -e "${V_RUNTIME}" ] ; then
       wget "${APPIMAGE_URL}/${V_RUNTIME}" -O "${V_RUNTIME}"
-      V_RUNTIME_FILE_ARG="--runtime-file=${V_RUNTIME}"
     fi
+    V_RUNTIME_FILE_ARG="--runtime-file=${V_RUNTIME}"
+    ARCH=armhf
+    ;;
+  *)
+    ARCH=x86_64
     ;;
 esac
 
