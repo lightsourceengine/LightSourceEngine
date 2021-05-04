@@ -92,7 +92,7 @@ jobs:
         run: |
           export PATH="${{github.workspace}}/ci/bin:${PATH}"
           yarn
-          ./lse-runtime-build.js --recipe recipe://linux-arm64 --format appimage
+          ./lse-runtime-build.js --recipe recipe://linux-arm64
         working-directory: srcroot/scripts
 
       - name: Create AppImage
@@ -174,7 +174,9 @@ jobs:
       matrix:
         include:
           - recipe: linux-armv6l
+            arch: armv6l
           - recipe: linux-armv7l
+            arch: armv7l
           - recipe: nclassic
           - recipe: pi-armv6l
           - recipe: pi-armv7l
@@ -203,6 +205,7 @@ jobs:
         run: |
           yarn
           ./lse-runtime-build.js --recipe recipe://${{ matrix.recipe }}
+          [ -d ../build/LightSourceEngine-{{ matrix.arch }}.ai ] && ./create-appimage.sh {{ matrix.arch }} ../build/LightSourceEngine-{{ matrix.arch }}.ai ../build/LightSourceEngine-{{ matrix.arch }}.AppImage
         working-directory: srcroot/scripts
 
       - name: Upload Runtime Package
@@ -213,4 +216,5 @@ jobs:
           retention-days: 3
           path: |
             srcroot/build/LightSourceEngine-*.tgz
+            srcroot/build/LightSourceEngine-*.AppImage
             srcroot/build/LightSourceEngine-*.hmod

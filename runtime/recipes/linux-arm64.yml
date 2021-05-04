@@ -1,7 +1,7 @@
 platform: linux
 target-arch: arm64
 install-game-controller-db: true
-format: tgz
+format: appimage
 node-minimal: true
 node-bin-compress: true
 node-bin-strip: true
