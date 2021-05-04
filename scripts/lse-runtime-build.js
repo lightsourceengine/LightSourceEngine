@@ -721,10 +721,9 @@ const main = async () => {
     ).then(() => status.assets.succeed()),
     // share/lse/node
     installNode(options)
-      .then(() => group(
-        stripNode(options).then(() => compressNode(options)),
-        installSDLWindows(options)
-      ))
+      .then(() => stripNode(options))
+      .then(() => compressNode(options))
+      .then(() => installSDLWindows(options))
       .then(() => status.node.succeed()),
     // share/lse/builtin
     compile(options)

@@ -4,7 +4,7 @@ install-game-controller-db: true
 format: tgz
 node-minimal: true
 node-bin-compress: true
-node-bin-strip: true
+node-bin-strip: false
 sdl-install: true
 sdl-runtime: ci://SDL2-2.0.14.framework.tgz
 sdl-mixer-runtime: ci://SDL2_mixer-2.0.4.framework.tgz
