@@ -3,6 +3,7 @@ target-arch: arm64
 install-game-controller-db: true
 format: appimage
 node-minimal: true
-node-bin-compress: true
+node-bin-compress: false
 node-bin-strip: true
+lse-bin-strip: true
 sdl-install: false

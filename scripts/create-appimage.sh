@@ -1,39 +1,42 @@
 #!/bin/bash
 
 set -e
-set -x
-
-export APPIMAGE_HOME="${GITHUB_WORKSPACE:-${HOME}}/.appimage"
-export APPIMAGE_URL=https://github.com/AppImage/AppImageKit/releases/download/continuous
-
-download_appimagetool() {
-  local RUNTIME_NAME="appimagetool-${1}.AppImage"
-  local RUNTIME_FILE="${APPIMAGE_HOME}/${RUNTIME_NAME}"
-
-  if [ ! -e "${RUNTIME_FILE}" ] ; then
-    mkdir -p ${APPIMAGE_HOME}
-    wget "${APPIMAGE_URL}/${RUNTIME_NAME}" -O "${RUNTIME_FILE}"
-    chmod a+x "${RUNTIME_FILE}"
-  fi
-}
-
-download_appimagetool x86_64
 
 case "$1" in
   aarch64 | arm64)
-    V_ARCH=aarch64
-    download_appimagetool ${V_ARCH}
+    APPIMAGE_ARCH=aarch64
     ;;
   armhf | armv6l | armv7l)
-    V_ARCH=armhf
-    download_appimagetool ${V_ARCH}
+    APPIMAGE_ARCH=armhf
     ;;
   *)
-    V_ARCH=x86_64
+    APPIMAGE_ARCH=x86_64
     ;;
 esac
 
-ARCH=${V_ARCH} "${APPIMAGE_HOME}/appimagetool-x86_64.AppImage" \
-  --runtime-file "${APPIMAGE_HOME}/appimagetool-${V_ARCH}.AppImage" \
+APPIMAGE_HOME="${GITHUB_WORKSPACE:-${HOME}}/.appimage"
+APPIMAGE_URL=https://github.com/AppImage/AppImageKit/releases/download/continuous
+APPIMAGE_TOOL=appimagetool-x86_64.AppImage
+APPIMAGE_RUNTIME="runtime-${APPIMAGE_ARCH}"
+
+if [ ! -d "${APPIMAGE_HOME}"]; then
+  mkdir -p "${APPIMAGE_HOME}"
+fi
+
+download_tool() {
+  local TOOL_NAME="$1"
+  local TOOL_FILE="${APPIMAGE_HOME}/${TOOL_NAME}"
+
+  if [ ! -e "${TOOL_FILE}" ] ; then
+    wget "${APPIMAGE_URL}/${TOOL_NAME}" -O "${TOOL_FILE}"
+    chmod a+x "${TOOL_FILE}"
+  fi
+}
+
+download_tool ${APPIMAGE_TOOL}
+download_tool ${APPIMAGE_RUNTIME}
+
+ARCH=${APPIMAGE_ARCH} "${APPIMAGE_HOME}/${APPIMAGE_TOOL}" \
+  --runtime-file "${APPIMAGE_HOME}/${APPIMAGE_RUNTIME}" \
   "$2" \
   "$3"

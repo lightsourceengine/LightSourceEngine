@@ -7,7 +7,7 @@ format: tgz
 node-minimal: true
 node-bin-compress: true
 node-bin-strip: true
-lse-bin-strip: false
+lse-bin-strip: true
 sdl-install: true
 sdl-runtime: ci://SDL2-2.0.14-armv6l-pi.tar.gz
 node-custom-tag: pi_xnpm_xintl
