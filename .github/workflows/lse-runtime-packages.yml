@@ -46,7 +46,7 @@ jobs:
         working-directory: scripts
 
       - name: Create AppImage
-        run: ./create-appimage.sh x86_64 ../build/LightSourceEngine-x64.ai ../build/LightSourceEngine-x64.AppImage
+        run: ./create-appimage.sh x64 ../build/LightSourceEngine-x64.ai ../build/LightSourceEngine-x64.AppImage
         working-directory: scripts
 
       - name: Upload Runtime Package
@@ -95,11 +95,9 @@ jobs:
           ./lse-runtime-build.js --recipe recipe://linux-arm64 --format appimage
         working-directory: srcroot/scripts
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1.1.0
-
       - name: Create AppImage
-        run: docker run --platform linux/arm64 --rm -v "${{github.workspace}}/srcroot:/ws" arm64v8/ubuntu:bionic bash -c "apt-get update && /ws/scripts/create-appimage.sh aarch64 /ws/build/LightSourceEngine-x64.ai /ws/build/LightSourceEngine.AppImage"
+        run: ./create-appimage.sh arm64 ../build/LightSourceEngine-arm64.ai ../build/LightSourceEngine-arm64.AppImage
+        working-directory: srcroot/scripts
 
       - name: Upload Runtime Package
         uses: actions/upload-artifact@v2

@@ -5,19 +5,30 @@ set -x
 
 export APPIMAGE_HOME="${GITHUB_WORKSPACE:-${HOME}}/.appimage"
 export APPIMAGETOOL="${APPIMAGE_HOME}/appimagetool"
+export APPIMAGE_URL=https://github.com/AppImage/AppImageKit/releases/download/continuous
 
 if [ ! -e "${APPIMAGETOOL}" ] ; then
-  mkdir -p ${APPIMAGE_HOME}
-
-  if [ -x sudo ]; then
-    SUDO=sudo
-  else
-    SUDO=
-  fi
-
-  ${SUDO} apt-get install -y wget
-  wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-${1}.AppImage -O "${APPIMAGETOOL}"
+  wget "${APPIMAGE_URL}/appimagetool-x86_64.AppImage" -O "${APPIMAGETOOL}"
   chmod a+x "${APPIMAGETOOL}"
 fi
 
-${APPIMAGETOOL} "$2" "$3"
+V_RUNTIME_FILE_ARG=
+
+case "$1" in
+  arm64)
+    V_RUNTIME="${APPIMAGE_HOME}/appimagetool-x86_64.AppImage"
+    if [ ! -e "${APPIMAGETOOL}" ] ; then
+      wget "${APPIMAGE_URL}/${V_RUNTIME}" -O "${V_RUNTIME}"
+      V_RUNTIME_FILE_ARG="--runtime-file=${V_RUNTIME}"
+    fi
+    ;;
+  armv6l | armv7l)
+    V_RUNTIME="${APPIMAGE_HOME}/appimagetool-armhf.AppImage"
+    if [ ! -e "${APPIMAGETOOL}" ] ; then
+      wget "${APPIMAGE_URL}/${V_RUNTIME}" -O "${V_RUNTIME}"
+      V_RUNTIME_FILE_ARG="--runtime-file=${V_RUNTIME}"
+    fi
+    ;;
+esac
+
+${APPIMAGETOOL} ${V_RUNTIME_FILE_ARG} "$2" "$3"
