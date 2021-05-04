@@ -5,6 +5,7 @@ V_SHARE_HOME={{share_home}}
 {{else}}
 V_SHARE_HOME="$(cd "$(dirname "$0")/{{share_home}}" && pwd -P)"
 {{/if}}
+V_NODE_BIN=${V_SHARE_HOME}/node/{{node_version}}/bin/node
 
 export LSE_ENV="runtime"
 export LSE_PATH="${V_SHARE_HOME}/builtin"
@@ -26,4 +27,10 @@ export LD_LIBRARY_PATH="${V_SHARE_HOME}/lib:${LD_LIBRARY_PATH}"
 export LSE_SDL_LIB_NAME="libSDL2.so"
 {{/if}}
 
-${V_SHARE_HOME}/node/{{node_version}}/bin/node --loader "${LSE_PATH}/@lse/loader/index.mjs" "$@"
+if [ "${LSE_DISABLE_DEFAULT_LOADER}" = "1" ]; then
+  ${V_NODE_BIN} "$@"
+else
+  ${V_NODE_BIN} --loader "${LSE_PATH}/@lse/loader/index.mjs" "$@"
+fi
+
+
