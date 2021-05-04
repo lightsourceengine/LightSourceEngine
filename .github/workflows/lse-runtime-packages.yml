@@ -96,7 +96,7 @@ jobs:
         working-directory: srcroot/scripts
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v1.1.0
 
       - name: Create AppImage
         run: docker run --platform linux/arm64 --rm -v "${{github.workspace}}/srcroot:/ws" arm64v8/ubuntu:bionic bash -c "apt-get update && /ws/scripts/create-appimage.sh aarch64 /ws/build/LightSourceEngine-x64.ai /ws/build/LightSourceEngine.AppImage"
