@@ -21,9 +21,9 @@ const builtins = (() => {
     const toUrl = (...parts) => pathToFileURL(resolvePath(LSE_PATH, ...parts)).href
 
     return {
-      react: { url: toUrl('react', 'index.js') },
-      'react/jsx-runtime': { url: toUrl('react', 'jsx-runtime.js') },
-      'react/jsx-dev-runtime': { url: toUrl('react', 'jsx-dev-runtime.js') },
+      react: { url: toUrl('react', 'index.cjs') },
+      'react/jsx-runtime': { url: toUrl('react', 'jsx-runtime.cjs') },
+      'react/jsx-dev-runtime': { url: toUrl('react', 'jsx-dev-runtime.cjs') },
       '@lse/core': { url: toUrl('@lse', 'core', 'index.cjs') },
       '@lse/react': { url: toUrl('@lse', 'react', 'index.cjs') },
       '@lse/react/jsx-runtime': { url: toUrl('@lse', 'react', 'jsx-runtime.cjs') }

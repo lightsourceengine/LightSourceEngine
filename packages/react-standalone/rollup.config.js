@@ -19,7 +19,7 @@ const reactStandalone = (reactSource, file) => ({
   onwarn,
   output: {
     format: 'cjs',
-    file: `dist/${file}.js`,
+    file: `dist/${file}.cjs`,
     preferConst: true
   },
   plugins: [

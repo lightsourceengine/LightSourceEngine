@@ -3,6 +3,7 @@
 SET V_SHARE_HOME=%~dp0\..\share\lse
 SET LSE_PATH=%V_SHARE_HOME%\builtin
 SET LSE_FONT_PATH=%V_SHARE_HOME%\assets
+export NODE_PATH="%LSE_PATH%;%NODE_PATH%"
 SET LSE_ENV=runtime
 
 {{#if install_game_controller_db}}

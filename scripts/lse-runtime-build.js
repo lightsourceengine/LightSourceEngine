@@ -413,17 +413,17 @@ const installNodePackages = async (options) => {
   
   await group(
     // react
-    copyTo(join(src_react, 'index.js'), react),
-    copyTo(join(src_react, 'jsx-runtime.js'), react),
-    copyTo(join(src_react, 'jsx-dev-runtime.js'), react),
+    copyTo(join(src_react, 'index.cjs'), react),
+    copyTo(join(src_react, 'jsx-runtime.cjs'), react),
+    copyTo(join(src_react, 'jsx-dev-runtime.cjs'), react),
     copyTo(join(src_react, 'standalone-package.json'), react, 'package.json'),
     // @lse/core
-    copyTo(join(src_lse_core, 'lse-core-standalone.cjs'), lse_core, 'index.js'),
+    copyTo(join(src_lse_core, 'lse-core-standalone.cjs'), lse_core, 'index.cjs'),
     copyTo(join(src_lse_core, 'standalone-package.json'), lse_core, 'package.json'),
     copyTo(srcroot('packages', '@lse', 'core', 'build', 'Release', 'lse-core.node'), join(lse_core, 'Release')),
     // @lse/react
-    copyTo(join(src_lse_react, 'lse-react-standalone.cjs'), lse_react, 'index.js'),
-    copyTo(join(src_lse_react, 'jsx-runtime.cjs'), lse_react, 'jsx-runtime.js'),
+    copyTo(join(src_lse_react, 'lse-react-standalone.cjs'), lse_react, 'index.cjs'),
+    copyTo(join(src_lse_react, 'jsx-runtime.cjs'), lse_react, 'jsx-runtime.cjs'),
     copyTo(join(src_lse_react, 'standalone-package.json'), lse_react, 'package.json'),
     // @lse/loader
     copyTo(join(src_lse_loader, 'index-standalone.mjs'), lse_loader, 'index.mjs'),

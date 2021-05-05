@@ -1,7 +1,7 @@
 {
   "type": "commonjs",
   "exports": {
-    ".": "./index.js",
-    "./jsx-runtime": "./jsx-runtime.js"
+    ".": "./index.cjs",
+    "./jsx-runtime": "./jsx-runtime.cjs"
   }
 }

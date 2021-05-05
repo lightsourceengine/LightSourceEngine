@@ -9,6 +9,7 @@ V_NODE_BIN=${V_SHARE_HOME}/node/{{node_version}}/bin/node
 
 export LSE_ENV="runtime"
 export LSE_PATH="${V_SHARE_HOME}/builtin"
+export NODE_PATH="${LSE_PATH}:${NODE_PATH}"
 export LSE_FONT_PATH="${V_SHARE_HOME}/assets"
 
 {{#if install_game_controller_db}}
@@ -32,5 +33,3 @@ if [ "${LSE_DISABLE_DEFAULT_LOADER}" = "1" ]; then
 else
   ${V_NODE_BIN} --loader "${LSE_PATH}/@lse/loader/index.mjs" "$@"
 fi
-
-
