@@ -5,34 +5,108 @@ on: workflow_dispatch
 env:
   npm_config_lse_install_opts: --jobs max
   npm_config_lse_enable_native_tests: 0
-  CI_URL: https://github.com/lightsourceengine/ci/releases/download/v1.1.0
+  CI_URL: https://github.com/lightsourceengine/ci/releases/download/v1.1.0/
 
 defaults:
   run:
     shell: bash
 
 jobs:
-  build-lse-runtime-linux-x64-job:
-    runs-on: ubuntu-18.04
+  build-lse-runtime:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # primary desktop builds
+          - host: windows-2019
+            platform: windows
+            arch: x64
+            artifact: desktop
+          - host: macos-10.15
+            platform: macos
+            arch: x64
+            artifact: desktop
+          - host: ubuntu-18.04
+            platform: linux
+            arch: x64
+            gcc: 8
+            artifact: desktop
+          # linux arm builds
+          - host: ubuntu-18.04
+            platform: linux
+            arch: arm64
+            gcc: 8
+            artifact: linux-arm
+          - host: ubuntu-18.04
+            platform: linux
+            arch: arm6l
+            gcc: 8.3.0
+            artifact: linux-arm
+          - host: ubuntu-18.04
+            platform: linux
+            arch: arm7l
+            gcc: 8.3.0
+            artifact: linux-arm
+          # board specific builds
+          - host: ubuntu-18.04
+            platform: nclassic
+            arch: armv7l
+            gcc: 6.5.0
+            artifact: board
+          - host: ubuntu-18.04
+            platform: pi
+            arch: armv6l
+            gcc: 8.3.0
+            artifact: board
+          - host: ubuntu-18.04
+            platform: pi
+            arch: armv7l
+            gcc: 8.3.0
+            artifact: board
+
+    name: ${{ format('{0}-{1}', matrix.platform, matrix.arch) }}
+
+    runs-on: ${{ matrix.host }}
+
     steps:
-      - name: Checkout
+      - name: Checkout LightSourceEngine
         uses: actions/checkout@v2
         with:
           path: srcroot
           submodules: recursive
 
-      - name: Install Node
+      - name: Checkout ci
+        if: contains(matrix.arch, 'arm64')
+        uses: actions/checkout@v2
+        with:
+          repository: lightsourceengine/ci
+          path: ci
+
+      - name: Set ci Path
+        if: contains(matrix.arch, 'arm64')
+        run: echo "${{ github.workspace }}/ci/bin" >> $GITHUB_PATH
+
+      - name: Install Node 15
+        if: contains(matrix.platform, 'nclassic')
+        uses: actions/setup-node@v1
+        with:
+          node-version: 15.6.0
+
+      - name: Install Node 16
+        if: !contains(matrix.platform, 'nclassic')
         uses: actions/setup-node@v1
         with:
           node-version: 16.0.0
 
-      - name: Install GCC8
+      - name: Install GCC Toolchain
+        if: startsWith(matrix.host, 'ubuntu')
         uses: ./srcroot/.github/actions/gcc-toolchain
         with:
-          arch: x64
-          version: 8
+          arch: ${{ matrix.arch }}
+          version: ${{ matrix.gcc }}
 
       - name: Install UPX
+        if: startsWith(matrix.host, 'ubuntu') || startsWith(matrix.host, 'macos')
         uses: ./srcroot/.github/actions/install-upx
 
       - name: Prepare scripts
@@ -40,170 +114,12 @@ jobs:
         working-directory: srcroot/scripts
 
       - name: Create Runtime Package
-        run: ./lse-runtime-build.js --recipe recipe://linux-x64
+        run: ./lse-runtime-build.js --recipe recipe://${{ matrix.platform }}-${{ matrix.arch }}
         working-directory: srcroot/scripts
 
       - name: Create AppImage
-        run: ./create-appimage.sh x64 ../build/LightSourceEngine-x64.AppDir ../build/LightSourceEngine-x64.AppImage
-        working-directory: srcroot/scripts
-
-      - name: Upload Runtime Package
-        uses: actions/upload-artifact@v2
-        with:
-          name: lse-runtime-desktop-artifact
-          if-no-files-found: error
-          retention-days: 3
-          path: srcroot/build/LightSourceEngine-*.AppImage
-
-  build-lse-runtime-linux-arm64-job:
-    runs-on: ubuntu-18.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          path: srcroot
-          submodules: recursive
-
-      - name: Checkout ci
-        uses: actions/checkout@v2
-        with:
-          repository: lightsourceengine/ci
-          path: ci
-
-      - name: Install UPX
-        uses: ./srcroot/.github/actions/install-upx
-
-      - name: Install Node
-        uses: actions/setup-node@v1
-        with:
-          node-version: 16.0.0
-
-      - name: Install GCC8
-        uses: ./srcroot/.github/actions/gcc-toolchain
-        with:
-          arch: aarch64
-          version: 8
-
-      - name: Create Runtime Package
+        if: startsWith(matrix.host, 'ubuntu')
         run: |
-          export PATH="${{github.workspace}}/ci/bin:${PATH}"
-          yarn
-          ./lse-runtime-build.js --recipe recipe://linux-arm64
-        working-directory: srcroot/scripts
-
-      - name: Create AppImage
-        run: ./create-appimage.sh arm64 ../build/LightSourceEngine-arm64.AppDir ../build/LightSourceEngine-arm64.AppImage
-        working-directory: srcroot/scripts
-
-      - name: Upload Runtime Package
-        uses: actions/upload-artifact@v2
-        with:
-          name: lse-runtime-desktop-artifact
-          if-no-files-found: error
-          retention-days: 3
-          path: srcroot/build/LightSourceEngine-*.AppImage
-
-  build-lse-runtime-mac-x64-job:
-    runs-on: macos-10.15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          path: srcroot
-          submodules: recursive
-
-      - name: Install Node
-        uses: actions/setup-node@v1
-        with:
-          node-version: 16.0.0
-
-      - name: Install UPX
-        uses: ./srcroot/.github/actions/install-upx
-
-      - name: Create Runtime Package
-        run: |
-          yarn
-          ./lse-runtime-build.js --recipe recipe://macos-x64
-        working-directory: srcroot/scripts
-
-      - name: Upload Runtime Package
-        uses: actions/upload-artifact@v2
-        with:
-          name: lse-runtime-desktop-artifact
-          if-no-files-found: error
-          retention-days: 3
-          path: srcroot/build/LightSourceEngine-*.tgz
-
-  build-lse-runtime-win-x64-job:
-    runs-on: windows-2019
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          path: srcroot
-          submodules: recursive
-
-      - name: Install Node
-        uses: actions/setup-node@v1
-        with:
-          node-version: 16.0.0
-
-      - name: Create Runtime Package
-        run: |
-          yarn
-          ./lse-runtime-build.js --recipe recipe://windows-x64
-        working-directory: srcroot/scripts
-
-      - name: Upload Runtime Package
-        uses: actions/upload-artifact@v2
-        with:
-          name: lse-runtime-desktop-artifact
-          if-no-files-found: error
-          retention-days: 3
-          path: srcroot/build/LightSourceEngine-*.zip
-
-  build-lse-runtime-linux-arm-job:
-    runs-on: ubuntu-18.04
-    strategy:
-      matrix:
-        include:
-          - recipe: linux-armv6l
-            artifact: lse-runtime-desktop-artifact
-            arch: armv6l
-          - recipe: linux-armv7l
-            artifact: lse-runtime-desktop-artifact
-            arch: armv7l
-          - recipe: nclassic-armv7l
-            artifact: lse-runtime-board-artifact
-          - recipe: pi-armv6l
-            artifact: lse-runtime-board-artifact
-          - recipe: pi-armv7l
-            artifact: lse-runtime-board-artifact
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          path: srcroot
-          submodules: recursive
-
-      - name: Install armhf Toolchain
-        uses: ./srcroot/.github/actions/gcc-toolchain
-        with:
-          arch: armhf
-          version: 8.3.0
-
-      - name: Install UPX
-        uses: ./srcroot/.github/actions/install-upx
-
-      - name: Install Node
-        uses: actions/setup-node@v1
-        with:
-          node-version: 16.0.0
-
-      - name: Create Runtime Package
-        run: |
-          yarn
-          ./lse-runtime-build.js --recipe recipe://${{ matrix.recipe }}
           if [ -d "../build/LightSourceEngine-${{ matrix.arch }}.AppDir" ]; then
             ./create-appimage.sh ${{ matrix.arch }} ../build/LightSourceEngine-${{ matrix.arch }}.AppDir ../build/LightSourceEngine-${{ matrix.arch }}.AppImage
           fi
@@ -212,7 +128,7 @@ jobs:
       - name: Upload Runtime Package
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.artifact }}
+          name: lse-runtime-${{ matrix.artifact }}-artifact
           if-no-files-found: error
           retention-days: 3
           path: |

@@ -2,7 +2,7 @@ name: 'gcc-toolchain'
 description: 'Installs an x64 gcc binary for compiling to target architectures of armhf, arm64 or x64. This action assumes the build is running on an x64 ubuntu system. '
 inputs:
   arch:
-    description: 'Values: armhf, arm64, x64'
+    description: 'Values: armhf (armv6l, armv7l), arm64 (aarch64), x64 (x86_64)'
     required: true
   version:
     description: 'Values by arch: armhf (6.5.0, 8.3.0), aarch64 (8), x64 (5,6,7,8)'
@@ -11,28 +11,26 @@ runs:
   using: 'composite'
   steps:
     - run: |
-        if [ "${{ inputs.arch }}" = "armhf" ]; then
-          wget ${CI_URL}/x64-gcc-${{ inputs.version }}.tar.xz
-          tar -xJf x64-gcc-${{ inputs.version }}.tar.xz
-          echo "${GITHUB_WORKSPACE}/x64-gcc-${{ inputs.version }}/arm-rpi-linux-gnueabihf/bin" >> $GITHUB_PATH
-          echo "CROSS_TOOLCHAIN_PREFIX=arm-rpi-linux-gnueabihf" >> $GITHUB_ENV
-        fi
-      shell: bash
-    - run: |
-        if [ "${{ inputs.arch }}" = "aarch64" ]; then
-          sudo apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
-          sudo apt-get update
-          sudo apt-get install -y g++-${{ inputs.version }}-aarch64-linux-gnu
-          echo "CROSS_TOOLCHAIN_VERSION=8" >> $GITHUB_ENV
-          echo "CROSS_TOOLCHAIN_PREFIX=aarch64-linux-gnu" >> $GITHUB_ENV
-        fi
-      shell: bash
-    - run: |
-        if [ "${{ inputs.arch }}" = "x64" ]; then
-          sudo apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
-          sudo apt-get update
-          sudo apt-get install -y g++-${{ inputs.version }}
-          echo "CC=gcc-${{ inputs.version }}" >> $GITHUB_ENV
-          echo "CXX=g++-${{ inputs.version }}" >> $GITHUB_ENV
-        fi
+        case "${{ inputs.arch }}" in
+          armhf | armv6l | armv7l)
+            wget ${CI_URL}/x64-gcc-${{ inputs.version }}.tar.xz
+            tar -xJf x64-gcc-${{ inputs.version }}.tar.xz
+            echo "${GITHUB_WORKSPACE}/x64-gcc-${{ inputs.version }}/arm-rpi-linux-gnueabihf/bin" >> $GITHUB_PATH
+            echo "CROSS_TOOLCHAIN_PREFIX=arm-rpi-linux-gnueabihf" >> $GITHUB_ENV
+          ;;
+          aarch64 | arm64)
+            sudo apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
+            sudo apt-get update
+            sudo apt-get install -y g++-${{ inputs.version }}-aarch64-linux-gnu
+            echo "CROSS_TOOLCHAIN_VERSION=8" >> $GITHUB_ENV
+            echo "CROSS_TOOLCHAIN_PREFIX=aarch64-linux-gnu" >> $GITHUB_ENV
+          ;;
+          x64 | x86_64)
+            sudo apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
+            sudo apt-get update
+            sudo apt-get install -y g++-${{ inputs.version }}
+            echo "CC=gcc-${{ inputs.version }}" >> $GITHUB_ENV
+            echo "CXX=g++-${{ inputs.version }}" >> $GITHUB_ENV
+          ;;
+        esac
       shell: bash
