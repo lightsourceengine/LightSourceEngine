@@ -78,7 +78,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Install GCC ${{ matrix.gcc-version }}
-        if: contains(matrix.os, 'ubuntu')
         uses: ./.github/actions/gcc-toolchain
         with:
           arch: x64

@@ -563,14 +563,18 @@ const createPackage = async (options) => {
   return file
 }
 
-const resolveProtocol = (url) => {
-  let u = new URL(url)
+const resolveProtocol = (value) => {
+  if (value) {
+    let u = new URL(value)
 
-  if (u.protocol === 'ci:') {
-    u = new URL(u.host, process.env.CI_URL ?? kCiUrlDefault)
+    if (u.protocol === 'ci:') {
+      u = new URL(u.host, process.env.CI_URL ?? kCiUrlDefault)
+    }
+
+    return u.href
   }
 
-  return u.href
+  return value
 }
 
 const getCommandLineOptions = async () => {
