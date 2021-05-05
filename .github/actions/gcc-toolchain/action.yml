@@ -24,7 +24,7 @@ runs:
           sudo apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
           sudo apt-get update
           sudo apt-get install -y g++-${{ inputs.version }}-aarch64-linux-gnu
-          echo "CROSS_TOOLCHAIN_VERSION=8" >> $GIT_ENV
+          echo "CROSS_TOOLCHAIN_VERSION=8" >> $GITHUB_ENV
           echo "CROSS_TOOLCHAIN_PREFIX=aarch64-linux-gnu" >> $GITHUB_ENV
         fi
       shell: bash
