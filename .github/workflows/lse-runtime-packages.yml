@@ -39,12 +39,12 @@ jobs:
             artifact: linux-arm
           - host: ubuntu-18.04
             platform: linux
-            arch: arm6l
+            arch: armv6l
             gcc: 8.3.0
             artifact: linux-arm
           - host: ubuntu-18.04
             platform: linux
-            arch: arm7l
+            arch: armv7l
             gcc: 8.3.0
             artifact: linux-arm
           # board specific builds
@@ -64,7 +64,7 @@ jobs:
             gcc: 8.3.0
             artifact: board
 
-    name: ${{ format('{0}-{1}', matrix.platform, matrix.arch) }}
+    name: ${{ format('lse-runtime-{0}-{1}', matrix.platform, matrix.arch) }}
 
     runs-on: ${{ matrix.host }}
 
