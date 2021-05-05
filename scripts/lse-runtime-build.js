@@ -80,6 +80,8 @@ const NodeSourceAlias = {
   ci: 'https://github.com/lightsourceengine/custom-node-builds/releases/download/'
 }
 
+const kCiUrlDefault = 'https://github.com/lightsourceengine/ci/releases/download/v1.1.0'
+
 const kGameControllerDbUrl = 'https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt'
 
 const arg = (name, type) => ({ name, type, multiple: false })
@@ -202,6 +204,8 @@ const compile = async (options) => {
 
   // Setup compile command. Either "cross [profile] yarn --force" or "yarn --force"
   if (options.platform === Platform.linux && options.targetArch !== process.arch) {
+    process.env.CROSS_TOOLCHAIN_PREFIX || exit('CROSS_TOOLCHAIN_PREFIX must be set before cross compiler can run.')
+
     let crossTarget
 
     if (options.platformType === PlatformType.nclassic) {
@@ -559,8 +563,15 @@ const createPackage = async (options) => {
   return file
 }
 
-const resolveProtocol = (url) => url?.startsWith('ci://') ?
-  url.replace('ci://', 'https://github.com/lightsourceengine/ci/releases/download/v1.0.0/') : url
+const resolveProtocol = (url) => {
+  let u = new URL(url)
+
+  if (u.protocol === 'ci:') {
+    u = new URL(u.host, process.env.CI_URL ?? kCiUrlDefault)
+  }
+
+  return u.href
+}
 
 const getCommandLineOptions = async () => {
   let options = cl(kArgSpec, { camelCase: true })

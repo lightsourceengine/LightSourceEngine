@@ -30,16 +30,12 @@ jobs:
         with:
           node-version: 16.0.0
 
-      - name: Linux Packages
+      - name: Install GCC8
         if: contains(matrix.os, 'ubuntu')
-        uses: ./.github/actions/apt-get
+        uses: ./.github/actions/gcc-toolchain
         with:
-          ppa: 'ubuntu-toolchain-r-test'
-          packages: g++-8 gcc-8
-
-      - name: Use GCC 8
-        if: contains(matrix.os, 'ubuntu')
-        uses: ./.github/actions/use-gcc-8
+          arch: x64
+          version: 8
 
       - name: Yarn Cache
         uses: egordm/gha-yarn-node-cache@v1
@@ -81,11 +77,12 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Linux Packages
-        uses: ./.github/actions/apt-get
+      - name: Install GCC ${{ matrix.gcc-version }}
+        if: contains(matrix.os, 'ubuntu')
+        uses: ./.github/actions/gcc-toolchain
         with:
-          ppa: 'ubuntu-toolchain-r-test'
-          packages: g++-${{ matrix.gcc-version }} gcc-${{ matrix.gcc-version }}
+          arch: x64
+          version: ${{ matrix.gcc-version }}
 
       - name: Yarn Cache
         uses: egordm/gha-yarn-node-cache@v1

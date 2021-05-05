@@ -1,9 +1,0 @@
-name: 'use-gcc-8'
-description: 'Replace system gcc and g++ with gcc-8 and g++-8.'
-runs:
-  using: "composite"
-  steps:
-    - run: |
-        sudo ln -s /usr/bin/gcc-8 /usr/local/bin/gcc
-        sudo ln -s /usr/bin/g++-8 /usr/local/bin/g++
-      shell: bash

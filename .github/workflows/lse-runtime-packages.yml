@@ -5,7 +5,6 @@ on: workflow_dispatch
 env:
   npm_config_lse_install_opts: --jobs max
   npm_config_lse_enable_native_tests: 0
-  CI_URL: https://github.com/lightsourceengine/ci/releases/download/v1.0.0
 
 defaults:
   run:
@@ -25,14 +24,11 @@ jobs:
         with:
           node-version: 16.0.0
 
-      - name: Linux Packages
-        uses: ./.github/actions/apt-get
+      - name: Install GCC8
+        uses: ./.github/actions/gcc-toolchain
         with:
-          ppa: 'ubuntu-toolchain-r-test'
-          packages: g++-8 gcc-8
-
-      - name: Use GCC 8
-        uses: ./.github/actions/use-gcc-8
+          arch: x64
+          version: 8
 
       - name: Install UPX
         uses: ./.github/actions/install-upx
@@ -59,9 +55,6 @@ jobs:
 
   build-lse-runtime-linux-arm64-job:
     runs-on: ubuntu-18.04
-    env:
-      CROSS_TOOLCHAIN_VERSION: 8
-      CROSS_TOOLCHAIN_PREFIX: aarch64-linux-gnu
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -83,10 +76,11 @@ jobs:
         with:
           node-version: 16.0.0
 
-      - name: Linux Packages
-        uses: ./srcroot/.github/actions/apt-get
+      - name: Install GCC8
+        uses: ./.github/actions/gcc-toolchain
         with:
-          packages: g++-8-aarch64-linux-gnu
+          arch: aarch64
+          version: 8
 
       - name: Create Runtime Package
         run: |
@@ -168,8 +162,6 @@ jobs:
 
   build-lse-runtime-linux-arm-job:
     runs-on: ubuntu-18.04
-    env:
-      CROSS_TOOLCHAIN_PREFIX: arm-rpi-linux-gnueabihf
     strategy:
       matrix:
         include:
@@ -192,11 +184,11 @@ jobs:
           path: srcroot
           submodules: recursive
 
-      - name: Get ARM Toolchain
-        run: |
-          wget ${CI_URL}/x64-gcc-8.3.0.tar.xz
-          tar -xJf x64-gcc-8.3.0.tar.xz
-          echo "${{github.workspace}}/x64-gcc-8.3.0/arm-rpi-linux-gnueabihf/bin" >> $GITHUB_PATH
+      - name: Install armhf Toolchain
+        uses: ./srcroot/.github/actions/gcc-toolchain
+        with:
+          arch: armhf
+          version: 8.3.0
 
       - name: Install UPX
         uses: ./srcroot/.github/actions/install-upx
