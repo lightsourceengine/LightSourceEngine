@@ -1,6 +1,7 @@
 platform: linux
 target-arch: armv7l
 install-game-controller-db: true
+install-lib-cpp: true
 format: appimage
 node-minimal: true
 node-bin-compress: false
