@@ -5,6 +5,7 @@ on: workflow_dispatch
 env:
   npm_config_lse_install_opts: --jobs max
   npm_config_lse_enable_native_tests: 0
+  CI_URL: https://github.com/lightsourceengine/ci/releases/download/v1.1.0
 
 defaults:
   run:
@@ -43,7 +44,7 @@ jobs:
         working-directory: srcroot/scripts
 
       - name: Create AppImage
-        run: ./create-appimage.sh x64 ../build/LightSourceEngine-x64.ai ../build/LightSourceEngine-x64.AppImage
+        run: ./create-appimage.sh x64 ../build/LightSourceEngine-x64.AppDir ../build/LightSourceEngine-x64.AppImage
         working-directory: srcroot/scripts
 
       - name: Upload Runtime Package
@@ -91,7 +92,7 @@ jobs:
         working-directory: srcroot/scripts
 
       - name: Create AppImage
-        run: ./create-appimage.sh arm64 ../build/LightSourceEngine-arm64.ai ../build/LightSourceEngine-arm64.AppImage
+        run: ./create-appimage.sh arm64 ../build/LightSourceEngine-arm64.AppDir ../build/LightSourceEngine-arm64.AppImage
         working-directory: srcroot/scripts
 
       - name: Upload Runtime Package
@@ -172,7 +173,7 @@ jobs:
           - recipe: linux-armv7l
             artifact: lse-runtime-desktop-artifact
             arch: armv7l
-          - recipe: nclassic
+          - recipe: nclassic-armv7l
             artifact: lse-runtime-board-artifact
           - recipe: pi-armv6l
             artifact: lse-runtime-board-artifact
@@ -203,7 +204,9 @@ jobs:
         run: |
           yarn
           ./lse-runtime-build.js --recipe recipe://${{ matrix.recipe }}
-          if [ -d "../build/LightSourceEngine-${{ matrix.arch }}.ai" ]; then ./create-appimage.sh ${{ matrix.arch }} ../build/LightSourceEngine-${{ matrix.arch }}.ai ../build/LightSourceEngine-${{ matrix.arch }}.AppImage; fi
+          if [ -d "../build/LightSourceEngine-${{ matrix.arch }}.AppDir" ]; then
+            ./create-appimage.sh ${{ matrix.arch }} ../build/LightSourceEngine-${{ matrix.arch }}.AppDir ../build/LightSourceEngine-${{ matrix.arch }}.AppImage
+          fi
         working-directory: srcroot/scripts
 
       - name: Upload Runtime Package

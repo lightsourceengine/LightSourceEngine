@@ -12,8 +12,7 @@ runs:
   steps:
     - run: |
         if [ "${{ inputs.arch }}" = "armhf" ]; then
-          V_CI_URL=${CI_URL:-https://github.com/lightsourceengine/ci/releases/download/v1.1.0}
-          wget ${V_CI_URL}/x64-gcc-${{ inputs.version }}.tar.xz
+          wget ${CI_URL}/x64-gcc-${{ inputs.version }}.tar.xz
           tar -xJf x64-gcc-${{ inputs.version }}.tar.xz
           echo "${GITHUB_WORKSPACE}/x64-gcc-${{ inputs.version }}/arm-rpi-linux-gnueabihf/bin" >> $GITHUB_PATH
           echo "CROSS_TOOLCHAIN_PREFIX=arm-rpi-linux-gnueabihf" >> $GITHUB_ENV

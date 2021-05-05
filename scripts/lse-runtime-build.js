@@ -668,7 +668,7 @@ const getCommandLineOptions = async () => {
       options.id = `${app}-${platformAlias}`
       break
     case Format.appimage:
-      options.id = `${app}-${options.targetArch}.ai`
+      options.id = `${app}-${options.targetArch}.AppDir`
       break
     case Format.zip:
     case Format.tgz:
