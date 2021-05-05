@@ -20,7 +20,7 @@ runs:
         fi
       shell: bash
     - run: |
-        if [ "${{ inputs.ppa }}" = "aarch64" ]; then
+        if [ "${{ inputs.arch }}" = "aarch64" ]; then
           sudo apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
           sudo apt-get update
           sudo apt-get install -y g++-${{ inputs.vesion }}-aarch64-linux-gnu
@@ -29,11 +29,11 @@ runs:
         fi
       shell: bash
     - run: |
-        if [ "${{ inputs.ppa }}" = "x64" ]; then
+        if [ "${{ inputs.arch }}" = "x64" ]; then
           sudo apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
           sudo apt-get update
           sudo apt-get install -y g++-${{ inputs.vesion }}
-          sudo ln -s /usr/bin/gcc-${{ inputs.vesion }} /usr/local/bin/gcc
-          sudo ln -s /usr/bin/g++-${{ inputs.vesion }} /usr/local/bin/g++
+          echo "CC=gcc-${{ inputs.vesion }}" >> $GITHUB_ENV
+          echo "CXX=g++-${{ inputs.vesion }}" >> $GITHUB_ENV
         fi
       shell: bash
