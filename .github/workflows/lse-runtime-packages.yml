@@ -135,3 +135,4 @@ jobs:
             srcroot/build/LightSourceEngine-*.tgz
             srcroot/build/LightSourceEngine-*.AppImage
             srcroot/build/LightSourceEngine-*.hmod
+            srcroot/build/LightSourceEngine-*.zip
