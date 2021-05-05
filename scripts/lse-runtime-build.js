@@ -80,7 +80,7 @@ const NodeSourceAlias = {
   ci: 'https://github.com/lightsourceengine/custom-node-builds/releases/download/'
 }
 
-const kCiUrlDefault = 'https://github.com/lightsourceengine/ci/releases/download/v1.1.0'
+const kCiUrlDefault = 'https://github.com/lightsourceengine/ci/releases/download/v1.1.0/'
 
 const kGameControllerDbUrl = 'https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt'
 
@@ -564,14 +564,15 @@ const createPackage = async (options) => {
 }
 
 const resolveProtocol = (value) => {
-  if (value) {
-    let u = new URL(value)
+  if (value?.startsWith('ci://')) {
+    let base = process.env.CI_URL || kCiUrlDefault
+    let file = (new URL(value)).host
 
-    if (u.protocol === 'ci:') {
-      u = new URL(u.host, process.env.CI_URL ?? kCiUrlDefault)
+    if (!base.endsWith('/')) {
+      base += '/'
     }
 
-    return u.href
+    return (new URL(file, base)).href
   }
 
   return value
@@ -644,6 +645,9 @@ const getCommandLineOptions = async () => {
   // resolve special protocols, like ci://, to a real url.
   options.sdlRuntime = resolveProtocol(options.sdlRuntime)
   options.sdlMixerRuntime = resolveProtocol(options.sdlMixerRuntime)
+
+  console.log(options.sdlRuntime)
+  console.log(options.sdlMixerRuntime)
 
   const { targetArch, platform } = options
 

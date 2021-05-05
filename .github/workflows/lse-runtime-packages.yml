@@ -17,6 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
+          path: srcroot
           submodules: recursive
 
       - name: Install Node
@@ -25,25 +26,25 @@ jobs:
           node-version: 16.0.0
 
       - name: Install GCC8
-        uses: ./.github/actions/gcc-toolchain
+        uses: ./srcroot/.github/actions/gcc-toolchain
         with:
           arch: x64
           version: 8
 
       - name: Install UPX
-        uses: ./.github/actions/install-upx
+        uses: ./srcroot/.github/actions/install-upx
 
       - name: Prepare scripts
         run: yarn
-        working-directory: scripts
+        working-directory: srcroot/scripts
 
       - name: Create Runtime Package
         run: ./lse-runtime-build.js --recipe recipe://linux-x64
-        working-directory: scripts
+        working-directory: srcroot/scripts
 
       - name: Create AppImage
         run: ./create-appimage.sh x64 ../build/LightSourceEngine-x64.ai ../build/LightSourceEngine-x64.AppImage
-        working-directory: scripts
+        working-directory: srcroot/scripts
 
       - name: Upload Runtime Package
         uses: actions/upload-artifact@v2
@@ -51,7 +52,7 @@ jobs:
           name: lse-runtime-desktop-artifact
           if-no-files-found: error
           retention-days: 3
-          path: build/LightSourceEngine-*.AppImage
+          path: srcroot/build/LightSourceEngine-*.AppImage
 
   build-lse-runtime-linux-arm64-job:
     runs-on: ubuntu-18.04
@@ -77,7 +78,7 @@ jobs:
           node-version: 16.0.0
 
       - name: Install GCC8
-        uses: ./.github/actions/gcc-toolchain
+        uses: ./srcroot/.github/actions/gcc-toolchain
         with:
           arch: aarch64
           version: 8

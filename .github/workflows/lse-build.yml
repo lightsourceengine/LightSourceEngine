@@ -62,9 +62,6 @@ jobs:
       matrix:
         node-version: [14, 15, 16]
         gcc-version: [5, 6]
-    env:
-      CC: gcc-${{ matrix.gcc-version }}
-      CXX: g++-${{ matrix.gcc-version }}
     runs-on: ubuntu-18.04
     steps:
       - name: Checkout
