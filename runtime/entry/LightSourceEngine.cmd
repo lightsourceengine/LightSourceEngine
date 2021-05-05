@@ -1,9 +1,10 @@
 @echo off
 
-SET V_SHARE_HOME=%~dp0\..\share\lse
+SET V_SHARE_HOME=%~dp0..\share\lse
+SET V_NODE_VERSION={{node_version}}
 SET LSE_PATH=%V_SHARE_HOME%\builtin
 SET LSE_FONT_PATH=%V_SHARE_HOME%\assets
-export NODE_PATH="%LSE_PATH%;%NODE_PATH%"
+SET NODE_PATH="%LSE_PATH%;%NODE_PATH%"
 SET LSE_ENV=runtime
 
 {{#if install_game_controller_db}}
@@ -11,7 +12,7 @@ IF "%LSE_GAME_CONTROLLER_DB%"=="" (SET LSE_GAME_CONTROLLER_DB=%V_SHARE_HOME%\ass
 {{/if}}
 
 IF "%LSE_DISABLE_DEFAULT_LOADER%"=="1" (
-  START "" "%V_SHARE_HOME%\node\{{node_version}}\node.exe" %*
+  START "" "%V_SHARE_HOME%\node\%V_NODE_VERSION%\node.exe" %*
 ) ELSE (
-  START "" "%V_SHARE_HOME%\node\{{node_version}}\node.exe" --loader "file://%V_SHARE_HOME%/builtin/@lse/loader/index.mjs" %*
+  START "" "%V_SHARE_HOME%\node\%V_NODE_VERSION%\node.exe" --loader "file://%V_SHARE_HOME%/builtin/@lse/loader/index.mjs" %*
 )
