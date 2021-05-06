@@ -1,4 +1,4 @@
-// Light Source Engine Version 1.5.0
+// Light Source Engine Version 1.7.0
 // Copyright (c) 2021 Light Source Software, LLC. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -17,15 +17,15 @@ import { letThereBeLight } from '@lse/react';
 import { jsx } from '@lse/react/jsx-runtime';
 
 const body = Style.createStyleClass({
-    backgroundImage: 'resource/pattern-1004855.jpg',
-    backgroundRepeat: 'repeat',
-    '@extend': '%absoluteFill'
+  backgroundImage: 'resource/pattern-1004855.jpg',
+  backgroundRepeat: 'repeat',
+  '@extend': '%absoluteFill'
 });
 
 letThereBeLight(jsx('box', {
-    class: body
+  class: body
 }), {
-    scene: {
-        fullscreen: false
-    }
+  scene: {
+    fullscreen: false
+  }
 });

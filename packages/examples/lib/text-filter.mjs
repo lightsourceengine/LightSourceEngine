@@ -1,4 +1,4 @@
-// Light Source Engine Version 1.5.0
+// Light Source Engine Version 1.7.0
 // Copyright (c) 2021 Light Source Software, LLC. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -17,53 +17,53 @@ import { letThereBeLight } from '@lse/react';
 import { jsx, jsxs } from '@lse/react/jsx-runtime';
 
 const sheet = Style.createStyleSheet({
-    filterNone: {
-        '@extend': '%cell'
-    },
-    filterFlipH: {
-        filter: Style.flipH(),
-        '@extend': '%cell'
-    },
-    filterFlipV: {
-        filter: Style.flipV(),
-        '@extend': '%cell'
-    },
-    filterFlipHV: {
-        filter: [ Style.flipH(), Style.flipV() ],
-        '@extend': '%cell'
-    },
-    filterTint: {
-        filter: Style.tint('dodgerblue'),
-        '@extend': '%cell'
-    },
-    body: {
-        padding: '4vh',
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        backgroundColor: '#264653',
-        '@extend': '%absoluteFill'
-    },
-    header: {
-        padding: '2vh',
-        color: '#264653',
-        backgroundColor: 'white',
-        fontSize: '2.5vh'
-    },
-    container: {
-        width: '49%',
-        marginBottom: '4vh',
-        border: 2,
-        borderColor: 'white'
-    },
-    '%cell': {
-        textAlign: 'center',
-        fontSize: '2.5vh',
-        color: 'lightgray',
-        padding: '2vh',
-        borderTop: 2,
-        borderColor: 'white'
-    }
+  filterNone: {
+    '@extend': '%cell'
+  },
+  filterFlipH: {
+    filter: Style.flipH(),
+    '@extend': '%cell'
+  },
+  filterFlipV: {
+    filter: Style.flipV(),
+    '@extend': '%cell'
+  },
+  filterFlipHV: {
+    filter: [ Style.flipH(), Style.flipV() ],
+    '@extend': '%cell'
+  },
+  filterTint: {
+    filter: Style.tint('dodgerblue'),
+    '@extend': '%cell'
+  },
+  body: {
+    padding: '4vh',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    backgroundColor: '#264653',
+    '@extend': '%absoluteFill'
+  },
+  header: {
+    padding: '2vh',
+    color: '#264653',
+    backgroundColor: 'white',
+    fontSize: '2.5vh'
+  },
+  container: {
+    width: '49%',
+    marginBottom: '4vh',
+    border: 2,
+    borderColor: 'white'
+  },
+  '%cell': {
+    textAlign: 'center',
+    fontSize: '2.5vh',
+    color: 'lightgray',
+    padding: '2vh',
+    borderTop: 2,
+    borderColor: 'white'
+  }
 });
 
 const message = 'Light Source Engine';
@@ -71,41 +71,41 @@ const message = 'Light Source Engine';
 const messageMultiline = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam dignissim at metus in finibus.';
 
 const Column = ({exampleClass, children}) => jsxs('box', {
-    class: sheet.container,
-    children: [ jsx('text', {
-        class: sheet.header,
-        children
-    }), jsx('text', {
-        class: exampleClass,
-        children: message
-    }), jsx('text', {
-        class: exampleClass,
-        children: messageMultiline
-    }) ]
+  class: sheet.container,
+  children: [ jsx('text', {
+    class: sheet.header,
+    children
+  }), jsx('text', {
+    class: exampleClass,
+    children: message
+  }), jsx('text', {
+    class: exampleClass,
+    children: messageMultiline
+  }) ]
 });
 
 const TextFilterApp = () => jsxs('box', {
-    class: sheet.body,
-    children: [ jsx(Column, {
-        exampleClass: sheet.filterNone,
-        children: 'filter: none'
-    }), jsx(Column, {
-        exampleClass: sheet.filterFlipH,
-        children: 'filter: flipH()'
-    }), jsx(Column, {
-        exampleClass: sheet.filterFlipV,
-        children: 'filter: flipV()'
-    }), jsx(Column, {
-        exampleClass: sheet.filterFlipHV,
-        children: 'filter: [ flipH(), flipV() ]'
-    }), jsx(Column, {
-        exampleClass: sheet.filterTint,
-        children: 'filter: tint(\'dodgerblue\')'
-    }) ]
+  class: sheet.body,
+  children: [ jsx(Column, {
+    exampleClass: sheet.filterNone,
+    children: 'filter: none'
+  }), jsx(Column, {
+    exampleClass: sheet.filterFlipH,
+    children: 'filter: flipH()'
+  }), jsx(Column, {
+    exampleClass: sheet.filterFlipV,
+    children: 'filter: flipV()'
+  }), jsx(Column, {
+    exampleClass: sheet.filterFlipHV,
+    children: 'filter: [ flipH(), flipV() ]'
+  }), jsx(Column, {
+    exampleClass: sheet.filterTint,
+    children: 'filter: tint(\'dodgerblue\')'
+  }) ]
 });
 
 letThereBeLight(jsx(TextFilterApp, {}), {
-    scene: {
-        fullscreen: false
-    }
+  scene: {
+    fullscreen: false
+  }
 });

@@ -1,4 +1,4 @@
-// Light Source Engine Version 1.5.0
+// Light Source Engine Version 1.7.0
 // Copyright (c) 2021 Light Source Software, LLC. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -19,78 +19,78 @@ import { jsx, jsxs } from '@lse/react/jsx-runtime';
 const background = 'resource/pexels-emiliano-arano-1295138.jpg';
 
 const sheet = Style.createStyleSheet({
-    filterNone: {
-        '@extend': '%cell'
-    },
-    filterFlipH: {
-        filter: Style.flipH(),
-        '@extend': '%cell'
-    },
-    filterFlipV: {
-        filter: Style.flipV(),
-        '@extend': '%cell'
-    },
-    filterTint: {
-        filter: Style.tint('red'),
-        '@extend': '%cell'
-    },
-    body: {
-        padding: '4vh',
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        backgroundColor: '#264653',
-        '@extend': '%absoluteFill'
-    },
-    header: {
-        padding: '2vh',
-        color: '#264653',
-        backgroundColor: 'white',
-        fontSize: '2.5vh'
-    },
-    container: {
-        width: '49%',
-        marginBottom: '4vh',
-        border: 2,
-        borderColor: 'white'
-    },
-    '%cell': {
-        objectFit: 'contain',
-        width: '100%',
-        height: '20vh'
-    }
+  filterNone: {
+    '@extend': '%cell'
+  },
+  filterFlipH: {
+    filter: Style.flipH(),
+    '@extend': '%cell'
+  },
+  filterFlipV: {
+    filter: Style.flipV(),
+    '@extend': '%cell'
+  },
+  filterTint: {
+    filter: Style.tint('red'),
+    '@extend': '%cell'
+  },
+  body: {
+    padding: '4vh',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    backgroundColor: '#264653',
+    '@extend': '%absoluteFill'
+  },
+  header: {
+    padding: '2vh',
+    color: '#264653',
+    backgroundColor: 'white',
+    fontSize: '2.5vh'
+  },
+  container: {
+    width: '49%',
+    marginBottom: '4vh',
+    border: 2,
+    borderColor: 'white'
+  },
+  '%cell': {
+    objectFit: 'contain',
+    width: '100%',
+    height: '20vh'
+  }
 });
 
 const Column = ({exampleClass, children}) => jsxs('box', {
-    class: sheet.container,
-    children: [ jsx('text', {
-        class: sheet.header,
-        children
-    }), jsx('img', {
-        src: background,
-        class: exampleClass
-    }) ]
+  class: sheet.container,
+  children: [ jsx('text', {
+    class: sheet.header,
+    children
+  }), jsx('img', {
+    src: background,
+    class: exampleClass
+  }) ]
 });
 
 const ImageFilterApp = () => jsxs('box', {
-    class: sheet.body,
-    children: [ jsx(Column, {
-        exampleClass: sheet.filterNone,
-        children: 'filter: none'
-    }), jsx(Column, {
-        exampleClass: sheet.filterFlipH,
-        children: 'filter: flipH()'
-    }), jsx(Column, {
-        exampleClass: sheet.filterFlipV,
-        children: 'filter: flipV()'
-    }), jsx(Column, {
-        exampleClass: sheet.filterTint,
-        children: 'filter: tint(\'red\')'
-    }) ]
+  class: sheet.body,
+  children: [ jsx(Column, {
+    exampleClass: sheet.filterNone,
+    children: 'filter: none'
+  }), jsx(Column, {
+    exampleClass: sheet.filterFlipH,
+    children: 'filter: flipH()'
+  }), jsx(Column, {
+    exampleClass: sheet.filterFlipV,
+    children: 'filter: flipV()'
+  }), jsx(Column, {
+    exampleClass: sheet.filterTint,
+    children: 'filter: tint(\'red\')'
+  }) ]
 });
 
 letThereBeLight(jsx(ImageFilterApp, {}), {
-    scene: {
-        fullscreen: false
-    }
+  scene: {
+    fullscreen: false
+  }
 });

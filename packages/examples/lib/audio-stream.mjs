@@ -1,4 +1,4 @@
-// Light Source Engine Version 1.5.0
+// Light Source Engine Version 1.7.0
 // Copyright (c) 2021 Light Source Software, LLC. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -19,51 +19,51 @@ import { useState, useEffect } from 'react';
 import { jsx } from '@lse/react/jsx-runtime';
 
 const sheet = Style.createStyleSheet({
-    body: {
-        backgroundColor: '#8d99ae',
-        padding: 20,
-        '@extend': '%absoluteFill'
-    },
-    label: {
-        fontWeight: 'bold',
-        color: '#2b2d42',
-        fontSize: 24
-    }
+  body: {
+    backgroundColor: '#8d99ae',
+    padding: 20,
+    '@extend': '%absoluteFill'
+  },
+  label: {
+    fontWeight: 'bold',
+    color: '#2b2d42',
+    fontSize: 24
+  }
 });
 
 const StreamingAudioApp = () => {
-    const [message, setMessage] = useState('Loading background music...');
-    useEffect(() => {
-        let music;
-        if (stage.audio.stream.hasDecoder(Constants.AudioDecoderType.OGG)) {
-            music = stage.audio.stream.add('resource/bensound-ukulele.ogg');
-        } else if (stage.audio.stream.hasDecoder(Constants.AudioDecoderType.MP3)) {
-            music = stage.audio.stream.add('resource/bensound-ukulele.mp3');
-        }
-        if (music) {
-            music.on('status', event => {
-                if (event.error) {
-                    setMessage('Error loading background music.');
-                } else {
-                    music.play();
-                    setMessage('Playing background music from file.');
-                }
-            });
+  const [message, setMessage] = useState('Loading background music...');
+  useEffect(() => {
+    let music;
+    if (stage.audio.stream.hasDecoder(Constants.AudioDecoderType.OGG)) {
+      music = stage.audio.stream.add('resource/bensound-ukulele.ogg');
+    } else if (stage.audio.stream.hasDecoder(Constants.AudioDecoderType.MP3)) {
+      music = stage.audio.stream.add('resource/bensound-ukulele.mp3');
+    }
+    if (music) {
+      music.on('status', event => {
+        if (event.error) {
+          setMessage('Error loading background music.');
         } else {
-            setMessage('No mp3 or ogg decoder available.');
+          music.play();
+          setMessage('Playing background music from file.');
         }
-    }, []);
-    return jsx('box', {
-        class: sheet.body,
-        children: jsx('text', {
-            class: sheet.label,
-            children: message
-        })
-    });
+      });
+    } else {
+      setMessage('No mp3 or ogg decoder available.');
+    }
+  }, []);
+  return jsx('box', {
+    class: sheet.body,
+    children: jsx('text', {
+      class: sheet.label,
+      children: message
+    })
+  });
 };
 
 letThereBeLight(jsx(StreamingAudioApp, {}), {
-    scene: {
-        fullscreen: false
-    }
+  scene: {
+    fullscreen: false
+  }
 });
