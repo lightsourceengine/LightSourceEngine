@@ -268,7 +268,7 @@ const stripBin = async (options) => {
     status.compile.update('stripping executable symbols')
     await exec(
       withToolchainPrefix('strip', options),
-      [join(options.roots.builtin, '@lse', 'core', 'Release', 'lse-core.node')])
+      [join(options.roots.builtin, '@lse', 'core', 'build', 'lse-core.node')])
   }
 }
 
@@ -398,18 +398,20 @@ const installLibCpp = async (options) => {
 const installNodePackages = async (options) => {
   const { roots } = options
 
-  const src_react = srcroot('packages', 'react-standalone', 'dist')
+  const src_standalone = srcroot('packages', 'standalone', 'dist')
   const src_lse_react = srcroot('packages', '@lse', 'react', 'dist')
   const src_lse_core = srcroot('packages', '@lse', 'core', 'dist')
   const src_lse_loader = srcroot('packages', '@lse', 'loader', 'dist')
 
   let react
+  let bindings
   let lse_react
   let lse_core
   let lse_loader
   
   await group(
     ensureDir(react = join(roots.builtin, 'react')),
+    ensureDir(bindings = join(roots.builtin, 'bindings')),
     ensureDir(lse_react = join(roots.builtin, '@lse', 'react')),
     ensureDir(lse_core = join(roots.builtin, '@lse', 'core')),
     ensureDir(lse_loader = join(roots.builtin, '@lse', 'loader')),
@@ -417,14 +419,17 @@ const installNodePackages = async (options) => {
   
   await group(
     // react
-    copyTo(join(src_react, 'index.cjs'), react),
-    copyTo(join(src_react, 'jsx-runtime.cjs'), react),
-    copyTo(join(src_react, 'jsx-dev-runtime.cjs'), react),
-    copyTo(join(src_react, 'standalone-package.json'), react, 'package.json'),
+    copyTo(join(src_standalone, 'react.cjs'), react, 'index.cjs'),
+    copyTo(join(src_standalone, 'jsx-runtime.cjs'), react),
+    copyTo(join(src_standalone, 'jsx-dev-runtime.cjs'), react),
+    copyTo(join(src_standalone, 'react-package.json'), react, 'package.json'),
+    // bindings
+    copyTo(join(src_standalone, 'bindings.cjs'), bindings, 'index.cjs'),
+    copyTo(join(src_standalone, 'bindings-package.json'), bindings, 'package.json'),
     // @lse/core
     copyTo(join(src_lse_core, 'lse-core-standalone.cjs'), lse_core, 'index.cjs'),
     copyTo(join(src_lse_core, 'standalone-package.json'), lse_core, 'package.json'),
-    copyTo(srcroot('packages', '@lse', 'core', 'build', 'Release', 'lse-core.node'), join(lse_core, 'Release')),
+    copyTo(srcroot('packages', '@lse', 'core', 'build', 'Release', 'lse-core.node'), join(lse_core, 'build')),
     // @lse/react
     copyTo(join(src_lse_react, 'lse-react-standalone.cjs'), lse_react, 'index.cjs'),
     copyTo(join(src_lse_react, 'jsx-runtime.cjs'), lse_react, 'jsx-runtime.cjs'),
@@ -645,9 +650,6 @@ const getCommandLineOptions = async () => {
   // resolve special protocols, like ci://, to a real url.
   options.sdlRuntime = resolveProtocol(options.sdlRuntime)
   options.sdlMixerRuntime = resolveProtocol(options.sdlMixerRuntime)
-
-  console.log(options.sdlRuntime)
-  console.log(options.sdlMixerRuntime)
 
   const { targetArch, platform } = options
 

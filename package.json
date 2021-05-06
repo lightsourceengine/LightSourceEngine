@@ -2,8 +2,8 @@
   "private": true,
   "workspaces": [
     "packages/napi-unit",
-    "packages/react-standalone",
-    "packages/react-reconciler-standalone",
+    "packages/standalone",
+    "packages/@lse/reconciler",
     "packages/@lse/loader",
     "packages/@lse/core",
     "packages/@lse/react",

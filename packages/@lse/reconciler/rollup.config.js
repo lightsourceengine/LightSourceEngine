@@ -14,7 +14,7 @@
 import autoExternal from 'rollup-plugin-auto-external'
 import nodeResolve from '@rollup/plugin-node-resolve'
 import { resolve } from 'path'
-import { onwarn, replaceObjectAssign, nodeEnv, beautify } from '../rollup/plugins'
+import { onwarn, replaceObjectAssign, nodeEnv, beautify } from '../../rollup/plugins.js'
 import commonjs from '@rollup/plugin-commonjs'
 import inject from '@rollup/plugin-inject'
 

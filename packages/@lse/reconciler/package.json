@@ -1,5 +1,5 @@
 {
-  "name": "react-reconciler-standalone",
+  "name": "@lse/reconciler",
   "private": true,
   "version": "1.0.0-private.0",
   "type": "module",

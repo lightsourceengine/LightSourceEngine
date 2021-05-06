@@ -11,21 +11,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import { resolve } from 'path'
 import bindings from 'bindings'
 
 const loadNativeAddon = () => {
-  const { LSE_ENV, LSE_PATH } = process.env
   const NATIVE_MODULE_NAME = 'lse-core.node'
 
   try {
-    if (LSE_ENV === 'runtime') {
-      // In "lse-node" mode, load the native module from the pseudo-builtin module path.
-      return require(resolve(LSE_PATH, '@lse', 'core', 'Release', NATIVE_MODULE_NAME))
-    } else {
-      // In "node" mode, load the native module from the package manager installed node_modules.
-      return bindings(NATIVE_MODULE_NAME)
-    }
+    return bindings(NATIVE_MODULE_NAME)
   } catch (e) {
     console.error(`ERROR: Cannot load native code from ${NATIVE_MODULE_NAME}: ${e.message}`)
     process.exit(1)

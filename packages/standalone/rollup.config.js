@@ -13,6 +13,31 @@
 
 import { onwarn, replaceObjectAssign } from '../rollup/plugins'
 import copy from 'rollup-plugin-copy'
+import replace from 'rollup-plugin-re'
+
+const bindings = () => (
+  {
+    treeshake: false,
+    input: require.resolve('bindings/bindings.js'),
+    onwarn,
+    output: {
+      format: 'cjs',
+      file: 'dist/bindings.cjs',
+      preferConst: true
+    },
+    plugins: [
+      replace({
+        replaces: {
+          'fileURLToPath = require(\'file-uri-to-path\')': '{ fileURLToPath } = require(\'url\')'
+        }
+      }),
+      copy({
+        targets: [{src: 'bindings-package.json' , dest: 'dist' }],
+        copyOnce: true
+      })
+    ]
+  }
+)
 
 const reactStandalone = (reactSource, file) => ({
   input: require.resolve(reactSource),
@@ -25,14 +50,15 @@ const reactStandalone = (reactSource, file) => ({
   plugins: [
     replaceObjectAssign(),
     copy({
-      targets: [{src: 'standalone-package.json' , dest: 'dist' }],
+      targets: [{src: 'react-package.json' , dest: 'dist' }],
       copyOnce: true
     })
   ]
 })
 
 export default [
-  reactStandalone('react/cjs/react.production.min.js', 'index'),
+  bindings(),
+  reactStandalone('react/cjs/react.production.min.js', 'react'),
   reactStandalone('react/cjs/react-jsx-runtime.production.min.js', 'jsx-runtime'),
   reactStandalone('react/cjs/react-jsx-dev-runtime.production.min.js', 'jsx-dev-runtime')
 ]

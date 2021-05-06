@@ -12,7 +12,7 @@
  */
 
 import { stage, logger, Constants } from '@lse/core'
-import { shutdown } from 'react-reconciler-standalone'
+import { shutdown } from '@lse/reconciler'
 import React from 'react'
 import chai from 'chai'
 import { getActiveContainers, render } from '../src/renderer.mjs'

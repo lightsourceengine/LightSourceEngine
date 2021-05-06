@@ -24,10 +24,6 @@ const lseVersion = () => replace({
   }
 })
 
-const inlineBindings = () => inlineModule({
-  bindings: 'export default {}'
-})
-
 const lightSourceNpm = (input) => (
   {
     input,
@@ -65,10 +61,7 @@ const lightSourceStandalone = (input) => ({
     preferConst: true
   },
   plugins: [
-    autoExternal({
-      dependencies: false
-    }),
-    inlineBindings(),
+    autoExternal(),
     resolve(),
     lseVersion(),
     minify({
