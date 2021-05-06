@@ -299,17 +299,10 @@ const installGameControllerDb = async (options) => {
   }
 }
 
-const installFonts = async (options) => {
-  const { roots } = options
-  const src = srcroot('packages', '@lse', 'core', 'src', 'font')
+const installFontLicense = async (options) => {
+  status.meta.update('installing font license')
 
-  status.meta.update('installing fonts')
-
-  await group(
-    copyTo(join(src, 'LICENSE-Roboto.txt'), roots.licenses_fonts),
-    copyTo(join(src, 'Roboto-Regular-Latin.woff'), roots.assets),
-    copyTo(join(src, 'font.manifest'), roots.assets)
-  )
+  await copyTo(srcroot('packages', '@lse', 'core', 'src', 'font', 'LICENSE-Roboto.txt'), options.roots.licenses_fonts)
 }
 
 const installSDL = async (options) => {
@@ -429,6 +422,7 @@ const installNodePackages = async (options) => {
     // @lse/core
     copyTo(join(src_lse_core, 'lse-core-standalone.cjs'), lse_core, 'index.cjs'),
     copyTo(join(src_lse_core, 'standalone-package.json'), lse_core, 'package.json'),
+    copyTo(join(src_lse_core, 'Roboto-Regular-Latin.woff'), lse_core),
     copyTo(srcroot('packages', '@lse', 'core', 'build', 'Release', 'lse-core.node'), join(lse_core, 'build')),
     // @lse/react
     copyTo(join(src_lse_react, 'lse-react-standalone.cjs'), lse_react, 'index.cjs'),
@@ -738,7 +732,7 @@ const main = async () => {
     // share/lse/assets
     group(
       installGameControllerDb(options),
-      installFonts(options)
+      installFontLicense(options)
     ).then(() => status.assets.succeed()),
     // share/lse/node
     installNode(options)

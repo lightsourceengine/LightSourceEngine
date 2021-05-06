@@ -7,10 +7,8 @@ V_SHARE_HOME="$(cd "$(dirname "$0")/{{share_home}}" && pwd -P)"
 {{/if}}
 V_NODE_BIN=${V_SHARE_HOME}/node/{{node_version}}/bin/node
 
-export LSE_ENV="runtime"
 export LSE_PATH="${V_SHARE_HOME}/builtin"
 export NODE_PATH="${LSE_PATH}:${NODE_PATH}"
-export LSE_FONT_PATH="${V_SHARE_HOME}/assets"
 
 {{#if install_game_controller_db}}
 export LSE_GAME_CONTROLLER_DB="${LSE_GAME_CONTROLLER_DB:-"${V_SHARE_HOME}/assets/gamecontrollerdb.txt"}"

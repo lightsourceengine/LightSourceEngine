@@ -27,7 +27,7 @@ const toFontUri = (buffer, mediaType) => `data:font/${mediaType};base64,${buffer
 describe('FontManager', () => {
   let manager
   beforeEach(() => {
-    manager = new FontManager(false)
+    manager = new FontManager()
   })
   afterEach(() => {
     manager.$destroy()

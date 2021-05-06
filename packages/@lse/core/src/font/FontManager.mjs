@@ -14,8 +14,7 @@
 import { CFontManager, FontStatus, FontStyle, FontWeight, logger } from '../addon/index.mjs'
 import { Font } from './Font.mjs'
 import { createErrorStatusEvent, createReadyStatusEvent } from '../event/index.mjs'
-import { join, isAbsolute, normalize } from 'path'
-import { readFileSync } from 'fs'
+import { join } from 'path'
 import { isDataUri } from '../util/index.mjs'
 import { builtinFontPath } from './builtinFontPath.mjs'
 
@@ -31,10 +30,6 @@ class FontManager {
   _fonts = new Map()
   _native = new CFontManager()
   _defaultFontFamily = ''
-
-  constructor (enableBootstrapFonts = true) {
-    enableBootstrapFonts && bootstrapFonts(this)
-  }
 
   /**
    * List of fonts currently available in the font manager. The fonts in this array are no particular order.
@@ -90,16 +85,7 @@ class FontManager {
       throw Error(`index - expected: integer, got: ${index}`)
     }
 
-    let exists = false
-
-    for (const [, value] of _fonts) {
-      if (value.family === family && value.style === style && value.weight === weight) {
-        exists = true
-        break
-      }
-    }
-
-    if (exists) {
+    if (this._fontExists(family, style, weight)) {
       throw Error(`'${family}':${style}:${weight} - already exists`)
     }
 
@@ -179,6 +165,33 @@ class FontManager {
   get $native () {
     return this._native
   }
+
+  /**
+   * @ignore
+   */
+  $bootstrapFonts () {
+    const family = 'roboto-builtin'
+
+    if (!this._fontExists(family, 'normal', 'normal')) {
+      this.add({
+        uri: join(builtinFontPath, 'Roboto-Regular-Latin.woff'),
+        family
+      })
+    }
+  }
+
+  /**
+   * @ignore
+   */
+  _fontExists (family, style, weight) {
+    for (const [, value] of this._fonts) {
+      if (value.family === family && value.style === style && value.weight === weight) {
+        return true
+      }
+    }
+
+    return false
+  }
 }
 
 const fontStyleToInt = new Map([
@@ -235,52 +248,6 @@ const processStatusChange = (self, id, newStatus, defer) => {
       queueMicrotask(() => font.dispatchEvent(event))
     } else {
       font.dispatchEvent(event)
-    }
-  }
-}
-
-const bootstrapFonts = (self) => {
-  const { LSE_FONT_PATH, LSE_ENV } = process.env
-  let fontManifest
-
-  if (LSE_FONT_PATH) {
-    // If LSE_FONT_PATH is set, load the font manifest in this directory.
-    const fontManifestFile = join(LSE_FONT_PATH, 'font.manifest')
-
-    try {
-      fontManifest = JSON.parse(readFileSync(fontManifestFile, 'utf8'))
-    } catch (e) {
-      logger.warn(`Error loading '${fontManifestFile}': ${e.message}`)
-      return
-    }
-
-    if (!Array.isArray(fontManifest)) {
-      logger.warn(`Expected array from '${fontManifestFile}'`)
-      return
-    }
-
-    for (const entry of fontManifest) {
-      if (typeof entry.uri === 'string' && !isAbsolute(entry.uri)) {
-        entry.uri = normalize(join(LSE_FONT_PATH, entry.uri))
-      }
-    }
-  } else if (LSE_ENV !== 'runtime') {
-    // If LSE_FONT_PATH is NOT set and the environment is NOT lse-node, load the specific
-    // "builtin" ttf. This is to cover the use case of running from the mono repo or an
-    // project that installs @lse/core from npm.
-    fontManifest = [
-      {
-        uri: join(builtinFontPath, 'Roboto-Regular-Latin.woff'),
-        family: 'roboto-builtin'
-      }
-    ]
-  }
-
-  for (const spec of fontManifest || []) {
-    try {
-      self.add(spec)
-    } catch (e) {
-      logger.warn(`font.manifest contains invalid spec: ${spec.uri}`)
     }
   }
 }

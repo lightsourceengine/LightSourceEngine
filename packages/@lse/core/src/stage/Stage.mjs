@@ -171,6 +171,8 @@ class Stage extends EventTarget {
 
     const scene = new Scene(this, sceneConfig)
 
+    this.font.$bootstrapFonts()
+
     scene.once(EventName.destroying, ({ target }) => {
       this._scenes.delete(target.displayIndex)
       if (target === this.$scene) {

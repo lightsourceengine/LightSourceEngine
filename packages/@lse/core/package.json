@@ -20,7 +20,6 @@
     "dist/lse-core.cjs",
     "dist/Roboto*",
     "dist/LICENSE*",
-    "dist/font.manifest",
 
     "binding.gyp",
     "addon/common.gypi",

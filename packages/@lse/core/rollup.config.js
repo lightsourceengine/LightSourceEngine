@@ -44,8 +44,7 @@ const lightSourceNpm = (input) => (
       copy({
         targets: [
           { src: 'src/font/*.woff', dest: 'dist' },
-          { src: 'src/font/LICENSE*', dest: 'dist' },
-          { src: 'src/font/font.manifest', dest: 'dist' }
+          { src: 'src/font/LICENSE*', dest: 'dist' }
         ]
       })
     ]
